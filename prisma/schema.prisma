@@ -1,0 +1,901 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum PrivacyTier {
+  PUBLIC        // Full name, photo, complete history visible to all
+  SEMI_PUBLIC   // First name + last initial, company names, role level
+  PRIVATE       // Fully anonymized signal only
+  STEALTH       // Visible only to pre-approved companies
+  LOCKED        // Invisible to all searches (building profile)
+}
+
+enum EmploymentSituation {
+  COMPANY_WIDE_LAYOFF
+  DIVISION_ELIMINATED
+  COMPANY_SHUTDOWN
+  ACQUISITION_REDUNDANCY
+  OFFSHORED_OUTSOURCED
+  LEFT_TO_START_SOMETHING
+  CAREGIVER_LEAVE
+  SABBATICAL
+  VALUES_MISALIGNMENT
+  CAREER_PIVOT
+  BURNOUT
+  NEW_MANAGEMENT
+  LEFT_DIFFICULT_ENVIRONMENT
+  PERFORMANCE_SEPARATION
+  COMPLICATED
+  FIRST_ROLE
+  RETURNING_AFTER_ABSENCE
+  RELOCATED_FOR_FAMILY
+  MEDICAL_LEAVE
+  CURRENTLY_EMPLOYED_EXPLORING
+}
+
+enum CurrentJobStatus {
+  EMPLOYED_CONSIDERING_MOVE
+  LAID_OFF
+  RESIGNED
+  CAREGIVER_LEAVE_SABBATICAL
+  CAREER_PIVOT
+  RELOCATED_FOR_FAMILY
+  NEW_GRADUATE_FIRST_JOB
+}
+
+enum GapDurationBucket {
+  ZERO_TO_THREE_MONTHS
+  THREE_TO_SIX_MONTHS
+  SIX_TO_TWELVE_MONTHS
+  TWELVE_PLUS_MONTHS
+}
+
+enum VisibilityTier {
+  EMERGING    // Assessment complete
+  SIGNAL      // 2 refs + 1 work sample
+  VERIFIED    // 360 survey + 3 refs + full suite
+  SPOTLIGHT   // All verified + extras
+}
+
+enum ReferenceType {
+  DIRECT_MANAGER
+  SKIP_LEVEL_MANAGER
+  PEER
+  DIRECT_REPORT
+  CLIENT
+  VENDOR
+  FACULTY_ADVISOR
+  OTHER
+}
+
+enum ReferenceStatus {
+  REQUESTED
+  REMINDER_SENT
+  COMPLETED
+  DECLINED
+  EXPIRED
+}
+
+enum EmployerTier {
+  CHARTER     // Free/minimal — product partners
+  STANDARD    // $200/mo
+  PRO         // $500-600/mo
+}
+
+enum EmployerSubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+enum CandidateInterestStatus {
+  VIEWED
+  SAVED
+  INTEREST_EXPRESSED
+  CANDIDATE_REVEALED
+  IN_CONVERSATION
+  HIRED
+  PASSED
+}
+
+// ── CANDIDATE SIDE ───────────────────────────────────────────────────────────
+
+model CandidateProfile {
+  id                    String               @id @default(cuid())
+  userId                String               @unique
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  // Privacy & Visibility
+  privacyTier           PrivacyTier          @default(LOCKED)
+  visibilityTier        VisibilityTier       @default(EMERGING)
+  employabilityScore    Int                  @default(0)
+  scoreLastCalculated   DateTime?
+
+  // Pre-onboarding: "Your Why"
+  jobSearchIntensity    Int?                 // 0-100 slider, "casually looking" -> "extremely"
+  desireComplete        Boolean              @default(false)
+
+  // Part 1: Your Situation
+  currentJobStatus      CurrentJobStatus?
+  gapDuration           GapDurationBucket?   // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
+  currentCity           String?              // resume-derived (Phase 1), candidate-confirmable
+  currentState          String?
+  currentCountry        String               @default("US")
+  openToRelocation      Boolean              @default(false)
+  relocationNotes       String?
+  remotePreference      String?              // "remote" | "hybrid" | "onsite" | "flexible" | "open_to_relocating"
+
+  // Part 2: Working Style — see QuadBlock/LikertItem/CandidateAssessmentResponse
+  // below. Superseded the old -2..+2 self-rated sliders with an ipsative
+  // forced-choice + Likert cross-validation instrument.
+
+  // Part 3: Experience
+  yearsExperience            Int?            // resume-derived (Phase 1), candidate-confirmable
+  highestLevelReached        String?         // "IC", "Manager", "Director", "VP", "C-Suite"
+  primaryFunction            String?         // resume-derived (Phase 1), candidate-confirmable
+  industryContext            String?         // resume-derived (Phase 1), candidate-confirmable
+  isPeopleManager            Boolean?        // gates teamSizeManaged + managementSkillConfidence questions
+  teamSizeManaged            Int?            // 0 = IC, otherwise largest team managed
+  knownFor                   String?         // "How former colleagues would describe me" — required before requesting references
+  functionSkillConfidence    Int?            // 0-100, 4-stop discrete scale ("Good" -> "Among the best in my field")
+  aiFlexibilityLevel         Int?            // 0-100, repurposed as AI-skill confidence slider, same 4-stop scale
+  managementSkillConfidence  Int?            // 0-100, 4-stop "soft trait" scale, only asked if isPeopleManager
+  actionOrientedConfidence   Int?            // 0-100, 4-stop "soft trait" scale
+  creativityConfidence       Int?            // 0-100, 4-stop "soft trait" scale
+  communicatorConfidence     Int?            // 0-100, 4-stop "soft trait" scale
+  jobSearchDifficultyLevel   Int?            // 1-4, "How difficult has your job search been so far?"
+
+  // Part 4: Goals
+  targetRoleType        String?
+  targetIndustries      String[]
+  targetCompanySize     String?
+  targetCompanyStage    String?
+  targetCompMin         Int?
+  compFlexible          Boolean              @default(false)
+  willingToStartLower   Boolean              @default(false)
+  startLowerRationale   String?
+  equityImportant       Boolean              @default(false)
+  dealBreakers          String?
+
+  // Resume auto-fill (Phase 1) — unconfirmed until candidate confirms via action plan
+  firstName                String?
+  lastName                  String?
+  phone                     String?
+  streetAddress             String?
+  graduationDate            DateTime?
+  resumeFirstJobStartDate   DateTime?
+  resumeLatestJobTitle      String?
+  resumeAiReadinessScore    Int?
+  resumeAiReadinessNotes    String?
+
+  // Action-plan-only questions (not asked during onboarding)
+  lastSalary            Int?
+  workAuthorization     String?
+
+  // Action-plan confirmation tracking
+  profileConfirmedAt    DateTime?
+  industryConfirmedAt   DateTime?
+  functionConfirmedAt   DateTime?
+  salaryConfirmedAt     DateTime?
+  workAuthConfirmedAt   DateTime?
+
+  // LinkedIn & job-search behaviors
+  linkedInUrl                String?
+  linkedInConfirmedAt        DateTime?  // set once candidate provides a URL or explicitly says they don't have one yet — mandatory first action-plan item
+  networkingListSubmittedAt  DateTime?  // "25 people" networking assignment
+  askedForHelpAt             DateTime?
+
+  // Forced Tradeoff Rankings (1-10, lower = higher priority)
+  priorityMaxComp       Int?
+  priorityBrandName     Int?
+  priorityJobSecurity   Int?
+  priorityWorkLife      Int?
+  priorityMission       Int?
+
+  // Display fields (computed from privacy tier)
+  displayName           String?              // Set based on privacy tier
+  displayCompany        String?
+
+  // Onboarding completion tracking
+  part1Complete         Boolean              @default(false)
+  part2Complete         Boolean              @default(false)
+  part3Complete         Boolean              @default(false)
+  part4Complete         Boolean              @default(false)
+  assessmentComplete    Boolean              @default(false)
+  assessmentCompletedAt DateTime?            // set alongside assessmentComplete — used for reminder cadence math
+
+  // Deferred signup (resume-first onboarding, account creation last)
+  email                    String?           // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
+  resumeStepComplete       Boolean           @default(false)
+  registrationCompletedAt  DateTime?         // set once the anonymous->permanent auth conversion completes
+  lastReminderSentAt       DateTime?
+  reminderEmailCount       Int               @default(0)
+  reminderEmailsOptedOut   Boolean           @default(false)
+
+  // Relations
+  workHistory           WorkHistoryEntry[]
+  references            Reference[]
+  workSamples           WorkSample[]
+  interviewResponses    InterviewResponse[]
+  peerNominations       PeerNomination[]
+  learningBadges        LearningBadge[]
+  employerInteractions  CandidateInteraction[]
+  scoreHistory          EmployabilityScoreHistory[]
+  approvedEmployers     ApprovedEmployer[]
+  assessmentResults     AssessmentResult[]
+  assessmentResponses   CandidateAssessmentResponse[]
+  resumes               Resume[]
+  jobPostings           JobPosting[]
+  communityPosts        CommunityPost[]
+  expressedInterests    CommunityPostInterest[]
+  hireabilityReports    HireabilityReport[]
+  linkedInActivityLogs  LinkedInActivityLog[]
+  coachConversation     CoachConversation?
+
+  @@index([privacyTier, visibilityTier])
+  @@index([employabilityScore])
+  @@index([currentJobStatus])
+  @@index([currentState, currentCity])
+}
+
+model WorkHistoryEntry {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  companyName     String
+  companyIndustry String?
+  roleTitle       String
+  startDate       DateTime
+  endDate         DateTime?        // null = current
+  isCurrent       Boolean          @default(false)
+  teamSize        Int?
+  managedPeople   Boolean          @default(false)
+  keyAchievement  String?
+  departureReason EmploymentSituation?
+  verified        Boolean          @default(false)
+  verifiedBy      String?
+
+  @@index([candidateId])
+}
+
+model Reference {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  refereeEmail    String
+  refereeName     String
+  refereeTitle    String?
+  refereeCompany  String?
+  relationshipType ReferenceType
+  yearsWorkedTogether Int?
+  verifiedRelationship Boolean     @default(false)
+  status          ReferenceStatus  @default(REQUESTED)
+  requestedAt     DateTime         @default(now())
+  completedAt     DateTime?
+  token           String           @unique @default(cuid())
+
+  // Behavioral ratings (1-5 scale)
+  ratingReliability       Int?
+  ratingCommunication     Int?
+  ratingConflictNav       Int?
+  ratingTeamLift          Int?
+  ratingWorkEthic         Int?
+  ratingGrowthMindset     Int?
+  ratingPositivity        Int?
+  overallRating           Int?
+
+  // Qualitative (shown to employers in summary only)
+  strengthSummary         String?
+  growthAreaSummary       String?
+  wouldHireAgain          Boolean?
+  contextNotes            String?
+
+  // BARS ratings per dimension (1-5 scale with behavioral anchors)
+  // Used to compute CandidateAssessmentResponse.referenceDelta — see
+  // src/lib/scoring/reference-delta.ts.
+  barsVelocity      Int?   // 1=deliberate, 5=urgent
+  barsArchitecture  Int?   // 1=creates playbook, 5=executes
+  barsStructure     Int?   // 1=needs clarity, 5=thrives in ambiguity
+  barsCommunication Int?   // 1=async, 5=sync
+  barsEnvironment   Int?   // 1=deep focus, 5=constant collab
+  barsLeadership    Int?   // 1=coaching, 5=direct/blunt
+  barsOversight     Int?   // 1=hands-off, 5=micromanagement
+  barsCommitment    Int?   // 1=protects hours, 5=whatever it takes
+  barsConscientiousness Int?   // 1=flexible with process, 5=rigorous with detail
+
+  @@index([candidateId, status])
+  @@index([token])
+}
+
+model WorkSample {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  title           String
+  description     String
+  problemStatement String?
+  candidateRole   String?
+  outcome         String?
+  sampleType      String           // "case_study" | "writing" | "code" | "design" | "presentation" | "other"
+  fileUrl         String?
+  externalUrl     String?
+  verified        Boolean          @default(false)
+  verifiedByEmail String?
+  createdAt       DateTime         @default(now())
+
+  @@index([candidateId])
+}
+
+model InterviewResponse {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  questionId      String           // References question bank
+  questionText    String
+  responseType    String           // "text" | "audio" | "video"
+  responseText    String?
+  responseFileUrl String?
+  aiSignalScore   Int?             // Internal scoring 1-100
+  aiSignalNotes   String?          // Internal notes on response quality
+  createdAt       DateTime         @default(now())
+
+  @@index([candidateId])
+}
+
+model PeerNomination {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  nominatorEmail  String
+  nominatorName   String
+  nominatorPlatformId String?      // If nominator is also on NextChapter
+  traitNominated  String           // "cross-functional leadership" | "mentorship" | etc.
+  context         String?
+  verified        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+
+  @@index([candidateId])
+}
+
+model LearningBadge {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  badgeType       String           // "course_completed" | "certification" | "ai_project" | "conference_talk" | "published"
+  title           String
+  provider        String?
+  completedAt     DateTime
+  verificationUrl String?
+  verified        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+
+  @@index([candidateId])
+}
+
+model AssessmentResult {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  assessmentType  String           // "big_five" | "holland" | "high5" | "work_style"
+  rawScores       Json             // Raw instrument scores
+  translatedOutput Json            // Plain-English outputs for employer reports
+  completedAt     DateTime         @default(now())
+
+  @@index([candidateId])
+}
+
+// ── WORK STYLE ASSESSMENT (quad-block / Likert / BARS) ─────────────────────
+// First-pass, unvalidated instrument — see src/lib/scoring/assessment-vectors.ts
+// for the scoring algorithm and its documented limitations.
+
+model QuadBlock {
+  id            String   @id @default(cuid())
+  blockNumber   Int
+  rotationGroup Int      @default(1)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  statements    QuadBlockStatement[]
+}
+
+model QuadBlockStatement {
+  id          String    @id @default(cuid())
+  blockId     String
+  block       QuadBlock @relation(fields: [blockId], references: [id])
+  dimension   String    // "velocity" | "architecture" | "structure" | "communication" | "environment" | "leadership" | "oversight" | "commitment"
+  pole        String    // "high" or "low" on that dimension
+  statementText String
+  socialDesirabilityScore Float  // Should be balanced 3.8-4.2 across all 4 in block
+}
+
+model LikertItem {
+  id              String   @id @default(cuid())
+  dimension       String   // Maps to same 8 dimensions
+  pole            String   // Which end of the dimension this probes
+  itemText        String
+  isReversed      Boolean  @default(false)  // If true, scoring is inverted
+  targetedFriction String  // What specific anxiety or friction this surfaces
+  pairedQuadDimension String  // Which quad-block dimension this validates against
+  rotationGroup   Int      @default(1)
+  isActive        Boolean  @default(true)
+}
+
+model CandidateAssessmentResponse {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  completedAt   DateTime         @default(now())
+
+  // Layer 1: Quad-block responses
+  quadResponses Json  // Array of {blockId, mostLikeMe: statementId, leastLikeMe: statementId}
+
+  // Layer 2: Likert responses
+  likertResponses Json  // Array of {itemId, score: 1-5}
+
+  // Computed vectors
+  dimensionVectors Json  // {velocity: -2..+2, architecture: -2..+2, ...}
+
+  // Inconsistency Index
+  inconsistencyScore    Float?
+  inconsistencyPairs    Json?   // Which specific pairs triggered variance
+  manipulationRiskFlag  Boolean @default(false)
+  flagThreshold         Float?  // The SD value that triggered flag, if any
+
+  // Reference delta — populated by src/lib/scoring/reference-delta.ts once
+  // both this response and at least one BARS-scored reference exist.
+  referenceDelta        Json?   // Candidate vector vs reference BARS aggregate
+  frictionSurfaces      String[] // Dimensions where delta > threshold — shown to employers
+
+  @@index([candidateId])
+}
+
+model BARSAnchor {
+  id          String @id @default(cuid())
+  dimension   String
+  scalePoint  Int    // 1-5
+  anchorText  String // Specific observable behavior at this scale point
+  isActive    Boolean @default(true)
+}
+
+model EmployabilityScoreHistory {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  score           Int
+  signalDepth     Int              // Sub-score 0-100
+  narrativeClarity Int             // Sub-score 0-100
+  desireSignal    Int              // Sub-score 0-100
+  consistency     Int              // Sub-score 0-100
+  aiFlexibility   Int              // Sub-score 0-100
+  calculatedAt    DateTime         @default(now())
+  triggerEvent    String?          // What caused the recalculation
+
+  @@index([candidateId, calculatedAt])
+}
+
+model ApprovedEmployer {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  employerId      String
+  employer        EmployerProfile  @relation(fields: [employerId], references: [id])
+  approvedAt      DateTime         @default(now())
+
+  @@unique([candidateId, employerId])
+}
+
+// ── EMPLOYER SIDE ────────────────────────────────────────────────────────────
+
+model EmployerProfile {
+  id                    String               @id @default(cuid())
+  userId                String               @unique
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  companyName           String
+  companyWebsite        String?
+  companySize           String?              // "1-10" | "11-50" | "51-200" | "201-1000" | "1000+"
+  companyStage          String?              // "startup" | "growth" | "enterprise" | "non-profit" | "government"
+  companyIndustry       String?
+  logoUrl               String?
+
+  // Subscription
+  subscriptionTier      EmployerTier         @default(CHARTER)
+  subscriptionStatus    EmployerSubscriptionStatus @default(TRIALING)
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
+
+  // Charter employer fields
+  isCharterEmployer     Boolean              @default(false)
+  charterCommitmentSigned Boolean            @default(false)
+  charterFeedbackNotes  String?
+
+  // Pro culture assessment (required for Pro tier matching)
+  cultureAssessmentComplete Boolean          @default(false)
+  culturePacePreference     Int?
+  cultureFeedbackStyle      Int?
+  cultureCollabStyle        Int?
+  cultureStructureLevel     Int?
+  cultureAmbiguityLevel     Int?
+  cultureHoursExpectation   Int?
+  cultureManagementStyle    Int?
+  cultureAttritionRate      Float?
+  cultureHonestyDeclaration Json?           // What they offer more/less of vs market
+  cultureVerifiedAt         DateTime?
+
+  // Relations
+  savedSearches         SavedSearch[]
+  roleProfiles          RoleProfile[]
+  candidateInteractions CandidateInteraction[]
+  approvedCandidates    ApprovedEmployer[]
+
+  @@index([subscriptionTier, subscriptionStatus])
+}
+
+model RoleProfile {
+  id                    String               @id @default(cuid())
+  employerId            String
+  employer              EmployerProfile      @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  isActive              Boolean              @default(true)
+
+  roleTitle             String
+  roleLevel             String?
+  primaryFunction       String?
+  locationRequirement   String?
+  remotePolicy          String?
+  compMin               Int?
+  compMax               Int?
+  equityOffered         Boolean              @default(false)
+
+  // Role-specific work style requirements
+  requiredPaceLevel     Int?
+  requiredFeedbackStyle Int?
+  requiredCollabStyle   Int?
+  requiredStructure     Int?
+  requiredAmbiguity     Int?
+  requiredHours         Int?
+
+  // Success definition
+  success30Days         String?
+  success90Days         String?
+  success180Days        String?
+
+  // Hiring manager profile for this role
+  hmWorkStyle           Int?
+  hmFeedbackStyle       Int?
+  hmManagementApproach  String?
+  hmWhatGoodLooksLike   String?
+
+  // Honest tradeoff declaration
+  offersMoreThan        String[]             // e.g. ["learning", "mission", "flexibility"]
+  offersLessThan        String[]             // e.g. ["base_comp", "title"]
+
+  candidateInteractions CandidateInteraction[]
+
+  @@index([employerId, isActive])
+}
+
+model SavedSearch {
+  id              String           @id @default(cuid())
+  employerId      String
+  employer        EmployerProfile  @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime         @default(now())
+
+  searchName      String
+  targetFunction  String?
+  targetLevel     String?
+  targetLocation  String?
+  targetSituation EmploymentSituation[]
+  minYearsExp     Int?
+  maxYearsExp     Int?
+  remoteOk        Boolean          @default(false)
+  linkedRoleId    String?
+
+  lastDigestSent  DateTime?
+  digestEnabled   Boolean          @default(true)
+
+  @@index([employerId])
+}
+
+model CandidateInteraction {
+  id              String           @id @default(cuid())
+  employerId      String
+  employer        EmployerProfile  @relation(fields: [employerId], references: [id])
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id])
+  roleId          String?
+  role            RoleProfile?     @relation(fields: [roleId], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  status          CandidateInterestStatus @default(VIEWED)
+  employerNotes   String?
+
+  // Match data (computed at time of interaction)
+  genericMatchScore   Int?         // 0-100 overall
+  workStyleAlignment  Int?         // 0-100
+  situationRelevance  Int?         // 0-100
+  tailoredFitScore    Int?         // 0-100 (Pro only, requires role profile)
+  matchReport         Json?        // Full hiring manager report (Pro only)
+  frictionPoints      String[]     // Specific friction areas identified
+
+  // Outcome tracking (for validity research)
+  hiredAt         DateTime?
+  thirtyDayRating Int?
+  ninetyDayRating Int?
+  sixMonthRating  Int?
+
+  @@unique([employerId, candidateId])
+  @@index([employerId, status])
+  @@index([candidateId])
+}
+
+// ── PLATFORM ─────────────────────────────────────────────────────────────────
+
+model InterviewQuestionBank {
+  id              String   @id @default(cuid())
+  questionText    String
+  category        String   // "grit" | "communication" | "collaboration" | "leadership" | "challenge" | "values"
+  targetLevel     String[] // "entry" | "mid" | "senior" | "executive"
+  isActive        Boolean  @default(true)
+  rotationGroup   Int      @default(1)  // For quarterly rotation
+  createdAt       DateTime @default(now())
+}
+
+model LayoffCohort {
+  id              String   @id @default(cuid())
+  companyName     String
+  layoffDate      DateTime
+  estimatedSize   Int?
+  newsUrl         String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+// ── CANDIDATE HIREABILITY REPORT ──────────────────────────────────────────────
+// Resume, job-fit feedback, community board, and the report that ties them
+// together with the assessment/reference/interview data collected elsewhere.
+// See src/lib/reports/hireability-report.ts — distinct from the
+// employer-facing src/lib/reports/hiring-manager-report.ts, which hides raw
+// scores; this one shows everything since it's about the candidate themselves.
+
+// Append-only history — findFirst orderBy uploadedAt desc = current resume.
+// Not user-deletable; older uploads are kept as an audit trail. Does not feed
+// the Employability Score directly (only the Hireability Report).
+model Resume {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Storage path within the private 'resumes' bucket, NOT a public URL — the
+  // bucket has no public read access since resumes carry real PII. Generate
+  // a short-lived signed URL on demand (see src/app/dashboard/resume/actions.ts)
+  // whenever the file needs to be displayed or re-read.
+  filePath        String
+  fileName        String
+  fileType        String    // "pdf" | "docx"
+  extractedText   String?
+  extractionError String?
+
+  atsScore           Int?      // 0-100
+  atsFeedback        String[]  @default([])
+  resultsScore       Int?      // 0-100 — quantified impact vs. vague duties
+  resultsFeedback    String[]  @default([])
+  experienceScore    Int?      // 0-100 — gaps, tenure, alignment with stated goals
+  experienceFeedback String[]  @default([])
+  analysisError      String?
+  analyzedAt         DateTime?
+
+  uploadedAt      DateTime  @default(now())
+
+  @@index([candidateId, uploadedAt])
+}
+
+// Job-fit feedback. Max 5 per candidate enforced in the server action, not
+// here. User-deletable (needed to swap one out once at the cap).
+model JobPosting {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  url           String
+  fetchStatus   String    // "pending" | "success" | "fetch_failed" | "parse_failed"
+  fetchError    String?
+  extractedText String?
+
+  fitScore      Int?      // 0-100
+  fitFeedback   String?
+  analyzedAt    DateTime?
+
+  interviewLandedAt       DateTime?
+  interviewPrep           Json?      // { likelyQuestions: string[], talkingPoints: string[], questionsToAsk: string[] }
+  interviewPrepError      String?
+  interviewPrepAnalyzedAt DateTime?
+
+  offerReceivedAt            DateTime?
+  negotiationAdvice          Json?   // { talkingPoints: string[], scriptOpening: string, considerations: string[] }
+  negotiationAdviceError     String?
+  negotiationAdviceAnalyzedAt DateTime?
+
+  createdAt     DateTime  @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+enum CommunityPostType {
+  JOB
+  PROJECT
+  INTRO_OFFER
+}
+
+model CommunityPost {
+  id           String                  @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  postType     CommunityPostType
+  title        String
+  description  String
+  externalUrl  String?
+
+  // Snapshot of the poster's location/function/industry at post time, so
+  // editing a profile later doesn't rewrite history. Reuses CandidateProfile's
+  // existing free-text fields — no new taxonomy is introduced.
+  postCity     String?
+  postState    String?
+  postFunction String?
+  postIndustry String?
+
+  isActive     Boolean                 @default(true)
+  createdAt    DateTime                @default(now())
+
+  interests    CommunityPostInterest[]
+
+  @@index([postType, isActive, createdAt])
+  @@index([postCity, postFunction, postIndustry])
+}
+
+// Expressing interest never exposes the poster's email on the board —
+// instead it notifies the poster with the interested candidate's contact
+// info so they can follow up. Unique constraint prevents duplicate
+// notifications from repeat clicks.
+model CommunityPostInterest {
+  id                    String           @id @default(cuid())
+  postId                String
+  post                  CommunityPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  interestedCandidateId String
+  interestedCandidate   CandidateProfile @relation(fields: [interestedCandidateId], references: [id], onDelete: Cascade)
+  createdAt             DateTime         @default(now())
+
+  @@unique([postId, interestedCandidateId])
+}
+
+// Append-only — "regenerate" creates a new row rather than updating,
+// matching the CandidateAssessmentResponse/Resume history pattern.
+model HireabilityReport {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  strengths        Json      // [{title, detail}]
+  weaknesses       Json      // [{title, detail}]
+  actionPlan       Json      // [{day: 1-7, items: string[]}], length 7
+  gapAnalysis      Json      // {targetRole, gaps: [{area, why, remediation, remediationType}]}
+  marketConditions Json?     // {narrative: string[], adzunaCount, blsYoyChangePct, ...} | null when unavailable
+  hillToClimb      Json?     // {tone: 'very_positive'|'positive_with_work'|'significant_climb', narrative: string[]}
+
+  // Snapshot of the score at generation time — this row is append-only
+  // history, but CandidateProfile.employabilityScore keeps mutating, so
+  // without this an old report would silently show today's score.
+  employabilityScoreAtGeneration Int @default(0)
+
+  // Snapshot of the new dual-grade breakdown (HireabilityGrade shape from
+  // hireability-grade.ts) at generation time, same reasoning as the score
+  // snapshot above. Null on reports generated before this field existed.
+  hireabilityGradeAtGeneration Json?
+
+  emailSentAt DateTime?
+  generatedAt DateTime  @default(now())
+
+  @@index([candidateId, generatedAt])
+}
+
+// Shared cache across all candidates for the same (role, metro) pair —
+// Adzuna's free tier is 1,000 calls/month for the whole app, so this is a
+// hard requirement, not an optimization. 48h TTL enforced in application code.
+model MarketConditionsSnapshot {
+  id              String   @id @default(cuid())
+  roleQuery       String   // normalized lowercase query, e.g. "senior product manager"
+  location        String   // normalized "city, state" | state | "us"
+  adzunaCount     Int?
+  adzunaError     String?
+  blsSocCode      String?
+  blsAreaCode     String?
+  blsYoyChangePct Float?
+  blsError        String?
+  fetchedAt       DateTime @default(now())
+
+  @@unique([roleQuery, location])
+  @@index([fetchedAt])
+}
+
+// One row per self-reported "I posted on LinkedIn today" click. One-per-
+// calendar-day is enforced in the server action (findFirst on today's
+// range), not a DB constraint — same trust level already extended to
+// counting Community Board posts.
+model LinkedInActivityLog {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  loggedAt    DateTime         @default(now())
+
+  @@index([candidateId, loggedAt])
+}
+
+// One long-lived conversation per candidate with the NextChapter Coach.
+model CoachConversation {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  messages    CoachMessage[]
+}
+
+model CoachMessage {
+  id             String            @id @default(cuid())
+  conversationId String
+  conversation   CoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String            // "user" | "assistant"
+  content        String
+  createdAt      DateTime          @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// Global (not per-candidate) cache of the score distribution, refreshed on a
+// TTL like MarketConditionsSnapshot — avoids a full-table scan/sort on every
+// dashboard load. "Most recent row" = current snapshot.
+model ScorePercentileSnapshot {
+  id              String   @id @default(cuid())
+  totalCandidates Int
+  bucketCounts    Json     // { "0": count, "1": count, ..., "100": count }
+  computedAt      DateTime @default(now())
+
+  @@index([computedAt])
+}
+
+// Homepage "Audiences" waitlist forms (Employers, Recruiters, Outplacement,
+// Government & Workforce, Nonprofits & Academia). Payload shape varies per
+// audience (different fields per tab), so it's stored as-is rather than
+// spread across many nullable columns.
+model WaitlistSignup {
+  id        String   @id @default(cuid())
+  audience  String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([audience])
+}
