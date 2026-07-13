@@ -9,7 +9,10 @@ import { getSetupChecklistItems } from '@/lib/onboarding/setup-checklist'
 import { getQuoteOfTheDay } from '@/lib/constants/quotes'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { getTodaysMood } from '@/lib/daily/mood'
+import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { DualGradeCard } from '@/components/dashboard/DualGradeCard'
+import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { ActionPlanCard, type ActionDay } from '@/components/dashboard/ActionPlanCard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { LinkedInActivityCard } from '@/components/dashboard/LinkedInActivityCard'
@@ -53,6 +56,11 @@ export default async function DashboardPage() {
   }
   const latestAssessment = profile.assessmentResponses[0]
 
+  const todaysMood = await getTodaysMood(profile.id)
+  const primaryAction = latestReport
+    ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
+    : null
+
   const linkedInWindowStart = new Date()
   linkedInWindowStart.setDate(linkedInWindowStart.getDate() - 30)
   const recentLinkedInLogCount = profile.linkedInActivityLogs.filter(
@@ -78,6 +86,8 @@ export default async function DashboardPage() {
           <footer className="mt-1 text-sm not-italic text-muted-foreground/80">— {quote.author}</footer>
         </blockquote>
       </div>
+
+      <MoodCheckInCard todaysMood={todaysMood} currentStreak={profile.currentStreak} primaryAction={primaryAction} />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Card>

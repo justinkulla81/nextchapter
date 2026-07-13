@@ -67,6 +67,22 @@ enum VisibilityTier {
   SPOTLIGHT   // All verified + extras
 }
 
+// "When are you most ready to take action?" — controls daily email timing.
+enum ActionWindow {
+  MORNING                 // Plan and act in the morning
+  NIGHT_PLAN_MORNING_ACT  // Plan at night, act in the morning
+  MIDDAY
+  EVENING
+  VARIABLE                // No strong preference — default
+}
+
+enum Mood {
+  STUCK
+  GETTING_THERE
+  MOVING
+  FIRED_UP
+}
+
 enum ReferenceType {
   DIRECT_MANAGER
   SKIP_LEVEL_MANAGER
@@ -197,6 +213,14 @@ model CandidateProfile {
   networkingListSubmittedAt  DateTime?  // "25 people" networking assignment
   askedForHelpAt             DateTime?
 
+  // Daily loop — mood check-in + daily Victoria email
+  actionWindow          ActionWindow  @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
+  currentStreak         Int           @default(0)        // consecutive days with a mood check-in
+  longestStreak         Int           @default(0)
+  lastCheckInAt         DateTime?
+  lastDailyEmailSentAt  DateTime?
+  dailyEmailOptedOut    Boolean       @default(false)
+
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp       Int?
   priorityBrandName     Int?
@@ -243,6 +267,7 @@ model CandidateProfile {
   hireabilityReports    HireabilityReport[]
   linkedInActivityLogs  LinkedInActivityLog[]
   coachConversation     CoachConversation?
+  dailyCheckIns         DailyCheckIn[]
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -853,6 +878,19 @@ model LinkedInActivityLog {
   loggedAt    DateTime         @default(now())
 
   @@index([candidateId, loggedAt])
+}
+
+// Append-only daily mood check-in log — one row per day per candidate
+// (see recordMoodCheckIn in src/lib/daily/mood.ts, which upserts today's
+// row rather than allowing duplicates).
+model DailyCheckIn {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  mood        Mood
+  checkedInAt DateTime         @default(now())
+
+  @@index([candidateId, checkedInAt])
 }
 
 // One long-lived conversation per candidate with the NextChapter Coach.
