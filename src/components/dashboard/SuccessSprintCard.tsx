@@ -4,12 +4,6 @@ import { Button } from '@/components/ui/button'
 import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 
-const DIFFICULTY_LABEL: Record<1 | 2 | 3, string> = {
-  1: 'Easy',
-  2: 'Some effort',
-  3: 'Genuinely hard',
-}
-
 export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | null }) {
   if (!actions || actions.length === 0) {
     return (
@@ -28,13 +22,18 @@ export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | nu
   }
 
   const completedCount = actions.filter((a) => a.completed).length
+  const totalPoints = actions.reduce((sum, a) => sum + a.points, 0)
+  const earnedPoints = actions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          This Week&apos;s Success Sprint — {completedCount} of {actions.length} done
-        </CardTitle>
+        <Link href="/dashboard/sprint" className="hover:underline">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            This Week&apos;s Success Sprint — {completedCount} of {actions.length} done ({earnedPoints}/
+            {totalPoints} pts) →
+          </CardTitle>
+        </Link>
       </CardHeader>
       <CardContent className="space-y-2">
         {actions.map((action, i) => (
@@ -50,9 +49,7 @@ export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | nu
             <span className={`text-sm ${action.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
               {action.text}
             </span>
-            <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-              {DIFFICULTY_LABEL[action.difficulty]}
-            </span>
+            <span className="ml-auto shrink-0 text-xs text-muted-foreground">{action.points} pts</span>
           </form>
         ))}
       </CardContent>

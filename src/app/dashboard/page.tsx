@@ -1,10 +1,8 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { calculateEmployabilityScore, scoreToNextSteps } from '@/lib/scoring/employability-score'
-import { getSetupChecklistItems } from '@/lib/onboarding/setup-checklist'
 import { getQuoteOfTheDay } from '@/lib/constants/quotes'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
@@ -13,17 +11,15 @@ import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
 import { computeEarnedBadges } from '@/lib/community/badges'
-import { DualGradeCard } from '@/components/dashboard/DualGradeCard'
+import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
 import { ActionPlanCard, type ActionDay } from '@/components/dashboard/ActionPlanCard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
-import { LinkedInActivityCard } from '@/components/dashboard/LinkedInActivityCard'
-import { SetupChecklist } from '@/components/dashboard/SetupChecklist'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { WorkStyleProfileCard } from '@/components/dashboard/WorkStyleProfileCard'
-import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
+import { NextStepsList } from '@/components/candidates/NextStepsList'
 import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -35,7 +31,6 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
   const currentRaw = await calculateEmployabilityScore(profile.id)
   const nextSteps = scoreToNextSteps(profile, currentRaw)
-  const checklistItems = getSetupChecklistItems(profile)
   const quote = getQuoteOfTheDay()
   const conversation = await getOrCreateCoachConversation(profile.id)
   const grade = await computeHireabilityGrade(profile)
@@ -70,15 +65,6 @@ export default async function DashboardPage() {
     hasStartedSprint(profile.id),
   ])
 
-  const linkedInWindowStart = new Date()
-  linkedInWindowStart.setDate(linkedInWindowStart.getDate() - 30)
-  const recentLinkedInLogCount = profile.linkedInActivityLogs.filter(
-    (l) => l.loggedAt > linkedInWindowStart
-  ).length
-  const startOfTodayUTC = new Date()
-  startOfTodayUTC.setUTCHours(0, 0, 0, 0)
-  const loggedLinkedInToday = profile.linkedInActivityLogs.some((l) => l.loggedAt >= startOfTodayUTC)
-
   return (
     <div className="space-y-8">
       {user && !user.email_confirmed_at && user.email && (
@@ -86,34 +72,33 @@ export default async function DashboardPage() {
       )}
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">
-          {profile.displayName ? `Welcome back, ${profile.displayName}` : 'Welcome back'}
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">Hireability Dashboard</h1>
         <blockquote className="mt-2 text-muted-foreground italic">
           &ldquo;{quote.text}&rdquo;
           <footer className="mt-1 text-sm not-italic text-muted-foreground/80">— {quote.author}</footer>
         </blockquote>
       </div>
 
-      <MoodCheckInCard todaysMood={todaysMood} currentStreak={profile.currentStreak} primaryAction={primaryAction} />
+      <MoodCheckInCard
+        todaysMood={todaysMood}
+        currentStreak={profile.currentStreak}
+        primaryAction={primaryAction}
+        firstName={profile.firstName}
+      />
 
       <SuccessSprintCard
         actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
       />
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Card>
-          <CardContent className="pt-6">
-            <DualGradeCard
-              grade={grade}
-              tier={profile.visibilityTier}
-              nextSteps={nextSteps}
-              searchExecutionAvailable={searchExecutionAvailable}
-            />
-          </CardContent>
-        </Card>
+      <CompactGradeCard grade={grade} searchExecutionAvailable={searchExecutionAvailable} />
 
+      <Card>
+        <CardContent className="pt-6">
+          <NextStepsList nextSteps={nextSteps} />
+        </CardContent>
+      </Card>
+
+      {todaysMood ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -124,7 +109,6 @@ export default async function DashboardPage() {
             {latestReport ? (
               <ActionPlanCard
                 actionPlan={latestReport.actionPlan as unknown as ActionDay[]}
-                helpScript={fillHelpScriptTemplate(profile)}
                 networkingListDone={profile.networkingListSubmittedAt !== null}
                 askedForHelpDone={profile.askedForHelpAt !== null}
                 profileConfirmDone={profile.profileConfirmedAt !== null}
@@ -134,21 +118,6 @@ export default async function DashboardPage() {
                   profile.salaryConfirmedAt !== null && profile.workAuthConfirmedAt !== null
                 }
                 linkedInConfirmDone={profile.linkedInConfirmedAt !== null}
-                candidateDraft={{
-                  firstName: profile.firstName,
-                  lastName: profile.lastName,
-                  phone: profile.phone,
-                  streetAddress: profile.streetAddress,
-                  currentCity: profile.currentCity,
-                  currentState: profile.currentState,
-                  industryContext: profile.industryContext,
-                  primaryFunction: profile.primaryFunction,
-                  resumeLatestJobTitle: profile.resumeLatestJobTitle,
-                  yearsExperience: profile.yearsExperience,
-                  highestLevelReached: profile.highestLevelReached,
-                  lastSalary: profile.lastSalary,
-                  workAuthorization: profile.workAuthorization,
-                }}
               />
             ) : (
               <p className="text-sm text-muted-foreground">
@@ -157,7 +126,11 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Check in above to see today&apos;s action plan.
+        </p>
+      )}
 
       <Card>
         <CardHeader>
@@ -176,61 +149,20 @@ export default async function DashboardPage() {
                 A quick, optional assessment of how you prefer to work — helps us (and your
                 references) understand what makes you thrive, not just what you can do.
               </p>
-              <Link
+              <a
                 href="/onboarding/working-style"
                 className="inline-block text-sm font-medium text-primary underline underline-offset-4"
               >
                 Take the Work Style Assessment
-              </Link>
+              </a>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">References</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-semibold tabular-nums">
-              {profile.references.filter((r) => r.status === 'COMPLETED').length}
-            </span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Job Fit</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-semibold tabular-nums">{profile.jobPostings.length}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Work Samples</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-semibold tabular-nums">{profile.workSamples.length}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Community Posts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-semibold tabular-nums">{profile.communityPosts.length}</span>
-          </CardContent>
-        </Card>
-      </div>
-
-      <LinkedInActivityCard recentLogCount={recentLinkedInLogCount} loggedToday={loggedLinkedInToday} />
-
       <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
 
       <CoachChatCard initialMessages={conversation.messages} />
-
-      <SetupChecklist items={checklistItems} />
     </div>
   )
 }

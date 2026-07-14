@@ -1,50 +1,74 @@
+'use client'
+
+import { useState } from 'react'
 import type { Mood } from '@prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { checkInMood } from '@/app/dashboard/actions'
-import { MOOD_ORDER, MOOD_EMOJI, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood'
+import { MOOD_ORDER, MOOD_EMOJI, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
 import { frameActionForMood, type TodaysPrimaryAction } from '@/lib/daily/primary-action'
 
 export function MoodCheckInCard({
   todaysMood,
   currentStreak,
   primaryAction,
+  firstName,
 }: {
   todaysMood: Mood | null
   currentStreak: number
   primaryAction: TodaysPrimaryAction | null
+  firstName: string | null
 }) {
+  const [editing, setEditing] = useState(false)
+  const showPicker = !todaysMood || editing
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          How are you feeling about the search today?
+        <CardTitle className="text-base font-medium text-foreground">
+          How motivated are you today{firstName ? `, ${firstName}` : ''}?
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {MOOD_ORDER.map((mood) => (
-            <form key={mood} action={checkInMood.bind(null, mood)}>
-              <Button
-                type="submit"
-                variant={todaysMood === mood ? 'default' : 'outline'}
-                size="sm"
-                className="gap-1.5"
+        {showPicker ? (
+          <div className="grid grid-cols-2 gap-3">
+            {MOOD_ORDER.map((mood) => (
+              <form key={mood} action={checkInMood.bind(null, mood)}>
+                <Button
+                  type="submit"
+                  variant={todaysMood === mood ? 'default' : 'outline'}
+                  className="h-auto w-full flex-col gap-1.5 py-5 text-base"
+                  onClick={() => setEditing(false)}
+                >
+                  <span aria-hidden className="text-2xl">
+                    {MOOD_EMOJI[mood]}
+                  </span>
+                  {MOOD_LABEL[mood]}
+                </Button>
+              </form>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm text-foreground">
+                <span aria-hidden className="mr-1">
+                  {MOOD_EMOJI[todaysMood!]}
+                </span>
+                {MOOD_RESPONSE[todaysMood!]}
+              </p>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="shrink-0 text-xs text-muted-foreground underline underline-offset-4"
               >
-                <span aria-hidden>{MOOD_EMOJI[mood]}</span>
-                {MOOD_LABEL[mood]}
-              </Button>
-            </form>
-          ))}
-        </div>
-
-        {todaysMood && (
-          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3">
-            <p className="text-sm text-foreground">{MOOD_RESPONSE[todaysMood]}</p>
+                Edit
+              </button>
+            </div>
             {primaryAction && (
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">Today&apos;s move: </span>
-                {frameActionForMood(primaryAction.text, todaysMood)}
+                {frameActionForMood(primaryAction.text, todaysMood!)}
                 {primaryAction.engineHint && (
                   <span className="ml-1 text-xs text-muted-foreground">
                     (moves your {primaryAction.engineHint})

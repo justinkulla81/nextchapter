@@ -1,9 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { commitWeeklySprint, toggleSprintActionCompletion } from '@/lib/weekly/sprint'
+import { estimateActionEffort, sprintPointThresholds } from '@/lib/weekly/action-effort'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -24,24 +26,35 @@ export async function submitWeeklySprint(
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
   const count = Number(formData.get('actionCount') ?? 0)
-  const actions: { text: string; actionType?: string; difficulty: 1 | 2 | 3 }[] = []
+  const actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[] = []
+  let maxPoints = 0
 
   for (let i = 0; i < count; i++) {
-    if (formData.get(`selected_${i}`) !== 'on') continue
     const text = formData.get(`text_${i}`) as string | null
     if (!text) continue
     const actionType = (formData.get(`actionType_${i}`) as string | null) || undefined
-    const difficulty = Number(formData.get(`difficulty_${i}`) ?? 2) as 1 | 2 | 3
-    actions.push({ text, actionType, difficulty })
+    const isAStandard = formData.get(`isAStandard_${i}`) === 'true'
+    const isStretch = formData.get(`isStretch_${i}`) === 'true'
+    const effort = estimateActionEffort({ actionType, isAStandard, isStretch })
+    maxPoints += effort.points
+
+    if (formData.get(`selected_${i}`) !== 'on') continue
+    actions.push({ text, actionType, points: effort.points, estimatedMinutes: effort.minutes })
   }
 
-  if (actions.length === 0) {
-    return { error: 'Pick at least one action to commit to this week.' }
+  const { bThreshold } = sprintPointThresholds(maxPoints)
+  const committedPoints = actions.reduce((sum, a) => sum + a.points, 0)
+
+  if (committedPoints < bThreshold) {
+    return {
+      error: `Commit to at least ${bThreshold} points (a B) to lock in this week's sprint — you're at ${committedPoints}.`,
+    }
   }
 
   await commitWeeklySprint(profile.id, actions)
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/sprint')
+  redirect('/dashboard')
 }
 
 export async function toggleSprintAction(actionIndex: number) {

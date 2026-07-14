@@ -64,7 +64,7 @@ export function computeUnlockTier(signals: UnlockTierSignals): UnlockTier {
   return 1
 }
 
-export async function computeUnlockTierForCandidate(candidateId: string): Promise<UnlockTier> {
+export async function getUnlockTierSignals(candidateId: string): Promise<UnlockTierSignals> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: {
@@ -98,7 +98,7 @@ export async function computeUnlockTierForCandidate(candidateId: string): Promis
     (s) => s.weekStartDate.getTime() === weekStartDate.getTime()
   )
 
-  return computeUnlockTier({
+  return {
     confirmedCount,
     totalCompletedSprintActions,
     checkInCount: candidate.dailyCheckIns.length,
@@ -108,5 +108,10 @@ export async function computeUnlockTierForCandidate(candidateId: string): Promis
     linkedInActivityCount: candidate.linkedInActivityLogs.length,
     currentStreak: candidate.currentStreak,
     hasCurrentWeekSprint,
-  })
+  }
+}
+
+export async function computeUnlockTierForCandidate(candidateId: string): Promise<UnlockTier> {
+  const signals = await getUnlockTierSignals(candidateId)
+  return computeUnlockTier(signals)
 }

@@ -4,6 +4,10 @@ import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { AddContactForm } from '@/components/dashboard/AddContactForm'
 import { NetworkingAnxietySelector } from '@/components/dashboard/NetworkingAnxietySelector'
 import { ContactRow } from '@/components/dashboard/ContactRow'
+import { HelpScriptCard } from '@/components/dashboard/HelpScriptCard'
+import { Button } from '@/components/ui/button'
+import { markNetworkingListSubmitted } from '@/app/dashboard/actions'
+import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
 
 const CATEGORY_ORDER = [
   'FORMER_COLLEAGUE',
@@ -62,6 +66,28 @@ export default async function NetworkPage() {
         <h2 className="text-sm font-medium text-foreground">Add a contact manually</h2>
         <AddContactForm />
       </div>
+
+      <HelpScriptCard
+        helpScript={fillHelpScriptTemplate(profile)}
+        done={profile.askedForHelpAt !== null}
+      />
+
+      {profile.networkingListSubmittedAt === null ? (
+        <div className="space-y-2 rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Build your list of 25</h2>
+          <p className="text-sm text-muted-foreground">
+            Once you&apos;ve added or imported the people you know who could help your search, mark
+            your list as submitted.
+          </p>
+          <form action={markNetworkingListSubmitted}>
+            <Button type="submit" size="sm" variant="outline">
+              Mark my list of 25 as complete
+            </Button>
+          </form>
+        </div>
+      ) : (
+        <p className="text-sm text-success">✓ Your list of 25 is marked complete.</p>
+      )}
 
       {CATEGORY_ORDER.map((category) => {
         const categoryContacts = contacts.filter((c) => c.category === category)

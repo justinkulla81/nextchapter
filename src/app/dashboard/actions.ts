@@ -34,6 +34,7 @@ export async function markNetworkingListSubmitted() {
   })
   await recalculateScore(profile.id, 'networking_list_submitted')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/network')
 }
 
 export async function markAskedForHelp() {
@@ -46,6 +47,7 @@ export async function markAskedForHelp() {
   })
   await recalculateScore(profile.id, 'asked_for_help')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/network')
 }
 
 export async function markLinkedInActivity() {
@@ -115,6 +117,7 @@ export async function confirmProfile(
   })
   await recalculateScore(profile.id, 'profile_confirmed')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
 }
 
@@ -134,6 +137,7 @@ export async function confirmIndustry(
   })
   await recalculateScore(profile.id, 'industry_confirmed')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
 }
 
@@ -158,6 +162,7 @@ export async function confirmFunctionAndExperience(
   })
   await recalculateScore(profile.id, 'function_confirmed')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
 }
 
@@ -184,6 +189,7 @@ export async function confirmLinkedIn(
   })
   await recalculateScore(profile.id, 'linkedin_confirmed')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/linkedin')
   revalidatePath('/dashboard/hireability-report')
 }
 
@@ -213,5 +219,6 @@ export async function confirmSalaryAndAuthorization(
   })
   await recalculateScore(profile.id, 'salary_and_work_authorization_confirmed')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
 }

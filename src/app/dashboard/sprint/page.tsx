@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getCurrentWeekSprint, getSuggestedActions, type CommittedAction } from '@/lib/weekly/sprint'
+import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 
 export default async function SprintSetupPage() {
   const profile = await getDashboardData()
-  const [currentSprint, suggestedActions] = await Promise.all([
+  const [currentSprint, suggestedActions, grade] = await Promise.all([
     getCurrentWeekSprint(profile.id),
     getSuggestedActions(profile.id),
+    computeHireabilityGrade(profile),
   ])
 
   return (
@@ -15,7 +17,8 @@ export default async function SprintSetupPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">This Week&apos;s Success Sprint</h1>
         <p className="mt-1 text-muted-foreground">
-          Choose the actions you&apos;re committing to this week, and rate how hard each one feels right now.
+          Choose the actions you&apos;re committing to this week — each shows how long it takes and
+          how many points it&apos;s worth.
         </p>
       </div>
 
@@ -33,7 +36,7 @@ export default async function SprintSetupPage() {
           Your report is still generating — check back in a moment for suggested actions.
         </p>
       ) : (
-        <SprintSetupForm suggestedActions={suggestedActions} />
+        <SprintSetupForm suggestedActions={suggestedActions} marketRealityGrade={grade.marketReality.grade} />
       )}
 
       {currentSprint && (
@@ -43,7 +46,7 @@ export default async function SprintSetupPage() {
             {(currentSprint.committedActions as unknown as CommittedAction[]).map((a, i) => (
               <li key={i}>
                 {a.completed ? '✓ ' : '— '}
-                {a.text} (difficulty {a.difficulty}/3)
+                {a.text} ({a.points} pts)
               </li>
             ))}
           </ul>

@@ -114,7 +114,8 @@ Hireability Grade — Market Reality: ${grade.marketReality.grade} (${GRADE_LABE
 Hireability Grade — Search Execution: ${grade.searchExecution.grade} (${GRADE_LABEL[grade.searchExecution.grade]}, ${grade.searchExecution.score}/100)
   ${grade.searchExecution.engines.map((e) => `${e.label} Engine: ${e.grade} (${e.score}/100)`).join('\n  ')}
 
-This week's committed actions: ${committedActions.length === 0 ? 'none committed (no Success Sprint set up this week)' : committedActions.map((a) => `"${a.text}" (difficulty ${a.difficulty}/3) — ${a.completed ? `completed${a.completedAt ? ` on ${new Date(a.completedAt).toDateString()}` : ''}` : 'skipped'}`).join('; ')}
+This week's committed actions: ${committedActions.length === 0 ? 'none committed (no Success Sprint set up this week)' : committedActions.map((a) => `"${a.text}" (${a.points} pts) — ${a.completed ? `completed${a.completedAt ? ` on ${new Date(a.completedAt).toDateString()}` : ''}` : 'skipped'}`).join('; ')}
+Total points committed this week: ${committedActions.reduce((sum, a) => sum + a.points, 0)}, earned so far: ${committedActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)}
 
 Mood check-ins this week (chronological): ${checkIns.length === 0 ? 'none logged' : checkIns.map((c) => `${c.checkedInAt.toDateString()}: ${c.mood}`).join('; ')}
 

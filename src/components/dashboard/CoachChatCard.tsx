@@ -33,7 +33,9 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Vicki</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Get advice from your Executive Coach, Victoria
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
@@ -52,7 +54,7 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
           {pending && (
             <div className="flex justify-start">
               <div className="max-w-[80%] rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-                Vicki is thinking…
+                Victoria is thinking…
               </div>
             </div>
           )}

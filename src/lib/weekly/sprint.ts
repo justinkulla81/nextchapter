@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma'
 export interface CommittedAction {
   text: string
   actionType?: string
-  difficulty: 1 | 2 | 3
+  points: number
+  estimatedMinutes: number
   completed: boolean
   completedAt?: string
 }
@@ -83,13 +84,14 @@ export async function getSuggestedActions(candidateId: string): Promise<Suggeste
 
 export async function commitWeeklySprint(
   candidateId: string,
-  actions: { text: string; actionType?: string; difficulty: 1 | 2 | 3 }[]
+  actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[]
 ) {
   const weekStartDate = getMondayOfWeek(new Date())
   const committedActions: CommittedAction[] = actions.map((a) => ({
     text: a.text,
     actionType: a.actionType,
-    difficulty: a.difficulty,
+    points: a.points,
+    estimatedMinutes: a.estimatedMinutes,
     completed: false,
   }))
 
