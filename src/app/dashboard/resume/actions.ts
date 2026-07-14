@@ -11,7 +11,7 @@ import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 
-export type FormState = { error?: string } | undefined
+export type FormState = { error?: string; existingAccountFound?: boolean } | undefined
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
@@ -68,6 +68,30 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
 
   await analyzeResume(resume.id)
   await extractProfileFieldsFromResume(resume.id)
+
+  // Mid-onboarding (still an anonymous session) — if the resume's extracted
+  // email already belongs to a real, registered account, send them to log in
+  // instead of quietly building a second profile/assessment for the same
+  // person (the exact class of duplicate-account bug seen once already).
+  if (user.is_anonymous) {
+    const updated = await prisma.candidateProfile.findUnique({
+      where: { id: profile.id },
+      select: { email: true },
+    })
+    if (updated?.email) {
+      const existingAccount = await prisma.candidateProfile.findFirst({
+        where: {
+          id: { not: profile.id },
+          registrationCompletedAt: { not: null },
+          email: { equals: updated.email, mode: 'insensitive' },
+        },
+        select: { id: true },
+      })
+      if (existingAccount) {
+        return { existingAccountFound: true }
+      }
+    }
+  }
 
   revalidatePath('/dashboard/resume')
   revalidatePath('/dashboard')

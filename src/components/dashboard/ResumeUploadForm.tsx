@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import Link from 'next/link'
 import { uploadResume } from '@/app/dashboard/resume/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,23 @@ import { cn } from '@/lib/utils'
 
 export function ResumeUploadForm() {
   const [state, formAction, pending] = useActionState(uploadResume, undefined)
+
+  if (state?.existingAccountFound) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <p className="text-sm text-foreground">
+          Looks like you already have an account with this email — log in instead of starting a
+          new one.
+        </p>
+        <Link
+          href="/auth/login"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Log in
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <form

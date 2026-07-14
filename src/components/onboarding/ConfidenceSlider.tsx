@@ -23,7 +23,7 @@ export function ConfidenceSlider({
     <div className="space-y-2">
       <Label>{label}</Label>
       <input type="hidden" name={name} value={value ?? ''} />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
         {STOPS.map((stop, i) => (
           <button
             key={stop}
@@ -31,7 +31,7 @@ export function ConfidenceSlider({
             onClick={() => setValue(stop)}
             aria-pressed={value === stop}
             className={cn(
-              'rounded-lg border-2 p-3 text-left text-sm font-medium transition-colors',
+              'rounded-lg border-2 p-2 text-center text-[11px] leading-snug font-medium transition-colors sm:p-3 sm:text-sm',
               value === stop
                 ? 'border-brand bg-brand/5 text-brand'
                 : 'border-border bg-white text-foreground hover:border-brand/40'
