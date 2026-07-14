@@ -4,6 +4,7 @@ import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryAuthorizationConfirmForm } from '@/components/dashboard/SalaryAuthorizationConfirmForm'
+import { KnownForForm } from '@/components/dashboard/KnownForForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -89,6 +90,17 @@ export default async function ProfilePage() {
               workAuthorization={profile.workAuthorization}
               visaStatus={profile.visaStatus}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              How you come across
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KnownForForm knownFor={profile.knownFor} />
           </CardContent>
         </Card>
       </div>

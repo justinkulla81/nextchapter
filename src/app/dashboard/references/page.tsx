@@ -1,6 +1,5 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { ReferenceRequestForm } from '@/components/references/ReferenceRequestForm'
-import { KnownForGateForm } from '@/components/references/KnownForGateForm'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/constants/references'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -30,11 +29,14 @@ export default async function ReferencesPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">References</h1>
         <p className="mt-1 text-muted-foreground">
-          Real relationship capital. Two completed references meaningfully move your score.
+          Real relationship capital. A hiring manager trusts a former colleague&apos;s account of
+          how you work more than anything on your resume — and it&apos;s one of the few signals in
+          your Hireability Score that you can&apos;t inflate yourself. Request at least 3, ideally
+          5-10, from people who&apos;ve actually worked alongside you.
         </p>
       </div>
 
-      {profile.knownFor ? <ReferenceRequestForm /> : <KnownForGateForm />}
+      <ReferenceRequestForm />
 
       {profile.references.length > 0 && (
         <div className="space-y-4">

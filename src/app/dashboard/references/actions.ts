@@ -35,7 +35,7 @@ export async function updateKnownFor(
 
   const knownFor = (formData.get('knownFor') as string | null)?.trim()
   if (!knownFor) {
-    return { error: 'Please answer this before requesting a reference.' }
+    return { error: 'Please answer this before saving.' }
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
@@ -44,7 +44,7 @@ export async function updateKnownFor(
     data: { knownFor },
   })
 
-  revalidatePath('/dashboard/references')
+  revalidatePath('/dashboard/profile')
 }
 
 export async function requestReference(
@@ -72,10 +72,9 @@ export async function requestReference(
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  if (!profile.knownFor) {
+  if (!profile.assessmentComplete) {
     return {
-      error:
-        "Please answer \"How would former colleagues describe you?\" before requesting a reference.",
+      error: 'Please complete the Work Style Assessment before requesting a reference.',
     }
   }
 
