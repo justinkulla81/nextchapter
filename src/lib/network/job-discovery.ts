@@ -3,18 +3,31 @@ import { prisma } from '@/lib/prisma'
 import { searchAdzunaJobListings } from '@/lib/market/adzuna'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
+import { isVagueTargetRole } from '@/lib/constants/onboarding'
 
 const SURFACE_LIMIT = 10
 const MIN_REACTIONS_FOR_SUMMARY = 3
+
+// A vague/no-direction targetRoleType (e.g. "flexible", "open") makes for a
+// generic Adzuna text query that surfaces irrelevant gig-economy noise (e.g.
+// "Uber driver") — fall back to the more concrete primaryFunction in that
+// case rather than searching on the vague text directly.
+function buildSearchQuery(candidate: { targetRoleType: string | null; primaryFunction: string | null }): string | null {
+  if (candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType)) {
+    return candidate.targetRoleType
+  }
+  return candidate.primaryFunction || candidate.targetRoleType || null
+}
 
 // Pulls fresh listings from Adzuna and stores any not already surfaced to
 // this candidate — surfaced to learn from reactions, not to encourage mass
 // applying (no apply button, no application tracking here).
 export async function surfaceNewJobs(candidateId: string): Promise<number> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
-  if (!candidate.targetRoleType) return 0
+  const query = buildSearchQuery(candidate)
+  if (!query) return 0
 
-  const listings = await searchAdzunaJobListings(candidate.targetRoleType, candidate.currentCity, SURFACE_LIMIT)
+  const listings = await searchAdzunaJobListings(query, candidate.currentCity, SURFACE_LIMIT)
   if (listings.length === 0) return 0
 
   const existingUrls = new Set(

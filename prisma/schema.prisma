@@ -842,6 +842,11 @@ model JobPosting {
   negotiationAdviceError     String?
   negotiationAdviceAnalyzedAt DateTime?
 
+  appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
+  coverLetter            String?   @db.Text
+  coverLetterError       String?
+  coverLetterGeneratedAt DateTime?
+
   createdAt     DateTime  @default(now())
 
   @@index([candidateId, createdAt])

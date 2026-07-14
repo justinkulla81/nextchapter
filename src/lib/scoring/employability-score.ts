@@ -15,7 +15,7 @@ import {
   COMMUNITY_POINTS_CAP,
 } from '@/lib/constants/community'
 import { LINKEDIN_PRESENCE_POINTS, LINKEDIN_POINTS_PER_LOG, LINKEDIN_POINTS_WINDOW_DAYS, LINKEDIN_POINTS_CAP } from '@/lib/constants/linkedin'
-import { INTERVIEW_LANDED_POINTS_PER_JOB, INTERVIEW_LANDED_CAP, OFFER_RECEIVED_POINTS_PER_JOB, OFFER_RECEIVED_CAP } from '@/lib/constants/job-milestones'
+import { INTERVIEW_LANDED_POINTS_PER_JOB, INTERVIEW_LANDED_CAP, OFFER_RECEIVED_POINTS_PER_JOB, OFFER_RECEIVED_CAP, APPLIED_POINTS_PER_JOB, APPLIED_CAP } from '@/lib/constants/job-milestones'
 import { NETWORKING_LIST_POINTS, ASK_FOR_HELP_POINTS } from '@/lib/constants/desire-signal'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 
@@ -23,7 +23,7 @@ import { isVagueTargetRole } from '@/lib/constants/onboarding'
 // `saturate()` below for why. Each is the sum of its own per-term caps
 // (already enforced individually further down), so raising the outer cap
 // only raises a finite, derived ceiling — never truly unbounded.
-export const SIGNAL_DEPTH_RAW_CAP = 195 // 127 (existing terms) + 8 + 10 + 20 + 30 (new terms)
+export const SIGNAL_DEPTH_RAW_CAP = 200 // 127 (existing terms) + 8 + 10 + 20 + 30 + 5 (new terms)
 export const DESIRE_SIGNAL_RAW_CAP = 140 // 100 (existing terms) + 12 + 8 + 20 (job search intensity, new)
 
 // Theoretical raw maximum with every input maxed: 195*0.3 + 100*0.25 +
@@ -136,6 +136,9 @@ export function computeRawBreakdown(candidate: CandidateWithScoringRelations): R
 
   const offersReceived = candidate.jobPostings.filter((j) => j.offerReceivedAt !== null).length
   signalDepth += Math.min(offersReceived * OFFER_RECEIVED_POINTS_PER_JOB, OFFER_RECEIVED_CAP)
+
+  const jobsApplied = candidate.jobPostings.filter((j) => j.appliedAt !== null).length
+  signalDepth += Math.min(jobsApplied * APPLIED_POINTS_PER_JOB, APPLIED_CAP)
 
   signalDepth = Math.min(signalDepth, SIGNAL_DEPTH_RAW_CAP)
 
