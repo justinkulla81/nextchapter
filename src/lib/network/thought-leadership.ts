@@ -1,9 +1,23 @@
 import 'server-only'
 import { z } from 'zod'
+import type { ContentVenue } from '@prisma/client'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
+
+// Venue-specific formatting instructions — the same underlying idea/angle
+// gets drafted very differently depending on where it's actually going.
+const VENUE_INSTRUCTIONS: Record<ContentVenue, string> = {
+  LINKEDIN:
+    'Format: a LinkedIn post, 150-250 words, first person, short punchy paragraphs (1-2 sentences each), at most 2 relevant hashtags at the very end.',
+  SUBSTACK:
+    'Format: a Substack/newsletter piece, 400-600 words, more narrative and reflective than a social post — a real opening hook, 2-3 developed paragraphs, a closing thought. No hashtags.',
+  PODCAST:
+    'Format: a talking-points outline for recording a short podcast segment (not a written post) — a suggested opening line, then 3-5 bullet points covering what to say and in what order, plus one closing thought. Conversational, not a script to read verbatim.',
+  INSTAGRAM_FACEBOOK_YOUTUBE:
+    'Format: a short social caption, 100-150 words, casual and punchy, plus one bracketed note suggesting a visual or hook for the post/video, and 3-5 relevant hashtags at the end.',
+}
 
 const postIdeasSchema = z.object({
   ideas: z
@@ -57,7 +71,7 @@ ${summary}`
   return message.parsed_output?.ideas ?? []
 }
 
-export async function draftPost(candidateId: string, idea: PostIdea): Promise<string> {
+export async function draftPost(candidateId: string, idea: PostIdea, venue: ContentVenue): Promise<string> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: { workHistory: true },
@@ -75,10 +89,12 @@ Work history: ${
 
   const prompt = `${VICTORIA_VOICE_PROMPT}
 
-Draft a real LinkedIn post (150-250 words, first person, no hashtags spam, at most 2 relevant hashtags at the end) for this idea:
+Draft real content for this idea:
 
 Title: ${idea.title}
 Angle: ${idea.angle}
+
+${VENUE_INSTRUCTIONS[venue]}
 
 Ground it in the candidate's real background below — specific details, not generic advice. Write it so the candidate can lightly edit and post it as their own voice.
 

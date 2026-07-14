@@ -1,6 +1,9 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
+import type { ContentVenue } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { generatePostIdeas, draftPost, type PostIdea } from '@/lib/network/thought-leadership'
 
@@ -11,6 +14,33 @@ async function getAuthedProfile() {
   } = await supabase.auth.getUser()
   if (!user) return null
   return getOrCreateCandidateProfile(user.id)
+}
+
+export type UnlockFormState = { error?: string } | undefined
+
+export async function submitThoughtLeadershipUnlock(
+  _prevState: UnlockFormState,
+  formData: FormData
+): Promise<UnlockFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const comfortLevel = Number(formData.get('comfortLevel'))
+  const venues = formData.getAll('venues') as ContentVenue[]
+
+  if (!Number.isFinite(comfortLevel)) {
+    return { error: 'Please answer the comfort question first.' }
+  }
+  if (venues.length === 0) {
+    return { error: 'Pick at least one venue.' }
+  }
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { contentComfortLevel: comfortLevel, contentVenues: venues },
+  })
+
+  revalidatePath('/dashboard/thought-leadership')
 }
 
 export type IdeasFormState = { ideas?: PostIdea[]; error?: string } | undefined
@@ -35,8 +65,10 @@ export async function draftPostAction(
 
   const title = formData.get('title') as string | null
   const angle = formData.get('angle') as string | null
+  const venue = formData.get('venue') as ContentVenue | null
   if (!title || !angle) return { error: 'Missing idea details.' }
+  if (!venue) return { error: 'Pick a venue to draft for.' }
 
-  const draft = await draftPost(profile.id, { title, angle })
+  const draft = await draftPost(profile.id, { title, angle }, venue)
   return { draft }
 }

@@ -142,6 +142,13 @@ enum NetworkingAnxiety {
   OTHER
 }
 
+enum ContentVenue {
+  LINKEDIN
+  SUBSTACK
+  PODCAST
+  INSTAGRAM_FACEBOOK_YOUTUBE
+}
+
 enum JobReactionType {
   INTERESTED
   NOT_INTERESTED
@@ -277,6 +284,8 @@ model CandidateProfile {
   benefitsActionPlan            String?    @db.Text
   benefitsActionPlanGeneratedAt DateTime?
   gigDirectoryUnlockAnswer      String?    // target rate/openness question — gates the Gig Directory
+  contentComfortLevel           Int?       // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
+  contentVenues                 ContentVenue[] @default([])
 
   // Daily loop — mood check-in + daily Victoria email
   actionWindow          ActionWindow  @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
