@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
-import { toggleAListOptOut, toggleEncouragementGiving } from '@/app/dashboard/circle/actions'
+import { toggleAListOptOut, toggleEncouragementGiving } from '@/app/dashboard/community/actions'
 
-export function CircleSettingsToggles({
+export function CommunitySettingsToggles({
   aListOptOut,
   encouragementGivingOptIn,
 }: {

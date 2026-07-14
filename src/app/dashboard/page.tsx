@@ -13,6 +13,7 @@ import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
 import { computeEarnedBadges } from '@/lib/community/badges'
+import { getCommunityFeed } from '@/lib/community/community-feed'
 import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
@@ -73,7 +74,7 @@ export default async function DashboardPage() {
     earnedBadges,
     searchExecutionAvailable,
     latestReport,
-    recentCommunityPosts,
+    communityFeed,
   ] = await Promise.all([
     supabase.auth.getUser(),
     calculateEmployabilityScore(profile.id),
@@ -91,11 +92,7 @@ export default async function DashboardPage() {
     // just the first, and also covers the case where that background job
     // never even finished generating the report at all.
     resolveLatestReport(profile.id, profile.hireabilityReports[0]),
-    prisma.communityPost.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-    }),
+    getCommunityFeed(3),
   ])
 
   const nextSteps = scoreToNextSteps(profile, currentRaw)
@@ -121,6 +118,8 @@ export default async function DashboardPage() {
         primaryAction={primaryAction}
         firstName={profile.firstName}
       />
+
+      <CommunityPreviewWidget feed={communityFeed} />
 
       <SuccessSprintCard
         actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
@@ -163,8 +162,6 @@ export default async function DashboardPage() {
       </Card>
 
       <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
-
-      <CommunityPreviewWidget posts={recentCommunityPosts} />
 
       <CoachChatCard initialMessages={conversation.messages} />
     </div>

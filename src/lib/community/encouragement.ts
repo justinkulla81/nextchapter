@@ -13,8 +13,8 @@ export async function isStrugglingThisWeek(candidateId: string): Promise<boolean
 }
 
 // Picks one anonymous struggling candidate (not the giver themselves) for
-// the "someone in the Circle needs encouragement" prompt — the giver never
-// chooses who, per the spec's "small, human, real" anonymous design.
+// the "someone in the Community needs encouragement" prompt — the giver
+// never chooses who, per the spec's "small, human, real" anonymous design.
 export async function pickStrugglingCandidateId(excludeCandidateId: string): Promise<string | null> {
   const windowStart = new Date(Date.now() - STRUGGLING_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   const candidates = await prisma.candidateProfile.findMany({

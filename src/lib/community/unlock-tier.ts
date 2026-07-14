@@ -16,7 +16,7 @@ export const TIER_NAME: Record<UnlockTier, string> = {
 // scripts, recruiter list, job surfacing, thought leadership tools,
 // fractional portal, coaching access) don't exist as built features yet —
 // those gates will apply automatically once those features land in later
-// slices. Community (formerly "The Circle") is open to everyone regardless
+// slices. Community is open to everyone regardless
 // of tier, so it's no longer listed as a tier 3/4 reward — only A-List
 // highlighting at tier 5 is still actually gated by this system.
 export const TIER_UNLOCKS: Record<UnlockTier, string> = {

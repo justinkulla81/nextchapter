@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { submitEncouragementNote } from '@/app/dashboard/circle/actions'
+import { submitEncouragementNote } from '@/app/dashboard/community/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'

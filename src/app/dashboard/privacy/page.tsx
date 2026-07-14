@@ -1,7 +1,7 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
-import { CircleSettingsToggles } from '@/components/dashboard/CircleSettingsToggles'
+import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -26,7 +26,7 @@ export default async function PrivacyPage() {
 
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Community</h2>
-        <CircleSettingsToggles
+        <CommunitySettingsToggles
           aListOptOut={profile.aListOptOut}
           encouragementGivingOptIn={profile.encouragementGivingOptIn}
         />

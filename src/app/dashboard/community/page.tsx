@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { getCircleFeed } from '@/lib/community/circle-feed'
+import { getCommunityFeed } from '@/lib/community/community-feed'
+import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import { getUnreadEncouragementNotes } from '@/lib/community/encouragement'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
 import { EncouragementForm } from '@/components/dashboard/EncouragementForm'
-import { dismissEncouragementNote } from '@/app/dashboard/circle/actions'
+import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
 import { Button } from '@/components/ui/button'
 
 export default async function CommunityPage({
@@ -86,7 +87,7 @@ export default async function CommunityPage({
       },
       orderBy: { createdAt: 'desc' },
     }),
-    getCircleFeed(),
+    getCommunityFeed(),
     getUnreadEncouragementNotes(profile.id),
   ])
 
@@ -155,18 +156,28 @@ export default async function CommunityPage({
 
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
-        <div className="divide-y divide-border rounded-lg border border-border">
+        <div className="space-y-2">
           {feed.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">No activity yet this week — check back soon.</p>
+            <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
+              No activity yet this week — check back soon.
+            </p>
           ) : (
-            feed.map((item) => (
-              <div key={item.id} className="p-4 text-sm text-foreground">
-                <span className="font-medium">{item.displayName}</span> {item.detail}
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {item.occurredAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </span>
-              </div>
-            ))
+            feed.map((item) => {
+              const style = FEED_ITEM_STYLE[item.type]
+              return (
+                <div
+                  key={item.id}
+                  className={`rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
+                >
+                  <span className="mr-1">{style.icon}</span>
+                  {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
+                  {item.detail}
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {item.occurredAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              )
+            })
           )}
         </div>
       </div>
