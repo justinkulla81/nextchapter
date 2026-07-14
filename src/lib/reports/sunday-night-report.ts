@@ -17,6 +17,7 @@ import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { actionPlanItemTypes } from '@/lib/reports/hireability-report'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
 import type { AListResult } from '@/lib/weekly/a-list'
 
 const sundayNightReportSchema = z.object({
@@ -54,6 +55,10 @@ Write:
    - dataInconsistency: ONLY if their Work Style Assessment self-report meaningfully contradicts this week's observed behavior below — state it plainly, without judgment. If there's no real contradiction, set this to null rather than manufacturing one.
 4. Straight Talk: 1-3 sentences, direct, no hedging, no softening. This is the most important part of the report — say the one true thing that matters most this week, whether that's encouragement to keep pace or a direct call-out of avoidance.
 5. Suggested action plan for the UPCOMING week (3-6 items): specific, each tagged with an optional actionType where it matches a real platform feature. Mark the 2-3 highest-leverage items "isAStandard: true" — these are explicitly "complete these and you've earned your A this week." At most one item may be "isStretch: true" — an optional extra for a motivated week.
+
+HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
+
+Underlying theme (weave in naturally, at least once — ideally in Straight Talk or the action plan intro): not everyone who searches will land the role they want — never promise an outcome — but doing the real work meaningfully improves their odds, and Search Execution is the lever entirely in their hands. If this is Week 1 (no Success Sprint history yet), make clear Search Execution starts as a blank page they're about to write, not a bad grade. Somewhere, briefly tie completing this week's plan to earning their A and to what building it up unlocks over time: ${TIER_UNLOCKS[3]} at Tier 3, ${TIER_UNLOCKS[4]} at Tier 4, and ${TIER_UNLOCKS[5]} at Tier 5.
 
 Candidate data:
 `

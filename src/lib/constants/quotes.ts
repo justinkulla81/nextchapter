@@ -1,0 +1,105 @@
+// Curated, real, correctly-attributed short quotes on perseverance, stoicism,
+// competing, and doing what's needed — no fabricated quotes, no copyrighted
+// lyrics/scripts. One is shown per calendar day (see getQuoteOfTheDay below).
+export interface Quote {
+  text: string
+  author: string
+}
+
+export const QUOTES: Quote[] = [
+  { text: 'You have power over your mind — not outside events. Realize this, and you will find strength.', author: 'Marcus Aurelius' },
+  { text: 'The impediment to action advances action. What stands in the way becomes the way.', author: 'Marcus Aurelius' },
+  { text: 'Waste no more time arguing about what a good man should be. Be one.', author: 'Marcus Aurelius' },
+  { text: 'If it is not right, do not do it; if it is not true, do not say it.', author: 'Marcus Aurelius' },
+  { text: 'Difficulties strengthen the mind, as labor does the body.', author: 'Seneca' },
+  { text: 'It is not because things are difficult that we do not dare; it is because we do not dare that they are difficult.', author: 'Seneca' },
+  { text: 'Every new beginning comes from some other beginning\'s end.', author: 'Seneca' },
+  { text: 'While we wait for life, life passes.', author: 'Seneca' },
+  { text: "It's not what happens to you, but how you react to it that matters.", author: 'Epictetus' },
+  { text: 'No man is free who is not master of himself.', author: 'Epictetus' },
+  { text: 'First say to yourself what you would be; and then do what you have to do.', author: 'Epictetus' },
+  { text: 'Circumstances do not rise to meet our expectations. Expectations must rise to meet the circumstances.', author: 'Epictetus' },
+  { text: 'Success is not final, failure is not fatal: it is the courage to continue that counts.', author: 'Winston Churchill' },
+  { text: 'Never, never, never give up.', author: 'Winston Churchill' },
+  { text: 'If you\'re going through hell, keep going.', author: 'Winston Churchill' },
+  { text: 'Continuous effort — not strength or intelligence — is the key to unlocking our potential.', author: 'Winston Churchill' },
+  { text: 'It is not the critic who counts... The credit belongs to the man who is actually in the arena.', author: 'Theodore Roosevelt' },
+  { text: 'Believe you can and you\'re halfway there.', author: 'Theodore Roosevelt' },
+  { text: 'Do what you can, with what you have, where you are.', author: 'Theodore Roosevelt' },
+  { text: 'Nothing in the world can take the place of persistence.', author: 'Calvin Coolidge' },
+  { text: 'Press on: this, and this alone, has solved and always will solve the problems of the human race.', author: 'Calvin Coolidge' },
+  { text: 'I have not failed. I\'ve just found 10,000 ways that won\'t work.', author: 'Thomas Edison' },
+  { text: 'Genius is one percent inspiration and ninety-nine percent perspiration.', author: 'Thomas Edison' },
+  { text: 'Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time.', author: 'Thomas Edison' },
+  { text: 'It always seems impossible until it is done.', author: 'Nelson Mandela' },
+  { text: 'I never lose. I either win or I learn.', author: 'Nelson Mandela' },
+  { text: 'The greatest glory in living lies not in never falling, but in rising every time we fall.', author: 'Nelson Mandela' },
+  { text: 'Character cannot be developed in ease and quiet. Only through experience of trial and suffering can the soul be strengthened.', author: 'Helen Keller' },
+  { text: 'Although the world is full of suffering, it is also full of the overcoming of it.', author: 'Helen Keller' },
+  { text: 'You must do the thing you think you cannot do.', author: 'Eleanor Roosevelt' },
+  { text: 'A woman is like a tea bag — you never know how strong she is until she\'s in hot water.', author: 'Eleanor Roosevelt' },
+  { text: 'Do not go where the path may lead; go instead where there is no path and leave a trail.', author: 'Ralph Waldo Emerson' },
+  { text: 'That which does not kill us makes us stronger.', author: 'Friedrich Nietzsche' },
+  { text: 'He who has a why to live can bear almost any how.', author: 'Friedrich Nietzsche' },
+  { text: 'I hated every minute of training, but I said, don\'t quit. Suffer now and live the rest of your life as a champion.', author: 'Muhammad Ali' },
+  { text: 'It isn\'t the mountains ahead to climb that wear you out; it\'s the pebble in your shoe.', author: 'Muhammad Ali' },
+  { text: 'Champions aren\'t made in gyms. Champions are made from something they have deep inside them — a desire, a dream, a vision.', author: 'Muhammad Ali' },
+  { text: 'The man who has no imagination has no wings.', author: 'Muhammad Ali' },
+  { text: 'It\'s not whether you get knocked down; it\'s whether you get up.', author: 'Vince Lombardi' },
+  { text: 'The difference between a successful person and others is not a lack of strength, not a lack of knowledge, but rather a lack of will.', author: 'Vince Lombardi' },
+  { text: 'Winners never quit, and quitters never win.', author: 'Vince Lombardi' },
+  { text: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' },
+  { text: 'Our greatest glory is not in never falling, but in rising every time we fall.', author: 'Confucius' },
+  { text: 'The man who moves a mountain begins by carrying away small stones.', author: 'Confucius' },
+  { text: 'Know the enemy and know yourself; in a hundred battles you will never be in peril.', author: 'Sun Tzu' },
+  { text: 'Victorious warriors win first and then go to war, while defeated warriors go to war first and then seek to win.', author: 'Sun Tzu' },
+  { text: 'In the midst of chaos, there is also opportunity.', author: 'Sun Tzu' },
+  { text: 'Fall seven times, stand up eight.', author: 'Japanese proverb' },
+  { text: 'A river cuts through rock, not because of its power, but because of its persistence.', author: 'Jim Watkins' },
+  { text: 'Once you choose hope, anything\'s possible.', author: 'Christopher Reeve' },
+  { text: 'The only way out is through.', author: 'Robert Frost' },
+  { text: 'Two roads diverged in a wood, and I — I took the one less traveled by, and that has made all the difference.', author: 'Robert Frost' },
+  { text: 'When you reach the end of your rope, tie a knot in it and hang on.', author: 'Franklin D. Roosevelt' },
+  { text: 'The only thing we have to fear is fear itself.', author: 'Franklin D. Roosevelt' },
+  { text: 'A smooth sea never made a skilled sailor.', author: 'Franklin D. Roosevelt' },
+  { text: 'If you want to make peace, you don\'t talk to your friends. You talk to your enemies.', author: 'Frederick Douglass' },
+  { text: 'If there is no struggle, there is no progress.', author: 'Frederick Douglass' },
+  { text: 'Once you learn to quit, it becomes a habit.', author: 'Vince Lombardi' },
+  { text: 'I\'ve missed more than 9,000 shots in my career. I\'ve failed over and over. That is why I succeed.', author: 'Michael Jordan' },
+  { text: 'Obstacles don\'t have to stop you. If you run into a wall, don\'t turn around and give up. Figure out how to climb it.', author: 'Michael Jordan' },
+  { text: 'Talent wins games, but teamwork and intelligence win championships.', author: 'Michael Jordan' },
+  { text: 'You miss 100 percent of the shots you don\'t take.', author: 'Wayne Gretzky' },
+  { text: 'It ain\'t over till it\'s over.', author: 'Yogi Berra' },
+  { text: 'Yesterday\'s home runs don\'t win today\'s games.', author: 'Babe Ruth' },
+  { text: 'Every strike brings me closer to the next home run.', author: 'Babe Ruth' },
+  { text: 'The successful warrior is the average man, with laser-like focus.', author: 'Bruce Lee' },
+  { text: 'A goal is not always meant to be reached — it often serves simply as something to aim at.', author: 'Bruce Lee' },
+  { text: 'Do not pray for an easy life; pray for the strength to endure a difficult one.', author: 'Bruce Lee' },
+  { text: 'It\'s not that I\'m so smart, it\'s just that I stay with problems longer.', author: 'Albert Einstein' },
+  { text: 'In the middle of difficulty lies opportunity.', author: 'Albert Einstein' },
+  { text: 'Failure is simply the opportunity to begin again, this time more intelligently.', author: 'Henry Ford' },
+  { text: 'Whether you think you can, or you think you can\'t — you\'re right.', author: 'Henry Ford' },
+  { text: 'Quality means doing it right when no one is looking.', author: 'Henry Ford' },
+  { text: 'It is during our darkest moments that we must focus to see the light.', author: 'Aristotle' },
+  { text: 'Patience is bitter, but its fruit is sweet.', author: 'Aristotle' },
+  { text: 'Perseverance is not a long race; it is many short races one after another.', author: 'Walter Elliot' },
+  { text: 'The only place where success comes before work is in the dictionary.', author: 'Vince Lombardi' },
+  { text: 'It is hard to fail, but it is worse never to have tried to succeed.', author: 'Theodore Roosevelt' },
+  { text: 'Far and away the best prize that life offers is the chance to work hard at work worth doing.', author: 'Theodore Roosevelt' },
+  { text: 'When everything seems to be going against you, remember that the airplane takes off against the wind, not with it.', author: 'Henry Ford' },
+  { text: 'Discipline is the bridge between goals and accomplishment.', author: 'Jim Rohn' },
+  { text: 'You don\'t have to be great to start, but you have to start to be great.', author: 'Zig Ziglar' },
+  { text: 'Things do not happen. Things are made to happen.', author: 'John F. Kennedy' },
+  { text: 'Effort and courage are not enough without purpose and direction.', author: 'John F. Kennedy' },
+]
+
+function dayOfYearUTC(date: Date): number {
+  const start = Date.UTC(date.getUTCFullYear(), 0, 0)
+  const diff =
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - start
+  return Math.floor(diff / 86400000)
+}
+
+export function getQuoteOfTheDay(date: Date = new Date()): Quote {
+  return QUOTES[dayOfYearUTC(date) % QUOTES.length]
+}

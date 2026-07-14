@@ -38,40 +38,52 @@ const GRADE_TEXT_COLOR: Record<Grade, string> = {
   F: 'text-error',
 }
 
-function GradeRing({ label, score, grade }: { label: string; score: number; grade: Grade }) {
-  const [animatedScore, setAnimatedScore] = useState(0)
+function GradeRing({ label, grade }: { label: string; grade: Grade | null }) {
+  const [animatedFraction, setAnimatedFraction] = useState(0)
+  const targetFraction = grade === null ? 0 : 1
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setAnimatedScore(score))
+    const raf = requestAnimationFrame(() => setAnimatedFraction(targetFraction))
     return () => cancelAnimationFrame(raf)
-  }, [score])
+  }, [targetFraction])
 
   const radius = 64
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (animatedScore / 100) * circumference
+  const offset = circumference - animatedFraction * circumference
 
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative flex items-center justify-center">
         <svg width={160} height={160} className="-rotate-90">
           <circle cx={80} cy={80} r={radius} strokeWidth={12} className="fill-none stroke-muted" />
-          <circle
-            cx={80}
-            cy={80}
-            r={radius}
-            strokeWidth={12}
-            strokeLinecap="round"
-            className={cn(
-              'fill-none transition-[stroke-dashoffset] duration-1000 ease-out',
-              GRADE_RING_STROKE[grade]
-            )}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-          />
+          {grade !== null && (
+            <circle
+              cx={80}
+              cy={80}
+              r={radius}
+              strokeWidth={12}
+              strokeLinecap="round"
+              className={cn(
+                'fill-none transition-[stroke-dashoffset] duration-1000 ease-out',
+                GRADE_RING_STROKE[grade]
+              )}
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+            />
+          )}
         </svg>
-        <div className="absolute flex flex-col items-center">
-          <span className={cn('text-4xl font-bold', GRADE_TEXT_COLOR[grade])}>{grade}</span>
-          <span className="text-xs text-muted-foreground">{GRADE_LABEL[grade]}</span>
+        <div className="absolute flex flex-col items-center px-4 text-center">
+          {grade === null ? (
+            <>
+              <span className="text-3xl font-bold text-muted-foreground">N/A</span>
+              <span className="text-xs text-muted-foreground">Starting line</span>
+            </>
+          ) : (
+            <>
+              <span className={cn('text-4xl font-bold', GRADE_TEXT_COLOR[grade])}>{grade}</span>
+              <span className="text-xs text-muted-foreground">{GRADE_LABEL[grade]}</span>
+            </>
+          )}
         </div>
       </div>
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
@@ -83,19 +95,20 @@ export function DualGradeReveal({
   grade,
   tier,
   nextSteps,
+  searchExecutionAvailable,
 }: {
   grade: HireabilityGrade
   tier: VisibilityTier
   nextSteps: NextStep[]
+  searchExecutionAvailable: boolean
 }) {
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex flex-wrap items-start justify-center gap-8">
-        <GradeRing label="Market Reality" score={grade.marketReality.score} grade={grade.marketReality.grade} />
+        <GradeRing label="Market Reality" grade={grade.marketReality.grade} />
         <GradeRing
           label="Search Execution"
-          score={grade.searchExecution.score}
-          grade={grade.searchExecution.grade}
+          grade={searchExecutionAvailable ? grade.searchExecution.grade : null}
         />
       </div>
 

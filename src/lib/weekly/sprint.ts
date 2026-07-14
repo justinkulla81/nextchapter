@@ -33,6 +33,15 @@ export async function getCurrentWeekSprint(candidateId: string) {
   return prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } })
 }
 
+// Search Execution is graded from real weekly follow-through — until a
+// candidate has committed to at least one Success Sprint, there's nothing
+// to grade yet, so every surface should show "N/A, starting line" instead
+// of a computed letter grade.
+export async function hasStartedSprint(candidateId: string): Promise<boolean> {
+  const count = await prisma.weeklySprint.count({ where: { candidateId } })
+  return count > 0
+}
+
 // Suggested actions for the upcoming week — pulled from the most recent
 // Sunday Night Report if one exists, otherwise falls back to flattening the
 // existing Hireability Report's 7-day plan (Week 1, before any weekly

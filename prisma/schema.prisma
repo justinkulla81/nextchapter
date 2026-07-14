@@ -1055,18 +1055,6 @@ model CoachMessage {
   @@index([conversationId, createdAt])
 }
 
-// Global (not per-candidate) cache of the score distribution, refreshed on a
-// TTL like MarketConditionsSnapshot — avoids a full-table scan/sort on every
-// dashboard load. "Most recent row" = current snapshot.
-model ScorePercentileSnapshot {
-  id              String   @id @default(cuid())
-  totalCandidates Int
-  bucketCounts    Json     // { "0": count, "1": count, ..., "100": count }
-  computedAt      DateTime @default(now())
-
-  @@index([computedAt])
-}
-
 // Homepage "Audiences" waitlist forms (Employers, Recruiters, Outplacement,
 // Government & Workforce, Nonprofits & Academia). Payload shape varies per
 // audience (different fields per tab), so it's stored as-is rather than

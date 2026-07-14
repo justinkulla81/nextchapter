@@ -1,8 +1,7 @@
 import type { VisibilityTier } from '@prisma/client'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
 import type { NextStep } from '@/lib/scoring/employability-score'
-import type { ScoreFramingCopy } from '@/lib/scoring/score-framing'
 import { NextStepsList } from '@/components/candidates/NextStepsList'
 import { cn } from '@/lib/utils'
 
@@ -12,12 +11,6 @@ const GRADE_COLOR: Record<Grade, string> = {
   C: 'text-light-blue',
   D: 'text-warning',
   F: 'text-error',
-}
-
-const FACTOR_TYPE_LABEL: Record<string, string> = {
-  controllable: 'Controllable',
-  influenceable: 'Influenceable',
-  structural: 'Structural',
 }
 
 const TIER_LABELS: Record<VisibilityTier, string> = {
@@ -38,38 +31,46 @@ function GradeColumn({
   label,
   sublabel,
   grade,
-  score,
   rows,
 }: {
   label: string
   sublabel: string
-  grade: Grade
-  score: number
+  grade: Grade | null
   rows: { key: string; label: string; grade: Grade; factorType?: string }[]
 }) {
   return (
     <div>
       <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">{label}</p>
-      <p className={cn('mt-1 text-4xl font-bold tabular-nums', GRADE_COLOR[grade])}>
-        {grade}
-        <span className="ml-2 align-middle text-sm font-medium text-muted-foreground">
-          {GRADE_LABEL[grade]} · {score}/100
-        </span>
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>
-      <div className="mt-3 space-y-1.5">
-        {rows.map((r) => (
-          <div key={r.key} className="flex items-center justify-between gap-2 text-sm">
-            <span className="text-foreground">{r.label}</span>
-            <span className="flex items-center gap-2">
-              {r.factorType && (
-                <span className="text-xs text-muted-foreground">{FACTOR_TYPE_LABEL[r.factorType]}</span>
-              )}
-              <span className={cn('font-semibold tabular-nums', GRADE_COLOR[r.grade])}>{r.grade}</span>
-            </span>
+      {grade === null ? (
+        <>
+          <p className="mt-1 text-4xl font-bold text-muted-foreground">N/A</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            You haven&apos;t started your Success Sprint yet — that&apos;s not a failure, it&apos;s a starting
+            line. Commit to this week&apos;s goals and I&apos;ll grade your execution this Sunday.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className={cn('mt-1 text-4xl font-bold', GRADE_COLOR[grade])}>
+            {grade}
+            <span className="ml-2 align-middle text-sm font-medium text-muted-foreground">{GRADE_LABEL[grade]}</span>
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>
+          <div className="mt-3 space-y-1.5">
+            {rows.map((r) => (
+              <div key={r.key} className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-foreground">{r.label}</span>
+                <span className="flex items-center gap-2">
+                  {r.factorType && (
+                    <span className="text-xs text-muted-foreground">{FACTOR_TYPE_LABEL[r.factorType as keyof typeof FACTOR_TYPE_LABEL]}</span>
+                  )}
+                  <span className={cn('font-semibold', GRADE_COLOR[r.grade])}>{r.grade}</span>
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   )
 }
@@ -78,14 +79,12 @@ export function DualGradeCard({
   grade,
   tier,
   nextSteps,
-  framingCopy,
-  scoreLastCalculated,
+  searchExecutionAvailable,
 }: {
   grade: HireabilityGrade
   tier: VisibilityTier
   nextSteps: NextStep[]
-  framingCopy: ScoreFramingCopy
-  scoreLastCalculated: Date | null
+  searchExecutionAvailable: boolean
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -101,7 +100,6 @@ export function DualGradeCard({
           label="Market Reality"
           sublabel="Your honest market position — some of it outside your control."
           grade={grade.marketReality.grade}
-          score={grade.marketReality.score}
           rows={grade.marketReality.dimensions.map((d) => ({
             key: d.key,
             label: d.label,
@@ -112,8 +110,7 @@ export function DualGradeCard({
         <GradeColumn
           label="Search Execution"
           sublabel="How well you're running your search — everyone can bring this one to an A."
-          grade={grade.searchExecution.grade}
-          score={grade.searchExecution.score}
+          grade={searchExecutionAvailable ? grade.searchExecution.grade : null}
           rows={grade.searchExecution.engines.map((e) => ({
             key: e.key,
             label: `${e.label} Engine`,
@@ -121,18 +118,6 @@ export function DualGradeCard({
           }))}
         />
       </div>
-
-      <p className="text-sm text-muted-foreground">
-        {framingCopy.type === 'percentile'
-          ? `You're in the top ${framingCopy.topPercent}% of candidates.`
-          : framingCopy.message}
-      </p>
-
-      {scoreLastCalculated && (
-        <p className="text-xs text-muted-foreground">
-          Last updated {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(scoreLastCalculated)}
-        </p>
-      )}
 
       <NextStepsList nextSteps={nextSteps} />
     </div>

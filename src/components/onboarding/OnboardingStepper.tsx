@@ -1,0 +1,50 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
+
+const STEPS = [
+  { href: '/onboarding/resume', label: 'Resume' },
+  { href: '/onboarding/desire', label: 'Your Why' },
+  { href: '/onboarding/circumstances', label: 'Your Situation' },
+  { href: '/onboarding/experience', label: 'Experience' },
+  { href: '/onboarding/goals', label: 'Goals' },
+]
+
+export function OnboardingStepper({ completion }: { completion: boolean[] }) {
+  const pathname = usePathname()
+
+  return (
+    <ol className="mx-auto flex w-full max-w-2xl items-center gap-2 px-6 py-6">
+      {STEPS.map((step, i) => {
+        const isActive = pathname === step.href
+        const isDone = completion[i]
+        return (
+          <li key={step.href} className="flex flex-1 items-center gap-2">
+            <div
+              className={cn(
+                'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : isDone
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-muted text-muted-foreground'
+              )}
+            >
+              {i + 1}
+            </div>
+            <span
+              className={cn(
+                'hidden text-sm sm:inline',
+                isActive ? 'font-medium text-foreground' : 'text-muted-foreground'
+              )}
+            >
+              {step.label}
+            </span>
+            {i < STEPS.length - 1 && <div className="h-px flex-1 bg-border" />}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}

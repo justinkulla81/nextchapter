@@ -1,0 +1,5 @@
+export const INTERVIEW_LANDED_POINTS_PER_JOB = 10
+export const INTERVIEW_LANDED_CAP = 20
+
+export const OFFER_RECEIVED_POINTS_PER_JOB = 15
+export const OFFER_RECEIVED_CAP = 30

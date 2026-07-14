@@ -8,8 +8,10 @@ import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { hasStartedSprint } from '@/lib/weekly/sprint'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
+import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { cn } from '@/lib/utils'
 
 const GRADE_COLOR: Record<Grade, string> = {
@@ -18,12 +20,6 @@ const GRADE_COLOR: Record<Grade, string> = {
   C: 'text-light-blue',
   D: 'text-warning',
   F: 'text-error',
-}
-
-const FACTOR_TYPE_LABEL: Record<string, string> = {
-  controllable: 'Controllable',
-  influenceable: 'Influenceable',
-  structural: 'Structural',
 }
 
 interface Strength {
@@ -95,6 +91,7 @@ export default async function HireabilityReportPage() {
 
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
+  const searchExecutionAvailable = await hasStartedSprint(profile.id)
 
   const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate'
   const preparedDate = report
@@ -216,37 +213,62 @@ export default async function HireabilityReportPage() {
                       <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                         Search Execution
                       </p>
-                      <p
-                        className={cn(
-                          'text-5xl font-bold tabular-nums',
-                          GRADE_COLOR[grade.searchExecution.grade]
-                        )}
-                      >
-                        {grade.searchExecution.grade}
-                        <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
-                          {GRADE_LABEL[grade.searchExecution.grade]}
-                        </span>
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        How well you&apos;re running your search — everyone can bring this one to an A.
-                      </p>
-                      <div className="mt-3 space-y-1.5">
-                        {grade.searchExecution.engines.map((e) => (
-                          <div key={e.key} className="flex items-center justify-between gap-2 text-sm">
-                            <span className="text-foreground">{e.label} Engine</span>
-                            <span className={cn('font-semibold tabular-nums', GRADE_COLOR[e.grade])}>{e.grade}</span>
+                      {!searchExecutionAvailable ? (
+                        <>
+                          <p className="mt-1 text-5xl font-bold text-muted-foreground">N/A</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            You haven&apos;t started your Success Sprint yet — that&apos;s not a
+                            failure, it&apos;s a starting line. Commit to this week&apos;s goals and
+                            I&apos;ll grade your execution this Sunday.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p
+                            className={cn(
+                              'text-5xl font-bold tabular-nums',
+                              GRADE_COLOR[grade.searchExecution.grade]
+                            )}
+                          >
+                            {grade.searchExecution.grade}
+                            <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
+                              {GRADE_LABEL[grade.searchExecution.grade]}
+                            </span>
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            How well you&apos;re running your search — everyone can bring this one
+                            to an A.
+                          </p>
+                          <div className="mt-3 space-y-1.5">
+                            {grade.searchExecution.engines.map((e) => (
+                              <div key={e.key} className="flex items-center justify-between gap-2 text-sm">
+                                <span className="text-foreground">{e.label} Engine</span>
+                                <span className={cn('font-semibold tabular-nums', GRADE_COLOR[e.grade])}>
+                                  {e.grade}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )
               })()
             )}
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              These are a proxy for taking the actions that create opportunity — not a guarantee.
-              Higher grades get more recruiter attention.
+              Everyone will not make it — but doing the real work meaningfully improves your odds.
+              It&apos;s all about your Search Execution: the one grade above that&apos;s entirely
+              in your hands.
             </p>
+          </div>
+
+          {/* Grade System Explainer */}
+          <div className="mt-10 border-t border-border pt-8 print:hidden">
+            <SectionHeading>Understanding your grades</SectionHeading>
+            <div className="mt-4">
+              <GradeSystemExplainer />
+            </div>
           </div>
 
           {/* Strengths */}

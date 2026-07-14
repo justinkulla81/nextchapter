@@ -1,0 +1,88 @@
+interface Strength {
+  title: string
+  detail: string
+}
+
+interface HireabilityReportEmailProps {
+  candidateName: string
+  topStrengths: Strength[]
+  topWeakness: Strength | null
+  dayOneItems: string[]
+  reportUrl: string
+}
+
+const container: React.CSSProperties = {
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  maxWidth: '480px',
+  margin: '0 auto',
+  padding: '32px 24px',
+  color: '#0a0a0a',
+}
+
+const logo: React.CSSProperties = {
+  fontSize: '20px',
+  fontWeight: 700,
+  color: '#0b2545',
+}
+
+const button: React.CSSProperties = {
+  display: 'inline-block',
+  backgroundColor: '#2e7d5b',
+  color: '#ffffff',
+  textDecoration: 'none',
+  padding: '12px 20px',
+  borderRadius: '8px',
+  fontWeight: 600,
+  marginTop: '16px',
+}
+
+const footer: React.CSSProperties = {
+  color: '#4a5568',
+  fontSize: '13px',
+  marginTop: '32px',
+}
+
+export default function HireabilityReportEmail({
+  candidateName,
+  topStrengths,
+  topWeakness,
+  dayOneItems,
+  reportUrl,
+}: HireabilityReportEmailProps) {
+  return (
+    <div style={container}>
+      <p style={logo}>NextChapter</p>
+      <p>Hi {candidateName},</p>
+      <p>Your Hireability Report is ready. Here&apos;s a quick preview:</p>
+
+      <p style={{ fontWeight: 600, marginTop: '24px' }}>Top strengths</p>
+      {topStrengths.map((s) => (
+        <p key={s.title}>
+          <strong>{s.title}:</strong> {s.detail}
+        </p>
+      ))}
+
+      {topWeakness && (
+        <>
+          <p style={{ fontWeight: 600, marginTop: '24px' }}>Where to focus</p>
+          <p>
+            <strong>{topWeakness.title}:</strong> {topWeakness.detail}
+          </p>
+        </>
+      )}
+
+      <p style={{ fontWeight: 600, marginTop: '24px' }}>Day 1 of your action plan</p>
+      <ul>
+        {dayOneItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+
+      <a href={reportUrl} style={button}>
+        See your full 7-day plan
+      </a>
+
+      <p style={footer}>This report is only visible to you — never shared with employers.</p>
+    </div>
+  )
+}

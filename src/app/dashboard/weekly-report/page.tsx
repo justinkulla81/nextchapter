@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
+import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { cn } from '@/lib/utils'
 
 const GRADE_COLOR: Record<Grade, string> = {
@@ -11,12 +12,6 @@ const GRADE_COLOR: Record<Grade, string> = {
   C: 'text-light-blue',
   D: 'text-warning',
   F: 'text-error',
-}
-
-const FACTOR_TYPE_LABEL: Record<string, string> = {
-  controllable: 'Controllable',
-  influenceable: 'Influenceable',
-  structural: 'Structural',
 }
 
 interface Strength {
@@ -316,6 +311,14 @@ export default async function WeeklyReportPage() {
               committed actions and reach a Search Execution A to make next week&apos;s list. — Vic
             </p>
           )}
+        </div>
+
+        {/* Section 8: Understanding your grades */}
+        <div className="mt-10 border-t border-border pt-8 print:hidden">
+          <SectionHeading>Understanding your grades</SectionHeading>
+          <div className="mt-4">
+            <GradeSystemExplainer />
+          </div>
         </div>
       </div>
     </div>

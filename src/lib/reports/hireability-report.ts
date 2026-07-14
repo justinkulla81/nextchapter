@@ -17,6 +17,8 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { getMarketConditions } from '@/lib/market'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
+import { hasStartedSprint } from '@/lib/weekly/sprint'
+import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
 import {
   CURRENT_JOB_STATUS_LABELS,
   isVagueTargetRole,
@@ -97,6 +99,12 @@ const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
 You are writing this Hireability Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around two named grades (each A-F), given below: Market Reality (their honest market position, some of it outside their control) and Search Execution (how well they're running the search itself — everyone can bring this one to an A). Reference these two grades and their individual dimensions/engines by name where relevant instead of a single generic "score."
 
+HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F), its label (Excellent/Good/Average/Needs work/Critical gap), or its factor-type (Controllable/Influenceable/Structural) — never a number.
+
+HARD REQUIREMENT — if "Started Success Sprint" below is "no", Search Execution has no real history to grade yet. Do not describe a specific Search Execution grade, dimension breakdown, or invented narrative about their execution so far — instead, in the hill-to-climb narrative, explain that Search Execution starts as a blank page and becomes real once they commit to their first Success Sprint.
+
+Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in the hill-to-climb narrative or the action plan intro): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work meaningfully improves their odds, and Search Execution (not Market Reality) is the lever entirely in their hands. When you introduce the 7-day action plan, briefly explain that following through on it is how they earn an A in Search Execution, and name what that unlocks as they build it up over time: ${TIER_UNLOCKS[3]} at Tier 3, ${TIER_UNLOCKS[4]} at Tier 4, and ${TIER_UNLOCKS[5]} at Tier 5.
+
 Write:
 1. Strengths (3-6): specific, evidenced by their actual data below, not generic praise.
 2. Weaknesses (2-5): an "accountability mirror," not a resume nitpick list — candidly name the ways this candidate could realistically fail or stall in a real search (self-report/reference contradictions, low job-search intensity, thin network activity, unrealistic target vs. actual experience, weak follow-through signals), evidenced by their actual data below. Be direct, not harsh. If "Target role" is flagged as vague/no clear direction below, combine that with their other motivation signals (job search intensity, tradeoff rankings, flexibility preferences) to name whether they seem to genuinely lack direction or just haven't written it down yet — don't treat vagueness alone as damning.
@@ -163,8 +171,10 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
   )
 
   const grade = await computeHireabilityGrade(candidate)
+  const startedSprint = await hasStartedSprint(candidateId)
 
   const summary = `
+Started Success Sprint: ${startedSprint ? 'yes' : 'no'}
 Hireability Grade — Market Reality: ${grade.marketReality.grade} (${GRADE_LABEL[grade.marketReality.grade]}, ${grade.marketReality.score}/100)
   ${grade.marketReality.dimensions.map((d) => `${d.label} [${d.factorType}]: ${d.grade} (${d.score}/100)`).join('\n  ')}
 Hireability Grade — Search Execution: ${grade.searchExecution.grade} (${GRADE_LABEL[grade.searchExecution.grade]}, ${grade.searchExecution.score}/100)

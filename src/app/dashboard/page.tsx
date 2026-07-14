@@ -4,14 +4,13 @@ import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { calculateEmployabilityScore, scoreToNextSteps } from '@/lib/scoring/employability-score'
-import { getScoreFramingCopy } from '@/lib/scoring/score-framing'
 import { getSetupChecklistItems } from '@/lib/onboarding/setup-checklist'
 import { getQuoteOfTheDay } from '@/lib/constants/quotes'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
-import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
 import { computeEarnedBadges } from '@/lib/community/badges'
 import { DualGradeCard } from '@/components/dashboard/DualGradeCard'
@@ -36,7 +35,6 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
   const currentRaw = await calculateEmployabilityScore(profile.id)
   const nextSteps = scoreToNextSteps(profile, currentRaw)
-  const framingCopy = await getScoreFramingCopy(profile.employabilityScore)
   const checklistItems = getSetupChecklistItems(profile)
   const quote = getQuoteOfTheDay()
   const conversation = await getOrCreateCoachConversation(profile.id)
@@ -66,9 +64,10 @@ export default async function DashboardPage() {
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
     : null
   const currentSprint = await getCurrentWeekSprint(profile.id)
-  const [unlockTier, earnedBadges] = await Promise.all([
+  const [unlockTier, earnedBadges, searchExecutionAvailable] = await Promise.all([
     computeUnlockTierForCandidate(profile.id),
     computeEarnedBadges(profile.id),
+    hasStartedSprint(profile.id),
   ])
 
   const linkedInWindowStart = new Date()
@@ -110,8 +109,7 @@ export default async function DashboardPage() {
               grade={grade}
               tier={profile.visibilityTier}
               nextSteps={nextSteps}
-              framingCopy={framingCopy}
-              scoreLastCalculated={profile.scoreLastCalculated}
+              searchExecutionAvailable={searchExecutionAvailable}
             />
           </CardContent>
         </Card>
