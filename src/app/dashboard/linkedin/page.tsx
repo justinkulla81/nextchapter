@@ -26,7 +26,7 @@ export default async function LinkedInPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your profile</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">LinkedIn Analysis</CardTitle>
         </CardHeader>
         <CardContent>
           {profile.linkedInConfirmedAt === null ? (

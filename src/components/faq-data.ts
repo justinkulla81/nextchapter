@@ -128,7 +128,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     items: [
       {
         question: "I have a question that isn't answered here. How do I reach you?",
-        answer: 'Email justin.kulla@gmail.com — a real person will get back to you.',
+        answer: 'Email support@launchyournextchapter.com — a real person will get back to you.',
       },
     ],
   },

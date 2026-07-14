@@ -7,7 +7,6 @@ interface HireabilityReportEmailProps {
   candidateName: string
   topStrengths: Strength[]
   topWeakness: Strength | null
-  dayOneItems: string[]
   reportUrl: string
 }
 
@@ -46,7 +45,6 @@ export default function HireabilityReportEmail({
   candidateName,
   topStrengths,
   topWeakness,
-  dayOneItems,
   reportUrl,
 }: HireabilityReportEmailProps) {
   return (
@@ -71,15 +69,13 @@ export default function HireabilityReportEmail({
         </>
       )}
 
-      <p style={{ fontWeight: 600, marginTop: '24px' }}>Day 1 of your action plan</p>
-      <ul>
-        {dayOneItems.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
+      <p style={{ marginTop: '24px' }}>
+        Your first week is orientation, not action — get familiar with your report, and Victoria
+        will walk you through what&apos;s next.
+      </p>
 
       <a href={reportUrl} style={button}>
-        See your full 7-day plan
+        See your full report
       </a>
 
       <p style={footer}>This report is only visible to you — never shared with employers.</p>

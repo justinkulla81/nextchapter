@@ -1,9 +1,6 @@
-import type { Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL } from '@/lib/scoring/grade'
-
 interface CompleteRegistrationReminderEmailProps {
   firstName: string | null
-  grade: Grade
+  gradeDescription: string
   magicLink: string
   unsubscribeUrl: string
 }
@@ -41,7 +38,7 @@ const footer: React.CSSProperties = {
 
 export default function CompleteRegistrationReminderEmail({
   firstName,
-  grade,
+  gradeDescription,
   magicLink,
   unsubscribeUrl,
 }: CompleteRegistrationReminderEmailProps) {
@@ -50,12 +47,11 @@ export default function CompleteRegistrationReminderEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'},</p>
       <p>
-        You built your NextChapter profile and got a Hireability Grade of{' '}
-        <strong>
-          {grade} ({GRADE_LABEL[grade]})
-        </strong>{' '}
-        — but you never finished creating your account, so your full report (strengths, gaps, and
-        a 7-day action plan) is still locked.
+        You built your NextChapter profile and got an honest read on where you stand: {gradeDescription}.
+      </p>
+      <p>
+        But you never finished creating your account, so your full report (strengths, gaps, and a
+        7-day action plan) is still locked.
       </p>
       <p>Click below to pick up exactly where you left off — no password needed.</p>
       <a href={magicLink} style={button}>

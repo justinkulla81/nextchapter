@@ -16,10 +16,8 @@ interface MarketResponseSnapshot {
 interface SundayNightReportEmailProps {
   firstName: string | null
   isFirstWeek: boolean
-  marketRealityGrade: string
-  marketRealityLabel: string
-  searchExecutionGrade: string | null // null when isFirstWeek
-  searchExecutionLabel: string | null
+  marketRealityDescription: string
+  searchExecutionDescription: string | null // null when isFirstWeek
   lastWeekCommittedCount: number
   lastWeekCompletedCount: number
   topStrength: Strength | null
@@ -86,10 +84,8 @@ const footer: React.CSSProperties = {
 export default function SundayNightReportEmail({
   firstName,
   isFirstWeek,
-  marketRealityGrade,
-  marketRealityLabel,
-  searchExecutionGrade,
-  searchExecutionLabel,
+  marketRealityDescription,
+  searchExecutionDescription,
   lastWeekCommittedCount,
   lastWeekCompletedCount,
   topStrength,
@@ -115,18 +111,14 @@ export default function SundayNightReportEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'}, here&apos;s your week.</p>
 
-      <p style={sectionLabel}>Your Hireability Grade</p>
+      <p style={sectionLabel}>Where You Stand</p>
       <p>
-        Market Reality: <strong>{marketRealityGrade}</strong> ({marketRealityLabel})
+        <strong>Market position:</strong> {marketRealityDescription}
         <br />
-        Search Execution:{' '}
-        {isFirstWeek ? (
-          <strong>N/A — you haven&apos;t started your sprint yet</strong>
-        ) : (
-          <strong>
-            {searchExecutionGrade} ({searchExecutionLabel})
-          </strong>
-        )}
+        <strong>Search execution:</strong>{' '}
+        {isFirstWeek
+          ? "You haven't started your sprint yet — that's a starting line, not a grade."
+          : searchExecutionDescription}
       </p>
 
       {!isFirstWeek && (

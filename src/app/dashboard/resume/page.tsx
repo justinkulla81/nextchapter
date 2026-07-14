@@ -30,7 +30,7 @@ export default async function ResumePage() {
 
       {latest && (
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Latest analysis</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Resume Analysis</h2>
           <Card>
             <CardContent className="space-y-4 pt-6">
               <div className="flex items-center justify-between">

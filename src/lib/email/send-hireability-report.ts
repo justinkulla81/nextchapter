@@ -9,17 +9,6 @@ interface Strength {
   detail: string
 }
 
-type ActionPlanItem = string | { text: string; actionType?: string }
-
-interface ActionDay {
-  day: number
-  items: ActionPlanItem[]
-}
-
-function itemText(item: ActionPlanItem): string {
-  return typeof item === 'string' ? item : item.text
-}
-
 export async function sendHireabilityReportEmail(candidateId: string) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping hireability report email.')
@@ -44,22 +33,19 @@ export async function sendHireabilityReportEmail(candidateId: string) {
 
     const strengths = report.strengths as unknown as Strength[]
     const weaknesses = report.weaknesses as unknown as Strength[]
-    const actionPlan = report.actionPlan as unknown as ActionDay[]
-    const dayOne = actionPlan.find((d) => d.day === 1)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
-      from: 'NextChapter <hello@launchyournextchapter.com>',
-      replyTo: 'justin.kulla@gmail.com',
+      from: 'NextChapter <support@launchyournextchapter.com>',
+      replyTo: 'support@launchyournextchapter.com',
       to: email,
       subject: 'Your NextChapter Hireability Report is ready',
       react: HireabilityReportEmail({
         candidateName: candidate.displayName || 'there',
         topStrengths: strengths.slice(0, 3),
         topWeakness: weaknesses[0] ?? null,
-        dayOneItems: (dayOne?.items ?? []).map(itemText),
         reportUrl: `${appUrl}/dashboard/hireability-report`,
       }),
     })

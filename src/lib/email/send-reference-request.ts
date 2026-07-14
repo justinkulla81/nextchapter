@@ -24,8 +24,8 @@ export async function sendReferenceRequestEmail({
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
-      from: 'NextChapter <hello@launchyournextchapter.com>',
-      replyTo: 'justin.kulla@gmail.com',
+      from: 'NextChapter <support@launchyournextchapter.com>',
+      replyTo: 'support@launchyournextchapter.com',
       to: refereeEmail,
       subject: `${candidateName} has requested a reference from you`,
       react: ReferenceRequestEmail({ candidateName, refereeName, referenceUrl }),

@@ -21,7 +21,7 @@ export async function sendPostInterestNotification({
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
-      from: 'NextChapter <hello@launchyournextchapter.com>',
+      from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: interestedCandidateEmail,
       to: posterEmail,
       subject: `Someone is interested in your Community Board post`,

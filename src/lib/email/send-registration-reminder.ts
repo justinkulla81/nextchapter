@@ -2,7 +2,7 @@ import 'server-only'
 import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import CompleteRegistrationReminderEmail from '@/emails/complete-registration-reminder'
-import { scoreToGrade } from '@/lib/scoring/grade'
+import { scoreToGrade, GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
 
 export async function sendRegistrationReminderEmail({
   candidateId,
@@ -25,13 +25,13 @@ export async function sendRegistrationReminderEmail({
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
-      from: 'NextChapter <hello@launchyournextchapter.com>',
-      replyTo: 'justin.kulla@gmail.com',
+      from: 'NextChapter <support@launchyournextchapter.com>',
+      replyTo: 'support@launchyournextchapter.com',
       to: candidate.email,
       subject: 'Finish creating your NextChapter account to unlock your report',
       react: CompleteRegistrationReminderEmail({
         firstName: candidate.firstName,
-        grade: scoreToGrade(candidate.employabilityScore),
+        gradeDescription: GRADE_BAND_DESCRIPTION[scoreToGrade(candidate.employabilityScore)],
         magicLink,
         unsubscribeUrl,
       }),

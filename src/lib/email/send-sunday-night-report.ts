@@ -2,7 +2,7 @@ import 'server-only'
 import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { GRADE_LABEL, type HireabilityGrade } from '@/lib/scoring/grade'
+import { GRADE_BAND_DESCRIPTION, type HireabilityGrade } from '@/lib/scoring/grade'
 import type { MarketResponseSnapshot } from '@/lib/reports/market-response'
 import SundayNightReportEmail from '@/emails/sunday-night-report'
 
@@ -52,17 +52,15 @@ export async function sendSundayNightReportEmail(candidateId: string) {
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
-      from: 'NextChapter <hello@launchyournextchapter.com>',
-      replyTo: 'justin.kulla@gmail.com',
+      from: 'NextChapter <support@launchyournextchapter.com>',
+      replyTo: 'support@launchyournextchapter.com',
       to: email,
       subject: candidate.firstName ? `Your Sunday Night Report, ${candidate.firstName}` : 'Your Sunday Night Report',
       react: SundayNightReportEmail({
         firstName: candidate.firstName,
         isFirstWeek,
-        marketRealityGrade: grade.marketReality.grade,
-        marketRealityLabel: GRADE_LABEL[grade.marketReality.grade],
-        searchExecutionGrade: isFirstWeek ? null : grade.searchExecution.grade,
-        searchExecutionLabel: isFirstWeek ? null : GRADE_LABEL[grade.searchExecution.grade],
+        marketRealityDescription: GRADE_BAND_DESCRIPTION[grade.marketReality.grade],
+        searchExecutionDescription: isFirstWeek ? null : GRADE_BAND_DESCRIPTION[grade.searchExecution.grade],
         lastWeekCommittedCount: report.lastWeekCommittedCount,
         lastWeekCompletedCount: report.lastWeekCompletedCount,
         topStrength: strengths[0] ?? null,
