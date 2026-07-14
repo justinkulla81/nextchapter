@@ -71,14 +71,16 @@ export async function setActionWindow(actionWindow: ActionWindow) {
   revalidatePath('/dashboard/privacy')
 }
 
-export async function resendConfirmationEmail() {
+export async function resendConfirmationEmail(): Promise<{ error?: string }> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user?.email) return
+  if (!user?.email) return { error: 'You need to be logged in to do this.' }
 
-  await supabase.auth.resend({ type: 'signup', email: user.email })
+  const { error } = await supabase.auth.resend({ type: 'signup', email: user.email })
+  if (error) return { error: error.message }
+  return {}
 }
 
 export type ConfirmFormState = { error?: string } | undefined

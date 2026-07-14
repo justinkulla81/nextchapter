@@ -12,6 +12,7 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
   const [resent, setResent] = useState(false)
+  const [resendError, setResendError] = useState<string | null>(null)
 
   async function sendConfirmation() {
     const supabase = createClient()
@@ -43,7 +44,12 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
 
   async function handleResend() {
     setResent(false)
-    await sendConfirmation()
+    setResendError(null)
+    const { error } = await sendConfirmation()
+    if (error) {
+      setResendError(error.message)
+      return
+    }
     setResent(true)
   }
 
@@ -64,6 +70,7 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
         >
           {resent ? 'Confirmation email sent!' : 'Resend confirmation email'}
         </button>
+        {resendError && <p className="text-sm text-destructive">{resendError}</p>}
       </div>
     )
   }
