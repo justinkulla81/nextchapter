@@ -31,7 +31,8 @@ const SECTIONS: NavSection[] = [
     links: [
       { href: '/dashboard/sprint', label: 'Success Sprint' },
       { href: '/dashboard/network', label: 'My Network' },
-      { href: '/dashboard/interview', label: 'Interview Prep' },
+      { href: '/dashboard/interview-prep', label: 'Interview Prep' },
+      { href: '/dashboard/interview', label: 'Interview Responses' },
     ],
   },
   {

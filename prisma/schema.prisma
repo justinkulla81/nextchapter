@@ -238,6 +238,11 @@ model CandidateProfile {
   communicatorConfidence     Int?            // 0-100, 4-stop "soft trait" scale
   jobSearchDifficultyLevel   Int?            // 1-4, "How difficult has your job search been so far?"
 
+  // Interview Prep — Comfort Check self-assessment (0-100 slider, same scale as the confidence fields above)
+  storyComfort               Int?
+  interviewComfort           Int?
+  elevatorPitchReady         Int?
+
   // Part 4: Goals
   targetRoleType        String?
   targetIndustries      String[]
@@ -352,6 +357,7 @@ model CandidateProfile {
   hireabilityReports    HireabilityReport[]
   linkedInActivityLogs  LinkedInActivityLog[]
   coachConversation     CoachConversation?
+  narrative             CandidateNarrative?
   dailyCheckIns         DailyCheckIn[]
   weeklySprints         WeeklySprint[]
   sundayNightReports    SundayNightReport[]
@@ -366,6 +372,18 @@ model CandidateProfile {
   @@index([employabilityScore])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
+}
+
+model CandidateNarrative {
+  id            String           @id @default(cuid())
+  candidateId   String           @unique
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  coreStatement String // 2-3 sentence "Core Narrative Statement", candidate-editable
+  adaptations   Json // {linkedinHeadline, linkedinAbout, resumeSummary, emailOpening, verbal30s, tellMeAboutYourself}
+
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model WorkHistoryEntry {
