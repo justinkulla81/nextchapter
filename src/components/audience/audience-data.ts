@@ -75,7 +75,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     ],
     contrastLabel: 'What you see vs. what you don\'t:',
     contrastBody:
-      "you get verified references, demonstrated work ethic, real work samples, and a work-style profile — the same caliber of signal an executive recruiter would hand you. You never see a candidate's private Score, their goals, or their compensation expectations. That's theirs, not a filter for you to game.",
+      "you get verified references, demonstrated work ethic, real work samples, and a work-style profile — the same caliber of signal an executive recruiter would hand you. You never see a candidate's private Grade, their goals, or their compensation expectations. That's theirs, not a filter for you to game.",
     formHeading: 'Join the employer waitlist',
     formSubtext: "Be first to post roles and search verified profiles when we open to your region.",
     fields: [
@@ -211,7 +211,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     points: [
       {
         lead: 'Real help for your members.',
-        body: 'Every participant gets a free Hireability Score, a personalized action plan, and direct matches to hiring employers — practical next steps, not a portal they log into once and abandon.',
+        body: 'Every participant gets a free Hireability Grade, a personalized action plan, and direct matches to hiring employers — practical next steps, not a portal they log into once and abandon.',
       },
       {
         lead: 'Built for the people programs usually leave behind.',

@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-navy">2. How We Use Your Information</h2>
           <ul className="list-disc space-y-2 pl-6">
-            <li>To generate your Hireability Score, personalized action plan, resume feedback, and job-fit analysis.</li>
+            <li>To generate your Hireability Grade, personalized action plan, resume feedback, and job-fit analysis.</li>
             <li>To operate features you use directly, such as reference requests, work samples, and the Community Board.</li>
             <li>To show your profile to employers on the Service, strictly according to the privacy setting you choose (see Section 4).</li>
             <li>To send you service emails — your report, reference requests, and reminders about finishing your account (you can opt out of reminder emails at any time via the unsubscribe link).</li>
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-xl font-semibold text-navy">3. How We Use AI to Process Your Information</h2>
           <p>
             We use Claude, an AI model provided by Anthropic, to analyze your resume, generate
-            your Hireability Score narrative, action plan, and job-fit feedback. Your resume text
+            your Hireability Grade narrative, action plan, and job-fit feedback. Your resume text
             and profile details are sent to Anthropic&apos;s API solely to generate these results
             for you — Anthropic processes this data as our service provider and does not use it to
             train its models under our commercial agreement with them.
@@ -161,7 +161,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-navy">9. No Guarantee of Employment Outcomes</h2>
           <p>
-            Your Hireability Score, action plan, and any AI-generated feedback are provided for
+            Your Hireability Grade, action plan, and any AI-generated feedback are provided for
             informational and self-improvement purposes only. NextChapter is not an employment
             agency or recruiter, does not guarantee an interview, offer, or job placement of any
             kind, and is not responsible for the hiring decisions of employers who use the Service.

@@ -26,9 +26,9 @@ export function DesireSlider({ defaultValue }: { defaultValue: number | null }) 
 
       {value < 25 && (
         <p className="rounded-md border border-orange/30 bg-orange/5 p-3 text-sm text-foreground">
-          Honestly — this level of intensity will show up in your Hireability Score. Recruiters
+          Honestly — this level of intensity will show up in your Hireability Grade. Recruiters
           notice candidates who are all-in. If you&apos;re just testing the waters, that&apos;s
-          okay, but know it will affect your score until that changes.
+          okay, but know it will affect your grade until that changes.
         </p>
       )}
 

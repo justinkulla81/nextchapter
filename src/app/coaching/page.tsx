@@ -4,6 +4,7 @@ import { ChevronRight, Check } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { CoachingWaitlistForm } from '@/components/coaching/CoachingWaitlistForm'
+import { StructuredData } from '@/components/StructuredData'
 
 export const metadata: Metadata = {
   title: 'Executive Coach — A Real Human Coach, When You Want One | NextChapter',
@@ -20,9 +21,35 @@ const INCLUDED = [
   'A second opinion on offers, negotiation, and hard calls Victoria can\'t make for you',
 ]
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'NextChapter Executive Coach',
+  serviceType: 'Career coaching',
+  provider: { '@type': 'Organization', name: 'NextChapter', url: 'https://launchyournextchapter.com' },
+  areaServed: 'US',
+  audience: { '@type': 'Audience', audienceType: 'Job seekers' },
+  description:
+    'A dedicated human career coach on top of Victoria, our free AI coach — mock interviews, resume review, and a second opinion on hard calls.',
+  offers: {
+    '@type': 'Offer',
+    price: '500',
+    priceCurrency: 'USD',
+    priceSpecification: {
+      '@type': 'UnitPriceSpecification',
+      price: '500',
+      priceCurrency: 'USD',
+      billingIncrement: 1,
+      unitText: 'MONTH',
+    },
+  },
+  url: 'https://launchyournextchapter.com/coaching',
+}
+
 export default function CoachingPage() {
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={jsonLd} />
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
           <Link href="/" className="shrink-0">

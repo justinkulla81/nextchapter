@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
+import { StructuredData } from '@/components/StructuredData'
 
 const heroStats = [
   { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
@@ -63,7 +64,7 @@ const jsonLd = {
   name: 'NextChapter',
   url: 'https://launchyournextchapter.com',
   description:
-    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Hireability Score with a personalized action plan.',
+    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Hireability Grade with a personalized action plan.',
   publisher: {
     '@type': 'Organization',
     name: 'NextChapter',
@@ -74,10 +75,7 @@ const jsonLd = {
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <StructuredData data={jsonLd} />
       {/* Section 1 — Hero */}
       <section className="relative bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
@@ -179,7 +177,7 @@ export default function Home() {
         </div>
         <div className="mx-auto mt-12 max-w-3xl rounded-xl border border-light-gray bg-off-white px-8 py-8 text-center">
           <p className="text-lg leading-relaxed text-foreground">
-            Your Hireability Score shows you exactly where you stand today. Then your action plan
+            Your Hireability Grade shows you exactly where you stand today. Then your action plan
             shows you exactly what to do next — so you walk into your next opportunity as strong
             as you can be.
           </p>
@@ -191,14 +189,14 @@ export default function Home() {
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight">Your progress, always in view</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Your Success Dashboard tracks your Hireability Score climbing in real time, with an
+            Your Success Dashboard tracks your Hireability Grade climbing in real time, with an
             action plan that tells you exactly what to do next.
           </p>
         </div>
         <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
           <Image
             src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Hireability Score of 52, trending upward, with an action plan"
+            alt="NextChapter Success Dashboard showing a Hireability Grade trending upward, with an action plan"
             width={2404}
             height={1762}
             className="w-full"

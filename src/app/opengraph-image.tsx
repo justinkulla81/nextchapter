@@ -49,7 +49,7 @@ export default async function Image() {
             padding: '0 120px',
           }}
         >
-          Get your free Hireability Score and a personalized action plan
+          Get your free Hireability Grade and a personalized action plan
         </div>
         <div
           style={{

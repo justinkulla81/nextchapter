@@ -40,7 +40,7 @@ export default async function OnboardingResumePage() {
 
       <ul className="space-y-1.5 text-sm text-muted-foreground">
         <li>• A free, honest review of your resume — see exactly what&apos;s holding it back.</li>
-        <li>• Your Hireability Score and a personalized action plan, not vague advice.</li>
+        <li>• Your Hireability Grade and a personalized action plan, not vague advice.</li>
         <li>• Access to a community of people who get exactly what you&apos;re going through.</li>
       </ul>
 

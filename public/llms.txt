@@ -1,0 +1,25 @@
+# NextChapter
+
+> NextChapter is a candidate-first hiring platform. Every job seeker gets a free Hireability Grade (a plain-language read on how the market sees them, plus how effectively they're running their own search) and a personalized action plan — free forever, no cost to candidates, ever. Revenue comes from employers, recruiters, outplacement providers, workforce agencies, and nonprofits who pay to reach a verified, opted-in candidate pool.
+
+## For job seekers
+
+- [Home](https://launchyournextchapter.com/): overview of the Hireability Grade, the weekly Success Sprint system, and how the platform works end to end.
+- [FAQ](https://launchyournextchapter.com/faq): pricing (free for candidates), privacy, how the Hireability Grade works, and how employer matching works.
+- [Executive Coach](https://launchyournextchapter.com/coaching): optional $500/month human career coach on top of Victoria, the free AI coach — mock interviews, resume review, negotiation support.
+
+## For organizations
+
+- [For Organizations](https://launchyournextchapter.com/for-organizations): overview of all five ways organizations partner with NextChapter.
+- [Employers](https://launchyournextchapter.com/employers): verified candidate profiles and work-style fit signal, flat monthly price, no per-hire fees.
+- [Recruiters](https://launchyournextchapter.com/recruiters): a searchable, opted-in candidate pool including strong candidates ATS filters bury.
+- [Outplacement](https://launchyournextchapter.com/outplacement): a candid diagnostic, personalized plan, and direct employer matches for departing employees.
+- [Government & Workforce Agencies](https://launchyournextchapter.com/government-workforce): a WIOA-aligned partnership, free to every jobseeker served, with placement data for program reporting.
+- [Nonprofits & Academia](https://launchyournextchapter.com/nonprofits): free community service plus consent-based research partnerships.
+
+## Key facts
+
+- Candidates are never charged for the core product — the Hireability Grade, the weekly action-plan system, references, work samples, and job-fit tools are free forever.
+- The Hireability Grade has two parts: Market Reality (how the market currently sees a candidate) and Search Execution (how effectively they're running their own search) — both graded A through F, never a raw numeric score.
+- Victoria is NextChapter's free AI career coach, available to every candidate. Executive Coach is a separate, optional paid human coach.
+- Candidates who land a job through NextChapter can claim a $500 bounty once their offer letter is verified.

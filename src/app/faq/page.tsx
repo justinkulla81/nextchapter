@@ -3,10 +3,11 @@ import type { Metadata } from 'next'
 import { Logo } from '@/components/Logo'
 import { FAQSection } from '@/components/FAQSection'
 import { FAQ_CATEGORIES } from '@/components/faq-data'
+import { StructuredData } from '@/components/StructuredData'
 
 export const metadata: Metadata = {
   title: 'FAQ',
-  description: 'Answers to common questions about NextChapter — pricing, the Hireability Score, privacy, and how matching with employers works.',
+  description: 'Answers to common questions about NextChapter — pricing, the Hireability Grade, privacy, and how matching with employers works.',
 }
 
 const jsonLd = {
@@ -27,10 +28,7 @@ const jsonLd = {
 export default function FAQPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <StructuredData data={jsonLd} />
       <Link href="/" className="inline-block">
         <Logo className="text-2xl" />
       </Link>

@@ -17,7 +17,7 @@ export function KnownForForm({ knownFor }: { knownFor: string | null }) {
     >
       <Label htmlFor="knownFor">How would former colleagues describe you?</Label>
       <p className="text-sm text-muted-foreground">
-        Feeds your Hireability Score and the scripts/drafts we generate for you elsewhere in the
+        Feeds your Hireability Grade and the scripts/drafts we generate for you elsewhere in the
         app — worth keeping current.
       </p>
       <Textarea id="knownFor" name="knownFor" required rows={4} defaultValue={knownFor ?? ''} />

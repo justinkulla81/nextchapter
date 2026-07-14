@@ -31,7 +31,7 @@ export default async function WorkingStylePage() {
       <div className="rounded-lg border border-brand/30 bg-brand/5 p-4 text-base text-foreground">
         Your references will be asked these same questions about you. Answer as honestly as
         possible — how closely your self-view matches how others see you is itself part of your
-        Hireability Score.
+        Hireability Grade.
       </div>
       <AssessmentForm blocks={blocks} likertItems={likertItems} />
     </div>

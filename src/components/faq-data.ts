@@ -15,7 +15,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Is NextChapter really free for me?',
         answer:
-          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Hireability Score and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
+          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Hireability Grade and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
       },
       {
         question: "Then what's the catch? How do you actually make money?",
@@ -30,22 +30,22 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     ],
   },
   {
-    category: 'The Hireability Score & assessment',
+    category: 'The Hireability Grade & assessment',
     items: [
       {
-        question: 'What is the Hireability Score?',
+        question: 'What is the Hireability Grade?',
         answer:
-          "It's a snapshot of how ready you are to land your next role — based on how you actually work, not just what's on your resume. After you finish the assessment, you get your Score plus a personalized action plan with concrete steps to improve it. It's meant to be useful to you first, not just a number for employers.",
+          "It's two letter grades, A through F — not one number. Market Reality is how ready you are to land your next role today, based on how you actually work, not just what's on your resume. Search Execution is how effectively you're running your own search, and starts blank until you begin your first weekly action plan. After you finish the assessment, you get your Market Reality grade plus a personalized action plan; Search Execution fills in as you take action. It's meant to be useful to you first, not just a number for employers.",
       },
       {
-        question: 'How is the Score calculated?',
+        question: 'How is the Grade calculated?',
         answer:
-          "It combines your experience and goals with a work-style assessment built on 9 cross-validated dimensions — things like how fast you move, how you handle ambiguity, how you communicate, and how you lead — measured in a way that's hard to game by just picking the “best-sounding” answer.",
+          "Market Reality combines your experience and goals with a work-style assessment built on 9 cross-validated dimensions — things like how fast you move, how you handle ambiguity, how you communicate, and how you lead — measured in a way that's hard to game by just picking the “best-sounding” answer. Search Execution is separate: it tracks the real steps you take each week, like outreach, references, and interviews, not a quiz score.",
       },
       {
         question: 'How long does the assessment take?',
         answer:
-          'About 8–10 minutes, in five short steps: Resume, Your Why, Your Situation, Experience, and Goals. It’s designed to feel like reflection, not a test — most people find the "Your Why" part genuinely clarifying. (There\'s also an optional Work Style Assessment you can take anytime from your dashboard — it\'s not required to get your Score.)',
+          'About 8–10 minutes, in five short steps: Resume, Your Why, Your Situation, Experience, and Goals. It’s designed to feel like reflection, not a test — most people find the "Your Why" part genuinely clarifying. (There\'s also an optional Work Style Assessment you can take anytime from your dashboard — it\'s not required to get your Grade.)',
       },
       {
         question: 'Can I save my progress and finish later?',
@@ -63,9 +63,9 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
           "That's exactly who this is built for. Traditional systems penalize gaps and anything that doesn't fit a template — NextChapter is designed to surface how you work and what you bring, so a gap is context, not a red flag.",
       },
       {
-        question: 'Can I retake the assessment or improve my Score?',
+        question: 'Can I retake the assessment or improve my Grade?',
         answer:
-          'You don’t retake the quiz itself — instead, your Score updates automatically as you take real steps: adding references and work samples, confirming your details, logging networking activity, landing an interview. The more of your action plan you complete, the more your Score reflects it.',
+          'You don’t retake the quiz itself — instead, your Search Execution grade updates automatically as you take real steps: adding references and work samples, confirming your details, logging networking activity, landing an interview. The more of your action plan you complete, the more it reflects it. Your Market Reality grade can shift too, as you round out your profile with more experience, references, and work samples.',
       },
     ],
   },
@@ -75,7 +75,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'What data do you collect, and what do you do with it?',
         answer:
-          "You share your work history, goals, and assessment responses to build your profile and Score. We use Claude (Anthropic's AI) to help analyze your resume and generate feedback, and we store your data securely to power your results and, based on your privacy setting, show your profile to employers on the platform.",
+          "You share your work history, goals, and assessment responses to build your profile and Grade. We use Claude (Anthropic's AI) to help analyze your resume and generate feedback, and we store your data securely to power your results and, based on your privacy setting, show your profile to employers on the platform.",
       },
       {
         question: 'Do you sell my data or share it with third parties?',
@@ -83,7 +83,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
           "No — we don't sell your personal data or share it with advertisers or data brokers. Your resume is processed by Claude (Anthropic) solely to generate your analysis and feedback. The only “sharing” that happens is showing your profile to employers on NextChapter, and only based on the privacy setting you choose.",
       },
       {
-        question: 'Who can see my profile and my Score?',
+        question: 'Who can see my profile and my Grade?',
         answer:
           'Nobody, by default. New profiles start fully Locked — invisible everywhere — while you build them out. Once you’re ready, you choose your visibility: Public (full name and history), Semi-Public (first name + last initial), Private (fully anonymized), or Stealth (visible only to companies you’ve pre-approved). You’re always in control.',
       },
@@ -100,12 +100,12 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     ],
   },
   {
-    category: 'After you get your Score',
+    category: 'After you get your Grade',
     items: [
       {
         question: 'What happens once I finish?',
         answer:
-          "You get your Hireability Score and a personalized action plan immediately. From there, your profile becomes visible to employers according to the privacy setting you've chosen — you don't have to fire off dozens of applications into the void.",
+          "You get your Market Reality grade and a personalized action plan immediately — your Search Execution grade fills in as you start taking action each week. From there, your profile becomes visible to employers according to the privacy setting you've chosen — you don't have to fire off dozens of applications into the void.",
       },
       {
         question: 'How does matching with employers work?',
@@ -115,7 +115,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Do I have to be actively job-hunting to use it?',
         answer:
-          'No. Even if you’re just testing the waters, your Score and action plan are worth having — and you control how visible you are to employers the whole time.',
+          'No. Even if you’re just testing the waters, your Hireability Grade and action plan are worth having — and you control how visible you are to employers the whole time.',
       },
       {
         question: 'What does it cost me if I get hired through NextChapter?',

@@ -33,7 +33,7 @@ export default async function DesirePage() {
           <h2 className="text-2xl font-semibold tracking-tight">How much do you want to get a job?</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Be honest. This shapes how we build your plan — and yes, it factors into your
-            Hireability Score.
+            Hireability Grade.
           </p>
         </div>
 

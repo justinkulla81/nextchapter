@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { OrganizationPageTemplate } from '@/components/organizations/OrganizationPageTemplate'
 import { AUDIENCE_TABS } from '@/components/audience/audience-data'
+import { StructuredData } from '@/components/StructuredData'
 
 const tab = AUDIENCE_TABS.find((t) => t.id === 'employers')!
 
@@ -17,6 +18,24 @@ export const metadata: Metadata = {
   },
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'NextChapter for Employers',
+  serviceType: 'Candidate sourcing and hiring platform',
+  provider: { '@type': 'Organization', name: 'NextChapter', url: 'https://launchyournextchapter.com' },
+  areaServed: 'US',
+  audience: { '@type': 'BusinessAudience', audienceType: 'Employers' },
+  description:
+    'See how candidates actually work before the first call — verified profiles and work-style insight, at one flat monthly price with no per-hire fees.',
+  url: 'https://launchyournextchapter.com/employers',
+}
+
 export default function EmployersPage() {
-  return <OrganizationPageTemplate tab={tab} />
+  return (
+    <>
+      <StructuredData data={jsonLd} />
+      <OrganizationPageTemplate tab={tab} />
+    </>
+  )
 }
