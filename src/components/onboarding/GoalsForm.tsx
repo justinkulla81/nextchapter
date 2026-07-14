@@ -71,7 +71,7 @@ export function GoalsForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="targetCompanySize">Target company size</Label>
-          <Select name="targetCompanySize" defaultValue={profile.targetCompanySize ?? undefined}>
+          <Select name="targetCompanySize" defaultValue={profile.targetCompanySize ?? 'Any'}>
             <SelectTrigger id="targetCompanySize" className="w-full">
               <SelectValue placeholder="Select one">
                 {(value: string | null) =>
@@ -90,7 +90,7 @@ export function GoalsForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="targetCompanyStage">Target company type</Label>
-          <Select name="targetCompanyStage" defaultValue={profile.targetCompanyStage ?? undefined}>
+          <Select name="targetCompanyStage" defaultValue={profile.targetCompanyStage ?? 'any'}>
             <SelectTrigger id="targetCompanyStage" className="w-full">
               <SelectValue placeholder="Select one">
                 {(value: string | null) =>
