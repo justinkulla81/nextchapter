@@ -15,6 +15,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { getMarketConditions } from '@/lib/market'
+import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { hasStartedSprint } from '@/lib/weekly/sprint'
@@ -124,7 +125,7 @@ Write:
    - HARD REQUIREMENT: if "Salary/work authorization confirmed" below says "no", one of the 7 days MUST include answering their last salary and work authorization status (these are not on their resume), tagged actionType "SALARY_CONFIRM" for one item and actionType "WORK_AUTHORIZATION" for a separate item. If "yes", do NOT include either item.
 5. Gap analysis: identify gaps against their stated target role, and suggest a remediation path for each — upskilling, fractional/contract work (you may name real categories like "fractional/contract platforms such as Mercor or Toptal" without fabricating specific URLs), consulting, or networking.
    - If "Location preference" below is "remote", include one honest, non-judgmental note somewhere in the strengths/weaknesses/hill-to-climb sections acknowledging that on-site presence is genuinely a plus for many employers, that remote work matters a great deal to many people too, that there are real benefits to in-person work (mentorship, visibility, spontaneous collaboration), and that they might consider hybrid as a middle ground worth weighing — framed as an option to consider, never as pressure to abandon a real preference.
-6. Market conditions: if "Market data available" below is "yes", write 1-4 short bullet points of honest commentary on local job availability and occupational trend using ONLY the facts provided — never invent a number that isn't given. If "Market data available" is "no", set marketConditions to null rather than speculating or estimating.
+6. Market conditions: if "Market data available" below is "yes", write 1-4 short bullet points of honest commentary on local job availability and occupational trend using ONLY the facts provided — never invent a number that isn't given. Weave in "Openings matching their exact target title" and "Openings matching their target function + industry" below wherever they say a real count (skip either one entirely if it says "not available" — do not mention a number for it or explain why it's missing). End with one direct sentence connecting these facts to how hard their search will realistically be — this should agree with, not contradict, the hill-to-climb tone above. If "Market data available" is "no", set marketConditions to null rather than speculating or estimating.
 
 Candidate data:
 `
@@ -165,6 +166,40 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     city: candidate.currentCity,
     state: candidate.currentState,
   })
+
+  // Additional, uncached, more-specific counts for the report's own market
+  // commentary — role/location-level data alone doesn't tell a candidate
+  // whether THEIR exact title or THEIR target industry has real openings.
+  // Not run through the shared cache (src/lib/market/index.ts) since these
+  // are one-off, highly specific queries, not the broad role-level lookup
+  // that many candidates in the same function/location share.
+  const marketWhere = candidate.currentCity
+    ? `${candidate.currentCity} ${candidate.currentState ?? ''}`.trim()
+    : candidate.currentState
+  const exactTitle = candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType)
+    ? candidate.targetRoleType
+    : null
+  const targetIndustry = candidate.targetIndustries[0] ?? null
+
+  const [titleSpecificResult, industrySpecificResult] = await Promise.all([
+    exactTitle ? searchAdzunaJobs(exactTitle, marketWhere ?? null) : Promise.resolve(null),
+    targetIndustry && candidate.primaryFunction
+      ? searchAdzunaJobs(`${candidate.primaryFunction} ${targetIndustry}`, marketWhere ?? null)
+      : Promise.resolve(null),
+  ])
+  // A 0 count on a highly specific query is far more likely to mean the
+  // query itself didn't match anything sensible than a real, honest "zero
+  // openings" fact — suppress rather than report a falsely precise zero.
+  const titleSpecificCount =
+    titleSpecificResult?.status === 'success' && titleSpecificResult.count && titleSpecificResult.count > 0
+      ? titleSpecificResult.count
+      : null
+  const industrySpecificCount =
+    industrySpecificResult?.status === 'success' &&
+    industrySpecificResult.count &&
+    industrySpecificResult.count > 0
+      ? industrySpecificResult.count
+      : null
 
   const managementGoalConflict = detectManagementGoalConflict(
     candidate.managementSkillConfidence,
@@ -261,16 +296,18 @@ Market facts: ${
     marketConditions.dataAvailable
       ? [
           marketConditions.adzunaCount !== null
-            ? `${marketConditions.adzunaCount} similar job openings currently listed on Adzuna near/matching their location`
+            ? `${marketConditions.adzunaCount} similar job openings currently listed on job boards near/matching their location`
             : null,
           marketConditions.blsYoyChangePct !== null
-            ? `BLS occupational employment trend: ${marketConditions.blsYoyChangePct.toFixed(1)}% year-over-year change`
+            ? `Occupational employment trend: ${marketConditions.blsYoyChangePct.toFixed(1)}% year-over-year change`
             : null,
         ]
           .filter(Boolean)
           .join('; ')
       : 'not available'
   }
+Openings matching their exact target title: ${titleSpecificCount !== null ? `${titleSpecificCount} listed` : 'not available — do not mention a specific count'}
+Openings matching their target function + industry: ${industrySpecificCount !== null ? `${industrySpecificCount} listed` : 'not available — do not mention a specific count'}
 `.trim()
 
   const client = getAnthropicClient()

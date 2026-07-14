@@ -9,11 +9,19 @@ import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmatio
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
-import { hasStartedSprint } from '@/lib/weekly/sprint'
+import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
+import { weeklyTimeTargetHours } from '@/lib/weekly/weekly-target'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, FACTOR_TYPE_LABEL, CONFIDENCE_LABEL, CONFIDENCE_STYLE } from '@/lib/scoring/grade'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { cn } from '@/lib/utils'
+
+// A first-ever report has essentially no track record behind it yet — an F
+// at that point reflects thin signal, not a real verdict, so it's shown as
+// N/A instead until a second report exists to actually compare against.
+function displayGrade(grade: Grade, isFirstReport: boolean): Grade | 'N/A' {
+  return isFirstReport && grade === 'F' ? 'N/A' : grade
+}
 
 const GRADE_COLOR: Record<Grade, string> = {
   A: 'text-success',
@@ -100,7 +108,17 @@ export default async function HireabilityReportPage() {
 
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
-  const searchExecutionAvailable = await hasStartedSprint(profile.id)
+  const [searchExecutionAvailable, priorReportCount, suggestedActions] = await Promise.all([
+    hasStartedSprint(profile.id),
+    prisma.hireabilityReport.count({
+      where: { candidateId: profile.id, generatedAt: { lt: report?.generatedAt ?? new Date() } },
+    }),
+    getSuggestedActions(profile.id),
+  ])
+  const isFirstReport = priorReportCount === 0
+  const weekNumber = profile._count.weeklySprints + 1
+  const aTargetHours = weeklyTimeTargetHours(weekNumber)
+  const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
 
   const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate'
   const preparedDate = report
@@ -177,8 +195,24 @@ export default async function HireabilityReportPage() {
             </div>
           </div>
 
+          {/* Confidentiality notice */}
+          <p className="mt-4 text-xs text-muted-foreground italic">
+            Confidential — prepared solely for the use of the named candidate. This report contains
+            personal career information and is not intended for distribution to third parties,
+            including current or prospective employers, without the candidate&apos;s explicit
+            consent.
+          </p>
+
+          {/* Grade System Explainer — first, so the grades below are read in context */}
+          <div className="mt-8 border-t border-border pt-8 print:hidden">
+            <SectionHeading>Understanding your grades</SectionHeading>
+            <div className="mt-4">
+              <GradeSystemExplainer />
+            </div>
+          </div>
+
           {/* Executive Summary — Hireability Grade */}
-          <div className="mt-8">
+          <div className="mt-10 border-t border-border pt-8">
             <SectionHeading>Your Hireability Grade</SectionHeading>
             {report.hireabilityGradeAtGeneration === null ? (
               <p className="mt-3 text-sm text-muted-foreground">
@@ -187,43 +221,59 @@ export default async function HireabilityReportPage() {
             ) : (
               (() => {
                 const grade = report.hireabilityGradeAtGeneration as unknown as HireabilityGrade
+                const marketRealityDisplay = displayGrade(grade.marketReality.grade, isFirstReport)
                 return (
                   <div className="mt-4 grid gap-6 sm:grid-cols-2">
                     <div>
                       <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                         Market Reality
                       </p>
-                      <p className={cn('text-5xl font-bold tabular-nums', GRADE_COLOR[grade.marketReality.grade])}>
-                        {grade.marketReality.grade}
+                      <p
+                        className={cn(
+                          'text-5xl font-bold tabular-nums',
+                          marketRealityDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_COLOR[marketRealityDisplay]
+                        )}
+                      >
+                        {marketRealityDisplay}
                         <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
-                          {GRADE_LABEL[grade.marketReality.grade]}
+                          {marketRealityDisplay === 'N/A' ? 'Not enough signal yet' : GRADE_LABEL[marketRealityDisplay]}
                         </span>
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Your honest market position — some of this you control, some you don&apos;t.
+                        {marketRealityDisplay === 'N/A'
+                          ? "This is your first report — there's not enough real signal yet for a fair grade here. It'll sharpen as you add more."
+                          : "Your honest market position — some of this you control, some you don't."}
                       </p>
                       <div className="mt-3 space-y-1.5">
-                        {grade.marketReality.dimensions.map((d) => (
-                          <div key={d.key} className="flex items-center justify-between gap-2 text-sm">
-                            <span className="text-foreground">{d.label}</span>
-                            <span className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  'rounded px-1.5 py-0.5 text-[10px] font-medium',
-                                  CONFIDENCE_STYLE[d.confidence]
-                                )}
-                              >
-                                {CONFIDENCE_LABEL[d.confidence]}
+                        {grade.marketReality.dimensions.map((d) => {
+                          const dimensionDisplay = displayGrade(d.grade, isFirstReport)
+                          return (
+                            <div key={d.key} className="flex items-center justify-between gap-2 text-sm">
+                              <span className="text-foreground">{d.label}</span>
+                              <span className="flex items-center gap-2">
+                                <span
+                                  className={cn(
+                                    'rounded px-1.5 py-0.5 text-[10px] font-medium',
+                                    CONFIDENCE_STYLE[d.confidence]
+                                  )}
+                                >
+                                  {CONFIDENCE_LABEL[d.confidence]}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {FACTOR_TYPE_LABEL[d.factorType]}
+                                </span>
+                                <span
+                                  className={cn(
+                                    'font-semibold tabular-nums',
+                                    dimensionDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_COLOR[dimensionDisplay]
+                                  )}
+                                >
+                                  {dimensionDisplay}
+                                </span>
                               </span>
-                              <span className="text-xs text-muted-foreground">
-                                {FACTOR_TYPE_LABEL[d.factorType]}
-                              </span>
-                              <span className={cn('font-semibold tabular-nums', GRADE_COLOR[d.grade])}>
-                                {d.grade}
-                              </span>
-                            </span>
-                          </div>
-                        ))}
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                     <div>
@@ -284,13 +334,19 @@ export default async function HireabilityReportPage() {
               It&apos;s all about your Search Execution: the one grade above that&apos;s entirely
               in your hands.
             </p>
-          </div>
-
-          {/* Grade System Explainer */}
-          <div className="mt-10 border-t border-border pt-8 print:hidden">
-            <SectionHeading>Understanding your grades</SectionHeading>
-            <div className="mt-4">
-              <GradeSystemExplainer />
+            <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
+              <p className="text-sm font-medium text-foreground">
+                This week, an A takes about <span className="font-semibold">{aTargetHours}h</span> of
+                real committed work; a B takes about{' '}
+                <span className="font-semibold">{bTargetHours}h</span>.
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                That target grows a little each week through Week 6, then holds steady — see your{' '}
+                <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+                  Success Sprint
+                </Link>{' '}
+                for this week&apos;s exact commitment.
+              </p>
             </div>
           </div>
 
@@ -343,15 +399,36 @@ export default async function HireabilityReportPage() {
             </div>
           )}
 
-          {/* Action Plan pointer */}
+          {/* This week's activities — the same list the Success Sprint draws from */}
           <div className="mt-10 border-t border-border pt-8 print:hidden">
-            <SectionHeading>7-Day Action Plan</SectionHeading>
+            <SectionHeading>This Week&apos;s Activities</SectionHeading>
             <p className="mt-4 text-sm text-muted-foreground">
-              See your current, live action plan on the{' '}
-              <Link href="/dashboard" className="text-primary underline underline-offset-4">
-                Success Dashboard →
-              </Link>
+              Everything below is a real, available action toward your Search Execution grade.
+              Click into your{' '}
+              <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+                Success Sprint
+              </Link>{' '}
+              to define your weekly goal by Monday night — if you don&apos;t, I&apos;ll set an
+              A-level goal for you automatically.
             </p>
+            {suggestedActions.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Your suggested activities are still generating — check back in a moment.
+              </p>
+            ) : (
+              <ul className="mt-4 divide-y divide-border">
+                {suggestedActions.map((action, i) => (
+                  <li key={i} className="flex items-center justify-between gap-3 py-2">
+                    <span className="text-sm text-foreground">{action.text}</span>
+                    {action.isAStandard && (
+                      <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+                        Earns your A
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Gap Analysis */}
