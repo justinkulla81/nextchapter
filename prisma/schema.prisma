@@ -954,6 +954,7 @@ model WeeklySprint {
   candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   weekStartDate DateTime         // Monday 00:00 UTC of the committed week
   committedActions Json          // [{text, actionType?, difficulty: 1-3, completed, completedAt?}]
+  autoAssigned  Boolean          @default(false) // true if the Monday-midnight-PT cron committed this, not the candidate
   createdAt     DateTime         @default(now())
 
   @@unique([candidateId, weekStartDate])

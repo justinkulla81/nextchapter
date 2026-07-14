@@ -17,6 +17,7 @@ import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { actionPlanItemTypes } from '@/lib/reports/hireability-report'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { weeklyTimeTargetMinutes } from '@/lib/weekly/weekly-target'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
 import type { AListResult } from '@/lib/weekly/a-list'
 import { SEARCH_EXECUTION_ENGINE_LABEL, type HireabilityGrade } from '@/lib/scoring/grade'
@@ -68,7 +69,7 @@ Write:
    - progressPatterns: did they front-load the week (complete actions early) or back-load it (cram at the end)? Did they complete easy actions and skip hard ones, or the reverse? Name the pattern because it's useful, not to shame them.
    - dataInconsistency: ONLY if their Work Style Assessment self-report meaningfully contradicts this week's observed behavior below — state it plainly, without judgment. If there's no real contradiction, set this to null rather than manufacturing one.
 4. Straight Talk: 1-3 sentences, direct, no hedging, no softening. This is the most important part of the report — say the one true thing that matters most this week, whether that's encouragement to keep pace or a direct call-out of avoidance.${straightTalkMode === 'strategic' ? STRATEGIC_STRAIGHT_TALK_ADDENDUM : ''}
-5. Suggested action plan for the UPCOMING week (3-6 items): specific, each tagged with an optional actionType where it matches a real platform feature. Mark the 2-3 highest-leverage items "isAStandard: true" — these are explicitly "complete these and you've earned your A this week." At most one item may be "isStretch: true" — an optional extra for a motivated week.
+5. Suggested action plan for the UPCOMING week (3-6 items): specific, each tagged with an optional actionType where it matches a real platform feature. Mark the 2-3 highest-leverage items "isAStandard: true" — these are explicitly "complete these and you've earned your A this week." At most one item may be "isStretch: true" — an optional extra for a motivated week. Size the full set so its total estimated time lands close to the "Target minutes for the upcoming week" figure given below — not far under (too easy to be a real A) and not far over (not achievable in the time they actually have).
 
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
 
@@ -198,6 +199,7 @@ Work samples: ${candidate.workSamples.length}
 LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.filter((l) => l.loggedAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
 
 Week number: ${weekNumber}
+Target minutes for the upcoming week (Week ${weekNumber + 1}): ${weeklyTimeTargetMinutes(weekNumber + 1)} minutes total for an A, ${Math.round(weeklyTimeTargetMinutes(weekNumber + 1) * 0.75)} minutes for a B
 ${
   !grade.searchExecution.categoryMinimumsMet
     ? `Category minimums (Week 4+): NOT met — ${grade.searchExecution.laggingEngines.map((k) => SEARCH_EXECUTION_ENGINE_LABEL[k]).join(', ')} needs real work. Search Execution is capped at B even though other engines are strong — the Straight Talk section should name this plainly: real effort, but concentrated in too few engines to earn the A.`

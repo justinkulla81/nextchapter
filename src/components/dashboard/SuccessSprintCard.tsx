@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
+import { ACTION_TYPE_LINK, formatMinutes } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 
 export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | null }) {
@@ -23,35 +23,44 @@ export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | nu
 
   const completedCount = actions.filter((a) => a.completed).length
   const totalPoints = actions.reduce((sum, a) => sum + a.points, 0)
-  const earnedPoints = actions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+  const totalMinutes = actions.reduce((sum, a) => sum + a.estimatedMinutes, 0)
 
   return (
     <Card>
       <CardHeader>
-        <Link href="/dashboard/sprint" className="hover:underline">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            This Week&apos;s Success Sprint — {completedCount} of {actions.length} done ({earnedPoints}/
-            {totalPoints} pts) →
-          </CardTitle>
-        </Link>
+        <CardTitle className="text-sm font-medium text-muted-foreground">This Week&apos;s Success Sprint</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {actions.map((action, i) => (
-          <form key={i} action={toggleSprintAction.bind(null, i)} className="flex items-center gap-3">
-            <button
-              type="submit"
-              aria-label={action.completed ? 'Mark incomplete' : 'Mark complete'}
-              className="flex size-5 shrink-0 items-center justify-center rounded border border-input data-checked:border-primary data-checked:bg-primary"
-              data-checked={action.completed || undefined}
-            >
-              {action.completed && <span className="text-xs text-primary-foreground">✓</span>}
-            </button>
-            <span className={`text-sm ${action.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-              {action.text}
-            </span>
-            <span className="ml-auto shrink-0 text-xs text-muted-foreground">{action.points} pts</span>
-          </form>
-        ))}
+      <CardContent className="space-y-3">
+        <p className="text-sm text-foreground">
+          You&apos;ve selected <span className="font-semibold">{actions.length}</span> activities for{' '}
+          <span className="font-semibold">{totalPoints} points</span>. This will take you{' '}
+          <span className="font-semibold">{formatMinutes(totalMinutes)}</span>.{' '}
+          <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+            Click here to add more →
+          </Link>
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {completedCount} of {actions.length} done
+        </p>
+        <div className="divide-y divide-border">
+          {actions.map((action, i) => {
+            const link = action.actionType ? ACTION_TYPE_LINK[action.actionType] : undefined
+            return (
+              <div key={i} className="flex items-center justify-between gap-3 py-2">
+                <Link
+                  href={link?.href ?? '/dashboard/sprint'}
+                  className={`text-sm hover:underline ${
+                    action.completed ? 'text-muted-foreground line-through' : 'text-foreground'
+                  }`}
+                >
+                  {action.completed ? '✓ ' : ''}
+                  {action.text}
+                </Link>
+                <span className="shrink-0 text-xs text-muted-foreground">{action.points} pts</span>
+              </div>
+            )
+          })}
+        </div>
       </CardContent>
     </Card>
   )

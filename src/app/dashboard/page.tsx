@@ -17,7 +17,7 @@ import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
-import { ActionPlanCard, type ActionDay } from '@/components/dashboard/ActionPlanCard'
+import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { WorkStyleProfileCard } from '@/components/dashboard/WorkStyleProfileCard'
@@ -126,40 +126,6 @@ export default async function DashboardPage() {
           <NextStepsList nextSteps={nextSteps} />
         </CardContent>
       </Card>
-
-      {todaysMood ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Your 7-day action plan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {latestReport ? (
-              <ActionPlanCard
-                actionPlan={latestReport.actionPlan as unknown as ActionDay[]}
-                networkingListDone={profile.networkingListSubmittedAt !== null}
-                askedForHelpDone={profile.askedForHelpAt !== null}
-                profileConfirmDone={profile.profileConfirmedAt !== null}
-                industryConfirmDone={profile.industryConfirmedAt !== null}
-                functionConfirmDone={profile.functionConfirmedAt !== null}
-                salaryAndWorkAuthDone={
-                  profile.salaryConfirmedAt !== null && profile.workAuthConfirmedAt !== null
-                }
-                linkedInConfirmDone={profile.linkedInConfirmedAt !== null}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Your report is generating — check back in a moment.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Check in above to see today&apos;s action plan.
-        </p>
-      )}
 
       <Card>
         <CardHeader>

@@ -7,7 +7,7 @@ interface ActionPlanItem {
 
 type RawActionPlanItem = string | ActionPlanItem
 
-interface ActionPlanDay {
+export interface ActionDay {
   day: number
   items: RawActionPlanItem[]
 }
@@ -44,7 +44,7 @@ export interface TodaysPrimaryAction {
 // rather than tracking arbitrary per-item completion (which isn't modeled
 // for free-text plan items today).
 export function getTodaysPrimaryAction(
-  actionPlan: ActionPlanDay[],
+  actionPlan: ActionDay[],
   reportGeneratedAt: Date
 ): TodaysPrimaryAction | null {
   if (actionPlan.length === 0) return null

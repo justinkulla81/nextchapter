@@ -4,8 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { commitWeeklySprint, toggleSprintActionCompletion } from '@/lib/weekly/sprint'
+import { commitWeeklySprint, toggleSprintActionCompletion, getMondayOfWeek } from '@/lib/weekly/sprint'
 import { estimateActionEffort, sprintPointThresholds } from '@/lib/weekly/action-effort'
+import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -24,6 +25,12 @@ export async function submitWeeklySprint(
 ): Promise<CommitSprintFormState> {
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  if (!isSprintEditWindowOpen(getMondayOfWeek(new Date()))) {
+    return {
+      error: "This week's goals are locked. Editing opens Saturday midnight PT through Monday midnight PT.",
+    }
+  }
 
   const count = Number(formData.get('actionCount') ?? 0)
   const actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[] = []

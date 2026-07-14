@@ -1,9 +1,13 @@
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { getCurrentWeekSprint, getSuggestedActions, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, getSuggestedActions, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { SEARCH_EXECUTION_ENGINE_LABEL, CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
+import { formatMinutes } from '@/lib/weekly/action-effort'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
+import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
+import { Button } from '@/components/ui/button'
 
 export default async function SprintSetupPage() {
   const profile = await getDashboardData()
@@ -12,6 +16,13 @@ export default async function SprintSetupPage() {
     getSuggestedActions(profile.id),
     computeHireabilityGrade(profile),
   ])
+
+  const weekStartDate = getMondayOfWeek(new Date())
+  const editWindowOpen = isSprintEditWindowOpen(weekStartDate)
+
+  const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null
+  const totalPoints = committedActions?.reduce((sum, a) => sum + a.points, 0) ?? 0
+  const totalMinutes = committedActions?.reduce((sum, a) => sum + a.estimatedMinutes, 0) ?? 0
 
   return (
     <div className="space-y-6">
@@ -23,7 +34,14 @@ export default async function SprintSetupPage() {
         </p>
       </div>
 
-      {currentSprint && (
+      {!editWindowOpen && (
+        <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+          Your commitment for this week is locked. Goals open for editing Saturday midnight PT
+          through Monday midnight PT, ahead of each new week.
+        </div>
+      )}
+
+      {editWindowOpen && currentSprint && (
         <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
           You&apos;ve already committed to goals this week. Submitting below replaces them.{' '}
           <Link href="/dashboard" className="text-primary underline underline-offset-4">
@@ -32,22 +50,33 @@ export default async function SprintSetupPage() {
         </div>
       )}
 
-      {suggestedActions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Your report is still generating — check back in a moment for suggested actions.
-        </p>
-      ) : (
-        <SprintSetupForm suggestedActions={suggestedActions} marketRealityGrade={grade.marketReality.grade} />
-      )}
+      {editWindowOpen &&
+        (suggestedActions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Your report is still generating — check back in a moment for suggested actions.
+          </p>
+        ) : (
+          <SprintSetupForm suggestedActions={suggestedActions} marketRealityGrade={grade.marketReality.grade} />
+        ))}
 
-      {currentSprint && (
+      {committedActions && (
         <div className="border-t border-border pt-6">
-          <h2 className="text-sm font-medium text-muted-foreground">Currently committed</h2>
-          <ul className="mt-2 space-y-1 text-sm text-foreground">
-            {(currentSprint.committedActions as unknown as CommittedAction[]).map((a, i) => (
-              <li key={i}>
-                {a.completed ? '✓ ' : '— '}
-                {a.text} ({a.points} pts)
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Currently committed — {totalPoints} points, {formatMinutes(totalMinutes)}
+          </h2>
+          <ul className="mt-2 space-y-1">
+            {committedActions.map((a, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 py-1">
+                <span
+                  className={`text-sm ${a.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}
+                >
+                  {a.text} ({a.points} pts)
+                </span>
+                <form action={toggleSprintAction.bind(null, i)}>
+                  <Button type="submit" variant="ghost" size="sm" className="cursor-pointer">
+                    {a.completed ? 'Mark not done' : 'Mark done'}
+                  </Button>
+                </form>
               </li>
             ))}
           </ul>

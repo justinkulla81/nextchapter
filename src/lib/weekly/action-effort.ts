@@ -43,6 +43,23 @@ export function estimateActionEffort(action: SuggestedActionLike): ActionEffort 
   return DEFAULT_EFFORT
 }
 
+// Where each action type's real work actually happens — used to make
+// committed Sprint items click through to the page where you do the work,
+// instead of just toggling a checkbox in place.
+export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: string }>> = {
+  HELP_SCRIPT: { href: '/dashboard/network', label: 'My Network' },
+  NETWORKING_LIST: { href: '/dashboard/network', label: 'My Network' },
+  LINKEDIN_SETUP: { href: '/dashboard/linkedin', label: 'LinkedIn' },
+  LINKEDIN_POST_IDEA: { href: '/dashboard/thought-leadership', label: 'Thought Leadership' },
+  INTERVIEW_PREP: { href: '/dashboard/job-fit', label: 'Job Fit' },
+  NEGOTIATION_ADVICE: { href: '/dashboard/job-fit', label: 'Job Fit' },
+  PROFILE_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
+  INDUSTRY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
+  FUNCTION_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
+  SALARY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
+  WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
+}
+
 export function formatMinutes(minutes: number): string {
   if (minutes < 60) return `~${minutes} min`
   const hours = minutes / 60
@@ -50,10 +67,10 @@ export function formatMinutes(minutes: number): string {
 }
 
 // A candidate can bring Search Execution to an A by committing to every
-// suggested action this week; a B — real but partial effort — requires a
-// majority of the available points. Nothing below B is a valid commitment.
+// suggested action this week; a B — real but partial effort — requires 75%
+// of the available points. Nothing below B is a valid commitment.
 export const SPRINT_GRADE_A_FRACTION = 1
-export const SPRINT_GRADE_B_FRACTION = 0.6
+export const SPRINT_GRADE_B_FRACTION = 0.75
 
 export function sprintPointThresholds(maxPoints: number) {
   return {

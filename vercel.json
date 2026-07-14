@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/sunday-night-report",
       "schedule": "0 23 * * 0"
+    },
+    {
+      "path": "/api/cron/auto-assign-sprint",
+      "schedule": "0 9 * * 1"
     }
   ]
 }

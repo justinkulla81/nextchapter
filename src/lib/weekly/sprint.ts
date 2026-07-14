@@ -82,23 +82,43 @@ export async function getSuggestedActions(candidateId: string): Promise<Suggeste
   return suggestions
 }
 
+// A small flat bonus just for defining a goal at all — recognized as its
+// own line item (not silently folded into the total) since committing to a
+// plan is itself a good sign, independent of what's in the plan.
+export const GOAL_DEFINED_BONUS_POINTS = 5
+
 export async function commitWeeklySprint(
   candidateId: string,
-  actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[]
+  actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[],
+  autoAssigned = false
 ) {
   const weekStartDate = getMondayOfWeek(new Date())
-  const committedActions: CommittedAction[] = actions.map((a) => ({
-    text: a.text,
-    actionType: a.actionType,
-    points: a.points,
-    estimatedMinutes: a.estimatedMinutes,
-    completed: false,
-  }))
+  const committedActions: CommittedAction[] = [
+    {
+      text: "Defined this week's goal",
+      points: GOAL_DEFINED_BONUS_POINTS,
+      estimatedMinutes: 0,
+      completed: true,
+      completedAt: new Date().toISOString(),
+    },
+    ...actions.map((a) => ({
+      text: a.text,
+      actionType: a.actionType,
+      points: a.points,
+      estimatedMinutes: a.estimatedMinutes,
+      completed: false,
+    })),
+  ]
 
   return prisma.weeklySprint.upsert({
     where: { candidateId_weekStartDate: { candidateId, weekStartDate } },
-    create: { candidateId, weekStartDate, committedActions: committedActions as unknown as Prisma.InputJsonValue },
-    update: { committedActions: committedActions as unknown as Prisma.InputJsonValue },
+    create: {
+      candidateId,
+      weekStartDate,
+      committedActions: committedActions as unknown as Prisma.InputJsonValue,
+      autoAssigned,
+    },
+    update: { committedActions: committedActions as unknown as Prisma.InputJsonValue, autoAssigned },
   })
 }
 
