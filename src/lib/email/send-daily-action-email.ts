@@ -5,7 +5,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getVictoriaName } from '@/lib/victoria'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
+import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import DailyActionEmail from '@/emails/daily-action'
+import Week1KickoffEmail from '@/emails/week1-kickoff'
 
 const QUIET_THRESHOLD_DAYS = 3
 
@@ -34,6 +36,56 @@ export async function sendDailyActionEmail(candidateId: string) {
     const email = userData.user?.email
     if (!email) return { sent: false as const }
 
+    const victoriaName = getVictoriaName('daily-email')
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
+
+    // Victoria's Day 2 kickoff — one-time, replaces the regular daily email
+    // for exactly one send, the first full day after registration.
+    const daysSinceRegistration = candidate.registrationCompletedAt
+      ? (Date.now() - candidate.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
+      : 0
+    if (Math.floor(daysSinceRegistration) === 1) {
+      const [jobPostings, linkedInActivityLogs, narrative, outreachCount] = await Promise.all([
+        prisma.jobPosting.findMany({ where: { candidateId }, select: { coverLetter: true } }),
+        prisma.linkedInActivityLog.findMany({ where: { candidateId }, select: { id: true } }),
+        prisma.candidateNarrative.findUnique({ where: { candidateId } }),
+        prisma.outreachLog.count({ where: { candidateId } }),
+      ])
+      const artifacts = getWeek1Artifacts({
+        linkedInPosted: linkedInActivityLogs.length > 0,
+        coverLetterGenerated: jobPostings.some((j) => !!j.coverLetter),
+        narrativeGenerated: !!narrative,
+        outreachLogged: outreachCount > 0,
+      })
+
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const { error } = await resend.emails.send({
+        from: 'NextChapter <support@launchyournextchapter.com>',
+        replyTo: 'support@launchyournextchapter.com',
+        to: email,
+        subject: candidate.firstName ? `Your first week, ${candidate.firstName}.` : 'Your first week',
+        react: Week1KickoffEmail({
+          firstName: candidate.firstName,
+          victoriaName,
+          artifactLabels: artifacts.map((a) => a.label),
+          appUrl,
+          unsubscribeUrl,
+        }),
+      })
+
+      if (error) {
+        console.error('Failed to send Week 1 kickoff email:', error)
+        return { sent: false as const }
+      }
+
+      await prisma.candidateProfile.update({
+        where: { id: candidateId },
+        data: { lastDailyEmailSentAt: new Date() },
+      })
+      return { sent: true as const }
+    }
+
     const daysSinceCheckIn = candidate.lastCheckInAt
       ? (Date.now() - candidate.lastCheckInAt.getTime()) / (1000 * 60 * 60 * 24)
       : Infinity
@@ -46,10 +98,6 @@ export async function sendDailyActionEmail(candidateId: string) {
             report.generatedAt
           )
         : null
-
-    const victoriaName = getVictoriaName('daily-email')
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
 
     const insights =
       !isReset && primaryAction

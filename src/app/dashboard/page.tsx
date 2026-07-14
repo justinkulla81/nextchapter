@@ -15,9 +15,11 @@ import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
 import { computeEarnedBadges } from '@/lib/community/badges'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
+import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
+import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
 import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
 import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
@@ -77,6 +79,8 @@ export default async function DashboardPage() {
     searchExecutionAvailable,
     latestReport,
     communityFeed,
+    narrative,
+    outreachCount,
   ] = await Promise.all([
     supabase.auth.getUser(),
     calculateEmployabilityScore(profile.id),
@@ -95,7 +99,12 @@ export default async function DashboardPage() {
     // never even finished generating the report at all.
     resolveLatestReport(profile.id, profile.hireabilityReports[0]),
     getCommunityFeed(3),
+    prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } }),
+    prisma.outreachLog.count({ where: { candidateId: profile.id } }),
   ])
+
+  const weekNumber = profile._count.weeklySprints + 1
+  const isFirstWeek = weekNumber === 1
 
   const nextSteps = scoreToNextSteps(profile, currentRaw)
   const latestAssessment = profile.assessmentResponses[0]
@@ -107,6 +116,13 @@ export default async function DashboardPage() {
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
   const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
+
+  const week1Artifacts = getWeek1Artifacts({
+    linkedInPosted: profile.linkedInActivityLogs.length > 0,
+    coverLetterGenerated: profile.jobPostings.some((j) => !!j.coverLetter),
+    narrativeGenerated: !!narrative,
+    outreachLogged: outreachCount > 0,
+  })
 
   return (
     <div className="space-y-8">
@@ -128,9 +144,13 @@ export default async function DashboardPage() {
 
       <CommunityPreviewWidget feed={communityFeed} />
 
-      <SuccessSprintCard
-        actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
-      />
+      {isFirstWeek ? (
+        <Week1ArtifactSprint artifacts={week1Artifacts} />
+      ) : (
+        <SuccessSprintCard
+          actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+        />
+      )}
 
       <CompactGradeCard grade={grade} searchExecutionAvailable={searchExecutionAvailable} />
 
