@@ -12,9 +12,12 @@ import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
+import { computeEarnedBadges } from '@/lib/community/badges'
 import { DualGradeCard } from '@/components/dashboard/DualGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
+import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
 import { ActionPlanCard, type ActionDay } from '@/components/dashboard/ActionPlanCard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { LinkedInActivityCard } from '@/components/dashboard/LinkedInActivityCard'
@@ -63,6 +66,10 @@ export default async function DashboardPage() {
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
     : null
   const currentSprint = await getCurrentWeekSprint(profile.id)
+  const [unlockTier, earnedBadges] = await Promise.all([
+    computeUnlockTierForCandidate(profile.id),
+    computeEarnedBadges(profile.id),
+  ])
 
   const linkedInWindowStart = new Date()
   linkedInWindowStart.setDate(linkedInWindowStart.getDate() - 30)
@@ -220,6 +227,8 @@ export default async function DashboardPage() {
       </div>
 
       <LinkedInActivityCard recentLogCount={recentLinkedInLogCount} loggedToday={loggedLinkedInToday} />
+
+      <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
 
       <CoachChatCard initialMessages={conversation.messages} />
 

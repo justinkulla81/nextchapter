@@ -222,6 +222,10 @@ model CandidateProfile {
   dailyEmailOptedOut    Boolean       @default(false)
   weeklyReportOptedOut  Boolean       @default(false)
 
+  // The Circle — community support + recognition
+  aListOptOut               Boolean  @default(false) // opt out of A-List name recognition specifically
+  encouragementGivingOptIn  Boolean  @default(false) // opted in to occasional prompts to send support notes
+
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp       Int?
   priorityBrandName     Int?
@@ -271,6 +275,8 @@ model CandidateProfile {
   dailyCheckIns         DailyCheckIn[]
   weeklySprints         WeeklySprint[]
   sundayNightReports    SundayNightReport[]
+  encouragementNotesSent     EncouragementNote[] @relation("EncouragementSent")
+  encouragementNotesReceived EncouragementNote[] @relation("EncouragementReceived")
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -804,6 +810,25 @@ model CommunityPost {
 
   @@index([postType, isActive, createdAt])
   @@index([postCity, postFunction, postIndustry])
+}
+
+// Anonymous (by default) support note sent from one candidate to another
+// having a hard week, per The Circle's "small, human, real" support
+// mechanism. fromCandidateId is kept for abuse moderation but never shown
+// in the UI unless revealSender is true.
+model EncouragementNote {
+  id             String           @id @default(cuid())
+  fromCandidateId String
+  fromCandidate  CandidateProfile @relation("EncouragementSent", fields: [fromCandidateId], references: [id], onDelete: Cascade)
+  toCandidateId  String
+  toCandidate    CandidateProfile @relation("EncouragementReceived", fields: [toCandidateId], references: [id], onDelete: Cascade)
+
+  message      String
+  revealSender Boolean  @default(false)
+  sentAt       DateTime @default(now())
+  readAt       DateTime?
+
+  @@index([toCandidateId, readAt])
 }
 
 // Expressing interest never exposes the poster's email on the board —

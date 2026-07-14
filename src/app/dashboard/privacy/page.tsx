@@ -1,6 +1,7 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
+import { CircleSettingsToggles } from '@/components/dashboard/CircleSettingsToggles'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 
 export default async function PrivacyPage() {
@@ -19,6 +20,14 @@ export default async function PrivacyPage() {
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Notifications</h2>
         <ActionWindowSelector current={profile.actionWindow} />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <h2 className="text-lg font-semibold">The Circle</h2>
+        <CircleSettingsToggles
+          aListOptOut={profile.aListOptOut}
+          encouragementGivingOptIn={profile.encouragementGivingOptIn}
+        />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

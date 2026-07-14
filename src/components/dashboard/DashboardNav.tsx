@@ -11,6 +11,7 @@ const LINKS = [
   { href: '/dashboard/resume', label: 'Resume' },
   { href: '/dashboard/job-fit', label: 'Job Fit' },
   { href: '/dashboard/community', label: 'Community' },
+  { href: '/dashboard/circle', label: 'The Circle' },
   { href: '/dashboard/hireability-report', label: 'My Report' },
   { href: '/dashboard/weekly-report', label: 'Weekly Report' },
   { href: '/dashboard/interview', label: 'Interview' },
