@@ -24,8 +24,8 @@ export function CommunityTierCard({ tier, badges }: { tier: UnlockTier; badges: 
             ))}
           </div>
         )}
-        <Link href="/dashboard/circle" className="inline-block text-sm font-medium text-primary underline underline-offset-4">
-          Visit The Circle →
+        <Link href="/dashboard/community" className="inline-block text-sm font-medium text-primary underline underline-offset-4">
+          Visit Community →
         </Link>
       </CardContent>
     </Card>

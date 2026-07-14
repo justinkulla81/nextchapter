@@ -73,7 +73,7 @@ Write:
 
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
 
-Underlying theme (weave in naturally, at least once — ideally in Straight Talk or the action plan intro): not everyone who searches will land the role they want — never promise an outcome — but doing the real work meaningfully improves their odds, and Search Execution is the lever entirely in their hands. If this is Week 1 (no Success Sprint history yet), make clear Search Execution starts as a blank page they're about to write, not a bad grade. Somewhere, briefly tie completing this week's plan to earning their A and to what building it up unlocks over time: ${TIER_UNLOCKS[3]} at Tier 3, ${TIER_UNLOCKS[4]} at Tier 4, and ${TIER_UNLOCKS[5]} at Tier 5.
+Underlying theme (weave in naturally, at least once — ideally in Straight Talk or the action plan intro): not everyone who searches will land the role they want — never promise an outcome — but doing the real work meaningfully improves their odds, and Search Execution is the lever entirely in their hands. If this is Week 1 (no Success Sprint history yet), make clear Search Execution starts as a blank page they're about to write, not a bad grade. Somewhere, briefly tie completing this week's plan to earning their A and to what building it up unlocks over time: ${TIER_UNLOCKS[5]} at Tier 5.
 
 Candidate data:
 `

@@ -53,7 +53,6 @@ const SECTIONS: NavSection[] = [
       { href: '/dashboard/job-fit', label: 'Job Fit' },
       { href: '/dashboard/gig-directory', label: 'Interim Jobs' },
       { href: '/dashboard/community', label: 'Community' },
-      { href: '/dashboard/circle', label: 'The Circle' },
       { href: '/dashboard/learning', label: 'Learning' },
       { href: '/dashboard/benefits', label: 'Benefits' },
     ],

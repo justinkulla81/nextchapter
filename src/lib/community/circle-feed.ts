@@ -40,23 +40,6 @@ export async function getCircleFeed(limit = 20): Promise<CircleFeedItem[]> {
     })
   }
 
-  const recentPosts = await prisma.communityPost.findMany({
-    where: { isActive: true, createdAt: { gte: windowStart } },
-    include: { candidate: true },
-    orderBy: { createdAt: 'desc' },
-  })
-  for (const post of recentPosts) {
-    if (post.candidate.privacyTier === 'LOCKED') continue
-    const name = anonymize(post.candidate.firstName, post.candidate.lastName)
-    if (!name) continue
-    items.push({
-      id: `post-${post.id}`,
-      displayName: name,
-      detail: `posted on the Community Board${post.postFunction ? ` in ${post.postFunction}` : ''}`,
-      occurredAt: post.createdAt,
-    })
-  }
-
   const recentReferences = await prisma.reference.findMany({
     where: { status: 'COMPLETED', completedAt: { gte: windowStart } },
     include: { candidate: true },

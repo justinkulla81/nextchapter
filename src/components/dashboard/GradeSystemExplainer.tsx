@@ -150,8 +150,8 @@ export function GradeSystemExplainer() {
           no ceiling imposed by your background here.
         </p>
         <p className="mt-2 text-muted-foreground">
-          Building it up unlocks real things as you go: {TIER_UNLOCKS[3]} at Tier 3, {TIER_UNLOCKS[4]}{' '}
-          at Tier 4, and {TIER_UNLOCKS[5]} at Tier 5.
+          Building it up unlocks real things as you go — reach Tier 5 and you&apos;re in the running
+          for {TIER_UNLOCKS[5]}.
         </p>
         <p className="mt-2 text-muted-foreground">
           Starting Week 4, an A requires real work across all four engines — you can&apos;t max out

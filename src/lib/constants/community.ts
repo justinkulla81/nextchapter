@@ -4,6 +4,8 @@ export const COMMUNITY_POST_TYPE_LABELS: Record<CommunityPostType, string> = {
   JOB: 'Job opening',
   PROJECT: 'Project / consulting opportunity',
   INTRO_OFFER: 'Offer an intro',
+  SELF_INTRO: 'Introduction',
+  UPDATE: 'Update',
 }
 
 // Points decay — see the rolling-window calc in employability-score.ts.

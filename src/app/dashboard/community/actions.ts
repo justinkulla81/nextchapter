@@ -11,7 +11,10 @@ import { sendPostInterestNotification } from '@/lib/email/send-post-interest-not
 
 export type FormState = { error?: string } | undefined
 
-const POST_TYPES = ['JOB', 'PROJECT', 'INTRO_OFFER'] as const
+// The composer only ever creates one of these two types now (message-only,
+// no type picker) — JOB/PROJECT/INTRO_OFFER remain valid enum values for
+// historical posts but are no longer creatable from the UI.
+const SUBMITTABLE_POST_TYPES = ['UPDATE', 'SELF_INTRO'] as const
 
 function canParticipate(privacyTier: string) {
   return privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
@@ -31,26 +34,24 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
 
   // Never trust a client-side gate alone — re-check server-side.
   if (!canParticipate(profile.privacyTier)) {
-    return { error: 'Set your profile to Public or Semi-Public to post on the Community Board.' }
+    return { error: 'Set your profile to Public or Semi-Public to post to the Community.' }
   }
 
   const postType = formData.get('postType') as string | null
-  const title = (formData.get('title') as string | null)?.trim()
   const description = (formData.get('description') as string | null)?.trim()
   const externalUrl = (formData.get('externalUrl') as string | null)?.trim() || null
 
-  if (!postType || !POST_TYPES.includes(postType as (typeof POST_TYPES)[number])) {
-    return { error: 'Please choose a post type.' }
+  if (!postType || !SUBMITTABLE_POST_TYPES.includes(postType as (typeof SUBMITTABLE_POST_TYPES)[number])) {
+    return { error: 'Something went wrong — please try again.' }
   }
-  if (!title || !description) {
-    return { error: 'Please fill in a title and description.' }
+  if (!description) {
+    return { error: 'Write something first.' }
   }
 
   await prisma.communityPost.create({
     data: {
       candidateId: profile.id,
-      postType: postType as (typeof POST_TYPES)[number],
-      title,
+      postType: postType as (typeof SUBMITTABLE_POST_TYPES)[number],
       description,
       externalUrl,
       postCity: profile.currentCity,
@@ -121,7 +122,7 @@ export async function expressInterest(postId: string) {
   if (posterEmail) {
     await sendPostInterestNotification({
       posterEmail,
-      postTitle: post.title,
+      postTitle: post.title || post.description.slice(0, 60),
       interestedCandidateName: profile.displayName || 'A candidate',
       interestedCandidateEmail: user.email!,
     })

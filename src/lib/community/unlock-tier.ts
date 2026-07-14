@@ -16,12 +16,14 @@ export const TIER_NAME: Record<UnlockTier, string> = {
 // scripts, recruiter list, job surfacing, thought leadership tools,
 // fractional portal, coaching access) don't exist as built features yet —
 // those gates will apply automatically once those features land in later
-// slices. For now this tier only actually gates The Circle.
+// slices. Community (formerly "The Circle") is open to everyone regardless
+// of tier, so it's no longer listed as a tier 3/4 reward — only A-List
+// highlighting at tier 5 is still actually gated by this system.
 export const TIER_UNLOCKS: Record<UnlockTier, string> = {
   1: 'Grade report, Success Sprint, resume feedback, coach chat',
   2: 'Nothing new yet — outreach scripts and networking tools unlock here once built',
-  3: 'The Circle (read-only)',
-  4: 'The Circle (post + send support notes)',
+  3: 'Nothing new yet — future features will unlock here',
+  4: 'Nothing new yet — future features will unlock here',
   5: 'A-List eligibility highlight',
 }
 

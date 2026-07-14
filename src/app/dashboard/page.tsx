@@ -17,6 +17,7 @@ import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
+import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
 import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
@@ -72,6 +73,7 @@ export default async function DashboardPage() {
     earnedBadges,
     searchExecutionAvailable,
     latestReport,
+    recentCommunityPosts,
   ] = await Promise.all([
     supabase.auth.getUser(),
     calculateEmployabilityScore(profile.id),
@@ -89,6 +91,11 @@ export default async function DashboardPage() {
     // just the first, and also covers the case where that background job
     // never even finished generating the report at all.
     resolveLatestReport(profile.id, profile.hireabilityReports[0]),
+    prisma.communityPost.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+    }),
   ])
 
   const nextSteps = scoreToNextSteps(profile, currentRaw)
@@ -156,6 +163,8 @@ export default async function DashboardPage() {
       </Card>
 
       <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
+
+      <CommunityPreviewWidget posts={recentCommunityPosts} />
 
       <CoachChatCard initialMessages={conversation.messages} />
     </div>

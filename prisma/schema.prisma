@@ -862,6 +862,8 @@ enum CommunityPostType {
   JOB
   PROJECT
   INTRO_OFFER
+  SELF_INTRO // "introduce yourself" gate post — presence of one (not a boolean flag) unlocks the board
+  UPDATE     // default type for the message-only composer, post Community+Circle merge
 }
 
 model CommunityPost {
@@ -870,7 +872,7 @@ model CommunityPost {
   candidate    CandidateProfile        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   postType     CommunityPostType
-  title        String
+  title        String?
   description  String
   externalUrl  String?
 

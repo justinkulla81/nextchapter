@@ -29,7 +29,7 @@ export async function submitEncouragementNote(
 
   const revealSender = formData.get('revealSender') === 'on'
   const result = await sendEncouragementNote(profile.id, message, revealSender)
-  revalidatePath('/dashboard/circle')
+  revalidatePath('/dashboard/community')
 
   if (!result.sent) {
     return { error: 'No one needs a note right now — check back later.' }
@@ -42,7 +42,7 @@ export async function dismissEncouragementNote(noteId: string) {
   if (!profile) return
 
   await markEncouragementNoteRead(noteId, profile.id)
-  revalidatePath('/dashboard/circle')
+  revalidatePath('/dashboard/community')
 }
 
 export async function toggleEncouragementGiving(current: boolean) {
@@ -53,7 +53,7 @@ export async function toggleEncouragementGiving(current: boolean) {
     where: { id: profile.id },
     data: { encouragementGivingOptIn: !current },
   })
-  revalidatePath('/dashboard/circle')
+  revalidatePath('/dashboard/community')
   revalidatePath('/dashboard/privacy')
 }
 

@@ -16,10 +16,12 @@ export function CommunityPostCard({
       <CardContent className="space-y-2 pt-6">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-xs font-medium uppercase text-muted-foreground">
-              {COMMUNITY_POST_TYPE_LABELS[post.postType]}
-            </p>
-            <p className="font-medium">{post.title}</p>
+            {post.postType !== 'UPDATE' && (
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                {COMMUNITY_POST_TYPE_LABELS[post.postType]}
+              </p>
+            )}
+            {post.title && <p className="font-medium">{post.title}</p>}
           </div>
           {isOwnPost ? (
             <form action={deactivateCommunityPost.bind(null, post.id)}>
