@@ -10,6 +10,29 @@ import { recalculateScore } from '@/lib/scoring/recalculate'
 export type FormState = { error?: string } | undefined
 
 const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other']
+const PORTFOLIO_TYPES = ['writing', 'code', 'design', 'other', 'none']
+
+export async function submitWorkSampleType(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+
+  const workSampleType = formData.get('workSampleType') as string | null
+  if (!workSampleType || !PORTFOLIO_TYPES.includes(workSampleType)) {
+    return { error: 'Please choose an option.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { workSampleType },
+  })
+
+  revalidatePath('/dashboard/work-samples')
+  revalidatePath('/dashboard')
+}
 
 export async function addWorkSample(_prevState: FormState, formData: FormData): Promise<FormState> {
   const supabase = await createClient()

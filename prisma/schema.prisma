@@ -286,6 +286,7 @@ model CandidateProfile {
   gigDirectoryUnlockAnswer      String?    // target rate/openness question — gates the Gig Directory
   contentComfortLevel           Int?       // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
   contentVenues                 ContentVenue[] @default([])
+  workSampleType                String?    // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
 
   // Daily loop — mood check-in + daily Victoria email
   actionWindow          ActionWindow  @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing

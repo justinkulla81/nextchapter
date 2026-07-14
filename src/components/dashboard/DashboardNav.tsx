@@ -59,13 +59,25 @@ const SECTIONS: NavSection[] = [
   },
 ]
 
-function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function NavContent({
+  pathname,
+  onNavigate,
+  hideWorkSamples,
+}: {
+  pathname: string
+  onNavigate?: () => void
+  hideWorkSamples?: boolean
+}) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
+  const visibleSections = SECTIONS.map((section) => ({
+    ...section,
+    links: section.links.filter((link) => !(hideWorkSamples && link.href === '/dashboard/work-samples')),
+  }))
 
   return (
     <nav className="flex h-full flex-col gap-6 overflow-y-auto px-4 py-6">
       <Logo className="px-2 text-xl text-white" />
-      {SECTIONS.map((section, i) => (
+      {visibleSections.map((section, i) => (
         <div key={section.title ?? `top-${i}`} className="space-y-0.5">
           {section.title && (
             <p className="px-2 pb-1 text-xs font-semibold tracking-widest text-white/50 uppercase">
@@ -101,7 +113,7 @@ function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: (
   )
 }
 
-export function DashboardNav() {
+export function DashboardNav({ hideWorkSamples }: { hideWorkSamples?: boolean }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const current = SECTIONS.flatMap((s) => s.links).find((link) =>
@@ -112,7 +124,7 @@ export function DashboardNav() {
     <>
       {/* Desktop: persistent sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <NavContent pathname={pathname} />
+        <NavContent pathname={pathname} hideWorkSamples={hideWorkSamples} />
       </aside>
 
       {/* Mobile: top bar with toggle + slide-out drawer */}
@@ -138,7 +150,7 @@ export function DashboardNav() {
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <NavContent pathname={pathname} onNavigate={() => setOpen(false)} />
+            <NavContent pathname={pathname} onNavigate={() => setOpen(false)} hideWorkSamples={hideWorkSamples} />
           </div>
         </div>
       )}

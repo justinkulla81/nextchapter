@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
+import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -11,10 +12,12 @@ export const metadata: Metadata = {
 // duration, which was silently truncating it before the email ever went out.
 export const maxDuration = 60
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const profile = await getDashboardData()
+
   return (
     <div className="min-h-screen">
-      <DashboardNav />
+      <DashboardNav hideWorkSamples={profile.workSampleType === 'none'} />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>
       </main>

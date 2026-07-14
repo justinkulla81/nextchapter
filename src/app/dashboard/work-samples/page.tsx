@@ -1,11 +1,41 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { WorkSampleForm } from '@/components/dashboard/WorkSampleForm'
+import { WorkSampleTypeGateForm } from '@/components/dashboard/WorkSampleTypeGateForm'
 import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 export default async function WorkSamplesPage() {
   const profile = await getDashboardData()
+
+  if (!profile.workSampleType) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
+          <p className="mt-1 text-muted-foreground">
+            Show, don&apos;t just tell. Upload something that proves what you can do.
+          </p>
+        </div>
+        <WorkSampleTypeGateForm />
+      </div>
+    )
+  }
+
+  if (profile.workSampleType === 'none') {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You said there&apos;s nothing you&apos;d want to share here — nothing needed. If that
+            changes, pick a type below.
+          </p>
+        </div>
+        <WorkSampleTypeGateForm />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
