@@ -1,3 +1,5 @@
+import { emailStyles } from '@/lib/email/email-styles'
+
 interface ReferenceRequestEmailProps {
   candidateName: string
   refereeName: string
@@ -10,6 +12,7 @@ const container: React.CSSProperties = {
   margin: '0 auto',
   padding: '32px 24px',
   color: '#0a0a0a',
+  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -25,14 +28,13 @@ const button: React.CSSProperties = {
   textDecoration: 'none',
   padding: '12px 20px',
   borderRadius: '8px',
-  fontWeight: 600,
   marginTop: '16px',
+  ...emailStyles.cta,
 }
 
 const footer: React.CSSProperties = {
-  color: '#4a5568',
-  fontSize: '13px',
   marginTop: '32px',
+  ...emailStyles.muted,
 }
 
 export default function ReferenceRequestEmail({

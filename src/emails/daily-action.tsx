@@ -1,3 +1,5 @@
+import { emailStyles } from '@/lib/email/email-styles'
+
 interface DailyActionEmailProps {
   firstName: string | null
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
@@ -16,6 +18,7 @@ const container: React.CSSProperties = {
   margin: '0 auto',
   padding: '32px 24px',
   color: '#0a0a0a',
+  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -38,14 +41,13 @@ const button: React.CSSProperties = {
   textDecoration: 'none',
   padding: '12px 20px',
   borderRadius: '8px',
-  fontWeight: 600,
   marginTop: '16px',
+  ...emailStyles.cta,
 }
 
 const footer: React.CSSProperties = {
-  color: '#4a5568',
-  fontSize: '13px',
   marginTop: '32px',
+  ...emailStyles.muted,
 }
 
 export default function DailyActionEmail({
@@ -75,10 +77,8 @@ export default function DailyActionEmail({
         <div style={actionBox}>
           <p style={{ fontWeight: 600, margin: 0 }}>Today&apos;s move:</p>
           <p style={{ marginTop: '8px' }}>{primaryActionText}</p>
-          {whyItMatters && <p style={{ color: '#4a5568', fontSize: '14px' }}>{whyItMatters}</p>}
-          {engineHint && (
-            <p style={{ color: '#4a5568', fontSize: '13px' }}>Moves your {engineHint}.</p>
-          )}
+          {whyItMatters && <p style={emailStyles.muted}>{whyItMatters}</p>}
+          {engineHint && <p style={emailStyles.muted}>Moves your {engineHint}.</p>}
         </div>
       ) : (
         <p>Check your dashboard for today&apos;s plan.</p>
