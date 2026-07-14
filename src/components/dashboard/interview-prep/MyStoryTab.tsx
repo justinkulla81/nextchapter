@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { generateNarrative, updateCoreStatement } from '@/app/dashboard/interview-prep/actions'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
@@ -59,7 +60,7 @@ export function MyStoryTab({
   }
 
   return (
-    <div className="space-y-6">
+    <div className={cn('space-y-6', isPending && 'cursor-wait [&_*]:cursor-wait')}>
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">

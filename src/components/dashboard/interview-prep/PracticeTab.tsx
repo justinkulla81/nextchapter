@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { requestPracticeEvaluation } from '@/app/dashboard/interview-prep/actions'
 import { PRACTICE_QUESTION_TEMPLATES } from '@/lib/interview-prep/constants'
 import type { PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
@@ -36,7 +37,7 @@ export function PracticeTab({ targetRoleType }: { targetRoleType: string | null 
       {PRACTICE_QUESTION_TEMPLATES.map((question, index) => {
         const evaluation = evaluations[index]
         return (
-          <Card key={question}>
+          <Card key={question} className={cn(pendingIndex === index && 'cursor-wait [&_*]:cursor-wait')}>
             <CardHeader>
               <CardTitle className="text-sm font-medium">{question}</CardTitle>
             </CardHeader>

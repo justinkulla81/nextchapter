@@ -5,16 +5,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { requestThankYouEmail } from '@/app/dashboard/interview-prep/actions'
 import type { ThankYouEmailInput } from '@/lib/interview-prep/generate-thank-you-email'
 
-const TONE_LABELS: Record<ThankYouEmailInput['tone'], string> = {
-  warm: 'Warm',
-  professional: 'Professional',
-  enthusiastic: 'Enthusiastic',
-}
+const TONES: { value: ThankYouEmailInput['tone']; label: string }[] = [
+  { value: 'warm', label: 'Warm' },
+  { value: 'professional', label: 'Professional' },
+  { value: 'enthusiastic', label: 'Enthusiastic' },
+]
 
 const EMPTY: ThankYouEmailInput = {
   interviewerName: '',
@@ -44,7 +44,7 @@ export function ThankYouEmailTab() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className={cn(isPending && 'cursor-wait [&_*]:cursor-wait')}>
         <CardContent className="space-y-4 pt-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -94,23 +94,24 @@ export function ThankYouEmailTab() {
 
           <div className="space-y-1.5">
             <Label>Tone</Label>
-            <Select
-              value={form.tone}
-              onValueChange={(v) => setForm((f) => ({ ...f, tone: v as ThankYouEmailInput['tone'] }))}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a tone">
-                  {(value: string | null) =>
-                    TONE_LABELS[value as ThankYouEmailInput['tone']] ?? 'Select a tone'
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="warm">Warm</SelectItem>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="enthusiastic">Enthusiastic</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-3 gap-1.5">
+              {TONES.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, tone: t.value }))}
+                  aria-pressed={form.tone === t.value}
+                  className={cn(
+                    'rounded-lg border-2 p-2 text-center text-sm font-medium transition-colors',
+                    form.tone === t.value
+                      ? 'border-brand bg-brand/5 text-brand'
+                      : 'border-border bg-white text-foreground hover:border-brand/40'
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isPending}>

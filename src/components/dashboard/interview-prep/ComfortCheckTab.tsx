@@ -76,7 +76,7 @@ export function ComfortCheckTab({
   }
 
   return (
-    <Card>
+    <Card className={cn(isPending && 'cursor-wait [&_*]:cursor-wait')}>
       <CardContent className="space-y-6 pt-6">
         <p className="text-sm text-muted-foreground">
           A quick, honest self-check — no wrong answers. This just helps Victoria know where to

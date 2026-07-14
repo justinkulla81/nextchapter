@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { requestToughAnswer } from '@/app/dashboard/interview-prep/actions'
 import { TOUGH_QUESTIONS } from '@/lib/interview-prep/constants'
 
@@ -36,7 +37,7 @@ export function ToughQuestionsTab() {
         each, then rate how comfortable you feel with it.
       </p>
       {TOUGH_QUESTIONS.map((q) => (
-        <Card key={q.id}>
+        <Card key={q.id} className={cn(pendingId === q.id && 'cursor-wait [&_*]:cursor-wait')}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <span
