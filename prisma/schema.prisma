@@ -102,6 +102,64 @@ enum ReferenceStatus {
   EXPIRED
 }
 
+// The 5x5 Support Network builder's categories — see "My Support Network"
+// in the product spec.
+enum ContactCategory {
+  FORMER_COLLEAGUE
+  HIRING_CONNECTION
+  OWES_A_FAVOR
+  RECENT_TRANSITION
+  COULD_HELP_IN_RETURN
+}
+
+enum ContactWarmth {
+  HOT
+  WARM
+  COLD
+}
+
+enum ContactSource {
+  MANUAL
+  CSV_IMPORT
+}
+
+enum OutreachChannel {
+  EMAIL
+  LINKEDIN
+  PHONE
+  TEXT
+}
+
+// "What's your biggest concern about reaching out?" — asked once, shapes
+// which of the 9 outreach script variants (3 warmth x 3 anxiety tiers) a
+// candidate sees. The 5 answer options map down to 3 tiers in
+// src/lib/network/scripts.ts.
+enum NetworkingAnxiety {
+  SEEM_DESPERATE
+  BURDEN_PEOPLE
+  NOT_SURE_WHAT_TO_SAY
+  NETWORK_NOT_STRONG
+  OTHER
+}
+
+enum JobReactionType {
+  INTERESTED
+  NOT_INTERESTED
+  UNSURE
+}
+
+enum NotInterestedReason {
+  WRONG_FUNCTION
+  WRONG_INDUSTRY
+  COMP_TOO_LOW
+  SENIORITY_MISMATCH
+  LOCATION_MISMATCH
+  MISSING_EXPERIENCE
+  COMPANY_UNATTRACTIVE
+  DONT_FEEL_QUALIFIED
+  WOULD_PURSUE_WITH_CONNECTION
+}
+
 enum EmployerTier {
   CHARTER     // Free/minimal — product partners
   STANDARD    // $200/mo
@@ -226,6 +284,9 @@ model CandidateProfile {
   aListOptOut               Boolean  @default(false) // opt out of A-List name recognition specifically
   encouragementGivingOptIn  Boolean  @default(false) // opted in to occasional prompts to send support notes
 
+  // Support Network / outreach
+  networkingAnxiety NetworkingAnxiety?
+
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp       Int?
   priorityBrandName     Int?
@@ -277,6 +338,9 @@ model CandidateProfile {
   sundayNightReports    SundayNightReport[]
   encouragementNotesSent     EncouragementNote[] @relation("EncouragementSent")
   encouragementNotesReceived EncouragementNote[] @relation("EncouragementReceived")
+  supportNetworkContacts     SupportNetworkContact[]
+  outreachLogs               OutreachLog[]
+  surfacedJobs               SurfacedJob[]
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -1014,4 +1078,64 @@ model WaitlistSignup {
   createdAt DateTime @default(now())
 
   @@index([audience])
+}
+
+// One row per person in the candidate's 5x5 Support Network. category is
+// nullable because CSV-imported contacts land unsorted — the candidate
+// slots them into the 5 categories afterward.
+model SupportNetworkContact {
+  id          String            @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  name     String
+  company  String?
+  title    String?
+  email    String?
+  category ContactCategory?
+  warmth   ContactWarmth     @default(WARM)
+  source   ContactSource     @default(MANUAL)
+  createdAt DateTime         @default(now())
+
+  outreachLogs OutreachLog[]
+
+  @@index([candidateId])
+}
+
+// Self-reported outreach — no automatic email-BCC-forwarding tracking yet
+// (that needs inbound-email infrastructure that doesn't exist). The act of
+// logging is itself the rewarded behavior, per the product spec.
+model OutreachLog {
+  id          String                 @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  contactId   String?
+  contact     SupportNetworkContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  channel     OutreachChannel
+  loggedAt    DateTime               @default(now())
+
+  @@index([candidateId, loggedAt])
+}
+
+// A job pulled from Adzuna and shown to the candidate for a lightweight
+// reaction — not an application queue. unique on (candidateId, url) so
+// re-surfacing the same listing doesn't duplicate rows.
+model SurfacedJob {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  title       String
+  companyName String?
+  location    String?
+  url         String
+  description String?
+  surfacedAt  DateTime @default(now())
+
+  reaction       JobReactionType?
+  reactionReason NotInterestedReason?
+  reactedAt      DateTime?
+
+  @@unique([candidateId, url])
+  @@index([candidateId, surfacedAt])
 }
