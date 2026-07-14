@@ -257,6 +257,7 @@ model CandidateProfile {
   // Action-plan-only questions (not asked during onboarding)
   lastSalary            Int?
   workAuthorization     String?
+  visaStatus            String?
 
   // Action-plan confirmation tracking
   profileConfirmedAt    DateTime?

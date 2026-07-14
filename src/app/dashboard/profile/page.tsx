@@ -1,12 +1,20 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { createClient } from '@/lib/supabase/server'
 import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryAuthorizationConfirmForm } from '@/components/dashboard/SalaryAuthorizationConfirmForm'
+import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 export default async function ProfilePage() {
   const profile = await getDashboardData()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   return (
     <div className="space-y-8">
@@ -19,58 +27,73 @@ export default async function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Basics</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Account</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ProfileConfirmForm
-            firstName={profile.firstName}
-            lastName={profile.lastName}
-            phone={profile.phone}
-            streetAddress={profile.streetAddress}
-            currentCity={profile.currentCity}
-            currentState={profile.currentState}
-          />
+        <CardContent className="space-y-1">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" value={user?.email ?? ''} readOnly disabled className="bg-muted" />
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Industry</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <IndustryConfirmForm industryContext={profile.industryContext} />
-        </CardContent>
-      </Card>
+      <div id="profile-cards" className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Basics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProfileConfirmForm
+              firstName={profile.firstName}
+              lastName={profile.lastName}
+              phone={profile.phone}
+              streetAddress={profile.streetAddress}
+              currentCity={profile.currentCity}
+              currentState={profile.currentState}
+            />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Function &amp; experience
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FunctionConfirmForm
-            primaryFunction={profile.primaryFunction}
-            resumeLatestJobTitle={profile.resumeLatestJobTitle}
-            yearsExperience={profile.yearsExperience}
-            highestLevelReached={profile.highestLevelReached}
-          />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Industry</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <IndustryConfirmForm industryContext={profile.industryContext} />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Salary &amp; work authorization
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SalaryAuthorizationConfirmForm
-            lastSalary={profile.lastSalary}
-            workAuthorization={profile.workAuthorization}
-          />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Function &amp; experience
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FunctionConfirmForm
+              primaryFunction={profile.primaryFunction}
+              resumeLatestJobTitle={profile.resumeLatestJobTitle}
+              yearsExperience={profile.yearsExperience}
+              highestLevelReached={profile.highestLevelReached}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Salary &amp; work authorization
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SalaryAuthorizationConfirmForm
+              lastSalary={profile.lastSalary}
+              workAuthorization={profile.workAuthorization}
+              visaStatus={profile.visaStatus}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <ProfileSaveAllButton containerId="profile-cards" />
     </div>
   )
 }

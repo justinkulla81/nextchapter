@@ -5,12 +5,14 @@ export const PRIVACY_TIERS: Array<{
   label: string
   description: string
   preview: string
+  recommended?: boolean
 }> = [
   {
     value: 'PUBLIC',
     label: 'Public',
     description: 'Full name, photo, and complete work history visible to all employers.',
     preview: 'Jordan Smith — Product Manager at Acme Corp',
+    recommended: true,
   },
   {
     value: 'SEMI_PUBLIC',

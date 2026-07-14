@@ -1,5 +1,6 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
+import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
 import { LinkedInActivityCard } from '@/components/dashboard/LinkedInActivityCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -23,16 +24,18 @@ export default async function LinkedInPage() {
         </p>
       </div>
 
-      {profile.linkedInConfirmedAt === null && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Your profile</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Your profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {profile.linkedInConfirmedAt === null ? (
             <LinkedInConfirmForm />
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <LinkedInUrlForm currentUrl={profile.linkedInUrl} />
+          )}
+        </CardContent>
+      </Card>
 
       <LinkedInActivityCard recentLogCount={recentLogCount} loggedToday={loggedToday} />
     </div>

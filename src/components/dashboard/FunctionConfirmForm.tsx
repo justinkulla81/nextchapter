@@ -46,14 +46,18 @@ export function FunctionConfirmForm({
         placeholder="Latest job title"
         defaultValue={resumeLatestJobTitle ?? ''}
       />
-      <Input
-        name="yearsExperience"
-        type="number"
-        min={0}
-        max={60}
-        placeholder="Years of experience"
-        defaultValue={yearsExperience ?? undefined}
-      />
+      <div className="flex items-center gap-2">
+        <Input
+          name="yearsExperience"
+          type="number"
+          min={0}
+          max={60}
+          placeholder="Years of experience"
+          defaultValue={yearsExperience ?? undefined}
+          className="w-32"
+        />
+        <span className="text-sm text-muted-foreground">years</span>
+      </div>
       <Select name="highestLevelReached" defaultValue={highestLevelReached ?? undefined}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Highest level reached" />

@@ -1,7 +1,6 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
-import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 
@@ -28,12 +27,6 @@ export default async function ResumePage() {
       </div>
 
       <ResumeUploadForm />
-
-      <Card>
-        <CardContent className="pt-6">
-          <LinkedInUrlForm currentUrl={profile.linkedInUrl} />
-        </CardContent>
-      </Card>
 
       {latest && (
         <div className="space-y-4">

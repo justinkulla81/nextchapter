@@ -32,8 +32,15 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
                 onChange={() => setSelected(tier.value)}
                 className="sr-only"
               />
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">{tier.label}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 font-semibold">
+                  {tier.label}
+                  {tier.recommended && (
+                    <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+                      Recommended
+                    </span>
+                  )}
+                </span>
                 {currentTier === tier.value && (
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     Currently set

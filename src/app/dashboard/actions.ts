@@ -200,19 +200,28 @@ export async function confirmSalaryAndAuthorization(
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
-  const lastSalary = formData.get('lastSalary')
+  const lastSalaryThousandsRaw = formData.get('lastSalaryThousands')
   const workAuthorization = (formData.get('workAuthorization') as string) || null
+  const visaStatus = (formData.get('visaStatus') as string) || null
 
-  if (!lastSalary || !workAuthorization) {
+  if (!lastSalaryThousandsRaw || !workAuthorization) {
     return { error: 'Please answer both questions.' }
   }
+
+  const lastSalaryThousandsEntered = Number(lastSalaryThousandsRaw)
+  // Auto-correct if someone enters the full dollar amount instead of thousands.
+  const lastSalary =
+    lastSalaryThousandsEntered >= 10000
+      ? Math.round(lastSalaryThousandsEntered / 1000) * 1000
+      : lastSalaryThousandsEntered * 1000
 
   const now = new Date()
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
-      lastSalary: Number(lastSalary),
+      lastSalary,
       workAuthorization,
+      visaStatus,
       salaryConfirmedAt: now,
       workAuthConfirmedAt: now,
     },
