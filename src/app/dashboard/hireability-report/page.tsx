@@ -149,7 +149,7 @@ export default async function HireabilityReportPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">My Report</h1>
           <p className="mt-1 text-muted-foreground">
-            Your strengths, gaps, and a 7-day plan — built from everything in your profile.
+            Your strengths, gaps, and an action plan — built from everything in your profile.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">

@@ -40,15 +40,14 @@ export default async function OnboardingResumePage() {
 
       <ul className="space-y-1.5 text-sm text-muted-foreground">
         <li>• A free, honest review of your resume — see exactly what&apos;s holding it back.</li>
-        <li>• Your Hireability Score and a personalized 7-day action plan, not vague advice.</li>
+        <li>• Your Hireability Score and a personalized action plan, not vague advice.</li>
         <li>• Access to a community of people who get exactly what you&apos;re going through.</li>
       </ul>
 
       <p className="text-sm text-muted-foreground">
         Your answers are private by default — never visible to recruiters or other members unless
         you explicitly choose to share them. This is just a baseline: once you&apos;ve worked your
-        action plan for 7 days, you&apos;ll be able to retake it — so don&apos;t overthink your
-        answers here.
+        action plan, you&apos;ll be able to retake it — so don&apos;t overthink your answers here.
       </p>
 
       <ResumeUploadForm />

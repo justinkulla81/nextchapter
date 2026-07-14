@@ -191,14 +191,14 @@ export default function Home() {
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight">Your progress, always in view</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Your Success Dashboard tracks your Hireability Score climbing in real time, with a
-            7-day action plan that tells you exactly what to do next.
+            Your Success Dashboard tracks your Hireability Score climbing in real time, with an
+            action plan that tells you exactly what to do next.
           </p>
         </div>
         <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
           <Image
             src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Hireability Score of 52, trending upward, with a 7-day action plan"
+            alt="NextChapter Success Dashboard showing a Hireability Score of 52, trending upward, with an action plan"
             width={2404}
             height={1762}
             className="w-full"

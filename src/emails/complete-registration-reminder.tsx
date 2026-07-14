@@ -52,8 +52,8 @@ export default function CompleteRegistrationReminderEmail({
         You built your NextChapter profile and got an honest read on where you stand: {gradeDescription}.
       </p>
       <p>
-        But you never finished creating your account, so your full report (strengths, gaps, and a
-        7-day action plan) is still locked.
+        But you never finished creating your account, so your full report (strengths, gaps, and an
+        action plan) is still locked.
       </p>
       <p>Click below to pick up exactly where you left off — no password needed.</p>
       <a href={magicLink} style={button}>

@@ -19,11 +19,6 @@ export default async function DesirePage() {
       <div className="space-y-2 text-sm text-muted-foreground">
         <p className="font-medium text-foreground">But let&apos;s be honest about the market right now.</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li>The unemployment rate is 4.2% (BLS, June 2026).</li>
-          <li>
-            The average job search now takes 6.6 months and roughly 62.6 applications — more than
-            46 hours of application time alone.
-          </li>
           <li>Median time unemployed is about 11 weeks; the average is closer to 24 weeks.</li>
           <li>Only about 7.6% of applications turn into an interview.</li>
         </ul>
