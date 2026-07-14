@@ -1,25 +1,34 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { VisibilityTier } from '@prisma/client'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
 import type { NextStep } from '@/lib/scoring/employability-score'
 import { NextStepsList } from '@/components/candidates/NextStepsList'
 import { cn } from '@/lib/utils'
 
-const TIER_LABELS: Record<VisibilityTier, string> = {
-  EMERGING: 'Emerging',
-  SIGNAL: 'Signal',
-  VERIFIED: 'Verified',
-  SPOTLIGHT: 'Spotlight',
+const GRADE_ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
+
+const GRADE_LEGEND_COLOR: Record<Grade, string> = {
+  A: 'text-success',
+  B: 'text-brand',
+  C: 'text-light-blue',
+  D: 'text-warning',
+  F: 'text-error',
 }
 
-const TIER_BADGE_STYLES: Record<VisibilityTier, string> = {
-  EMERGING: 'bg-light-gray text-muted-foreground',
-  SIGNAL: 'bg-brand/10 text-brand',
-  VERIFIED: 'bg-success/10 text-success',
-  SPOTLIGHT: 'bg-orange/20 text-navy',
+function GradeLegend() {
+  return (
+    <div className="w-full max-w-sm space-y-1.5 text-left text-sm">
+      <h3 className="text-xs font-medium text-muted-foreground">What the letters mean</h3>
+      {GRADE_ORDER.map((g) => (
+        <div key={g} className="flex items-baseline gap-2">
+          <span className={cn('w-4 shrink-0 font-bold', GRADE_LEGEND_COLOR[g])}>{g}</span>
+          <span className="text-muted-foreground">{GRADE_BAND_DESCRIPTION[g]}</span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 const GRADE_RING_STROKE: Record<Grade, string> = {
@@ -93,30 +102,18 @@ function GradeRing({ label, grade }: { label: string; grade: Grade | null }) {
 
 export function DualGradeReveal({
   grade,
-  tier,
   nextSteps,
-  searchExecutionAvailable,
 }: {
   grade: HireabilityGrade
-  tier: VisibilityTier
   nextSteps: NextStep[]
-  searchExecutionAvailable: boolean
 }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="flex flex-wrap items-start justify-center gap-8">
-        <GradeRing label="Market Reality" grade={grade.marketReality.grade} />
-        <GradeRing
-          label="Search Execution"
-          grade={searchExecutionAvailable ? grade.searchExecution.grade : null}
-        />
-      </div>
+      <GradeRing label="Market Reality" grade={grade.marketReality.grade} />
 
-      <span className={cn('rounded-full px-3 py-1 text-sm font-medium', TIER_BADGE_STYLES[tier])}>
-        {TIER_LABELS[tier]}
-      </span>
+      <GradeLegend />
 
-      <NextStepsList nextSteps={nextSteps} />
+      <NextStepsList nextSteps={nextSteps} heading="Get your full action plan, including:" />
     </div>
   )
 }

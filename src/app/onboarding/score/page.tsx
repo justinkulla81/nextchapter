@@ -5,7 +5,6 @@ import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 import { scoreToNextSteps } from '@/lib/scoring/employability-score'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { hasStartedSprint } from '@/lib/weekly/sprint'
 import { DualGradeReveal } from '@/components/candidates/DualGradeReveal'
 import { Button } from '@/components/ui/button'
 
@@ -20,7 +19,7 @@ export default async function ScorePage() {
     redirect('/dashboard')
   }
 
-  const { breakdown, visibilityTier } = await recalculateScore(profile.id, 'onboarding_complete')
+  const { breakdown } = await recalculateScore(profile.id, 'onboarding_complete')
 
   const candidateWithRelations = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: profile.id },
@@ -40,7 +39,6 @@ export default async function ScorePage() {
 
   const nextSteps = scoreToNextSteps(candidateWithRelations, breakdown)
   const grade = await computeHireabilityGrade(candidateWithRelations)
-  const searchExecutionAvailable = await hasStartedSprint(profile.id)
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
@@ -56,14 +54,9 @@ export default async function ScorePage() {
           <span className="mt-1 block not-italic text-xs text-muted-foreground/80">— Victoria</span>
         </p>
       </div>
-      <DualGradeReveal
-        grade={grade}
-        tier={visibilityTier}
-        nextSteps={nextSteps}
-        searchExecutionAvailable={searchExecutionAvailable}
-      />
+      <DualGradeReveal grade={grade} nextSteps={nextSteps} />
       <Button render={<Link href="/onboarding/create-account" />}>
-        Create your account to get your full report
+        Create your account to get your full report and action plan
       </Button>
     </div>
   )
