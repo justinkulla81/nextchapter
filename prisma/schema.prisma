@@ -334,6 +334,7 @@ model CandidateProfile {
   email                    String?           // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
   resumeStepComplete       Boolean           @default(false)
   registrationCompletedAt  DateTime?         // set once the anonymous->permanent auth conversion completes
+  passwordSetAt            DateTime?         // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
   lastReminderSentAt       DateTime?
   reminderEmailCount       Int               @default(0)
   reminderEmailsOptedOut   Boolean           @default(false)

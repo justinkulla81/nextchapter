@@ -17,6 +17,17 @@ export async function syncRegistrationCompletion(
   user: User,
   profile: CandidateProfile
 ): Promise<{ profile: CandidateProfile; justRegistered: boolean }> {
+  // Google identity linking (SecureAccountForm's "Connect Google instead")
+  // redirects straight to the OAuth provider, so there's no reliable moment
+  // in that flow to stamp passwordSetAt directly — catch it here instead,
+  // the same opportunistic way registrationCompletedAt itself is caught.
+  if (!profile.passwordSetAt && user.identities?.some((i) => i.provider === 'google')) {
+    profile = await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { passwordSetAt: new Date() },
+    })
+  }
+
   if (user.is_anonymous || profile.registrationCompletedAt) {
     return { profile, justRegistered: false }
   }

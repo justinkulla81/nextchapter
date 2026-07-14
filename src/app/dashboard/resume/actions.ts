@@ -11,7 +11,9 @@ import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 
-export type FormState = { error?: string; existingAccountFound?: boolean } | undefined
+export type FormState =
+  | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
+  | undefined
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
@@ -85,10 +87,12 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
           registrationCompletedAt: { not: null },
           email: { equals: updated.email, mode: 'insensitive' },
         },
-        select: { id: true },
+        select: { id: true, passwordSetAt: true },
       })
       if (existingAccount) {
-        return { existingAccountFound: true }
+        return existingAccount.passwordSetAt
+          ? { existingAccountFound: true }
+          : { existingAccountNeedsPassword: true, existingAccountEmail: updated.email }
       }
     }
   }

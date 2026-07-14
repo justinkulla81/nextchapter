@@ -28,6 +28,23 @@ export function ResumeUploadForm() {
     )
   }
 
+  if (state?.existingAccountNeedsPassword) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <p className="text-sm text-foreground">
+          You&apos;ve already started with this email, but never finished setting a password —
+          let&apos;s get that done so you can log back in, instead of starting over.
+        </p>
+        <Link
+          href={`/auth/forgot-password?email=${encodeURIComponent(state.existingAccountEmail ?? '')}`}
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Set my password
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <form
       action={formAction}

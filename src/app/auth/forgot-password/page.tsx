@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 
@@ -12,7 +13,9 @@ export default function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ForgotPasswordForm />
+          <Suspense fallback={null}>
+            <ForgotPasswordForm />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { requestPasswordReset } from '@/app/auth/forgot-password/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,8 +10,9 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
 export function ForgotPasswordForm() {
+  const searchParams = useSearchParams()
   const [state, formAction, pending] = useActionState(requestPasswordReset, undefined)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(searchParams.get('email') ?? '')
 
   if (state?.sent) {
     return (
