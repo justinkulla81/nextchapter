@@ -14,6 +14,8 @@ import { weeklyTimeTargetHours } from '@/lib/weekly/weekly-target'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, FACTOR_TYPE_LABEL, CONFIDENCE_LABEL, CONFIDENCE_STYLE } from '@/lib/scoring/grade'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
+import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
+import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { cn } from '@/lib/utils'
 
 // A first-ever report has essentially no track record behind it yet — an F
@@ -117,6 +119,12 @@ export default async function HireabilityReportPage() {
   ])
   const isFirstReport = priorReportCount === 0
   const weekNumber = profile._count.weeklySprints + 1
+
+  const gradeAtGeneration = report?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
+  const showCoachingCTA =
+    !!gradeAtGeneration &&
+    isAtOrBelowGrade(gradeAtGeneration.marketReality.grade, 'C') &&
+    isAtOrBelowGrade(gradeAtGeneration.searchExecution.grade, 'C')
   const aTargetHours = weeklyTimeTargetHours(weekNumber)
   const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
 
@@ -349,6 +357,12 @@ export default async function HireabilityReportPage() {
               </p>
             </div>
           </div>
+
+          {showCoachingCTA && (
+            <div className="mt-6">
+              <CoachingCTACard />
+            </div>
+          )}
 
           {/* Strengths */}
           <div className="mt-10 border-t border-border pt-8">

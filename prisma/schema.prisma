@@ -358,6 +358,7 @@ model CandidateProfile {
   linkedInActivityLogs  LinkedInActivityLog[]
   coachConversation     CoachConversation?
   narrative             CandidateNarrative?
+  coachingWaitlistEntries CoachingWaitlist[]
   dailyCheckIns         DailyCheckIn[]
   weeklySprints         WeeklySprint[]
   sundayNightReports    SundayNightReport[]
@@ -1142,6 +1143,21 @@ model WaitlistSignup {
   createdAt DateTime @default(now())
 
   @@index([audience])
+}
+
+// Executive Coach (human coaching, $500/month) premium waitlist — kept
+// separate from WaitlistSignup because entries can be tied back to a real
+// candidateId (when signed in) and have their own typed fields for triage.
+model CoachingWaitlist {
+  id          String            @id @default(cuid())
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  email       String
+  firstName   String?
+  lastName    String?
+  challenge   String? // what they want help with, free text
+  source      String // where the CTA was clicked from, e.g. "dashboard_card", "hireability_report", "coaching_page"
+  createdAt   DateTime          @default(now())
 }
 
 // One row per person in the candidate's 5x5 Support Network. category is

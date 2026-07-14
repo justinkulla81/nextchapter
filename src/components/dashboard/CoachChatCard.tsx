@@ -34,7 +34,7 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          Get advice from your Executive Coach, Victoria
+          Get advice from Victoria, your AI coach
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

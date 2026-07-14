@@ -10,6 +10,7 @@ import { signOut } from '@/app/dashboard/actions'
 interface NavLink {
   href: string
   label: string
+  badge?: string
 }
 
 interface NavSection {
@@ -56,6 +57,7 @@ const SECTIONS: NavSection[] = [
       { href: '/dashboard/community', label: 'Community' },
       { href: '/dashboard/learning', label: 'Learning' },
       { href: '/dashboard/benefits', label: 'Benefits' },
+      { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
     ],
   },
 ]
@@ -91,13 +93,18 @@ function NavContent({
               href={link.href}
               onClick={onNavigate}
               className={cn(
-                'block rounded-md px-2 py-1.5 text-sm font-medium transition-colors',
+                'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors',
                 isActive(link.href)
                   ? 'bg-white/15 text-white'
                   : 'text-white/70 hover:bg-white/10 hover:text-white'
               )}
             >
-              {link.label}
+              <span>{link.label}</span>
+              {link.badge && (
+                <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-orange uppercase">
+                  {link.badge}
+                </span>
+              )}
             </Link>
           ))}
         </div>

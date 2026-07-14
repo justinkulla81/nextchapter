@@ -14,11 +14,13 @@ import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/
 import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
 import { computeEarnedBadges } from '@/lib/community/badges'
 import { getCommunityFeed } from '@/lib/community/community-feed'
+import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
 import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
+import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
@@ -101,6 +103,11 @@ export default async function DashboardPage() {
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
     : null
 
+  const daysSinceRegistration = profile.registrationCompletedAt
+    ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
+    : 0
+  const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
+
   return (
     <div className="space-y-8">
       {user && !user.email_confirmed_at && user.email && (
@@ -162,6 +169,8 @@ export default async function DashboardPage() {
       </Card>
 
       <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
+
+      {showCoachingCTA && <CoachingCTACard />}
 
       <CoachChatCard initialMessages={conversation.messages} />
     </div>
