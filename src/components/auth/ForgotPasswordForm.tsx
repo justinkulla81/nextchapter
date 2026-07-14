@@ -1,38 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useActionState, useState } from 'react'
+import Link from 'next/link'
+import { requestPasswordReset } from '@/app/auth/forgot-password/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function ForgotPasswordForm() {
+  const [state, formAction, pending] = useActionState(requestPasswordReset, undefined)
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [sent, setSent] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    const supabase = createClient()
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
-
-    setLoading(false)
-
-    if (error) {
-      setError(error.message)
-      return
-    }
-
-    setSent(true)
-  }
-
-  if (sent) {
+  if (state?.sent) {
     return (
       <p className="text-sm text-muted-foreground">
         If an account exists for <span className="font-medium">{email}</span>, we&apos;ve sent a
@@ -41,21 +21,42 @@ export function ForgotPasswordForm() {
     )
   }
 
+  if (state?.noAccount) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-foreground">
+          We couldn&apos;t find an account for <span className="font-medium">{email}</span>. You&apos;ll
+          need to create one first.
+        </p>
+        <Link
+          href="/onboarding/resume"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Create an account
+        </Link>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      action={formAction}
+      className={cn('space-y-4', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
+          name="email"
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Sending…' : 'Send reset link'}
+      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? 'Sending…' : 'Send reset link'}
       </Button>
     </form>
   )
