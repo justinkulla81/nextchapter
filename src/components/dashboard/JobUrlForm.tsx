@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { getBlockedJobHost } from '@/lib/jobs/blocked-job-hosts'
+import { cn } from '@/lib/utils'
 
 export function JobUrlForm() {
   const [state, formAction, pending] = useActionState(submitJobUrl, undefined)
@@ -15,7 +16,13 @@ export function JobUrlForm() {
   const blocked = getBlockedJobHost(url)
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border border-border p-4">
+    <form
+      action={formAction}
+      className={cn(
+        'space-y-4 rounded-lg border border-border p-4',
+        pending && 'cursor-progress [&_*]:cursor-progress'
+      )}
+    >
       <div className="space-y-2">
         <Label htmlFor="url">Job posting URL</Label>
         <Input

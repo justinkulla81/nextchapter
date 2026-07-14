@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { submitWorkSampleType } from '@/app/dashboard/work-samples/actions'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const OPTIONS = [
   { value: 'writing', label: 'Writing — articles, docs, proposals' },
@@ -23,7 +24,11 @@ export function WorkSampleTypeGateForm() {
       </p>
       <div className="flex flex-wrap gap-2">
         {OPTIONS.map((opt) => (
-          <form key={opt.value} action={formAction}>
+          <form
+            key={opt.value}
+            action={formAction}
+            className={cn(pending && 'cursor-progress [&_*]:cursor-progress')}
+          >
             <input type="hidden" name="workSampleType" value={opt.value} />
             <Button type="submit" variant="outline" size="sm" disabled={pending}>
               {opt.label}

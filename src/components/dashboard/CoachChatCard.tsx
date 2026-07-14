@@ -60,7 +60,11 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
           )}
         </div>
 
-        <form ref={formRef} action={handleAction} className="flex gap-2">
+        <form
+          ref={formRef}
+          action={handleAction}
+          className={cn('flex gap-2', pending && 'cursor-progress [&_*]:cursor-progress')}
+        >
           <Input name="content" placeholder="Type a message…" autoComplete="off" />
           <Button type="submit" disabled={pending}>
             Send

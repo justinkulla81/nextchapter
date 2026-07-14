@@ -17,6 +17,7 @@ import {
 import { TagInput } from './TagInput'
 import { TradeoffRanking } from './TradeoffRanking'
 import { COMPANY_SIZE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
+import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
 export function GoalsForm({
@@ -30,7 +31,10 @@ export function GoalsForm({
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={formAction}
+      className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       {profile.resumeLatestJobTitle && (
         <p className="text-sm text-muted-foreground">
           Your last title was <span className="font-medium text-foreground">{profile.resumeLatestJobTitle}</span>.

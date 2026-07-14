@@ -56,7 +56,10 @@ export function SprintSetupForm({
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form
+      action={formAction}
+      className={cn('space-y-4', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <input type="hidden" name="actionCount" value={suggestedActions.length} />
 
       <div

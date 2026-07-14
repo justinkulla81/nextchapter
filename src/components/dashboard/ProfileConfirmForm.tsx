@@ -5,6 +5,7 @@ import { confirmProfile } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function ProfileConfirmForm({
   firstName,
@@ -24,7 +25,10 @@ export function ProfileConfirmForm({
   const [state, formAction, pending] = useActionState(confirmProfile, undefined)
 
   return (
-    <form action={formAction} className="space-y-2">
+    <form
+      action={formAction}
+      className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="grid grid-cols-2 gap-2">
         <Input name="firstName" placeholder="First name" defaultValue={firstName ?? ''} />
         <Input name="lastName" placeholder="Last name" defaultValue={lastName ?? ''} />

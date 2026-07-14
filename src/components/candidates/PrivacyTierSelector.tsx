@@ -12,7 +12,10 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
   const [selected, setSelected] = useState<PrivacyTier>(currentTier)
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={formAction}
+      className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         {PRIVACY_TIERS.map((tier) => {
           const isSelected = selected === tier.value

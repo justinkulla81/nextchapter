@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { RatingScale } from './RatingScale'
 import { BARSRatingScale } from './BARSRatingScale'
+import { cn } from '@/lib/utils'
 
 interface DimensionGroup {
   dimension: string
@@ -26,7 +27,10 @@ export function ReferenceSubmissionForm({
   const [state, formAction, pending] = useActionState(submitReference, undefined)
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={formAction}
+      className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <input type="hidden" name="token" value={token} />
 
       <RatingScale

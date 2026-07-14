@@ -7,13 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function LinkedInConfirmForm() {
   const [state, formAction, pending] = useActionState(confirmLinkedIn, undefined)
   const [noLinkedIn, setNoLinkedIn] = useState(false)
 
   return (
-    <form action={formAction} className="space-y-2">
+    <form
+      action={formAction}
+      className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <Input
         name="linkedInUrl"
         type="url"

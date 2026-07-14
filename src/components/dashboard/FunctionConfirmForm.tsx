@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PRIMARY_FUNCTION_OPTIONS, HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
+import { cn } from '@/lib/utils'
 
 export function FunctionConfirmForm({
   primaryFunction,
@@ -28,7 +29,10 @@ export function FunctionConfirmForm({
   const [state, formAction, pending] = useActionState(confirmFunctionAndExperience, undefined)
 
   return (
-    <form action={formAction} className="space-y-2">
+    <form
+      action={formAction}
+      className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <Select name="primaryFunction" defaultValue={primaryFunction ?? undefined}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Primary function" />

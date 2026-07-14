@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { updateDesire } from '@/app/onboarding/actions'
 import { Button } from '@/components/ui/button'
 import { FourStopSlider } from './FourStopSlider'
+import { cn } from '@/lib/utils'
 
 const DESIRE_CHOICES = [
   { value: 10, label: 'Casually looking' },
@@ -17,7 +18,10 @@ export function DesireSlider({ defaultValue }: { defaultValue: number | null }) 
   const [value, setValue] = useState(defaultValue ?? DESIRE_CHOICES[0].value)
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form
+      action={formAction}
+      className={cn('space-y-4', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <FourStopSlider name="jobSearchIntensity" choices={DESIRE_CHOICES} defaultValue={defaultValue} onChange={setValue} />
 
       {value < 25 && (

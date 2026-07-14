@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function EncouragementForm() {
   const [state, formAction, pending] = useActionState(submitEncouragementNote, undefined)
@@ -15,7 +16,10 @@ export function EncouragementForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-3">
+    <form
+      action={formAction}
+      className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <Textarea
         name="message"
         placeholder="A short note of support — takes 30 seconds."

@@ -5,6 +5,7 @@ import { deleteMyAccount } from '@/app/dashboard/privacy/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function DeleteAccountForm() {
   const [expanded, setExpanded] = useState(false)
@@ -19,7 +20,13 @@ export function DeleteAccountForm() {
   }
 
   return (
-    <form action={formAction} className="max-w-sm space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+    <form
+      action={formAction}
+      className={cn(
+        'max-w-sm space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4',
+        pending && 'cursor-progress [&_*]:cursor-progress'
+      )}
+    >
       <p className="text-sm text-foreground">
         This permanently deletes your profile, resume, references, work samples, and every report
         — immediately, with no way to undo it. Type <strong>DELETE</strong> to confirm.

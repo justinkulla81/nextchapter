@@ -13,12 +13,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RELATIONSHIP_TYPE_LABELS, RELATIONSHIP_TYPE_HELP } from '@/lib/constants/references'
+import { cn } from '@/lib/utils'
 
 export function ReferenceRequestForm() {
   const [state, formAction, pending] = useActionState(requestReference, undefined)
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border border-border p-4">
+    <form
+      action={formAction}
+      className={cn(
+        'space-y-4 rounded-lg border border-border p-4',
+        pending && 'cursor-progress [&_*]:cursor-progress'
+      )}
+    >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="refereeName">Their name</Label>

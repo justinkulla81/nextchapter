@@ -5,12 +5,16 @@ import { updateKnownFor } from '@/app/dashboard/references/actions'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 export function KnownForForm({ knownFor }: { knownFor: string | null }) {
   const [state, formAction, pending] = useActionState(updateKnownFor, undefined)
 
   return (
-    <form action={formAction} className="space-y-2">
+    <form
+      action={formAction}
+      className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <Label htmlFor="knownFor">How would former colleagues describe you?</Label>
       <p className="text-sm text-muted-foreground">
         Feeds your Hireability Score and the scripts/drafts we generate for you elsewhere in the

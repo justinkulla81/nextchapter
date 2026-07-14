@@ -4,12 +4,16 @@ import { useActionState } from 'react'
 import { importConnectionsCsv } from '@/app/dashboard/network/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 export function CsvImportForm() {
   const [state, formAction, pending] = useActionState(importConnectionsCsv, undefined)
 
   return (
-    <form action={formAction} className="space-y-3">
+    <form
+      action={formAction}
+      className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <Input name="file" type="file" accept=".csv" required disabled={pending} />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.imported !== undefined && (

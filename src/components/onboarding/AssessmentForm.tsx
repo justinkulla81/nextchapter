@@ -151,7 +151,12 @@ export function AssessmentForm({
   }
 
   return (
-    <form ref={formRef} action={formAction} onSubmit={handleSubmit} className="space-y-6">
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={handleSubmit}
+      className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <ProfileBuildTracker
         completedItems={completedItems}
         totalItems={totalItems}

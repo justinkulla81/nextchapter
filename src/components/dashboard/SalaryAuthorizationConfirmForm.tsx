@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 const WORK_AUTHORIZATION_OPTIONS = [
   { value: 'us_citizen', label: 'U.S. citizen' },
@@ -41,7 +42,10 @@ export function SalaryAuthorizationConfirmForm({
   const [state, formAction, pending] = useActionState(confirmSalaryAndAuthorization, undefined)
 
   return (
-    <form action={formAction} className="space-y-3">
+    <form
+      action={formAction}
+      className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="space-y-1">
         <Label htmlFor="lastSalaryThousands">Last salary</Label>
         <div className="flex items-center gap-2">

@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { submitInterviewResponse } from '@/app/dashboard/interview/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 export function InterviewQuestionForm({
   questionId,
@@ -15,7 +16,13 @@ export function InterviewQuestionForm({
   const [state, formAction, pending] = useActionState(submitInterviewResponse, undefined)
 
   return (
-    <form action={formAction} className="space-y-3 rounded-lg border border-border p-4">
+    <form
+      action={formAction}
+      className={cn(
+        'space-y-3 rounded-lg border border-border p-4',
+        pending && 'cursor-progress [&_*]:cursor-progress'
+      )}
+    >
       <input type="hidden" name="questionId" value={questionId} />
       <input type="hidden" name="questionText" value={questionText} />
       <p className="font-medium">{questionText}</p>

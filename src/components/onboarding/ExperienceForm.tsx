@@ -51,7 +51,10 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
   const [isPeopleManager, setIsPeopleManager] = useState<boolean | null>(profile.isPeopleManager)
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      action={formAction}
+      className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="space-y-2">
         <Label>Have you been a people manager?</Label>
         <input type="hidden" name="isPeopleManager" value={isPeopleManager === null ? '' : isPeopleManager ? 'yes' : 'no'} />

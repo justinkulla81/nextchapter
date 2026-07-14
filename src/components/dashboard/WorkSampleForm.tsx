@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 const SAMPLE_TYPE_OPTIONS = [
   { value: 'case_study', label: 'Case study' },
@@ -27,7 +28,13 @@ export function WorkSampleForm() {
   const [state, formAction, pending] = useActionState(addWorkSample, undefined)
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border border-border p-4">
+    <form
+      action={formAction}
+      className={cn(
+        'space-y-4 rounded-lg border border-border p-4',
+        pending && 'cursor-progress [&_*]:cursor-progress'
+      )}
+    >
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input id="title" name="title" required />
