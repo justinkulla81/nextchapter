@@ -24,19 +24,6 @@ async function getAuthedProfile() {
   return getOrCreateCandidateProfile(user.id)
 }
 
-export async function markNetworkingListSubmitted() {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { networkingListSubmittedAt: new Date() },
-  })
-  await recalculateScore(profile.id, 'networking_list_submitted')
-  revalidatePath('/dashboard')
-  revalidatePath('/dashboard/network')
-}
-
 export async function markAskedForHelp() {
   const profile = await getAuthedProfile()
   if (!profile) return

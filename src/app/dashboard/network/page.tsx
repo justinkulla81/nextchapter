@@ -1,13 +1,12 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
-import { AddContactForm } from '@/components/dashboard/AddContactForm'
 import { NetworkingAnxietySelector } from '@/components/dashboard/NetworkingAnxietySelector'
 import { ContactRow } from '@/components/dashboard/ContactRow'
 import { HelpScriptCard } from '@/components/dashboard/HelpScriptCard'
-import { Button } from '@/components/ui/button'
-import { markNetworkingListSubmitted } from '@/app/dashboard/actions'
+import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
+import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
 
 const CATEGORY_ORDER = [
   'FORMER_COLLEAGUE',
@@ -39,23 +38,33 @@ export default async function NetworkPage() {
     knownFor: profile.knownFor,
   }
 
+  if (!profile.networkingAnxiety) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Activate My Network</h1>
+          <p className="mt-1 text-muted-foreground">
+            Networking is the single highest-leverage thing you can do in a search — most roles get
+            filled through a connection, not a cold application. It also happens to be the part most
+            people avoid the longest.
+          </p>
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <NetworkingAnxietySelector current={profile.networkingAnxiety} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Support Network</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Activate My Network</h1>
         <p className="mt-1 text-muted-foreground">
-          The people most likely to help you find your next role probably aren&apos;t your closest friends —
-          they&apos;re the people you sort of know. Build your list of 25 across these 5 categories.
+          The people most likely to help you find your next role probably aren&apos;t your closest
+          friends — they&apos;re the people you sort of know. This is the highest-leverage work in
+          your search; don&apos;t let it sit untouched.
         </p>
-      </div>
-
-      <div className="space-y-3 rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Import from LinkedIn</h2>
-        <p className="text-sm text-muted-foreground">
-          Settings &amp; Privacy → Data Privacy → Get a copy of your data → Connections → Request archive. LinkedIn
-          emails a download link within 10-24 minutes.
-        </p>
-        <CsvImportForm />
       </div>
 
       <div className="rounded-lg border border-border p-4">
@@ -63,8 +72,22 @@ export default async function NetworkPage() {
       </div>
 
       <div className="space-y-3 rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Add a contact manually</h2>
-        <AddContactForm />
+        <h2 className="text-sm font-medium text-foreground">1. Export your LinkedIn connections</h2>
+        <p className="text-sm text-muted-foreground">
+          Settings &amp; Privacy → Data Privacy → Get a copy of your data → Connections → Request archive. LinkedIn
+          emails a download link within 10-24 minutes.
+        </p>
+      </div>
+
+      <CopyableTemplateCard
+        title="2. Clean it up with AI (optional but worth it)"
+        description="Paste your exported CSV into ChatGPT or Claude with this prompt to get it cleaned up and prioritized before you import it below."
+        template={NETWORK_CSV_AI_PROMPT_TEMPLATE}
+      />
+
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">3. Import the file</h2>
+        <CsvImportForm />
       </div>
 
       <HelpScriptCard
@@ -72,49 +95,32 @@ export default async function NetworkPage() {
         done={profile.askedForHelpAt !== null}
       />
 
-      {profile.networkingListSubmittedAt === null ? (
-        <div className="space-y-2 rounded-lg border border-border p-4">
-          <h2 className="text-sm font-medium text-foreground">Build your list of 25</h2>
-          <p className="text-sm text-muted-foreground">
-            Once you&apos;ve added or imported the people you know who could help your search, mark
-            your list as submitted.
-          </p>
-          <form action={markNetworkingListSubmitted}>
-            <Button type="submit" size="sm" variant="outline">
-              Mark my list of 25 as complete
-            </Button>
-          </form>
-        </div>
-      ) : (
-        <p className="text-sm text-success">✓ Your list of 25 is marked complete.</p>
-      )}
-
-      {CATEGORY_ORDER.map((category) => {
-        const categoryContacts = contacts.filter((c) => c.category === category)
-        if (categoryContacts.length === 0) return null
-        return (
-          <div key={category ?? 'uncategorized'} className="space-y-3">
-            <h2 className="text-lg font-semibold">
-              {category ? CATEGORY_LABEL[category] : 'Uncategorized — sort these into a category'}
-            </h2>
-            <div className="space-y-3">
-              {categoryContacts.map((contact) => (
-                <ContactRow
-                  key={contact.id}
-                  contact={contact}
-                  networkingAnxiety={profile.networkingAnxiety}
-                  scriptContext={scriptContext}
-                />
-              ))}
-            </div>
-          </div>
-        )
-      })}
-
-      {contacts.length === 0 && (
+      {contacts.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No contacts yet — import your LinkedIn connections or add people manually above.
+          No contacts yet — import your LinkedIn connections above to get started.
         </p>
+      ) : (
+        CATEGORY_ORDER.map((category) => {
+          const categoryContacts = contacts.filter((c) => c.category === category)
+          if (categoryContacts.length === 0) return null
+          return (
+            <div key={category ?? 'uncategorized'} className="space-y-3">
+              <h2 className="text-lg font-semibold">
+                {category ? CATEGORY_LABEL[category] : 'Uncategorized — sort these into a category'}
+              </h2>
+              <div className="space-y-3">
+                {categoryContacts.map((contact) => (
+                  <ContactRow
+                    key={contact.id}
+                    contact={contact}
+                    networkingAnxiety={profile.networkingAnxiety}
+                    scriptContext={scriptContext}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })
       )}
     </div>
   )

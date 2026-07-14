@@ -16,7 +16,11 @@ export function NetworkingAnxietySelector({ current }: { current: NetworkingAnxi
       <p className="text-sm font-medium text-foreground">
         What&apos;s your biggest concern about reaching out to people in your network?
       </p>
-      <p className="text-sm text-muted-foreground">This shapes the outreach scripts below.</p>
+      <p className="text-sm text-muted-foreground">
+        Most job searches are won or lost on this one thing. Answer honestly — it shapes the
+        outreach scripts you&apos;ll use below, and naming the real hesitation is the first step
+        past it.
+      </p>
       <div className="flex flex-wrap gap-2 pt-1">
         {OPTIONS.map((opt) => (
           <form key={opt.value} action={setNetworkingAnxiety.bind(null, opt.value)}>

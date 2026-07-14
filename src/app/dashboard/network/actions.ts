@@ -44,32 +44,6 @@ async function markNetworkingListSubmittedIfThresholdMet(candidateId: string) {
 
 export type NetworkFormState = { error?: string; imported?: number } | undefined
 
-export async function addContact(
-  _prevState: NetworkFormState,
-  formData: FormData
-): Promise<NetworkFormState> {
-  const profile = await getAuthedProfile()
-  if (!profile) return { error: 'You need to be logged in to do this.' }
-
-  const name = (formData.get('name') as string | null)?.trim()
-  if (!name) return { error: 'Enter a name.' }
-
-  await prisma.supportNetworkContact.create({
-    data: {
-      candidateId: profile.id,
-      name,
-      company: (formData.get('company') as string | null)?.trim() || null,
-      title: (formData.get('title') as string | null)?.trim() || null,
-      email: (formData.get('email') as string | null)?.trim() || null,
-      category: (formData.get('category') as ContactCategory | null) || null,
-      warmth: (formData.get('warmth') as ContactWarmth | null) || 'WARM',
-    },
-  })
-  await markNetworkingListSubmittedIfThresholdMet(profile.id)
-  revalidatePath('/dashboard/network')
-  revalidatePath('/dashboard')
-}
-
 export async function importConnectionsCsv(
   _prevState: NetworkFormState,
   formData: FormData
