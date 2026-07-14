@@ -169,7 +169,26 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">10. Changes to This Policy</h2>
+          <h2 className="text-xl font-semibold text-navy">10. $500 Hired Bounty Program Terms</h2>
+          <p>
+            Candidates who report landing a job through NextChapter may be eligible for a one-time
+            $500 bounty. Eligibility requires submitting real role details and a genuine offer
+            letter or equivalent written confirmation of employment (e.g. an official offer email
+            from the hiring company) for review. We may verify the details you submit, including
+            contacting the listed employer to confirm the offer is genuine.
+          </p>
+          <p>
+            Submitting a false, altered, or fraudulent offer letter, or misrepresenting role
+            details, disqualifies the claim and may result in account termination. Approval,
+            rejection, and payment of any bounty is at NextChapter&apos;s sole discretion; submitting
+            a claim does not guarantee payment. Payment, once approved, is issued manually via the
+            payment method and handle you provide — NextChapter is not responsible for delays or
+            errors caused by incorrect payment information.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold text-navy">11. Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy from time to time. If we make material changes,
             we&apos;ll update the effective date above and, where appropriate, notify you directly.
@@ -177,7 +196,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">11. Contact Us</h2>
+          <h2 className="text-xl font-semibold text-navy">12. Contact Us</h2>
           <p>
             Questions about this Policy or your data? Email{' '}
             <a href="mailto:hello@launchyournextchapter.com" className="text-primary underline underline-offset-4">

@@ -359,6 +359,7 @@ model CandidateProfile {
   coachConversation     CoachConversation?
   narrative             CandidateNarrative?
   coachingWaitlistEntries CoachingWaitlist[]
+  bountyClaims            BountyClaim[]
   dailyCheckIns         DailyCheckIn[]
   weeklySprints         WeeklySprint[]
   sundayNightReports    SundayNightReport[]
@@ -1158,6 +1159,45 @@ model CoachingWaitlist {
   challenge   String? // what they want help with, free text
   source      String // where the CTA was clicked from, e.g. "dashboard_card", "hireability_report", "coaching_page"
   createdAt   DateTime          @default(now())
+}
+
+enum BountyClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BountyPaymentMethod {
+  VENMO
+  PAYPAL
+  ZELLE
+}
+
+// The $500 "got hired" bounty — a candidate self-reports landing a job and
+// uploads offer-letter proof; an admin manually verifies and approves before
+// any money is sent. No payment is issued by the app itself — "paidAt" only
+// records that an admin sent it manually outside the system.
+model BountyClaim {
+  id              String              @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  companyName     String
+  roleTitle       String
+  startDate       DateTime
+  offerLetterUrl  String // storage path in the private 'offer-letters' bucket, not a public URL
+  paymentMethod   BountyPaymentMethod
+  paymentHandle   String?
+
+  status          BountyClaimStatus @default(PENDING)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  paidAt          DateTime?
+
+  createdAt       DateTime @default(now())
+
+  @@index([status])
 }
 
 // One row per person in the candidate's 5x5 Support Network. category is

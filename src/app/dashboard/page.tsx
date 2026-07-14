@@ -23,6 +23,7 @@ import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
 import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
 import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
+import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
 import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
@@ -81,6 +82,7 @@ export default async function DashboardPage() {
     communityFeed,
     narrative,
     outreachCount,
+    existingBountyClaimCount,
   ] = await Promise.all([
     supabase.auth.getUser(),
     calculateEmployabilityScore(profile.id),
@@ -101,6 +103,7 @@ export default async function DashboardPage() {
     getCommunityFeed(3),
     prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } }),
     prisma.outreachLog.count({ where: { candidateId: profile.id } }),
+    prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
   ])
 
   const weekNumber = profile._count.weeklySprints + 1
@@ -123,6 +126,8 @@ export default async function DashboardPage() {
     narrativeGenerated: !!narrative,
     outreachLogged: outreachCount > 0,
   })
+
+  const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
   return (
     <div className="space-y-8">
@@ -189,6 +194,8 @@ export default async function DashboardPage() {
       </Card>
 
       <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
+
+      {showGotHiredCTA && <GotHiredCTACard />}
 
       {showCoachingCTA && <CoachingCTACard />}
 

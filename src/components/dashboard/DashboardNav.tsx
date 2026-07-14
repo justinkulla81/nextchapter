@@ -25,6 +25,7 @@ const SECTIONS: NavSection[] = [
       { href: '/dashboard', label: 'Overview' },
       { href: '/dashboard/hireability-report', label: 'My Report' },
       { href: '/dashboard/weekly-report', label: 'Weekly Report' },
+      { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
     ],
   },
   {
