@@ -7,13 +7,16 @@ import { Button } from '@/components/ui/button'
 import { checkInMood } from '@/app/dashboard/actions'
 import { MOOD_ORDER, MOOD_EMOJI, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
 import { frameActionForMood, type TodaysPrimaryAction } from '@/lib/daily/primary-action'
+import type { Quote } from '@/lib/constants/quotes'
 
 export function MoodCheckInCard({
+  quote,
   todaysMood,
   currentStreak,
   primaryAction,
   firstName,
 }: {
+  quote: Quote
   todaysMood: Mood | null
   currentStreak: number
   primaryAction: TodaysPrimaryAction | null
@@ -30,6 +33,12 @@ export function MoodCheckInCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {showPicker && (
+          <blockquote className="text-sm text-muted-foreground italic">
+            &ldquo;{quote.text}&rdquo;
+            <footer className="mt-1 text-xs not-italic text-muted-foreground/80">— {quote.author}</footer>
+          </blockquote>
+        )}
         {showPicker ? (
           <div className="grid grid-cols-2 gap-3">
             {MOOD_ORDER.map((mood) => (

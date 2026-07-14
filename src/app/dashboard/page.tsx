@@ -1,7 +1,9 @@
+import type { HireabilityReport } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { calculateEmployabilityScore, scoreToNextSteps } from '@/lib/scoring/employability-score'
 import { getQuoteOfTheDay } from '@/lib/constants/quotes'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
@@ -23,47 +25,77 @@ import { NextStepsList } from '@/components/candidates/NextStepsList'
 import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default async function DashboardPage() {
-  const profile = await getDashboardData()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const currentRaw = await calculateEmployabilityScore(profile.id)
-  const nextSteps = scoreToNextSteps(profile, currentRaw)
-  const quote = getQuoteOfTheDay()
-  const conversation = await getOrCreateCoachConversation(profile.id)
-  const grade = await computeHireabilityGrade(profile)
-
-  let latestReport: (typeof profile.hireabilityReports)[number] | undefined = profile.hireabilityReports[0]
-  // Normally generated as a fire-and-forget side effect the first time
-  // getDashboardData() sees justRegistered — if that background job hasn't
-  // finished yet (or failed silently), don't leave the action plan stuck on
-  // "check back in a moment" forever; generate it directly, here.
+// Resolves the candidate's latest report, generating it on demand if the
+// registration-time background job hasn't produced one yet, and sending the
+// report email if it hasn't gone out — see the comment at its call site.
+async function resolveLatestReport(
+  candidateId: string,
+  existingReport: HireabilityReport | undefined
+): Promise<HireabilityReport | undefined> {
+  let latestReport = existingReport
   if (!latestReport) {
     try {
-      await generateHireabilityReport(profile.id)
+      await generateHireabilityReport(candidateId)
       latestReport =
         (await prisma.hireabilityReport.findFirst({
-          where: { candidateId: profile.id },
+          where: { candidateId },
           orderBy: { generatedAt: 'desc' },
         })) ?? undefined
     } catch (error) {
       console.error('Failed to generate hireability report on demand:', error)
     }
   }
-  const latestAssessment = profile.assessmentResponses[0]
+  if (latestReport && !latestReport.emailSentAt) {
+    await sendHireabilityReportEmail(candidateId)
+  }
+  return latestReport
+}
 
-  const todaysMood = await getTodaysMood(profile.id)
-  const primaryAction = latestReport
-    ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
-    : null
-  const currentSprint = await getCurrentWeekSprint(profile.id)
-  const [unlockTier, earnedBadges, searchExecutionAvailable] = await Promise.all([
+export default async function DashboardPage() {
+  const profile = await getDashboardData()
+  const supabase = await createClient()
+  const quote = getQuoteOfTheDay()
+
+  // All of these are independent of one another — issuing them together
+  // instead of one-by-one turns ~9 sequential round trips into one parallel
+  // batch, which is where most of this page's load time was going.
+  const [
+    {
+      data: { user },
+    },
+    currentRaw,
+    conversation,
+    grade,
+    todaysMood,
+    currentSprint,
+    unlockTier,
+    earnedBadges,
+    searchExecutionAvailable,
+    latestReport,
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    calculateEmployabilityScore(profile.id),
+    getOrCreateCoachConversation(profile.id),
+    computeHireabilityGrade(profile),
+    getTodaysMood(profile.id),
+    getCurrentWeekSprint(profile.id),
     computeUnlockTierForCandidate(profile.id),
     computeEarnedBadges(profile.id),
     hasStartedSprint(profile.id),
+    // The registration-time after() callback that normally generates AND
+    // emails the first report can get cut off by the platform's function
+    // duration before the email step ever runs, leaving a real, generated
+    // report permanently unsent. This closes that gap on every load, not
+    // just the first, and also covers the case where that background job
+    // never even finished generating the report at all.
+    resolveLatestReport(profile.id, profile.hireabilityReports[0]),
   ])
+
+  const nextSteps = scoreToNextSteps(profile, currentRaw)
+  const latestAssessment = profile.assessmentResponses[0]
+  const primaryAction = latestReport
+    ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
+    : null
 
   return (
     <div className="space-y-8">
@@ -73,13 +105,10 @@ export default async function DashboardPage() {
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Hireability Dashboard</h1>
-        <blockquote className="mt-2 text-muted-foreground italic">
-          &ldquo;{quote.text}&rdquo;
-          <footer className="mt-1 text-sm not-italic text-muted-foreground/80">— {quote.author}</footer>
-        </blockquote>
       </div>
 
       <MoodCheckInCard
+        quote={quote}
         todaysMood={todaysMood}
         currentStreak={profile.currentStreak}
         primaryAction={primaryAction}

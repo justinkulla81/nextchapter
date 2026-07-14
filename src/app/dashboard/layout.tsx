@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// The first-registration report generation + email (see get-dashboard-data.ts's
+// `after()` block) runs an LLM call plus an email send in the background after
+// the response is sent — comfortably past the platform's default function
+// duration, which was silently truncating it before the email ever went out.
+export const maxDuration = 60
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">

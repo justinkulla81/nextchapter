@@ -8,6 +8,7 @@ import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { hasStartedSprint } from '@/lib/weekly/sprint'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
@@ -87,6 +88,14 @@ export default async function HireabilityReportPage() {
     } catch (error) {
       console.error('Failed to generate hireability report on demand:', error)
     }
+  }
+  // See dashboard/page.tsx's identical fallback — the registration-time
+  // after() callback that normally generates AND emails this report can get
+  // cut off before the email step ever runs, leaving a real, generated
+  // report permanently unsent. Close that gap on every load, not just the
+  // first — this is what actually fixes it for reports that already exist.
+  if (report && !report.emailSentAt) {
+    await sendHireabilityReportEmail(profile.id)
   }
 
   const completedTasks = countCompletedTasks(profile)
