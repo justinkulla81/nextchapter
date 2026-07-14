@@ -11,8 +11,10 @@ import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
+import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { DualGradeCard } from '@/components/dashboard/DualGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
+import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { ActionPlanCard, type ActionDay } from '@/components/dashboard/ActionPlanCard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { LinkedInActivityCard } from '@/components/dashboard/LinkedInActivityCard'
@@ -60,6 +62,7 @@ export default async function DashboardPage() {
   const primaryAction = latestReport
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
     : null
+  const currentSprint = await getCurrentWeekSprint(profile.id)
 
   const linkedInWindowStart = new Date()
   linkedInWindowStart.setDate(linkedInWindowStart.getDate() - 30)
@@ -88,6 +91,10 @@ export default async function DashboardPage() {
       </div>
 
       <MoodCheckInCard todaysMood={todaysMood} currentStreak={profile.currentStreak} primaryAction={primaryAction} />
+
+      <SuccessSprintCard
+        actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+      />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Card>

@@ -6,21 +6,26 @@ export async function GET(
   { params }: { params: Promise<{ candidateId: string }> }
 ) {
   const { candidateId } = await params
-  const isDaily = request.nextUrl.searchParams.get('type') === 'daily'
+  const type = request.nextUrl.searchParams.get('type')
 
-  await prisma.candidateProfile
-    .update({
-      where: { id: candidateId },
-      data: isDaily ? { dailyEmailOptedOut: true } : { reminderEmailsOptedOut: true },
-    })
-    .catch(() => {
-      // Unknown/already-deleted candidate — nothing to do, still show the
-      // same confirmation so this link never errors visibly for a recipient.
-    })
+  const data =
+    type === 'daily'
+      ? { dailyEmailOptedOut: true }
+      : type === 'weekly'
+        ? { weeklyReportOptedOut: true }
+        : { reminderEmailsOptedOut: true }
 
-  const message = isDaily
-    ? "You won't receive any more daily action emails from Vic."
-    : "You won't receive any more reminder emails from NextChapter about finishing your account."
+  await prisma.candidateProfile.update({ where: { id: candidateId }, data }).catch(() => {
+    // Unknown/already-deleted candidate — nothing to do, still show the
+    // same confirmation so this link never errors visibly for a recipient.
+  })
+
+  const message =
+    type === 'daily'
+      ? "You won't receive any more daily action emails from Vic."
+      : type === 'weekly'
+        ? "You won't receive any more Sunday Night Reports from Victoria."
+        : "You won't receive any more reminder emails from NextChapter about finishing your account."
 
   return new NextResponse(
     `<!doctype html><html><body style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 64px auto; padding: 0 24px; color: #111;"><p>${message}</p></body></html>`,

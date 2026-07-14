@@ -23,7 +23,7 @@ import {
   detectManagementGoalConflict,
 } from '@/lib/constants/onboarding'
 
-const actionPlanItemTypes = [
+export const actionPlanItemTypes = [
   'HELP_SCRIPT',
   'NETWORKING_LIST',
   'LINKEDIN_SETUP',
