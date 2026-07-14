@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts"
+    "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts",
+    "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
