@@ -291,6 +291,10 @@ model CandidateProfile {
   gigDirectoryUnlockAnswer      String?    // target rate/openness question — gates the Gig Directory
   contentComfortLevel           Int?       // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
   contentVenues                 ContentVenue[] @default([])
+  linkedinOpennessComfort       Int?       // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
+  linkedinUsageFrequency        String?    // "daily" | "weekly" | "rarely" | "never" — same gate
+  linkedinProfileUpToDate       Boolean?   // same gate
+  activeJobDescription          String?    @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
   workSampleType                String?    // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
 
   // Daily loop — mood check-in + daily Victoria email

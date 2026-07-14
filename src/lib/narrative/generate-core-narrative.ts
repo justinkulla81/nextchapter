@@ -21,6 +21,7 @@ Highest level reached: ${candidate.highestLevelReached ?? 'not specified'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}${w.keyAchievement ? ` — ${w.keyAchievement}` : ''}`).join('; ') || 'not specified'}
+${candidate.activeJobDescription ? `Job posting they're preparing for: ${candidate.activeJobDescription}` : ''}
 `.trim()
 
   const client = getAnthropicClient()

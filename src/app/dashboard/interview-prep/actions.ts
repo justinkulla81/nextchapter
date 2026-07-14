@@ -59,14 +59,25 @@ export async function requestPracticeEvaluation(
   if (!profile) return null
   if (!answerText.trim()) return null
 
-  return evaluatePracticeAnswer(question, answerText)
+  return evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
 }
 
 export async function requestThankYouEmail(input: ThankYouEmailInput): Promise<string | null> {
   const profile = await getAuthedProfile()
   if (!profile) return null
 
-  return generateThankYouEmail(input)
+  return generateThankYouEmail({ ...input, jobDescription: profile.activeJobDescription })
+}
+
+export async function updateActiveJobDescription(text: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { activeJobDescription: text.trim() || null },
+  })
+  revalidatePath('/dashboard/interview-prep')
 }
 
 export async function updateComfortCheck(fields: {

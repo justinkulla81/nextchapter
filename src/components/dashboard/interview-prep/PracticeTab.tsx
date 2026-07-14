@@ -9,7 +9,13 @@ import { requestPracticeEvaluation } from '@/app/dashboard/interview-prep/action
 import { PRACTICE_QUESTION_TEMPLATES } from '@/lib/interview-prep/constants'
 import type { PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
 
-export function PracticeTab({ targetRoleType }: { targetRoleType: string | null }) {
+export function PracticeTab({
+  targetRoleType,
+  hasJobDescription,
+}: {
+  targetRoleType: string | null
+  hasJobDescription: boolean
+}) {
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [evaluations, setEvaluations] = useState<Record<number, PracticeEvaluation>>({})
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
@@ -52,10 +58,13 @@ export function PracticeTab({ targetRoleType }: { targetRoleType: string | null 
                 type="button"
                 size="sm"
                 onClick={() => handleEvaluate(index, question)}
-                disabled={pendingIndex === index || !answers[index]?.trim()}
+                disabled={pendingIndex === index || !answers[index]?.trim() || !hasJobDescription}
               >
                 {pendingIndex === index ? 'Evaluating…' : 'Get feedback'}
               </Button>
+              {!hasJobDescription && (
+                <p className="text-xs text-muted-foreground">Add the job description above first.</p>
+              )}
 
               {evaluation && (
                 <div className="space-y-2 rounded-lg border border-border bg-off-white p-3 text-sm">

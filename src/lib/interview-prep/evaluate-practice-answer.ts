@@ -20,13 +20,20 @@ Return strict JSON with this exact shape, no markdown, no extra keys:
 
 Question asked: `
 
-export async function evaluatePracticeAnswer(question: string, answerText: string): Promise<PracticeEvaluation | null> {
+export async function evaluatePracticeAnswer(
+  question: string,
+  answerText: string,
+  jobDescription?: string | null
+): Promise<PracticeEvaluation | null> {
+  const jobContext = jobDescription ? `\n\nJob posting they're preparing for:\n${jobDescription}` : ''
   const client = getAnthropicClient()
   const stream = client.messages.stream({
     model: 'claude-opus-4-8',
     max_tokens: 800,
     thinking: { type: 'adaptive' },
-    messages: [{ role: 'user', content: `${PROMPT_PREFIX}${question}\n\nCandidate's answer:\n${answerText}` }],
+    messages: [
+      { role: 'user', content: `${PROMPT_PREFIX}${question}\n\nCandidate's answer:\n${answerText}${jobContext}` },
+    ],
   })
   const message = await stream.finalMessage()
   const text = message.content

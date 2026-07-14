@@ -25,7 +25,7 @@ const EMPTY: ThankYouEmailInput = {
   tone: 'professional',
 }
 
-export function ThankYouEmailTab() {
+export function ThankYouEmailTab({ hasJobDescription }: { hasJobDescription: boolean }) {
   const [form, setForm] = useState<ThankYouEmailInput>(EMPTY)
   const [email, setEmail] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -114,9 +114,12 @@ export function ThankYouEmailTab() {
             </div>
           </div>
 
-          <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isPending}>
+          <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isPending || !hasJobDescription}>
             {isPending ? 'Drafting…' : 'Draft my thank-you email'}
           </Button>
+          {!hasJobDescription && (
+            <p className="text-xs text-muted-foreground">Add the job description above first.</p>
+          )}
         </CardContent>
       </Card>
 

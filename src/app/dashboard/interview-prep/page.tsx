@@ -1,6 +1,7 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/InterviewPrepTabs'
+import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
 export default async function InterviewPrepPage() {
@@ -17,6 +18,8 @@ export default async function InterviewPrepPage() {
         </p>
       </div>
 
+      <JobDescriptionCard initialValue={profile.activeJobDescription} />
+
       <InterviewPrepTabs
         coreStatement={narrative?.coreStatement ?? null}
         adaptations={(narrative?.adaptations as unknown as NarrativeAdaptations | null) ?? null}
@@ -24,6 +27,7 @@ export default async function InterviewPrepPage() {
         storyComfort={profile.storyComfort}
         interviewComfort={profile.interviewComfort}
         elevatorPitchReady={profile.elevatorPitchReady}
+        hasJobDescription={!!profile.activeJobDescription}
       />
     </div>
   )

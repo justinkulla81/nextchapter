@@ -22,6 +22,7 @@ Current job status: ${candidate.currentJobStatus ?? 'not specified'}
 Years of experience: ${candidate.yearsExperience ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}${w.keyAchievement ? ` — ${w.keyAchievement}` : ''}`).join('; ') || 'not specified'}
+${candidate.activeJobDescription ? `Job posting they're interviewing for: ${candidate.activeJobDescription}` : ''}
 
 Question: ${question}
 `.trim()

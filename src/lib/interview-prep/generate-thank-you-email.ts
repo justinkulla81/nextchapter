@@ -8,6 +8,7 @@ export interface ThankYouEmailInput {
   roleTitle: string
   discussionPoints: string
   tone: 'warm' | 'professional' | 'enthusiastic'
+  jobDescription?: string | null
 }
 
 const BANNED_OPENERS = [
@@ -27,6 +28,7 @@ Company: ${input.companyName}
 Role: ${input.roleTitle}
 Tone: ${input.tone}
 What we discussed: ${input.discussionPoints}
+${input.jobDescription ? `Job posting: ${input.jobDescription}` : ''}
 `.trim()
 
   const client = getAnthropicClient()

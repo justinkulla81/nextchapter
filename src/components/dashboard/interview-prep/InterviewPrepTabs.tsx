@@ -23,6 +23,7 @@ export function InterviewPrepTabs({
   storyComfort,
   interviewComfort,
   elevatorPitchReady,
+  hasJobDescription,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
@@ -30,6 +31,7 @@ export function InterviewPrepTabs({
   storyComfort: number | null
   interviewComfort: number | null
   elevatorPitchReady: number | null
+  hasJobDescription: boolean
 }) {
   return (
     <Tabs defaultValue="story">
@@ -47,13 +49,13 @@ export function InterviewPrepTabs({
         <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} />
       </TabsContent>
       <TabsContent value="tough" className="mt-6">
-        <ToughQuestionsTab />
+        <ToughQuestionsTab hasJobDescription={hasJobDescription} />
       </TabsContent>
       <TabsContent value="practice" className="mt-6">
-        <PracticeTab targetRoleType={targetRoleType} />
+        <PracticeTab targetRoleType={targetRoleType} hasJobDescription={hasJobDescription} />
       </TabsContent>
       <TabsContent value="thank-you" className="mt-6">
-        <ThankYouEmailTab />
+        <ThankYouEmailTab hasJobDescription={hasJobDescription} />
       </TabsContent>
       <TabsContent value="comfort" className="mt-6">
         <ComfortCheckTab

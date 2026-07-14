@@ -14,7 +14,7 @@ const COMFORT_STOPS = [
   { value: 4, label: 'Nailed it' },
 ] as const
 
-export function ToughQuestionsTab() {
+export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: boolean }) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [comfort, setComfort] = useState<Record<string, number>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -56,15 +56,20 @@ export function ToughQuestionsTab() {
             {answers[q.id] ? (
               <p className="text-sm text-foreground">{answers[q.id]}</p>
             ) : (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => handleGenerate(q.id, q.question)}
-                disabled={pendingId === q.id}
-              >
-                {pendingId === q.id ? 'Drafting…' : 'Draft my answer'}
-              </Button>
+              <div className="space-y-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleGenerate(q.id, q.question)}
+                  disabled={pendingId === q.id || !hasJobDescription}
+                >
+                  {pendingId === q.id ? 'Drafting…' : 'Draft my answer'}
+                </Button>
+                {!hasJobDescription && (
+                  <p className="text-xs text-muted-foreground">Add the job description above first.</p>
+                )}
+              </div>
             )}
 
             {answers[q.id] && (
