@@ -1,3 +1,5 @@
+import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { BenefitsUnlockForm } from '@/components/dashboard/BenefitsUnlockForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ResourceLink {
@@ -54,7 +56,9 @@ const TOPICS: Topic[] = [
   },
 ]
 
-export default function BenefitsPage() {
+export default async function BenefitsPage() {
+  const profile = await getDashboardData()
+
   return (
     <div className="space-y-8">
       <div>
@@ -66,35 +70,48 @@ export default function BenefitsPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {TOPICS.map((topic) => (
-          <Card key={topic.title}>
-            <CardHeader>
-              <CardTitle className="text-base">{topic.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {topic.body.map((paragraph, i) => (
-                <p key={i} className="text-sm text-muted-foreground">
-                  {paragraph}
-                </p>
-              ))}
-              <div className="space-y-1 pt-1">
-                {topic.links.map((link) => (
-                  <a
-                    key={link.url}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-sm text-primary underline underline-offset-4"
-                  >
-                    {link.name} →
-                  </a>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {!profile.benefitsUnlockAnswer ? (
+        <BenefitsUnlockForm />
+      ) : (
+        <>
+          {profile.benefitsActionPlan && (
+            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-4">
+              <h2 className="text-sm font-medium text-muted-foreground">Your action plan</h2>
+              <p className="whitespace-pre-wrap text-sm text-foreground">{profile.benefitsActionPlan}</p>
+            </div>
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {TOPICS.map((topic) => (
+              <Card key={topic.title}>
+                <CardHeader>
+                  <CardTitle className="text-base">{topic.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {topic.body.map((paragraph, i) => (
+                    <p key={i} className="text-sm text-muted-foreground">
+                      {paragraph}
+                    </p>
+                  ))}
+                  <div className="space-y-1 pt-1">
+                    {topic.links.map((link) => (
+                      <a
+                        key={link.url}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-sm text-primary underline underline-offset-4"
+                      >
+                        {link.name} →
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

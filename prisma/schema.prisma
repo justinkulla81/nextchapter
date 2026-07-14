@@ -272,6 +272,12 @@ model CandidateProfile {
   networkingListSubmittedAt  DateTime?  // "25 people" networking assignment
   askedForHelpAt             DateTime?
 
+  // Content-page unlock gates
+  benefitsUnlockAnswer          String?    // "What's the biggest financial pressure on you right now?" — gates Benefits page
+  benefitsActionPlan            String?    @db.Text
+  benefitsActionPlanGeneratedAt DateTime?
+  gigDirectoryUnlockAnswer      String?    // target rate/openness question — gates the Gig Directory
+
   // Daily loop — mood check-in + daily Victoria email
   actionWindow          ActionWindow  @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
   currentStreak         Int           @default(0)        // consecutive days with a mood check-in

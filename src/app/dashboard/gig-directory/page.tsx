@@ -1,3 +1,5 @@
+import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface Platform {
@@ -13,6 +15,16 @@ interface PlatformCategory {
 }
 
 const CATEGORIES: PlatformCategory[] = [
+  {
+    title: 'AI-adjacent & vetted gig platforms',
+    description: 'AI training, evaluation, and expert-review work — often flexible and quick to start.',
+    platforms: [
+      { name: 'Mercor', description: 'AI-vetted marketplace matching experts with AI training, evaluation, and technical contract work.', url: 'https://mercor.com' },
+      { name: 'Braintrust', description: 'User-owned talent network for tech, product, and design contract work with no marketplace fees.', url: 'https://www.usebraintrust.com' },
+      { name: 'Turing', description: 'Vetted marketplace for software engineers, increasingly including AI/LLM training and evaluation work.', url: 'https://www.turing.com' },
+      { name: 'Contra', description: 'Commission-free freelance platform spanning design, engineering, and marketing.', url: 'https://contra.com' },
+    ],
+  },
   {
     title: 'Fractional & interim leadership',
     description: 'Part-time executive roles — CFO, CMO, COO, and similar — at growing companies.',
@@ -52,7 +64,9 @@ const CATEGORIES: PlatformCategory[] = [
   },
 ]
 
-export default function GigDirectoryPage() {
+export default async function GigDirectoryPage() {
+  const profile = await getDashboardData()
+
   return (
     <div className="space-y-8">
       <div>
@@ -64,7 +78,9 @@ export default function GigDirectoryPage() {
         </p>
       </div>
 
-      {CATEGORIES.map((category) => (
+      {!profile.gigDirectoryUnlockAnswer && <GigDirectoryUnlockForm />}
+
+      {profile.gigDirectoryUnlockAnswer && CATEGORIES.map((category) => (
         <div key={category.title} className="space-y-3">
           <div>
             <h2 className="text-lg font-semibold">{category.title}</h2>

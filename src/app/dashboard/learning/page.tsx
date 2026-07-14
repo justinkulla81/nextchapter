@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { LearningResourceBrowser } from '@/components/dashboard/LearningResourceBrowser'
 
 interface Resource {
   name: string
@@ -95,6 +95,55 @@ const CATEGORIES: ResourceCategory[] = [
     ],
   },
   {
+    title: 'AI training',
+    description:
+      'Working AI fluency is fast becoming table stakes across functions — these are the courses employers actually recognize.',
+    resources: [
+      {
+        name: 'Google AI Essentials',
+        description: 'A practical, no-code introduction to using generative AI tools productively at work.',
+        url: 'https://grow.google/ai-essentials/',
+        free: false,
+      },
+      {
+        name: 'Anthropic Academy',
+        description: "Anthropic's own courses on working with Claude and building with LLMs, from prompting to real applications.",
+        url: 'https://www.anthropic.com/learn',
+        free: true,
+      },
+      {
+        name: 'OpenAI Academy',
+        description: "OpenAI's free courses and guides on using and building with its models.",
+        url: 'https://academy.openai.com',
+        free: true,
+      },
+      {
+        name: 'DeepLearning.AI (Andrew Ng)',
+        description: 'Short, well-regarded courses on generative AI and prompt engineering, several free.',
+        url: 'https://www.deeplearning.ai/short-courses/',
+        free: true,
+      },
+      {
+        name: 'Stanford Online — AI Programs',
+        description: "Stanford's professional and continuing-studies programs in AI and machine learning.",
+        url: 'https://online.stanford.edu/programs/artificial-intelligence-professional-program',
+        free: false,
+      },
+      {
+        name: 'MIT xPRO — Artificial Intelligence',
+        description: "MIT's professional-education program covering practical AI and machine learning foundations.",
+        url: 'https://xpro.mit.edu/programs/program-v1:MITxPRO+ARTIF+copy_0',
+        free: false,
+      },
+      {
+        name: 'edX — AI & Machine Learning',
+        description: 'Free-to-audit AI and ML courses from MIT, Harvard, and other universities.',
+        url: 'https://www.edx.org/learn/artificial-intelligence',
+        free: true,
+      },
+    ],
+  },
+  {
     title: 'Funded training (WIOA & public workforce system)',
     description:
       'If you qualify, these programs pay for real credentials — see the Benefits page for eligibility basics.',
@@ -130,44 +179,7 @@ export default function LearningPage() {
         </p>
       </div>
 
-      {CATEGORIES.map((category) => (
-        <div key={category.title} className="space-y-3">
-          <div>
-            <h2 className="text-lg font-semibold">{category.title}</h2>
-            <p className="text-sm text-muted-foreground">{category.description}</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {category.resources.map((resource) => (
-              <Card key={resource.name}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between gap-2 text-base">
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary underline underline-offset-4"
-                    >
-                      {resource.name}
-                    </a>
-                    <span
-                      className={
-                        resource.free
-                          ? 'shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success'
-                          : 'shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground'
-                      }
-                    >
-                      {resource.free ? 'Free' : 'Paid'}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{resource.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      ))}
+      <LearningResourceBrowser categories={CATEGORIES} />
     </div>
   )
 }
