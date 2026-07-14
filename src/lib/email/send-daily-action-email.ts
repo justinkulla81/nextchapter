@@ -4,9 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getVictoriaName } from '@/lib/victoria'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
+import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import DailyActionEmail from '@/emails/daily-action'
 
 const QUIET_THRESHOLD_DAYS = 3
+
+interface Strength {
+  title: string
+  detail: string
+}
 
 export async function sendDailyActionEmail(candidateId: string) {
   if (!process.env.RESEND_API_KEY) {
@@ -45,15 +51,22 @@ export async function sendDailyActionEmail(candidateId: string) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
 
-    const subject =
-      candidate.firstName && primaryAction
-        ? `Your one thing for today, ${candidate.firstName}.`
-        : 'Your one thing for today'
+    const insights =
+      !isReset && primaryAction
+        ? await generateDailyInsights({
+            firstName: candidate.firstName,
+            currentStreak: candidate.currentStreak,
+            primaryActionText: primaryAction.text,
+            strengths: report ? ((report.strengths as unknown as Strength[]) ?? []) : [],
+            weaknesses: report ? ((report.weaknesses as unknown as Strength[]) ?? []) : [],
+          })
+        : null
 
-    const greetingLine =
-      candidate.currentStreak > 1
-        ? `you're on a ${candidate.currentStreak}-day streak — let's keep it going.`
-        : "here's today's plan."
+    const subject =
+      insights?.subject ??
+      (candidate.firstName && primaryAction
+        ? `Your one thing for today, ${candidate.firstName}.`
+        : 'Your one thing for today')
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
@@ -64,11 +77,8 @@ export async function sendDailyActionEmail(candidateId: string) {
       react: DailyActionEmail({
         firstName: candidate.firstName,
         victoriaName,
-        greetingLine,
-        primaryActionText: primaryAction?.text ?? null,
-        whyItMatters: primaryAction ? 'This is the highest-leverage move on your plan right now.' : null,
-        engineHint: primaryAction?.engineHint ?? null,
         isReset,
+        bullets: insights?.bullets ?? null,
         appUrl,
         unsubscribeUrl,
       }),
