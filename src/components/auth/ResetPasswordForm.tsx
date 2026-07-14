@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,31 +9,64 @@ import { Label } from '@/components/ui/label'
 
 export function ResetPasswordForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Supabase recovery links land here with tokens in the URL hash fragment
-  // (`#access_token=...&refresh_token=...`), not a `?code=` query param —
-  // the @supabase/ssr browser client does not auto-detect/parse this, so it
-  // has to be read and applied via setSession() explicitly.
-  const [status, setStatus] = useState<'waiting' | 'ready' | 'error'>(() =>
-    typeof window !== 'undefined' && new URLSearchParams(window.location.hash.slice(1)).get('access_token')
-      ? 'waiting'
-      : 'error'
+  const tokenHash = searchParams.get('token_hash')
+  const [status, setStatus] = useState<'waiting' | 'confirm' | 'ready' | 'error'>(
+    tokenHash ? 'confirm' : 'waiting'
   )
+
+  // `token_hash` (+ `type=recovery`) is a link to our own domain — the token
+  // is only consumed when the user clicks "Continue" below, not the instant
+  // the page loads. This matters because email clients and corporate email
+  // security scanners automatically prefetch links in incoming mail; if the
+  // link auto-consumed a single-use token on page load, that prefetch alone
+  // would burn it before the user ever clicked, and every reset link would
+  // read as "invalid or expired" on the user's actual first click. A `code`
+  // query param (PKCE) or `#access_token=...` hash fragment (implicit flow)
+  // both come from Supabase's own hosted /auth/v1/verify redirect, which
+  // already consumed the token before reaching this page — those are handled
+  // automatically since there's no separate confirmation step to gate.
+  async function confirmRecovery() {
+    if (!tokenHash) return
+    const supabase = createClient()
+    const { error } = await supabase.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
+    setStatus(error ? 'error' : 'ready')
+  }
 
   useEffect(() => {
     if (status !== 'waiting') return
-    const params = new URLSearchParams(window.location.hash.slice(1))
-    const accessToken = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
-    if (!accessToken || !refreshToken) return
 
-    const supabase = createClient()
-    supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(({ error }) => {
-      setStatus(error ? 'error' : 'ready')
-    })
-  }, [status])
+    async function run() {
+      const supabase = createClient()
+      const code = searchParams.get('code')
+
+      let sessionError: { message: string } | null = null
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        sessionError = error
+      } else {
+        const hashParams = new URLSearchParams(window.location.hash.slice(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        if (!accessToken || !refreshToken) {
+          sessionError = { message: 'missing tokens' }
+        } else {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          sessionError = error
+        }
+      }
+
+      setStatus(sessionError ? 'error' : 'ready')
+    }
+
+    run()
+  }, [status, searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +89,14 @@ export function ResetPasswordForm() {
 
   if (status === 'waiting') {
     return <p className="text-sm text-muted-foreground">Verifying your link…</p>
+  }
+
+  if (status === 'confirm') {
+    return (
+      <Button className="w-full" onClick={confirmRecovery}>
+        Continue
+      </Button>
+    )
   }
 
   if (status === 'error') {
