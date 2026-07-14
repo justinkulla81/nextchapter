@@ -305,6 +305,8 @@ model CandidateProfile {
   part4Complete         Boolean              @default(false)
   assessmentComplete    Boolean              @default(false)
   assessmentCompletedAt DateTime?            // set alongside assessmentComplete — used for reminder cadence math
+  contractAccepted      Boolean              @default(false)
+  contractAcceptedAt    DateTime?
 
   // Deferred signup (resume-first onboarding, account creation last)
   email                    String?           // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
@@ -341,6 +343,7 @@ model CandidateProfile {
   supportNetworkContacts     SupportNetworkContact[]
   outreachLogs               OutreachLog[]
   surfacedJobs               SurfacedJob[]
+  marketResponseLogs         MarketResponseLog[]
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -984,10 +987,40 @@ model SundayNightReport {
   aListMemberNames String[] @default([]) // "First L." for the whole cohort, shown to everyone
   aListCount       Int      @default(0)
 
+  // Market Response Funnel — tracked separately from Search Execution, since
+  // doing the work (execution) and the market actually responding (this) are
+  // different things. See MarketResponseLog for the self-reported signals
+  // aggregated into this snapshot, plus real JobPosting interview/offer data.
+  marketResponse   Json?    // { outreachSent, repliesReceived, conversations, referrals, interviews, offers, paidProjectLeads }
+  strategicFlag    String?  // null | "week4_review" | "week8_review" | "week13_full" | "triggered"
+  straightTalkMode String   @default("tactical") // "tactical" | "strategic"
+
   emailSentAt DateTime?
   generatedAt DateTime  @default(now())
 
   @@index([candidateId, generatedAt])
+}
+
+enum MarketResponseType {
+  REPLY
+  CONVERSATION
+  REFERRAL
+  PAID_PROJECT_LEAD
+}
+
+// Self-reported external market signals, logged as they happen through the
+// week — aggregated into that week's SundayNightReport.marketResponse
+// snapshot when the report generates. Interviews/offers aren't logged here;
+// they're already tracked as real timestamps on JobPosting.
+model MarketResponseLog {
+  id          String             @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  type        MarketResponseType
+  notes       String?
+  loggedAt    DateTime           @default(now())
+
+  @@index([candidateId, loggedAt])
 }
 
 // Shared cache across all candidates for the same (role, metro) pair —

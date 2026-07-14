@@ -89,12 +89,41 @@ export const SEARCH_EXECUTION_ENGINE_LABEL: Record<SearchExecutionEngine['key'],
   connecting: 'Connecting',
 }
 
+// How much real signal backs a dimension's grade today, separate from the
+// grade itself — a candidate should be able to tell "this is confirmed by
+// real data" apart from "this is our best guess so far." Improves as the
+// candidate reveals more (job reactions, resume/LinkedIn completion, etc.),
+// independent of whether the grade itself goes up or down.
+export type ConfidenceLevel = 'HIGH' | 'BUILDING' | 'PROVISIONAL'
+
+export const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
+  HIGH: 'Confirmed',
+  BUILDING: 'Building',
+  PROVISIONAL: 'Provisional',
+}
+
+export const CONFIDENCE_EXPLANATION: Record<ConfidenceLevel, string> = {
+  HIGH: 'Backed by confirmed, verifiable data.',
+  BUILDING: "Real, but still filling in — it'll sharpen as you add more signal.",
+  PROVISIONAL: "Our best early read — treat it as a starting point, not a verdict.",
+}
+
+// Tailwind classes for the small confidence pill shown next to each Market
+// Reality dimension — deliberately quieter than the grade color itself,
+// since confidence is metadata about the grade, not a second grade.
+export const CONFIDENCE_STYLE: Record<ConfidenceLevel, string> = {
+  HIGH: 'bg-success/10 text-success',
+  BUILDING: 'bg-brand/10 text-brand',
+  PROVISIONAL: 'bg-muted text-muted-foreground',
+}
+
 export interface MarketRealityDimension {
   key: 'experienceMatch' | 'marketPosition' | 'targetComplexity' | 'presentation' | 'socialProof' | 'searchStrategy'
   label: string
   score: number
   grade: Grade
   factorType: FactorType
+  confidence: ConfidenceLevel
 }
 
 export interface SearchExecutionEngine {
@@ -104,7 +133,20 @@ export interface SearchExecutionEngine {
   grade: Grade
 }
 
+// From this week onward, an A requires every engine to individually clear a
+// floor score — you can't earn an A by maxing one engine while neglecting
+// the others. Below this week, a single strong engine can still carry the
+// grade, since there's been no time yet to build all four out.
+export const CATEGORY_MINIMUM_ENFORCED_FROM_WEEK = 4
+export const CATEGORY_MINIMUM_SCORE_FLOOR = 50 // grade C
+
 export interface HireabilityGrade {
   marketReality: { score: number; grade: Grade; dimensions: MarketRealityDimension[] }
-  searchExecution: { score: number; grade: Grade; engines: SearchExecutionEngine[] }
+  searchExecution: {
+    score: number
+    grade: Grade
+    engines: SearchExecutionEngine[]
+    categoryMinimumsMet: boolean
+    laggingEngines: SearchExecutionEngine['key'][]
+  }
 }

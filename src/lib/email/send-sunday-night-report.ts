@@ -3,6 +3,7 @@ import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { GRADE_LABEL, type HireabilityGrade } from '@/lib/scoring/grade'
+import type { MarketResponseSnapshot } from '@/lib/reports/market-response'
 import SundayNightReportEmail from '@/emails/sunday-night-report'
 
 interface Strength {
@@ -30,6 +31,10 @@ export async function sendSundayNightReportEmail(candidateId: string) {
     ])
     if (!report) return { sent: false as const }
 
+    const weekNumber = await prisma.sundayNightReport.count({
+      where: { candidateId, generatedAt: { lte: report.generatedAt } },
+    })
+
     const admin = createAdminClient()
     const { data: userData } = await admin.auth.admin.getUserById(candidate.userId)
     const email = userData.user?.email
@@ -40,6 +45,7 @@ export async function sendSundayNightReportEmail(candidateId: string) {
     const strengths = report.strengths as unknown as Strength[]
     const weaknesses = report.weaknesses as unknown as Strength[]
     const suggestedActionPlan = report.suggestedActionPlan as unknown as SuggestedActionItem[]
+    const marketResponse = report.marketResponse as unknown as MarketResponseSnapshot | null
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
@@ -65,6 +71,8 @@ export async function sendSundayNightReportEmail(candidateId: string) {
         aStandardActions: suggestedActionPlan.filter((a) => a.isAStandard).map((a) => a.text),
         onAList: report.onAList,
         aListCount: report.aListCount,
+        marketResponse,
+        weekNumber,
         reportUrl: `${appUrl}/dashboard/weekly-report`,
         unsubscribeUrl,
       }),

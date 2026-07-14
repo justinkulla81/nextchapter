@@ -19,6 +19,9 @@ import { actionPlanItemTypes } from '@/lib/reports/hireability-report'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
 import type { AListResult } from '@/lib/weekly/a-list'
+import { SEARCH_EXECUTION_ENGINE_LABEL, type HireabilityGrade } from '@/lib/scoring/grade'
+import type { MarketResponseSnapshot } from '@/lib/reports/market-response'
+import { evaluateStrategicCheckpoint } from '@/lib/reports/strategic-checkpoints'
 
 const sundayNightReportSchema = z.object({
   strengths: z.array(z.object({ title: z.string(), detail: z.string() })).min(2).max(4),
@@ -42,7 +45,18 @@ const sundayNightReportSchema = z.object({
     .max(6),
 })
 
-const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
+const STRATEGIC_STRAIGHT_TALK_ADDENDUM = `
+STRATEGIC MODE — this candidate has earned an A for several consecutive weeks but has generated near-zero market response. The Straight Talk section must:
+1. Acknowledge the execution effort specifically.
+2. Name that the problem is no longer effort — it's strategy.
+3. Identify ONE of four things to change: target, positioning, channel, or evidence.
+4. Be direct, not discouraging — this is useful information, not failure.
+5. End with the specific change to make this week.
+Do NOT say "Keep up the great work!" or "You're almost there!" and do NOT recommend adding more volume of the same actions — that's exactly what hasn't worked.
+`
+
+function buildPromptPrefix(straightTalkMode: 'tactical' | 'strategic'): string {
+  return `${VICTORIA_VOICE_PROMPT}
 
 You are writing this week's Sunday Night Report as Victoria — the candidate's most important recurring touchpoint. It must be honest, specific, and useful without them opening the app. Everything below is real data about their week; never invent facts not given.
 
@@ -53,7 +67,7 @@ Write:
    - motivationReading: what their mood check-in pattern and action-completion behavior this week suggests about their current state — not what they said about themselves, what they DID.
    - progressPatterns: did they front-load the week (complete actions early) or back-load it (cram at the end)? Did they complete easy actions and skip hard ones, or the reverse? Name the pattern because it's useful, not to shame them.
    - dataInconsistency: ONLY if their Work Style Assessment self-report meaningfully contradicts this week's observed behavior below — state it plainly, without judgment. If there's no real contradiction, set this to null rather than manufacturing one.
-4. Straight Talk: 1-3 sentences, direct, no hedging, no softening. This is the most important part of the report — say the one true thing that matters most this week, whether that's encouragement to keep pace or a direct call-out of avoidance.
+4. Straight Talk: 1-3 sentences, direct, no hedging, no softening. This is the most important part of the report — say the one true thing that matters most this week, whether that's encouragement to keep pace or a direct call-out of avoidance.${straightTalkMode === 'strategic' ? STRATEGIC_STRAIGHT_TALK_ADDENDUM : ''}
 5. Suggested action plan for the UPCOMING week (3-6 items): specific, each tagged with an optional actionType where it matches a real platform feature. Mark the 2-3 highest-leverage items "isAStandard: true" — these are explicitly "complete these and you've earned your A this week." At most one item may be "isStretch: true" — an optional extra for a motivated week.
 
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
@@ -62,6 +76,7 @@ Underlying theme (weave in naturally, at least once — ideally in Straight Talk
 
 Candidate data:
 `
+}
 
 export async function generateSundayNightReport(candidateId: string, aList: AListResult): Promise<void> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
@@ -74,7 +89,9 @@ export async function generateSundayNightReport(candidateId: string, aList: ALis
       jobPostings: true,
       resumes: true,
       communityPosts: { where: { isActive: true } },
+      surfacedJobs: { select: { reaction: true } },
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      _count: { select: { weeklySprints: true } },
     },
   })
 
@@ -82,16 +99,62 @@ export async function generateSundayNightReport(candidateId: string, aList: ALis
   const weekEndExclusive = new Date(weekStartDate)
   weekEndExclusive.setUTCDate(weekEndExclusive.getUTCDate() + 7)
 
-  const [currentSprint, previousReport, checkIns] = await Promise.all([
-    prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } }),
-    prisma.sundayNightReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
-    prisma.dailyCheckIn.findMany({
-      where: { candidateId, checkedInAt: { gte: weekStartDate, lt: weekEndExclusive } },
-      orderBy: { checkedInAt: 'asc' },
-    }),
-  ])
+  const [currentSprint, previousReport, checkIns, priorReportCount, recentReportRows, marketResponseLogs, outreachCount] =
+    await Promise.all([
+      prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } }),
+      prisma.sundayNightReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
+      prisma.dailyCheckIn.findMany({
+        where: { candidateId, checkedInAt: { gte: weekStartDate, lt: weekEndExclusive } },
+        orderBy: { checkedInAt: 'asc' },
+      }),
+      prisma.sundayNightReport.count({ where: { candidateId } }),
+      prisma.sundayNightReport.findMany({
+        where: { candidateId },
+        orderBy: { generatedAt: 'desc' },
+        take: 3,
+        select: { gradeSnapshot: true, marketResponse: true },
+      }),
+      prisma.marketResponseLog.findMany({
+        where: { candidateId, loggedAt: { gte: weekStartDate, lt: weekEndExclusive } },
+      }),
+      prisma.outreachLog.count({
+        where: { candidateId, loggedAt: { gte: weekStartDate, lt: weekEndExclusive } },
+      }),
+    ])
 
   const isFirstWeek = !previousReport
+  const weekNumber = priorReportCount + 1
+
+  const interviewsThisWeek = candidate.jobPostings.filter(
+    (j) => j.interviewLandedAt && j.interviewLandedAt >= weekStartDate && j.interviewLandedAt < weekEndExclusive
+  ).length
+  const offersThisWeek = candidate.jobPostings.filter(
+    (j) => j.offerReceivedAt && j.offerReceivedAt >= weekStartDate && j.offerReceivedAt < weekEndExclusive
+  ).length
+
+  const marketResponse: MarketResponseSnapshot = {
+    outreachSent: outreachCount,
+    repliesReceived: marketResponseLogs.filter((l) => l.type === 'REPLY').length,
+    conversations: marketResponseLogs.filter((l) => l.type === 'CONVERSATION').length,
+    referrals: marketResponseLogs.filter((l) => l.type === 'REFERRAL').length,
+    interviews: interviewsThisWeek,
+    offers: offersThisWeek,
+    paidProjectLeads: marketResponseLogs.filter((l) => l.type === 'PAID_PROJECT_LEAD').length,
+  }
+
+  // recentReportRows is ordered most-recent-first; evaluateStrategicCheckpoint
+  // expects oldest-to-newest so `.slice(-3)` inside it takes the right window.
+  const recentReportsForCheckpoint = recentReportRows
+    .slice()
+    .reverse()
+    .map((r) => ({
+      gradeSnapshot: r.gradeSnapshot as unknown as HireabilityGrade,
+      marketResponse: r.marketResponse as unknown as MarketResponseSnapshot | null,
+    }))
+  const { flag: strategicFlag, straightTalkMode } = evaluateStrategicCheckpoint(
+    weekNumber,
+    recentReportsForCheckpoint
+  )
 
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
   const completedActions = committedActions.filter((a) => a.completed)
@@ -133,6 +196,15 @@ Target role: ${candidate.targetRoleType ?? 'not specified'}
 References completed: ${candidate.references.filter((r) => r.status === 'COMPLETED').length}
 Work samples: ${candidate.workSamples.length}
 LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.filter((l) => l.loggedAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+
+Week number: ${weekNumber}
+${
+  !grade.searchExecution.categoryMinimumsMet
+    ? `Category minimums (Week 4+): NOT met — ${grade.searchExecution.laggingEngines.map((k) => SEARCH_EXECUTION_ENGINE_LABEL[k]).join(', ')} needs real work. Search Execution is capped at B even though other engines are strong — the Straight Talk section should name this plainly: real effort, but concentrated in too few engines to earn the A.`
+    : 'Category minimums (Week 4+): met — no cap applied.'
+}
+Market Response this week — outreach sent: ${marketResponse.outreachSent}, replies: ${marketResponse.repliesReceived}, conversations: ${marketResponse.conversations}, referrals: ${marketResponse.referrals}, interviews: ${marketResponse.interviews}, offers: ${marketResponse.offers}, paid-project leads: ${marketResponse.paidProjectLeads}
+Straight Talk mode: ${straightTalkMode}${strategicFlag === 'triggered' ? ' — this candidate has had strong execution with essentially no market response for 3+ weeks; see STRATEGIC MODE instructions above' : ''}
 `.trim()
 
   const client = getAnthropicClient()
@@ -141,7 +213,7 @@ LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.filt
     max_tokens: 6000,
     thinking: { type: 'adaptive' },
     output_config: { format: zodOutputFormat(sundayNightReportSchema), effort: 'medium' },
-    messages: [{ role: 'user', content: PROMPT_PREFIX + summary }],
+    messages: [{ role: 'user', content: buildPromptPrefix(straightTalkMode) + summary }],
   })
   const message = await stream.finalMessage()
   const data = message.parsed_output
@@ -165,6 +237,9 @@ LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.filt
       onAList,
       aListMemberNames: aList.memberNames,
       aListCount: aList.count,
+      marketResponse: marketResponse as unknown as Prisma.InputJsonValue,
+      strategicFlag,
+      straightTalkMode,
     },
   })
 }

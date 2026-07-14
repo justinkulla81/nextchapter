@@ -34,6 +34,8 @@ export async function computeAList(weekStartDate: Date): Promise<AListResult> {
         jobPostings: true,
         resumes: true,
         communityPosts: true,
+        surfacedJobs: { select: { reaction: true } },
+        _count: { select: { weeklySprints: true } },
       },
     })
     if (!candidate) continue

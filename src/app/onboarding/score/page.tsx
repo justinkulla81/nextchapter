@@ -33,6 +33,8 @@ export default async function ScorePage() {
       linkedInActivityLogs: true,
       communityPosts: { where: { isActive: true } },
       resumes: { orderBy: { uploadedAt: 'desc' } },
+      surfacedJobs: { select: { reaction: true } },
+      _count: { select: { weeklySprints: true } },
     },
   })
 
@@ -46,8 +48,12 @@ export default async function ScorePage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Hireability Grade'}
         </h1>
-        <p className="mt-1 text-muted-foreground">
-          This is a living grade — it moves as you add signal.
+        <p className="mt-2 max-w-md text-sm text-muted-foreground italic">
+          &ldquo;Your initial grade is based on what you&apos;ve told me. The confidence level on
+          each Market Reality dimension will increase as I see which roles you&apos;re drawn to,
+          which you reject, and what the market returns. The grade gets more accurate as we work
+          together.&rdquo;
+          <span className="mt-1 block not-italic text-xs text-muted-foreground/80">— Victoria</span>
         </p>
       </div>
       <DualGradeReveal

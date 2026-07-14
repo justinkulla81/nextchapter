@@ -146,6 +146,8 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
       linkedInActivityLogs: true,
       workSamples: true,
       communityPosts: { where: { isActive: true } },
+      surfacedJobs: { select: { reaction: true } },
+      _count: { select: { weeklySprints: true } },
     },
   })
 

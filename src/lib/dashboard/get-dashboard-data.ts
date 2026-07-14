@@ -27,9 +27,11 @@ export async function getDashboardData() {
       resumes: { orderBy: { uploadedAt: 'desc' } },
       jobPostings: { orderBy: { createdAt: 'desc' } },
       communityPosts: { where: { isActive: true }, orderBy: { createdAt: 'desc' } },
+      surfacedJobs: { select: { reaction: true } },
       linkedInActivityLogs: true,
       hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      _count: { select: { weeklySprints: true } },
     },
   })
 

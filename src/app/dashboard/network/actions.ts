@@ -1,7 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { ContactCategory, ContactWarmth, NetworkingAnxiety, OutreachChannel } from '@prisma/client'
+import type {
+  ContactCategory,
+  ContactWarmth,
+  NetworkingAnxiety,
+  OutreachChannel,
+  MarketResponseType,
+} from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -132,6 +138,19 @@ export async function logOutreach(contactId: string | null, channel: OutreachCha
   if (!profile) return
 
   await prisma.outreachLog.create({ data: { candidateId: profile.id, contactId, channel } })
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard')
+}
+
+// Interviews/offers aren't logged here — they're already tracked as real
+// timestamps on JobPosting (marked from the Job Fit page). This covers only
+// the external signals that have no existing tracking; aggregated into that
+// week's Sunday Night Report when it generates.
+export async function logMarketResponse(type: MarketResponseType) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.marketResponseLog.create({ data: { candidateId: profile.id, type } })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard')
 }

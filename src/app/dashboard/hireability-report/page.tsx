@@ -11,7 +11,7 @@ import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { hasStartedSprint } from '@/lib/weekly/sprint'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, FACTOR_TYPE_LABEL, CONFIDENCE_LABEL, CONFIDENCE_STYLE } from '@/lib/scoring/grade'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { cn } from '@/lib/utils'
 
@@ -207,6 +207,14 @@ export default async function HireabilityReportPage() {
                           <div key={d.key} className="flex items-center justify-between gap-2 text-sm">
                             <span className="text-foreground">{d.label}</span>
                             <span className="flex items-center gap-2">
+                              <span
+                                className={cn(
+                                  'rounded px-1.5 py-0.5 text-[10px] font-medium',
+                                  CONFIDENCE_STYLE[d.confidence]
+                                )}
+                              >
+                                {CONFIDENCE_LABEL[d.confidence]}
+                              </span>
                               <span className="text-xs text-muted-foreground">
                                 {FACTOR_TYPE_LABEL[d.factorType]}
                               </span>
@@ -258,6 +266,12 @@ export default async function HireabilityReportPage() {
                               </div>
                             ))}
                           </div>
+                          {!grade.searchExecution.categoryMinimumsMet && (
+                            <p className="mt-3 text-xs font-medium text-foreground">
+                              Capped at B — an A now requires real work across all four engines, not
+                              just one.
+                            </p>
+                          )}
                         </>
                       )}
                     </div>

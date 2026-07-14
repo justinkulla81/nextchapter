@@ -23,6 +23,7 @@ import type {
   LinkedInActivityLog,
   Reference,
   Resume,
+  SurfacedJob,
   WorkHistoryEntry,
   WorkSample,
 } from '@prisma/client'
@@ -30,13 +31,16 @@ import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import {
   scoreToGrade,
+  CATEGORY_MINIMUM_ENFORCED_FROM_WEEK,
+  CATEGORY_MINIMUM_SCORE_FLOOR,
+  type ConfidenceLevel,
   type MarketRealityDimension,
   type SearchExecutionEngine,
   type HireabilityGrade,
 } from '@/lib/scoring/grade'
 
 export type { Grade, FactorType, MarketRealityDimension, SearchExecutionEngine, HireabilityGrade } from '@/lib/scoring/grade'
-export { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
+export { scoreToGrade, GRADE_LABEL, type ConfidenceLevel } from '@/lib/scoring/grade'
 
 export type CandidateWithGradeRelations = CandidateProfile & {
   references: Reference[]
@@ -46,6 +50,50 @@ export type CandidateWithGradeRelations = CandidateProfile & {
   jobPostings: JobPosting[]
   resumes: Resume[]
   communityPosts: { createdAt: Date }[]
+  surfacedJobs: Pick<SurfacedJob, 'reaction'>[]
+  _count: { weeklySprints: number }
+}
+
+// How much real signal backs each Market Reality dimension — separate from
+// the grade itself. "Job reactions" (Interested/Not Interested/Unsure on
+// surfaced postings, from the Job Discovery Engine) are the clearest signal
+// of a candidate's real, revealed preferences, so several dimensions grow
+// more confident as that count grows.
+function getDimensionConfidence(
+  dimension: MarketRealityDimension['key'],
+  candidate: CandidateWithGradeRelations,
+  jobReactionsCount: number
+): ConfidenceLevel {
+  switch (dimension) {
+    case 'experienceMatch':
+      // Based on verifiable resume/profile data — high confidence from day 1.
+      return 'HIGH'
+
+    case 'marketPosition':
+      // Improves with a stated comp floor plus enough job reactions to know
+      // the candidate is actually engaging with real postings.
+      return candidate.targetCompMin && jobReactionsCount >= 5
+        ? 'HIGH'
+        : candidate.targetCompMin
+          ? 'BUILDING'
+          : 'PROVISIONAL'
+
+    case 'targetComplexity':
+      // Improves as job reactions reveal what the candidate actually goes for.
+      return jobReactionsCount >= 10 ? 'HIGH' : jobReactionsCount >= 3 ? 'BUILDING' : 'PROVISIONAL'
+
+    case 'presentation':
+      // High once both a resume and a LinkedIn URL are on file.
+      return candidate.resumes.length > 0 && candidate.linkedInUrl ? 'HIGH' : 'BUILDING'
+
+    case 'socialProof':
+      // Always building — there's no ceiling, you can always add more proof.
+      return 'BUILDING'
+
+    case 'searchStrategy':
+      // Revealed by actual behavior (reactions) over time, not self-report.
+      return jobReactionsCount >= 10 ? 'HIGH' : jobReactionsCount >= 3 ? 'BUILDING' : 'PROVISIONAL'
+  }
 }
 
 function clamp(n: number): number {
@@ -69,6 +117,10 @@ function looselyMatches(a: string | null, b: string | null): boolean {
 async function computeMarketRealityDimensions(
   candidate: CandidateWithGradeRelations
 ): Promise<MarketRealityDimension[]> {
+  const jobReactionsCount = candidate.surfacedJobs.filter((j) => j.reaction !== null).length
+  const confidenceFor = (key: MarketRealityDimension['key']) =>
+    getDimensionConfidence(key, candidate, jobReactionsCount)
+
   // 1. Experience Match — mix of structural/influenceable
   let experienceMatch = 0
   if (candidate.yearsExperience !== null) experienceMatch += 40
@@ -158,6 +210,7 @@ async function computeMarketRealityDimensions(
       score: experienceMatch,
       grade: scoreToGrade(experienceMatch),
       factorType: 'influenceable',
+      confidence: confidenceFor('experienceMatch'),
     },
     {
       key: 'marketPosition',
@@ -165,6 +218,7 @@ async function computeMarketRealityDimensions(
       score: marketPosition,
       grade: scoreToGrade(marketPosition),
       factorType: 'structural',
+      confidence: confidenceFor('marketPosition'),
     },
     {
       key: 'targetComplexity',
@@ -172,6 +226,7 @@ async function computeMarketRealityDimensions(
       score: targetComplexity,
       grade: scoreToGrade(targetComplexity),
       factorType: 'structural',
+      confidence: confidenceFor('targetComplexity'),
     },
     {
       key: 'presentation',
@@ -179,6 +234,7 @@ async function computeMarketRealityDimensions(
       score: presentation,
       grade: scoreToGrade(presentation),
       factorType: 'controllable',
+      confidence: confidenceFor('presentation'),
     },
     {
       key: 'socialProof',
@@ -186,6 +242,7 @@ async function computeMarketRealityDimensions(
       score: socialProof,
       grade: scoreToGrade(socialProof),
       factorType: 'controllable',
+      confidence: confidenceFor('socialProof'),
     },
     {
       key: 'searchStrategy',
@@ -193,6 +250,7 @@ async function computeMarketRealityDimensions(
       score: searchStrategy,
       grade: scoreToGrade(searchStrategy),
       factorType: 'controllable',
+      confidence: confidenceFor('searchStrategy'),
     },
   ]
 }
@@ -262,6 +320,15 @@ export async function computeHireabilityGrade(
   const marketRealityScore = clamp(dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length)
   const searchExecutionScore = clamp(engines.reduce((sum, e) => sum + e.score, 0) / engines.length)
 
+  const laggingEngines = engines.filter((e) => e.score < CATEGORY_MINIMUM_SCORE_FLOOR).map((e) => e.key)
+  const categoryMinimumsMet =
+    candidate._count.weeklySprints < CATEGORY_MINIMUM_ENFORCED_FROM_WEEK || laggingEngines.length === 0
+
+  let searchExecutionGrade = scoreToGrade(searchExecutionScore)
+  if (!categoryMinimumsMet && searchExecutionGrade === 'A') {
+    searchExecutionGrade = 'B'
+  }
+
   return {
     marketReality: {
       score: marketRealityScore,
@@ -270,8 +337,10 @@ export async function computeHireabilityGrade(
     },
     searchExecution: {
       score: searchExecutionScore,
-      grade: scoreToGrade(searchExecutionScore),
+      grade: searchExecutionGrade,
       engines,
+      categoryMinimumsMet,
+      laggingEngines,
     },
   }
 }

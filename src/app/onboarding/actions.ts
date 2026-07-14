@@ -96,6 +96,31 @@ export async function updateCircumstances(
   }
 
   revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/contract')
+}
+
+export async function acceptContract() {
+  const candidateId = await requireCandidateId()
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { contractAccepted: true, contractAcceptedAt: new Date() },
+  })
+
+  redirect('/onboarding/experience')
+}
+
+// "Not right now" still records the moment they saw the contract (so we
+// know they've been through this screen), just without accepting it — the
+// candidate continues at a lower assumed intensity rather than being blocked.
+export async function continueWithoutContract() {
+  const candidateId = await requireCandidateId()
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { contractAccepted: false, contractAcceptedAt: new Date() },
+  })
+
   redirect('/onboarding/experience')
 }
 

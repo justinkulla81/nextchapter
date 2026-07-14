@@ -3,6 +3,16 @@ interface Strength {
   detail: string
 }
 
+interface MarketResponseSnapshot {
+  outreachSent: number
+  repliesReceived: number
+  conversations: number
+  referrals: number
+  interviews: number
+  offers: number
+  paidProjectLeads: number
+}
+
 interface SundayNightReportEmailProps {
   firstName: string | null
   isFirstWeek: boolean
@@ -18,6 +28,8 @@ interface SundayNightReportEmailProps {
   aStandardActions: string[]
   onAList: boolean
   aListCount: number
+  marketResponse: MarketResponseSnapshot | null
+  weekNumber: number
   reportUrl: string
   unsubscribeUrl: string
 }
@@ -86,9 +98,18 @@ export default function SundayNightReportEmail({
   aStandardActions,
   onAList,
   aListCount,
+  marketResponse,
+  weekNumber,
   reportUrl,
   unsubscribeUrl,
 }: SundayNightReportEmailProps) {
+  const marketResponseAllZero =
+    marketResponse !== null && Object.values(marketResponse).every((v) => v === 0)
+  const replyRate =
+    marketResponse && marketResponse.outreachSent > 0
+      ? Math.round((marketResponse.repliesReceived / marketResponse.outreachSent) * 100)
+      : null
+
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
@@ -120,7 +141,44 @@ export default function SundayNightReportEmail({
 
       {(topStrength || topWeakness) && (
         <>
-          <p style={sectionLabel}>Strengths &amp; Weaknesses</p>
+          {!isFirstWeek && marketResponse && (
+        <>
+          <p style={sectionLabel}>Market Response</p>
+          <p>
+            Separate from your Search Execution grade — this is whether the market is actually
+            responding, not whether you did the work.
+            <br />
+            Outreach sent: <strong>{marketResponse.outreachSent}</strong> · Replies:{' '}
+            <strong>
+              {marketResponse.repliesReceived}
+              {replyRate !== null && ` (${replyRate}%)`}
+            </strong>{' '}
+            · Conversations: <strong>{marketResponse.conversations}</strong> · Referrals:{' '}
+            <strong>{marketResponse.referrals}</strong> · Interviews:{' '}
+            <strong>{marketResponse.interviews}</strong> · Offers: <strong>{marketResponse.offers}</strong>
+            {marketResponse.paidProjectLeads > 0 && (
+              <>
+                {' '}
+                · Paid-project leads: <strong>{marketResponse.paidProjectLeads}</strong>
+              </>
+            )}
+          </p>
+          {marketResponseAllZero && weekNumber <= 3 && (
+            <p>
+              No external signals yet — that&apos;s normal at week {weekNumber}. By week 4, we want
+              to see at least one reply or conversation.
+            </p>
+          )}
+          {marketResponseAllZero && weekNumber >= 4 && (
+            <p style={{ fontWeight: 600 }}>
+              Still no external signals despite real weeks of effort — worth naming honestly: this
+              is no longer about doing more, it&apos;s about what to change.
+            </p>
+          )}
+        </>
+      )}
+
+      <p style={sectionLabel}>Strengths &amp; Weaknesses</p>
           {topStrength && (
             <p>
               <strong>{topStrength.title}</strong> — {topStrength.detail}

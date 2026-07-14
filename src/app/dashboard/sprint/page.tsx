@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getCurrentWeekSprint, getSuggestedActions, type CommittedAction } from '@/lib/weekly/sprint'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { SEARCH_EXECUTION_ENGINE_LABEL, CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 
 export default async function SprintSetupPage() {
@@ -50,6 +51,33 @@ export default async function SprintSetupPage() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {profile._count.weeklySprints >= CATEGORY_MINIMUM_ENFORCED_FROM_WEEK && (
+        <div className="border-t border-border pt-6">
+          <h2 className="text-sm font-medium text-foreground">Week 4+ Requirements</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            From here on, an A in Search Execution requires real work across all four engines — not
+            just one you&apos;re comfortable with.
+          </p>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {grade.searchExecution.engines.map((e) => (
+              <li key={e.key} className="flex items-center gap-2">
+                <span>{grade.searchExecution.laggingEngines.includes(e.key) ? '☐' : '☑'}</span>
+                <span className="text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
+                {grade.searchExecution.laggingEngines.includes(e.key) && (
+                  <span className="text-xs text-muted-foreground">needs real work this week</span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {!grade.searchExecution.categoryMinimumsMet && (
+            <p className="mt-3 text-sm font-medium text-foreground">
+              Your grade is capped at B until every engine clears the bar — real effort spread
+              across all four, not stacked in one.
+            </p>
+          )}
         </div>
       )}
     </div>

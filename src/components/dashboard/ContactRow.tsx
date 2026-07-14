@@ -1,6 +1,6 @@
 import type { SupportNetworkContact } from '@prisma/client'
 import { Button } from '@/components/ui/button'
-import { updateContact, deleteContact, logOutreach } from '@/app/dashboard/network/actions'
+import { updateContact, deleteContact, logOutreach, logMarketResponse } from '@/app/dashboard/network/actions'
 import { getOutreachScript, type ScriptContext } from '@/lib/network/scripts'
 import type { NetworkingAnxiety } from '@prisma/client'
 
@@ -85,6 +85,30 @@ export function ContactRow({
         <form action={logOutreach.bind(null, contact.id, 'TEXT')}>
           <Button type="submit" variant="outline" size="sm">
             Log text
+          </Button>
+        </form>
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-t border-border pt-2">
+        <p className="w-full text-xs text-muted-foreground">Did this outreach get a response?</p>
+        <form action={logMarketResponse.bind(null, 'REPLY')}>
+          <Button type="submit" variant="ghost" size="sm">
+            They replied
+          </Button>
+        </form>
+        <form action={logMarketResponse.bind(null, 'CONVERSATION')}>
+          <Button type="submit" variant="ghost" size="sm">
+            We had a real conversation
+          </Button>
+        </form>
+        <form action={logMarketResponse.bind(null, 'REFERRAL')}>
+          <Button type="submit" variant="ghost" size="sm">
+            They referred me
+          </Button>
+        </form>
+        <form action={logMarketResponse.bind(null, 'PAID_PROJECT_LEAD')}>
+          <Button type="submit" variant="ghost" size="sm">
+            Paid-project lead
           </Button>
         </form>
       </div>

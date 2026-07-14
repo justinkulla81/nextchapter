@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, FACTOR_TYPE_LABEL, CONFIDENCE_LABEL, CONFIDENCE_STYLE } from '@/lib/scoring/grade'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
+import { MarketResponseFunnel } from '@/components/reports/MarketResponseFunnel'
+import type { MarketResponseSnapshot } from '@/lib/reports/market-response'
 import { cn } from '@/lib/utils'
 
 const GRADE_COLOR: Record<Grade, string> = {
@@ -69,9 +71,14 @@ export default async function WeeklyReportPage() {
     )
   }
 
+  const weekNumber = await prisma.sundayNightReport.count({
+    where: { candidateId: profile.id, generatedAt: { lte: report.generatedAt } },
+  })
+
   const grade = report.gradeSnapshot as unknown as HireabilityGrade
   const previousGrade = report.previousGradeSnapshot as unknown as HireabilityGrade | null
   const isFirstWeek = previousGrade === null
+  const marketResponse = report.marketResponse as unknown as MarketResponseSnapshot | null
   const strengths = report.strengths as unknown as Strength[]
   const weaknesses = report.weaknesses as unknown as Strength[]
   const observations = report.observations as unknown as Observations
@@ -125,6 +132,11 @@ export default async function WeeklyReportPage() {
                   <div key={d.key} className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-foreground">{d.label}</span>
                     <span className="flex items-center gap-2">
+                      <span
+                        className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium', CONFIDENCE_STYLE[d.confidence])}
+                      >
+                        {CONFIDENCE_LABEL[d.confidence]}
+                      </span>
                       <span className="text-xs text-muted-foreground">{FACTOR_TYPE_LABEL[d.factorType]}</span>
                       <span className={cn('font-semibold tabular-nums', GRADE_COLOR[d.grade])}>{d.grade}</span>
                     </span>
@@ -164,6 +176,12 @@ export default async function WeeklyReportPage() {
                       </div>
                     ))}
                   </div>
+                  {!grade.searchExecution.categoryMinimumsMet && (
+                    <p className="mt-3 text-xs font-medium text-foreground">
+                      Capped at B — an A now requires real work across all four engines, not just
+                      one.
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -205,7 +223,21 @@ export default async function WeeklyReportPage() {
           </div>
         )}
 
-        {/* Section 3: Strengths & Weaknesses */}
+        {/* Section 3: Market Response Funnel (Week 2+ only) */}
+        {!isFirstWeek && marketResponse && (
+          <div className="mt-10 border-t border-border pt-8">
+            <SectionHeading>Market Response</SectionHeading>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Separate from your Search Execution grade — this is whether the market is actually
+              responding to the work, not whether you did the work.
+            </p>
+            <div className="mt-4">
+              <MarketResponseFunnel marketResponse={marketResponse} weekNumber={weekNumber} />
+            </div>
+          </div>
+        )}
+
+        {/* Section 4: Strengths & Weaknesses */}
         <div className="mt-10 border-t border-border pt-8">
           <SectionHeading>Strengths &amp; Weaknesses</SectionHeading>
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
@@ -234,7 +266,7 @@ export default async function WeeklyReportPage() {
           </div>
         </div>
 
-        {/* Section 4: Victoria's Observations */}
+        {/* Section 5: Victoria's Observations */}
         <div className="mt-10 border-t border-border pt-8">
           <SectionHeading>Victoria&apos;s Observations</SectionHeading>
           <div className="mt-4 space-y-4">
@@ -255,13 +287,13 @@ export default async function WeeklyReportPage() {
           </div>
         </div>
 
-        {/* Section 5: Straight Talk */}
+        {/* Section 6: Straight Talk */}
         <div className="mt-10 border-t border-border pt-8">
           <SectionHeading>Straight Talk</SectionHeading>
           <p className="mt-4 font-medium text-foreground">{report.straightTalk}</p>
         </div>
 
-        {/* Section 6: This Week's Action Plan */}
+        {/* Section 7: This Week's Action Plan */}
         <div className="mt-10 border-t border-border pt-8">
           <SectionHeading>This Week&apos;s Action Plan</SectionHeading>
           <p className="mt-4 text-sm text-muted-foreground">
@@ -297,7 +329,7 @@ export default async function WeeklyReportPage() {
           </Link>
         </div>
 
-        {/* Section 7: The A-List */}
+        {/* Section 8: The A-List */}
         <div className="mt-10 border-t border-border pt-8 print:hidden">
           <SectionHeading>The A-List</SectionHeading>
           {report.onAList ? (
@@ -313,7 +345,7 @@ export default async function WeeklyReportPage() {
           )}
         </div>
 
-        {/* Section 8: Understanding your grades */}
+        {/* Section 9: Understanding your grades */}
         <div className="mt-10 border-t border-border pt-8 print:hidden">
           <SectionHeading>Understanding your grades</SectionHeading>
           <div className="mt-4">
