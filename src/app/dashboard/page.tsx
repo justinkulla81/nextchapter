@@ -16,6 +16,7 @@ import { computeEarnedBadges } from '@/lib/community/badges'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
+import { getGoalLabel } from '@/lib/scoring/goal-label'
 import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
@@ -118,6 +119,8 @@ export default async function DashboardPage() {
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
+  const dayNumber = Math.floor(daysSinceRegistration) + 1
+  const goalLabel = getGoalLabel(profile.currentJobStatus)
   const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
 
   const week1Artifacts = getWeek1Artifacts({
@@ -137,6 +140,9 @@ export default async function DashboardPage() {
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Hireability Dashboard</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Week {weekNumber} &middot; Day {dayNumber} — Your goal is to {goalLabel}.
+        </p>
       </div>
 
       <MoodCheckInCard
