@@ -38,12 +38,15 @@ export function LoginForm() {
     }
 
     router.push(searchParams.get('next') ?? '/dashboard')
-    router.refresh()
   }
 
   async function handleResend() {
     const supabase = createClient()
-    await supabase.auth.resend({ type: 'signup', email })
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
+    if (error) {
+      setError(error.message)
+      return
+    }
     setResent(true)
   }
 
