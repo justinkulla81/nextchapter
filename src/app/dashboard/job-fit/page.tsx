@@ -34,6 +34,11 @@ interface NegotiationAdvice {
   considerations: string[]
 }
 
+interface TailoredBullet {
+  original: string
+  tailored: string
+}
+
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Fetching…',
   success: 'Analyzed',
@@ -153,6 +158,40 @@ export default async function JobFitPage() {
                         </span>
                       </p>
                       <p className="text-sm text-muted-foreground">{posting.fitFeedback}</p>
+                    </div>
+                  )}
+
+                  {posting.keywords.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Keywords to work into your resume
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {posting.keywords.map((keyword) => (
+                          <span
+                            key={keyword}
+                            className="rounded-full border border-border bg-off-white px-2.5 py-0.5 text-xs font-medium text-foreground"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {Array.isArray(posting.tailoredBullets) && posting.tailoredBullets.length > 0 && (
+                    <div className="space-y-2 rounded-md border border-border p-3">
+                      <p className="text-sm font-medium">Bullets tailored to this posting</p>
+                      <div className="space-y-3">
+                        {(posting.tailoredBullets as unknown as TailoredBullet[]).map((bullet, i) => (
+                          <div key={i} className="space-y-1 text-sm">
+                            <p className="text-muted-foreground line-through decoration-destructive/50">
+                              {bullet.original}
+                            </p>
+                            <p className="text-foreground">{bullet.tailored}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { GUIDES } from '@/lib/constants/guides'
 
 const heroStats = [
   { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
@@ -55,84 +56,6 @@ const whatWeDoItems = [
     title: 'Interview & negotiation prep',
     description:
       'Practice for the questions you’ll actually get asked, and a script for asking for what you’re worth.',
-  },
-]
-
-const guides = [
-  {
-    slug: 'unemployed',
-    title: "You're unemployed now. What actually works.",
-    description: 'Evidence-based guidance for experienced professionals — week one through month three.',
-  },
-  {
-    slug: '72-hours',
-    title: 'You just got here. Start here.',
-    description: 'The first 72 hours after a layoff — what to do, in order.',
-  },
-  {
-    slug: 'pre-exit',
-    title: 'Before you go.',
-    description: "What to handle in your last days at a job — records, contacts, and paperwork you'll want later.",
-  },
-  {
-    slug: 'cobra-aca',
-    title: 'COBRA & marketplace coverage.',
-    description: 'How to keep or replace your health insurance after leaving a job.',
-  },
-  {
-    slug: 'bridge-income',
-    title: 'Bridge income options.',
-    description: 'Ways to bring in income while you search, without derailing it.',
-  },
-  {
-    slug: 'gatekeeper',
-    title: 'Getting through the gatekeeper.',
-    description: 'How recruiters, HR screens, and hiring managers actually work — and how to get from inbox to interview.',
-  },
-  {
-    slug: 'offer-letter',
-    title: 'You have an offer. Now read it correctly.',
-    description: 'Total comp breakdown, negotiation scripts, and red flags to catch.',
-  },
-  {
-    slug: 'narrative-workshop',
-    title: 'Build your core story.',
-    description: 'A workshop for building the story you tell about your career — for resumes, interviews, and networking.',
-  },
-  {
-    slug: 'network-activation',
-    title: 'Activate your network.',
-    description: 'How to turn your existing contacts into real conversations.',
-  },
-  {
-    slug: 'ask-for-help',
-    title: 'Before you start outreach, read this.',
-    description: 'Why asking for help works, and how to do it without it feeling awkward.',
-  },
-  {
-    slug: 'network-scripts',
-    title: 'The networking script book.',
-    description: 'Scripts for every kind of outreach — cold, warm, and everything between.',
-  },
-  {
-    slug: 'interview-prep',
-    title: 'Interview prep guide.',
-    description: 'How to prepare for interviews at every stage, from phone screen to final round.',
-  },
-  {
-    slug: 'post-interview',
-    title: "You have an interview. Here's how to follow up.",
-    description: 'What to do in the 24-48 hours after an interview.',
-  },
-  {
-    slug: 'thought-leadership',
-    title: 'Build a public presence.',
-    description: 'How to write and share thought leadership content that gets noticed.',
-  },
-  {
-    slug: 'first-90-days',
-    title: 'Your first 90 days.',
-    description: 'How to start strong in a new role.',
   },
 ]
 
@@ -319,7 +242,7 @@ export default function Home() {
             </p>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {guides.map((guide) => (
+            {GUIDES.map((guide) => (
               <a
                 key={guide.slug}
                 href={`/guides/${guide.slug}.pdf`}

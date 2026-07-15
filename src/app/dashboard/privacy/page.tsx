@@ -2,6 +2,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
+import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -31,6 +32,8 @@ export default async function PrivacyPage() {
           encouragementGivingOptIn={profile.encouragementGivingOptIn}
         />
       </div>
+
+      <WhatTheySeeSection candidateId={profile.id} />
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>

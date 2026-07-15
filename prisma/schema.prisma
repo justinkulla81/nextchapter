@@ -199,6 +199,12 @@ enum EmployerSubscriptionStatus {
   TRIALING
 }
 
+enum ShareRecipientType {
+  HIRING_MANAGER
+  RECRUITER
+  COACH
+}
+
 enum CandidateInterestStatus {
   VIEWED
   SAVED
@@ -395,6 +401,7 @@ model CandidateProfile {
   outreachLogs               OutreachLog[]
   surfacedJobs               SurfacedJob[]
   marketResponseLogs         MarketResponseLog[]
+  profileShares              ProfileShare[]
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -892,8 +899,10 @@ model JobPosting {
   fetchError    String?
   extractedText String?
 
-  fitScore      Int?      // 0-100
-  fitFeedback   String?
+  fitScore        Int?      // 0-100
+  fitFeedback     String?
+  keywords        String[]  @default([]) // extracted from the posting, ATS/recruiter scan terms
+  tailoredBullets Json?     // [{ original: string, tailored: string }] — real work-history bullets reframed to the posting
   analyzedAt    DateTime?
 
   interviewLandedAt       DateTime?
@@ -1273,6 +1282,35 @@ model OutreachLog {
 // A job pulled from Adzuna and shown to the candidate for a lightweight
 // reaction — not an application queue. unique on (candidateId, url) so
 // re-surfacing the same listing doesn't duplicate rows.
+// "What They See" — candidate-generated, revocable links that show a
+// sanitized slice of their profile to a specific recipient type. Distinct
+// from PrivacyTier (which controls passive marketplace search visibility):
+// this is a proactive, one-off share the candidate hands to one person.
+model ProfileShare {
+  id            String             @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  token         String             @unique @default(cuid())
+  recipientType ShareRecipientType
+  label         String?            // candidate's own note, e.g. "For Sarah at Acme"
+
+  // Hiring Manager only — early-stage (false) shows a lighter view;
+  // active-process (true) adds the resume + reference summaries.
+  activeProcess Boolean            @default(false)
+  // Recruiter only — opt-in extras: "RESUME" | "SALARY" | "REFERENCES"
+  includeExtras String[]          @default([])
+
+  expiresAt     DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime           @default(now())
+  lastViewedAt  DateTime?
+  viewCount     Int                @default(0)
+
+  @@index([candidateId])
+  @@index([token])
+}
+
 model SurfacedJob {
   id          String           @id @default(cuid())
   candidateId String
