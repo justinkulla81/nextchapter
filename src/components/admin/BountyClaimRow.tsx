@@ -13,7 +13,7 @@ interface BountyClaimRowProps {
   companyName: string
   roleTitle: string
   startDate: string
-  paymentMethod: string
+  paymentMethod: string | null
   paymentHandle: string | null
   status: string
   paidAt: string | null
@@ -37,8 +37,10 @@ export function BountyClaimRow(claim: BountyClaimRowProps) {
             {claim.roleTitle} at {claim.companyName} — starts {claim.startDate}
           </p>
           <p className="text-xs text-muted-foreground">
-            Pay via {claim.paymentMethod}
-            {claim.paymentHandle ? ` (${claim.paymentHandle})` : ''} · Submitted {claim.createdAt}
+            {claim.paymentMethod
+              ? `Pay via ${claim.paymentMethod}${claim.paymentHandle ? ` (${claim.paymentHandle})` : ''}`
+              : 'Payment method not yet confirmed'}{' '}
+            · Submitted {claim.createdAt}
           </p>
         </div>
         <span

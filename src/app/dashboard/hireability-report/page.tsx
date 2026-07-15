@@ -3,7 +3,6 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './actions'
-import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
@@ -13,7 +12,7 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
 import { weeklyTimeTargetHours } from '@/lib/weekly/weekly-target'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL, FACTOR_TYPE_LABEL, CONFIDENCE_LABEL, CONFIDENCE_STYLE } from '@/lib/scoring/grade'
+import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
@@ -148,7 +147,7 @@ export default async function HireabilityReportPage() {
 
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Report</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Hireability Report</h1>
           <p className="mt-1 text-muted-foreground">
             Your strengths, gaps, and an action plan — built from everything in your profile.
           </p>
@@ -260,14 +259,6 @@ export default async function HireabilityReportPage() {
                             <div key={d.key} className="flex items-center justify-between gap-2 text-sm">
                               <span className="text-foreground">{d.label}</span>
                               <span className="flex items-center gap-2">
-                                <span
-                                  className={cn(
-                                    'rounded px-1.5 py-0.5 text-[10px] font-medium',
-                                    CONFIDENCE_STYLE[d.confidence]
-                                  )}
-                                >
-                                  {CONFIDENCE_LABEL[d.confidence]}
-                                </span>
                                 <span className="text-xs text-muted-foreground">
                                   {FACTOR_TYPE_LABEL[d.factorType]}
                                 </span>
@@ -345,8 +336,9 @@ export default async function HireabilityReportPage() {
             </p>
             <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
               <p className="text-sm font-medium text-foreground">
-                This week, an A takes about <span className="font-semibold">{aTargetHours}h</span> of
-                real committed work; a B takes about{' '}
+                This week, to get an A on Search Execution, it takes about{' '}
+                <span className="font-semibold">{aTargetHours}h</span> of real committed work; a B
+                takes about{' '}
                 <span className="font-semibold">{bTargetHours}h</span>.
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -414,9 +406,26 @@ export default async function HireabilityReportPage() {
             </div>
           )}
 
-          {/* This week's activities — the same list the Success Sprint draws from */}
+          {/* Gap Analysis */}
+          <div className="mt-10 border-t border-border pt-8">
+            <SectionHeading>Gap Analysis for your Ideal Role</SectionHeading>
+            <div className="mt-4 divide-y divide-border">
+              {(report.gapAnalysis as unknown as GapAnalysis).gaps.map((gap) => (
+                <div key={gap.area} className="space-y-1 py-3 first:pt-0">
+                  <p className="font-semibold text-foreground">{gap.area}</p>
+                  <p className="text-sm text-muted-foreground">{gap.why}</p>
+                  <p className="text-sm">
+                    <span className="font-medium">Remediation ({gap.remediationType}):</span>{' '}
+                    {gap.remediation}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Your Success Sprint — the same list the Success Sprint page draws from */}
           <div className="mt-10 border-t border-border pt-8 print:hidden">
-            <SectionHeading>This Week&apos;s Activities</SectionHeading>
+            <SectionHeading>Your Success Sprint – Week&apos;s Activities</SectionHeading>
             <p className="mt-4 text-sm text-muted-foreground">
               Everything below is a real, available action toward your Search Execution grade.
               Click into your{' '}
@@ -446,25 +455,6 @@ export default async function HireabilityReportPage() {
             )}
           </div>
 
-          {/* Gap Analysis */}
-          <div className="mt-10 border-t border-border pt-8">
-            <SectionHeading>
-              Gap Analysis — {(report.gapAnalysis as unknown as GapAnalysis).targetRole}
-            </SectionHeading>
-            <div className="mt-4 divide-y divide-border">
-              {(report.gapAnalysis as unknown as GapAnalysis).gaps.map((gap) => (
-                <div key={gap.area} className="space-y-1 py-3 first:pt-0">
-                  <p className="font-semibold text-foreground">{gap.area}</p>
-                  <p className="text-sm text-muted-foreground">{gap.why}</p>
-                  <p className="text-sm">
-                    <span className="font-medium">Remediation ({gap.remediationType}):</span>{' '}
-                    {gap.remediation}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Market Conditions */}
           {report.marketConditions !== null && (
             <div className="mt-10 border-t border-border pt-8">
@@ -476,29 +466,6 @@ export default async function HireabilityReportPage() {
               </ul>
             </div>
           )}
-
-          {/* Resume */}
-          <div className="mt-10 border-t border-border pt-8 print:hidden">
-            <SectionHeading>Resume</SectionHeading>
-            {profile.resumes.length === 0 ? (
-              <div className="mt-4 space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  You haven&apos;t uploaded a resume yet. Uploading one massively improves your
-                  score and lets us give you specific, evidence-based suggestions as part of your
-                  action plan.
-                </p>
-                <Button render={<Link href="/dashboard/resume" />}>Upload my resume</Button>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-muted-foreground">
-                Resume on file — see your full analysis on the{' '}
-                <Link href="/dashboard/resume" className="text-primary underline underline-offset-4">
-                  Resume page
-                </Link>
-                .
-              </p>
-            )}
-          </div>
         </div>
       )}
     </div>

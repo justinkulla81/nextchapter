@@ -16,13 +16,8 @@ export default async function CreateAccountPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {profile.firstName ? `Nice work, ${profile.firstName}!` : 'One last step'}
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Confirm your email to create your account and unlock your full Hireability Report — no
-          password needed, we&apos;ll email you a link.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">Your report is ready.</h1>
+        <p className="mt-1 text-muted-foreground">Enter your email and we&apos;ll send it now.</p>
       </div>
       <CreateAccountForm defaultEmail={profile.email} />
     </div>

@@ -40,9 +40,9 @@ export function MoodCheckInCard({
           </blockquote>
         )}
         {showPicker ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-wrap gap-3 sm:flex-nowrap">
             {MOOD_ORDER.map((mood) => (
-              <form key={mood} action={checkInMood.bind(null, mood)}>
+              <form key={mood} action={checkInMood.bind(null, mood)} className="min-w-[45%] flex-1 sm:min-w-0">
                 <SubmitButton
                   variant={todaysMood === mood ? 'default' : 'outline'}
                   className="h-auto w-full flex-col gap-1.5 py-5 text-base"

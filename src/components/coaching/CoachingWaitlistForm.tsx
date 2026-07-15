@@ -8,7 +8,19 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { joinCoachingWaitlist } from '@/app/coaching/actions'
 
-export function CoachingWaitlistForm({ source }: { source: string }) {
+interface KnownContact {
+  email: string
+  firstName: string | null
+  lastName: string | null
+}
+
+export function CoachingWaitlistForm({
+  source,
+  knownContact,
+}: {
+  source: string
+  knownContact?: KnownContact
+}) {
   const [state, formAction, pending] = useActionState(joinCoachingWaitlist.bind(null, source), undefined)
 
   if (state?.sent) {
@@ -21,21 +33,32 @@ export function CoachingWaitlistForm({ source }: { source: string }) {
 
   return (
     <form action={formAction} className={cn('space-y-4', pending && 'cursor-wait [&_*]:cursor-wait')}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="firstName">First name</Label>
-          <Input id="firstName" name="firstName" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="lastName">Last name</Label>
-          <Input id="lastName" name="lastName" />
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required aria-invalid={!!state?.error} />
-        {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      </div>
+      {knownContact ? (
+        <>
+          <input type="hidden" name="email" value={knownContact.email} />
+          <input type="hidden" name="firstName" value={knownContact.firstName ?? ''} />
+          <input type="hidden" name="lastName" value={knownContact.lastName ?? ''} />
+          {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+        </>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="firstName">First name</Label>
+              <Input id="firstName" name="firstName" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lastName">Last name</Label>
+              <Input id="lastName" name="lastName" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" name="email" type="email" required aria-invalid={!!state?.error} />
+            {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+          </div>
+        </>
+      )}
       <div className="space-y-1.5">
         <Label htmlFor="challenge">
           What would you want help with? <span className="text-muted-foreground">(optional)</span>

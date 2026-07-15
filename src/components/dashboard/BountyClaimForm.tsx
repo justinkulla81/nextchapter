@@ -1,29 +1,22 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { submitBountyClaim } from '@/app/dashboard/got-hired/actions'
 
-const PAYMENT_METHODS = [
-  { value: 'VENMO', label: 'Venmo' },
-  { value: 'PAYPAL', label: 'PayPal' },
-  { value: 'ZELLE', label: 'Zelle' },
-] as const
-
 export function BountyClaimForm() {
   const [state, formAction, pending] = useActionState(submitBountyClaim, undefined)
-  const [paymentMethod, setPaymentMethod] = useState<string | null>(null)
 
   if (state?.submitted) {
     return (
       <div className="rounded-lg border border-success/30 bg-success/5 p-6">
-        <p className="text-lg font-semibold text-foreground">Congratulations — that&apos;s huge. 🎉</p>
+        <p className="text-lg font-semibold text-foreground">Congratulations!</p>
         <p className="mt-2 text-sm text-foreground">
-          I&apos;ve got your details and your offer letter. I&apos;ll review it and follow up —
-          usually within a few days. Go celebrate. — Victoria
+          Thank you for letting us know. We&apos;ll be reaching out with confirmation and payment
+          next steps.
         </p>
       </div>
     )
@@ -44,37 +37,6 @@ export function BountyClaimForm() {
           <Label htmlFor="startDate">Start date</Label>
           <Input id="startDate" name="startDate" type="date" required />
         </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>How would you like to be paid?</Label>
-        <input type="hidden" name="paymentMethod" value={paymentMethod ?? ''} />
-        <div className="grid grid-cols-3 gap-1.5">
-          {PAYMENT_METHODS.map((method) => (
-            <button
-              key={method.value}
-              type="button"
-              onClick={() => setPaymentMethod(method.value)}
-              aria-pressed={paymentMethod === method.value}
-              className={cn(
-                'rounded-lg border-2 p-2 text-center text-sm font-medium transition-colors',
-                paymentMethod === method.value
-                  ? 'border-brand bg-brand/5 text-brand'
-                  : 'border-border bg-white text-foreground hover:border-brand/40'
-              )}
-            >
-              {method.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="paymentHandle">
-          {paymentMethod ? `Your ${paymentMethod === 'VENMO' ? 'Venmo' : paymentMethod === 'PAYPAL' ? 'PayPal' : 'Zelle'} handle` : 'Payment handle'}{' '}
-          <span className="text-muted-foreground">(optional — you can also confirm this later)</span>
-        </Label>
-        <Input id="paymentHandle" name="paymentHandle" />
       </div>
 
       <div className="space-y-1.5">

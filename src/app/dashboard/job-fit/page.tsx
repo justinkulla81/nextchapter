@@ -55,7 +55,7 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [nextSurfacedJob, interestedJobs] = await Promise.all([
+  const [nextSurfacedJob, interestedJobs, reactedCount] = await Promise.all([
     prisma.surfacedJob.findFirst({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -64,15 +64,23 @@ export default async function JobFitPage() {
       where: { candidateId: profile.id, reaction: 'INTERESTED' },
       orderBy: { reactedAt: 'desc' },
     }),
+    prisma.surfacedJob.count({
+      where: { candidateId: profile.id, reaction: { not: null } },
+    }),
   ])
+
+  const ratedCount = profile.jobPostings.length + reactedCount
 
   return (
     <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Job Fit</h1>
         <p className="mt-1 text-muted-foreground">
-          Add up to 5 jobs you like and get honest feedback on how well you actually fit them — or
-          react to jobs the system finds for you below.
+          Review jobs you&apos;ve found or that we&apos;ve surfaced for you, and get honest
+          feedback on how well you actually fit each one.
+        </p>
+        <p className="mt-2 text-sm font-medium text-muted-foreground tabular-nums">
+          {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
         </p>
       </div>
 
@@ -278,12 +286,12 @@ export default async function JobFitPage() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Jobs we found for you</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Surfaced to learn from your reactions, one at a time — react honestly and the read on
-            where to focus gets sharper.
+            Here are some jobs we found. We want your feedback to train our system about your
+            interests and get a better fit.
           </p>
         </div>
 
-        <JobReactionSummary />
+        <JobReactionSummary ratedCount={ratedCount} />
 
         {nextSurfacedJob ? (
           <NextSurfacedJobCard job={nextSurfacedJob} />

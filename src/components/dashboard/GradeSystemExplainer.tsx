@@ -1,7 +1,6 @@
 import type {
   Grade,
   FactorType,
-  ConfidenceLevel,
   MarketRealityDimension,
   SearchExecutionEngine,
 } from '@/lib/scoring/grade'
@@ -9,9 +8,6 @@ import {
   GRADE_BAND_DESCRIPTION,
   FACTOR_TYPE_LABEL,
   FACTOR_TYPE_EXPLANATION,
-  CONFIDENCE_LABEL,
-  CONFIDENCE_EXPLANATION,
-  CONFIDENCE_STYLE,
   MARKET_REALITY_DIMENSION_LABEL,
   MARKET_REALITY_DIMENSION_FACTOR_TYPE,
   MARKET_REALITY_DIMENSION_EXPLANATION,
@@ -23,7 +19,6 @@ import { cn } from '@/lib/utils'
 
 const GRADE_ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
 const FACTOR_TYPE_ORDER: FactorType[] = ['controllable', 'influenceable', 'structural']
-const CONFIDENCE_ORDER: ConfidenceLevel[] = ['HIGH', 'BUILDING', 'PROVISIONAL']
 const MARKET_REALITY_KEYS = Object.keys(
   MARKET_REALITY_DIMENSION_LABEL
 ) as MarketRealityDimension['key'][]
@@ -56,28 +51,6 @@ export function GradeSystemExplainer() {
             <div key={g} className="flex items-baseline gap-2">
               <span className={cn('w-4 shrink-0 font-bold', GRADE_COLOR[g])}>{g}</span>
               <span className="text-muted-foreground">{GRADE_BAND_DESCRIPTION[g]}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-xs font-semibold tracking-widest text-brand uppercase">
-          Confirmed, building, provisional
-        </h3>
-        <p className="mt-2 text-muted-foreground">
-          Each Market Reality dimension also carries a confidence tag — how much real signal backs
-          that grade today, separate from the grade itself. It fills in as you add more data (a
-          resume, reactions to real job postings, a stated comp floor), regardless of whether the
-          grade goes up or down.
-        </p>
-        <div className="mt-3 space-y-1.5">
-          {CONFIDENCE_ORDER.map((c) => (
-            <div key={c} className="flex items-baseline gap-2">
-              <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium', CONFIDENCE_STYLE[c])}>
-                {CONFIDENCE_LABEL[c]}
-              </span>
-              <span className="text-muted-foreground">{CONFIDENCE_EXPLANATION[c]}</span>
             </div>
           ))}
         </div>

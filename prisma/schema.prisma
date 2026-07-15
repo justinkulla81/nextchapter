@@ -1191,7 +1191,7 @@ model BountyClaim {
   roleTitle       String
   startDate       DateTime
   offerLetterUrl  String // storage path in the private 'offer-letters' bucket, not a public URL
-  paymentMethod   BountyPaymentMethod
+  paymentMethod   BountyPaymentMethod?
   paymentHandle   String?
 
   status          BountyClaimStatus @default(PENDING)

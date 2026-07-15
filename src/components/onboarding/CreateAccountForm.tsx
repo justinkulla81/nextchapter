@@ -58,10 +58,9 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
     return (
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">
-          Check <span className="font-medium">{email}</span> for a link to finish creating your
-          account and unlock your full Hireability Report. Confirmation emails can occasionally
-          take a while to arrive — if you don&apos;t see it after a few minutes, check spam or
-          resend it below.
+          Check <span className="font-medium">{email}</span> for a link to your full Hireability
+          Report. Confirmation emails can occasionally take a while to arrive — if you don&apos;t
+          see it after a few minutes, check spam or resend it below.
         </p>
         <button
           type="button"
@@ -93,8 +92,11 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Sending…' : 'Finish creating my account'}
+        {loading ? 'Sending…' : 'Send my report →'}
       </Button>
+      <p className="text-xs text-muted-foreground">
+        We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.
+      </p>
     </form>
   )
 }

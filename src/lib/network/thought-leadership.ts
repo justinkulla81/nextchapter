@@ -43,6 +43,7 @@ export async function generatePostIdeas(candidateId: string): Promise<PostIdea[]
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
+Target industries: ${candidate.targetIndustries.length > 0 ? candidate.targetIndustries.join(', ') : 'not specified'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${

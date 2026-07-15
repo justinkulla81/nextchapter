@@ -5,6 +5,8 @@ import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { CoachingWaitlistForm } from '@/components/coaching/CoachingWaitlistForm'
 import { StructuredData } from '@/components/StructuredData'
+import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma'
 
 export const metadata: Metadata = {
   title: 'Executive Coach — A Real Human Coach, When You Want One | NextChapter',
@@ -46,7 +48,21 @@ const jsonLd = {
   url: 'https://launchyournextchapter.com/coaching',
 }
 
-export default function CoachingPage() {
+export default async function CoachingPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let knownContact: { email: string; firstName: string | null; lastName: string | null } | undefined
+  if (user?.email) {
+    const profile = await prisma.candidateProfile.findUnique({
+      where: { userId: user.id },
+      select: { firstName: true, lastName: true },
+    })
+    knownContact = { email: user.email, firstName: profile?.firstName ?? null, lastName: profile?.lastName ?? null }
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
@@ -103,8 +119,7 @@ export default function CoachingPage() {
                 $500<span className="text-base font-medium text-muted-foreground">/month</span>
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Cancel anytime. Not currently open for new coaches — join the waitlist and
-                we&apos;ll reach out as spots open up.
+                Cancel anytime. Join the waitlist and we&apos;ll reach out as spots open up.
               </p>
             </div>
           </div>
@@ -117,7 +132,7 @@ export default function CoachingPage() {
                   We&apos;ll email you when a coach is available.
                 </p>
               </div>
-              <CoachingWaitlistForm source="coaching_page" />
+              <CoachingWaitlistForm source="coaching_page" knownContact={knownContact} />
             </CardContent>
           </Card>
         </div>

@@ -10,7 +10,9 @@ export function Week1ArtifactSprint({ artifacts }: { artifacts: Week1Artifact[] 
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          Your First Week: 5 Real Things
+          <Link href="/dashboard/sprint" className="hover:text-foreground hover:underline">
+            Success Sprint
+          </Link>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

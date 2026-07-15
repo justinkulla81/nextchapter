@@ -186,7 +186,9 @@ export function GoalsForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="dealBreakers">Any deal-breakers? (optional)</Label>
+        <Label htmlFor="dealBreakers">
+          Are there any other important considerations for your next job? (optional)
+        </Label>
         <Textarea
           id="dealBreakers"
           name="dealBreakers"

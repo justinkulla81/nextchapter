@@ -21,7 +21,7 @@ export const LOCATION_PREFERENCE_OPTIONS = [
   { value: 'onsite', label: 'On-site' },
   { value: 'remote', label: 'Remote' },
   { value: 'hybrid', label: 'Hybrid' },
-  { value: 'flexible', label: 'Flexible' },
+  { value: 'flexible', label: "I'm easy going on this" },
 ] as const
 
 export const JOB_SEARCH_DIFFICULTY_OPTIONS = [

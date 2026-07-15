@@ -71,7 +71,7 @@ export function ThoughtLeadershipStudio({ venues }: { venues: ContentVenue[] }) 
     <div className="space-y-4">
       <form action={generateAction}>
         <Button type="submit" disabled={generating} className={generating ? 'cursor-progress' : ''}>
-          {generating ? 'Generating…' : 'Generate 5 post ideas'}
+          {generating ? 'Generating…' : 'Generate 5 Ideas Tailored to my background and goals'}
         </Button>
       </form>
       {ideasState?.error && <p className="text-sm text-destructive">{ideasState.error}</p>}

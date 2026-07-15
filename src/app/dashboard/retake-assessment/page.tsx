@@ -1,6 +1,8 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { AssessmentForm } from '@/components/onboarding/AssessmentForm'
+import { KnownForForm } from '@/components/dashboard/KnownForForm'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CURRENT_ASSESSMENT_ROTATION_GROUP } from '@/lib/constants/onboarding'
 
 const RETAKE_COOLDOWN_DAYS = 7
@@ -20,12 +22,24 @@ export default async function RetakeAssessmentPage() {
     if (daysSince < RETAKE_COOLDOWN_DAYS) {
       const daysRemaining = Math.ceil(RETAKE_COOLDOWN_DAYS - daysSince)
       return (
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Retake Assessment</h1>
-          <p className="text-muted-foreground">
-            You can retake your Work Style Assessment once a week — next retake available in{' '}
-            {daysRemaining} day{daysRemaining === 1 ? '' : 's'}.
-          </p>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight">My Working Style</h1>
+            <p className="text-muted-foreground">
+              You can retake your Work Style Assessment once a week — next retake available in{' '}
+              {daysRemaining} day{daysRemaining === 1 ? '' : 's'}.
+            </p>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                How you come across
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <KnownForForm knownFor={profile.knownFor} />
+            </CardContent>
+          </Card>
         </div>
       )
     }
@@ -45,12 +59,22 @@ export default async function RetakeAssessmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Retake Assessment</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">My Working Style</h1>
         <p className="mt-2 text-muted-foreground">
           Your work style can shift as your search progresses — this replaces your Work Style
           Profile with a fresh read. No wrong answers.
         </p>
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            How you come across
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <KnownForForm knownFor={profile.knownFor} />
+        </CardContent>
+      </Card>
       <AssessmentForm blocks={blocks} likertItems={likertItems} />
     </div>
   )

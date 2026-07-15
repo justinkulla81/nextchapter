@@ -9,7 +9,6 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 export type FormState = { error?: string; submitted?: boolean } | undefined
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-const PAYMENT_METHODS = ['VENMO', 'PAYPAL', 'ZELLE'] as const
 
 export async function submitBountyClaim(_prevState: FormState, formData: FormData): Promise<FormState> {
   const supabase = await createClient()
@@ -23,8 +22,6 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
   const companyName = (formData.get('companyName') as string | null)?.trim()
   const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
   const startDateRaw = formData.get('startDate') as string | null
-  const paymentMethod = formData.get('paymentMethod') as string | null
-  const paymentHandle = (formData.get('paymentHandle') as string | null)?.trim() || null
   const file = formData.get('offerLetter') as File | null
 
   if (!companyName || !roleTitle || !startDateRaw) {
@@ -33,9 +30,6 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
   const startDate = new Date(startDateRaw)
   if (Number.isNaN(startDate.getTime())) {
     return { error: 'Enter a valid start date.' }
-  }
-  if (!paymentMethod || !PAYMENT_METHODS.includes(paymentMethod as (typeof PAYMENT_METHODS)[number])) {
-    return { error: 'Choose how you\'d like to be paid.' }
   }
   if (!file || file.size === 0) {
     return { error: 'Upload your offer letter or written confirmation of employment.' }
@@ -65,8 +59,6 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
       roleTitle,
       startDate,
       offerLetterUrl: path,
-      paymentMethod: paymentMethod as (typeof PAYMENT_METHODS)[number],
-      paymentHandle,
     },
   })
 

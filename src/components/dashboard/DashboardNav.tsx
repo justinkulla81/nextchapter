@@ -39,19 +39,10 @@ const SECTIONS: NavSection[] = [
   {
     title: null,
     links: [
-      { href: '/dashboard', label: 'Overview' },
-      { href: '/dashboard/hireability-report', label: 'My Report' },
-      { href: '/dashboard/weekly-report', label: 'Weekly Report' },
-      { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
-    ],
-  },
-  {
-    title: 'Plan',
-    links: [
+      { href: '/dashboard', label: 'Success Dashboard' },
+      { href: '/dashboard/hireability-report', label: 'Hireability Report' },
       { href: '/dashboard/sprint', label: 'Success Sprint' },
-      { href: '/dashboard/network', label: 'My Network' },
-      { href: '/dashboard/interview-prep', label: 'Interview Prep' },
-      { href: '/dashboard/interview', label: 'Interview Responses' },
+      { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
     ],
   },
   {
@@ -59,23 +50,31 @@ const SECTIONS: NavSection[] = [
     links: [
       { href: '/dashboard/resume', label: 'Resume' },
       { href: '/dashboard/linkedin', label: 'LinkedIn' },
-      { href: '/dashboard/profile', label: 'Profile' },
-      { href: '/dashboard/retake-assessment', label: 'Retake Assessment' },
-      { href: '/dashboard/privacy', label: 'Privacy' },
+      { href: '/dashboard/job-fit', label: 'Job Fit' },
+      { href: '/dashboard/retake-assessment', label: 'My Working Style' },
       { href: '/dashboard/work-samples', label: 'Proof Assets' },
       { href: '/dashboard/thought-leadership', label: 'Thought Leadership' },
       { href: '/dashboard/references', label: 'References' },
+      { href: '/dashboard/interview-prep', label: 'Interview Prep' },
+      { href: '/dashboard/interview', label: 'Interview Responses' },
     ],
   },
   {
     title: 'Discover',
     links: [
-      { href: '/dashboard/job-fit', label: 'Job Fit' },
-      { href: '/dashboard/gig-directory', label: 'Interim Jobs' },
+      { href: '/dashboard/network', label: 'My Network' },
+      { href: '/dashboard/gig-directory', label: 'Interim Roles' },
       { href: '/dashboard/community', label: 'Community' },
       { href: '/dashboard/learning', label: 'Learning' },
       { href: '/dashboard/benefits', label: 'Benefits' },
       { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
+    ],
+  },
+  {
+    title: null,
+    links: [
+      { href: '/dashboard/profile', label: 'Profile' },
+      { href: '/dashboard/privacy', label: 'Privacy' },
     ],
   },
 ]

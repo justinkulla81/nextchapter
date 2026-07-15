@@ -4,15 +4,12 @@ import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
-import { calculateEmployabilityScore, scoreToNextSteps } from '@/lib/scoring/employability-score'
 import { getQuoteOfTheDay } from '@/lib/constants/quotes'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/lib/weekly/sprint'
-import { computeUnlockTierForCandidate } from '@/lib/community/unlock-tier'
-import { computeEarnedBadges } from '@/lib/community/badges'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
@@ -21,7 +18,6 @@ import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
-import { CommunityTierCard } from '@/components/dashboard/CommunityTierCard'
 import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
@@ -29,7 +25,6 @@ import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { WorkStyleProfileCard } from '@/components/dashboard/WorkStyleProfileCard'
-import { NextStepsList } from '@/components/candidates/NextStepsList'
 import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -71,13 +66,10 @@ export default async function DashboardPage() {
     {
       data: { user },
     },
-    currentRaw,
     conversation,
     grade,
     todaysMood,
     currentSprint,
-    unlockTier,
-    earnedBadges,
     searchExecutionAvailable,
     latestReport,
     communityFeed,
@@ -86,13 +78,10 @@ export default async function DashboardPage() {
     existingBountyClaimCount,
   ] = await Promise.all([
     supabase.auth.getUser(),
-    calculateEmployabilityScore(profile.id),
     getOrCreateCoachConversation(profile.id),
     computeHireabilityGrade(profile),
     getTodaysMood(profile.id),
     getCurrentWeekSprint(profile.id),
-    computeUnlockTierForCandidate(profile.id),
-    computeEarnedBadges(profile.id),
     hasStartedSprint(profile.id),
     // The registration-time after() callback that normally generates AND
     // emails the first report can get cut off by the platform's function
@@ -110,7 +99,6 @@ export default async function DashboardPage() {
   const weekNumber = profile._count.weeklySprints + 1
   const isFirstWeek = weekNumber === 1
 
-  const nextSteps = scoreToNextSteps(profile, currentRaw)
   const latestAssessment = profile.assessmentResponses[0]
   const primaryAction = latestReport
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
@@ -139,7 +127,7 @@ export default async function DashboardPage() {
       )}
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hireability Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Week {weekNumber} &middot; Day {dayNumber} — Your goal is to {goalLabel}.
         </p>
@@ -153,8 +141,6 @@ export default async function DashboardPage() {
         firstName={profile.firstName}
       />
 
-      <CommunityPreviewWidget feed={communityFeed} />
-
       {isFirstWeek ? (
         <Week1ArtifactSprint artifacts={week1Artifacts} />
       ) : (
@@ -163,13 +149,9 @@ export default async function DashboardPage() {
         />
       )}
 
-      <CompactGradeCard grade={grade} searchExecutionAvailable={searchExecutionAvailable} />
+      <CommunityPreviewWidget feed={communityFeed} />
 
-      <Card>
-        <CardContent className="pt-6">
-          <NextStepsList nextSteps={nextSteps} />
-        </CardContent>
-      </Card>
+      <CompactGradeCard grade={grade} searchExecutionAvailable={searchExecutionAvailable} />
 
       <Card>
         <CardHeader>
@@ -198,8 +180,6 @@ export default async function DashboardPage() {
           )}
         </CardContent>
       </Card>
-
-      <CommunityTierCard tier={unlockTier} badges={earnedBadges} />
 
       {showGotHiredCTA && <GotHiredCTACard />}
 

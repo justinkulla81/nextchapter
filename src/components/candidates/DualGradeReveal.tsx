@@ -100,6 +100,24 @@ function GradeRing({ label, grade }: { label: string; grade: Grade | null }) {
   )
 }
 
+const HARD_HILL_GRADES: Grade[] = ['C', 'D', 'F']
+
+function HardHillCallout() {
+  return (
+    <div className="w-full max-w-sm space-y-2 border-l-4 border-navy bg-off-white px-[1.375rem] py-4 text-left">
+      <p className="font-bold text-navy">We know this seems like a hard hill to climb.</p>
+      <p className="text-[15px] text-foreground">
+        But that&apos;s exactly what NextChapter is for. We help you improve your Hireability Grade
+        with a structured execution plan — one activity at a time.
+      </p>
+      <p className="text-[15px] text-foreground">
+        You can also show recruiters you&apos;re serious with a strong Execution Score — earned by
+        completing real activities in your action plan. Recruiters see your effort, not your grade.
+      </p>
+    </div>
+  )
+}
+
 export function DualGradeReveal({
   grade,
   nextSteps,
@@ -112,6 +130,10 @@ export function DualGradeReveal({
       <GradeRing label="Market Reality" grade={grade.marketReality.grade} />
 
       <GradeLegend />
+
+      {grade.marketReality.grade !== null && HARD_HILL_GRADES.includes(grade.marketReality.grade) && (
+        <HardHillCallout />
+      )}
 
       <NextStepsList nextSteps={nextSteps} heading="Get your full action plan, including:" />
     </div>
