@@ -1,5 +1,5 @@
 import type { SupportNetworkContact } from '@prisma/client'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { updateContact, deleteContact, logOutreach, logMarketResponse } from '@/app/dashboard/network/actions'
 import { getOutreachScript, type ScriptContext } from '@/lib/network/scripts'
 import type { NetworkingAnxiety } from '@prisma/client'
@@ -39,9 +39,9 @@ export function ContactRow({
           )}
         </div>
         <form action={deleteContact.bind(null, contact.id)}>
-          <Button type="submit" variant="ghost" size="sm">
+          <SubmitButton variant="ghost" size="sm">
             Remove
-          </Button>
+          </SubmitButton>
         </form>
       </div>
 
@@ -66,50 +66,50 @@ export function ContactRow({
           <option value="WARM">Warm</option>
           <option value="COLD">Cold</option>
         </select>
-        <Button type="submit" variant="outline" size="sm">
+        <SubmitButton variant="outline" size="sm">
           Save
-        </Button>
+        </SubmitButton>
       </form>
 
       <div className="flex flex-wrap gap-2 pt-1">
         <form action={logOutreach.bind(null, contact.id, 'LINKEDIN')}>
-          <Button type="submit" variant="outline" size="sm">
+          <SubmitButton variant="outline" size="sm">
             Log LinkedIn outreach
-          </Button>
+          </SubmitButton>
         </form>
         <form action={logOutreach.bind(null, contact.id, 'PHONE')}>
-          <Button type="submit" variant="outline" size="sm">
+          <SubmitButton variant="outline" size="sm">
             Log call
-          </Button>
+          </SubmitButton>
         </form>
         <form action={logOutreach.bind(null, contact.id, 'TEXT')}>
-          <Button type="submit" variant="outline" size="sm">
+          <SubmitButton variant="outline" size="sm">
             Log text
-          </Button>
+          </SubmitButton>
         </form>
       </div>
 
       <div className="flex flex-wrap gap-2 border-t border-border pt-2">
         <p className="w-full text-xs text-muted-foreground">Did this outreach get a response?</p>
         <form action={logMarketResponse.bind(null, 'REPLY')}>
-          <Button type="submit" variant="ghost" size="sm">
+          <SubmitButton variant="ghost" size="sm">
             They replied
-          </Button>
+          </SubmitButton>
         </form>
         <form action={logMarketResponse.bind(null, 'CONVERSATION')}>
-          <Button type="submit" variant="ghost" size="sm">
+          <SubmitButton variant="ghost" size="sm">
             We had a real conversation
-          </Button>
+          </SubmitButton>
         </form>
         <form action={logMarketResponse.bind(null, 'REFERRAL')}>
-          <Button type="submit" variant="ghost" size="sm">
+          <SubmitButton variant="ghost" size="sm">
             They referred me
-          </Button>
+          </SubmitButton>
         </form>
         <form action={logMarketResponse.bind(null, 'PAID_PROJECT_LEAD')}>
-          <Button type="submit" variant="ghost" size="sm">
+          <SubmitButton variant="ghost" size="sm">
             Paid-project lead
-          </Button>
+          </SubmitButton>
         </form>
       </div>
 

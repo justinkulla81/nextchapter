@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import type { AudienceTab } from './audience-data'
 
 // Empty env var = demo mode (no network call, confirmation only). Set to a
@@ -86,7 +87,10 @@ export function WaitlistForm({ tab }: { tab: AudienceTab }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className={cn('relative space-y-4', submitting && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div>
         <h3 className="font-semibold text-foreground">{tab.formHeading}</h3>
         <p className="mt-1 text-sm text-muted-foreground">{tab.formSubtext}</p>

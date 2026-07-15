@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { submitJobPostingText } from '@/app/dashboard/job-fit/actions'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { Textarea } from '@/components/ui/textarea'
 
 export function JobPostingTextFallback({
@@ -34,9 +34,9 @@ export function JobPostingTextFallback({
         placeholder="Paste the full job description text here…"
         required
       />
-      <Button type="submit" size="sm">
+      <SubmitButton size="sm" pendingLabel="Analyzing…">
         Analyze this text
-      </Button>
+      </SubmitButton>
     </form>
   )
 }

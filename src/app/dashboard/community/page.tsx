@@ -11,6 +11,7 @@ import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
 import { EncouragementForm } from '@/components/dashboard/EncouragementForm'
 import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
 import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 
 export default async function CommunityPage({
   searchParams,
@@ -113,9 +114,9 @@ export default async function CommunityPage({
               </p>
               <p className="mt-1 text-xs text-muted-foreground">Someone here sent you this.</p>
               <form action={dismissEncouragementNote.bind(null, note.id)} className="mt-2">
-                <Button type="submit" variant="outline" size="sm">
+                <SubmitButton variant="outline" size="sm">
                   Dismiss
-                </Button>
+                </SubmitButton>
               </form>
             </div>
           ))}

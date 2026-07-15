@@ -1,5 +1,5 @@
 import type { ActionWindow } from '@prisma/client'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { setActionWindow } from '@/app/dashboard/actions'
 
 const ACTION_WINDOW_LABEL: Record<ActionWindow, string> = {
@@ -28,9 +28,9 @@ export function ActionWindowSelector({ current }: { current: ActionWindow }) {
       <div className="flex flex-wrap gap-2 pt-1">
         {ACTION_WINDOW_ORDER.map((window) => (
           <form key={window} action={setActionWindow.bind(null, window)}>
-            <Button type="submit" variant={current === window ? 'default' : 'outline'} size="sm">
+            <SubmitButton variant={current === window ? 'default' : 'outline'} size="sm">
               {ACTION_WINDOW_LABEL[window]}
-            </Button>
+            </SubmitButton>
           </form>
         ))}
       </div>

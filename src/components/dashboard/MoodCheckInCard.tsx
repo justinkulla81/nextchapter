@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { Mood } from '@prisma/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { checkInMood } from '@/app/dashboard/actions'
 import { MOOD_ORDER, MOOD_EMOJI, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
 import { frameActionForMood, type TodaysPrimaryAction } from '@/lib/daily/primary-action'
@@ -43,8 +43,7 @@ export function MoodCheckInCard({
           <div className="grid grid-cols-2 gap-3">
             {MOOD_ORDER.map((mood) => (
               <form key={mood} action={checkInMood.bind(null, mood)}>
-                <Button
-                  type="submit"
+                <SubmitButton
                   variant={todaysMood === mood ? 'default' : 'outline'}
                   className="h-auto w-full flex-col gap-1.5 py-5 text-base"
                   onClick={() => setEditing(false)}
@@ -53,7 +52,7 @@ export function MoodCheckInCard({
                     {MOOD_EMOJI[mood]}
                   </span>
                   {MOOD_LABEL[mood]}
-                </Button>
+                </SubmitButton>
               </form>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { toggleAListOptOut, toggleEncouragementGiving } from '@/app/dashboard/community/actions'
 
 export function CommunitySettingsToggles({
@@ -18,9 +18,9 @@ export function CommunitySettingsToggles({
           </p>
         </div>
         <form action={toggleAListOptOut.bind(null, aListOptOut)}>
-          <Button type="submit" variant="outline" size="sm">
+          <SubmitButton variant="outline" size="sm">
             {aListOptOut ? 'Opted out' : 'Opted in'}
-          </Button>
+          </SubmitButton>
         </form>
       </div>
       <div className="flex items-center justify-between gap-4">
@@ -31,9 +31,9 @@ export function CommunitySettingsToggles({
           </p>
         </div>
         <form action={toggleEncouragementGiving.bind(null, encouragementGivingOptIn)}>
-          <Button type="submit" variant="outline" size="sm">
+          <SubmitButton variant="outline" size="sm">
             {encouragementGivingOptIn ? 'Opted in' : 'Opted out'}
-          </Button>
+          </SubmitButton>
         </form>
       </div>
     </div>

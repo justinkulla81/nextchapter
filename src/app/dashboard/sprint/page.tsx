@@ -7,7 +7,7 @@ import { SEARCH_EXECUTION_ENGINE_LABEL, CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } fr
 import { formatMinutes } from '@/lib/weekly/action-effort'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 
 export default async function SprintSetupPage() {
   const profile = await getDashboardData()
@@ -73,9 +73,9 @@ export default async function SprintSetupPage() {
                   {a.text} ({a.points} pts)
                 </span>
                 <form action={toggleSprintAction.bind(null, i)}>
-                  <Button type="submit" variant="ghost" size="sm" className="cursor-pointer">
+                  <SubmitButton variant="ghost" size="sm">
                     {a.completed ? 'Mark not done' : 'Mark done'}
-                  </Button>
+                  </SubmitButton>
                 </form>
               </li>
             ))}

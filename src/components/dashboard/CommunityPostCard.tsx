@@ -2,7 +2,7 @@ import type { CommunityPost } from '@prisma/client'
 import { deactivateCommunityPost, expressInterest } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 
 export function CommunityPostCard({
   post,
@@ -25,15 +25,15 @@ export function CommunityPostCard({
           </div>
           {isOwnPost ? (
             <form action={deactivateCommunityPost.bind(null, post.id)}>
-              <Button type="submit" variant="ghost" size="sm">
+              <SubmitButton variant="ghost" size="sm">
                 Remove
-              </Button>
+              </SubmitButton>
             </form>
           ) : (
             <form action={expressInterest.bind(null, post.id)}>
-              <Button type="submit" variant="outline" size="sm">
+              <SubmitButton variant="outline" size="sm">
                 I&apos;m interested
-              </Button>
+              </SubmitButton>
             </form>
           )}
         </div>

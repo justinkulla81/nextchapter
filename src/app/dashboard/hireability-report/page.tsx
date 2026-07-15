@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './actions'
 import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
@@ -158,18 +159,18 @@ export default async function HireabilityReportPage() {
               <PrintReportButton />
               {!report.emailSentAt && (
                 <form action={resendMyHireabilityReportEmail}>
-                  <Button type="submit" variant="outline">
+                  <SubmitButton variant="outline" pendingLabel="Sending…">
                     Email me this report
-                  </Button>
+                  </SubmitButton>
                 </form>
               )}
             </>
           )}
           {canRegenerate && (
             <form action={regenerateHireabilityReport}>
-              <Button type="submit" variant="outline">
+              <SubmitButton variant="outline" pendingLabel="Regenerating…">
                 Regenerate my report
-              </Button>
+              </SubmitButton>
             </form>
           )}
         </div>

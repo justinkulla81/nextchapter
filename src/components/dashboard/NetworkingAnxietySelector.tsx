@@ -1,5 +1,5 @@
 import type { NetworkingAnxiety } from '@prisma/client'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { setNetworkingAnxiety } from '@/app/dashboard/network/actions'
 
 const OPTIONS: { value: NetworkingAnxiety; label: string }[] = [
@@ -24,9 +24,9 @@ export function NetworkingAnxietySelector({ current }: { current: NetworkingAnxi
       <div className="flex flex-wrap gap-2 pt-1">
         {OPTIONS.map((opt) => (
           <form key={opt.value} action={setNetworkingAnxiety.bind(null, opt.value)}>
-            <Button type="submit" variant={current === opt.value ? 'default' : 'outline'} size="sm">
+            <SubmitButton variant={current === opt.value ? 'default' : 'outline'} size="sm">
               {opt.label}
-            </Button>
+            </SubmitButton>
           </form>
         ))}
       </div>

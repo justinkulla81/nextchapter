@@ -15,7 +15,7 @@ import {
   generateCoverLetterAction,
 } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 
@@ -107,15 +107,15 @@ export default async function JobFitPage() {
                     <div className="flex shrink-0 gap-2">
                       {(posting.fetchStatus === 'fetch_failed' || posting.fetchStatus === 'parse_failed') && (
                         <form action={retryJobFetch.bind(null, posting.id)}>
-                          <Button type="submit" variant="outline" size="sm">
+                          <SubmitButton variant="outline" size="sm">
                             Retry
-                          </Button>
+                          </SubmitButton>
                         </form>
                       )}
                       <form action={deleteJobPosting.bind(null, posting.id)}>
-                        <Button type="submit" variant="ghost" size="sm">
+                        <SubmitButton variant="ghost" size="sm">
                           Remove
-                        </Button>
+                        </SubmitButton>
                       </form>
                     </div>
                   </div>
@@ -149,30 +149,30 @@ export default async function JobFitPage() {
                     <div className="flex flex-wrap gap-2 border-t border-border pt-3">
                       {!posting.appliedAt && (
                         <form action={markApplied.bind(null, posting.id)}>
-                          <Button type="submit" variant="outline" size="sm">
+                          <SubmitButton variant="outline" size="sm">
                             Applied
-                          </Button>
+                          </SubmitButton>
                         </form>
                       )}
                       {!posting.coverLetter && (
                         <form action={generateCoverLetterAction.bind(null, posting.id)}>
-                          <Button type="submit" variant="outline" size="sm">
+                          <SubmitButton variant="outline" size="sm" pendingLabel="Drafting…">
                             Draft a cover letter
-                          </Button>
+                          </SubmitButton>
                         </form>
                       )}
                       {posting.appliedAt && !posting.interviewLandedAt && (
                         <form action={markInterviewLanded.bind(null, posting.id)}>
-                          <Button type="submit" variant="outline" size="sm">
+                          <SubmitButton variant="outline" size="sm">
                             I got an interview
-                          </Button>
+                          </SubmitButton>
                         </form>
                       )}
                       {!posting.offerReceivedAt && (
                         <form action={markOfferReceived.bind(null, posting.id)}>
-                          <Button type="submit" variant="outline" size="sm">
+                          <SubmitButton variant="outline" size="sm">
                             I got an offer
-                          </Button>
+                          </SubmitButton>
                         </form>
                       )}
                     </div>

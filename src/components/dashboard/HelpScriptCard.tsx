@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { markAskedForHelp } from '@/app/dashboard/actions'
 
 export function HelpScriptCard({ helpScript, done }: { helpScript: string; done: boolean }) {
@@ -23,9 +23,9 @@ export function HelpScriptCard({ helpScript, done }: { helpScript: string; done:
       </div>
       <pre className="whitespace-pre-wrap rounded bg-muted p-3 text-xs">{helpScript}</pre>
       <form action={markAskedForHelp}>
-        <Button type="submit" size="sm" variant="outline">
+        <SubmitButton size="sm" variant="outline">
           Mark as done — I asked someone
-        </Button>
+        </SubmitButton>
       </form>
     </div>
   )

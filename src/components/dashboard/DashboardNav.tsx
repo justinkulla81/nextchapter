@@ -4,8 +4,25 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useFormStatus } from 'react-dom'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
+
+function SignOutButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className={cn(
+        'text-sm font-medium text-white/50 transition-colors hover:text-white',
+        pending && 'cursor-progress'
+      )}
+    >
+      {pending ? 'Signing out…' : 'Sign out'}
+    </button>
+  )
+}
 
 interface NavLink {
   href: string
@@ -111,12 +128,7 @@ function NavContent({
         </div>
       ))}
       <form action={signOut} className="mt-auto px-2">
-        <button
-          type="submit"
-          className="text-sm font-medium text-white/50 transition-colors hover:text-white"
-        >
-          Sign out
-        </button>
+        <SignOutButton />
       </form>
     </nav>
   )

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | null }) {
   const [email, setEmail] = useState(defaultEmail ?? '')
@@ -76,7 +77,10 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className={cn('space-y-4', loading && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input

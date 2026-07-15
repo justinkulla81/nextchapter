@@ -3,7 +3,7 @@ import { WorkSampleForm } from '@/components/dashboard/WorkSampleForm'
 import { WorkSampleTypeGateForm } from '@/components/dashboard/WorkSampleTypeGateForm'
 import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 
 export default async function WorkSamplesPage() {
   const profile = await getDashboardData()
@@ -69,9 +69,9 @@ export default async function WorkSamplesPage() {
                   )}
                 </div>
                 <form action={deleteWorkSample.bind(null, sample.id)}>
-                  <Button type="submit" variant="ghost" size="sm">
+                  <SubmitButton variant="ghost" size="sm">
                     Remove
-                  </Button>
+                  </SubmitButton>
                 </form>
               </CardContent>
             </Card>
