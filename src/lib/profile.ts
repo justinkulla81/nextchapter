@@ -12,12 +12,12 @@ import { prisma } from '@/lib/prisma'
 // from the page it wraps) only does the DB round trip once — Server Actions
 // each get their own fresh cache scope, so this doesn't affect their
 // behavior at all, it only dedupes redundant reads within one render pass.
-export const getOrCreateCandidateProfile = cache(async (userId: string) => {
+export const getOrCreateCandidateProfile = cache(async (userId: string, coachId?: string) => {
   try {
     return await prisma.candidateProfile.upsert({
       where: { userId },
       update: {},
-      create: { userId },
+      create: { userId, coachId },
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

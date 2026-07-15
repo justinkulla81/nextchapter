@@ -20,6 +20,21 @@ enum PrivacyTier {
   LOCKED        // Invisible to all searches (building profile)
 }
 
+enum EngagementType {
+  FULL_TIME
+  FRACTIONAL
+  INTERIM
+  CONSULTING
+}
+
+enum CoachingFocus {
+  CAREER
+  LIFE
+  EXECUTIVE
+  EOS
+  OTHER
+}
+
 enum EmploymentSituation {
   COMPANY_WIDE_LAYOFF
   DIVISION_ELIMINATED
@@ -407,6 +422,12 @@ model CandidateProfile {
   marketResponseLogs         MarketResponseLog[]
   profileShares              ProfileShare[]
 
+  // Coach P0-lite — set once, at profile creation, when the candidate came in
+  // through a coach's personal invite link. Never re-assigned afterward (an
+  // existing candidate clicking a coach link doesn't get silently re-tagged).
+  coachId                    String?
+  coach                      Coach?  @relation(fields: [coachId], references: [id])
+
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
   @@index([currentJobStatus])
@@ -442,6 +463,13 @@ model WorkHistoryEntry {
   departureReason EmploymentSituation?
   verified        Boolean          @default(false)
   verifiedBy      String?
+
+  // Never rendered as a qualifier on external-facing documents (Recruiter
+  // Report, What They See) — see sanitizeRoleTitle() — but tracked so the
+  // candidate can flag it and so concurrent fractional/interim engagements
+  // can be collapsed to one displayed at a time via isPrimaryEngagement.
+  engagementType      EngagementType @default(FULL_TIME)
+  isPrimaryEngagement Boolean        @default(false)
 
   @@index([candidateId])
 }
@@ -1333,4 +1361,21 @@ model SurfacedJob {
 
   @@unique([candidateId, url])
   @@index([candidateId, surfacedAt])
+}
+
+// Coach P0-lite — intentionally thin: signup + a personal invite link + a
+// simple client list. No session notes, directives, or full Client Full
+// View here; those stay on the full Coach P0/P1 build's original schedule.
+// Coaches aren't Supabase-authenticated users — accessToken-gated pages
+// (same pattern as Reference.token) are enough for this MVP.
+model Coach {
+  id          String        @id @default(cuid())
+  fullName    String
+  workEmail   String        @unique
+  firmName    String?
+  focus       CoachingFocus
+  accessToken String        @unique @default(cuid())
+  createdAt   DateTime      @default(now())
+
+  clients CandidateProfile[]
 }

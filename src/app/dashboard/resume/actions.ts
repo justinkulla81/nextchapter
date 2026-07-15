@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
+import type { EngagementType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -42,7 +44,9 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   }
   const fileType = ext
 
-  const profile = await getOrCreateCandidateProfile(user.id)
+  const cookieStore = await cookies()
+  const coachId = cookieStore.get('nc_coach')?.value
+  const profile = await getOrCreateCandidateProfile(user.id, coachId)
 
   const admin = createAdminClient()
   const path = `${profile.id}/${crypto.randomUUID()}.${ext}`
@@ -151,4 +155,114 @@ export async function getResumeSignedUrl(resumeId: string): Promise<string | nul
   const admin = createAdminClient()
   const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
   return data?.signedUrl ?? null
+}
+
+const ENGAGEMENT_TYPES: EngagementType[] = ['FULL_TIME', 'FRACTIONAL', 'INTERIM', 'CONSULTING']
+
+export type WorkHistoryFormState = { error?: string; victoriaNudge?: string } | undefined
+
+export async function addWorkHistoryEntry(
+  _prevState: WorkHistoryFormState,
+  formData: FormData
+): Promise<WorkHistoryFormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+
+  const companyName = (formData.get('companyName') as string | null)?.trim()
+  const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
+  const startDateRaw = formData.get('startDate') as string | null
+  const endDateRaw = (formData.get('endDate') as string | null)?.trim()
+  const isCurrent = formData.get('isCurrent') === 'on'
+  const engagementType = (formData.get('engagementType') as EngagementType | null) ?? 'FULL_TIME'
+  const keyAchievement = (formData.get('keyAchievement') as string | null)?.trim() || null
+
+  if (!companyName || !roleTitle || !startDateRaw) {
+    return { error: 'Please fill in company, role, and start date.' }
+  }
+  if (!ENGAGEMENT_TYPES.includes(engagementType)) {
+    return { error: 'Please choose a valid engagement type.' }
+  }
+
+  const startDate = new Date(startDateRaw)
+  if (Number.isNaN(startDate.getTime())) return { error: 'Please enter a valid start date.' }
+
+  const endDate = !isCurrent && endDateRaw ? new Date(endDateRaw) : null
+  if (endDateRaw && endDate && Number.isNaN(endDate.getTime())) {
+    return { error: 'Please enter a valid end date.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.workHistoryEntry.create({
+    data: {
+      candidateId: profile.id,
+      companyName,
+      roleTitle,
+      startDate,
+      endDate,
+      isCurrent,
+      engagementType,
+      keyAchievement,
+    },
+  })
+
+  revalidatePath('/dashboard/resume')
+  revalidatePath('/dashboard/privacy')
+
+  if (engagementType !== 'FULL_TIME') {
+    return {
+      victoriaNudge:
+        "This is worth adding to your resume now — it closes the gap and keeps your story credible. Add just this one for now if you're doing more than one at once.",
+    }
+  }
+}
+
+export async function deleteWorkHistoryEntry(entryId: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.workHistoryEntry.deleteMany({
+    where: { id: entryId, candidateId: profile.id },
+  })
+
+  revalidatePath('/dashboard/resume')
+}
+
+// When a candidate has more than one concurrent fractional/interim/consulting
+// engagement, external-facing views (Recruiter Report, What They See) show
+// only one at a time — see selectDisplayedWorkHistory(). This is how the
+// candidate picks which one that is.
+export async function setPrimaryEngagement(entryId: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const entry = await prisma.workHistoryEntry.findFirst({
+    where: { id: entryId, candidateId: profile.id },
+  })
+  if (!entry) return
+
+  await prisma.$transaction([
+    prisma.workHistoryEntry.updateMany({
+      where: { candidateId: profile.id, engagementType: { not: 'FULL_TIME' } },
+      data: { isPrimaryEngagement: false },
+    }),
+    prisma.workHistoryEntry.update({
+      where: { id: entryId },
+      data: { isPrimaryEngagement: true },
+    }),
+  ])
+
+  revalidatePath('/dashboard/resume')
 }

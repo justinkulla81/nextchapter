@@ -3,6 +3,7 @@ import type { ShareRecipientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { sanitizeRoleTitle, selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
 
 export type ShareStatus = 'active' | 'expired' | 'revoked' | 'not_found'
 
@@ -95,9 +96,9 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
 
   if (status !== 'active') return NOT_ACTIVE(status, candidateName)
 
-  const workHistory: SharedWorkHistoryItem[] = candidate.workHistory.map((w) => ({
+  const workHistory: SharedWorkHistoryItem[] = selectDisplayedWorkHistory(candidate.workHistory).map((w) => ({
     companyName: w.companyName,
-    roleTitle: w.roleTitle,
+    roleTitle: sanitizeRoleTitle(w.roleTitle),
     startDate: w.startDate,
     endDate: w.endDate,
     isCurrent: w.isCurrent,

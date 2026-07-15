@@ -1,5 +1,9 @@
 import Link from 'next/link'
+import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { prisma } from '@/lib/prisma'
 import { LearningResourceBrowser } from '@/components/dashboard/LearningResourceBrowser'
+import { LearningBadgeForm } from '@/components/dashboard/LearningBadgeForm'
+import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 
 interface Resource {
   name: string
@@ -164,7 +168,13 @@ const CATEGORIES: ResourceCategory[] = [
   },
 ]
 
-export default function LearningPage() {
+export default async function LearningPage() {
+  const profile = await getDashboardData()
+  const badges = await prisma.learningBadge.findMany({
+    where: { candidateId: profile.id },
+    orderBy: { completedAt: 'desc' },
+  })
+
   return (
     <div className="space-y-8">
       <div>
@@ -173,10 +183,20 @@ export default function LearningPage() {
           Curated resources for closing a real skills gap — not a link dump. Pair this with your Gap
           Analysis in{' '}
           <Link href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
-            My Report
+            Hireability Report
           </Link>{' '}
           to pick what actually matters for your target role.
         </p>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">What you&apos;ve completed</h2>
+        <p className="text-sm text-muted-foreground">
+          Log courses, certifications, or projects you&apos;ve finished — this shows up on your
+          Recruiter Report as real, targeted effort, not a generic list.
+        </p>
+        <LearningBadgeList badges={badges} />
+        <LearningBadgeForm />
       </div>
 
       <LearningResourceBrowser categories={CATEGORIES} />
