@@ -107,9 +107,18 @@ export function CallbackHandler() {
 
   if (status === 'confirm') {
     return (
-      <Button className="w-full" onClick={confirmToken}>
-        Continue
-      </Button>
+      <div className="w-full max-w-md space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Confirm your email address</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            One click and you&apos;re in — confirm to unlock your full Hireability Report and
+            action plan.
+          </p>
+        </div>
+        <Button className="w-full" onClick={confirmToken}>
+          Continue
+        </Button>
+      </div>
     )
   }
 
