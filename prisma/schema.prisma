@@ -520,7 +520,6 @@ model InterviewResponse {
   feedback        Json?            // candidate-facing: {usesStarStructure, lengthNote, strengths, improvements}
   createdAt       DateTime         @default(now())
 
-  @@unique([candidateId, questionId])
   @@index([candidateId])
 }
 

@@ -38,22 +38,30 @@ export async function submitInterviewResponse(
   const profile = await getOrCreateCandidateProfile(user.id)
 
   const feedback = await evaluatePracticeAnswer(questionText, responseText, profile.activeJobDescription)
+  const feedbackValue = feedback ? (feedback as unknown as Prisma.InputJsonValue) : undefined
 
-  await prisma.interviewResponse.upsert({
-    where: { candidateId_questionId: { candidateId: profile.id, questionId } },
-    create: {
-      candidateId: profile.id,
-      questionId,
-      questionText,
-      responseType: 'text',
-      responseText,
-      feedback: feedback ? (feedback as unknown as Prisma.InputJsonValue) : undefined,
-    },
-    update: {
-      responseText,
-      feedback: feedback ? (feedback as unknown as Prisma.InputJsonValue) : undefined,
-    },
+  const existing = await prisma.interviewResponse.findFirst({
+    where: { candidateId: profile.id, questionId },
+    select: { id: true },
   })
+
+  if (existing) {
+    await prisma.interviewResponse.update({
+      where: { id: existing.id },
+      data: { responseText, feedback: feedbackValue },
+    })
+  } else {
+    await prisma.interviewResponse.create({
+      data: {
+        candidateId: profile.id,
+        questionId,
+        questionText,
+        responseType: 'text',
+        responseText,
+        feedback: feedbackValue,
+      },
+    })
+  }
 
   await recalculateScore(profile.id, 'interview_response_added')
 
