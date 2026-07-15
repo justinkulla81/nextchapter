@@ -99,6 +99,22 @@ export default async function ResumePage() {
                 </div>
               )}
 
+              {latest.resume.actionItems.length > 0 && (
+                <div className="space-y-1.5 border-t border-border pt-4">
+                  <p className="text-sm font-medium">Your action plan</p>
+                  <ul className="space-y-1.5 text-sm">
+                    {latest.resume.actionItems.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span aria-hidden className="mt-0.5 text-muted-foreground">
+                          ☐
+                        </span>
+                        <span className="text-foreground">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {!latest.resume.atsScore && !latest.resume.analysisError && (
                 <p className="text-sm text-muted-foreground">Analyzing…</p>
               )}

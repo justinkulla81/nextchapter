@@ -18,6 +18,8 @@ import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
+import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { hasStartedSprint } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
 import {
@@ -210,7 +212,12 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
   const grade = await computeHireabilityGrade(candidate)
   const startedSprint = await hasStartedSprint(candidateId)
 
+  const weekNumber = candidate._count.weeklySprints + 1
+  const directnessLevel = computeDirectnessLevel(weekNumber, isCasuallySearching(candidate.jobSearchIntensity))
+
   const summary = `
+${DIRECTNESS_INSTRUCTION[directnessLevel]}
+
 Started Success Sprint: ${startedSprint ? 'yes' : 'no'}
 Hireability Grade — Market Reality: ${grade.marketReality.grade} (${GRADE_LABEL[grade.marketReality.grade]}, ${grade.marketReality.score}/100)
   ${grade.marketReality.dimensions.map((d) => `${d.label} [${d.factorType}]: ${d.grade} (${d.score}/100)`).join('\n  ')}

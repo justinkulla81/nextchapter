@@ -13,7 +13,10 @@ import {
   markInterviewLanded,
   markOfferReceived,
   generateCoverLetterAction,
+  prepForPhoneScreen,
+  markInterviewComplete,
 } from './actions'
+import { ThankYouNoteCard } from '@/components/dashboard/ThankYouNoteCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
@@ -170,11 +173,18 @@ export default async function JobFitPage() {
                         </form>
                       )}
                       {posting.appliedAt && !posting.interviewLandedAt && (
-                        <form action={markInterviewLanded.bind(null, posting.id)}>
-                          <SubmitButton variant="outline" size="sm">
-                            I got an interview
-                          </SubmitButton>
-                        </form>
+                        <>
+                          <form action={markInterviewLanded.bind(null, posting.id)}>
+                            <SubmitButton variant="outline" size="sm">
+                              I got an interview
+                            </SubmitButton>
+                          </form>
+                          <form action={prepForPhoneScreen.bind(null, posting.id)}>
+                            <SubmitButton variant="outline" size="sm">
+                              Prep for the phone screen →
+                            </SubmitButton>
+                          </form>
+                        </>
                       )}
                       {!posting.offerReceivedAt && (
                         <form action={markOfferReceived.bind(null, posting.id)}>
@@ -240,7 +250,23 @@ export default async function JobFitPage() {
                           </div>
                         </div>
                       )}
+                      {!posting.interviewCompleteAt && (
+                        <form action={markInterviewComplete.bind(null, posting.id)} className="pt-1">
+                          <SubmitButton variant="outline" size="sm">
+                            Interview complete
+                          </SubmitButton>
+                        </form>
+                      )}
                     </div>
+                  )}
+
+                  {posting.interviewCompleteAt && (
+                    <ThankYouNoteCard
+                      jobPostingId={posting.id}
+                      note={posting.thankYouNote}
+                      error={posting.thankYouError}
+                      sentAt={posting.thankYouSentAt}
+                    />
                   )}
 
                   {posting.offerReceivedAt && (

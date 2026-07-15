@@ -2,23 +2,28 @@ import type { ContentVenue } from '@prisma/client'
 
 export const CONTENT_VENUE_LABEL: Record<ContentVenue, string> = {
   LINKEDIN: 'LinkedIn',
-  SUBSTACK: 'Substack / newsletter',
-  PODCAST: 'Podcast',
-  INSTAGRAM_FACEBOOK_YOUTUBE: 'Instagram / Facebook / YouTube',
+  SUBSTACK: 'Substack / Whitepaper',
+  CONFERENCES: 'Conferences',
+  WEBINARS: 'Webinars',
+  EXPERT_NETWORKS: 'Expert Networks',
+  INSTAGRAM_FACEBOOK_YOUTUBE: 'Influencer Videos',
+  PODCAST: 'Podcasts',
 }
 
 export const CONTENT_VENUE_OPTIONS: { value: ContentVenue; label: string }[] = [
   { value: 'LINKEDIN', label: CONTENT_VENUE_LABEL.LINKEDIN },
   { value: 'SUBSTACK', label: CONTENT_VENUE_LABEL.SUBSTACK },
-  { value: 'PODCAST', label: CONTENT_VENUE_LABEL.PODCAST },
+  { value: 'CONFERENCES', label: CONTENT_VENUE_LABEL.CONFERENCES },
+  { value: 'WEBINARS', label: CONTENT_VENUE_LABEL.WEBINARS },
+  { value: 'EXPERT_NETWORKS', label: CONTENT_VENUE_LABEL.EXPERT_NETWORKS },
   { value: 'INSTAGRAM_FACEBOOK_YOUTUBE', label: CONTENT_VENUE_LABEL.INSTAGRAM_FACEBOOK_YOUTUBE },
+  { value: 'PODCAST', label: CONTENT_VENUE_LABEL.PODCAST },
 ]
 
 export const COMFORT_LEVEL_CHOICES = [
-  { value: 10, label: 'Not at all — this feels exposing' },
-  { value: 40, label: "A little uneasy, but I'll try" },
-  { value: 70, label: 'Fairly comfortable' },
-  { value: 100, label: 'I already do this / love it' },
+  { value: 100, label: 'Yes, I enjoy it' },
+  { value: 60, label: "It's okay" },
+  { value: 20, label: 'Not really my thing' },
 ] as const
 
 interface Tutorial {
@@ -60,6 +65,36 @@ export const CONTENT_TUTORIALS: { venue: ContentVenue; tutorials: Tutorial[] }[]
         name: 'Podcasting for beginners (Buzzsprout)',
         description: 'Practical, free walkthrough of recording and publishing your first episode.',
         url: 'https://www.buzzsprout.com/blog/podcasting-for-beginners',
+      },
+    ],
+  },
+  {
+    venue: 'CONFERENCES',
+    tutorials: [
+      {
+        name: 'How to write a winning conference talk proposal',
+        description: 'A practical guide to pitching and getting accepted to speak at industry events.',
+        url: 'https://www.papercall.io/',
+      },
+    ],
+  },
+  {
+    venue: 'WEBINARS',
+    tutorials: [
+      {
+        name: 'How to host a webinar that people actually attend',
+        description: 'Practical tips on structure, promotion, and follow-up for a first webinar.',
+        url: 'https://blog.hubspot.com/marketing/how-to-do-a-webinar',
+      },
+    ],
+  },
+  {
+    venue: 'EXPERT_NETWORKS',
+    tutorials: [
+      {
+        name: 'How expert networks work (Coleman Research)',
+        description: 'An overview of how to get listed and paid as an expert network consultant.',
+        url: 'https://www.colemanrg.com/experts',
       },
     ],
   },

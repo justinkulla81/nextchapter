@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import type { JobReactionType, NotInterestedReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
@@ -13,6 +14,7 @@ import { generateCoverLetter } from '@/lib/reports/cover-letter'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 import { surfaceNewJobs, generateReactionSummary } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
+import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 
 export type FormState = { error?: string } | undefined
 
@@ -193,6 +195,112 @@ export async function markInterviewLanded(jobPostingId: string) {
   })
   await recalculateScore(profile.id, 'interview_landed')
   await generateInterviewPrep(jobPostingId, profile.id)
+
+  revalidatePath('/dashboard/job-fit')
+}
+
+// Pre-loads this job's posting text into the candidate's single shared
+// activeJobDescription (the same field Interview Prep's tabs already read
+// from) so prep is grounded in this specific role, then sends them there.
+export async function prepForPhoneScreen(jobPostingId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const jobPosting = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, candidateId: profile.id },
+  })
+  if (!jobPosting) return
+
+  if (jobPosting.extractedText) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { activeJobDescription: jobPosting.extractedText },
+    })
+  }
+
+  redirect('/dashboard/interview-prep')
+}
+
+export async function markInterviewComplete(jobPostingId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const jobPosting = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, candidateId: profile.id },
+  })
+  if (!jobPosting || jobPosting.interviewCompleteAt || !jobPosting.interviewLandedAt) return
+
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: { interviewCompleteAt: new Date() },
+  })
+
+  revalidatePath('/dashboard/job-fit')
+}
+
+export async function requestJobThankYouNote(jobPostingId: string, formData: FormData) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const whatCameUp = (formData.get('whatCameUp') as string | null)?.trim()
+  if (!whatCameUp || whatCameUp.length < 10) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const jobPosting = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, candidateId: profile.id },
+  })
+  if (!jobPosting) return
+
+  let companyName = 'the company'
+  try {
+    companyName = new URL(jobPosting.url).hostname.replace(/^www\./, '')
+  } catch {
+    // keep fallback
+  }
+
+  const note = await generateThankYouEmail({
+    companyName,
+    roleTitle: 'the role',
+    discussionPoints: whatCameUp,
+    tone: 'professional',
+    jobDescription: jobPosting.extractedText,
+  })
+
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: {
+      thankYouNote: note,
+      thankYouError: note ? null : "Couldn't generate a note just now — try again in a moment.",
+    },
+  })
+
+  revalidatePath('/dashboard/job-fit')
+}
+
+export async function markJobThankYouSent(jobPostingId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.jobPosting.updateMany({
+    where: { id: jobPostingId, candidateId: profile.id },
+    data: { thankYouSentAt: new Date() },
+  })
 
   revalidatePath('/dashboard/job-fit')
 }

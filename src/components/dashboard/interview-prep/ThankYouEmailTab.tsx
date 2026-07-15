@@ -16,7 +16,16 @@ const TONES: { value: ThankYouEmailInput['tone']; label: string }[] = [
   { value: 'enthusiastic', label: 'Enthusiastic' },
 ]
 
-const EMPTY: ThankYouEmailInput = {
+interface ThankYouFormState {
+  interviewerName: string
+  interviewerTitle: string
+  companyName: string
+  roleTitle: string
+  discussionPoints: string
+  tone: ThankYouEmailInput['tone']
+}
+
+const EMPTY: ThankYouFormState = {
   interviewerName: '',
   interviewerTitle: '',
   companyName: '',
@@ -26,7 +35,7 @@ const EMPTY: ThankYouEmailInput = {
 }
 
 export function ThankYouEmailTab({ hasJobDescription }: { hasJobDescription: boolean }) {
-  const [form, setForm] = useState<ThankYouEmailInput>(EMPTY)
+  const [form, setForm] = useState<ThankYouFormState>(EMPTY)
   const [email, setEmail] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [isPending, startTransition] = useTransition()

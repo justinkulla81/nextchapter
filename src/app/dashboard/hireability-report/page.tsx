@@ -13,6 +13,7 @@ import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
 import { weeklyTimeTargetHours } from '@/lib/weekly/weekly-target'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
@@ -127,6 +128,7 @@ export default async function HireabilityReportPage() {
     isAtOrBelowGrade(gradeAtGeneration.searchExecution.grade, 'C')
   const aTargetHours = weeklyTimeTargetHours(weekNumber)
   const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
+  const casuallySearching = isCasuallySearching(profile.jobSearchIntensity)
 
   const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate'
   const preparedDate = report
@@ -335,19 +337,32 @@ export default async function HireabilityReportPage() {
               in your hands.
             </p>
             <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
-              <p className="text-sm font-medium text-foreground">
-                This week, to get an A on Search Execution, it takes about{' '}
-                <span className="font-semibold">{aTargetHours}h</span> of real committed work; a B
-                takes about{' '}
-                <span className="font-semibold">{bTargetHours}h</span>.
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                That target grows a little each week through Week 6, then holds steady — see your{' '}
-                <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
-                  Success Sprint
-                </Link>{' '}
-                for this week&apos;s exact commitment.
-              </p>
+              {casuallySearching ? (
+                <p className="text-sm font-medium text-foreground">
+                  When you&apos;re ready to prioritize this, your{' '}
+                  <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+                    Success Sprint
+                  </Link>{' '}
+                  will show you exactly what moves an A on Search Execution — no clock running in
+                  the meantime.
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-foreground">
+                    This week, to get an A on Search Execution, it takes about{' '}
+                    <span className="font-semibold">{aTargetHours}h</span> of real committed work; a
+                    B takes about <span className="font-semibold">{bTargetHours}h</span>.
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    That target grows a little each week through Week 6, then holds steady — see
+                    your{' '}
+                    <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+                      Success Sprint
+                    </Link>{' '}
+                    for this week&apos;s exact commitment.
+                  </p>
+                </>
+              )}
             </div>
           </div>
 

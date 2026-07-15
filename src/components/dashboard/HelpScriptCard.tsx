@@ -8,7 +8,7 @@ export function HelpScriptCard({ helpScript, done }: { helpScript: string; done:
     return (
       <div className="space-y-2 rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">Ask someone for help</h2>
-        <p className="text-sm text-success">✓ Done — you&apos;ve reached out.</p>
+        <p className="text-sm text-success">You&apos;ve reached out — nice work.</p>
       </div>
     )
   }
@@ -23,8 +23,8 @@ export function HelpScriptCard({ helpScript, done }: { helpScript: string; done:
       </div>
       <pre className="whitespace-pre-wrap rounded bg-muted p-3 text-xs">{helpScript}</pre>
       <form action={markAskedForHelp}>
-        <SubmitButton size="sm" variant="outline">
-          Mark as done — I asked someone
+        <SubmitButton size="sm" variant="ghost" className="text-muted-foreground">
+          I&apos;ve reached out
         </SubmitButton>
       </form>
     </div>

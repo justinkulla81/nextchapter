@@ -43,6 +43,13 @@ enum EmploymentSituation {
   CURRENTLY_EMPLOYED_EXPLORING
 }
 
+enum SearchIntensity {
+  ACTIVELY_SEARCHING
+  CASUALLY_LOOKING
+  EXPLORING
+  OPEN
+}
+
 enum CurrentJobStatus {
   EMPLOYED_CONSIDERING_MOVE
   LAID_OFF
@@ -139,14 +146,26 @@ enum NetworkingAnxiety {
   BURDEN_PEOPLE
   NOT_SURE_WHAT_TO_SAY
   NETWORK_NOT_STRONG
+  DONT_LIKE_ASKING_FOR_HELP
+  ALREADY_USED_UP_NETWORK
   OTHER
+}
+
+enum NetworkComfortLevel {
+  VERY_COMFORTABLE
+  SOMEWHAT_COMFORTABLE
+  NOT_VERY_COMFORTABLE
+  RATHER_NOT
 }
 
 enum ContentVenue {
   LINKEDIN
   SUBSTACK
-  PODCAST
+  CONFERENCES
+  WEBINARS
+  EXPERT_NETWORKS
   INSTAGRAM_FACEBOOK_YOUTUBE
+  PODCAST
 }
 
 enum JobReactionType {
@@ -311,7 +330,9 @@ model CandidateProfile {
   encouragementGivingOptIn  Boolean  @default(false) // opted in to occasional prompts to send support notes
 
   // Support Network / outreach
-  networkingAnxiety NetworkingAnxiety?
+  networkComfortLevel      NetworkComfortLevel? // one-time comfort check, gates the rest of Activate My Network
+  networkingAnxiety        NetworkingAnxiety?
+  networkConnectPreferences String[]            @default([])
 
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp       Int?
@@ -496,8 +517,10 @@ model InterviewResponse {
   responseFileUrl String?
   aiSignalScore   Int?             // Internal scoring 1-100
   aiSignalNotes   String?          // Internal notes on response quality
+  feedback        Json?            // candidate-facing: {usesStarStructure, lengthNote, strengths, improvements}
   createdAt       DateTime         @default(now())
 
+  @@unique([candidateId, questionId])
   @@index([candidateId])
 }
 
@@ -849,6 +872,7 @@ model Resume {
   resultsFeedback    String[]  @default([])
   experienceScore    Int?      // 0-100 — gaps, tenure, alignment with stated goals
   experienceFeedback String[]  @default([])
+  actionItems        String[]  @default([]) // concrete itemized checklist derived from the gaps above
   analysisError      String?
   analyzedAt         DateTime?
 
@@ -887,6 +911,11 @@ model JobPosting {
   coverLetter            String?   @db.Text
   coverLetterError       String?
   coverLetterGeneratedAt DateTime?
+
+  interviewCompleteAt DateTime? // candidate marks the interview as done — gates the thank-you note generator
+  thankYouNote        String?   @db.Text
+  thankYouError       String?
+  thankYouSentAt      DateTime?
 
   createdAt     DateTime  @default(now())
 

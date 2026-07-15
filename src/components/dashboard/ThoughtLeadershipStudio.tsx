@@ -2,7 +2,11 @@
 
 import { useActionState, useState } from 'react'
 import type { ContentVenue } from '@prisma/client'
-import { generateIdeasAction, draftPostAction } from '@/app/dashboard/thought-leadership/actions'
+import {
+  generateIdeasAction,
+  draftPostAction,
+  generateArticleAction,
+} from '@/app/dashboard/thought-leadership/actions'
 import { markLinkedInActivity } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -64,6 +68,32 @@ function IdeaCard({ idea, venues }: { idea: PostIdea; venues: ContentVenue[] }) 
   )
 }
 
+function ArticleGenerator() {
+  const [state, formAction, pending] = useActionState(generateArticleAction, undefined)
+
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <p className="font-medium text-foreground">Create Substack Article / White Paper</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Give it a topic or angle — Victoria drafts a full long-form piece grounded in your
+        background.
+      </p>
+      <form action={formAction} className="mt-3 space-y-2">
+        <Textarea name="topic" rows={2} placeholder="e.g. What five years of turnarounds taught me about hiring under pressure" />
+        <Button type="submit" variant="outline" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
+          {pending ? 'Drafting…' : 'Generate draft'}
+        </Button>
+      </form>
+      {state?.error && <p className="mt-2 text-sm text-destructive">{state.error}</p>}
+      {state?.draft && (
+        <div className="mt-3 space-y-2">
+          <Textarea defaultValue={state.draft} rows={12} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ThoughtLeadershipStudio({ venues }: { venues: ContentVenue[] }) {
   const [ideasState, generateAction, generating] = useActionState(generateIdeasAction, undefined)
 
@@ -83,6 +113,8 @@ export function ThoughtLeadershipStudio({ venues }: { venues: ContentVenue[] }) 
           ))}
         </div>
       )}
+
+      <ArticleGenerator />
     </div>
   )
 }

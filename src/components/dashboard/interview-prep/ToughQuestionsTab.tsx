@@ -4,19 +4,13 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { requestToughAnswer } from '@/app/dashboard/interview-prep/actions'
+import { requestToughAnswer, requestToughAnswerFeedback } from '@/app/dashboard/interview-prep/actions'
 import { TOUGH_QUESTIONS } from '@/lib/interview-prep/constants'
-
-const COMFORT_STOPS = [
-  { value: 1, label: 'Rough' },
-  { value: 2, label: 'Getting there' },
-  { value: 3, label: 'Solid' },
-  { value: 4, label: 'Nailed it' },
-] as const
+import type { PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
 
 export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: boolean }) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [comfort, setComfort] = useState<Record<string, number>>({})
+  const [feedback, setFeedback] = useState<Record<string, PracticeEvaluation>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
@@ -24,7 +18,12 @@ export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: bo
     setPendingId(id)
     startTransition(async () => {
       const answer = await requestToughAnswer(question)
-      setAnswers((prev) => ({ ...prev, [id]: answer ?? 'Something went wrong — try again.' }))
+      const answerText = answer ?? 'Something went wrong — try again.'
+      setAnswers((prev) => ({ ...prev, [id]: answerText }))
+      if (answer) {
+        const evaluation = await requestToughAnswerFeedback(question, answer)
+        if (evaluation) setFeedback((prev) => ({ ...prev, [id]: evaluation }))
+      }
       setPendingId(null)
     })
   }
@@ -34,7 +33,7 @@ export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: bo
       <p className="text-sm text-muted-foreground">
         Objection questions name a real concern head-on. Trap questions are phrased to invite an
         answer that backfires if you&apos;re not ready for them. Generate a grounded answer for
-        each, then rate how comfortable you feel with it.
+        each, then see Victoria&apos;s take on it.
       </p>
       {TOUGH_QUESTIONS.map((q) => (
         <Card key={q.id} className={cn(pendingId === q.id && 'cursor-wait [&_*]:cursor-wait')}>
@@ -72,23 +71,50 @@ export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: bo
               </div>
             )}
 
-            {answers[q.id] && (
-              <div className="flex flex-wrap gap-1.5">
-                {COMFORT_STOPS.map((stop) => (
-                  <button
-                    key={stop.value}
-                    type="button"
-                    onClick={() => setComfort((prev) => ({ ...prev, [q.id]: stop.value }))}
-                    className={
-                      comfort[q.id] === stop.value
-                        ? 'rounded-md border-2 border-brand bg-brand/5 px-2 py-1 text-xs font-medium text-brand'
-                        : 'rounded-md border-2 border-border px-2 py-1 text-xs font-medium text-muted-foreground hover:border-brand/40'
-                    }
-                  >
-                    {stop.label}
-                  </button>
-                ))}
+            {feedback[q.id] && (
+              <div className="space-y-2 rounded-lg border border-border bg-off-white p-3 text-sm">
+                <p>
+                  <strong>Structure:</strong>{' '}
+                  {feedback[q.id].usesStarStructure
+                    ? 'Clear situation/task, action, result.'
+                    : "Doesn't clearly show a situation/task, action, and result yet."}
+                </p>
+                <p>
+                  <strong>Length:</strong> {feedback[q.id].lengthNote}
+                </p>
+                {feedback[q.id].strengths.length > 0 && (
+                  <div>
+                    <strong>What&apos;s working:</strong>
+                    <ul className="list-disc pl-5">
+                      {feedback[q.id].strengths.map((s) => (
+                        <li key={s}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {feedback[q.id].improvements.length > 0 && (
+                  <div>
+                    <strong>To sharpen:</strong>
+                    <ul className="list-disc pl-5">
+                      {feedback[q.id].improvements.map((s) => (
+                        <li key={s}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
+            )}
+
+            {answers[q.id] && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => handleGenerate(q.id, q.question)}
+                disabled={pendingId === q.id}
+              >
+                {pendingId === q.id ? 'Redrafting…' : 'Redraft'}
+              </Button>
             )}
           </CardContent>
         </Card>

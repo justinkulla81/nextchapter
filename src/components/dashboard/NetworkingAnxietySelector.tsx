@@ -7,6 +7,8 @@ const OPTIONS: { value: NetworkingAnxiety; label: string }[] = [
   { value: 'BURDEN_PEOPLE', label: "I don't want to burden people" },
   { value: 'NOT_SURE_WHAT_TO_SAY', label: "I'm not sure what to say" },
   { value: 'NETWORK_NOT_STRONG', label: "My network isn't strong enough" },
+  { value: 'DONT_LIKE_ASKING_FOR_HELP', label: "I don't like asking for help" },
+  { value: 'ALREADY_USED_UP_NETWORK', label: "I've already used up my network" },
   { value: 'OTHER', label: 'Something else' },
 ]
 
@@ -14,7 +16,7 @@ export function NetworkingAnxietySelector({ current }: { current: NetworkingAnxi
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-foreground">
-        What&apos;s your biggest concern about reaching out to people in your network?
+        What concerns do you have about reaching out to your network?
       </p>
       <p className="text-sm text-muted-foreground">
         Most job searches are won or lost on this one thing. Answer honestly — it shapes the

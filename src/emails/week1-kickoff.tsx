@@ -4,6 +4,7 @@ interface Week1KickoffEmailProps {
   firstName: string | null
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
   artifactLabels: string[]
+  topActions: string[]
   appUrl: string
   unsubscribeUrl: string
 }
@@ -48,6 +49,7 @@ export default function Week1KickoffEmail({
   firstName,
   victoriaName,
   artifactLabels,
+  topActions,
   appUrl,
   unsubscribeUrl,
 }: Week1KickoffEmailProps) {
@@ -55,6 +57,16 @@ export default function Week1KickoffEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'} — {victoriaName} here.</p>
+      {topActions.length > 0 && (
+        <>
+          <p>Your action plan is ready. Here&apos;s where I&apos;d start:</p>
+          <ul style={list}>
+            {topActions.map((action) => (
+              <li key={action}>{action}</li>
+            ))}
+          </ul>
+        </>
+      )}
       <p>
         Your first week isn&apos;t about hitting a points target — it&apos;s about producing 5 real
         things you&apos;ll use for the rest of your search:

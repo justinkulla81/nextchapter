@@ -34,13 +34,6 @@ export default async function SprintSetupPage() {
         </p>
       </div>
 
-      {!editWindowOpen && (
-        <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-          Your commitment for this week is locked. Goals open for editing Saturday midnight PT
-          through Monday midnight PT, ahead of each new week.
-        </div>
-      )}
-
       {editWindowOpen && currentSprint && (
         <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
           You&apos;ve already committed to goals this week. Submitting below replaces them.{' '}
@@ -50,14 +43,17 @@ export default async function SprintSetupPage() {
         </div>
       )}
 
-      {editWindowOpen &&
-        (suggestedActions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Your report is still generating — check back in a moment for suggested actions.
-          </p>
-        ) : (
-          <SprintSetupForm suggestedActions={suggestedActions} marketRealityGrade={grade.marketReality.grade} />
-        ))}
+      {suggestedActions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Your report is still generating — check back in a moment for suggested actions.
+        </p>
+      ) : (
+        <SprintSetupForm
+          suggestedActions={suggestedActions}
+          marketRealityGrade={grade.marketReality.grade}
+          locked={!editWindowOpen}
+        />
+      )}
 
       {committedActions && (
         <div className="border-t border-border pt-6">

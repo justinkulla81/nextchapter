@@ -5,6 +5,7 @@ import type {
   ContactCategory,
   ContactWarmth,
   NetworkingAnxiety,
+  NetworkComfortLevel,
   OutreachChannel,
   MarketResponseType,
 } from '@prisma/client'
@@ -104,6 +105,33 @@ export async function setNetworkingAnxiety(anxiety: NetworkingAnxiety) {
   if (!profile) return
 
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { networkingAnxiety: anxiety } })
+  revalidatePath('/dashboard/network')
+}
+
+export async function setNetworkComfortLevel(level: NetworkComfortLevel) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { networkComfortLevel: level } })
+  revalidatePath('/dashboard/network')
+}
+
+export async function toggleNetworkConnectPreference(preference: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const current = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: profile.id },
+    select: { networkConnectPreferences: true },
+  })
+  const next = current.networkConnectPreferences.includes(preference)
+    ? current.networkConnectPreferences.filter((p) => p !== preference)
+    : [...current.networkConnectPreferences, preference]
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { networkConnectPreferences: next },
+  })
   revalidatePath('/dashboard/network')
 }
 

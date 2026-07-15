@@ -9,6 +9,7 @@ import { generateAdaptations } from '@/lib/narrative/generate-adaptations'
 import { generateToughAnswer } from '@/lib/interview-prep/generate-tough-answer'
 import { evaluatePracticeAnswer, type PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
 import { generateThankYouEmail, type ThankYouEmailInput } from '@/lib/interview-prep/generate-thank-you-email'
+import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -51,6 +52,16 @@ export async function requestToughAnswer(question: string): Promise<string | nul
   return generateToughAnswer(profile.id, question)
 }
 
+export async function requestToughAnswerFeedback(
+  question: string,
+  answerText: string
+): Promise<PracticeEvaluation | null> {
+  const profile = await getAuthedProfile()
+  if (!profile) return null
+
+  return evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
+}
+
 export async function requestPracticeEvaluation(
   question: string,
   answerText: string
@@ -78,6 +89,23 @@ export async function updateActiveJobDescription(text: string) {
     data: { activeJobDescription: text.trim() || null },
   })
   revalidatePath('/dashboard/interview-prep')
+}
+
+export async function fetchActiveJobDescriptionFromUrl(
+  url: string
+): Promise<{ success: boolean; text: string | null }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { success: false, text: null }
+
+  const result = await fetchJobPosting(url)
+  if (result.status !== 'success' || !result.text) return { success: false, text: null }
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { activeJobDescription: result.text },
+  })
+  revalidatePath('/dashboard/interview-prep')
+  return { success: true, text: result.text }
 }
 
 export async function updateComfortCheck(fields: {

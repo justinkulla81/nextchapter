@@ -6,6 +6,8 @@ import { LINKEDIN_POINTS_WINDOW_DAYS } from '@/lib/constants/linkedin'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
+import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 
 const SYSTEM_PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
@@ -14,8 +16,6 @@ You're checking in like a supportive friend who is also honest with them: acknow
 Never cite a raw numeric score (e.g. "72/100") — it reads as falsely precise. If you reference their standing at all, use only the letter grade (A-F) and its label. Not everyone who searches will land a job, but doing the real work — especially on their Search Execution, the part fully in their control — meaningfully improves their odds. Lead with that framing over Market Reality, which reflects conditions largely outside their control.
 
 When it's contextually relevant (don't force it into every reply), encourage two specific behaviors and explain briefly why they help: (1) posting on LinkedIn daily — visibility compounds, recruiters and their network see consistent activity, not just a static profile; (2) liking/commenting on others' posts — it's low-effort, keeps them visible in others' feeds, and often opens conversations. Only bring these up if the candidate's own data below suggests they're not already doing them, or if the conversation naturally turns to job-search strategy.
-
-Candidate context:
 `
 
 export async function generateCoachReply(
@@ -26,7 +26,7 @@ export async function generateCoachReply(
   const [candidate, history] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
-      include: { linkedInActivityLogs: true },
+      include: { linkedInActivityLogs: true, _count: { select: { weeklySprints: true } } },
     }),
     prisma.coachMessage.findMany({
       where: { conversationId },
@@ -38,6 +38,9 @@ export async function generateCoachReply(
   const windowStart = new Date()
   windowStart.setDate(windowStart.getDate() - LINKEDIN_POINTS_WINDOW_DAYS)
   const recentLinkedInPosts = candidate.linkedInActivityLogs.filter((l) => l.loggedAt > windowStart).length
+
+  const weekNumber = candidate._count.weeklySprints + 1
+  const directnessLevel = computeDirectnessLevel(weekNumber, isCasuallySearching(candidate.jobSearchIntensity))
 
   const contextBlock = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
@@ -59,7 +62,7 @@ Asked someone for help: ${candidate.askedForHelpAt ? 'yes' : 'no'}
       model: 'claude-opus-4-8',
       max_tokens: 1000,
       thinking: { type: 'adaptive' },
-      system: SYSTEM_PROMPT_PREFIX + contextBlock,
+      system: `${SYSTEM_PROMPT_PREFIX}\n${DIRECTNESS_INSTRUCTION[directnessLevel]}\n\nCandidate context:\n${contextBlock}`,
       messages: [
         ...orderedHistory.map((m) => ({
           role: m.role === 'user' ? ('user' as const) : ('assistant' as const),

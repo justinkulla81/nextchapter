@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getVictoriaName } from '@/lib/victoria'
-import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
+import { getTodaysPrimaryAction, type ActionDay } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import DailyActionEmail from '@/emails/daily-action'
@@ -59,16 +59,24 @@ export async function sendDailyActionEmail(candidateId: string) {
         outreachLogged: outreachCount > 0,
       })
 
+      const firstDay = report ? (report.actionPlan as unknown as ActionDay[])[0] : undefined
+      const topActions = (firstDay?.items ?? [])
+        .slice(0, 3)
+        .map((item) => (typeof item === 'string' ? item : item.text))
+
       const resend = new Resend(process.env.RESEND_API_KEY)
       const { error } = await resend.emails.send({
         from: 'NextChapter <support@launchyournextchapter.com>',
         replyTo: 'support@launchyournextchapter.com',
         to: email,
-        subject: candidate.firstName ? `Your first week, ${candidate.firstName}.` : 'Your first week',
+        subject: candidate.firstName
+          ? `Your Day 1 action plan is ready, ${candidate.firstName}`
+          : 'Your Day 1 action plan is ready',
         react: Week1KickoffEmail({
           firstName: candidate.firstName,
           victoriaName,
           artifactLabels: artifacts.map((a) => a.label),
+          topActions,
           appUrl,
           unsubscribeUrl,
         }),

@@ -1,10 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recalculateScore } from '@/lib/scoring/recalculate'
+import { evaluatePracticeAnswer } from '@/lib/interview-prep/evaluate-practice-answer'
 
 export type FormState = { error?: string } | undefined
 
@@ -35,20 +37,21 @@ export async function submitInterviewResponse(
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  const alreadyAnswered = await prisma.interviewResponse.findFirst({
-    where: { candidateId: profile.id, questionId },
-  })
-  if (alreadyAnswered) {
-    return { error: "You've already answered this question." }
-  }
+  const feedback = await evaluatePracticeAnswer(questionText, responseText, profile.activeJobDescription)
 
-  await prisma.interviewResponse.create({
-    data: {
+  await prisma.interviewResponse.upsert({
+    where: { candidateId_questionId: { candidateId: profile.id, questionId } },
+    create: {
       candidateId: profile.id,
       questionId,
       questionText,
       responseType: 'text',
       responseText,
+      feedback: feedback ? (feedback as unknown as Prisma.InputJsonValue) : undefined,
+    },
+    update: {
+      responseText,
+      feedback: feedback ? (feedback as unknown as Prisma.InputJsonValue) : undefined,
     },
   })
 

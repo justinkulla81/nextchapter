@@ -14,6 +14,7 @@ import { getCommunityFeed } from '@/lib/community/community-feed'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { getGoalLabel } from '@/lib/scoring/goal-label'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
@@ -109,6 +110,7 @@ export default async function DashboardPage() {
     : 0
   const dayNumber = Math.floor(daysSinceRegistration) + 1
   const goalLabel = getGoalLabel(profile.currentJobStatus)
+  const casuallySearching = isCasuallySearching(profile.jobSearchIntensity)
   const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
 
   const week1Artifacts = getWeek1Artifacts({
@@ -129,7 +131,9 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Week {weekNumber} &middot; Day {dayNumber} — Your goal is to {goalLabel}.
+          {casuallySearching
+            ? `Your goal is to ${goalLabel.toLowerCase()} — whenever you're ready to prioritize it.`
+            : `Week ${weekNumber} · Day ${dayNumber} — Your goal is to ${goalLabel}.`}
         </p>
       </div>
 

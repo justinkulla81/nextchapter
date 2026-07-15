@@ -19,6 +19,7 @@ const container: React.CSSProperties = {
   padding: '32px 24px',
   color: '#0a0a0a',
   ...emailStyles.body,
+  fontSize: '15px',
 }
 
 const logo: React.CSSProperties = {

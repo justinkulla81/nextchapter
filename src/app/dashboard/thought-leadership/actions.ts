@@ -72,3 +72,17 @@ export async function draftPostAction(
   const draft = await draftPost(profile.id, { title, angle }, venue)
   return { draft }
 }
+
+export async function generateArticleAction(
+  _prevState: DraftFormState,
+  formData: FormData
+): Promise<DraftFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const topic = (formData.get('topic') as string | null)?.trim()
+  if (!topic) return { error: 'Give it a topic or angle first.' }
+
+  const draft = await draftPost(profile.id, { title: topic, angle: topic }, 'SUBSTACK')
+  return { draft }
+}

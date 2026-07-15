@@ -60,7 +60,11 @@ export function PracticeTab({
                 onClick={() => handleEvaluate(index, question)}
                 disabled={pendingIndex === index || !answers[index]?.trim() || !hasJobDescription}
               >
-                {pendingIndex === index ? 'Evaluating…' : 'Get feedback'}
+                {pendingIndex === index
+                  ? 'Evaluating…'
+                  : evaluation
+                    ? 'Redraft — get new feedback'
+                    : 'Get feedback'}
               </Button>
               {!hasJobDescription && (
                 <p className="text-xs text-muted-foreground">Add the job description above first.</p>

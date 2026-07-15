@@ -28,9 +28,11 @@ function formatHoursMinutes(totalMinutes: number): string {
 export function SprintSetupForm({
   suggestedActions,
   marketRealityGrade,
+  locked = false,
 }: {
   suggestedActions: SuggestedAction[]
   marketRealityGrade: Grade
+  locked?: boolean
 }) {
   const [state, formAction, pending] = useActionState(submitWeeklySprint, undefined)
   const [selected, setSelected] = useState<boolean[]>(suggestedActions.map(() => true))
@@ -107,18 +109,23 @@ export function SprintSetupForm({
           return (
             <div
               key={i}
-              role="button"
-              tabIndex={0}
-              onClick={() => toggle(i)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  toggle(i)
-                }
-              }}
+              role={locked ? undefined : 'button'}
+              tabIndex={locked ? undefined : 0}
+              onClick={locked ? undefined : () => toggle(i)}
+              onKeyDown={
+                locked
+                  ? undefined
+                  : (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        toggle(i)
+                      }
+                    }
+              }
               className={cn(
-                'flex cursor-pointer items-start gap-3 p-4 transition-colors',
-                selected[i] ? 'bg-brand/5' : 'hover:bg-muted/40'
+                'flex items-start gap-3 p-4 transition-colors',
+                locked ? 'cursor-default' : 'cursor-pointer',
+                selected[i] ? 'bg-brand/5' : !locked && 'hover:bg-muted/40'
               )}
             >
               <input type="hidden" name={`text_${i}`} value={action.text} />
@@ -129,8 +136,9 @@ export function SprintSetupForm({
                 name={`selected_${i}`}
                 value="on"
                 checked={selected[i]}
-                onCheckedChange={() => toggle(i)}
-                onClick={(e) => e.stopPropagation()}
+                disabled={locked}
+                onCheckedChange={locked ? undefined : () => toggle(i)}
+                onClick={locked ? undefined : (e) => e.stopPropagation()}
                 className="mt-0.5"
               />
               <div className="flex-1">
@@ -152,9 +160,16 @@ export function SprintSetupForm({
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <Button type="submit" disabled={pending || !meetsB} className="cursor-pointer">
-        {pending ? 'Committing…' : "Commit to this week's goals"}
-      </Button>
+      {locked ? (
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <span aria-hidden>🔒</span> Unlocks Saturday midnight PT through Monday midnight PT, ahead
+          of next week.
+        </p>
+      ) : (
+        <Button type="submit" disabled={pending || !meetsB} className="cursor-pointer">
+          {pending ? 'Committing…' : "Commit to this week's goals"}
+        </Button>
+      )}
     </form>
   )
 }

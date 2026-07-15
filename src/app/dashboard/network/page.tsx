@@ -1,12 +1,20 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
+import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
+import { NetworkEncouragement } from '@/components/dashboard/NetworkEncouragement'
 import { NetworkingAnxietySelector } from '@/components/dashboard/NetworkingAnxietySelector'
+import { NetworkConnectPreferenceSelector } from '@/components/dashboard/NetworkConnectPreferenceSelector'
 import { ContactRow } from '@/components/dashboard/ContactRow'
 import { HelpScriptCard } from '@/components/dashboard/HelpScriptCard'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
 import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
+import {
+  fillIntroRequestTemplate,
+  fillGoodWordTemplate,
+  fillCheckingInTemplate,
+} from '@/lib/constants/network-email-templates'
 
 const CATEGORY_ORDER = [
   'FORMER_COLLEAGUE',
@@ -38,7 +46,7 @@ export default async function NetworkPage() {
     knownFor: profile.knownFor,
   }
 
-  if (!profile.networkingAnxiety) {
+  if (!profile.networkComfortLevel) {
     return (
       <div className="space-y-6">
         <div>
@@ -50,7 +58,7 @@ export default async function NetworkPage() {
           </p>
         </div>
         <div className="rounded-lg border border-border p-4">
-          <NetworkingAnxietySelector current={profile.networkingAnxiety} />
+          <NetworkComfortCheck />
         </div>
       </div>
     )
@@ -67,8 +75,11 @@ export default async function NetworkPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-border p-4">
+      <NetworkEncouragement comfortLevel={profile.networkComfortLevel} />
+
+      <div className="space-y-4 rounded-lg border border-border p-4">
         <NetworkingAnxietySelector current={profile.networkingAnxiety} />
+        <NetworkConnectPreferenceSelector current={profile.networkConnectPreferences} />
       </div>
 
       <div className="space-y-3 rounded-lg border border-border p-4">
@@ -94,6 +105,24 @@ export default async function NetworkPage() {
         helpScript={fillHelpScriptTemplate(profile)}
         done={profile.askedForHelpAt !== null}
       />
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Email Templates</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <CopyableTemplateCard
+            title="Asking for an intro"
+            template={fillIntroRequestTemplate(profile)}
+          />
+          <CopyableTemplateCard
+            title="Putting in a good word"
+            template={fillGoodWordTemplate(profile)}
+          />
+          <CopyableTemplateCard
+            title="Checking in about interim work"
+            template={fillCheckingInTemplate(profile)}
+          />
+        </div>
+      </div>
 
       {contacts.length === 0 ? (
         <p className="text-sm text-muted-foreground">

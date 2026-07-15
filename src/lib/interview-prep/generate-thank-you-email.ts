@@ -2,8 +2,8 @@ import 'server-only'
 import { getAnthropicClient } from '@/lib/anthropic'
 
 export interface ThankYouEmailInput {
-  interviewerName: string
-  interviewerTitle: string
+  interviewerName?: string | null
+  interviewerTitle?: string | null
   companyName: string
   roleTitle: string
   discussionPoints: string
@@ -23,7 +23,7 @@ Interview details:
 
 export async function generateThankYouEmail(input: ThankYouEmailInput): Promise<string | null> {
   const summary = `
-Interviewer: ${input.interviewerName}, ${input.interviewerTitle}
+Interviewer: ${input.interviewerName ? `${input.interviewerName}${input.interviewerTitle ? `, ${input.interviewerTitle}` : ''}` : 'the interviewer'}
 Company: ${input.companyName}
 Role: ${input.roleTitle}
 Tone: ${input.tone}

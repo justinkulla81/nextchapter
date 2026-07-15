@@ -17,6 +17,12 @@ const VENUE_INSTRUCTIONS: Record<ContentVenue, string> = {
     'Format: a talking-points outline for recording a short podcast segment (not a written post) — a suggested opening line, then 3-5 bullet points covering what to say and in what order, plus one closing thought. Conversational, not a script to read verbatim.',
   INSTAGRAM_FACEBOOK_YOUTUBE:
     'Format: a short social caption, 100-150 words, casual and punchy, plus one bracketed note suggesting a visual or hook for the post/video, and 3-5 relevant hashtags at the end.',
+  CONFERENCES:
+    'Format: a conference talk proposal, 150-250 words — a compelling title, a 2-3 sentence abstract pitched to a program committee, and 3 bullet points of key takeaways attendees would walk away with.',
+  WEBINARS:
+    'Format: a webinar outline, 200-300 words — a title, a one-paragraph description for the registration page, and a bulleted agenda (4-6 items) covering what will be presented in order.',
+  EXPERT_NETWORKS:
+    'Format: an expert network profile blurb, 100-150 words — a first-person summary of the specific expertise being offered, written to help a research analyst quickly assess fit for a paid consultation.',
 }
 
 const postIdeasSchema = z.object({
