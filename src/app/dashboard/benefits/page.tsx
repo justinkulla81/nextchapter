@@ -54,6 +54,17 @@ const TOPICS: Topic[] = [
       { name: 'Find a nonprofit credit counselor (NFCC)', url: 'https://www.nfcc.org/' },
     ],
   },
+  {
+    title: 'Tapping retirement savings or home equity',
+    body: [
+      "If your runway is running out, two options come up often — but both carry real costs. A 401(k) withdrawal before age 59½ usually means a 10% penalty plus ordinary income tax, though hardship withdrawals and 401(k) loans have narrower rules that avoid some of that cost.",
+      'A home equity loan or HELOC can offer a lower interest rate than credit cards or personal loans, but your home is the collateral — missed payments put it at risk. Talk to your plan administrator or lender directly before deciding, and see the credit counselor above first if you can.',
+    ],
+    links: [
+      { name: 'IRS — hardships, early withdrawals, and 401(k) loans', url: 'https://www.irs.gov/retirement-plans/hardships-early-withdrawals-and-loans' },
+      { name: 'CFPB — home equity loans and HELOCs', url: 'https://www.consumerfinance.gov/consumer-tools/home-equity/' },
+    ],
+  },
 ]
 
 export default async function BenefitsPage() {

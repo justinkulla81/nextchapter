@@ -58,6 +58,84 @@ const whatWeDoItems = [
   },
 ]
 
+const guides = [
+  {
+    slug: 'unemployed',
+    title: "You're unemployed now. What actually works.",
+    description: 'Evidence-based guidance for experienced professionals — week one through month three.',
+  },
+  {
+    slug: '72-hours',
+    title: 'You just got here. Start here.',
+    description: 'The first 72 hours after a layoff — what to do, in order.',
+  },
+  {
+    slug: 'pre-exit',
+    title: 'Before you go.',
+    description: "What to handle in your last days at a job — records, contacts, and paperwork you'll want later.",
+  },
+  {
+    slug: 'cobra-aca',
+    title: 'COBRA & marketplace coverage.',
+    description: 'How to keep or replace your health insurance after leaving a job.',
+  },
+  {
+    slug: 'bridge-income',
+    title: 'Bridge income options.',
+    description: 'Ways to bring in income while you search, without derailing it.',
+  },
+  {
+    slug: 'gatekeeper',
+    title: 'Getting through the gatekeeper.',
+    description: 'How recruiters, HR screens, and hiring managers actually work — and how to get from inbox to interview.',
+  },
+  {
+    slug: 'offer-letter',
+    title: 'You have an offer. Now read it correctly.',
+    description: 'Total comp breakdown, negotiation scripts, and red flags to catch.',
+  },
+  {
+    slug: 'narrative-workshop',
+    title: 'Build your core story.',
+    description: 'A workshop for building the story you tell about your career — for resumes, interviews, and networking.',
+  },
+  {
+    slug: 'network-activation',
+    title: 'Activate your network.',
+    description: 'How to turn your existing contacts into real conversations.',
+  },
+  {
+    slug: 'ask-for-help',
+    title: 'Before you start outreach, read this.',
+    description: 'Why asking for help works, and how to do it without it feeling awkward.',
+  },
+  {
+    slug: 'network-scripts',
+    title: 'The networking script book.',
+    description: 'Scripts for every kind of outreach — cold, warm, and everything between.',
+  },
+  {
+    slug: 'interview-prep',
+    title: 'Interview prep guide.',
+    description: 'How to prepare for interviews at every stage, from phone screen to final round.',
+  },
+  {
+    slug: 'post-interview',
+    title: "You have an interview. Here's how to follow up.",
+    description: 'What to do in the 24-48 hours after an interview.',
+  },
+  {
+    slug: 'thought-leadership',
+    title: 'Build a public presence.',
+    description: 'How to write and share thought leadership content that gets noticed.',
+  },
+  {
+    slug: 'first-90-days',
+    title: 'Your first 90 days.',
+    description: 'How to start strong in a new role.',
+  },
+]
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -225,6 +303,42 @@ export default function Home() {
                   </p>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 5 — Free guides */}
+      <section className="border-t border-border">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Free guides</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              No email required. Read what you need, when you need it — from your first 72 hours
+              to your first 90 days in a new role.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {guides.map((guide) => (
+              <a
+                key={guide.slug}
+                href={`/guides/${guide.slug}.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Card className="h-full transition-colors hover:border-brand">
+                  <CardContent className="pt-6">
+                    <h3 className="font-semibold">{guide.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {guide.description}
+                    </p>
+                    <span className="mt-4 inline-block text-sm font-medium text-brand">
+                      Read the guide →
+                    </span>
+                  </CardContent>
+                </Card>
+              </a>
             ))}
           </div>
         </div>
