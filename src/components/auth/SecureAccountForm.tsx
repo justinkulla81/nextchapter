@@ -1,24 +1,49 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { markPasswordSet } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+interface SecureAccountFormProps {
+  // Present when reached via a token_hash link (see CreateAccountForm) —
+  // the token is only consumed here, on actual submit, not on page load.
+  // This matters because email clients and corporate security scanners
+  // prefetch links in incoming mail; auto-consuming on load would burn the
+  // single-use token before the user's real click. Same reasoning as
+  // ResetPasswordForm's identical click-gate pattern, just folded into this
+  // form's own submit instead of a separate "Continue" screen, since every
+  // token_hash link that reaches this form always leads here next anyway.
+  tokenHash?: string | null
+  otpType?: EmailOtpType | null
+}
+
 // Shown right after the anonymous-to-registered email confirmation link is
 // clicked (see CreateAccountForm) — that flow only ever confirms an email
 // address, never a password, so without this step the account would have no
 // durable way to log back in. Offers either path: set a password directly,
 // or link Google to the already-authenticated session.
-export function SecureAccountForm() {
+export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps) {
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // A token_hash can only be verified once — track whether that already
+  // happened locally so a retry after a later failure (e.g. weak password)
+  // doesn't try to re-consume it and get a spurious "invalid token" error.
+  const tokenConsumed = useRef(false)
+
+  async function consumeToken(supabase: ReturnType<typeof createClient>) {
+    if (tokenConsumed.current || !tokenHash || !otpType) return null
+    const { error } = await supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash })
+    if (!error) tokenConsumed.current = true
+    return error
+  }
 
   async function handlePasswordSubmit(e: FormEvent) {
     e.preventDefault()
@@ -26,6 +51,13 @@ export function SecureAccountForm() {
     setError(null)
 
     const supabase = createClient()
+    const verifyError = await consumeToken(supabase)
+    if (verifyError) {
+      setLoading(false)
+      setError(verifyError.message)
+      return
+    }
+
     const { error } = await supabase.auth.updateUser({ password })
 
     setLoading(false)
@@ -36,7 +68,6 @@ export function SecureAccountForm() {
 
     await markPasswordSet()
     router.push('/onboarding')
-    router.refresh()
   }
 
   async function handleGoogleLink() {
@@ -44,6 +75,13 @@ export function SecureAccountForm() {
     setError(null)
 
     const supabase = createClient()
+    const verifyError = await consumeToken(supabase)
+    if (verifyError) {
+      setGoogleLoading(false)
+      setError(verifyError.message)
+      return
+    }
+
     const redirectTo = new URL('/onboarding', window.location.origin)
     const { error } = await supabase.auth.linkIdentity({
       provider: 'google',
@@ -66,10 +104,10 @@ export function SecureAccountForm() {
   return (
     <div className="w-full max-w-md space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Your email is confirmed</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Confirm your email and set a password</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          One more thing — set a password or connect Google so you can always get back into your
-          account.
+          One step unlocks your full Hireability Report and action plan, and gives you a way to
+          always get back into your account.
         </p>
       </div>
 

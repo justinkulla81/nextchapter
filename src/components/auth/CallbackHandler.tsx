@@ -14,20 +14,28 @@ export function CallbackHandler() {
   const searchParams = useSearchParams()
   const tokenHash = searchParams.get('token_hash')
   const otpType = searchParams.get('type') as EmailOtpType | null
-  const [status, setStatus] = useState<Status>(tokenHash ? 'confirm' : 'verifying')
+  const nextIsSecureAccount = searchParams.get('next') === 'secure-account'
+  // Every real token_hash link that lands here comes from CreateAccountForm,
+  // which always sets next=secure-account — so skip the extra "Continue"
+  // click and go straight to the password form, which consumes the token
+  // itself on submit. See SecureAccountForm for why that's still safe
+  // against email-scanner link prefetching (nothing fires until submit).
+  const [status, setStatus] = useState<Status>(() => {
+    if (!tokenHash) return 'verifying'
+    return nextIsSecureAccount ? 'secure-account' : 'confirm'
+  })
 
   function finish() {
     // Set explicitly by the anonymous-to-registered email confirmation
     // link (see CreateAccountForm) — that flow only ever confirms an
     // email address, it never sets a password, so the account otherwise
     // has no durable way to log back in afterward.
-    if (searchParams.get('next') === 'secure-account') {
+    if (nextIsSecureAccount) {
       setStatus('secure-account')
       return
     }
     setStatus('redirecting')
     router.replace('/onboarding')
-    router.refresh()
   }
 
   // `token_hash` (+ `type`) is a link to our own domain — the token is only
@@ -131,7 +139,7 @@ export function CallbackHandler() {
   }
 
   if (status === 'secure-account') {
-    return <SecureAccountForm />
+    return <SecureAccountForm tokenHash={tokenHash} otpType={otpType} />
   }
 
   return <p className="text-sm text-muted-foreground">Redirecting…</p>
