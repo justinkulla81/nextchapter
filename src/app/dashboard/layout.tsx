@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -17,6 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen">
+      <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardNav hideWorkSamples={profile.workSampleType === 'none'} />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>
