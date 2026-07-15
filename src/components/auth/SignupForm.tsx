@@ -44,7 +44,6 @@ export function SignupForm() {
     // applies if confirmation is ever re-enabled and no session comes back.
     if (data.session) {
       router.push('/onboarding')
-      router.refresh()
       return
     }
 

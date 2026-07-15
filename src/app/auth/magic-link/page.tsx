@@ -44,7 +44,6 @@ export default function MagicLinkPage() {
           return
         }
         router.push('/onboarding')
-        router.refresh()
       })
   }, [parsed, router])
 

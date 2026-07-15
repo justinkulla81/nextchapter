@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -14,26 +14,30 @@ export function ResetPasswordForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const tokenHash = searchParams.get('token_hash')
-  const [status, setStatus] = useState<'waiting' | 'confirm' | 'ready' | 'error'>(
-    tokenHash ? 'confirm' : 'waiting'
+  const [status, setStatus] = useState<'waiting' | 'ready' | 'error'>(
+    tokenHash ? 'ready' : 'waiting'
   )
+  // A token_hash can only be verified once — track whether that already
+  // happened locally so a retry after a later failure (e.g. weak password)
+  // doesn't try to re-consume it and get a spurious "invalid token" error.
+  const tokenConsumed = useRef(false)
 
   // `token_hash` (+ `type=recovery`) is a link to our own domain — the token
-  // is only consumed when the user clicks "Continue" below, not the instant
-  // the page loads. This matters because email clients and corporate email
-  // security scanners automatically prefetch links in incoming mail; if the
-  // link auto-consumed a single-use token on page load, that prefetch alone
+  // is only consumed on actual submit below, not the instant the page loads.
+  // This matters because email clients and corporate email security
+  // scanners automatically prefetch links in incoming mail; if the link
+  // auto-consumed a single-use token on page load, that prefetch alone
   // would burn it before the user ever clicked, and every reset link would
   // read as "invalid or expired" on the user's actual first click. A `code`
   // query param (PKCE) or `#access_token=...` hash fragment (implicit flow)
   // both come from Supabase's own hosted /auth/v1/verify redirect, which
   // already consumed the token before reaching this page — those are handled
   // automatically since there's no separate confirmation step to gate.
-  async function confirmRecovery() {
-    if (!tokenHash) return
-    const supabase = createClient()
+  async function consumeToken(supabase: ReturnType<typeof createClient>) {
+    if (tokenConsumed.current || !tokenHash) return null
     const { error } = await supabase.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
-    setStatus(error ? 'error' : 'ready')
+    if (!error) tokenConsumed.current = true
+    return error
   }
 
   useEffect(() => {
@@ -74,6 +78,13 @@ export function ResetPasswordForm() {
     setError(null)
 
     const supabase = createClient()
+    const verifyError = await consumeToken(supabase)
+    if (verifyError) {
+      setLoading(false)
+      setError(verifyError.message)
+      return
+    }
+
     const { error } = await supabase.auth.updateUser({ password })
 
     setLoading(false)
@@ -84,19 +95,10 @@ export function ResetPasswordForm() {
     }
 
     router.push('/dashboard')
-    router.refresh()
   }
 
   if (status === 'waiting') {
     return <p className="text-sm text-muted-foreground">Verifying your link…</p>
-  }
-
-  if (status === 'confirm') {
-    return (
-      <Button className="w-full" onClick={confirmRecovery}>
-        Continue
-      </Button>
-    )
   }
 
   if (status === 'error') {
