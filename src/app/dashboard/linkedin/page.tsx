@@ -62,7 +62,12 @@ export default async function LinkedInPage() {
       )}
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Post generator</h2>
+        <h2 className="text-lg font-semibold">LinkedIn Post Generator</h2>
+        <p className="text-sm text-muted-foreground">
+          Posting matters, but the algorithm rewards engagement too — commenting on others&apos;
+          posts and tagging people in relevant conversations both raise how often you show up in
+          feeds. Make it a daily habit, not just a posting one.
+        </p>
         {postGeneratorUnlocked ? (
           <ThoughtLeadershipStudio venues={['LINKEDIN']} />
         ) : (

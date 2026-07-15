@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { generatePostIdeas, draftPost, type PostIdea } from '@/lib/network/thought-leadership'
+import { analyzeSubstack } from '@/lib/network/analyze-substack'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -85,4 +86,44 @@ export async function generateArticleAction(
 
   const draft = await draftPost(profile.id, { title: topic, angle: topic }, 'SUBSTACK')
   return { draft }
+}
+
+export type SubstackAnswerState = { error?: string } | undefined
+
+export async function submitSubstackNo(): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { substackHasAccount: false },
+  })
+
+  revalidatePath('/dashboard/thought-leadership')
+}
+
+export async function submitSubstackUrl(
+  _prevState: SubstackAnswerState,
+  formData: FormData
+): Promise<SubstackAnswerState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const url = (formData.get('url') as string | null)?.trim()
+  if (!url) return { error: 'Enter your Substack URL.' }
+
+  try {
+    new URL(url)
+  } catch {
+    return { error: 'Enter a valid URL.' }
+  }
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { substackHasAccount: true },
+  })
+
+  await analyzeSubstack(profile.id, url)
+
+  revalidatePath('/dashboard/thought-leadership')
 }

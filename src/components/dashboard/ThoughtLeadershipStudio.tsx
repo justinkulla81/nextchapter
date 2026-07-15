@@ -94,7 +94,13 @@ function ArticleGenerator() {
   )
 }
 
-export function ThoughtLeadershipStudio({ venues }: { venues: ContentVenue[] }) {
+export function ThoughtLeadershipStudio({
+  venues,
+  substackUnlocked = false,
+}: {
+  venues: ContentVenue[]
+  substackUnlocked?: boolean
+}) {
   const [ideasState, generateAction, generating] = useActionState(generateIdeasAction, undefined)
 
   return (
@@ -114,7 +120,7 @@ export function ThoughtLeadershipStudio({ venues }: { venues: ContentVenue[] }) 
         </div>
       )}
 
-      <ArticleGenerator />
+      {venues.includes('SUBSTACK') && substackUnlocked && <ArticleGenerator />}
     </div>
   )
 }

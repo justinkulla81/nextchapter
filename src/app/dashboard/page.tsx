@@ -9,6 +9,7 @@ import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
+import { getTodaysConnectionAction } from '@/lib/daily/connection-action'
 import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
@@ -17,6 +18,7 @@ import { getGoalLabel } from '@/lib/scoring/goal-label'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
+import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
 import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
@@ -144,6 +146,8 @@ export default async function DashboardPage() {
         primaryAction={primaryAction}
         firstName={profile.firstName}
       />
+
+      <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
 
       {isFirstWeek ? (
         <Week1ArtifactSprint artifacts={week1Artifacts} />

@@ -321,6 +321,10 @@ model CandidateProfile {
   linkedinProfileUpToDate       Boolean?   // same gate
   activeJobDescription          String?    @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
   workSampleType                String?    // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
+  substackHasAccount             Boolean?   // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
+  substackUrl                    String?
+  substackCritique               Json?      // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
+  substackAnalyzedAt             DateTime?
 
   // Daily loop — mood check-in + daily Victoria email
   actionWindow          ActionWindow  @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing

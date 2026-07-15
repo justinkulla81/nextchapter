@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 
 export const emailStyles = {
   body: {
-    fontSize: '18px',
+    fontSize: '16px',
     lineHeight: '1.8',
   } satisfies CSSProperties,
   muted: {

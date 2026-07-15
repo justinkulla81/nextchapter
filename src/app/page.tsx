@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { X } from 'lucide-react'
+import { X, Check, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
@@ -28,6 +28,28 @@ const employerPainPoints = [
   'Resumes are a commodity — everyone looks identical',
   'Culture fit is a guess — no tools exist to measure it pre-hire',
   'Best candidates never apply — they’re poached through networks',
+]
+
+const feelingStuckPoints = [
+  "The loneliness is real — a search can feel like the only person who knows you're struggling is you.",
+  "It's easy to feel stale — like the skills that used to feel sharp are slipping away.",
+  "The financial pressure doesn't wait, even when the process does.",
+  'A gap on your resume can feel like something to hide, not something to explain.',
+  "Asking for help feels uncomfortable — like admitting something's wrong.",
+  "Staying home, alone, day after day, makes all of it worse.",
+]
+
+const whatItTakesItems = [
+  'Activating your network — not just updating LinkedIn',
+  'Being shameless about asking for help',
+  'Staying tenacious through rejection and silence',
+  'Learning constantly — including how to use AI',
+  'Taking an interim or fractional role if it keeps you moving',
+  'Posting and engaging on LinkedIn, consistently',
+  'Helping other people, not just asking for help',
+  'Reaching out directly to recruiters',
+  'Finding roles that are never publicly listed',
+  'Walking away from black-hole applications instead of repeating them',
 ]
 
 const profiles = [
@@ -160,6 +182,39 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section 2.5 — Feeling Stuck? */}
+      <section className="bg-navy text-white">
+        <div className="mx-auto max-w-5xl px-6 py-20">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Feeling stuck?</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-light-blue">
+              You&apos;re not imagining it. This is genuinely hard — and it&apos;s not just about
+              the job search.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2">
+            {feelingStuckPoints.map((point) => (
+              <div key={point} className="rounded-xl border border-white/10 bg-white/5 px-6 py-5">
+                <p className="text-base leading-relaxed">{point}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-xl border border-white/10 bg-white/5">
+            <div className="flex aspect-video items-center justify-center bg-black/20">
+              <div className="max-w-sm px-6 text-center">
+                <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-white/10">
+                  <Play className="size-6 text-white" />
+                </div>
+                <p className="mt-3 text-sm text-light-blue">
+                  Video coming soon — hear from Vic and from people who&apos;ve been exactly where
+                  you are.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Section 3 — The Five Profiles */}
       <section className="mx-auto max-w-6xl px-6 py-20">
         <h2 className="text-center text-3xl font-bold tracking-tight">
@@ -231,6 +286,29 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section 4.5 — What It Takes */}
+      <section className="border-t border-border bg-white">
+        <div className="mx-auto max-w-4xl px-6 py-20">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Here&apos;s what it actually takes</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              We won&apos;t pretend this is easy. A real search means:
+            </p>
+          </div>
+          <div className="mt-12 grid gap-3 sm:grid-cols-2">
+            {whatItTakesItems.map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3 rounded-lg border border-light-gray bg-off-white px-4 py-3"
+              >
+                <Check className="mt-0.5 size-4 shrink-0 text-brand" />
+                <span className="text-sm text-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Section 5 — Free guides */}
       <section className="border-t border-border">
         <div className="mx-auto max-w-6xl px-6 py-20">
@@ -271,6 +349,9 @@ export default function Home() {
       <footer className="bg-navy text-white">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center">
           <h2 className="text-3xl font-bold tracking-tight">Ready to start your next chapter?</h2>
+          <p className="mx-auto mt-4 max-w-xl text-light-blue">
+            Does something need to change? Are you ready to put in the work?
+          </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
               size="lg"

@@ -74,7 +74,7 @@ export async function sendDailyActionEmail(candidateId: string) {
           : 'Your Day 1 action plan is ready',
         react: Week1KickoffEmail({
           firstName: candidate.firstName,
-          victoriaName,
+          victoriaName: getVictoriaName('introduction'),
           artifactLabels: artifacts.map((a) => a.label),
           topActions,
           appUrl,

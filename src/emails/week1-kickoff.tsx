@@ -56,7 +56,11 @@ export default function Week1KickoffEmail({
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
-      <p>Hi {firstName || 'there'} — {victoriaName} here.</p>
+      <p>
+        Hi {firstName || 'there'} — I&apos;m {victoriaName}, your AI coach here at NextChapter.
+        I&apos;ll check in with you, help build your plan, and always give it to you straight — but
+        I&apos;m completely in your corner. Let&apos;s get started.
+      </p>
       {topActions.length > 0 && (
         <>
           <p>Your action plan is ready. Here&apos;s where I&apos;d start:</p>

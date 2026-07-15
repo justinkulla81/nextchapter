@@ -2,6 +2,10 @@
 
 Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec — just a place to not lose the thread.
 
+## Marketing
+
+- Replace the homepage "Feeling Stuck?" section's placeholder video with a real HeyGen (or similarly produced) explainer video of Vic and of real unemployed men and women, to humanize the emotional toll before the harder "what it takes" pitch. Needs a script, a voice/likeness for Vic, and either real people willing to be filmed or licensed footage — blocked on producing that asset, same as the logo. The placeholder slot (play-button + "Video coming soon" caption) is live now so the layout is ready to drop the real video in.
+
 ## Branding
 
 - Swap the site logo (header/nav, footer, dashboard, onboarding, org pages — everywhere the shared `Logo` component renders) to the new wordmark + upward-arrow mark image, replacing the current plain-text "NextChapter" span. Also restyle the favicon (`icon.tsx`), apple touch icon (`apple-icon.tsx`), and OG image (`opengraph-image.tsx`) to match, since those are currently separate text/SVG generators, not derived from the shared `Logo` component. Blocked on: getting the logo file saved into the repo (e.g. `public/logo.png`).
