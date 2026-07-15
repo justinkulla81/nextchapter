@@ -18,6 +18,10 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 - Add a news-article feed to the merged Community page — curated job-market/career-news items interspersed with candidate posts and activity, to give the feed something to show even when candidate activity is quiet. Needs an actual content/curation pipeline (an editorial source or a news API), which doesn't exist yet — logged here rather than built as part of the Community+Circle merge.
 
+## Interview Prep
+
+- Bring back a candidate-facing "answer interview questions" feature (previously `/dashboard/interview`, the `InterviewResponse` model), but only once there's a real recruiter/coach on the other end of it — without an audience, candidates have no reason to volunteer written answers to a static question bank on their own. Re-introduce it as part of the recruiter/coach experience instead: let a recruiter or coach pick which questions they actually want answered (an "option bank" selection, not a fixed list), so the exercise has a concrete purpose and a real reader. Removed from nav/routing for now; the `InterviewResponse` and `InterviewQuestionBank` Prisma models were left in schema untouched so any historical responses aren't lost and the redesigned version doesn't have to start from scratch.
+
 ## Dashboard
 
 - Build a dedicated "My Stats" page for the reference/job-fit/work-sample/community-post counts that used to sit on the main dashboard as 4 stat tiles — removed from the homepage to keep it focused on today's actions and this week's grade, but the raw counts are still useful and shouldn't just disappear.

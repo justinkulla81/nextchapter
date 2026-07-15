@@ -137,7 +137,6 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     where: { id: candidateId },
     include: {
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
-      interviewResponses: true,
       workHistory: true,
       references: { where: { status: 'COMPLETED' } },
       resumes: { orderBy: { uploadedAt: 'desc' }, take: 1 },
@@ -278,8 +277,6 @@ Job-fit feedback: ${
       .map((j) => `${j.url}: fit ${j.fitScore}/100 — ${j.fitFeedback}`)
       .join(' | ') || 'no job postings analyzed yet'
   }
-
-Interview responses submitted: ${candidate.interviewResponses.length}
 
 LinkedIn status confirmed: ${candidate.linkedInConfirmedAt ? 'yes' : 'no'}
 LinkedIn URL on file: ${candidate.linkedInUrl ? 'yes' : 'no (candidate may have explicitly said they don’t have one yet)'}

@@ -27,7 +27,6 @@ export default async function ScorePage() {
       references: true,
       workSamples: true,
       workHistory: true,
-      interviewResponses: true,
       jobPostings: true,
       linkedInActivityLogs: true,
       communityPosts: { where: { isActive: true } },

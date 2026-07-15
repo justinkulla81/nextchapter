@@ -19,7 +19,7 @@ export async function regenerateHireabilityReport() {
 
   const fullProfile = await prisma.candidateProfile.findUnique({
     where: { id: profile.id },
-    include: { resumes: true, workSamples: true, references: true, interviewResponses: true, communityPosts: true },
+    include: { resumes: true, workSamples: true, references: true, communityPosts: true },
   })
   if (!fullProfile || countCompletedTasks(fullProfile) < TASKS_REQUIRED_TO_REGENERATE_REPORT) {
     // Not enough completed tasks yet — enforced server-side since the

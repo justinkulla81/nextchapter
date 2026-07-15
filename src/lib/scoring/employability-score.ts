@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import type {
   CandidateProfile,
-  InterviewResponse,
   JobPosting,
   LinkedInActivityLog,
   Reference,
@@ -58,7 +57,6 @@ export interface ScoreBreakdown extends RawScoreBreakdown {
 export type CandidateWithScoringRelations = CandidateProfile & {
   references: Reference[]
   workSamples: WorkSample[]
-  interviewResponses: InterviewResponse[]
   peerNominations: { verified: boolean }[]
   learningBadges: { completedAt: Date }[]
   assessmentResults: { assessmentType: string }[]
@@ -105,8 +103,6 @@ export function computeRawBreakdown(candidate: CandidateWithScoringRelations): R
 
   const verifiedNominations = candidate.peerNominations.filter((n) => n.verified)
   signalDepth += Math.min(verifiedNominations.length * 4, 9)
-
-  signalDepth += Math.min(candidate.interviewResponses.length * 2, 6)
 
   // Community Board participation — decays on a rolling window rather than
   // accumulating forever, so a candidate has to keep posting (not just post
@@ -165,11 +161,6 @@ export function computeRawBreakdown(candidate: CandidateWithScoringRelations): R
   if (candidate.willingToStartLower) desireSignal += 10
   if (candidate.openToRelocation) desireSignal += 8
   if (candidate.compFlexible) desireSignal += 7
-
-  const videoResponses = candidate.interviewResponses.filter(
-    (r) => r.responseType === 'video' || r.responseType === 'audio'
-  )
-  desireSignal += Math.min(videoResponses.length * 10, 20)
 
   desireSignal += Math.min(candidate.references.length * 5, 20)
 
@@ -254,7 +245,6 @@ export async function calculateEmployabilityScore(candidateId: string): Promise<
     include: {
       references: true,
       workSamples: true,
-      interviewResponses: true,
       peerNominations: true,
       learningBadges: true,
       assessmentResults: true,
@@ -308,7 +298,6 @@ export function scoreToNextSteps(
   candidate: CandidateProfile & {
     references: Reference[]
     workSamples: WorkSample[]
-    interviewResponses: InterviewResponse[]
     jobPostings: JobPosting[]
     linkedInActivityLogs: LinkedInActivityLog[]
   },
@@ -348,14 +337,6 @@ export function scoreToNextSteps(
       action: 'Complete Goals section',
       pointGain: gainOrNull(currentRaw, { ...currentRaw, narrativeClarity: hypotheticalNarrativeClarity }),
       effort: 'low',
-    })
-  }
-  if (candidate.interviewResponses.length === 0) {
-    const hypotheticalSignalDepth = Math.min(currentRaw.signalDepth + 6, SIGNAL_DEPTH_RAW_CAP)
-    steps.push({
-      action: 'Answer 3 interview questions',
-      pointGain: gainOrNull(currentRaw, { ...currentRaw, signalDepth: hypotheticalSignalDepth }),
-      effort: 'medium',
     })
   }
   if (!candidate.willingToStartLower && !candidate.compFlexible && !candidate.openToRelocation) {

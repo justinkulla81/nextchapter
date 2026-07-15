@@ -1,4 +1,4 @@
-import type { CandidateProfile, Reference, WorkSample, InterviewResponse, Resume, CommunityPost } from '@prisma/client'
+import type { CandidateProfile, Reference, WorkSample, Resume, CommunityPost } from '@prisma/client'
 
 export const TASKS_REQUIRED_TO_REGENERATE_REPORT = 10
 
@@ -6,7 +6,6 @@ type ProfileWithActivity = CandidateProfile & {
   resumes: Resume[]
   workSamples: WorkSample[]
   references: Reference[]
-  interviewResponses: InterviewResponse[]
   communityPosts: CommunityPost[]
 }
 
@@ -30,7 +29,6 @@ export function countCompletedTasks(profile: ProfileWithActivity): number {
     profile.resumes.length +
     profile.workSamples.length +
     profile.references.length +
-    profile.interviewResponses.length +
     profile.communityPosts.length
 
   return checklistFlags + activityCounts

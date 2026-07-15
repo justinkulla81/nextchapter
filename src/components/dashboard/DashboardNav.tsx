@@ -54,7 +54,6 @@ const SECTIONS: NavSection[] = [
       { href: '/dashboard/references', label: 'Get References' },
       { href: '/dashboard/network', label: 'Networking Plan' },
       { href: '/dashboard/interview-prep', label: 'Interview Prep' },
-      { href: '/dashboard/interview', label: 'Practice Interviewing' },
     ],
   },
   {

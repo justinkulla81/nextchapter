@@ -22,7 +22,6 @@ export async function getDashboardData() {
       references: true,
       workSamples: true,
       workHistory: true,
-      interviewResponses: true,
       employerInteractions: true,
       resumes: { orderBy: { uploadedAt: 'desc' } },
       jobPostings: { orderBy: { createdAt: 'desc' } },
