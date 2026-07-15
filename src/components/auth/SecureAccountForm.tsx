@@ -8,6 +8,7 @@ import { markPasswordSet } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 interface SecureAccountFormProps {
   // Present when reached via a token_hash link (see CreateAccountForm) —
@@ -60,12 +61,14 @@ export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps
 
     const { error } = await supabase.auth.updateUser({ password })
 
-    setLoading(false)
     if (error) {
+      setLoading(false)
       setError(error.message)
       return
     }
 
+    // Leave loading true — we're navigating away, so there's no moment where
+    // the button should look idle again before the new page appears.
     await markPasswordSet()
     router.push('/onboarding')
   }
@@ -102,7 +105,12 @@ export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps
   }
 
   return (
-    <div className="w-full max-w-md space-y-6">
+    <div
+      className={cn(
+        'w-full max-w-md space-y-6',
+        (loading || googleLoading) && 'cursor-progress [&_*]:cursor-progress'
+      )}
+    >
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Confirm your email and set a password</h1>
         <p className="mt-1 text-sm text-muted-foreground">

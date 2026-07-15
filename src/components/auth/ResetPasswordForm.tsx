@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -87,13 +88,14 @@ export function ResetPasswordForm() {
 
     const { error } = await supabase.auth.updateUser({ password })
 
-    setLoading(false)
-
     if (error) {
+      setLoading(false)
       setError(error.message)
       return
     }
 
+    // Leave loading true — we're navigating away, so there's no moment where
+    // the button should look idle again before the new page appears.
     router.push('/dashboard')
   }
 
@@ -110,7 +112,10 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className={cn('space-y-4', loading && 'cursor-progress [&_*]:cursor-progress')}
+    >
       <div className="space-y-2">
         <Label htmlFor="password">New password</Label>
         <Input

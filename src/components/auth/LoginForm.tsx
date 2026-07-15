@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import { GoogleButton } from './GoogleButton'
 
 export function LoginForm() {
@@ -26,9 +27,8 @@ export function LoginForm() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-    setLoading(false)
-
     if (error) {
+      setLoading(false)
       setError(
         error.message === 'Email not confirmed'
           ? "Please confirm your email before logging in — we can resend the confirmation link."
@@ -37,6 +37,8 @@ export function LoginForm() {
       return
     }
 
+    // Leave loading true — we're navigating away, so there's no moment where
+    // the button should look idle again before the new page appears.
     router.push(searchParams.get('next') ?? '/dashboard')
   }
 
@@ -51,7 +53,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4', loading && 'cursor-progress [&_*]:cursor-progress')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
