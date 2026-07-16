@@ -10,6 +10,21 @@ export const CURRENT_JOB_STATUS_LABELS: Record<CurrentJobStatus, string> = {
   NEW_GRADUATE_FIRST_JOB: 'New Graduate / First Job',
 }
 
+// Keys used by the homepage's situational entry cards — shared with the
+// onboarding circumstances step so a homepage click can pre-fill (and skip
+// re-asking) the equivalent CurrentJobStatus question.
+export const SITUATION_TO_JOB_STATUS = {
+  worried_let_go: 'EMPLOYED_CONSIDERING_MOVE',
+  just_resigned: 'RESIGNED',
+  just_laid_off: 'LAID_OFF',
+  reentering_workforce: 'CAREGIVER_LEAVE_SABBATICAL',
+  career_pivot: 'CAREER_PIVOT',
+} as const satisfies Record<string, CurrentJobStatus>
+
+export type SituationKey = keyof typeof SITUATION_TO_JOB_STATUS
+
+export const SITUATION_SESSION_KEY = 'nc_situation'
+
 export const GAP_DURATION_LABELS: Record<GapDurationBucket, string> = {
   ZERO_TO_THREE_MONTHS: '0-3 months',
   THREE_TO_SIX_MONTHS: '3-6 months',

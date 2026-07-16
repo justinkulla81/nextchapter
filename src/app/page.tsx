@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import Image from 'next/image'
-import { X, Check, Play } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
-import { GUIDES } from '@/lib/constants/guides'
+import { SituationalButtons } from '@/components/home/SituationalButtons'
+import { HowItWorks } from '@/components/home/HowItWorks'
+import { ByTheNumbers } from '@/components/home/ByTheNumbers'
+import { SampleReportPreview } from '@/components/home/SampleReportPreview'
 
 const heroStats = [
   { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
@@ -14,71 +15,18 @@ const heroStats = [
   { value: '8%', label: 'Lower household wealth, 6 years after a layoff' },
 ]
 
-const candidatePainPoints = [
-  'Applications vanish into a void — zero feedback, zero humanity',
-  'LinkedIn is a performance stage, not an honest marketplace',
-  'ATS filters them out before a human reads their name',
-  'Employment gaps are penalized regardless of reason',
-  'No way to show who they actually are',
-]
-
-const employerPainPoints = [
-  'LinkedIn Recruiter costs $10K+/yr and yields passive, unserious leads',
-  'ATS was built for compliance, not for finding great people',
-  'Resumes are a commodity — everyone looks identical',
-  'Culture fit is a guess — no tools exist to measure it pre-hire',
-  'Best candidates never apply — they’re poached through networks',
-]
-
-const feelingStuckPoints = [
-  "The loneliness is real — a search can feel like the only person who knows you're struggling is you.",
-  "It's easy to feel stale — like the skills that used to feel sharp are slipping away.",
-  "The financial pressure doesn't wait, even when the process does.",
+const painPoints = [
+  "Applications vanish into a void — you never find out how you're actually coming across.",
+  'ATS filters you out before a human ever reads your name, regardless of how qualified you are.',
+  'LinkedIn is a performance stage, not an honest marketplace — and "Open to Work" reads as a stigma.',
   'A gap on your resume can feel like something to hide, not something to explain.',
-  "Asking for help feels uncomfortable — like admitting something's wrong.",
-  "Staying home, alone, day after day, makes all of it worse.",
+  "The loneliness is real — a search can feel like the only person who knows you're struggling is you.",
+  "The financial pressure doesn't wait, even when the process does.",
 ]
 
-const whatItTakesItems = [
-  'Activating your network — not just updating LinkedIn',
-  'Being shameless about asking for help',
-  'Staying tenacious through rejection and silence',
-  'Learning constantly — including how to use AI',
-  'Taking an interim or fractional role if it keeps you moving',
-  'Posting and engaging on LinkedIn, consistently',
-  'Helping other people, not just asking for help',
-  'Reaching out directly to recruiters',
-  'Finding roles that are never publicly listed',
-  'Walking away from black-hole applications instead of repeating them',
-]
-
-const profiles = [
-  { icon: '\u{1F499}', name: 'The Caregiver', description: 'Stepped away for family. Penalized for it.' },
-  { icon: '⚡', name: 'Layoff Survivor', description: 'Random math, not performance.' },
-  { icon: '→', name: 'The Relocator', description: 'Moved for family. Reads as unstable.' },
-  { icon: '\u{1F680}', name: 'Career Pivoter', description: 'Expert choosing to start fresh.' },
-  { icon: '\u{1F393}', name: 'Hungry Graduate', description: 'No experience, massive potential.' },
-]
-
-const whatWeDoItems = [
-  {
-    title: 'An honest mirror',
-    description:
-      'We tell you exactly how you come across to employers — the good and the hard-to-hear — so nothing quietly costs you an offer.',
-  },
-  {
-    title: 'A resume that works',
-    description: 'Specific, line-by-line feedback on what to fix first — not a generic template.',
-  },
-  {
-    title: 'A real network plan',
-    description: 'Who to reach out to and what to say — most jobs come from people, not postings.',
-  },
-  {
-    title: 'Interview & negotiation prep',
-    description:
-      'Practice for the questions you’ll actually get asked, and a script for asking for what you’re worth.',
-  },
+const genericRejectionExamples = [
+  '"Thank you for your interest in the [Role] position. After careful consideration, we have decided to move forward with other candidates who more closely match our needs at this time."',
+  '"We appreciate you taking the time to apply and interview with us. Unfortunately, we will not be moving forward with your application at this time. We wish you the best in your search."',
 ]
 
 const jsonLd = {
@@ -105,13 +53,28 @@ export default function Home() {
           <Logo className="text-3xl" />
           <nav className="flex items-center gap-6">
             <Link
+              href="#why-stuck"
+              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-block"
+            >
+              Why you&apos;re stuck
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:inline-block"
+            >
+              How it works
+            </Link>
+            <Link
+              href="/for-coaches"
+              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-block"
+            >
+              For coaches
+            </Link>
+            <Link
               href="/for-organizations"
-              className="hidden text-sm text-muted-foreground/70 hover:text-muted-foreground sm:inline-block"
+              className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:inline-block"
             >
               For organizations
-            </Link>
-            <Link href="/faq" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-              FAQ
             </Link>
             <Button size="default" variant="success" render={<Link href="/auth/login" />}>
               Log in
@@ -121,19 +84,19 @@ export default function Home() {
 
         <div className="mx-auto max-w-4xl px-6 pt-16 pb-20 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-6xl">
-            Welcome to your <span className="whitespace-nowrap">Next Chapter</span>
+            Find out what&apos;s holding back your <span className="whitespace-nowrap">job search.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Are you unemployed — or scared you&apos;re about to be? We&apos;re the only employment
-            site built to actually get people back to work. We&apos;re not a job board where
-            postings are a black hole. We&apos;re not LinkedIn, where &quot;Open to Work&quot; is a
-            stigma. We help you see exactly where you stand with our Hireability Assessment, then
-            build an action plan that actually gets you hired.
+            Get an honest Hireability Grade and a personalized action plan that actually gets you
+            hired — not another job board, not another LinkedIn stigma.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
               Get your Hireability Assessment
             </Button>
+          </div>
+          <div className="mt-4">
+            <SampleReportPreview />
           </div>
 
           <div className="mt-16 grid gap-4 sm:grid-cols-4">
@@ -152,200 +115,61 @@ export default function Home() {
         <div className="h-1.5 w-full bg-orange" />
       </section>
 
-      {/* Section 2 — The Problem */}
-      <section className="grid sm:grid-cols-2">
-        <div className="bg-off-white px-6 py-16 sm:px-10">
-          <h2 className="text-sm font-semibold tracking-wide text-orange uppercase">
-            Candidates say
-          </h2>
-          <ul className="mt-6 space-y-4">
-            {candidatePainPoints.map((point) => (
-              <li key={point} className="flex items-start gap-3">
-                <X className="mt-0.5 size-4 shrink-0 text-orange" />
-                <span className="text-base leading-relaxed text-foreground">{point}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="bg-white px-6 py-16 sm:px-10">
-          <h2 className="text-sm font-semibold tracking-wide text-brand uppercase">
-            Employers say
-          </h2>
-          <ul className="mt-6 space-y-4">
-            {employerPainPoints.map((point) => (
-              <li key={point} className="flex items-start gap-3">
-                <X className="mt-0.5 size-4 shrink-0 text-brand" />
-                <span className="text-base leading-relaxed text-foreground">{point}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* Section 2.5 — Feeling Stuck? */}
-      <section className="bg-navy text-white">
+      {/* Section 2 — Why you're stuck */}
+      <section id="why-stuck" className="scroll-mt-20 bg-navy text-white">
         <div className="mx-auto max-w-5xl px-6 py-20">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Feeling stuck?</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Why you&apos;re stuck</h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-light-blue">
-              You&apos;re not imagining it. This is genuinely hard — and it&apos;s not just about
-              the job search.
+              You&apos;re not imagining it. This is genuinely hard — and most of it happens before a
+              human ever sees your name.
             </p>
           </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2">
-            {feelingStuckPoints.map((point) => (
-              <div key={point} className="rounded-xl border border-white/10 bg-white/5 px-6 py-5">
-                <p className="text-base leading-relaxed">{point}</p>
-              </div>
+
+          <ul className="mx-auto mt-12 grid max-w-3xl gap-4 sm:grid-cols-2">
+            {painPoints.map((point) => (
+              <li
+                key={point}
+                className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4"
+              >
+                <X className="mt-0.5 size-4 shrink-0 text-orange" />
+                <span className="text-sm leading-relaxed">{point}</span>
+              </li>
             ))}
-          </div>
-          <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-xl border border-white/10 bg-white/5">
-            <div className="flex aspect-video items-center justify-center bg-black/20">
-              <div className="max-w-sm px-6 text-center">
-                <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-white/10">
-                  <Play className="size-6 text-white" />
-                </div>
-                <p className="mt-3 text-sm text-light-blue">
-                  Video coming soon — hear from Vic and from people who&apos;ve been exactly where
-                  you are.
-                </p>
-              </div>
+          </ul>
+
+          <div className="mx-auto mt-12 max-w-3xl">
+            <h3 className="text-center text-xl font-semibold">
+              The worst part isn&apos;t the rejection. It&apos;s never finding out why.
+            </h3>
+            <p className="mx-auto mt-3 max-w-2xl text-center text-light-blue">
+              Most rejections read exactly like this — and give you nothing to actually learn from:
+            </p>
+            <div className="mt-6 space-y-4">
+              {genericRejectionExamples.map((example) => (
+                <blockquote
+                  key={example}
+                  className="rounded-xl border border-white/10 bg-white/5 px-6 py-5 text-sm text-light-blue italic"
+                >
+                  {example}
+                </blockquote>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Section 3 — The Five Profiles */}
-      <section className="mx-auto max-w-6xl px-6 py-20">
-        <h2 className="text-center text-3xl font-bold tracking-tight">
-          The market punishes great candidates. NextChapter doesn&apos;t.
-        </h2>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-          {profiles.map((profile) => (
-            <Card key={profile.name}>
-              <CardContent className="pt-6 text-center">
-                <span className="text-3xl">{profile.icon}</span>
-                <h3 className="mt-3 font-semibold">{profile.name}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{profile.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <div className="mx-auto mt-12 max-w-3xl rounded-xl border border-light-gray bg-off-white px-8 py-8 text-center">
-          <p className="text-lg leading-relaxed text-foreground">
-            Your Hireability Grade shows you exactly where you stand today. Then your action plan
-            shows you exactly what to do next — so you walk into your next opportunity as strong
-            as you can be.
-          </p>
-        </div>
-      </section>
-
-      {/* Section 3.5 — Success Dashboard preview */}
-      <section className="mx-auto max-w-5xl px-6 py-20">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Your progress, always in view</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Your Success Dashboard tracks your Hireability Grade climbing in real time, with an
-            action plan that tells you exactly what to do next.
-          </p>
-        </div>
-        <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
-          <Image
-            src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Hireability Grade trending upward, with an action plan"
-            width={2404}
-            height={1762}
-            className="w-full"
-          />
-        </div>
-      </section>
-
-      {/* Section 4 — What We Do */}
-      <section className="border-t border-border bg-off-white">
-        <div className="mx-auto max-w-5xl px-6 py-20">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight">What we actually do for you</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              No jargon, no upsells — just an honest plan. It&apos;s the kind of guidance an
-              executive recruiter charges thousands of dollars for. Yours is free, because we
-              never charge candidates.
-            </p>
+          <div className="mx-auto mt-16 max-w-4xl border-t border-white/10 pt-12">
+            <ByTheNumbers />
           </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {whatWeDoItems.map((item) => (
-              <Card key={item.title}>
-                <CardContent className="pt-6 text-center">
-                  <h3 className="font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {item.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+
+          <div className="mx-auto mt-4 max-w-4xl">
+            <SituationalButtons />
           </div>
         </div>
       </section>
 
-      {/* Section 4.5 — What It Takes */}
-      <section className="border-t border-border bg-white">
-        <div className="mx-auto max-w-4xl px-6 py-20">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Here&apos;s what it actually takes</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              We won&apos;t pretend this is easy. A real search means:
-            </p>
-          </div>
-          <div className="mt-12 grid gap-3 sm:grid-cols-2">
-            {whatItTakesItems.map((item) => (
-              <div
-                key={item}
-                className="flex items-start gap-3 rounded-lg border border-light-gray bg-off-white px-4 py-3"
-              >
-                <Check className="mt-0.5 size-4 shrink-0 text-brand" />
-                <span className="text-sm text-foreground">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
 
-      {/* Section 5 — Free guides */}
-      <section className="border-t border-border">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Free guides</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              No email required. Read what you need, when you need it — from your first 72 hours
-              to your first 90 days in a new role.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {GUIDES.map((guide) => (
-              <a
-                key={guide.slug}
-                href={`/guides/${guide.slug}.pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-              >
-                <Card className="h-full transition-colors hover:border-brand">
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold">{guide.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      {guide.description}
-                    </p>
-                    <span className="mt-4 inline-block text-sm font-medium text-brand">
-                      Read the guide →
-                    </span>
-                  </CardContent>
-                </Card>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 6 — CTA footer */}
+      {/* Section 4 — CTA footer */}
       <footer className="bg-navy text-white">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center">
           <h2 className="text-3xl font-bold tracking-tight">Ready to start your next chapter?</h2>
@@ -379,12 +203,19 @@ export default function Home() {
             <Link href="/nonprofits" className="underline underline-offset-4">
               Nonprofits & Academia
             </Link>
+            <Link href="/for-coaches" className="underline underline-offset-4">
+              Coaches
+            </Link>
           </div>
           <p className="mt-4 text-sm text-light-blue">
             © {new Date().getFullYear()} NextChapter. Candidates are never charged — ever.
             {' · '}
             <Link href="/faq" className="underline underline-offset-4">
               FAQ
+            </Link>
+            {' · '}
+            <Link href="/resources" className="underline underline-offset-4">
+              Resources
             </Link>
             {' · '}
             <Link href="/privacy-policy" className="underline underline-offset-4">
