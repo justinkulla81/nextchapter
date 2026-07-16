@@ -14,7 +14,7 @@ export function CommunityPostForm() {
       <input type="hidden" name="postType" value="UPDATE" />
       <Textarea
         name="description"
-        placeholder="Share a job opening, a project, an intro you can offer, or just what's on your mind…"
+        placeholder="Ask for help, offer help, share a job opening, or talk about the job you want…"
         rows={3}
         required
       />

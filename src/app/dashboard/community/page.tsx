@@ -4,11 +4,11 @@ import { prisma } from '@/lib/prisma'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import { getUnreadEncouragementNotes } from '@/lib/community/encouragement'
+import { buildSelfIntroDraft } from '@/lib/community/self-intro'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
-import { EncouragementForm } from '@/components/dashboard/EncouragementForm'
 import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -52,8 +52,18 @@ export default async function CommunityPage({
   })
 
   if (!hasIntroduced) {
+    const [previewPosts, previewFeed] = await Promise.all([
+      prisma.communityPost.findMany({
+        where: { isActive: true },
+        include: { candidate: { select: { firstName: true, lastName: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      getCommunityFeed(10),
+    ])
+
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
           <p className="mt-1 text-muted-foreground">
@@ -66,8 +76,46 @@ export default async function CommunityPage({
             First, introduce yourself — a real post that shows up in the feed like anyone else&apos;s,
             so people here know who they&apos;re talking to before they see your other posts.
           </p>
-          <SelfIntroForm />
+          <SelfIntroForm
+            defaultValue={buildSelfIntroDraft({
+              candidateId: profile.id,
+              firstName: profile.firstName,
+              primaryFunction: profile.primaryFunction,
+              targetRoleType: profile.targetRoleType,
+              currentCity: profile.currentCity,
+            })}
+          />
         </div>
+
+        {previewPosts.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-medium text-muted-foreground">What people are posting</h2>
+            {previewPosts.map((post) => (
+              <CommunityPostCard key={post.id} post={post} isOwnPost={false} />
+            ))}
+          </div>
+        )}
+
+        {previewFeed.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
+            <div className="space-y-2">
+              {previewFeed.map((item) => {
+                const style = FEED_ITEM_STYLE[item.type]
+                return (
+                  <div
+                    key={item.id}
+                    className={`rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
+                  >
+                    <span className="mr-1">{style.icon}</span>
+                    {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
+                    {item.detail}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -86,6 +134,7 @@ export default async function CommunityPage({
         ...(functionFilter && { postFunction: functionFilter }),
         ...(industryFilter && { postIndustry: industryFilter }),
       },
+      include: { candidate: { select: { firstName: true, lastName: true } } },
       orderBy: { createdAt: 'desc' },
     }),
     getCommunityFeed(),
@@ -97,8 +146,7 @@ export default async function CommunityPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
         <p className="mt-1 text-muted-foreground">
-          Post jobs, projects, and intros for each other, and send a bit of encouragement — nobody
-          searches well entirely alone.
+          Ask for help, offer help, or share a job — nobody searches well entirely alone.
         </p>
       </div>
 
@@ -122,17 +170,6 @@ export default async function CommunityPage({
           ))}
         </div>
       )}
-
-      <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Send some encouragement</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Someone here is working through a hard week. Want to send them a quick note? It&apos;s
-          anonymous unless you choose otherwise.
-        </p>
-        <div className="mt-3">
-          <EncouragementForm />
-        </div>
-      </div>
 
       <CommunityPostForm />
 

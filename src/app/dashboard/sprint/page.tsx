@@ -9,6 +9,16 @@ import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
+// Maps a committed action's engine (from the action plan / Sunday Night
+// Report) to the dashboard page that engine's work actually happens on, so
+// "this week's actions" aren't just a static checklist.
+const ACTION_TYPE_HREF: Record<string, string> = {
+  learning: '/dashboard/learning',
+  effort: '/dashboard/job-fit',
+  working: '/dashboard/work-samples',
+  connecting: '/dashboard/network',
+}
+
 export default async function SprintSetupPage() {
   const profile = await getDashboardData()
   const [currentSprint, suggestedActions, grade] = await Promise.all([
@@ -61,20 +71,28 @@ export default async function SprintSetupPage() {
             Currently committed — {totalPoints} points, {formatMinutes(totalMinutes)}
           </h2>
           <ul className="mt-2 space-y-1">
-            {committedActions.map((a, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-1">
-                <span
-                  className={`text-sm ${a.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}
-                >
-                  {a.text} ({a.points} pts)
-                </span>
-                <form action={toggleSprintAction.bind(null, i)}>
-                  <SubmitButton variant="ghost" size="sm">
-                    {a.completed ? 'Mark not done' : 'Mark done'}
-                  </SubmitButton>
-                </form>
-              </li>
-            ))}
+            {committedActions.map((a, i) => {
+              const href = a.actionType ? ACTION_TYPE_HREF[a.actionType] : undefined
+              const textClassName = `text-sm ${a.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`
+              return (
+                <li key={i} className="flex items-center justify-between gap-3 py-1">
+                  {href && !a.completed ? (
+                    <Link href={href} className={`${textClassName} underline underline-offset-4 hover:text-primary`}>
+                      {a.text} ({a.points} pts)
+                    </Link>
+                  ) : (
+                    <span className={textClassName}>
+                      {a.text} ({a.points} pts)
+                    </span>
+                  )}
+                  <form action={toggleSprintAction.bind(null, i)}>
+                    <SubmitButton variant="ghost" size="sm">
+                      {a.completed ? 'Mark not done' : 'Mark done'}
+                    </SubmitButton>
+                  </form>
+                </li>
+              )
+            })}
           </ul>
         </div>
       )}

@@ -11,7 +11,7 @@ export interface CommunityFeedItem {
   occurredAt: Date
 }
 
-function anonymize(firstName: string | null, lastName: string | null): string | null {
+export function anonymize(firstName: string | null, lastName: string | null): string | null {
   if (!firstName) return null
   return `${firstName} ${lastName ? `${lastName[0]}.` : ''}`.trim()
 }

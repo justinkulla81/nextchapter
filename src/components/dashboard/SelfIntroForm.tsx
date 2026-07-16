@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 
 // The "introduce yourself" unlock gate — a real post (postType SELF_INTRO),
 // not a checkbox, so it shows up in the feed like anyone else's first post.
-export function SelfIntroForm() {
+export function SelfIntroForm({ defaultValue }: { defaultValue: string }) {
   const [state, formAction, pending] = useActionState(createCommunityPost, undefined)
 
   return (
@@ -15,6 +15,7 @@ export function SelfIntroForm() {
       <input type="hidden" name="postType" value="SELF_INTRO" />
       <Textarea
         name="description"
+        defaultValue={defaultValue}
         placeholder="Background, what you're looking for, what you can offer someone else here — a couple sentences is plenty."
         rows={4}
         required
