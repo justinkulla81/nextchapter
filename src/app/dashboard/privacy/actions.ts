@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { captureServerEvent } from '@/lib/posthog/server'
 import type { PrivacyTier } from '@prisma/client'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
@@ -39,6 +40,28 @@ export async function updatePrivacyTier(
 
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')
+}
+
+export async function setRecruiterDatabaseOptIn(optIn: boolean): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: {
+      recruiterDatabaseOptIn: optIn,
+      recruiterDatabaseRequestedAt: optIn ? new Date() : null,
+    },
+  })
+
+  captureServerEvent(profile.id, optIn ? 'recruiter_database_opt_in' : 'recruiter_database_opt_out')
+
+  revalidatePath('/dashboard/privacy')
 }
 
 export type DeleteAccountFormState = { error?: string } | undefined

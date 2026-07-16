@@ -244,6 +244,12 @@ model CandidateProfile {
   employabilityScore  Int            @default(0)
   scoreLastCalculated DateTime?
 
+  // Recruiter database — explicit candidate opt-in required before appearing
+  // in any employer-facing Talent match list. privacyTier alone is opt-out,
+  // not opt-in, and isn't sufficient consent for a matching/ranking surface.
+  recruiterDatabaseOptIn       Boolean   @default(false)
+  recruiterDatabaseRequestedAt DateTime?
+
   // Pre-onboarding: "Your Why"
   jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
   desireComplete     Boolean @default(false)

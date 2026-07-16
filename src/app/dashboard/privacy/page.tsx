@@ -3,6 +3,7 @@ import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
+import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -19,6 +20,17 @@ export default async function PrivacyPage() {
         </p>
       </div>
       <PrivacyTierSelector currentTier={profile.privacyTier} />
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold">Talent &amp; recruiter matching</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Separate from your privacy tier above — this controls whether employers using
+            NextChapter&apos;s Talent tools can match you against open roles at all.
+          </p>
+        </div>
+        <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} />
+      </div>
 
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Notifications</h2>

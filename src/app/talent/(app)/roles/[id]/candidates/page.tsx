@@ -13,6 +13,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
 
   const candidates = await prisma.candidateProfile.findMany({
     where: {
+      recruiterDatabaseOptIn: true,
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
       assessmentComplete: true,
     },
