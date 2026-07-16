@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { LearningResourceBrowser } from '@/components/dashboard/LearningResourceBrowser'
-import { LearningBadgeForm } from '@/components/dashboard/LearningBadgeForm'
 import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
+import { RecommendedLearningCard } from '@/components/dashboard/RecommendedLearningCard'
+import { getAiToolsForFunction } from '@/lib/constants/ai-tools-by-function'
 
 interface Resource {
   name: string
@@ -18,27 +19,59 @@ interface ResourceCategory {
   resources: Resource[]
 }
 
+interface Gap {
+  area: string
+  why: string
+  remediation: string
+  remediationType: string
+}
+
 const CATEGORIES: ResourceCategory[] = [
   {
-    title: 'Job search fundamentals',
-    description: 'Sharpen the skills that move a search forward, not just a resume.',
+    title: 'AI training',
+    description:
+      'Working AI fluency is fast becoming table stakes across functions — these are the courses employers actually recognize.',
     resources: [
       {
-        name: 'The Muse — Career Advice',
-        description: 'Practical, well-written guidance on resumes, interviews, and negotiation.',
-        url: 'https://www.themuse.com/advice',
-        free: true,
-      },
-      {
-        name: 'Big Interview',
-        description: 'Structured interview practice with recorded mock interviews and feedback.',
-        url: 'https://biginterview.com',
+        name: 'Google AI Essentials',
+        description: 'A practical, no-code introduction to using generative AI tools productively at work.',
+        url: 'https://grow.google/ai-essentials/',
         free: false,
       },
       {
-        name: 'CareerOneStop Interactive Interview Prep',
-        description: "A U.S. Department of Labor-funded tool for practicing common interview questions.",
-        url: 'https://www.careeronestop.org/JobSearch/Interview/interview-practice.aspx',
+        name: 'Anthropic Academy',
+        description: "Anthropic's own courses on working with Claude and building with LLMs, from prompting to real applications.",
+        url: 'https://www.anthropic.com/learn',
+        free: true,
+      },
+      {
+        name: 'OpenAI Academy',
+        description: "OpenAI's free courses and guides on using and building with its models.",
+        url: 'https://academy.openai.com',
+        free: true,
+      },
+      {
+        name: 'DeepLearning.AI (Andrew Ng)',
+        description: 'Short, well-regarded courses on generative AI and prompt engineering, several free.',
+        url: 'https://www.deeplearning.ai/short-courses/',
+        free: true,
+      },
+      {
+        name: 'Stanford Online — AI Programs',
+        description: "Stanford's professional and continuing-studies programs in AI and machine learning.",
+        url: 'https://online.stanford.edu/programs/artificial-intelligence-professional-program',
+        free: false,
+      },
+      {
+        name: 'MIT xPRO — Artificial Intelligence',
+        description: "MIT's professional-education program covering practical AI and machine learning foundations.",
+        url: 'https://xpro.mit.edu/programs/program-v1:MITxPRO+ARTIF+copy_0',
+        free: false,
+      },
+      {
+        name: 'edX — AI & Machine Learning',
+        description: 'Free-to-audit AI and ML courses from MIT, Harvard, and other universities.',
+        url: 'https://www.edx.org/learn/artificial-intelligence',
         free: true,
       },
     ],
@@ -99,69 +132,25 @@ const CATEGORIES: ResourceCategory[] = [
     ],
   },
   {
-    title: 'AI training',
-    description:
-      'Working AI fluency is fast becoming table stakes across functions — these are the courses employers actually recognize.',
+    title: 'Job search fundamentals',
+    description: 'Sharpen the skills that move a search forward, not just a resume.',
     resources: [
       {
-        name: 'Google AI Essentials',
-        description: 'A practical, no-code introduction to using generative AI tools productively at work.',
-        url: 'https://grow.google/ai-essentials/',
+        name: 'The Muse — Career Advice',
+        description: 'Practical, well-written guidance on resumes, interviews, and negotiation.',
+        url: 'https://www.themuse.com/advice',
+        free: true,
+      },
+      {
+        name: 'Big Interview',
+        description: 'Structured interview practice with recorded mock interviews and feedback.',
+        url: 'https://biginterview.com',
         free: false,
       },
       {
-        name: 'Anthropic Academy',
-        description: "Anthropic's own courses on working with Claude and building with LLMs, from prompting to real applications.",
-        url: 'https://www.anthropic.com/learn',
-        free: true,
-      },
-      {
-        name: 'OpenAI Academy',
-        description: "OpenAI's free courses and guides on using and building with its models.",
-        url: 'https://academy.openai.com',
-        free: true,
-      },
-      {
-        name: 'DeepLearning.AI (Andrew Ng)',
-        description: 'Short, well-regarded courses on generative AI and prompt engineering, several free.',
-        url: 'https://www.deeplearning.ai/short-courses/',
-        free: true,
-      },
-      {
-        name: 'Stanford Online — AI Programs',
-        description: "Stanford's professional and continuing-studies programs in AI and machine learning.",
-        url: 'https://online.stanford.edu/programs/artificial-intelligence-professional-program',
-        free: false,
-      },
-      {
-        name: 'MIT xPRO — Artificial Intelligence',
-        description: "MIT's professional-education program covering practical AI and machine learning foundations.",
-        url: 'https://xpro.mit.edu/programs/program-v1:MITxPRO+ARTIF+copy_0',
-        free: false,
-      },
-      {
-        name: 'edX — AI & Machine Learning',
-        description: 'Free-to-audit AI and ML courses from MIT, Harvard, and other universities.',
-        url: 'https://www.edx.org/learn/artificial-intelligence',
-        free: true,
-      },
-    ],
-  },
-  {
-    title: 'Funded training (WIOA & public workforce system)',
-    description:
-      'If you qualify, these programs pay for real credentials — see the Benefits page for eligibility basics.',
-    resources: [
-      {
-        name: 'CareerOneStop Training Finder',
-        description: 'Search WIOA-eligible training programs by field and location.',
-        url: 'https://www.careeronestop.org/Toolkit/Training/find-training.aspx',
-        free: true,
-      },
-      {
-        name: 'American Job Center Finder',
-        description: 'Find your local workforce center to apply for WIOA-funded training in person.',
-        url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx',
+        name: 'CareerOneStop Interactive Interview Prep',
+        description: "A U.S. Department of Labor-funded tool for practicing common interview questions.",
+        url: 'https://www.careeronestop.org/JobSearch/Interview/interview-practice.aspx',
         free: true,
       },
     ],
@@ -170,10 +159,26 @@ const CATEGORIES: ResourceCategory[] = [
 
 export default async function LearningPage() {
   const profile = await getDashboardData()
-  const badges = await prisma.learningBadge.findMany({
-    where: { candidateId: profile.id },
-    orderBy: { completedAt: 'desc' },
-  })
+  const [badges, latestReport] = await Promise.all([
+    prisma.learningBadge.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { completedAt: 'desc' },
+    }),
+    prisma.hireabilityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+      select: { gapAnalysis: true },
+    }),
+  ])
+
+  const upskillingGaps = latestReport
+    ? ((latestReport.gapAnalysis as unknown as { gaps: Gap[] }).gaps ?? []).filter(
+        (g) => g.remediationType === 'upskilling'
+      )
+    : []
+
+  const aiTools = getAiToolsForFunction(profile.primaryFunction)
+  const loggedTitles = new Set(badges.map((b) => b.title))
 
   return (
     <div className="space-y-8">
@@ -189,14 +194,51 @@ export default async function LearningPage() {
         </p>
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">What you&apos;ve completed</h2>
-        <p className="text-sm text-muted-foreground">
-          Log courses, certifications, or projects you&apos;ve finished — this shows up on your
-          Recruiter Report as real, targeted effort, not a generic list.
-        </p>
-        <LearningBadgeList badges={badges} />
-        <LearningBadgeForm />
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Recommended for you</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Based on your background, goals, and Hireability Report — not a generic list. Mark
+            something done and it counts toward your Recruiter Report the same as anything else here.
+          </p>
+        </div>
+
+        {upskillingGaps.length > 0 && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {upskillingGaps.map((gap) => (
+              <RecommendedLearningCard
+                key={gap.area}
+                title={gap.area}
+                description={gap.remediation}
+                completed={loggedTitles.has(gap.area)}
+              />
+            ))}
+          </div>
+        )}
+
+        <div>
+          <h3 className="text-sm font-medium text-foreground">
+            Best AI tools for {profile.primaryFunction || 'your field'}
+          </h3>
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
+            {aiTools.map((tool) => (
+              <RecommendedLearningCard
+                key={tool.name}
+                title={tool.name}
+                description={tool.description}
+                url={tool.url}
+                completed={loggedTitles.has(tool.name)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {badges.length > 0 && (
+          <div className="pt-2">
+            <h3 className="text-sm font-medium text-muted-foreground">What you&apos;ve completed</h3>
+            <LearningBadgeList badges={badges} />
+          </div>
+        )}
       </div>
 
       <LearningResourceBrowser categories={CATEGORIES} />
