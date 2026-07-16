@@ -16,9 +16,10 @@ export default async function RecruiterReportPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Recruiter Report</h1>
           <p className="mt-1 text-muted-foreground">
-            A portable summary of your search effort — hand it to any recruiter or coach
-            alongside your resume. You control when this is generated and shared; it&apos;s never
-            sent automatically.
+            Your executive dossier — every reference, work sample, and network signal you&apos;ve
+            built here, plus your execution score, in one document. Hand it to any hiring manager,
+            recruiter, or coach alongside your resume and cover letter. You control when this is
+            generated and shared; it&apos;s never sent automatically.
           </p>
         </div>
         <div className="flex shrink-0 gap-2">

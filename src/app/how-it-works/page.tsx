@@ -151,11 +151,10 @@ export default function HowItWorksPage() {
 
         <div className="mx-auto mt-16 max-w-3xl rounded-xl border border-light-gray bg-navy px-8 py-8 text-center text-white">
           <p className="text-lg leading-relaxed">
-            That progress isn&apos;t just for you. When you apply, a hiring manager sees an Evidence
-            Brief with your effort alongside your background. A recruiter calibrating a search sees
-            your trajectory. If you work with a coach, they see your grade trend before every
-            session. Together, that&apos;s what makes someone bet on you — not just a resume, but
-            proof you&apos;re actively, effectively working the process.
+            Every reference, work sample, and network signal you build here becomes part of an
+            executive dossier — the Recruiter Report you hand to a hiring manager, a recruiter, or
+            a coach alongside your resume and cover letter. Not just a resume claim, but proof
+            you&apos;re actively, effectively working the process.
           </p>
         </div>
 

@@ -47,6 +47,10 @@ export function CompactGradeCard({
         </div>
       </div>
       <p className="mt-3 text-xs text-primary underline underline-offset-4">See full report →</p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Both grades feed your executive dossier — the Recruiter Report you hand to hiring
+        managers, recruiters, and coaches alongside your resume and cover letter.
+      </p>
     </Link>
   )
 }
