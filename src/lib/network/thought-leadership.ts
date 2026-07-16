@@ -41,7 +41,7 @@ export interface PostIdea {
   angle: string
 }
 
-export async function generatePostIdeas(candidateId: string): Promise<PostIdea[]> {
+export async function generatePostIdeas(candidateId: string, venues: ContentVenue[] = []): Promise<PostIdea[]> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: { workHistory: true },
@@ -59,9 +59,14 @@ Work history: ${
   }
 `.trim()
 
+  const venueContext =
+    venues.length > 0
+      ? `These ideas will be drafted for: ${venues.join(', ')}. Favor angles that work well there (e.g. a narrative, reflective angle for Substack; a punchy, specific angle for LinkedIn).`
+      : ''
+
   const prompt = `${VICTORIA_VOICE_PROMPT}
 
-Generate exactly 5 LinkedIn post ideas genuinely grounded in this candidate's real work history and background below — not generic career advice, not "share an article" filler. Each idea needs a short title and a one-sentence angle describing what makes it worth writing.
+Generate exactly 5 content topic ideas genuinely grounded in this candidate's real work history and background below — not generic career advice, not "share an article" filler. Each idea needs a short title and a one-sentence angle describing what makes it worth writing. ${venueContext}
 
 Candidate data:
 ${summary}`
@@ -78,7 +83,12 @@ ${summary}`
   return message.parsed_output?.ideas ?? []
 }
 
-export async function draftPost(candidateId: string, idea: PostIdea, venue: ContentVenue): Promise<string> {
+export async function draftPost(
+  candidateId: string,
+  idea: PostIdea,
+  venue: ContentVenue,
+  reason?: string
+): Promise<string> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: { workHistory: true },
@@ -94,6 +104,10 @@ Work history: ${
   }
 `.trim()
 
+  const reasonContext = reason
+    ? `\n\nThe candidate's own reason for picking this topic: "${reason}" — reflect this personal angle in the draft, it's the real reason they want to write this.`
+    : ''
+
   const prompt = `${VICTORIA_VOICE_PROMPT}
 
 Draft real content for this idea:
@@ -103,7 +117,7 @@ Angle: ${idea.angle}
 
 ${VENUE_INSTRUCTIONS[venue]}
 
-Ground it in the candidate's real background below — specific details, not generic advice. Write it so the candidate can lightly edit and post it as their own voice.
+Ground it in the candidate's real background below — specific details, not generic advice. Write it so the candidate can lightly edit and post it as their own voice.${reasonContext}
 
 Candidate data:
 ${summary}`

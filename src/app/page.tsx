@@ -132,6 +132,12 @@ export default function Home() {
               See how NextChapter works for organizations
             </Link>
           </div>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-light-blue">
+            <span className="font-medium">Already have a resume ready?</span>
+            <Link href="/submit-resume" className="underline underline-offset-4">
+              Get it in front of our recruiter network
+            </Link>
+          </div>
           <p className="mt-4 text-sm text-light-blue">
             © {new Date().getFullYear()} NextChapter. Candidates are never charged — ever.
             {' · '}

@@ -45,10 +45,16 @@ function IdeaCard({ idea, venues }: { idea: PostIdea; venues: ContentVenue[] }) 
         </div>
       )}
 
-      <form action={draftAction} className="mt-2">
+      <form action={draftAction} className="mt-2 space-y-2">
         <input type="hidden" name="title" value={idea.title} />
         <input type="hidden" name="angle" value={idea.angle} />
         <input type="hidden" name="venue" value={venue} />
+        <Textarea
+          name="reason"
+          rows={2}
+          placeholder="Optional: why does this one resonate with you? We'll use it to personalize the draft."
+          className="text-sm"
+        />
         <Button type="submit" variant="outline" size="sm" disabled={drafting} className={drafting ? 'cursor-progress' : ''}>
           {drafting ? 'Drafting…' : `Draft this for ${CONTENT_VENUE_LABEL[venue]}`}
         </Button>

@@ -431,6 +431,8 @@ model CandidateProfile {
   coach         Coach?         @relation(fields: [coachId], references: [id])
   coachSessions CoachSession[]
 
+  resumeSubmissionLeads ResumeSubmissionLead[]
+
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
   @@index([currentJobStatus])
@@ -1250,6 +1252,21 @@ model CoachingWaitlist {
 // for the same reason CoachingWaitlist is: needs a real filterable column
 // (guideSlug) and a synchronous transactional email on submit, which the
 // generic waitlist route never does for anyone.
+model ResumeSubmissionLead {
+  id          String            @id @default(cuid())
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  fullName    String
+  email       String
+  targetRole  String?
+  filePath    String?
+  fileName    String?
+  source      String // e.g. "homepage"
+  createdAt   DateTime          @default(now())
+
+  @@index([email])
+}
+
 model GuideLead {
   id          String            @id @default(cuid())
   candidateId String?

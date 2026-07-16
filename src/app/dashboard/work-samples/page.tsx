@@ -70,7 +70,9 @@ export default async function WorkSamplesPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
         <p className="mt-1 text-muted-foreground">
-          Show, don&apos;t just tell. Upload something that proves what you can do.
+          Show, don&apos;t just tell. What you add here goes straight into your dossier — the
+          hiring manager sees it alongside your resume, and it adds directly to your execution
+          score.
         </p>
       </div>
 

@@ -42,6 +42,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
+      url: `${siteUrl}/submit-resume`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
       url: `${siteUrl}/for-organizations`,
       lastModified: new Date(),
       changeFrequency: 'monthly',

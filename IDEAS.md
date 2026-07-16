@@ -10,6 +10,10 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 - Swap the site logo (header/nav, footer, dashboard, onboarding, org pages — everywhere the shared `Logo` component renders) to the new wordmark + upward-arrow mark image, replacing the current plain-text "NextChapter" span. Also restyle the favicon (`icon.tsx`), apple touch icon (`apple-icon.tsx`), and OG image (`opengraph-image.tsx`) to match, since those are currently separate text/SVG generators, not derived from the shared `Logo` component. Blocked on: getting the logo file saved into the repo (e.g. `public/logo.png`).
 
+## Coaching / Recruiting
+
+- Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
+
 ## Auth
 
 - Add real Google OAuth sign-in (Supabase provider config + account-linking against existing email/password accounts). Today auth is email/password + magic link only. This is a meaningfully separate feature — real security/config surface — from the rest of the app, so it's deferred rather than folded into unrelated batches. Once built, the nav should surface "Set up Google Sign-In" as an available activity until connected, then remove it from the nav (keeping "Single Sign-On" as a label until then).

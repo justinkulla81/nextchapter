@@ -80,6 +80,10 @@ export default async function NetworkPage() {
           friends — they&apos;re the people you sort of know. This is the highest-leverage work in
           your search; don&apos;t let it sit untouched.
         </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Every contact you add and outreach you log counts toward the connecting signal in your
+          Search Execution Grade.
+        </p>
       </div>
 
       <NetworkEncouragement comfortLevel={profile.networkComfortLevel} />

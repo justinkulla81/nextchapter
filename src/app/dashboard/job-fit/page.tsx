@@ -91,7 +91,11 @@ export default async function JobFitPage() {
           Review jobs you&apos;ve found or that we&apos;ve surfaced for you, and get honest
           feedback on how well you actually fit each one.
         </p>
-        <p className="mt-2 text-sm font-medium text-muted-foreground tabular-nums">
+        <p className="mt-2 text-sm text-muted-foreground">
+          Rating jobs and applying counts toward the working signal in your Search Execution
+          Grade.
+        </p>
+        <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">
           {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
         </p>
       </div>

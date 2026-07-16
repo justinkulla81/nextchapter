@@ -53,7 +53,7 @@ export async function generateIdeasAction(_prevState: IdeasFormState): Promise<I
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
-  const ideas = await generatePostIdeas(profile.id)
+  const ideas = await generatePostIdeas(profile.id, profile.contentVenues)
   if (ideas.length === 0) return { error: 'Could not generate ideas right now — try again in a moment.' }
   if (profile.contentVenues.includes('LINKEDIN')) {
     captureServerEvent(profile.id, 'linkedin_ideas_generated')
@@ -73,10 +73,12 @@ export async function draftPostAction(
   const title = formData.get('title') as string | null
   const angle = formData.get('angle') as string | null
   const venue = formData.get('venue') as ContentVenue | null
+  const reason = (formData.get('reason') as string | null)?.trim() || undefined
   if (!title || !angle) return { error: 'Missing idea details.' }
   if (!venue) return { error: 'Pick a venue to draft for.' }
 
-  const draft = await draftPost(profile.id, { title, angle }, venue)
+  const draft = await draftPost(profile.id, { title, angle }, venue, reason)
+  captureServerEvent(profile.id, 'content_draft_generated', { venue, hasReason: !!reason })
   return { draft }
 }
 
