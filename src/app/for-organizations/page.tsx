@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Building2, Users, Briefcase, Landmark, GraduationCap, type LucideIcon } from 'lucide-react'
+import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, type LucideIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -59,6 +59,13 @@ const ORG_CARDS: {
     teaser: 'Partner on the mission, and on the research.',
     icon: GraduationCap,
     accent: 'text-success bg-success/10',
+  },
+  {
+    href: '/for-coaches',
+    title: 'Coaches',
+    teaser: 'Bring your clients onto a platform built for their search.',
+    icon: HeartHandshake,
+    accent: 'text-brand bg-brand/10',
   },
 ]
 

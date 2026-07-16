@@ -47,9 +47,9 @@ export default function ReferenceRequestEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi {refereeName},</p>
       <p>
-        {candidateName} listed you as a reference on NextChapter, a hiring platform for people
-        between chapters of their career. They&apos;d appreciate a few minutes of your time to
-        share what it was like working together.
+        {candidateName} is job searching right now, and named you as a reference on NextChapter —
+        a hiring platform for people between chapters of their career. A few minutes of your time
+        sharing what it was like working with {candidateName} will really help them out.
       </p>
       <p>It takes about 5 minutes — a handful of ratings and a couple of short written notes.</p>
       <a href={referenceUrl} style={button}>

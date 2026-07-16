@@ -3,13 +3,12 @@ import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
 import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
+import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CONTENT_TUTORIALS } from '@/lib/constants/content-venues'
 
 export default async function LinkedInPage() {
   const profile = await getDashboardData()
   const postGeneratorUnlocked = profile.linkedinUsageFrequency !== null
-  const linkedInTutorials = CONTENT_TUTORIALS.find((t) => t.venue === 'LINKEDIN')?.tutorials ?? []
 
   return (
     <div className="space-y-8">
@@ -34,32 +33,28 @@ export default async function LinkedInPage() {
         </CardContent>
       </Card>
 
-      {linkedInTutorials.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">LinkedIn tutorial</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {linkedInTutorials.map((tutorial) => (
-              <Card key={tutorial.url}>
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    <a
-                      href={tutorial.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary underline underline-offset-4"
-                    >
-                      {tutorial.name}
-                    </a>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{tutorial.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Get your profile in shape
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            Two things move the needle before you post anything: an updated headshot (below) and
+            a profile that&apos;s actually current — title, summary, and recent experience all
+            matching where you say you are today.
+          </p>
+          <p>
+            Once that&apos;s done, virality is mostly a habit, not a talent. Liking, sharing, and
+            commenting on other people&apos;s posts puts you in front of their network too — do it
+            daily and your own posts start reaching further than the follower count alone would
+            suggest.
+          </p>
+        </CardContent>
+      </Card>
+
+      <HeadshotCreator />
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">LinkedIn Post Generator</h2>

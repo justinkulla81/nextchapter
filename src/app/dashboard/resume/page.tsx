@@ -1,8 +1,6 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
-import { WorkHistoryForm } from '@/components/dashboard/WorkHistoryForm'
-import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { Card, CardContent } from '@/components/ui/card'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 
@@ -153,17 +151,6 @@ export default async function ResumePage() {
         </div>
       )}
 
-      <div className="space-y-4 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
-            are never labeled as such externally, so add them here without hesitation.
-          </p>
-        </div>
-        <WorkHistoryList entries={profile.workHistory} />
-        <WorkHistoryForm />
-      </div>
     </div>
   )
 }

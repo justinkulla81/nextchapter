@@ -20,6 +20,32 @@ export default async function InterviewPrepPage() {
 
       <JobDescriptionCard initialValue={profile.activeJobDescription} />
 
+      <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">My Story</span> is your core narrative,
+          written from your background and how you described yourself earlier in the app — it
+          adapts automatically if you add a job description above.
+        </p>
+        <p>
+          <span className="font-medium text-foreground">Tough Questions</span> are generated from
+          your target role and experience — the ones most likely to actually come up, not a
+          generic list.
+        </p>
+        <p>
+          <span className="font-medium text-foreground">Practice</span> lets you rehearse answers
+          out loud and get feedback before it counts.
+        </p>
+        <p>
+          <span className="font-medium text-foreground">Thank You Emails</span> are drafted from
+          the actual interview details you give it, ready to personalize and send.
+        </p>
+        <p>
+          <span className="font-medium text-foreground">Comfort Check</span> is a quick
+          self-assessment — how ready you feel telling your story, handling questions, and
+          pitching yourself — so you can see where to focus next.
+        </p>
+      </div>
+
       <InterviewPrepTabs
         coreStatement={narrative?.coreStatement ?? null}
         adaptations={(narrative?.adaptations as unknown as NarrativeAdaptations | null) ?? null}

@@ -6,7 +6,6 @@ import { StructuredData } from '@/components/StructuredData'
 import { SituationalButtons } from '@/components/home/SituationalButtons'
 import { HowItWorks } from '@/components/home/HowItWorks'
 import { ByTheNumbers } from '@/components/home/ByTheNumbers'
-import { SampleReportPreview } from '@/components/home/SampleReportPreview'
 
 const heroStats = [
   { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
@@ -94,9 +93,6 @@ export default function Home() {
             <Button size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
               Get your Hireability Assessment
             </Button>
-          </div>
-          <div className="mt-4">
-            <SampleReportPreview />
           </div>
 
           <div className="mt-16 grid gap-4 sm:grid-cols-4">
@@ -187,24 +183,9 @@ export default function Home() {
             </Button>
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-light-blue">
-            <span className="font-medium">For organizations:</span>
-            <Link href="/employers" className="underline underline-offset-4">
-              Employers
-            </Link>
-            <Link href="/recruiters" className="underline underline-offset-4">
-              Recruiters
-            </Link>
-            <Link href="/outplacement" className="underline underline-offset-4">
-              Outplacement
-            </Link>
-            <Link href="/government-workforce" className="underline underline-offset-4">
-              Government & Workforce
-            </Link>
-            <Link href="/nonprofits" className="underline underline-offset-4">
-              Nonprofits & Academia
-            </Link>
-            <Link href="/for-coaches" className="underline underline-offset-4">
-              Coaches
+            <span className="font-medium">Hiring, recruiting, or coaching?</span>
+            <Link href="/for-organizations" className="underline underline-offset-4">
+              See how NextChapter works for organizations
             </Link>
           </div>
           <p className="mt-4 text-sm text-light-blue">

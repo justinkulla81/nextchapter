@@ -9,6 +9,7 @@ import { ContactRow } from '@/components/dashboard/ContactRow'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { OutreachCheatSheetCard } from '@/components/dashboard/OutreachCheatSheetCard'
+import { EmailTrackingCard } from '@/components/dashboard/EmailTrackingCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
 import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
@@ -166,9 +167,7 @@ export default async function NetworkPage() {
             description="Pick one person from your list below and send this."
             template={fillHelpScriptTemplate(profile)}
             templateType="ask_for_help"
-            onCopy={() => {
-              markAskedForHelp()
-            }}
+            onCopy={markAskedForHelp}
           />
           <CopyableTemplateCard
             title="Asking for an intro"
@@ -187,6 +186,8 @@ export default async function NetworkPage() {
           />
         </div>
       </div>
+
+      <EmailTrackingCard />
 
       {contacts.length === 0 ? (
         <p className="text-sm text-muted-foreground">

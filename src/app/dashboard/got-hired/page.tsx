@@ -10,7 +10,7 @@ const STATUS_COPY: Record<string, { heading: string; body: string }> = {
   },
   APPROVED: {
     heading: "You're approved! 🎉",
-    body: "Congratulations again — your $500 bounty is approved. We'll send payment to the method you provided.",
+    body: "Congratulations again — your $500 Offer Bonus is approved. We'll send payment to the method you provided.",
   },
   REJECTED: {
     heading: 'Your claim needs another look',
@@ -30,7 +30,7 @@ export default async function GotHiredPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Got Hired? 🎉</h1>
         <p className="mt-1 text-muted-foreground">
-          Landed a job through NextChapter? Tell us about it and claim your $500 bounty —
+          Landed a job through NextChapter? Tell us about it and claim your $500 Offer Bonus —
           we verify offer letters before paying out.
         </p>
       </div>

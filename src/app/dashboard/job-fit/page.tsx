@@ -22,6 +22,8 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 
+const SURFACED_JOB_LIST_SIZE = 5
+
 interface InterviewPrep {
   likelyQuestions: string[]
   talkingPoints: string[]
@@ -54,19 +56,21 @@ export default async function JobFitPage() {
   ).length
   const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
 
-  // Auto-backfill the surfaced-job queue server-side so advancing through
-  // the swipe flow never dead-ends on a manual "Find new jobs" click.
+  // Auto-backfill the surfaced-job queue server-side so the list always
+  // stays topped up at SURFACED_JOB_LIST_SIZE — reacting to one immediately
+  // makes room for a fresh one rather than shrinking the list.
   const unreactedCount = await prisma.surfacedJob.count({
     where: { candidateId: profile.id, reaction: null },
   })
-  if (unreactedCount === 0) {
+  if (unreactedCount < SURFACED_JOB_LIST_SIZE) {
     await surfaceNewJobs(profile.id)
   }
 
-  const [nextSurfacedJob, interestedJobs, reactedCount] = await Promise.all([
-    prisma.surfacedJob.findFirst({
+  const [surfacedJobs, interestedJobs, reactedCount] = await Promise.all([
+    prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
+      take: SURFACED_JOB_LIST_SIZE,
     }),
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: 'INTERESTED' },
@@ -358,8 +362,12 @@ export default async function JobFitPage() {
 
         <JobReactionSummary ratedCount={ratedCount} />
 
-        {nextSurfacedJob ? (
-          <NextSurfacedJobCard job={nextSurfacedJob} />
+        {surfacedJobs.length > 0 ? (
+          <div className="space-y-3">
+            {surfacedJobs.map((job) => (
+              <NextSurfacedJobCard key={job.id} job={job} />
+            ))}
+          </div>
         ) : (
           <p className="text-sm text-muted-foreground">
             No jobs surfaced yet — set a target role in your Goals to get started.

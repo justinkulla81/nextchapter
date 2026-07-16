@@ -11,7 +11,7 @@ import { prisma } from '@/lib/prisma'
 export const metadata: Metadata = {
   title: 'Executive Coach — A Real Human Coach, When You Want One | NextChapter',
   description:
-    'NextChapter gives everyone Victoria, our free AI coach. Executive Coach adds a real human career coach on top, for candidates who want it — $500/month, waitlist open now.',
+    'NextChapter gives everyone Victoria, our free AI coach. Executive Coach adds a real human career coach on top, for candidates who want it — waitlist open now.',
   alternates: { canonical: '/coaching' },
 }
 
@@ -33,18 +33,6 @@ const jsonLd = {
   audience: { '@type': 'Audience', audienceType: 'Job seekers' },
   description:
     'A dedicated human career coach on top of Victoria, our free AI coach — mock interviews, resume review, and a second opinion on hard calls.',
-  offers: {
-    '@type': 'Offer',
-    price: '500',
-    priceCurrency: 'USD',
-    priceSpecification: {
-      '@type': 'UnitPriceSpecification',
-      price: '500',
-      priceCurrency: 'USD',
-      billingIncrement: 1,
-      unitText: 'MONTH',
-    },
-  },
   url: 'https://launchyournextchapter.com/coaching',
 }
 
@@ -71,7 +59,10 @@ export default async function CoachingPage() {
           <Link href="/" className="shrink-0">
             <Logo className="text-2xl" />
           </Link>
-          <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+          <nav className="flex min-w-0 items-center gap-4 text-sm">
+            <Link href="/" className="shrink-0 text-muted-foreground hover:text-foreground">
+              Home
+            </Link>
             <Link href="/dashboard" className="shrink-0 font-medium text-brand hover:text-navy">
               Dashboard
             </Link>
@@ -115,11 +106,9 @@ export default async function CoachingPage() {
             </div>
 
             <div className="mt-10 rounded-xl border border-border bg-off-white p-6">
-              <p className="text-2xl font-bold text-navy">
-                $500<span className="text-base font-medium text-muted-foreground">/month</span>
-              </p>
+              <p className="text-lg font-semibold text-navy">A premium, paid add-on</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Cancel anytime. Join the waitlist and we&apos;ll reach out as spots open up.
+                Cancel anytime. Join the waitlist and we&apos;ll reach out with pricing as spots open up.
               </p>
             </div>
           </div>

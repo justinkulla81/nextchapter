@@ -9,7 +9,7 @@ export function GotHiredCTACard() {
         <div>
           <p className="text-sm font-medium text-foreground">Landed a job through NextChapter? 🎉</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Tell us about it and claim your $500 bounty — we verify offer letters before paying out.
+            Tell us about it and claim your $500 Offer Bonus — we verify offer letters before paying out.
           </p>
         </div>
         <Button render={<Link href="/dashboard/got-hired" />} size="sm" className="shrink-0">

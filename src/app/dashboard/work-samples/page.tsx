@@ -1,6 +1,8 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { WorkSampleForm } from '@/components/dashboard/WorkSampleForm'
 import { WorkSampleTypeGateForm } from '@/components/dashboard/WorkSampleTypeGateForm'
+import { WorkHistoryForm } from '@/components/dashboard/WorkHistoryForm'
+import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -14,10 +16,24 @@ export default async function WorkSamplesPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
           <p className="mt-1 text-muted-foreground">
-            Show, don&apos;t just tell. Upload something that proves what you can do.
+            Show, don&apos;t just tell. What you add here goes straight into your dossier — the
+            hiring manager sees it alongside your resume, and it adds directly to your execution
+            score.
           </p>
         </div>
         <WorkSampleTypeGateForm />
+
+        <div className="space-y-4 border-t border-border pt-8">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
+              are never labeled as such externally, so add them here without hesitation.
+            </p>
+          </div>
+          <WorkHistoryList entries={profile.workHistory} />
+          <WorkHistoryForm />
+        </div>
       </div>
     )
   }
@@ -33,6 +49,18 @@ export default async function WorkSamplesPage() {
           </p>
         </div>
         <WorkSampleTypeGateForm />
+
+        <div className="space-y-4 border-t border-border pt-8">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
+              are never labeled as such externally, so add them here without hesitation.
+            </p>
+          </div>
+          <WorkHistoryList entries={profile.workHistory} />
+          <WorkHistoryForm />
+        </div>
       </div>
     )
   }
@@ -78,6 +106,18 @@ export default async function WorkSamplesPage() {
           ))}
         </div>
       )}
+
+      <div className="space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
+            are never labeled as such externally, so add them here without hesitation.
+          </p>
+        </div>
+        <WorkHistoryList entries={profile.workHistory} />
+        <WorkHistoryForm />
+      </div>
     </div>
   )
 }

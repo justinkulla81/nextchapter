@@ -38,7 +38,7 @@ export default async function GuidesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Free Guides</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Job Search Guides</h1>
         <p className="mt-1 text-muted-foreground">
           {unlockedCount} of {GUIDES.length} unlocked. Some guides open right away — others unlock
           as you activate the matching part of your search below.

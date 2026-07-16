@@ -46,7 +46,7 @@ const SECTIONS: NavSection[] = [
   {
     title: 'Build',
     links: [
-      { href: '/dashboard/resume', label: 'Resume & Cover Letter' },
+      { href: '/dashboard/resume', label: 'Resume' },
       { href: '/dashboard/linkedin', label: 'Grow My LinkedIn' },
       { href: '/dashboard/job-fit', label: 'Job Fit' },
       { href: '/dashboard/work-samples', label: 'Your Proof Assets' },
@@ -63,7 +63,7 @@ const SECTIONS: NavSection[] = [
       { href: '/dashboard/community', label: 'Community' },
       { href: '/dashboard/learning', label: 'Learning' },
       { href: '/dashboard/benefits', label: 'Benefits' },
-      { href: '/dashboard/guides', label: 'Free Guides' },
+      { href: '/dashboard/guides', label: 'Job Search Guides' },
     ],
   },
   {

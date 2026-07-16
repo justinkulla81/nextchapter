@@ -34,6 +34,12 @@ export default async function ThoughtLeadershipPage() {
           Post ideas grounded in your actual background — pick one, get a draft, edit it so it sounds like you,
           and post.
         </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Posting is one of the highest-leverage things you can do right now — it&apos;s how
+          recruiters and your network see you&apos;re active before you ever apply anywhere, and
+          consistent activity shows up on your Recruiter Report as a real, visible signal, not a
+          resume claim.
+        </p>
       </div>
 
       {relevantTutorials.length > 0 && (
