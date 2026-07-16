@@ -16,7 +16,7 @@ import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { getGoalLabel } from '@/lib/scoring/goal-label'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import { CompactGradeCard } from '@/components/dashboard/CompactGradeCard'
+import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
@@ -30,9 +30,6 @@ import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
 import { getUnviewedSessionImpact } from '@/lib/coach/session-impact'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
-import { WorkStyleProfileCard } from '@/components/dashboard/WorkStyleProfileCard'
-import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -83,6 +80,7 @@ export default async function DashboardPage() {
     outreachCount,
     existingBountyClaimCount,
     sessionImpact,
+    applicationsSent,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id),
@@ -102,12 +100,12 @@ export default async function DashboardPage() {
     prisma.outreachLog.count({ where: { candidateId: profile.id } }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
+    prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
   ])
 
   const weekNumber = profile._count.weeklySprints + 1
   const isFirstWeek = weekNumber === 1
 
-  const latestAssessment = profile.assessmentResponses[0]
   const primaryAction = latestReport
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
     : null
@@ -144,6 +142,13 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      <DashboardTopStrip
+        grade={grade}
+        searchExecutionAvailable={searchExecutionAvailable}
+        currentStreak={profile.currentStreak}
+        applicationsSent={applicationsSent}
+      />
+
       <EmployerInterestSection candidateId={profile.id} />
 
       <MoodCheckInCard
@@ -154,8 +159,6 @@ export default async function DashboardPage() {
         firstName={profile.firstName}
       />
 
-      <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
-
       {isFirstWeek ? (
         <Week1ArtifactSprint artifacts={week1Artifacts} />
       ) : (
@@ -164,45 +167,20 @@ export default async function DashboardPage() {
         />
       )}
 
-      <CommunityPreviewWidget feed={communityFeed} />
+      {(showGotHiredCTA || showCoachingCTA || sessionImpact) && (
+        <div className="space-y-4">
+          {showGotHiredCTA && <GotHiredCTACard />}
+          {showCoachingCTA && <CoachingCTACard />}
+          {sessionImpact && <SessionImpactCard report={sessionImpact} />}
+        </div>
+      )}
 
-      <CompactGradeCard grade={grade} searchExecutionAvailable={searchExecutionAvailable} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Your Work Style Profile
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {latestAssessment ? (
-            <WorkStyleProfileCard
-              dimensionVectors={latestAssessment.dimensionVectors as unknown as DimensionVectors}
-            />
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                A quick, optional assessment of how you prefer to work — helps us (and your
-                references) understand what makes you thrive, not just what you can do.
-              </p>
-              <a
-                href="/onboarding/working-style"
-                className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-              >
-                Take the Work Style Assessment
-              </a>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {showGotHiredCTA && <GotHiredCTACard />}
-
-      {showCoachingCTA && <CoachingCTACard />}
-
-      {sessionImpact && <SessionImpactCard report={sessionImpact} />}
-
-      <CoachChatCard initialMessages={conversation.messages} />
+      <div className="space-y-4 border-t border-border pt-8">
+        <h2 className="text-sm font-medium text-muted-foreground">More for this week</h2>
+        <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
+        <CommunityPreviewWidget feed={communityFeed} />
+        <CoachChatCard initialMessages={conversation.messages} />
+      </div>
     </div>
   )
 }
