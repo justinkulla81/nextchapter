@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { generatePostIdeas, draftPost, type PostIdea } from '@/lib/network/thought-leadership'
 import { analyzeSubstack } from '@/lib/network/analyze-substack'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -41,6 +42,8 @@ export async function submitThoughtLeadershipUnlock(
     data: { contentComfortLevel: comfortLevel, contentVenues: venues },
   })
 
+  captureServerEvent(profile.id, 'thought_leadership_unlocked')
+
   revalidatePath('/dashboard/thought-leadership')
 }
 
@@ -52,6 +55,9 @@ export async function generateIdeasAction(_prevState: IdeasFormState): Promise<I
 
   const ideas = await generatePostIdeas(profile.id)
   if (ideas.length === 0) return { error: 'Could not generate ideas right now — try again in a moment.' }
+  if (profile.contentVenues.includes('LINKEDIN')) {
+    captureServerEvent(profile.id, 'linkedin_ideas_generated')
+  }
   return { ideas }
 }
 

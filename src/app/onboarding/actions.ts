@@ -13,6 +13,7 @@ import {
   translateDimensionVectors,
 } from '@/lib/scoring/assessment-vectors'
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string } | undefined
 
@@ -48,6 +49,8 @@ export async function updateDesire(_prevState: FormState, formData: FormData): P
   } catch {
     return { error: 'Something went wrong saving your answer. Please try again.' }
   }
+
+  captureServerEvent(candidateId, 'onboarding_started')
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/circumstances')
@@ -94,6 +97,8 @@ export async function updateCircumstances(
   } catch {
     return { error: 'Something went wrong saving your answers. Please try again.' }
   }
+
+  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 1 })
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/contract')
@@ -217,6 +222,8 @@ export async function updateAssessment(
     console.error('Failed to sync reference delta after assessment completion:', error)
   }
 
+  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 2 })
+
   // No longer part of the mandatory onboarding chain — reachable any time as
   // an optional dashboard action-plan item, so send them back there rather
   // than assuming they were mid-onboarding.
@@ -269,6 +276,8 @@ export async function updateExperience(
   } catch {
     return { error: 'Something went wrong saving your answers. Please try again.' }
   }
+
+  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 3 })
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/goals')
@@ -328,6 +337,8 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
   } catch {
     return { error: 'Something went wrong saving your answers. Please try again.' }
   }
+
+  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 4 })
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/score')

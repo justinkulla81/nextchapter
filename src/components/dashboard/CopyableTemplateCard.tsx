@@ -1,22 +1,30 @@
 'use client'
 
 import { useState } from 'react'
+import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 
 export function CopyableTemplateCard({
   title,
   description,
   template,
+  templateType,
+  onCopy,
 }: {
   title: string
   description?: string
   template: string
+  templateType: string
+  onCopy?: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const posthog = usePostHog()
 
   async function handleCopy() {
     await navigator.clipboard.writeText(template)
     setCopied(true)
+    posthog?.capture('email_template_copied', { templateType })
+    onCopy?.()
     setTimeout(() => setCopied(false), 2000)
   }
 

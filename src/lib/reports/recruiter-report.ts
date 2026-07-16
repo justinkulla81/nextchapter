@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
+import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 
 // The Recruiter Report is a self-serve, candidate-controlled PDF handed to
 // anyone off-platform, alongside a resume — never auto-sent. Deliberately
@@ -64,22 +65,7 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
   const outreachCount = candidate.outreachLogs.length
   const learningCount = candidate.learningBadges.length
 
-  const effortSummaryLines: string[] = []
-  if (learningCount > 0) {
-    effortSummaryLines.push(
-      `Completed ${learningCount} learning action${learningCount === 1 ? '' : 's'} to close identified gaps.`
-    )
-  }
-  if (applicationsCount > 0) {
-    effortSummaryLines.push(
-      `Submitted ${applicationsCount} tailored application${applicationsCount === 1 ? '' : 's'}.`
-    )
-  }
-  if (outreachCount > 0) {
-    effortSummaryLines.push(
-      `Initiated ${outreachCount} outreach conversation${outreachCount === 1 ? '' : 's'} this search.`
-    )
-  }
+  const effortSummaryLines = computeEffortSummaryLines({ learningCount, applicationsCount, outreachCount })
 
   const encouragementSentCount = candidate._count.encouragementNotesSent
   const helpfulnessLine =

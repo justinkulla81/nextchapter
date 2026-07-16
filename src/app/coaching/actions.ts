@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type CoachingWaitlistFormState = { error?: string; sent?: boolean } | undefined
 
@@ -30,6 +31,8 @@ export async function joinCoachingWaitlist(
   await prisma.coachingWaitlist.create({
     data: { candidateId, email, firstName, lastName, challenge, source },
   })
+
+  captureServerEvent(candidateId ?? email, 'coach_request_submitted', { source })
 
   return { sent: true }
 }

@@ -16,6 +16,16 @@ export async function getDashboardData() {
     redirect('/auth/login')
   }
 
+  // A hiring manager landing here by mistake (stale link, back button)
+  // should never silently get a stray CandidateProfile created for them.
+  const employer = await prisma.employerProfile.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  })
+  if (employer) {
+    redirect('/talent')
+  }
+
   let profile = await prisma.candidateProfile.findUnique({
     where: { userId: user.id },
     include: {

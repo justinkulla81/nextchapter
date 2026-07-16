@@ -15,6 +15,7 @@ import { recalculateScore } from '@/lib/scoring/recalculate'
 import { surfaceNewJobs, generateReactionSummary } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string } | undefined
 
@@ -51,6 +52,8 @@ export async function submitJobUrl(_prevState: FormState, formData: FormData): P
   const jobPosting = await prisma.jobPosting.create({
     data: { candidateId: profile.id, url, fetchStatus: 'pending' },
   })
+
+  captureServerEvent(profile.id, 'job_added', { jobId: jobPosting.id })
 
   // Pasted text arrives together with the URL when the client already knows
   // (via getBlockedJobHost) this site can't be auto-fetched — skips the
@@ -222,6 +225,8 @@ export async function prepForPhoneScreen(jobPostingId: string) {
     })
   }
 
+  captureServerEvent(profile.id, 'interview_prep_started', { jobId: jobPostingId, mode: 'phone_screen' })
+
   redirect('/dashboard/interview-prep')
 }
 
@@ -285,6 +290,8 @@ export async function requestJobThankYouNote(jobPostingId: string, formData: For
     },
   })
 
+  if (note) captureServerEvent(profile.id, 'thank_you_note_generated', { jobId: jobPostingId })
+
   revalidatePath('/dashboard/job-fit')
 }
 
@@ -301,6 +308,8 @@ export async function markJobThankYouSent(jobPostingId: string) {
     where: { id: jobPostingId, candidateId: profile.id },
     data: { thankYouSentAt: new Date() },
   })
+
+  captureServerEvent(profile.id, 'thank_you_sent', { jobId: jobPostingId })
 
   revalidatePath('/dashboard/job-fit')
 }
@@ -375,6 +384,7 @@ export async function reactToSurfacedJob(
     where: { id: jobId, candidateId: profile.id },
     data: { reaction, reactionReason: reason, reactedAt: new Date() },
   })
+  captureServerEvent(profile.id, 'job_rated', { jobId, source: 'suggested', reaction })
   revalidatePath('/dashboard/job-fit')
 }
 
@@ -388,6 +398,7 @@ export async function getReactionSummaryAction(_prevState: SummaryFormState): Pr
   if (!summary) {
     return { error: 'React to a few more jobs first — I need at least 3 reactions to spot a real pattern.' }
   }
+  captureServerEvent(profile.id, 'pattern_unlocked')
   return { summary }
 }
 

@@ -40,8 +40,13 @@ export async function updateSession(request: NextRequest) {
   // a login page that implies a password is required, before they've done
   // anything. Per-page redirect logic (getCandidateProfileForUser) handles
   // routing a truly session-less visitor to /onboarding/resume instead.
-  const protectedPaths = ['/dashboard', '/employers/dashboard']
-  const isProtected = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  // /talent/signup is intentionally NOT protected — same reasoning as
+  // /onboarding above: a first-time hiring-manager visitor has no session
+  // yet, and the signup form is what creates one.
+  const protectedPaths = ['/dashboard', '/talent']
+  const isProtected =
+    protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
+    !request.nextUrl.pathname.startsWith('/talent/signup')
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()

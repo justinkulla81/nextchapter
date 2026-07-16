@@ -50,7 +50,20 @@ export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
           </div>
 
           <Card className="h-fit border-brand/20 bg-off-white">
-            <CardContent className="pt-6">
+            <CardContent className="space-y-4 pt-6">
+              {tab.directSignupHref && (
+                <div className="space-y-3 border-b border-border pb-4">
+                  <Link
+                    href={tab.directSignupHref}
+                    className="flex w-full items-center justify-center rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90"
+                  >
+                    {tab.directSignupLabel ?? 'Get started free'}
+                  </Link>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Or join the waitlist below for updates instead.
+                  </p>
+                </div>
+              )}
               <WaitlistForm tab={tab} />
             </CardContent>
           </Card>

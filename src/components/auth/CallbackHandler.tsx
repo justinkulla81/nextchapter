@@ -6,6 +6,7 @@ import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
+import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -15,6 +16,7 @@ export function CallbackHandler() {
   const tokenHash = searchParams.get('token_hash')
   const otpType = searchParams.get('type') as EmailOtpType | null
   const nextIsSecureAccount = searchParams.get('next') === 'secure-account'
+  const nextIsEmployer = searchParams.get('next') === 'employer'
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -25,13 +27,28 @@ export function CallbackHandler() {
     return nextIsSecureAccount ? 'secure-account' : 'confirm'
   })
 
-  function finish() {
+  async function finish() {
     // Set explicitly by the anonymous-to-registered email confirmation
     // link (see CreateAccountForm) — that flow only ever confirms an
     // email address, it never sets a password, so the account otherwise
     // has no durable way to log back in afterward.
     if (nextIsSecureAccount) {
       setStatus('secure-account')
+      return
+    }
+    if (nextIsEmployer) {
+      // A fresh employer signUp() never gets a session until this email is
+      // confirmed, so TalentSignupForm couldn't finish creating the
+      // EmployerProfile itself — do it now that a session exists, reading
+      // the contact/company name back out of user_metadata.
+      const result = await completeEmployerSignupFromSession()
+      if (result.error) {
+        console.error('completeEmployerSignupFromSession error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/talent/roles/new')
       return
     }
     setStatus('redirecting')
@@ -55,7 +72,7 @@ export function CallbackHandler() {
       setStatus('error')
       return
     }
-    finish()
+    await finish()
   }
 
   useEffect(() => {
@@ -99,7 +116,7 @@ export function CallbackHandler() {
         return
       }
 
-      finish()
+      await finish()
     }
 
     run()

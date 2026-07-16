@@ -48,7 +48,7 @@ const SECTIONS: NavSection[] = [
     links: [
       { href: '/dashboard/resume', label: 'Resume & Cover Letter' },
       { href: '/dashboard/linkedin', label: 'Grow My LinkedIn' },
-      { href: '/dashboard/job-fit', label: 'Find My Fit' },
+      { href: '/dashboard/job-fit', label: 'Job Fit' },
       { href: '/dashboard/work-samples', label: 'Your Proof Assets' },
       { href: '/dashboard/thought-leadership', label: 'Build Thought Leadership' },
       { href: '/dashboard/references', label: 'Get References' },
@@ -115,7 +115,7 @@ function NavContent({
               href={link.href}
               onClick={onNavigate}
               className={cn(
-                'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors',
+                'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
                 isActive(link.href)
                   ? 'bg-white/15 text-white'
                   : 'text-white/70 hover:bg-white/10 hover:text-white'

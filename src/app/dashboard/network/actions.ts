@@ -14,6 +14,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { parseLinkedInConnectionsCsv } from '@/lib/network/csv-import'
 import { recalculateScore } from '@/lib/scoring/recalculate'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 const NETWORKING_LIST_TARGET = 25
 
@@ -100,11 +101,11 @@ export async function deleteContact(contactId: string) {
   revalidatePath('/dashboard/network')
 }
 
-export async function setNetworkingAnxiety(anxiety: NetworkingAnxiety) {
+export async function setNetworkingConcerns(concerns: NetworkingAnxiety[]) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { networkingAnxiety: anxiety } })
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { networkingConcerns: concerns } })
   revalidatePath('/dashboard/network')
 }
 
@@ -113,6 +114,8 @@ export async function setNetworkComfortLevel(level: NetworkComfortLevel) {
   if (!profile) return
 
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { networkComfortLevel: level } })
+  captureServerEvent(profile.id, 'network_comfort_answered', { comfortLevel: level })
+  captureServerEvent(profile.id, 'network_page_unlocked')
   revalidatePath('/dashboard/network')
 }
 

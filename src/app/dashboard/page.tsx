@@ -26,7 +26,10 @@ import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
 import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
+import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
+import { getUnviewedSessionImpact } from '@/lib/coach/session-impact'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
+import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 import { WorkStyleProfileCard } from '@/components/dashboard/WorkStyleProfileCard'
 import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -79,6 +82,7 @@ export default async function DashboardPage() {
     narrative,
     outreachCount,
     existingBountyClaimCount,
+    sessionImpact,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id),
@@ -97,6 +101,7 @@ export default async function DashboardPage() {
     prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } }),
     prisma.outreachLog.count({ where: { candidateId: profile.id } }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
+    getUnviewedSessionImpact(profile.id),
   ])
 
   const weekNumber = profile._count.weeklySprints + 1
@@ -138,6 +143,8 @@ export default async function DashboardPage() {
             : `Week ${weekNumber} · Day ${dayNumber} — Your goal is to ${goalLabel}.`}
         </p>
       </div>
+
+      <EmployerInterestSection candidateId={profile.id} />
 
       <MoodCheckInCard
         quote={quote}
@@ -192,6 +199,8 @@ export default async function DashboardPage() {
       {showGotHiredCTA && <GotHiredCTACard />}
 
       {showCoachingCTA && <CoachingCTACard />}
+
+      {sessionImpact && <SessionImpactCard report={sessionImpact} />}
 
       <CoachChatCard initialMessages={conversation.messages} />
     </div>

@@ -12,6 +12,7 @@ import { extractResumeText } from '@/lib/resume/extract-text'
 import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { recalculateScore } from '@/lib/scoring/recalculate'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -74,6 +75,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
 
   await analyzeResume(resume.id)
   await extractProfileFieldsFromResume(resume.id)
+  captureServerEvent(profile.id, 'resume_analyzed')
 
   // Mid-onboarding (still an anonymous session) — if the resume's extracted
   // email already belongs to a real, registered account, send them to log in

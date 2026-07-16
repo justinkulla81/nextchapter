@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string; submitted?: boolean } | undefined
 
@@ -61,6 +62,8 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
       offerLetterUrl: path,
     },
   })
+
+  captureServerEvent(profile.id, 'hired_submitted')
 
   revalidatePath('/dashboard/got-hired')
   return { submitted: true }

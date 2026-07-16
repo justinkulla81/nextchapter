@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCoachClientSummaries } from '@/lib/coach/client-summary'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
@@ -89,6 +90,12 @@ export default async function CoachClientsPage({
                 {!detail?.targetRoleType && !detail?.primaryFunction && !detail?.highestLevelReached && (
                   <p>Profile still being built out.</p>
                 )}
+                <Link
+                  href={`/support/coach/clients/${token}/${client.id}`}
+                  className="mt-2 inline-block text-sm font-medium text-brand underline underline-offset-4"
+                >
+                  View pre-session brief →
+                </Link>
               </div>
             </details>
           )

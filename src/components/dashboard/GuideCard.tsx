@@ -1,9 +1,14 @@
+'use client'
+
 import Link from 'next/link'
+import { usePostHog } from 'posthog-js/react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { Guide } from '@/lib/constants/guides'
 
 export function GuideCard({ guide, unlocked }: { guide: Guide; unlocked: boolean }) {
+  const posthog = usePostHog()
+
   if (unlocked) {
     return (
       <a
@@ -11,6 +16,7 @@ export function GuideCard({ guide, unlocked }: { guide: Guide; unlocked: boolean
         target="_blank"
         rel="noopener noreferrer"
         className="block"
+        onClick={() => posthog?.capture('guide_unlocked', { guideSlug: guide.slug, unlockReason: 'viewed' })}
       >
         <Card className="h-full transition-colors hover:border-brand">
           <CardContent className="pt-6">

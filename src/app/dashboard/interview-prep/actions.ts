@@ -10,6 +10,7 @@ import { generateToughAnswer } from '@/lib/interview-prep/generate-tough-answer'
 import { evaluatePracticeAnswer, type PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
 import { generateThankYouEmail, type ThankYouEmailInput } from '@/lib/interview-prep/generate-thank-you-email'
 import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -54,30 +55,38 @@ export async function requestToughAnswer(question: string): Promise<string | nul
 
 export async function requestToughAnswerFeedback(
   question: string,
-  answerText: string
+  answerText: string,
+  redraftCount = 0
 ): Promise<PracticeEvaluation | null> {
   const profile = await getAuthedProfile()
   if (!profile) return null
 
-  return evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
+  const evaluation = await evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
+  captureServerEvent(profile.id, 'tough_question_answered', { redraftCount })
+  return evaluation
 }
 
 export async function requestPracticeEvaluation(
   question: string,
-  answerText: string
+  answerText: string,
+  redraftCount = 0
 ): Promise<PracticeEvaluation | null> {
   const profile = await getAuthedProfile()
   if (!profile) return null
   if (!answerText.trim()) return null
 
-  return evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
+  const evaluation = await evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
+  captureServerEvent(profile.id, 'interview_response_submitted', { redraftCount })
+  return evaluation
 }
 
 export async function requestThankYouEmail(input: ThankYouEmailInput): Promise<string | null> {
   const profile = await getAuthedProfile()
   if (!profile) return null
 
-  return generateThankYouEmail({ ...input, jobDescription: profile.activeJobDescription })
+  const note = await generateThankYouEmail({ ...input, jobDescription: profile.activeJobDescription })
+  captureServerEvent(profile.id, 'thank_you_note_generated')
+  return note
 }
 
 export async function updateActiveJobDescription(text: string) {

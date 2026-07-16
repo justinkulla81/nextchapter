@@ -2,6 +2,7 @@ import 'server-only'
 import type { User } from '@supabase/supabase-js'
 import { prisma } from '@/lib/prisma'
 import type { CandidateProfile } from '@prisma/client'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -36,6 +37,8 @@ export async function syncRegistrationCompletion(
     where: { id: profile.id },
     data: { registrationCompletedAt: new Date() },
   })
+
+  captureServerEvent(updated.id, 'account_created', { email: updated.email ?? undefined })
 
   return { profile: updated, justRegistered: true }
 }

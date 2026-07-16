@@ -17,6 +17,7 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
@@ -346,4 +347,6 @@ Openings matching their target function + industry: ${industrySpecificCount !== 
         : Prisma.DbNull,
     },
   })
+
+  captureServerEvent(candidateId, 'grade_assigned', { grade: grade.searchExecution.grade })
 }

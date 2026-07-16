@@ -22,6 +22,11 @@ export interface AudienceTab {
   // academic/nonprofit audiences (the research case for our dataset).
   insightSection?: { heading: string; items: AudiencePoint[] }
   points: AudiencePoint[]
+  // Optional: when a real signup flow exists (currently just Hiring Manager
+  // P0), render a direct-signup CTA above the waitlist form instead of
+  // making everyone wait on the waitlist for access that already works.
+  directSignupHref?: string
+  directSignupLabel?: string
   contrastLabel: string
   contrastBody: string
   formHeading: string
@@ -73,6 +78,8 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         body: 'People come here for honest feedback and a real plan, not to spray applications. You reach candidates who show up motivated and ready to talk.',
       },
     ],
+    directSignupHref: '/talent/signup',
+    directSignupLabel: 'Post a role free — no waitlist',
     contrastLabel: 'What you see vs. what you don\'t:',
     contrastBody:
       "you get verified references, demonstrated work ethic, real work samples, and a work-style profile — the same caliber of signal an executive recruiter would hand you. You never see a candidate's private Grade, their goals, or their compensation expectations. That's theirs, not a filter for you to game.",
@@ -100,6 +107,8 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     headline: 'Source candidates the ATS keyword filters bury — verified, not just parsed.',
     subhead:
       'Search verified candidates by how they work, not just what they typed. Career changers, returners, and non-traditional backgrounds are surfaced, not screened out, so you fill roles other tools miss and place candidates who actually stay.',
+    directSignupHref: '/recruiters/signup',
+    directSignupLabel: 'Get your free calibration tool — no waitlist',
     insightSection: {
       heading: 'Why your best submissions are getting rejected',
       items: [
@@ -306,5 +315,41 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       },
     ],
     successMessage: "Thank you. We'll reach out to explore how we can work together.",
+  },
+  {
+    id: 'for-coaches',
+    audience: 'Coach',
+    eyebrow: 'For Coaches',
+    headline: 'Bring your existing clients onto NextChapter — free, in under a minute.',
+    subhead:
+      "You already know your clients' situations better than any assessment could. NextChapter gives them a free Hireability Grade, a personalized action plan, and daily accountability between your sessions — while you keep the human relationship you already have.",
+    points: [
+      {
+        lead: 'A force-multiplier, not a replacement.',
+        body: "Your clients get structured daily/weekly accountability from Victoria, NextChapter's free AI coach, so your own sessions go further — you're not the only structure they have between calls.",
+      },
+      {
+        lead: 'Set up in under a minute.',
+        body: 'No procurement, no contract. Sign up, get your personal invite link, and send it to the clients you already work with today.',
+      },
+      {
+        lead: 'A simple client view.',
+        body: "See each client's week, grade trend, and last check-in at a glance — enough context to walk into every session already informed.",
+      },
+    ],
+    directSignupHref: '/support/coach/signup',
+    directSignupLabel: 'Get my invite link — free',
+    contrastLabel: 'What this is, and what it isn\'t:',
+    contrastBody:
+      "this is a lightweight companion to your coaching practice, not a replacement for it — no session notes, no case management, just a free tool your clients can use every day between the sessions you already run.",
+    formHeading: 'Questions before you sign up?',
+    formSubtext: "Tell us a bit about your practice and we'll follow up.",
+    fields: [
+      { name: 'fullName', label: 'Full name', type: 'text', required: true },
+      { name: 'workEmail', label: 'Work email', type: 'email', required: true },
+      { name: 'practiceName', label: 'Practice or firm name', type: 'text', required: false },
+      { name: 'coachingFocus', label: 'What kind of coaching do you do?', type: 'text', required: false },
+    ],
+    successMessage: "Thanks — we'll follow up. Or just use the link above to get started right now.",
   },
 ]

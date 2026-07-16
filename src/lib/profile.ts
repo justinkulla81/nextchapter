@@ -27,12 +27,12 @@ export const getOrCreateCandidateProfile = cache(async (userId: string, coachId?
   }
 })
 
-export async function getOrCreateEmployerProfile(userId: string) {
+export const getOrCreateEmployerProfile = cache(async (userId: string, companyName = '') => {
   try {
     return await prisma.employerProfile.upsert({
       where: { userId },
       update: {},
-      create: { userId, companyName: '' },
+      create: { userId, companyName },
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
@@ -40,4 +40,4 @@ export async function getOrCreateEmployerProfile(userId: string) {
     }
     throw error
   }
-}
+})

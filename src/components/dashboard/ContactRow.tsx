@@ -15,14 +15,14 @@ const CATEGORY_OPTIONS: { value: string; label: string }[] = [
 
 export function ContactRow({
   contact,
-  networkingAnxiety,
+  networkingConcerns,
   scriptContext,
 }: {
   contact: SupportNetworkContact
-  networkingAnxiety: NetworkingAnxiety | null
+  networkingConcerns: NetworkingAnxiety[]
   scriptContext: Omit<ScriptContext, 'contactName'>
 }) {
-  const script = getOutreachScript(contact.warmth, networkingAnxiety, {
+  const script = getOutreachScript(contact.warmth, networkingConcerns, {
     ...scriptContext,
     contactName: contact.name,
   })

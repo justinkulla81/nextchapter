@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
+import { prisma } from '@/lib/prisma'
 
 export async function getCandidateProfileForUser() {
   const user = await getCurrentUser()
@@ -11,6 +12,16 @@ export async function getCandidateProfileForUser() {
     // first step, which lazily starts an anonymous session on upload,
     // rather than a login page that implies a password is required.
     redirect('/onboarding/resume')
+  }
+
+  // A hiring manager who ends up here by mistake should never silently get
+  // a stray CandidateProfile created for them.
+  const employer = await prisma.employerProfile.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  })
+  if (employer) {
+    redirect('/talent')
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)

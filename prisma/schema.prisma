@@ -13,11 +13,11 @@ datasource db {
 // ── ENUMS ────────────────────────────────────────────────────────────────────
 
 enum PrivacyTier {
-  PUBLIC        // Full name, photo, complete history visible to all
-  SEMI_PUBLIC   // First name + last initial, company names, role level
-  PRIVATE       // Fully anonymized signal only
-  STEALTH       // Visible only to pre-approved companies
-  LOCKED        // Invisible to all searches (building profile)
+  PUBLIC // Full name, photo, complete history visible to all
+  SEMI_PUBLIC // First name + last initial, company names, role level
+  PRIVATE // Fully anonymized signal only
+  STEALTH // Visible only to pre-approved companies
+  LOCKED // Invisible to all searches (building profile)
 }
 
 enum EngagementType {
@@ -83,19 +83,19 @@ enum GapDurationBucket {
 }
 
 enum VisibilityTier {
-  EMERGING    // Assessment complete
-  SIGNAL      // 2 refs + 1 work sample
-  VERIFIED    // 360 survey + 3 refs + full suite
-  SPOTLIGHT   // All verified + extras
+  EMERGING // Assessment complete
+  SIGNAL // 2 refs + 1 work sample
+  VERIFIED // 360 survey + 3 refs + full suite
+  SPOTLIGHT // All verified + extras
 }
 
 // "When are you most ready to take action?" — controls daily email timing.
 enum ActionWindow {
-  MORNING                 // Plan and act in the morning
-  NIGHT_PLAN_MORNING_ACT  // Plan at night, act in the morning
+  MORNING // Plan and act in the morning
+  NIGHT_PLAN_MORNING_ACT // Plan at night, act in the morning
   MIDDAY
   EVENING
-  VARIABLE                // No strong preference — default
+  VARIABLE // No strong preference — default
 }
 
 enum Mood {
@@ -202,9 +202,9 @@ enum NotInterestedReason {
 }
 
 enum EmployerTier {
-  CHARTER     // Free/minimal — product partners
-  STANDARD    // $200/mo
-  PRO         // $500-600/mo
+  CHARTER // Free/minimal — product partners
+  STANDARD // $200/mo
+  PRO // $500-600/mo
 }
 
 enum EmployerSubscriptionStatus {
@@ -233,200 +233,203 @@ enum CandidateInterestStatus {
 // ── CANDIDATE SIDE ───────────────────────────────────────────────────────────
 
 model CandidateProfile {
-  id                    String               @id @default(cuid())
-  userId                String               @unique
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Privacy & Visibility
-  privacyTier           PrivacyTier          @default(LOCKED)
-  visibilityTier        VisibilityTier       @default(EMERGING)
-  employabilityScore    Int                  @default(0)
-  scoreLastCalculated   DateTime?
+  privacyTier         PrivacyTier    @default(LOCKED)
+  visibilityTier      VisibilityTier @default(EMERGING)
+  employabilityScore  Int            @default(0)
+  scoreLastCalculated DateTime?
 
   // Pre-onboarding: "Your Why"
-  jobSearchIntensity    Int?                 // 0-100 slider, "casually looking" -> "extremely"
-  desireComplete        Boolean              @default(false)
+  jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
+  desireComplete     Boolean @default(false)
 
   // Part 1: Your Situation
-  currentJobStatus      CurrentJobStatus?
-  gapDuration           GapDurationBucket?   // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
-  currentCity           String?              // resume-derived (Phase 1), candidate-confirmable
-  currentState          String?
-  currentCountry        String               @default("US")
-  openToRelocation      Boolean              @default(false)
-  relocationNotes       String?
-  remotePreference      String?              // "remote" | "hybrid" | "onsite" | "flexible" | "open_to_relocating"
+  currentJobStatus CurrentJobStatus?
+  gapDuration      GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
+  currentCity      String? // resume-derived (Phase 1), candidate-confirmable
+  currentState     String?
+  currentCountry   String             @default("US")
+  openToRelocation Boolean            @default(false)
+  relocationNotes  String?
+  remotePreference String? // "remote" | "hybrid" | "onsite" | "flexible" | "open_to_relocating"
 
   // Part 2: Working Style — see QuadBlock/LikertItem/CandidateAssessmentResponse
   // below. Superseded the old -2..+2 self-rated sliders with an ipsative
   // forced-choice + Likert cross-validation instrument.
 
   // Part 3: Experience
-  yearsExperience            Int?            // resume-derived (Phase 1), candidate-confirmable
-  highestLevelReached        String?         // "IC", "Manager", "Director", "VP", "C-Suite"
-  primaryFunction            String?         // resume-derived (Phase 1), candidate-confirmable
-  industryContext            String?         // resume-derived (Phase 1), candidate-confirmable
-  isPeopleManager            Boolean?        // gates teamSizeManaged + managementSkillConfidence questions
-  teamSizeManaged            Int?            // 0 = IC, otherwise largest team managed
-  knownFor                   String?         // "How former colleagues would describe me" — required before requesting references
-  functionSkillConfidence    Int?            // 0-100, 4-stop discrete scale ("Good" -> "Among the best in my field")
-  aiFlexibilityLevel         Int?            // 0-100, repurposed as AI-skill confidence slider, same 4-stop scale
-  managementSkillConfidence  Int?            // 0-100, 4-stop "soft trait" scale, only asked if isPeopleManager
-  actionOrientedConfidence   Int?            // 0-100, 4-stop "soft trait" scale
-  creativityConfidence       Int?            // 0-100, 4-stop "soft trait" scale
-  communicatorConfidence     Int?            // 0-100, 4-stop "soft trait" scale
-  jobSearchDifficultyLevel   Int?            // 1-4, "How difficult has your job search been so far?"
+  yearsExperience           Int? // resume-derived (Phase 1), candidate-confirmable
+  highestLevelReached       String? // "IC", "Manager", "Director", "VP", "C-Suite"
+  primaryFunction           String? // resume-derived (Phase 1), candidate-confirmable
+  industryContext           String? // resume-derived (Phase 1), candidate-confirmable
+  isPeopleManager           Boolean? // gates teamSizeManaged + managementSkillConfidence questions
+  teamSizeManaged           Int? // 0 = IC, otherwise largest team managed
+  knownFor                  String? // "How former colleagues would describe me" — required before requesting references
+  functionSkillConfidence   Int? // 0-100, 4-stop discrete scale ("Good" -> "Among the best in my field")
+  aiFlexibilityLevel        Int? // 0-100, repurposed as AI-skill confidence slider, same 4-stop scale
+  managementSkillConfidence Int? // 0-100, 4-stop "soft trait" scale, only asked if isPeopleManager
+  actionOrientedConfidence  Int? // 0-100, 4-stop "soft trait" scale
+  creativityConfidence      Int? // 0-100, 4-stop "soft trait" scale
+  communicatorConfidence    Int? // 0-100, 4-stop "soft trait" scale
+  jobSearchDifficultyLevel  Int? // 1-4, "How difficult has your job search been so far?"
 
   // Interview Prep — Comfort Check self-assessment (0-100 slider, same scale as the confidence fields above)
-  storyComfort               Int?
-  interviewComfort           Int?
-  elevatorPitchReady         Int?
+  storyComfort       Int?
+  interviewComfort   Int?
+  elevatorPitchReady Int?
 
   // Part 4: Goals
-  targetRoleType        String?
-  targetIndustries      String[]
-  targetCompanySize     String?
-  targetCompanyStage    String?
-  targetCompMin         Int?
-  compFlexible          Boolean              @default(false)
-  willingToStartLower   Boolean              @default(false)
-  startLowerRationale   String?
-  equityImportant       Boolean              @default(false)
-  dealBreakers          String?
+  targetRoleType      String?
+  targetIndustries    String[]
+  targetCompanySize   String?
+  targetCompanyStage  String?
+  targetCompMin       Int?
+  compFlexible        Boolean  @default(false)
+  willingToStartLower Boolean  @default(false)
+  startLowerRationale String?
+  equityImportant     Boolean  @default(false)
+  dealBreakers        String?
 
   // Resume auto-fill (Phase 1) — unconfirmed until candidate confirms via action plan
-  firstName                String?
-  lastName                  String?
-  phone                     String?
-  streetAddress             String?
-  graduationDate            DateTime?
-  resumeFirstJobStartDate   DateTime?
-  resumeLatestJobTitle      String?
-  resumeAiReadinessScore    Int?
-  resumeAiReadinessNotes    String?
+  firstName               String?
+  lastName                String?
+  phone                   String?
+  streetAddress           String?
+  graduationDate          DateTime?
+  resumeFirstJobStartDate DateTime?
+  resumeLatestJobTitle    String?
+  resumeAiReadinessScore  Int?
+  resumeAiReadinessNotes  String?
 
   // Action-plan-only questions (not asked during onboarding)
-  lastSalary            Int?
-  workAuthorization     String?
-  visaStatus            String?
+  lastSalary        Int?
+  workAuthorization String?
+  visaStatus        String?
 
   // Action-plan confirmation tracking
-  profileConfirmedAt    DateTime?
-  industryConfirmedAt   DateTime?
-  functionConfirmedAt   DateTime?
-  salaryConfirmedAt     DateTime?
-  workAuthConfirmedAt   DateTime?
+  profileConfirmedAt  DateTime?
+  industryConfirmedAt DateTime?
+  functionConfirmedAt DateTime?
+  salaryConfirmedAt   DateTime?
+  workAuthConfirmedAt DateTime?
 
   // LinkedIn & job-search behaviors
-  linkedInUrl                String?
-  linkedInConfirmedAt        DateTime?  // set once candidate provides a URL or explicitly says they don't have one yet — mandatory first action-plan item
-  networkingListSubmittedAt  DateTime?  // "25 people" networking assignment
-  askedForHelpAt             DateTime?
+  linkedInUrl               String?
+  linkedInConfirmedAt       DateTime? // set once candidate provides a URL or explicitly says they don't have one yet — mandatory first action-plan item
+  networkingListSubmittedAt DateTime? // "25 people" networking assignment
+  askedForHelpAt            DateTime?
 
   // Content-page unlock gates
-  benefitsUnlockAnswer          String?    // "What's the biggest financial pressure on you right now?" — gates Benefits page
-  benefitsActionPlan            String?    @db.Text
+  benefitsUnlockAnswer          String? // "What's the biggest financial pressure on you right now?" — gates Benefits page
+  benefitsActionPlan            String?        @db.Text
   benefitsActionPlanGeneratedAt DateTime?
-  gigDirectoryUnlockAnswer      String?    // target rate/openness question — gates the Gig Directory
-  contentComfortLevel           Int?       // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
+  gigDirectoryUnlockAnswer      String? // target rate/openness question — gates the Gig Directory
+  contentComfortLevel           Int? // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
   contentVenues                 ContentVenue[] @default([])
-  linkedinOpennessComfort       Int?       // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
-  linkedinUsageFrequency        String?    // "daily" | "weekly" | "rarely" | "never" — same gate
-  linkedinProfileUpToDate       Boolean?   // same gate
-  activeJobDescription          String?    @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
-  workSampleType                String?    // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
-  substackHasAccount             Boolean?   // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
-  substackUrl                    String?
-  substackCritique               Json?      // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
-  substackAnalyzedAt             DateTime?
+  linkedinOpennessComfort       Int? // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
+  linkedinUsageFrequency        String? // "daily" | "weekly" | "rarely" | "never" — same gate
+  linkedinProfileUpToDate       Boolean? // same gate
+  activeJobDescription          String?        @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
+  workSampleType                String? // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
+  substackHasAccount            Boolean? // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
+  substackUrl                   String?
+  substackCritique              Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
+  substackAnalyzedAt            DateTime?
 
   // Daily loop — mood check-in + daily Victoria email
-  actionWindow          ActionWindow  @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
-  currentStreak         Int           @default(0)        // consecutive days with a mood check-in
-  longestStreak         Int           @default(0)
-  lastCheckInAt         DateTime?
-  lastDailyEmailSentAt  DateTime?
-  dailyEmailOptedOut    Boolean       @default(false)
-  weeklyReportOptedOut  Boolean       @default(false)
+  actionWindow         ActionWindow @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
+  currentStreak        Int          @default(0) // consecutive days with a mood check-in
+  longestStreak        Int          @default(0)
+  lastCheckInAt        DateTime?
+  lastDailyEmailSentAt DateTime?
+  dailyEmailOptedOut   Boolean      @default(false)
+  weeklyReportOptedOut Boolean      @default(false)
 
   // The Circle — community support + recognition
-  aListOptOut               Boolean  @default(false) // opt out of A-List name recognition specifically
-  encouragementGivingOptIn  Boolean  @default(false) // opted in to occasional prompts to send support notes
+  aListOptOut              Boolean @default(false) // opt out of A-List name recognition specifically
+  encouragementGivingOptIn Boolean @default(false) // opted in to occasional prompts to send support notes
 
   // Support Network / outreach
-  networkComfortLevel      NetworkComfortLevel? // one-time comfort check, gates the rest of Activate My Network
-  networkingAnxiety        NetworkingAnxiety?
-  networkConnectPreferences String[]            @default([])
+  networkComfortLevel       NetworkComfortLevel? // one-time comfort check, gates the rest of Activate My Network
+  networkingConcerns        NetworkingAnxiety[]  @default([])
+  networkConnectPreferences String[]             @default([])
 
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
-  priorityMaxComp       Int?
-  priorityBrandName     Int?
-  priorityJobSecurity   Int?
-  priorityWorkLife      Int?
-  priorityMission       Int?
+  priorityMaxComp     Int?
+  priorityBrandName   Int?
+  priorityJobSecurity Int?
+  priorityWorkLife    Int?
+  priorityMission     Int?
 
   // Display fields (computed from privacy tier)
-  displayName           String?              // Set based on privacy tier
-  displayCompany        String?
+  displayName    String? // Set based on privacy tier
+  displayCompany String?
 
   // Onboarding completion tracking
-  part1Complete         Boolean              @default(false)
-  part2Complete         Boolean              @default(false)
-  part3Complete         Boolean              @default(false)
-  part4Complete         Boolean              @default(false)
-  assessmentComplete    Boolean              @default(false)
-  assessmentCompletedAt DateTime?            // set alongside assessmentComplete — used for reminder cadence math
-  contractAccepted      Boolean              @default(false)
+  part1Complete         Boolean   @default(false)
+  part2Complete         Boolean   @default(false)
+  part3Complete         Boolean   @default(false)
+  part4Complete         Boolean   @default(false)
+  assessmentComplete    Boolean   @default(false)
+  assessmentCompletedAt DateTime? // set alongside assessmentComplete — used for reminder cadence math
+  contractAccepted      Boolean   @default(false)
   contractAcceptedAt    DateTime?
 
   // Deferred signup (resume-first onboarding, account creation last)
-  email                    String?           // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
-  resumeStepComplete       Boolean           @default(false)
-  registrationCompletedAt  DateTime?         // set once the anonymous->permanent auth conversion completes
-  passwordSetAt            DateTime?         // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
-  lastReminderSentAt       DateTime?
-  reminderEmailCount       Int               @default(0)
-  reminderEmailsOptedOut   Boolean           @default(false)
+  email                   String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
+  resumeStepComplete      Boolean   @default(false)
+  registrationCompletedAt DateTime? // set once the anonymous->permanent auth conversion completes
+  passwordSetAt           DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
+  lastReminderSentAt      DateTime?
+  reminderEmailCount      Int       @default(0)
+  reminderEmailsOptedOut  Boolean   @default(false)
 
   // Relations
-  workHistory           WorkHistoryEntry[]
-  references            Reference[]
-  workSamples           WorkSample[]
-  interviewResponses    InterviewResponse[]
-  peerNominations       PeerNomination[]
-  learningBadges        LearningBadge[]
-  employerInteractions  CandidateInteraction[]
-  scoreHistory          EmployabilityScoreHistory[]
-  approvedEmployers     ApprovedEmployer[]
-  assessmentResults     AssessmentResult[]
-  assessmentResponses   CandidateAssessmentResponse[]
-  resumes               Resume[]
-  jobPostings           JobPosting[]
-  communityPosts        CommunityPost[]
-  expressedInterests    CommunityPostInterest[]
-  hireabilityReports    HireabilityReport[]
-  linkedInActivityLogs  LinkedInActivityLog[]
-  coachConversation     CoachConversation?
-  narrative             CandidateNarrative?
-  coachingWaitlistEntries CoachingWaitlist[]
-  bountyClaims            BountyClaim[]
-  dailyCheckIns         DailyCheckIn[]
-  weeklySprints         WeeklySprint[]
-  sundayNightReports    SundayNightReport[]
-  encouragementNotesSent     EncouragementNote[] @relation("EncouragementSent")
-  encouragementNotesReceived EncouragementNote[] @relation("EncouragementReceived")
+  workHistory                WorkHistoryEntry[]
+  references                 Reference[]
+  workSamples                WorkSample[]
+  interviewResponses         InterviewResponse[]
+  peerNominations            PeerNomination[]
+  learningBadges             LearningBadge[]
+  employerInteractions       CandidateInteraction[]
+  scoreHistory               EmployabilityScoreHistory[]
+  approvedEmployers          ApprovedEmployer[]
+  assessmentResults          AssessmentResult[]
+  assessmentResponses        CandidateAssessmentResponse[]
+  resumes                    Resume[]
+  jobPostings                JobPosting[]
+  communityPosts             CommunityPost[]
+  expressedInterests         CommunityPostInterest[]
+  hireabilityReports         HireabilityReport[]
+  linkedInActivityLogs       LinkedInActivityLog[]
+  coachConversation          CoachConversation?
+  narrative                  CandidateNarrative?
+  coachingWaitlistEntries    CoachingWaitlist[]
+  guideLeadEntries           GuideLead[]
+  bountyClaims               BountyClaim[]
+  dailyCheckIns              DailyCheckIn[]
+  weeklySprints              WeeklySprint[]
+  sundayNightReports         SundayNightReport[]
+  encouragementNotesSent     EncouragementNote[]           @relation("EncouragementSent")
+  encouragementNotesReceived EncouragementNote[]           @relation("EncouragementReceived")
   supportNetworkContacts     SupportNetworkContact[]
   outreachLogs               OutreachLog[]
   surfacedJobs               SurfacedJob[]
+  pivotIdeas                 PivotIdea[]
   marketResponseLogs         MarketResponseLog[]
   profileShares              ProfileShare[]
 
   // Coach P0-lite — set once, at profile creation, when the candidate came in
   // through a coach's personal invite link. Never re-assigned afterward (an
   // existing candidate clicking a coach link doesn't get silently re-tagged).
-  coachId                    String?
-  coach                      Coach?  @relation(fields: [coachId], references: [id])
+  coachId       String?
+  coach         Coach?         @relation(fields: [coachId], references: [id])
+  coachSessions CoachSession[]
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -435,9 +438,9 @@ model CandidateProfile {
 }
 
 model CandidateNarrative {
-  id            String           @id @default(cuid())
-  candidateId   String           @unique
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   coreStatement String // 2-3 sentence "Core Narrative Statement", candidate-editable
   adaptations   Json // {linkedinHeadline, linkedinAbout, resumeSummary, emailOpening, verbal30s, tellMeAboutYourself}
@@ -447,21 +450,21 @@ model CandidateNarrative {
 }
 
 model WorkHistoryEntry {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   companyName     String
   companyIndustry String?
   roleTitle       String
   startDate       DateTime
-  endDate         DateTime?        // null = current
-  isCurrent       Boolean          @default(false)
+  endDate         DateTime? // null = current
+  isCurrent       Boolean              @default(false)
   teamSize        Int?
-  managedPeople   Boolean          @default(false)
+  managedPeople   Boolean              @default(false)
   keyAchievement  String?
   departureReason EmploymentSituation?
-  verified        Boolean          @default(false)
+  verified        Boolean              @default(false)
   verifiedBy      String?
 
   // Never rendered as a qualifier on external-facing documents (Recruiter
@@ -475,134 +478,134 @@ model WorkHistoryEntry {
 }
 
 model Reference {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  refereeEmail    String
-  refereeName     String
-  refereeTitle    String?
-  refereeCompany  String?
-  relationshipType ReferenceType
-  yearsWorkedTogether Int?
-  verifiedRelationship Boolean     @default(false)
-  status          ReferenceStatus  @default(REQUESTED)
-  requestedAt     DateTime         @default(now())
-  completedAt     DateTime?
-  token           String           @unique @default(cuid())
+  refereeEmail         String
+  refereeName          String
+  refereeTitle         String?
+  refereeCompany       String?
+  relationshipType     ReferenceType
+  yearsWorkedTogether  Int?
+  verifiedRelationship Boolean         @default(false)
+  status               ReferenceStatus @default(REQUESTED)
+  requestedAt          DateTime        @default(now())
+  completedAt          DateTime?
+  token                String          @unique @default(cuid())
 
   // Behavioral ratings (1-5 scale)
-  ratingReliability       Int?
-  ratingCommunication     Int?
-  ratingConflictNav       Int?
-  ratingTeamLift          Int?
-  ratingWorkEthic         Int?
-  ratingGrowthMindset     Int?
-  ratingPositivity        Int?
-  overallRating           Int?
+  ratingReliability   Int?
+  ratingCommunication Int?
+  ratingConflictNav   Int?
+  ratingTeamLift      Int?
+  ratingWorkEthic     Int?
+  ratingGrowthMindset Int?
+  ratingPositivity    Int?
+  overallRating       Int?
 
   // Qualitative (shown to employers in summary only)
-  strengthSummary         String?
-  growthAreaSummary       String?
-  wouldHireAgain          Boolean?
-  contextNotes            String?
+  strengthSummary   String?
+  growthAreaSummary String?
+  wouldHireAgain    Boolean?
+  contextNotes      String?
 
   // BARS ratings per dimension (1-5 scale with behavioral anchors)
   // Used to compute CandidateAssessmentResponse.referenceDelta — see
   // src/lib/scoring/reference-delta.ts.
-  barsVelocity      Int?   // 1=deliberate, 5=urgent
-  barsArchitecture  Int?   // 1=creates playbook, 5=executes
-  barsStructure     Int?   // 1=needs clarity, 5=thrives in ambiguity
-  barsCommunication Int?   // 1=async, 5=sync
-  barsEnvironment   Int?   // 1=deep focus, 5=constant collab
-  barsLeadership    Int?   // 1=coaching, 5=direct/blunt
-  barsOversight     Int?   // 1=hands-off, 5=micromanagement
-  barsCommitment    Int?   // 1=protects hours, 5=whatever it takes
-  barsConscientiousness Int?   // 1=flexible with process, 5=rigorous with detail
+  barsVelocity          Int? // 1=deliberate, 5=urgent
+  barsArchitecture      Int? // 1=creates playbook, 5=executes
+  barsStructure         Int? // 1=needs clarity, 5=thrives in ambiguity
+  barsCommunication     Int? // 1=async, 5=sync
+  barsEnvironment       Int? // 1=deep focus, 5=constant collab
+  barsLeadership        Int? // 1=coaching, 5=direct/blunt
+  barsOversight         Int? // 1=hands-off, 5=micromanagement
+  barsCommitment        Int? // 1=protects hours, 5=whatever it takes
+  barsConscientiousness Int? // 1=flexible with process, 5=rigorous with detail
 
   @@index([candidateId, status])
   @@index([token])
 }
 
 model WorkSample {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  title           String
-  description     String
+  title            String
+  description      String
   problemStatement String?
-  candidateRole   String?
-  outcome         String?
-  sampleType      String           // "case_study" | "writing" | "code" | "design" | "presentation" | "other"
-  fileUrl         String?
-  externalUrl     String?
-  verified        Boolean          @default(false)
-  verifiedByEmail String?
-  createdAt       DateTime         @default(now())
+  candidateRole    String?
+  outcome          String?
+  sampleType       String // "case_study" | "writing" | "code" | "design" | "presentation" | "other"
+  fileUrl          String?
+  externalUrl      String?
+  verified         Boolean  @default(false)
+  verifiedByEmail  String?
+  createdAt        DateTime @default(now())
 
   @@index([candidateId])
 }
 
 model InterviewResponse {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  questionId      String           // References question bank
+  questionId      String // References question bank
   questionText    String
-  responseType    String           // "text" | "audio" | "video"
+  responseType    String // "text" | "audio" | "video"
   responseText    String?
   responseFileUrl String?
-  aiSignalScore   Int?             // Internal scoring 1-100
-  aiSignalNotes   String?          // Internal notes on response quality
-  feedback        Json?            // candidate-facing: {usesStarStructure, lengthNote, strengths, improvements}
-  createdAt       DateTime         @default(now())
+  aiSignalScore   Int? // Internal scoring 1-100
+  aiSignalNotes   String? // Internal notes on response quality
+  feedback        Json? // candidate-facing: {usesStarStructure, lengthNote, strengths, improvements}
+  createdAt       DateTime @default(now())
 
   @@index([candidateId])
 }
 
 model PeerNomination {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  nominatorEmail  String
-  nominatorName   String
-  nominatorPlatformId String?      // If nominator is also on NextChapter
-  traitNominated  String           // "cross-functional leadership" | "mentorship" | etc.
-  context         String?
-  verified        Boolean          @default(false)
-  createdAt       DateTime         @default(now())
+  nominatorEmail      String
+  nominatorName       String
+  nominatorPlatformId String? // If nominator is also on NextChapter
+  traitNominated      String // "cross-functional leadership" | "mentorship" | etc.
+  context             String?
+  verified            Boolean  @default(false)
+  createdAt           DateTime @default(now())
 
   @@index([candidateId])
 }
 
 model LearningBadge {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  badgeType       String           // "course_completed" | "certification" | "ai_project" | "conference_talk" | "published"
+  badgeType       String // "course_completed" | "certification" | "ai_project" | "conference_talk" | "published"
   title           String
   provider        String?
   completedAt     DateTime
   verificationUrl String?
-  verified        Boolean          @default(false)
-  createdAt       DateTime         @default(now())
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
 
   @@index([candidateId])
 }
 
 model AssessmentResult {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  assessmentType  String           // "big_five" | "holland" | "high5" | "work_style"
-  rawScores       Json             // Raw instrument scores
-  translatedOutput Json            // Plain-English outputs for employer reports
-  completedAt     DateTime         @default(now())
+  assessmentType   String // "big_five" | "holland" | "high5" | "work_style"
+  rawScores        Json // Raw instrument scores
+  translatedOutput Json // Plain-English outputs for employer reports
+  completedAt      DateTime @default(now())
 
   @@index([candidateId])
 }
@@ -612,97 +615,97 @@ model AssessmentResult {
 // for the scoring algorithm and its documented limitations.
 
 model QuadBlock {
-  id            String   @id @default(cuid())
+  id            String               @id @default(cuid())
   blockNumber   Int
-  rotationGroup Int      @default(1)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  rotationGroup Int                  @default(1)
+  isActive      Boolean              @default(true)
+  createdAt     DateTime             @default(now())
   statements    QuadBlockStatement[]
 }
 
 model QuadBlockStatement {
-  id          String    @id @default(cuid())
-  blockId     String
-  block       QuadBlock @relation(fields: [blockId], references: [id])
-  dimension   String    // "velocity" | "architecture" | "structure" | "communication" | "environment" | "leadership" | "oversight" | "commitment"
-  pole        String    // "high" or "low" on that dimension
-  statementText String
-  socialDesirabilityScore Float  // Should be balanced 3.8-4.2 across all 4 in block
+  id                      String    @id @default(cuid())
+  blockId                 String
+  block                   QuadBlock @relation(fields: [blockId], references: [id])
+  dimension               String // "velocity" | "architecture" | "structure" | "communication" | "environment" | "leadership" | "oversight" | "commitment"
+  pole                    String // "high" or "low" on that dimension
+  statementText           String
+  socialDesirabilityScore Float // Should be balanced 3.8-4.2 across all 4 in block
 }
 
 model LikertItem {
-  id              String   @id @default(cuid())
-  dimension       String   // Maps to same 8 dimensions
-  pole            String   // Which end of the dimension this probes
-  itemText        String
-  isReversed      Boolean  @default(false)  // If true, scoring is inverted
-  targetedFriction String  // What specific anxiety or friction this surfaces
-  pairedQuadDimension String  // Which quad-block dimension this validates against
-  rotationGroup   Int      @default(1)
-  isActive        Boolean  @default(true)
+  id                  String  @id @default(cuid())
+  dimension           String // Maps to same 8 dimensions
+  pole                String // Which end of the dimension this probes
+  itemText            String
+  isReversed          Boolean @default(false) // If true, scoring is inverted
+  targetedFriction    String // What specific anxiety or friction this surfaces
+  pairedQuadDimension String // Which quad-block dimension this validates against
+  rotationGroup       Int     @default(1)
+  isActive            Boolean @default(true)
 }
 
 model CandidateAssessmentResponse {
-  id            String           @id @default(cuid())
-  candidateId   String
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  completedAt   DateTime         @default(now())
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  completedAt DateTime         @default(now())
 
   // Layer 1: Quad-block responses
-  quadResponses Json  // Array of {blockId, mostLikeMe: statementId, leastLikeMe: statementId}
+  quadResponses Json // Array of {blockId, mostLikeMe: statementId, leastLikeMe: statementId}
 
   // Layer 2: Likert responses
-  likertResponses Json  // Array of {itemId, score: 1-5}
+  likertResponses Json // Array of {itemId, score: 1-5}
 
   // Computed vectors
-  dimensionVectors Json  // {velocity: -2..+2, architecture: -2..+2, ...}
+  dimensionVectors Json // {velocity: -2..+2, architecture: -2..+2, ...}
 
   // Inconsistency Index
-  inconsistencyScore    Float?
-  inconsistencyPairs    Json?   // Which specific pairs triggered variance
-  manipulationRiskFlag  Boolean @default(false)
-  flagThreshold         Float?  // The SD value that triggered flag, if any
+  inconsistencyScore   Float?
+  inconsistencyPairs   Json? // Which specific pairs triggered variance
+  manipulationRiskFlag Boolean @default(false)
+  flagThreshold        Float? // The SD value that triggered flag, if any
 
   // Reference delta — populated by src/lib/scoring/reference-delta.ts once
   // both this response and at least one BARS-scored reference exist.
-  referenceDelta        Json?   // Candidate vector vs reference BARS aggregate
-  frictionSurfaces      String[] // Dimensions where delta > threshold — shown to employers
+  referenceDelta   Json? // Candidate vector vs reference BARS aggregate
+  frictionSurfaces String[] // Dimensions where delta > threshold — shown to employers
 
   @@index([candidateId])
 }
 
 model BARSAnchor {
-  id          String @id @default(cuid())
-  dimension   String
-  scalePoint  Int    // 1-5
-  anchorText  String // Specific observable behavior at this scale point
-  isActive    Boolean @default(true)
+  id         String  @id @default(cuid())
+  dimension  String
+  scalePoint Int // 1-5
+  anchorText String // Specific observable behavior at this scale point
+  isActive   Boolean @default(true)
 }
 
 model EmployabilityScoreHistory {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  score           Int
-  signalDepth     Int              // Sub-score 0-100
-  narrativeClarity Int             // Sub-score 0-100
-  desireSignal    Int              // Sub-score 0-100
-  consistency     Int              // Sub-score 0-100
-  aiFlexibility   Int              // Sub-score 0-100
-  calculatedAt    DateTime         @default(now())
-  triggerEvent    String?          // What caused the recalculation
+  score            Int
+  signalDepth      Int // Sub-score 0-100
+  narrativeClarity Int // Sub-score 0-100
+  desireSignal     Int // Sub-score 0-100
+  consistency      Int // Sub-score 0-100
+  aiFlexibility    Int // Sub-score 0-100
+  calculatedAt     DateTime @default(now())
+  triggerEvent     String? // What caused the recalculation
 
   @@index([candidateId, calculatedAt])
 }
 
 model ApprovedEmployer {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  employerId      String
-  employer        EmployerProfile  @relation(fields: [employerId], references: [id])
-  approvedAt      DateTime         @default(now())
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  employerId  String
+  employer    EmployerProfile  @relation(fields: [employerId], references: [id])
+  approvedAt  DateTime         @default(now())
 
   @@unique([candidateId, employerId])
 }
@@ -710,20 +713,27 @@ model ApprovedEmployer {
 // ── EMPLOYER SIDE ────────────────────────────────────────────────────────────
 
 model EmployerProfile {
-  id                    String               @id @default(cuid())
-  userId                String               @unique
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  companyName           String
-  companyWebsite        String?
-  companySize           String?              // "1-10" | "11-50" | "51-200" | "201-1000" | "1000+"
-  companyStage          String?              // "startup" | "growth" | "enterprise" | "non-profit" | "government"
-  companyIndustry       String?
-  logoUrl               String?
+  companyName     String
+  companyWebsite  String?
+  companySize     String? // "1-10" | "11-50" | "51-200" | "201-1000" | "1000+"
+  companyStage    String? // "startup" | "growth" | "enterprise" | "non-profit" | "government"
+  companyIndustry String?
+  logoUrl         String?
+  contactName     String?
+  isSampleData    Boolean @default(false)
+
+  // No-Ghosting Commitment — signup-time acknowledgment only (P0). The
+  // response-rate/badge tracking system this later feeds is P1/P2, not built.
+  noGhostingCommitmentAccepted   Boolean   @default(false)
+  noGhostingCommitmentAcceptedAt DateTime?
 
   // Subscription
-  subscriptionTier      EmployerTier         @default(CHARTER)
+  subscriptionTier      EmployerTier               @default(CHARTER)
   subscriptionStatus    EmployerSubscriptionStatus @default(TRIALING)
   stripeCustomerId      String?
   stripeSubscriptionId  String?
@@ -731,12 +741,12 @@ model EmployerProfile {
   subscriptionEndDate   DateTime?
 
   // Charter employer fields
-  isCharterEmployer     Boolean              @default(false)
-  charterCommitmentSigned Boolean            @default(false)
-  charterFeedbackNotes  String?
+  isCharterEmployer       Boolean @default(false)
+  charterCommitmentSigned Boolean @default(false)
+  charterFeedbackNotes    String?
 
   // Pro culture assessment (required for Pro tier matching)
-  cultureAssessmentComplete Boolean          @default(false)
+  cultureAssessmentComplete Boolean   @default(false)
   culturePacePreference     Int?
   cultureFeedbackStyle      Int?
   cultureCollabStyle        Int?
@@ -745,7 +755,7 @@ model EmployerProfile {
   cultureHoursExpectation   Int?
   cultureManagementStyle    Int?
   cultureAttritionRate      Float?
-  cultureHonestyDeclaration Json?           // What they offer more/less of vs market
+  cultureHonestyDeclaration Json? // What they offer more/less of vs market
   cultureVerifiedAt         DateTime?
 
   // Relations
@@ -758,21 +768,22 @@ model EmployerProfile {
 }
 
 model RoleProfile {
-  id                    String               @id @default(cuid())
-  employerId            String
-  employer              EmployerProfile      @relation(fields: [employerId], references: [id], onDelete: Cascade)
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
-  isActive              Boolean              @default(true)
+  id           String          @id @default(cuid())
+  employerId   String
+  employer     EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  isActive     Boolean         @default(true)
+  isSampleData Boolean         @default(false)
 
-  roleTitle             String
-  roleLevel             String?
-  primaryFunction       String?
-  locationRequirement   String?
-  remotePolicy          String?
-  compMin               Int?
-  compMax               Int?
-  equityOffered         Boolean              @default(false)
+  roleTitle           String
+  roleLevel           String?
+  primaryFunction     String?
+  locationRequirement String?
+  remotePolicy        String?
+  compMin             Int?
+  compMax             Int?
+  equityOffered       Boolean @default(false)
 
   // Role-specific work style requirements
   requiredPaceLevel     Int?
@@ -783,19 +794,19 @@ model RoleProfile {
   requiredHours         Int?
 
   // Success definition
-  success30Days         String?
-  success90Days         String?
-  success180Days        String?
+  success30Days  String?
+  success90Days  String?
+  success180Days String?
 
   // Hiring manager profile for this role
-  hmWorkStyle           Int?
-  hmFeedbackStyle       Int?
-  hmManagementApproach  String?
-  hmWhatGoodLooksLike   String?
+  hmWorkStyle          Int?
+  hmFeedbackStyle      Int?
+  hmManagementApproach String?
+  hmWhatGoodLooksLike  String?
 
   // Honest tradeoff declaration
-  offersMoreThan        String[]             // e.g. ["learning", "mission", "flexibility"]
-  offersLessThan        String[]             // e.g. ["base_comp", "title"]
+  offersMoreThan String[] // e.g. ["learning", "mission", "flexibility"]
+  offersLessThan String[] // e.g. ["base_comp", "title"]
 
   candidateInteractions CandidateInteraction[]
 
@@ -803,10 +814,10 @@ model RoleProfile {
 }
 
 model SavedSearch {
-  id              String           @id @default(cuid())
-  employerId      String
-  employer        EmployerProfile  @relation(fields: [employerId], references: [id], onDelete: Cascade)
-  createdAt       DateTime         @default(now())
+  id         String          @id @default(cuid())
+  employerId String
+  employer   EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
 
   searchName      String
   targetFunction  String?
@@ -815,36 +826,36 @@ model SavedSearch {
   targetSituation EmploymentSituation[]
   minYearsExp     Int?
   maxYearsExp     Int?
-  remoteOk        Boolean          @default(false)
+  remoteOk        Boolean               @default(false)
   linkedRoleId    String?
 
-  lastDigestSent  DateTime?
-  digestEnabled   Boolean          @default(true)
+  lastDigestSent DateTime?
+  digestEnabled  Boolean   @default(true)
 
   @@index([employerId])
 }
 
 model CandidateInteraction {
-  id              String           @id @default(cuid())
-  employerId      String
-  employer        EmployerProfile  @relation(fields: [employerId], references: [id])
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id])
-  roleId          String?
-  role            RoleProfile?     @relation(fields: [roleId], references: [id])
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id          String           @id @default(cuid())
+  employerId  String
+  employer    EmployerProfile  @relation(fields: [employerId], references: [id])
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
+  roleId      String?
+  role        RoleProfile?     @relation(fields: [roleId], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  status          CandidateInterestStatus @default(VIEWED)
-  employerNotes   String?
+  status        CandidateInterestStatus @default(VIEWED)
+  employerNotes String?
 
   // Match data (computed at time of interaction)
-  genericMatchScore   Int?         // 0-100 overall
-  workStyleAlignment  Int?         // 0-100
-  situationRelevance  Int?         // 0-100
-  tailoredFitScore    Int?         // 0-100 (Pro only, requires role profile)
-  matchReport         Json?        // Full hiring manager report (Pro only)
-  frictionPoints      String[]     // Specific friction areas identified
+  genericMatchScore  Int? // 0-100 overall
+  workStyleAlignment Int? // 0-100
+  situationRelevance Int? // 0-100
+  tailoredFitScore   Int? // 0-100 (Pro only, requires role profile)
+  matchReport        Json? // Full hiring manager report (Pro only)
+  frictionPoints     String[] // Specific friction areas identified
 
   // Outcome tracking (for validity research)
   hiredAt         DateTime?
@@ -860,23 +871,23 @@ model CandidateInteraction {
 // ── PLATFORM ─────────────────────────────────────────────────────────────────
 
 model InterviewQuestionBank {
-  id              String   @id @default(cuid())
-  questionText    String
-  category        String   // "grit" | "communication" | "collaboration" | "leadership" | "challenge" | "values"
-  targetLevel     String[] // "entry" | "mid" | "senior" | "executive"
-  isActive        Boolean  @default(true)
-  rotationGroup   Int      @default(1)  // For quarterly rotation
-  createdAt       DateTime @default(now())
+  id            String   @id @default(cuid())
+  questionText  String
+  category      String // "grit" | "communication" | "collaboration" | "leadership" | "challenge" | "values"
+  targetLevel   String[] // "entry" | "mid" | "senior" | "executive"
+  isActive      Boolean  @default(true)
+  rotationGroup Int      @default(1) // For quarterly rotation
+  createdAt     DateTime @default(now())
 }
 
 model LayoffCohort {
-  id              String   @id @default(cuid())
-  companyName     String
-  layoffDate      DateTime
-  estimatedSize   Int?
-  newsUrl         String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
+  id            String   @id @default(cuid())
+  companyName   String
+  layoffDate    DateTime
+  estimatedSize Int?
+  newsUrl       String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
 }
 
 // ── CANDIDATE HIREABILITY REPORT ──────────────────────────────────────────────
@@ -890,9 +901,9 @@ model LayoffCohort {
 // Not user-deletable; older uploads are kept as an audit trail. Does not feed
 // the Employability Score directly (only the Hireability Report).
 model Resume {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   // Storage path within the private 'resumes' bucket, NOT a public URL — the
   // bucket has no public read access since resumes carry real PII. Generate
@@ -900,21 +911,21 @@ model Resume {
   // whenever the file needs to be displayed or re-read.
   filePath        String
   fileName        String
-  fileType        String    // "pdf" | "docx"
+  fileType        String // "pdf" | "docx"
   extractedText   String?
   extractionError String?
 
-  atsScore           Int?      // 0-100
+  atsScore           Int? // 0-100
   atsFeedback        String[]  @default([])
-  resultsScore       Int?      // 0-100 — quantified impact vs. vague duties
+  resultsScore       Int? // 0-100 — quantified impact vs. vague duties
   resultsFeedback    String[]  @default([])
-  experienceScore    Int?      // 0-100 — gaps, tenure, alignment with stated goals
+  experienceScore    Int? // 0-100 — gaps, tenure, alignment with stated goals
   experienceFeedback String[]  @default([])
   actionItems        String[]  @default([]) // concrete itemized checklist derived from the gaps above
   analysisError      String?
   analyzedAt         DateTime?
 
-  uploadedAt      DateTime  @default(now())
+  uploadedAt DateTime @default(now())
 
   @@index([candidateId, uploadedAt])
 }
@@ -922,29 +933,29 @@ model Resume {
 // Job-fit feedback. Max 5 per candidate enforced in the server action, not
 // here. User-deletable (needed to swap one out once at the cap).
 model JobPosting {
-  id            String           @id @default(cuid())
-  candidateId   String
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   url           String
-  fetchStatus   String    // "pending" | "success" | "fetch_failed" | "parse_failed"
+  fetchStatus   String // "pending" | "success" | "fetch_failed" | "parse_failed"
   fetchError    String?
   extractedText String?
 
-  fitScore        Int?      // 0-100
+  fitScore        Int? // 0-100
   fitFeedback     String?
   keywords        String[]  @default([]) // extracted from the posting, ATS/recruiter scan terms
-  tailoredBullets Json?     // [{ original: string, tailored: string }] — real work-history bullets reframed to the posting
-  analyzedAt    DateTime?
+  tailoredBullets Json? // [{ original: string, tailored: string }] — real work-history bullets reframed to the posting
+  analyzedAt      DateTime?
 
   interviewLandedAt       DateTime?
-  interviewPrep           Json?      // { likelyQuestions: string[], talkingPoints: string[], questionsToAsk: string[] }
+  interviewPrep           Json? // { likelyQuestions: string[], talkingPoints: string[], questionsToAsk: string[] }
   interviewPrepError      String?
   interviewPrepAnalyzedAt DateTime?
 
-  offerReceivedAt            DateTime?
-  negotiationAdvice          Json?   // { talkingPoints: string[], scriptOpening: string, considerations: string[] }
-  negotiationAdviceError     String?
+  offerReceivedAt             DateTime?
+  negotiationAdvice           Json? // { talkingPoints: string[], scriptOpening: string, considerations: string[] }
+  negotiationAdviceError      String?
   negotiationAdviceAnalyzedAt DateTime?
 
   appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
@@ -957,7 +968,7 @@ model JobPosting {
   thankYouError       String?
   thankYouSentAt      DateTime?
 
-  createdAt     DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([candidateId, createdAt])
 }
@@ -967,18 +978,18 @@ enum CommunityPostType {
   PROJECT
   INTRO_OFFER
   SELF_INTRO // "introduce yourself" gate post — presence of one (not a boolean flag) unlocks the board
-  UPDATE     // default type for the message-only composer, post Community+Circle merge
+  UPDATE // default type for the message-only composer, post Community+Circle merge
 }
 
 model CommunityPost {
-  id           String                  @id @default(cuid())
-  candidateId  String
-  candidate    CandidateProfile        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  postType     CommunityPostType
-  title        String?
-  description  String
-  externalUrl  String?
+  postType    CommunityPostType
+  title       String?
+  description String
+  externalUrl String?
 
   // Snapshot of the poster's location/function/industry at post time, so
   // editing a profile later doesn't rewrite history. Reuses CandidateProfile's
@@ -988,10 +999,10 @@ model CommunityPost {
   postFunction String?
   postIndustry String?
 
-  isActive     Boolean                 @default(true)
-  createdAt    DateTime                @default(now())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  interests    CommunityPostInterest[]
+  interests CommunityPostInterest[]
 
   @@index([postType, isActive, createdAt])
   @@index([postCity, postFunction, postIndustry])
@@ -1002,15 +1013,15 @@ model CommunityPost {
 // mechanism. fromCandidateId is kept for abuse moderation but never shown
 // in the UI unless revealSender is true.
 model EncouragementNote {
-  id             String           @id @default(cuid())
+  id              String           @id @default(cuid())
   fromCandidateId String
-  fromCandidate  CandidateProfile @relation("EncouragementSent", fields: [fromCandidateId], references: [id], onDelete: Cascade)
-  toCandidateId  String
-  toCandidate    CandidateProfile @relation("EncouragementReceived", fields: [toCandidateId], references: [id], onDelete: Cascade)
+  fromCandidate   CandidateProfile @relation("EncouragementSent", fields: [fromCandidateId], references: [id], onDelete: Cascade)
+  toCandidateId   String
+  toCandidate     CandidateProfile @relation("EncouragementReceived", fields: [toCandidateId], references: [id], onDelete: Cascade)
 
   message      String
-  revealSender Boolean  @default(false)
-  sentAt       DateTime @default(now())
+  revealSender Boolean   @default(false)
+  sentAt       DateTime  @default(now())
   readAt       DateTime?
 
   @@index([toCandidateId, readAt])
@@ -1038,12 +1049,12 @@ model HireabilityReport {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  strengths        Json      // [{title, detail}]
-  weaknesses       Json      // [{title, detail}]
-  actionPlan       Json      // [{day: 1-7, items: string[]}], length 7
-  gapAnalysis      Json      // {targetRole, gaps: [{area, why, remediation, remediationType}]}
-  marketConditions Json?     // {narrative: string[], adzunaCount, blsYoyChangePct, ...} | null when unavailable
-  hillToClimb      Json?     // {tone: 'very_positive'|'positive_with_work'|'significant_climb', narrative: string[]}
+  strengths        Json // [{title, detail}]
+  weaknesses       Json // [{title, detail}]
+  actionPlan       Json // [{day: 1-7, items: string[]}], length 7
+  gapAnalysis      Json // {targetRole, gaps: [{area, why, remediation, remediationType}]}
+  marketConditions Json? // {narrative: string[], adzunaCount, blsYoyChangePct, ...} | null when unavailable
+  hillToClimb      Json? // {tone: 'very_positive'|'positive_with_work'|'significant_climb', narrative: string[]}
 
   // Snapshot of the score at generation time — this row is append-only
   // history, but CandidateProfile.employabilityScore keeps mutating, so
@@ -1066,13 +1077,13 @@ model HireabilityReport {
 // completedAt (not just a boolean) lets the Sunday Night Report reason
 // about front-loading/back-loading patterns across the week.
 model WeeklySprint {
-  id            String           @id @default(cuid())
-  candidateId   String
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  weekStartDate DateTime         // Monday 00:00 UTC of the committed week
-  committedActions Json          // [{text, actionType?, difficulty: 1-3, completed, completedAt?}]
-  autoAssigned  Boolean          @default(false) // true if the Monday-midnight-PT cron committed this, not the candidate
-  createdAt     DateTime         @default(now())
+  id               String           @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate    DateTime // Monday 00:00 UTC of the committed week
+  committedActions Json // [{text, actionType?, difficulty: 1-3, completed, completedAt?}]
+  autoAssigned     Boolean          @default(false) // true if the Monday-midnight-PT cron committed this, not the candidate
+  createdAt        DateTime         @default(now())
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, weekStartDate])
@@ -1085,24 +1096,24 @@ model SundayNightReport {
   id            String           @id @default(cuid())
   candidateId   String
   candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  weekStartDate DateTime         // the week this report is summarizing
+  weekStartDate DateTime // the week this report is summarizing
 
-  gradeSnapshot         Json     // HireabilityGrade at generation time
-  previousGradeSnapshot Json?    // last week's snapshot, for the change indicator — null on Week 1
+  gradeSnapshot         Json // HireabilityGrade at generation time
+  previousGradeSnapshot Json? // last week's snapshot, for the change indicator — null on Week 1
 
   lastWeekCommittedCount Int      @default(0)
   lastWeekCompletedCount Int      @default(0)
   lastWeekCompletedTexts String[] @default([])
   lastWeekSkippedTexts   String[] @default([])
 
-  strengths    Json    // [{title, detail}]
-  weaknesses   Json    // [{title, detail}]
-  observations Json    // {motivationReading, progressPatterns, dataInconsistency: string|null}
+  strengths    Json // [{title, detail}]
+  weaknesses   Json // [{title, detail}]
+  observations Json // {motivationReading, progressPatterns, dataInconsistency: string|null}
   straightTalk String
 
   suggestedActionPlan Json // [{text, actionType?, isAStandard, isStretch?}]
 
-  onAList        Boolean  @default(false)
+  onAList          Boolean  @default(false)
   aListMemberNames String[] @default([]) // "First L." for the whole cohort, shown to everyone
   aListCount       Int      @default(0)
 
@@ -1110,9 +1121,9 @@ model SundayNightReport {
   // doing the work (execution) and the market actually responding (this) are
   // different things. See MarketResponseLog for the self-reported signals
   // aggregated into this snapshot, plus real JobPosting interview/offer data.
-  marketResponse   Json?    // { outreachSent, repliesReceived, conversations, referrals, interviews, offers, paidProjectLeads }
-  strategicFlag    String?  // null | "week4_review" | "week8_review" | "week13_full" | "triggered"
-  straightTalkMode String   @default("tactical") // "tactical" | "strategic"
+  marketResponse   Json? // { outreachSent, repliesReceived, conversations, referrals, interviews, offers, paidProjectLeads }
+  strategicFlag    String? // null | "week4_review" | "week8_review" | "week13_full" | "triggered"
+  straightTalkMode String  @default("tactical") // "tactical" | "strategic"
 
   emailSentAt DateTime?
   generatedAt DateTime  @default(now())
@@ -1147,8 +1158,8 @@ model MarketResponseLog {
 // hard requirement, not an optimization. 48h TTL enforced in application code.
 model MarketConditionsSnapshot {
   id              String   @id @default(cuid())
-  roleQuery       String   // normalized lowercase query, e.g. "senior product manager"
-  location        String   // normalized "city, state" | state | "us"
+  roleQuery       String // normalized lowercase query, e.g. "senior product manager"
+  location        String // normalized "city, state" | state | "us"
   adzunaCount     Int?
   adzunaError     String?
   blsSocCode      String?
@@ -1200,7 +1211,7 @@ model CoachMessage {
   id             String            @id @default(cuid())
   conversationId String
   conversation   CoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  role           String            // "user" | "assistant"
+  role           String // "user" | "assistant"
   content        String
   createdAt      DateTime          @default(now())
 
@@ -1235,6 +1246,24 @@ model CoachingWaitlist {
   createdAt   DateTime          @default(now())
 }
 
+// Public /resources/* guide-download leads — kept separate from WaitlistSignup
+// for the same reason CoachingWaitlist is: needs a real filterable column
+// (guideSlug) and a synchronous transactional email on submit, which the
+// generic waitlist route never does for anyone.
+model GuideLead {
+  id          String            @id @default(cuid())
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  email       String
+  firstName   String?
+  guideSlug   String // matches Guide.slug in src/lib/constants/guides.ts
+  source      String // e.g. "situational_layoff", "resources_index", "organic"
+  createdAt   DateTime          @default(now())
+
+  @@index([guideSlug])
+  @@index([email])
+}
+
 enum BountyClaimStatus {
   PENDING
   APPROVED
@@ -1252,16 +1281,16 @@ enum BountyPaymentMethod {
 // any money is sent. No payment is issued by the app itself — "paidAt" only
 // records that an admin sent it manually outside the system.
 model BountyClaim {
-  id              String              @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  companyName     String
-  roleTitle       String
-  startDate       DateTime
-  offerLetterUrl  String // storage path in the private 'offer-letters' bucket, not a public URL
-  paymentMethod   BountyPaymentMethod?
-  paymentHandle   String?
+  companyName    String
+  roleTitle      String
+  startDate      DateTime
+  offerLetterUrl String // storage path in the private 'offer-letters' bucket, not a public URL
+  paymentMethod  BountyPaymentMethod?
+  paymentHandle  String?
 
   status          BountyClaimStatus @default(PENDING)
   reviewedBy      String?
@@ -1269,7 +1298,7 @@ model BountyClaim {
   rejectionReason String?
   paidAt          DateTime?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([status])
 }
@@ -1278,17 +1307,17 @@ model BountyClaim {
 // nullable because CSV-imported contacts land unsorted — the candidate
 // slots them into the 5 categories afterward.
 model SupportNetworkContact {
-  id          String            @id @default(cuid())
+  id          String           @id @default(cuid())
   candidateId String
-  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  name     String
-  company  String?
-  title    String?
-  email    String?
-  category ContactCategory?
-  warmth   ContactWarmth     @default(WARM)
-  source   ContactSource     @default(MANUAL)
+  name      String
+  company   String?
+  title     String?
+  email     String?
+  category  ContactCategory?
+  warmth    ContactWarmth    @default(WARM)
+  source    ContactSource    @default(MANUAL)
   createdAt DateTime         @default(now())
 
   outreachLogs OutreachLog[]
@@ -1319,25 +1348,25 @@ model OutreachLog {
 // from PrivacyTier (which controls passive marketplace search visibility):
 // this is a proactive, one-off share the candidate hands to one person.
 model ProfileShare {
-  id            String             @id @default(cuid())
-  candidateId   String
-  candidate     CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   token         String             @unique @default(cuid())
   recipientType ShareRecipientType
-  label         String?            // candidate's own note, e.g. "For Sarah at Acme"
+  label         String? // candidate's own note, e.g. "For Sarah at Acme"
 
   // Hiring Manager only — early-stage (false) shows a lighter view;
   // active-process (true) adds the resume + reference summaries.
-  activeProcess Boolean            @default(false)
+  activeProcess Boolean  @default(false)
   // Recruiter only — opt-in extras: "RESUME" | "SALARY" | "REFERENCES"
-  includeExtras String[]          @default([])
+  includeExtras String[] @default([])
 
-  expiresAt     DateTime?
-  revokedAt     DateTime?
-  createdAt     DateTime           @default(now())
-  lastViewedAt  DateTime?
-  viewCount     Int                @default(0)
+  expiresAt    DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  lastViewedAt DateTime?
+  viewCount    Int       @default(0)
 
   @@index([candidateId])
   @@index([token])
@@ -1363,19 +1392,71 @@ model SurfacedJob {
   @@index([candidateId, surfacedAt])
 }
 
+model PivotIdea {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  title               String
+  description         String
+  rationale           String
+  salaryConsideration String?
+  generatedAt         DateTime @default(now())
+
+  rating       Int? // 1-4, 4 = "I really love it"
+  ratingReason String?
+  ratedAt      DateTime?
+
+  @@index([candidateId, generatedAt])
+}
+
 // Coach P0-lite — intentionally thin: signup + a personal invite link + a
 // simple client list. No session notes, directives, or full Client Full
 // View here; those stay on the full Coach P0/P1 build's original schedule.
 // Coaches aren't Supabase-authenticated users — accessToken-gated pages
 // (same pattern as Reference.token) are enough for this MVP.
 model Coach {
-  id          String        @id @default(cuid())
-  fullName    String
-  workEmail   String        @unique
-  firmName    String?
-  focus       CoachingFocus
-  accessToken String        @unique @default(cuid())
-  createdAt   DateTime      @default(now())
+  id           String        @id @default(cuid())
+  fullName     String
+  workEmail    String        @unique
+  firmName     String?
+  focus        CoachingFocus
+  accessToken  String        @unique @default(cuid())
+  createdAt    DateTime      @default(now())
+  isSampleData Boolean       @default(false)
 
-  clients CandidateProfile[]
+  clients  CandidateProfile[]
+  sessions CoachSession[]
+}
+
+// Minimal record that a 1:1 coaching session happened — deliberately just a
+// timestamp, no notes/directives fields, matching Coach P0-lite's own
+// intentional thinness above. Exists so the candidate-facing Session Impact
+// Report has a real before/after boundary to compute against.
+model CoachSession {
+  id                  String           @id @default(cuid())
+  candidateId         String
+  candidate           CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  coachId             String
+  coach               Coach            @relation(fields: [coachId], references: [id])
+  occurredAt          DateTime         @default(now())
+  viewedByCandidateAt DateTime?
+
+  @@index([candidateId, occurredAt])
+}
+
+// Recruiter P0-lite — the smallest possible entry point for the Instant
+// Search Calibration Memo tool. Deliberately mirrors Coach P0-lite's shape:
+// accessToken-gated, not Supabase-authenticated, no candidate database or
+// search management (that's the full Recruiter P0/P1 build, out of scope
+// here).
+model Recruiter {
+  id           String   @id @default(cuid())
+  fullName     String
+  workEmail    String   @unique
+  firmName     String?
+  specialty    String? // primary function/level covered, free text
+  accessToken  String   @unique @default(cuid())
+  createdAt    DateTime @default(now())
+  isSampleData Boolean  @default(false)
 }
