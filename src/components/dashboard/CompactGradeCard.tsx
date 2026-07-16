@@ -44,6 +44,12 @@ export function CompactGradeCard({
           >
             {searchExecutionAvailable ? grade.searchExecution.grade : 'N/A'}
           </p>
+          {searchExecutionAvailable && (
+            <p className="mt-1 text-xs font-medium text-muted-foreground tabular-nums">
+              {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget} points this
+              week
+            </p>
+          )}
         </div>
       </div>
       <p className="mt-3 text-xs text-primary underline underline-offset-4">See full report →</p>

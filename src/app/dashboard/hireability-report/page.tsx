@@ -112,15 +112,15 @@ export default async function HireabilityReportPage() {
 
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
+  const weekNumber = profile._count.weeklySprints + 1
   const [searchExecutionAvailable, priorReportCount, suggestedActions] = await Promise.all([
     hasStartedSprint(profile.id),
     prisma.hireabilityReport.count({
       where: { candidateId: profile.id, generatedAt: { lt: report?.generatedAt ?? new Date() } },
     }),
-    getSuggestedActions(profile.id),
+    getSuggestedActions(profile.id, weekNumber),
   ])
   const isFirstReport = priorReportCount === 0
-  const weekNumber = profile._count.weeklySprints + 1
 
   const gradeAtGeneration = report?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
   const showCoachingCTA =

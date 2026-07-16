@@ -29,6 +29,13 @@ import type {
 } from '@prisma/client'
 import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
+import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import {
+  pointsNeededForA,
+  gradeForWeeklyPoints,
+  engineForActionType,
+  type SearchExecutionEngineKey,
+} from '@/lib/weekly/action-effort'
 import {
   scoreToGrade,
   CATEGORY_MINIMUM_ENFORCED_FROM_WEEK,
@@ -255,79 +262,78 @@ async function computeMarketRealityDimensions(
   ]
 }
 
-function computeSearchExecutionEngines(candidate: CandidateWithGradeRelations): SearchExecutionEngine[] {
-  // Learning Engine — profile complete, target defined, assessment done
-  let learning = 0
-  const onboardingParts = [candidate.part1Complete, candidate.part3Complete, candidate.part4Complete].filter(
-    Boolean
-  ).length
-  learning += onboardingParts * 20
-  if (candidate.assessmentComplete) learning += 20
-  if (candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType)) learning += 20
-  learning = clamp(learning)
+// Search Execution is now driven by real Search Score points earned this
+// week (1 point = 1 minute), not a lifetime profile-completeness proxy —
+// each of the four engines sums the points of *completed* committed actions
+// that map to it (see engineForActionType), and each engine's 0-100 score is
+// its share of points relative to a proportional quarter of the week's
+// overall ramp target, so a candidate can't max the headline grade by
+// stacking one engine while leaving the other three untouched.
+async function computeSearchExecutionEngines(
+  candidateId: string,
+  weekNumber: number
+): Promise<{ engines: SearchExecutionEngine[]; weeklyPoints: number; weeklyPointsTarget: number }> {
+  const weeklyPointsTarget = pointsNeededForA(weekNumber)
+  const perEngineTarget = weeklyPointsTarget / 4
 
-  // Effort Engine — action-plan confirmations completed vs. available today.
-  // (Full "committed vs completed weekly actions" tracking lands with the
-  // Success Sprint build — this is the best available proxy until then.)
-  const confirmations = [
-    candidate.profileConfirmedAt,
-    candidate.industryConfirmedAt,
-    candidate.functionConfirmedAt,
-    candidate.salaryConfirmedAt,
-    candidate.workAuthConfirmedAt,
-    candidate.linkedInConfirmedAt,
-    candidate.networkingListSubmittedAt,
-    candidate.askedForHelpAt,
-  ]
-  const confirmedCount = confirmations.filter(Boolean).length
-  let effort = (confirmedCount / confirmations.length) * 80
-  effort += Math.min(candidate.jobPostings.length * 5, 20)
-  effort = clamp(effort)
+  const sprint = await getCurrentWeekSprint(candidateId)
+  const committedActions = sprint ? (sprint.committedActions as unknown as CommittedAction[]) : []
 
-  // Working Engine — assets built: resume, proof assets, LinkedIn content
-  let working = 0
-  if (candidate.resumes.length > 0) working += 35
-  working += Math.min(candidate.workSamples.length * 15, 30)
-  working += Math.min(candidate.linkedInActivityLogs.length * 5, 20)
-  if (candidate.knownFor) working += 15
-  working = clamp(working)
+  const pointsByEngine: Record<SearchExecutionEngineKey, number> = {
+    learning: 0,
+    effort: 0,
+    working: 0,
+    connecting: 0,
+  }
 
-  // Connecting Engine — thinnest signal today; real outreach tracking
-  // (Support Network / BCC logging) hasn't been built yet, so this proxies
-  // from network-list submission, references requested, and community
-  // engagement until that system exists.
-  let connecting = 0
-  if (candidate.networkingListSubmittedAt) connecting += 35
-  connecting += Math.min(candidate.references.length * 10, 30)
-  connecting += Math.min(candidate.communityPosts.length * 10, 20)
-  connecting += Math.min(candidate.linkedInActivityLogs.length * 3, 15)
-  connecting = clamp(connecting)
+  for (const action of committedActions) {
+    if (!action.completed) continue
+    const engine = engineForActionType(action.actionType)
+    pointsByEngine[engine] += action.points
+  }
 
-  return [
-    { key: 'learning', label: 'Learning', score: learning, grade: scoreToGrade(learning) },
-    { key: 'effort', label: 'Effort', score: effort, grade: scoreToGrade(effort) },
-    { key: 'working', label: 'Working', score: working, grade: scoreToGrade(working) },
-    { key: 'connecting', label: 'Connecting', score: connecting, grade: scoreToGrade(connecting) },
-  ]
+  const weeklyPoints = Object.values(pointsByEngine).reduce((sum, p) => sum + p, 0)
+
+  const label: Record<SearchExecutionEngineKey, string> = {
+    learning: 'Learning',
+    effort: 'Effort',
+    working: 'Working',
+    connecting: 'Connecting',
+  }
+
+  const engines: SearchExecutionEngine[] = (['learning', 'effort', 'working', 'connecting'] as const).map(
+    (key) => {
+      const score = perEngineTarget > 0 ? clamp((pointsByEngine[key] / perEngineTarget) * 100) : 0
+      return { key, label: label[key], score, grade: scoreToGrade(score) }
+    }
+  )
+
+  return { engines, weeklyPoints, weeklyPointsTarget }
 }
 
 export async function computeHireabilityGrade(
   candidate: CandidateWithGradeRelations
 ): Promise<HireabilityGrade> {
   const dimensions = await computeMarketRealityDimensions(candidate)
-  const engines = computeSearchExecutionEngines(candidate)
+  const weekNumber = candidate._count.weeklySprints + 1
+  const { engines, weeklyPoints, weeklyPointsTarget } = await computeSearchExecutionEngines(
+    candidate.id,
+    weekNumber
+  )
 
   const marketRealityScore = clamp(dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length)
-  const searchExecutionScore = clamp(engines.reduce((sum, e) => sum + e.score, 0) / engines.length)
+  const searchExecutionGradeFromPoints = gradeForWeeklyPoints(weeklyPoints, weeklyPointsTarget)
 
   const laggingEngines = engines.filter((e) => e.score < CATEGORY_MINIMUM_SCORE_FLOOR).map((e) => e.key)
   const categoryMinimumsMet =
     candidate._count.weeklySprints < CATEGORY_MINIMUM_ENFORCED_FROM_WEEK || laggingEngines.length === 0
 
-  let searchExecutionGrade = scoreToGrade(searchExecutionScore)
+  let searchExecutionGrade = searchExecutionGradeFromPoints
   if (!categoryMinimumsMet && searchExecutionGrade === 'A') {
     searchExecutionGrade = 'B'
   }
+
+  const searchExecutionScore = clamp(engines.reduce((sum, e) => sum + e.score, 0) / engines.length)
 
   return {
     marketReality: {
@@ -341,6 +347,8 @@ export async function computeHireabilityGrade(
       engines,
       categoryMinimumsMet,
       laggingEngines,
+      weeklyPoints,
+      weeklyPointsTarget,
     },
   }
 }

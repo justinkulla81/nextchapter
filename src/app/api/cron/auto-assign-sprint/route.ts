@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const eligible = await prisma.candidateProfile.findMany({
     where: { registrationCompletedAt: { not: null } },
-    select: { id: true },
+    select: { id: true, _count: { select: { weeklySprints: true } } },
   })
 
   let autoAssigned = 0
@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
       })
       if (existing) continue
 
-      const suggestedActions = await getSuggestedActions(candidate.id)
+      const weekNumber = candidate._count.weeklySprints + 1
+      const suggestedActions = await getSuggestedActions(candidate.id, weekNumber)
       if (suggestedActions.length === 0) continue
 
       const actions = suggestedActions.map((a) => {

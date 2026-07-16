@@ -5,7 +5,7 @@ import { submitWeeklySprint } from '@/app/dashboard/sprint/actions'
 import {
   estimateActionEffort,
   formatMinutes,
-  sprintPointThresholds,
+  pointsNeededForA,
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { Grade } from '@/lib/scoring/grade'
@@ -28,10 +28,12 @@ function formatHoursMinutes(totalMinutes: number): string {
 export function SprintSetupForm({
   suggestedActions,
   marketRealityGrade,
+  weekNumber,
   locked = false,
 }: {
   suggestedActions: SuggestedAction[]
   marketRealityGrade: Grade
+  weekNumber: number
   locked?: boolean
 }) {
   const [state, formAction, pending] = useActionState(submitWeeklySprint, undefined)
@@ -40,7 +42,8 @@ export function SprintSetupForm({
   const efforts = useMemo(() => suggestedActions.map((a) => estimateActionEffort(a)), [suggestedActions])
   const maxPoints = useMemo(() => efforts.reduce((sum, e) => sum + e.points, 0), [efforts])
   const maxMinutes = useMemo(() => efforts.reduce((sum, e) => sum + e.minutes, 0), [efforts])
-  const { aThreshold, bThreshold } = useMemo(() => sprintPointThresholds(maxPoints), [maxPoints])
+  const aThreshold = useMemo(() => pointsNeededForA(weekNumber), [weekNumber])
+  const bThreshold = useMemo(() => Math.round(aThreshold * 0.75), [aThreshold])
   const committedPoints = useMemo(
     () => efforts.reduce((sum, e, i) => (selected[i] ? sum + e.points : sum), 0),
     [efforts, selected]
@@ -83,8 +86,9 @@ export function SprintSetupForm({
           {meetsA ? 'On track for an A' : meetsB ? 'On track for a B' : 'Below B — pick more actions'}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          All {maxPoints} points ({formatHoursMinutes(maxMinutes)}) earns an A this week. {bThreshold} points earns
-          a B.
+          Week {weekNumber}&apos;s target is {aThreshold} points for an A ({bThreshold} for a B) — 1
+          point = 1 minute of real effort. You have {maxPoints} points ({formatHoursMinutes(maxMinutes)})
+          available to choose from below.
         </p>
         {!meetsB && (
           <p className="mt-1 text-sm font-medium text-destructive">

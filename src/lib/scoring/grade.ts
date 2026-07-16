@@ -148,5 +148,12 @@ export interface HireabilityGrade {
     engines: SearchExecutionEngine[]
     categoryMinimumsMet: boolean
     laggingEngines: SearchExecutionEngine['key'][]
+    // Real Search Score points for the current Weekly Search Sprint — 1
+    // point = 1 minute of effort, shown transparently to the candidate
+    // (deliberately not hidden behind the "no raw numbers" convention that
+    // applies to the algorithmic grades above, since visible points are the
+    // whole point of this system).
+    weeklyPoints: number
+    weeklyPointsTarget: number
   }
 }

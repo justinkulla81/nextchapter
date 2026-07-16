@@ -1,6 +1,8 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { estimateActionEffort, pointsNeededForA } from '@/lib/weekly/action-effort'
+import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 
 export interface CommittedAction {
   text: string
@@ -47,7 +49,7 @@ export async function hasStartedSprint(candidateId: string): Promise<boolean> {
 // Sunday Night Report if one exists, otherwise falls back to flattening the
 // existing Hireability Report's 7-day plan (Week 1, before any weekly
 // report has run).
-export async function getSuggestedActions(candidateId: string): Promise<SuggestedAction[]> {
+async function getPersonalizedSuggestions(candidateId: string): Promise<SuggestedAction[]> {
   const latestReport = await prisma.sundayNightReport.findFirst({
     where: { candidateId },
     orderBy: { generatedAt: 'desc' },
@@ -79,6 +81,31 @@ export async function getSuggestedActions(candidateId: string): Promise<Suggeste
       if (suggestions.length >= 5) return suggestions
     }
   }
+  return suggestions
+}
+
+// Personalized suggestions alone (capped at 5) can fall short of later
+// weeks' point targets — the ramp reaches 210 points by week 6, which a
+// 5-item shortlist can't reliably cover. Tops up with canonical Search
+// Action Tasks (skipping any actionType already suggested) until the
+// available point total comfortably clears this week's target.
+export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
+  const personalized = await getPersonalizedSuggestions(candidateId)
+  const target = pointsNeededForA(weekNumber)
+  const buffer = Math.ceil(target * 1.5)
+
+  const usedTypes = new Set(personalized.map((a) => a.actionType).filter(Boolean))
+  const suggestions = [...personalized]
+  let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
+
+  for (const task of CANONICAL_TASK_MENU) {
+    if (total >= buffer) break
+    if (task.actionType && usedTypes.has(task.actionType)) continue
+    suggestions.push({ text: task.text, actionType: task.actionType })
+    if (task.actionType) usedTypes.add(task.actionType)
+    total += estimateActionEffort(task).points
+  }
+
   return suggestions
 }
 

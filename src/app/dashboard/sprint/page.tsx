@@ -4,26 +4,17 @@ import { getCurrentWeekSprint, getSuggestedActions, getMondayOfWeek, type Commit
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { SEARCH_EXECUTION_ENGINE_LABEL, CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
-import { formatMinutes } from '@/lib/weekly/action-effort'
+import { formatMinutes, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
-// Maps a committed action's engine (from the action plan / Sunday Night
-// Report) to the dashboard page that engine's work actually happens on, so
-// "this week's actions" aren't just a static checklist.
-const ACTION_TYPE_HREF: Record<string, string> = {
-  learning: '/dashboard/learning',
-  effort: '/dashboard/job-fit',
-  working: '/dashboard/work-samples',
-  connecting: '/dashboard/network',
-}
-
 export default async function SprintSetupPage() {
   const profile = await getDashboardData()
+  const weekNumber = profile._count.weeklySprints + 1
   const [currentSprint, suggestedActions, grade] = await Promise.all([
     getCurrentWeekSprint(profile.id),
-    getSuggestedActions(profile.id),
+    getSuggestedActions(profile.id, weekNumber),
     computeHireabilityGrade(profile),
   ])
 
@@ -61,6 +52,7 @@ export default async function SprintSetupPage() {
         <SprintSetupForm
           suggestedActions={suggestedActions}
           marketRealityGrade={grade.marketReality.grade}
+          weekNumber={weekNumber}
           locked={!editWindowOpen}
         />
       )}
@@ -72,7 +64,7 @@ export default async function SprintSetupPage() {
           </h2>
           <ul className="mt-2 space-y-1">
             {committedActions.map((a, i) => {
-              const href = a.actionType ? ACTION_TYPE_HREF[a.actionType] : undefined
+              const href = a.actionType ? ACTION_TYPE_LINK[a.actionType]?.href : undefined
               const textClassName = `text-sm ${a.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`
               return (
                 <li key={i} className="flex items-center justify-between gap-3 py-1">

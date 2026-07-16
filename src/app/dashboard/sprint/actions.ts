@@ -3,9 +3,10 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { commitWeeklySprint, toggleSprintActionCompletion, getMondayOfWeek } from '@/lib/weekly/sprint'
-import { estimateActionEffort, sprintPointThresholds } from '@/lib/weekly/action-effort'
+import { estimateActionEffort, pointsNeededForA } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 
 async function getAuthedProfile() {
@@ -32,9 +33,12 @@ export async function submitWeeklySprint(
     }
   }
 
+  const weeklySprintCount = await prisma.weeklySprint.count({ where: { candidateId: profile.id } })
+  const weekNumber = weeklySprintCount + 1
+  const bThreshold = Math.round(pointsNeededForA(weekNumber) * 0.75)
+
   const count = Number(formData.get('actionCount') ?? 0)
   const actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[] = []
-  let maxPoints = 0
 
   for (let i = 0; i < count; i++) {
     const text = formData.get(`text_${i}`) as string | null
@@ -43,13 +47,11 @@ export async function submitWeeklySprint(
     const isAStandard = formData.get(`isAStandard_${i}`) === 'true'
     const isStretch = formData.get(`isStretch_${i}`) === 'true'
     const effort = estimateActionEffort({ actionType, isAStandard, isStretch })
-    maxPoints += effort.points
 
     if (formData.get(`selected_${i}`) !== 'on') continue
     actions.push({ text, actionType, points: effort.points, estimatedMinutes: effort.minutes })
   }
 
-  const { bThreshold } = sprintPointThresholds(maxPoints)
   const committedPoints = actions.reduce((sum, a) => sum + a.points, 0)
 
   if (committedPoints < bThreshold) {
