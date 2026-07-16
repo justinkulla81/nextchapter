@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { BountyClaimRow } from '@/components/admin/BountyClaimRow'
 
+export const maxDuration = 30
+
 export default async function BountyClaimsAdminPage() {
   await requireAdmin()
 

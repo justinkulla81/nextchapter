@@ -3,6 +3,10 @@ import { computePreSeedMetrics } from '@/lib/admin/metrics'
 import { MetricsTable } from '@/components/admin/MetricsTable'
 import { ProofPointCard } from '@/components/admin/ProofPointCard'
 
+// Headroom against cold starts / transient DB pool contention — this page
+// does a real, if now-optimized, full-table computation with no caching.
+export const maxDuration = 30
+
 export default async function AdminMetricsPage() {
   await requireAdmin()
   const metrics = await computePreSeedMetrics()

@@ -2,6 +2,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const maxDuration = 30
+
 export default async function RecruiterDatabaseAdminPage() {
   await requireAdmin()
 

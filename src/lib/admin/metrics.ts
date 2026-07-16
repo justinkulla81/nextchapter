@@ -51,53 +51,64 @@ interface CandidateSnapshot {
   offerDates: Date[]
 }
 
-async function loadSnapshots(asOf: Date): Promise<CandidateSnapshot[]> {
-  const rows = await prisma.candidateProfile.findMany({
-    where: { createdAt: { lte: asOf } },
+type CandidateRow = Awaited<ReturnType<typeof loadAllCandidateRows>>[number]
+
+// Single unfiltered fetch — "as of last week" is always a strict subset of
+// "as of now" (any row timestamped before last week is also before now), so
+// fetching once and deriving both snapshots in memory avoids running this
+// full nested-relation query against the database twice per page load.
+async function loadAllCandidateRows() {
+  return prisma.candidateProfile.findMany({
     select: {
       id: true,
       createdAt: true,
       registrationCompletedAt: true,
       gapDuration: true,
-      dailyCheckIns: { where: { checkedInAt: { lte: asOf } }, select: { checkedInAt: true } },
-      weeklySprints: {
-        where: { createdAt: { lte: asOf } },
-        select: { createdAt: true, committedActions: true },
-      },
+      dailyCheckIns: { select: { checkedInAt: true } },
+      weeklySprints: { select: { createdAt: true, committedActions: true } },
       sundayNightReports: {
-        where: { generatedAt: { lte: asOf } },
         select: { generatedAt: true, weekStartDate: true, onAList: true, gradeSnapshot: true },
       },
-      marketResponseLogs: { where: { loggedAt: { lte: asOf } }, select: { type: true, loggedAt: true } },
-      outreachLogs: { where: { loggedAt: { lte: asOf } }, select: { loggedAt: true } },
+      marketResponseLogs: { select: { type: true, loggedAt: true } },
+      outreachLogs: { select: { loggedAt: true } },
       jobPostings: { select: { interviewLandedAt: true, offerReceivedAt: true } },
     },
   })
+}
 
-  return rows.map((r) => ({
-    id: r.id,
-    createdAt: r.createdAt,
-    registrationCompletedAt:
-      r.registrationCompletedAt && r.registrationCompletedAt <= asOf ? r.registrationCompletedAt : null,
-    gapDuration: r.gapDuration,
-    checkIns: r.dailyCheckIns.map((c) => c.checkedInAt),
-    sprints: r.weeklySprints.map((s) => ({
-      createdAt: s.createdAt,
-      committedActions: s.committedActions as unknown as CommittedAction[],
-    })),
-    reports: r.sundayNightReports.map((rep) => ({
-      generatedAt: rep.generatedAt,
-      weekStartDate: rep.weekStartDate,
-      onAList: rep.onAList,
-      gradeSnapshot: rep.gradeSnapshot as unknown as HireabilityGrade,
-    })),
-    marketResponseLogs: r.marketResponseLogs,
-    outreachLogs: r.outreachLogs.map((o) => o.loggedAt),
-    interviewDates: r.jobPostings
-      .map((j) => j.interviewLandedAt)
-      .filter((d): d is Date => d !== null && d <= asOf),
-    offerDates: r.jobPostings.map((j) => j.offerReceivedAt).filter((d): d is Date => d !== null && d <= asOf),
-  }))
+// Pure, synchronous — applies the same "as of" cutoff filtering previously
+// done via Prisma `where` clauses, just against already-fetched rows.
+function snapshotAsOf(rows: CandidateRow[], asOf: Date): CandidateSnapshot[] {
+  return rows
+    .filter((r) => r.createdAt <= asOf)
+    .map((r) => ({
+      id: r.id,
+      createdAt: r.createdAt,
+      registrationCompletedAt:
+        r.registrationCompletedAt && r.registrationCompletedAt <= asOf ? r.registrationCompletedAt : null,
+      gapDuration: r.gapDuration,
+      checkIns: r.dailyCheckIns.map((c) => c.checkedInAt).filter((d) => d <= asOf),
+      sprints: r.weeklySprints
+        .filter((s) => s.createdAt <= asOf)
+        .map((s) => ({
+          createdAt: s.createdAt,
+          committedActions: s.committedActions as unknown as CommittedAction[],
+        })),
+      reports: r.sundayNightReports
+        .filter((rep) => rep.generatedAt <= asOf)
+        .map((rep) => ({
+          generatedAt: rep.generatedAt,
+          weekStartDate: rep.weekStartDate,
+          onAList: rep.onAList,
+          gradeSnapshot: rep.gradeSnapshot as unknown as HireabilityGrade,
+        })),
+      marketResponseLogs: r.marketResponseLogs.filter((l) => l.loggedAt <= asOf),
+      outreachLogs: r.outreachLogs.map((o) => o.loggedAt).filter((d) => d <= asOf),
+      interviewDates: r.jobPostings
+        .map((j) => j.interviewLandedAt)
+        .filter((d): d is Date => d !== null && d <= asOf),
+      offerDates: r.jobPostings.map((j) => j.offerReceivedAt).filter((d): d is Date => d !== null && d <= asOf),
+    }))
 }
 
 function pct(numerator: number, denominator: number): number | null {
@@ -316,10 +327,9 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
   const now = new Date()
   const lastWeek = new Date(now.getTime() - 7 * DAY_MS)
 
-  const [currentSnapshots, lastWeekSnapshots] = await Promise.all([
-    loadSnapshots(now),
-    loadSnapshots(lastWeek),
-  ])
+  const allRows = await loadAllCandidateRows()
+  const currentSnapshots = snapshotAsOf(allRows, now)
+  const lastWeekSnapshots = snapshotAsOf(allRows, lastWeek)
   const cur = computeRawAggregates(currentSnapshots, now)
   const prev = computeRawAggregates(lastWeekSnapshots, lastWeek)
 
