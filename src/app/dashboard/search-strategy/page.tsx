@@ -14,8 +14,7 @@ export default async function SearchStrategyPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Search Strategy</h1>
         <p className="mt-1 text-muted-foreground">
-          A one-time setup that personalizes your plan — editable any time your situation
-          changes.
+          A one-time setup for your Search Goals — editable any time your situation changes.
         </p>
       </div>
 
@@ -80,7 +79,7 @@ export default async function SearchStrategyPage() {
             href="/dashboard/interview-prep"
             className="mt-2 inline-block text-sm text-primary underline underline-offset-4"
           >
-            build your narrative here →
+            Build your narrative here →
           </Link>
         </CardContent>
       </Card>
