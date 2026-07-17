@@ -22,8 +22,8 @@ export default async function GoalsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           {profile.firstName
-            ? `Last Step, ${profile.firstName}, tell us about what you are looking for?`
-            : 'Last Step — tell us about what you are looking for?'}
+            ? `Last step, ${profile.firstName}. Tell us about what you're looking for.`
+            : "Last step. Tell us about what you're looking for."}
         </h1>
       </div>
       <GoalsForm profile={profile} inferredIndustries={inferredIndustries} />

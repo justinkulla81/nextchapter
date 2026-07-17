@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { getSearchStage, SEARCH_STAGE_LABELS } from '@/lib/search-strategy'
+import { getSearchStage, SEARCH_STAGE_MESSAGE } from '@/lib/search-strategy'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
   const stage = getSearchStage(profile)
+  const showSkillsNeeded = !(profile.functionSkillConfidence === 100 && profile.aiFlexibilityLevel === 100)
 
   return (
     <div className="space-y-8">
@@ -24,7 +25,7 @@ export default async function SearchStrategyPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Search Stage</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-foreground">{SEARCH_STAGE_LABELS[stage]}</p>
+            <p className="text-foreground">{SEARCH_STAGE_MESSAGE[stage]}</p>
             {stage === 'QUIETLY_LOOKING' && (
               <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4 text-sm">
                 <div>
@@ -58,28 +59,29 @@ export default async function SearchStrategyPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your narrative</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Goals</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Your Core Narrative Statement lives on the Interview Prep page, where it&apos;s used
-            to generate your pitch, LinkedIn headline, and interview answers.
-          </p>
-          <Link
-            href="/dashboard/interview-prep"
-            className="mt-2 inline-block text-sm text-primary underline underline-offset-4"
-          >
-            Go to Interview Prep →
-          </Link>
+          <SearchStrategyForm profile={profile} showSkillsNeeded={showSkillsNeeded} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your plan</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Build Your Narrative</CardTitle>
         </CardHeader>
         <CardContent>
-          <SearchStrategyForm profile={profile} />
+          <p className="text-sm text-muted-foreground">
+            When you&apos;re unemployed, sometimes it&apos;s hard to know what you should tell
+            others. Build your narrative here so you have a story that makes sense based on your
+            background, work gap, and goals.
+          </p>
+          <Link
+            href="/dashboard/interview-prep"
+            className="mt-2 inline-block text-sm text-primary underline underline-offset-4"
+          >
+            build your narrative here →
+          </Link>
         </CardContent>
       </Card>
     </div>

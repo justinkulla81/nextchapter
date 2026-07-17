@@ -58,6 +58,7 @@ export const PRIMARY_FUNCTION_OPTIONS = [
   'Product',
   'Design',
   'Human Resources',
+  'Administration',
   'Legal',
   'Customer Success',
   'Data & Analytics',

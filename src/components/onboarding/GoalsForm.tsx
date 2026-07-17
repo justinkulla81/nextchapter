@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import { TagInput } from './TagInput'
 import { TradeoffRanking } from './TradeoffRanking'
-import { COMPANY_SIZE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
+import { COMPANY_SIZE_OPTIONS, COMPANY_STAGE_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
@@ -110,26 +110,20 @@ export function GoalsForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="targetCompMin">What is the minimum comp you are able to take? (optional)</Label>
-        <div className="flex items-center gap-2">
-          <div className="relative w-36">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="targetCompMin"
-              name="targetCompMinThousands"
-              type="number"
-              min={0}
-              placeholder="120"
-              className="pl-7"
-              defaultValue={profile.targetCompMin ? Math.round(profile.targetCompMin / 1000) : undefined}
-            />
-          </div>
-          <span className="text-sm text-muted-foreground">
-            ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
-          </span>
-        </div>
+        <Label htmlFor="primaryFunction">Your primary job function</Label>
+        <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
+          <SelectTrigger id="primaryFunction" className="w-full">
+            <SelectValue placeholder="Select one" />
+          </SelectTrigger>
+          <SelectContent>
+            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+              <SelectItem key={fn} value={fn}>
+                {fn}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">Pre-filled from your resume — correct anything that&apos;s off.</p>
       </div>
 
       <div className="space-y-3">

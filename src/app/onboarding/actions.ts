@@ -302,18 +302,6 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
     rankValues[key] = index + 1
   })
 
-  const targetCompMinThousandsRaw = formData.get('targetCompMinThousands')
-  // The field asks for a value "in thousands" (e.g. 120 for $120k), but
-  // people occasionally type the full dollar figure by mistake (e.g. 120000).
-  // Nobody realistically means "$10M+ minimum comp" via this field, so
-  // treat anything that large as a raw-dollar entry and best-guess correct
-  // it down to thousands rather than silently storing an absurd number.
-  const targetCompMinThousandsEntered = targetCompMinThousandsRaw ? Number(targetCompMinThousandsRaw) : null
-  const targetCompMinThousands =
-    targetCompMinThousandsEntered !== null && targetCompMinThousandsEntered >= 10000
-      ? Math.round(targetCompMinThousandsEntered / 1000)
-      : targetCompMinThousandsEntered
-
   try {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
@@ -322,7 +310,7 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
         targetIndustries: formData.getAll('targetIndustries').map(String),
         targetCompanySize: (formData.get('targetCompanySize') as string) || null,
         targetCompanyStage: (formData.get('targetCompanyStage') as string) || null,
-        targetCompMin: targetCompMinThousands ? targetCompMinThousands * 1000 : null,
+        primaryFunction: (formData.get('primaryFunction') as string) || null,
         compFlexible: formData.get('compFlexible') === 'on',
         willingToStartLower: formData.get('willingToStartLower') === 'on',
         startLowerRationale: (formData.get('startLowerRationale') as string) || null,

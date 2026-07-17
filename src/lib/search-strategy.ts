@@ -13,6 +13,23 @@ export const SEARCH_STAGE_LABELS: Record<SearchStage, string> = {
   TWELVE_PLUS: '12+ months since separation',
 }
 
+// The headline sentence shown at the top of Search Strategy — framed around
+// time-since-separation for anyone actually out of work, and around the
+// quietly-looking situation for anyone still employed (no "back to work"
+// framing there, since they haven't lost their job).
+export const SEARCH_STAGE_MESSAGE: Record<SearchStage, string> = {
+  QUIETLY_LOOKING:
+    "You're quietly looking while still employed. Let's develop a strategy that fits around your current role.",
+  ZERO_TO_THREE:
+    "It has been less than 3 months since you separated. Let's develop a strategy to get you back to work as quickly as possible.",
+  THREE_TO_SIX:
+    "It has been 3–6 months since you separated. Let's develop a strategy to get you back to work as quickly as possible.",
+  SIX_TO_TWELVE:
+    "It has been 6–12 months since you separated. Let's develop a strategy to get you back to work as quickly as possible.",
+  TWELVE_PLUS:
+    "It has been over 12 months since you separated. Let's develop a strategy to get you back to work as quickly as possible.",
+}
+
 const GAP_DURATION_TO_STAGE: Record<GapDurationBucket, SearchStage> = {
   ZERO_TO_THREE_MONTHS: 'ZERO_TO_THREE',
   THREE_TO_SIX_MONTHS: 'THREE_TO_SIX',
