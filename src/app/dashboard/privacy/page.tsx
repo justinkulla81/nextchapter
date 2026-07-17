@@ -54,7 +54,7 @@ export default async function PrivacyPage() {
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">
-        <h2 className="text-lg font-semibold">Community</h2>
+        <h2 className="text-lg font-semibold">Support Network</h2>
         <CommunitySettingsToggles
           aListOptOut={profile.aListOptOut}
           encouragementGivingOptIn={profile.encouragementGivingOptIn}

@@ -1,60 +1,67 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { GraduationCap, Zap, Hammer, Users, type LucideIcon } from 'lucide-react'
+import { ClipboardList, Compass, ListChecks, ShieldCheck, Trophy, type LucideIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'How It Works — NextChapter',
   description:
-    'Two grades you can actually move: an honest baseline, and a live score for the work you do every week — visible to hiring managers, recruiters, and coaches.',
+    'From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired.',
   alternates: { canonical: '/how-it-works' },
 }
 
-const MARKET_FAILURES = [
-  'A resume gets 6 seconds from a recruiter, then disappears into an ATS with no explanation.',
-  "\"Culture fit\" and vague rejections hide the real reason — usually something you could actually fix.",
-  'Effort between applications is invisible — networking, upskilling, and prep never reach the hiring manager.',
+interface Step {
+  icon: LucideIcon
+  eyebrow: string
+  title: string
+  description: string
+}
+
+const STEPS: Step[] = [
+  {
+    icon: Compass,
+    eyebrow: 'Step 1',
+    title: 'Hireability Assessment',
+    description:
+      "We analyze your resume, experience, and how your target market is actually hiring right now, and give you an honest Market Reality Grade — exactly where you stand today, before you change anything.",
+  },
+  {
+    icon: ClipboardList,
+    eyebrow: 'Step 2',
+    title: 'Search Strategy → your Search Sprint',
+    description:
+      'You tell us your target role, industries, and how you\'re approaching the search — then we turn that into a personalized weekly Search Sprint instead of showing you the same generic list everyone else gets.',
+  },
+  {
+    icon: ListChecks,
+    eyebrow: 'Step 3',
+    title: 'Real actions, real points',
+    description:
+      'Every Search Sprint is built from specific, fixed-point Search Actions — not vague advice. A few examples:',
+  },
+  {
+    icon: ShieldCheck,
+    eyebrow: 'Step 4',
+    title: 'Certified Executive Dossier',
+    description:
+      "Every reference, work sample, and network signal you build gets folded into your Dossier — a verified profile that shows a hiring manager what your resume can't, backed by people who've actually worked with you.",
+  },
+  {
+    icon: Trophy,
+    eyebrow: 'Step 5',
+    title: 'Get the job',
+    description:
+      'You walk into every conversation with proof, not just a claim — an honest grade you improved yourself, and a Dossier a hiring manager can actually trust.',
+  },
 ]
 
-const EXECUTION_ACTIVITIES = [
-  'Sending outreach messages to your network',
-  'Applying to roles that actually fit',
-  'Closing specific skill gaps',
-  'Collecting references and work samples',
-  'Prepping for interviews before they happen',
-]
-
-const FEATURES: { icon: LucideIcon; title: string; description: string; href: string }[] = [
-  {
-    icon: Users,
-    title: 'Network',
-    description:
-      'Build a support network from your real contacts, get anxiety-calibrated outreach scripts, and track what you send — the connecting signal in your Search Action Grade.',
-    href: '/dashboard/network',
-  },
-  {
-    icon: GraduationCap,
-    title: 'Learn',
-    description:
-      "Recommendations pulled from your own Hireability Report gap analysis, plus the AI tools people in your function actually use — not a generic course catalog.",
-    href: '/dashboard/learning',
-  },
-  {
-    icon: Hammer,
-    title: 'Work',
-    description:
-      'Upload real proof — work samples, resume, active LinkedIn content — that becomes part of the dossier a hiring manager sees alongside your background.',
-    href: '/dashboard/work-samples',
-  },
-  {
-    icon: Zap,
-    title: 'Update',
-    description:
-      'A weekly Search Sprint turns your action plan into committed, trackable actions — the follow-through that moves your grade in real time.',
-    href: '/dashboard/sprint',
-  },
+const EXAMPLE_ACTIONS = [
+  { text: 'Send a personalized outreach message', points: 15 },
+  { text: 'Update your resume with quantified achievements', points: 30 },
+  { text: 'Complete a mock interview', points: 30 },
+  { text: 'Publish a LinkedIn post', points: 20 },
 ]
 
 export default function HowItWorksPage() {
@@ -80,87 +87,49 @@ export default function HowItWorksPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">How it works</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            You can&apos;t fix what you can&apos;t see. We turn a confusing, silent process into two
-            numbers you can actually move.
+            A clear path from &quot;I don&apos;t know where I stand&quot; to a job offer — five steps,
+            each one building proof the last one didn&apos;t have.
           </p>
         </div>
 
-        <div className="mx-auto mt-12 max-w-3xl space-y-3">
-          {MARKET_FAILURES.map((point) => (
-            <p
-              key={point}
-              className="rounded-xl border border-light-gray bg-off-white px-5 py-4 text-sm leading-relaxed text-foreground"
-            >
-              {point}
-            </p>
-          ))}
-        </div>
-
-        <div className="mt-12 grid gap-6 sm:grid-cols-2">
-          <div className="rounded-xl border border-light-gray bg-off-white p-6">
-            <h2 className="font-semibold text-navy">Market Reality Grade — your baseline</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              We analyze your resume, experience, and how your industry is actually hiring right now
-              to give you an honest starting grade — exactly where you stand today, before you change
-              anything.
-            </p>
-          </div>
-          <div className="rounded-xl border border-light-gray bg-off-white p-6">
-            <h2 className="font-semibold text-navy">Search Action Grade — your progress</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              This is the score you control. Every activity in your action plan raises it in real
-              time — proof, in numbers, that you&apos;re doing the work.
-            </p>
-            <ul className="mt-3 space-y-1.5">
-              {EXECUTION_ACTIVITIES.map((activity) => (
-                <li key={activity} className="flex items-start gap-2 text-sm text-foreground">
-                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-brand" />
-                  {activity}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
+        <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
           <Image
             src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Market Reality Grade of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
+            alt="NextChapter Success Dashboard showing a Market Reality Grade of B, an A Weekly Search Score, a streak, and completed Search Actions with their point values"
             width={1040}
             height={815}
             className="w-full"
           />
         </div>
 
-        <div className="mt-16">
-          <h2 className="text-center text-2xl font-bold tracking-tight text-navy">
-            The four things that move your Search Action Grade
-          </h2>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            {FEATURES.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="rounded-xl border border-light-gray bg-white p-6">
-                <span className="flex size-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                  <Icon className="size-5" />
-                </span>
-                <h3 className="mt-3 font-semibold text-navy">{title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <div className="mx-auto mt-16 max-w-3xl space-y-10">
+          {STEPS.map(({ icon: Icon, eyebrow, title, description }) => (
+            <div key={title} className="flex gap-5">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <p className="text-xs font-semibold tracking-widest text-brand uppercase">{eyebrow}</p>
+                <h2 className="mt-1 text-xl font-semibold text-navy">{title}</h2>
+                <p className="mt-1.5 leading-relaxed text-muted-foreground">{description}</p>
+                {title.startsWith('Real actions') && (
+                  <ul className="mt-3 space-y-1.5">
+                    {EXAMPLE_ACTIONS.map((action) => (
+                      <li key={action.text} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-foreground">{action.text}</span>
+                        <span className="shrink-0 font-medium text-brand tabular-nums">{action.points} pts</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
-        <div className="mx-auto mt-16 max-w-3xl rounded-xl border border-light-gray bg-navy px-8 py-8 text-center text-white">
-          <p className="text-lg leading-relaxed">
-            Every reference, work sample, and network signal you build here becomes part of your
-            Certified Executive Dossier — the report you hand to a hiring manager, a recruiter, or
-            a coach alongside your resume and cover letter. Not just a resume claim, but proof
-            you&apos;re actively, effectively working the process.
-          </p>
-        </div>
-
-        <div className="mt-12 text-center">
+        <div className="mt-16 text-center">
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
-            Get started
+            Get your Hireability Assessment
           </Button>
         </div>
       </div>

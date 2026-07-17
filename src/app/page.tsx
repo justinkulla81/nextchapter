@@ -15,7 +15,7 @@ const heroStats = [
 const STUCK_TO_FIX = [
   { stuck: "You don't know where you actually stand", fix: 'Market Reality Grade' },
   { stuck: "You're overwhelmed and don't know what to do next", fix: 'Search Sprint' },
-  { stuck: "You're isolated and don't have anyone to talk to about it", fix: 'Community' },
+  { stuck: "You're isolated and don't have anyone to talk to about it", fix: 'Support Network' },
   { stuck: "Your resume doesn't show what actually makes you valuable", fix: 'Executive Dossier' },
   { stuck: "You're applying and hearing nothing back", fix: 'Job Fit + recruiter matching' },
   { stuck: 'Your skills feel stale, or AI is changing what "qualified" means', fix: 'Learning' },

@@ -43,29 +43,27 @@ const STATS = [
   },
 ]
 
-// Styled for the navy "Why you're stuck" section it lives in — not a
-// standalone light-background section anymore.
 export function ByTheNumbers() {
   return (
     <div className="mt-16">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <h3 className="text-xl font-semibold text-white">You&apos;re not imagining it</h3>
-          <p className="mx-auto mt-2 max-w-2xl text-sm text-light-blue">
+          <h3 className="text-xl font-semibold text-navy">You&apos;re not imagining it</h3>
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-muted-foreground">
             Whatever your situation, it&apos;s real and well-documented in the labor market — not a
             personal failing.
           </p>
         </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STATS.map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 px-5 py-6">
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="mt-2 text-sm leading-relaxed text-light-blue">{stat.label}</p>
+            <div key={stat.label} className="rounded-xl border border-light-gray bg-off-white px-5 py-6">
+              <p className="text-2xl font-bold text-navy">{stat.value}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{stat.label}</p>
               <a
                 href={stat.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block text-xs text-light-blue/70 underline underline-offset-4 hover:text-light-blue"
+                className="mt-3 inline-block text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
               >
                 Source: {stat.source}
               </a>

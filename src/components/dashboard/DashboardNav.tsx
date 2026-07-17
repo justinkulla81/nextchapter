@@ -52,7 +52,7 @@ const SECTIONS: NavSection[] = [
       { href: '/dashboard/work-samples', label: 'Your Proof Assets' },
       { href: '/dashboard/thought-leadership', label: 'Build Thought Leadership' },
       { href: '/dashboard/references', label: 'Get References' },
-      { href: '/dashboard/network', label: 'Networking Plan' },
+      { href: '/dashboard/network', label: 'Your Network' },
       { href: '/dashboard/interview-prep', label: 'Interview Prep' },
     ],
   },
@@ -60,10 +60,11 @@ const SECTIONS: NavSection[] = [
     title: 'Discover',
     links: [
       { href: '/dashboard/gig-directory', label: 'Interim Launch Plan' },
-      { href: '/dashboard/community', label: 'Community' },
+      { href: '/dashboard/community', label: 'Support Network' },
       { href: '/dashboard/learning', label: 'Learning' },
       { href: '/dashboard/benefits', label: 'Benefits' },
       { href: '/dashboard/guides', label: 'Job Search Guides' },
+      { href: '/faq', label: 'FAQ' },
     ],
   },
   {

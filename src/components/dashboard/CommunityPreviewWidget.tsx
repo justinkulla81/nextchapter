@@ -7,7 +7,7 @@ export function CommunityPreviewWidget({ feed }: { feed: CommunityFeedItem[] }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Community</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">Support Network</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {feed.length === 0 ? (
@@ -30,7 +30,7 @@ export function CommunityPreviewWidget({ feed }: { feed: CommunityFeedItem[] }) 
           </div>
         )}
         <Link href="/dashboard/community" className="inline-block text-sm font-medium text-primary underline underline-offset-4">
-          Visit Community →
+          Visit Support Network →
         </Link>
       </CardContent>
     </Card>

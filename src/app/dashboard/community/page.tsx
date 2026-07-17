@@ -28,7 +28,7 @@ export default async function CommunityPage({
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Support Network</h1>
           <p className="mt-1 text-muted-foreground">
             Other NextChapter candidates — posts, encouragement, and a reminder you&apos;re not
             searching alone.
@@ -66,7 +66,7 @@ export default async function CommunityPage({
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Support Network</h1>
           <p className="mt-1 text-muted-foreground">
             Other NextChapter candidates — posts, encouragement, and a reminder you&apos;re not
             searching alone.
@@ -146,7 +146,7 @@ export default async function CommunityPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Community</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Support Network</h1>
         <p className="mt-1 text-muted-foreground">
           Ask for help, offer help, or share a job — nobody searches well entirely alone.
         </p>

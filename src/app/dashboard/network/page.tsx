@@ -57,7 +57,7 @@ export default async function NetworkPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Activate My Network</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Your Network</h1>
           <p className="mt-1 text-muted-foreground">
             Networking is the single highest-leverage thing you can do in a search — most roles get
             filled through a connection, not a cold application. It also happens to be the part most
@@ -74,7 +74,7 @@ export default async function NetworkPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Build your networking list</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Your Network</h1>
         <p className="mt-1 text-muted-foreground">
           The people most likely to help you find your next role probably aren&apos;t your closest
           friends — they&apos;re the people you sort of know. This is the highest-leverage work in

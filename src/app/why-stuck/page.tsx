@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+import { Button } from '@/components/ui/button'
 import { ByTheNumbers } from '@/components/home/ByTheNumbers'
 import { SituationalButtons } from '@/components/home/SituationalButtons'
 
@@ -28,17 +29,17 @@ const genericRejectionExamples = [
 
 export default function WhyStuckPage() {
   return (
-    <div className="flex flex-1 flex-col bg-navy text-white">
-      <header className="border-b border-white/10">
+    <div className="flex flex-1 flex-col">
+      <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
           <Link href="/">
-            <Logo className="text-2xl text-white" />
+            <Logo className="text-2xl" />
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            <Link href="/how-it-works" className="text-light-blue hover:text-white">
+            <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground">
               How it works
             </Link>
-            <Link href="/" className="text-light-blue hover:text-white">
+            <Link href="/" className="text-muted-foreground hover:text-foreground">
               Home
             </Link>
           </nav>
@@ -47,8 +48,10 @@ export default function WhyStuckPage() {
 
       <div className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Why you&apos;re stuck</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-light-blue">
+          <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">
+            Why you&apos;re stuck
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             You&apos;re not imagining it. This is genuinely hard — and most of it happens before a
             human ever sees your name.
           </p>
@@ -58,26 +61,26 @@ export default function WhyStuckPage() {
           {painPoints.map((point) => (
             <li
               key={point}
-              className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4"
+              className="flex items-start gap-3 rounded-xl border border-light-gray bg-off-white px-5 py-4"
             >
               <X className="mt-0.5 size-4 shrink-0 text-orange" />
-              <span className="text-sm leading-relaxed">{point}</span>
+              <span className="text-sm leading-relaxed text-foreground">{point}</span>
             </li>
           ))}
         </ul>
 
         <div className="mx-auto mt-12 max-w-3xl">
-          <h2 className="text-center text-xl font-semibold">
+          <h2 className="text-center text-xl font-semibold text-navy">
             The worst part isn&apos;t the rejection. It&apos;s never finding out why.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-light-blue">
+          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
             Most rejections read exactly like this — and give you nothing to actually learn from:
           </p>
           <div className="mt-6 space-y-4">
             {genericRejectionExamples.map((example) => (
               <blockquote
                 key={example}
-                className="rounded-xl border border-white/10 bg-white/5 px-6 py-5 text-sm text-light-blue italic"
+                className="rounded-xl border border-light-gray bg-off-white px-6 py-5 text-sm text-muted-foreground italic"
               >
                 {example}
               </blockquote>
@@ -85,12 +88,18 @@ export default function WhyStuckPage() {
           </div>
         </div>
 
-        <div className="mx-auto mt-16 max-w-4xl border-t border-white/10 pt-12">
+        <div className="mx-auto mt-16 max-w-4xl border-t border-border pt-12">
           <ByTheNumbers />
         </div>
 
-        <div className="mx-auto mt-16 max-w-4xl border-t border-white/10 pt-12">
+        <div className="mx-auto mt-16 max-w-4xl border-t border-border pt-12">
           <SituationalButtons />
+        </div>
+
+        <div className="mt-16 text-center">
+          <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
+            Get your Hireability Assessment
+          </Button>
         </div>
       </div>
     </div>
