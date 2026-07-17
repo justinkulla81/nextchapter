@@ -265,6 +265,12 @@ model CandidateProfile {
   // Part 1: Your Situation
   currentJobStatus CurrentJobStatus?
   gapDuration      GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
+
+  // Admin-confirmed match to a LayoffCohort (candidate matching, not
+  // self-selected) — set via /support/admin/layoff-cohorts, surfaces a
+  // cohort-scoped view inside Community once assigned.
+  layoffCohortId String?
+  layoffCohort   LayoffCohort? @relation(fields: [layoffCohortId], references: [id])
   currentCity      String? // resume-derived (Phase 1), candidate-confirmable
   currentState     String?
   currentCountry   String             @default("US")
@@ -920,6 +926,8 @@ model LayoffCohort {
   newsUrl       String?
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
+
+  candidates CandidateProfile[]
 }
 
 // ── CANDIDATE HIREABILITY REPORT ──────────────────────────────────────────────

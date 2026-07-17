@@ -5,6 +5,7 @@ import { getCommunityFeed } from '@/lib/community/community-feed'
 import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import { getUnreadEncouragementNotes } from '@/lib/community/encouragement'
 import { buildSelfIntroDraft } from '@/lib/community/self-intro'
+import { getCohortInfo } from '@/lib/community/layoff-cohort'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
@@ -126,7 +127,7 @@ export default async function CommunityPage({
   const functionFilter = params.function ?? ''
   const industryFilter = params.industry ?? ''
 
-  const [posts, feed, unreadNotes] = await Promise.all([
+  const [posts, feed, unreadNotes, cohort] = await Promise.all([
     prisma.communityPost.findMany({
       where: {
         isActive: true,
@@ -139,6 +140,7 @@ export default async function CommunityPage({
     }),
     getCommunityFeed(),
     getUnreadEncouragementNotes(profile.id),
+    profile.layoffCohortId ? getCohortInfo(profile.layoffCohortId, profile.id) : Promise.resolve(null),
   ])
 
   return (
@@ -168,6 +170,28 @@ export default async function CommunityPage({
               </form>
             </div>
           ))}
+        </div>
+      )}
+
+      {cohort && (
+        <div className="space-y-3 rounded-lg border border-border p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Your cohort: {cohort.companyName}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {cohort.memberCount} other{cohort.memberCount === 1 ? '' : 's'} from the{' '}
+              {cohort.layoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}{' '}
+              layoff matched here — their posts are highlighted below.
+            </p>
+          </div>
+          {cohort.posts.length > 0 && (
+            <div className="space-y-3">
+              {cohort.posts.slice(0, 5).map((post) => (
+                <CommunityPostCard key={post.id} post={post} isOwnPost={false} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
