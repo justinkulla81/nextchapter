@@ -518,6 +518,13 @@ model Reference {
   wouldHireAgain    Boolean?
   contextNotes      String?
 
+  // Candidate-initiated dispute/correction, before this reference is ever
+  // shared in a Dossier. A disputed-and-unresolved reference is excluded
+  // from the Recruiter Report — see getRecruiterReportData.
+  candidateDisputeNote String?
+  candidateDisputedAt  DateTime?
+  disputeResolvedAt    DateTime?
+
   // BARS ratings per dimension (1-5 scale with behavioral anchors)
   // Used to compute CandidateAssessmentResponse.referenceDelta — see
   // src/lib/scoring/reference-delta.ts.

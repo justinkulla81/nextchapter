@@ -101,3 +101,38 @@ export async function requestReference(
 
   revalidatePath('/dashboard/references')
 }
+
+export async function disputeReference(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'You need to be logged in to do this.' }
+  }
+
+  const referenceId = formData.get('referenceId') as string | null
+  const note = (formData.get('note') as string | null)?.trim()
+
+  if (!referenceId || !note) {
+    return { error: 'Please describe what seems off before submitting.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const reference = await prisma.reference.findUnique({ where: { id: referenceId } })
+  if (!reference || reference.candidateId !== profile.id) {
+    return { error: 'Reference not found.' }
+  }
+
+  await prisma.reference.update({
+    where: { id: referenceId },
+    data: { candidateDisputeNote: note, candidateDisputedAt: new Date(), disputeResolvedAt: null },
+  })
+
+  revalidatePath('/dashboard/references')
+}

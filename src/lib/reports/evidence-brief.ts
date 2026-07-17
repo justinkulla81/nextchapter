@@ -90,7 +90,12 @@ export async function generateEvidenceBrief(
       include: {
         workHistory: { orderBy: { startDate: 'desc' } },
         workSamples: true,
-        references: { where: { status: 'COMPLETED' } },
+        references: {
+          where: {
+            status: 'COMPLETED',
+            OR: [{ candidateDisputedAt: null }, { disputeResolvedAt: { not: null } }],
+          },
+        },
         jobPostings: { select: { appliedAt: true } },
         outreachLogs: { select: { id: true } },
         learningBadges: { select: { id: true } },

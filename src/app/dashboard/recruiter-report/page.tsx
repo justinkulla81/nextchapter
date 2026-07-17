@@ -59,12 +59,12 @@ export default async function RecruiterReportPage() {
           )}
         </section>
 
-        {data.helpfulnessLine && (
+        {data.peerSupportLine && (
           <section>
             <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-              Helpfulness to others
+              Peer Support
             </h3>
-            <p className="mt-2 text-sm text-foreground">{data.helpfulnessLine}</p>
+            <p className="mt-2 text-sm text-foreground">{data.peerSupportLine}</p>
           </section>
         )}
 

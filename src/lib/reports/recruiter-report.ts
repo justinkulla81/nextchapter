@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
+import type { CommittedAction } from '@/lib/weekly/sprint'
 
 // The Recruiter Report is a self-serve, candidate-controlled PDF handed to
 // anyone off-platform, alongside a resume — never auto-sent. Deliberately
@@ -15,7 +16,10 @@ export interface RecruiterReportData {
   candidateName: string
   generatedAt: Date
   effortSummaryLines: string[]
-  helpfulnessLine: string | null
+  // "Peer Support" — deliberately unscored (see action-effort.ts), shown as
+  // its own labeled Dossier line rather than folded into effortSummaryLines,
+  // which are all point-earning activity.
+  peerSupportLine: string | null
   references: { refereeName: string; strengthSummary: string | null; wouldHireAgain: boolean | null }[]
   learningItems: { title: string; provider: string | null; completedAt: Date }[]
   availability: {
@@ -51,10 +55,18 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: {
-      references: { where: { status: 'COMPLETED' } },
+      references: {
+        where: {
+          status: 'COMPLETED',
+          // A candidate-disputed reference is held out of the Dossier until
+          // resolved — see the dispute mechanism on the References page.
+          OR: [{ candidateDisputedAt: null }, { disputeResolvedAt: { not: null } }],
+        },
+      },
       learningBadges: { orderBy: { completedAt: 'desc' } },
       jobPostings: { select: { appliedAt: true } },
       outreachLogs: { select: { id: true } },
+      weeklySprints: { select: { committedActions: true } },
       _count: { select: { encouragementNotesSent: true } },
     },
   })
@@ -68,16 +80,21 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
   const effortSummaryLines = computeEffortSummaryLines({ learningCount, applicationsCount, outreachCount })
 
   const encouragementSentCount = candidate._count.encouragementNotesSent
-  const helpfulnessLine =
-    encouragementSentCount > 0
-      ? `Sent ${encouragementSentCount} encouragement note${encouragementSentCount === 1 ? '' : 's'} to other job seekers in the community.`
+  const peerSupportActionCount = candidate.weeklySprints.reduce((sum, sprint) => {
+    const actions = sprint.committedActions as unknown as CommittedAction[]
+    return sum + actions.filter((a) => a.completed && a.actionType === 'ENGAGE_PEER_SUPPORT').length
+  }, 0)
+  const peerSupportCount = encouragementSentCount + peerSupportActionCount
+  const peerSupportLine =
+    peerSupportCount > 0
+      ? `Substantively helped ${peerSupportCount} other job seeker${peerSupportCount === 1 ? '' : 's'} — answering questions, making introductions, or offering encouragement. Unscored by design: this earns no Search Score points, which is what makes it a genuinely voluntary signal.`
       : null
 
   return {
     candidateName,
     generatedAt: new Date(),
     effortSummaryLines,
-    helpfulnessLine,
+    peerSupportLine,
     references: candidate.references.map((r) => ({
       refereeName: r.refereeName,
       strengthSummary: r.strengthSummary,

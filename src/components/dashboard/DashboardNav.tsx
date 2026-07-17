@@ -132,9 +132,23 @@ function NavContent({
           ))}
         </div>
       ))}
-      <form action={signOut} className="mt-auto px-2">
-        <SignOutButton />
-      </form>
+      <div className="mt-auto space-y-3 px-2">
+        <Link
+          href="/dashboard/support"
+          onClick={onNavigate}
+          className={cn(
+            'block rounded-md px-2 py-1.5 text-center text-xs font-semibold transition-colors',
+            isActive('/dashboard/support')
+              ? 'bg-orange text-white'
+              : 'bg-white/10 text-white hover:bg-orange hover:text-white'
+          )}
+        >
+          I&apos;m struggling
+        </Link>
+        <form action={signOut}>
+          <SignOutButton />
+        </form>
+      </div>
     </nav>
   )
 }

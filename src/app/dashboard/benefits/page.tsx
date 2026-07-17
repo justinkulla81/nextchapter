@@ -65,6 +65,19 @@ const TOPICS: Topic[] = [
       { name: 'CFPB — home equity loans and HELOCs', url: 'https://www.consumerfinance.gov/consumer-tools/home-equity/' },
     ],
   },
+  {
+    title: 'Severance packages & negotiation',
+    body: [
+      "A severance offer is usually a starting point, not a final number — especially if you're being asked to sign a release of claims in exchange for it. It's reasonable to ask for a few days to review before signing, and to ask whether the weeks-of-pay formula, COBRA subsidy, or outplacement support is negotiable.",
+      "What to check for in the package: how severance is calculated (often weeks of pay per year of service), whether unused PTO is paid out, whether COBRA premiums are subsidized and for how long, whether unvested equity accelerates or is forfeited, and exactly what you're releasing legal claims to in exchange.",
+      "If you're 40 or older, U.S. law (the Older Workers Benefit Protection Act) requires at least 21 days to consider an individual severance offer and a 7-day revocation window after signing — don't let anyone rush you past that.",
+      'A short consultation with an employment attorney (many offer a flat-fee severance review) is often worth it before signing anything, particularly for a package above a few weeks of pay or if you suspect the separation wasn\'t routine.',
+    ],
+    links: [
+      { name: 'EEOC — Older Workers Benefit Protection Act (OWBPA) basics', url: 'https://www.eeoc.gov/older-workers-benefit-protection-act' },
+      { name: 'U.S. DOL — severance pay overview', url: 'https://www.dol.gov/general/topic/wages/severancepay' },
+    ],
+  },
 ]
 
 export default async function BenefitsPage() {

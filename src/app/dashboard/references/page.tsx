@@ -1,5 +1,6 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { ReferenceRequestForm } from '@/components/references/ReferenceRequestForm'
+import { ReferenceDisputeControl } from '@/components/references/ReferenceDisputeControl'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/constants/references'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -43,22 +44,32 @@ export default async function ReferencesPage() {
           <h2 className="text-sm font-medium text-muted-foreground">Requested references</h2>
           {profile.references.map((ref) => (
             <Card key={ref.id}>
-              <CardContent className="flex items-center justify-between gap-4 pt-6">
-                <div className="space-y-1">
-                  <p className="font-medium">{ref.refereeName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
-                    {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
-                  </p>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="font-medium">{ref.refereeName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
+                      {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
+                    </p>
+                  </div>
+                  <span
+                    className={cn(
+                      'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
+                      STATUS_STYLES[ref.status]
+                    )}
+                  >
+                    {STATUS_LABELS[ref.status]}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                    STATUS_STYLES[ref.status]
-                  )}
-                >
-                  {STATUS_LABELS[ref.status]}
-                </span>
+                {ref.status === 'COMPLETED' && (
+                  <ReferenceDisputeControl
+                    referenceId={ref.id}
+                    disputeNote={ref.candidateDisputeNote}
+                    disputedAt={ref.candidateDisputedAt}
+                    resolvedAt={ref.disputeResolvedAt}
+                  />
+                )}
               </CardContent>
             </Card>
           ))}
