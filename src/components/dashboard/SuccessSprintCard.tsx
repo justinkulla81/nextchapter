@@ -15,7 +15,7 @@ export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | nu
           <p className="text-sm text-muted-foreground">
             You haven&apos;t set this week&apos;s goals yet — commit to a few actions and Victoria will track them.
           </p>
-          <Button render={<Link href="/dashboard/sprint" />}>Set this week&apos;s goals</Button>
+          <Button nativeButton={false} render={<Link href="/dashboard/sprint" />}>Set this week&apos;s goals</Button>
         </CardContent>
       </Card>
     )

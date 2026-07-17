@@ -12,7 +12,7 @@ export function GotHiredCTACard() {
             Tell us about it and claim your $500 Offer Bonus — we verify offer letters before paying out.
           </p>
         </div>
-        <Button render={<Link href="/dashboard/got-hired" />} size="sm" className="shrink-0">
+        <Button nativeButton={false} render={<Link href="/dashboard/got-hired" />} size="sm" className="shrink-0">
           I got hired
         </Button>
       </CardContent>

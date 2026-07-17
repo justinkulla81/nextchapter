@@ -54,7 +54,7 @@ export default async function ScorePage() {
         </p>
       </div>
       <DualGradeReveal grade={grade} nextSteps={nextSteps} />
-      <Button render={<Link href="/onboarding/create-account" />}>
+      <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
         Create your account to get your full report and action plan
       </Button>
     </div>

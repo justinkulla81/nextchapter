@@ -61,7 +61,7 @@ export function SubstackSection({
             <li>Draft your first 3 posts before you announce it publicly.</li>
             <li>Write from your own experience and stories, not secondhand takes.</li>
           </ul>
-          <Button size="sm" variant="outline" className="mt-2" render={<a href="https://on.substack.com/" target="_blank" rel="noopener noreferrer" />}>
+          <Button nativeButton={false} size="sm" variant="outline" className="mt-2" render={<a href="https://on.substack.com/" target="_blank" rel="noopener noreferrer" />}>
             Substack&apos;s Getting Started guide →
           </Button>
         </CardContent>

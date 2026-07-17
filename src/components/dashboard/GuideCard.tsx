@@ -43,7 +43,7 @@ export function GuideCard({ guide, unlocked }: { guide: Guide; unlocked: boolean
           <p className="mt-2 text-xs text-muted-foreground italic">{guide.lockedTeaser}</p>
         )}
         {guide.activateHref && (
-          <Button size="sm" variant="outline" className="mt-4" render={<Link href={guide.activateHref} />}>
+          <Button nativeButton={false} size="sm" variant="outline" className="mt-4" render={<Link href={guide.activateHref} />}>
             Activate
           </Button>
         )}

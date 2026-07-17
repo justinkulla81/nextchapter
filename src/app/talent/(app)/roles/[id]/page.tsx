@@ -60,7 +60,7 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
         )}
       </div>
 
-      <Button render={<Link href={`/talent/roles/${role.id}/candidates`} />}>View candidate matches</Button>
+      <Button nativeButton={false} render={<Link href={`/talent/roles/${role.id}/candidates`} />}>View candidate matches</Button>
     </div>
   )
 }

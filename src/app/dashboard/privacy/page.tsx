@@ -66,7 +66,7 @@ export default async function PrivacyPage() {
           <h2 className="text-lg font-semibold">Account</h2>
           <p className="mt-1 text-sm text-muted-foreground">Manage your login.</p>
         </div>
-        <Button render={<Link href="/auth/forgot-password" />} variant="outline">
+        <Button nativeButton={false} render={<Link href="/auth/forgot-password" />} variant="outline">
           Change my password
         </Button>
       </div>
@@ -79,7 +79,7 @@ export default async function PrivacyPage() {
             and activity — as a single file, any time you want it.
           </p>
         </div>
-        <Button render={<a href="/api/export-data" download />} variant="outline">
+        <Button nativeButton={false} render={<a href="/api/export-data" download />} variant="outline">
           Download my data
         </Button>
       </div>

@@ -29,6 +29,7 @@ export function ReferralShareBox() {
         size="lg"
         variant="cta"
         className="w-full"
+        nativeButton={false}
         render={<a href={mailtoHref} />}
       >
         Send them an email

@@ -18,6 +18,7 @@ export function PersonaOnboardingCta({
     <Button
       size="lg"
       variant="cta"
+      nativeButton={false}
       render={
         <Link
           href="/onboarding/resume"

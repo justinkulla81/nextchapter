@@ -13,7 +13,7 @@ export function CoachingCTACard() {
             interviews, resume review, a second opinion on hard calls.
           </p>
         </div>
-        <Button render={<Link href="/coaching" />} variant="outline" size="sm" className="shrink-0">
+        <Button nativeButton={false} render={<Link href="/coaching" />} variant="outline" size="sm" className="shrink-0">
           Learn more
         </Button>
       </CardContent>

@@ -18,7 +18,7 @@ export default async function RolesPage() {
           <h1 className="text-2xl font-semibold tracking-tight">My Roles</h1>
           <p className="mt-1 text-muted-foreground">Roles you&apos;ve posted.</p>
         </div>
-        <Button render={<Link href="/talent/roles/new" />}>Post a Role</Button>
+        <Button nativeButton={false} render={<Link href="/talent/roles/new" />}>Post a Role</Button>
       </div>
 
       {roles.length === 0 ? (

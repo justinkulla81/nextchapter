@@ -39,7 +39,7 @@ export default async function CommunityPage({
             Posting and expressing interest requires a Public or Semi-Public profile — you can&apos;t
             meaningfully network anonymously.
           </p>
-          <Button render={<Link href="/dashboard/privacy" />} className="mt-4">
+          <Button nativeButton={false} render={<Link href="/dashboard/privacy" />} className="mt-4">
             Update privacy settings
           </Button>
         </div>

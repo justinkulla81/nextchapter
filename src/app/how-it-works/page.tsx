@@ -159,7 +159,7 @@ export default function HowItWorksPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <Button size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
+          <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
             Get started
           </Button>
         </div>

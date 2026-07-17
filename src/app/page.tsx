@@ -75,7 +75,7 @@ export default function Home() {
             >
               For organizations
             </Link>
-            <Button size="default" variant="success" render={<Link href="/auth/login" />}>
+            <Button nativeButton={false} size="default" variant="success" render={<Link href="/auth/login" />}>
               Log in
             </Button>
           </nav>
@@ -90,7 +90,7 @@ export default function Home() {
             hired — not another job board, not another LinkedIn stigma.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
+            <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
               Get your Hireability Assessment
             </Button>
           </div>
@@ -198,7 +198,7 @@ export default function Home() {
             Give them a head start — NextChapter is free for candidates, always.
           </p>
           <div className="mt-6">
-            <Button size="default" variant="outline" render={<Link href="/refer" />}>
+            <Button nativeButton={false} size="default" variant="outline" render={<Link href="/refer" />}>
               Refer someone
             </Button>
           </div>
@@ -217,6 +217,7 @@ export default function Home() {
               size="lg"
               variant="cta"
               className="h-auto max-w-full py-3 whitespace-normal"
+              nativeButton={false}
               render={<Link href="/onboarding/resume" />}
             >
               Get your Hireability score and then action plan to start your next chapter

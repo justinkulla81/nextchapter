@@ -158,7 +158,7 @@ export default async function HireabilityReportPage() {
         <div className="flex shrink-0 flex-wrap gap-2">
           {report && (
             <>
-              <Button variant="outline" render={<Link href="/dashboard/recruiter-report" />}>
+              <Button nativeButton={false} variant="outline" render={<Link href="/dashboard/recruiter-report" />}>
                 Recruiter Report →
               </Button>
               <PrintReportButton />
