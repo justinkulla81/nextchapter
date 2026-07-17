@@ -98,6 +98,9 @@ export async function submitEncouragementNote(
   if (!user) return { error: 'You need to be logged in to do this.' }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+  if (!profile.encouragementGivingOptIn) {
+    return { error: 'Opt in to giving encouragement from Privacy settings first.' }
+  }
 
   const message = (formData.get('message') as string | null)?.trim()
   if (!message) return { error: 'Write a short note first.' }

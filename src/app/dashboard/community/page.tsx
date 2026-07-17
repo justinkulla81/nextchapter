@@ -11,6 +11,7 @@ import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
 import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
+import { SendEncouragementForm } from '@/components/dashboard/SendEncouragementForm'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 
@@ -192,6 +193,18 @@ export default async function CommunityPage({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {profile.encouragementGivingOptIn ? (
+        <SendEncouragementForm />
+      ) : (
+        <div className="rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
+          Want to send encouragement to someone here having a hard week?{' '}
+          <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
+            Opt in from Privacy settings
+          </Link>
+          .
         </div>
       )}
 
