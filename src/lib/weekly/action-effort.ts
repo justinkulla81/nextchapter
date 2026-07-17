@@ -127,6 +127,30 @@ export function engineForActionType(actionType: string | undefined): SearchExecu
   return 'effort'
 }
 
+// Recurring action types represent an ongoing habit you can engage with
+// repeatedly through the week (send another outreach message, comment on
+// another post) — there's no single finish line, so they get a one-way
+// "Started" state instead of a completable checkbox. Everything not listed
+// here is one-time: a discrete task with a real finish line (update your
+// resume, take the Working Style Quiz) that gets a true Mark done toggle.
+const RECURRING_ACTION_TYPES = new Set<string>([
+  'OUTREACH_MESSAGE',
+  'OUTREACH_CALL',
+  'OUTREACH_FOLLOW_UP',
+  'ENGAGE_COMMENT',
+  'ENGAGE_EVENT',
+  'ENGAGE_POST_UPDATE',
+  'ENGAGE_PEER_SUPPORT',
+  'LINKEDIN_POST_IDEA',
+  'THOUGHT_LEADERSHIP_COMMENT',
+  'THOUGHT_LEADERSHIP_SHARE',
+  'INTERVIEW_BEHAVIORAL_PRACTICE',
+])
+
+export function isRecurringActionType(actionType: string | undefined): boolean {
+  return !!actionType && RECURRING_ACTION_TYPES.has(actionType)
+}
+
 // Where each action type's real work actually happens — used to make
 // committed Sprint items click through to the page where you do the work,
 // instead of just toggling a checkbox in place.

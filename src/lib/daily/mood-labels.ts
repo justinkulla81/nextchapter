@@ -6,13 +6,6 @@ import type { Mood } from '@prisma/client'
 
 export const MOOD_ORDER: Mood[] = ['STUCK', 'GETTING_THERE', 'MOVING', 'FIRED_UP']
 
-export const MOOD_EMOJI: Record<Mood, string> = {
-  STUCK: '😔',
-  GETTING_THERE: '😐',
-  MOVING: '🙂',
-  FIRED_UP: '💪',
-}
-
 export const MOOD_LABEL: Record<Mood, string> = {
   STUCK: 'Stuck',
   GETTING_THERE: 'Getting there',

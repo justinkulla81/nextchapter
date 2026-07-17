@@ -40,49 +40,52 @@ const SECTIONS: NavSection[] = [
     title: null,
     links: [
       { href: '/dashboard', label: 'Success Dashboard' },
-      { href: '/dashboard/sprint', label: 'Search Sprint' },
+      { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
     ],
   },
   {
-    title: 'Build',
+    title: 'Learning',
+    links: [{ href: '/dashboard/learning', label: 'Learning' }],
+  },
+  {
+    title: 'Effort',
+    links: [
+      { href: '/dashboard/job-fit', label: 'Job Fit' },
+      { href: '/dashboard/interview-prep', label: 'Interview Prep' },
+      { href: '/dashboard/references', label: 'Get References' },
+      { href: '/dashboard/search-strategy', label: 'Search Strategy' },
+      { href: '/dashboard/retake-assessment', label: 'My Working Style' },
+      { href: '/dashboard/gig-directory', label: 'Interim Launch Plan' },
+    ],
+  },
+  {
+    title: 'Working',
     links: [
       { href: '/dashboard/resume', label: 'Resume' },
       { href: '/dashboard/linkedin', label: 'Grow My LinkedIn' },
-      { href: '/dashboard/job-fit', label: 'Job Fit' },
       { href: '/dashboard/work-samples', label: 'Your Proof Assets' },
       { href: '/dashboard/thought-leadership', label: 'Build Thought Leadership' },
-      { href: '/dashboard/references', label: 'Get References' },
+    ],
+  },
+  {
+    title: 'Connecting',
+    links: [
       { href: '/dashboard/network', label: 'Your Network' },
-      { href: '/dashboard/interview-prep', label: 'Interview Prep' },
-    ],
-  },
-  {
-    title: 'Discover',
-    links: [
-      { href: '/dashboard/gig-directory', label: 'Interim Launch Plan' },
       { href: '/dashboard/community', label: 'Support Network' },
-      { href: '/dashboard/learning', label: 'Learning' },
-      { href: '/dashboard/benefits', label: 'Benefits' },
-      { href: '/dashboard/guides', label: 'Job Search Guides' },
-      { href: '/faq', label: 'FAQ' },
     ],
   },
   {
-    title: null,
+    title: 'Profile',
     links: [
-      { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
-      { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
-    ],
-  },
-  {
-    title: null,
-    links: [
-      { href: '/dashboard/search-strategy', label: 'Search Strategy' },
-      { href: '/dashboard/retake-assessment', label: 'My Working Style' },
       { href: '/dashboard/hireability-report', label: 'Hireability Report' },
       { href: '/dashboard/stats', label: 'Your Stats' },
+      { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
+      { href: '/dashboard/guides', label: 'Job Search Guides' },
+      { href: '/dashboard/benefits', label: 'Benefits' },
+      { href: '/faq', label: 'FAQ' },
       { href: '/dashboard/profile', label: 'Profile' },
       { href: '/dashboard/privacy', label: 'Privacy' },
+      { href: '/dashboard/support', label: "I'm struggling" },
     ],
   },
 ]
@@ -134,19 +137,7 @@ function NavContent({
           ))}
         </div>
       ))}
-      <div className="mt-auto space-y-3 px-2">
-        <Link
-          href="/dashboard/support"
-          onClick={onNavigate}
-          className={cn(
-            'block rounded-md px-2 py-1.5 text-center text-xs font-semibold transition-colors',
-            isActive('/dashboard/support')
-              ? 'bg-orange text-white'
-              : 'bg-white/10 text-white hover:bg-orange hover:text-white'
-          )}
-        >
-          I&apos;m struggling
-        </Link>
+      <div className="mt-auto px-2">
         <form action={signOut}>
           <SignOutButton />
         </form>

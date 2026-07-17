@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -59,6 +60,7 @@ export async function checkInMood(mood: Mood) {
   if (!profile) return
 
   await recordMoodCheckIn(profile.id, mood)
+  captureServerEvent(profile.id, 'mood_checked_in', { mood })
   revalidatePath('/dashboard')
 }
 

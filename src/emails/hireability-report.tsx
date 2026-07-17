@@ -72,6 +72,18 @@ export default function HireabilityReportEmail({
         </>
       )}
 
+      <p style={{ fontWeight: 600, marginTop: '24px' }}>How NextChapter works</p>
+      <p>
+        Your <strong>Market Reality Grade</strong> — what you just saw above — is an honest read on
+        where you stand today. It only moves when you re-assess, not from weekly activity.
+      </p>
+      <p>
+        Each week you&apos;ll commit to a <strong>Weekly Search Sprint</strong>: a short list of real
+        actions, each worth points, that earns your <strong>Weekly Search Score</strong>. Consistent
+        effort there builds your <strong>Dossier</strong> — a reference-verified profile that shows
+        hiring managers what your resume can&apos;t.
+      </p>
+
       <p style={{ marginTop: '24px' }}>
         Your first week is orientation, not action — get familiar with your report, and Victoria
         will walk you through what&apos;s next.

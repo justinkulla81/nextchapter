@@ -1,7 +1,7 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { estimateActionEffort, pointsNeededForA } from '@/lib/weekly/action-effort'
+import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 
 export interface CommittedAction {
@@ -11,6 +11,10 @@ export interface CommittedAction {
   estimatedMinutes: number
   completed: boolean
   completedAt?: string
+  // One-time actions have a real finish line and get a Mark done toggle;
+  // recurring actions are an ongoing habit and only ever move from
+  // not-started to Started (see isRecurringActionType).
+  recurring: boolean
 }
 
 export interface SuggestedAction {
@@ -127,6 +131,7 @@ export async function commitWeeklySprint(
       estimatedMinutes: 0,
       completed: true,
       completedAt: new Date().toISOString(),
+      recurring: false,
     },
     ...actions.map((a) => ({
       text: a.text,
@@ -134,6 +139,7 @@ export async function commitWeeklySprint(
       points: a.points,
       estimatedMinutes: a.estimatedMinutes,
       completed: false,
+      recurring: isRecurringActionType(a.actionType),
     })),
   ]
 
@@ -157,8 +163,16 @@ export async function toggleSprintActionCompletion(candidateId: string, actionIn
   const target = actions[actionIndex]
   if (!target) return
 
-  target.completed = !target.completed
-  target.completedAt = target.completed ? new Date().toISOString() : undefined
+  if (target.recurring) {
+    // One-way: recurring actions move from not-started to Started and stay
+    // there — there's no finish line to un-check.
+    if (target.completed) return
+    target.completed = true
+    target.completedAt = new Date().toISOString()
+  } else {
+    target.completed = !target.completed
+    target.completedAt = target.completed ? new Date().toISOString() : undefined
+  }
 
   await prisma.weeklySprint.update({
     where: { id: sprint.id },

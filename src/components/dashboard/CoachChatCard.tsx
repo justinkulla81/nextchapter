@@ -1,11 +1,18 @@
 'use client'
 
 import { useActionState, useOptimistic, useRef } from 'react'
+import Image from 'next/image'
+import { UserRound } from 'lucide-react'
 import { sendCoachMessage } from '@/app/dashboard/coach/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+
+// Swap for the real headshot once /marketing/victoria-headshot.jpg exists —
+// falls back to a plain avatar icon so a missing asset never 404s.
+const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot.jpg'
+const HAS_VICTORIA_PHOTO = false
 
 interface CoachMessageItem {
   id: string
@@ -33,9 +40,19 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          Get advice from Victoria, your AI coach
-        </CardTitle>
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand/10 text-brand">
+            {HAS_VICTORIA_PHOTO ? (
+              <Image src={VICTORIA_PHOTO_PATH} alt="Victoria" width={40} height={40} className="size-10 object-cover" />
+            ) : (
+              <UserRound aria-hidden className="size-5" />
+            )}
+          </span>
+          <div>
+            <CardTitle className="text-sm font-medium text-foreground">Victoria, Your Executive Coach</CardTitle>
+            <p className="text-xs text-muted-foreground">What can I help you with your search?</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="max-h-72 space-y-3 overflow-y-auto pr-1">

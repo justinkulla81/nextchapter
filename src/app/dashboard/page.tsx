@@ -4,14 +4,19 @@ import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
-import { getQuoteOfTheDay } from '@/lib/constants/quotes'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { getTodaysConnectionAction } from '@/lib/daily/connection-action'
-import { getCurrentWeekSprint, hasStartedSprint, type CommittedAction } from '@/lib/weekly/sprint'
-import { getCommunityFeed } from '@/lib/community/community-feed'
+import {
+  getCurrentWeekSprint,
+  getSuggestedActions,
+  getMondayOfWeek,
+  hasStartedSprint,
+  type CommittedAction,
+} from '@/lib/weekly/sprint'
+import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { getGoalLabel } from '@/lib/scoring/goal-label'
@@ -21,7 +26,9 @@ import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
-import { CommunityPreviewWidget } from '@/components/dashboard/CommunityPreviewWidget'
+import { OnboardingEducationCard } from '@/components/dashboard/OnboardingEducationCard'
+import { WorkingStyleActionCard } from '@/components/dashboard/WorkingStyleActionCard'
+import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
 import type { ActionDay } from '@/lib/daily/primary-action'
@@ -60,7 +67,10 @@ async function resolveLatestReport(
 export default async function DashboardPage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
-  const quote = getQuoteOfTheDay()
+  const weekNumber = profile._count.weeklySprints + 1
+  const isFirstWeek = weekNumber === 1
+  const weekStartDate = getMondayOfWeek(new Date())
+  const editWindowOpen = isSprintEditWindowOpen(weekStartDate)
 
   // All of these are independent of one another — issuing them together
   // instead of one-by-one turns ~9 sequential round trips into one parallel
@@ -73,20 +83,20 @@ export default async function DashboardPage() {
     grade,
     todaysMood,
     currentSprint,
+    suggestedActions,
     searchExecutionAvailable,
     latestReport,
-    communityFeed,
     narrative,
     outreachCount,
     existingBountyClaimCount,
     sessionImpact,
-    applicationsSent,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id),
     computeHireabilityGrade(profile),
     getTodaysMood(profile.id),
     getCurrentWeekSprint(profile.id),
+    isFirstWeek ? Promise.resolve([]) : getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
     // The registration-time after() callback that normally generates AND
     // emails the first report can get cut off by the platform's function
@@ -95,16 +105,11 @@ export default async function DashboardPage() {
     // just the first, and also covers the case where that background job
     // never even finished generating the report at all.
     resolveLatestReport(profile.id, profile.hireabilityReports[0]),
-    getCommunityFeed(3),
     prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } }),
     prisma.outreachLog.count({ where: { candidateId: profile.id } }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
-    prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
   ])
-
-  const weekNumber = profile._count.weeklySprints + 1
-  const isFirstWeek = weekNumber === 1
 
   const primaryAction = latestReport
     ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
@@ -142,30 +147,36 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {isFirstWeek && <OnboardingEducationCard />}
+
       <DashboardTopStrip
         grade={grade}
         searchExecutionAvailable={searchExecutionAvailable}
         currentStreak={profile.currentStreak}
-        applicationsSent={applicationsSent}
       />
 
       <EmployerInterestSection candidateId={profile.id} />
 
-      <MoodCheckInCard
-        quote={quote}
-        todaysMood={todaysMood}
-        currentStreak={profile.currentStreak}
-        primaryAction={primaryAction}
-        firstName={profile.firstName}
-      />
-
-      {isFirstWeek ? (
-        <Week1ArtifactSprint artifacts={week1Artifacts} />
-      ) : (
-        <SuccessSprintCard
-          actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+      <div className="space-y-3">
+        <MoodCheckInCard
+          todaysMood={todaysMood}
+          currentStreak={profile.currentStreak}
+          primaryAction={primaryAction}
+          firstName={profile.firstName}
         />
-      )}
+
+        {isFirstWeek ? (
+          <Week1ArtifactSprint artifacts={week1Artifacts} />
+        ) : (
+          <SuccessSprintCard
+            actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+            suggestedActions={suggestedActions}
+            marketRealityGrade={grade.marketReality.grade}
+            weekNumber={weekNumber}
+            editWindowOpen={editWindowOpen}
+          />
+        )}
+      </div>
 
       {(showGotHiredCTA || showCoachingCTA || sessionImpact) && (
         <div className="space-y-4">
@@ -176,9 +187,14 @@ export default async function DashboardPage() {
       )}
 
       <div className="space-y-4 border-t border-border pt-8">
-        <h2 className="text-sm font-medium text-muted-foreground">More for this week</h2>
         <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
-        <CommunityPreviewWidget feed={communityFeed} />
+        <WorkingStyleActionCard
+          dimensionVectors={
+            profile.assessmentResponses[0]
+              ? (profile.assessmentResponses[0].dimensionVectors as unknown as DimensionVectors)
+              : null
+          }
+        />
         <CoachChatCard initialMessages={conversation.messages} />
       </div>
     </div>

@@ -344,7 +344,7 @@ export default async function HireabilityReportPage() {
               {casuallySearching ? (
                 <p className="text-sm font-medium text-foreground">
                   When you&apos;re ready to prioritize this, your{' '}
-                  <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+                  <Link href="/dashboard" className="text-primary underline underline-offset-4">
                     Search Sprint
                   </Link>{' '}
                   will show you exactly what moves an A on your Search Action Grade — no clock
@@ -360,7 +360,7 @@ export default async function HireabilityReportPage() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     That target grows a little each week through Week 6, then holds steady — see
                     your{' '}
-                    <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+                    <Link href="/dashboard" className="text-primary underline underline-offset-4">
                       Search Sprint
                     </Link>{' '}
                     for this week&apos;s exact commitment.
@@ -448,7 +448,7 @@ export default async function HireabilityReportPage() {
             <p className="mt-4 text-sm text-muted-foreground">
               Everything below is a real, available action toward your Search Action Grade.
               Click into your{' '}
-              <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
+              <Link href="/dashboard" className="text-primary underline underline-offset-4">
                 Search Sprint
               </Link>{' '}
               to define your weekly goal by Monday night — if you don&apos;t, I&apos;ll set an

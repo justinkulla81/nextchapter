@@ -16,12 +16,10 @@ export function DashboardTopStrip({
   grade,
   searchExecutionAvailable,
   currentStreak,
-  applicationsSent,
 }: {
   grade: HireabilityGrade
   searchExecutionAvailable: boolean
   currentStreak: number
-  applicationsSent: number
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-white px-5 py-3">
@@ -61,8 +59,14 @@ export function DashboardTopStrip({
       <div className="h-6 w-px bg-border" />
 
       <div className="flex items-center gap-1.5">
-        <span className="text-sm font-semibold text-foreground tabular-nums">{applicationsSent}</span>
-        <span className="text-xs text-muted-foreground">applications sent</span>
+        <span className="text-xs font-medium text-muted-foreground">Points</span>
+        {searchExecutionAvailable ? (
+          <span className="text-sm font-semibold text-foreground tabular-nums">
+            {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget}
+          </span>
+        ) : (
+          <span className="text-sm font-semibold text-muted-foreground">N/A</span>
+        )}
       </div>
 
       <Link href="/dashboard/stats" className="ml-auto text-xs font-medium text-primary underline underline-offset-4">

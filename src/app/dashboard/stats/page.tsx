@@ -1,16 +1,21 @@
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { SEARCH_EXECUTION_ENGINE_LABEL } from '@/lib/scoring/grade'
+import { SEARCH_EXECUTION_ENGINE_LABEL, type SearchExecutionEngine } from '@/lib/scoring/grade'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
-import { WorkStyleProfileCard } from '@/components/dashboard/WorkStyleProfileCard'
-import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
+import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
+import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+type EngineKey = SearchExecutionEngine['key']
+const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
 
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
 
-  const [grade, recentReports, applicationsCount] = await Promise.all([
+  const [grade, recentReports, applicationsCount, currentSprint] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.sundayNightReport.findMany({
       where: { candidateId: profile.id },
@@ -19,10 +24,27 @@ export default async function YourStatsPage() {
       select: { weekStartDate: true, gradeSnapshot: true, onAList: true },
     }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
+    getCurrentWeekSprint(profile.id),
   ])
-  const latestAssessment = profile.assessmentResponses[0]
 
   const aListWeeks = recentReports.filter((r) => r.onAList)
+  const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
+  const completedByEngine = new Map<EngineKey, CommittedAction[]>()
+  for (const action of committedActions) {
+    if (!action.completed || !action.actionType) continue
+    const engine = engineForActionType(action.actionType)
+    completedByEngine.set(engine, [...(completedByEngine.get(engine) ?? []), action])
+  }
+
+  const availableByEngine = new Map<EngineKey, { text: string; actionType?: string; points: number }[]>()
+  for (const task of CANONICAL_TASK_MENU) {
+    const engine = engineForActionType(task.actionType)
+    const points = estimateActionEffort(task).points
+    availableByEngine.set(engine, [
+      ...(availableByEngine.get(engine) ?? []),
+      { text: task.text, actionType: task.actionType, points },
+    ])
+  }
 
   return (
     <div className="space-y-8">
@@ -36,12 +58,16 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            This week&apos;s points, by category
-          </CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s Search Score</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl font-bold text-foreground">{grade.searchExecution.grade}</span>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget} points
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {grade.searchExecution.engines.map((e) => (
               <div key={e.key} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <span className="text-sm text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
@@ -49,10 +75,75 @@ export default async function YourStatsPage() {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {grade.searchExecution.weeklyPoints} of {grade.searchExecution.weeklyPointsTarget} points
-            toward this week&apos;s A, spread across all four.
-          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Actions completed this week</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {committedActions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              You haven&apos;t committed to this week&apos;s actions yet — set them up from the dashboard.
+            </p>
+          ) : (
+            ENGINE_ORDER.map((engine) => {
+              const actions = completedByEngine.get(engine)
+              if (!actions || actions.length === 0) return null
+              return (
+                <div key={engine}>
+                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    {SEARCH_EXECUTION_ENGINE_LABEL[engine]}
+                  </h3>
+                  <ul className="mt-2 space-y-1">
+                    {actions.map((a, i) => (
+                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-foreground">{a.text}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{a.points} pts</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">See all actions you can do</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {ENGINE_ORDER.map((engine) => {
+            const tasks = availableByEngine.get(engine)
+            if (!tasks || tasks.length === 0) return null
+            return (
+              <div key={engine}>
+                <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                  {SEARCH_EXECUTION_ENGINE_LABEL[engine]}
+                </h3>
+                <ul className="mt-2 space-y-1">
+                  {tasks.map((task, i) => {
+                    const href = task.actionType ? ACTION_TYPE_LINK[task.actionType]?.href : undefined
+                    return (
+                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                        {href ? (
+                          <Link href={href} className="text-foreground hover:underline">
+                            {task.text}
+                          </Link>
+                        ) : (
+                          <span className="text-foreground">{task.text}</span>
+                        )}
+                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{task.points} pts</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
         </CardContent>
       </Card>
 
@@ -128,32 +219,6 @@ export default async function YourStatsPage() {
                 )
               })}
             </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Work Style Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {latestAssessment ? (
-            <WorkStyleProfileCard
-              dimensionVectors={latestAssessment.dimensionVectors as unknown as DimensionVectors}
-            />
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                A quick, optional assessment of how you prefer to work — helps us (and your
-                references) understand what makes you thrive, not just what you can do.
-              </p>
-              <a
-                href="/onboarding/working-style"
-                className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-              >
-                Take the Work Style Assessment
-              </a>
-            </div>
           )}
         </CardContent>
       </Card>

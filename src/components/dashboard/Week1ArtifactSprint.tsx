@@ -9,11 +9,7 @@ export function Week1ArtifactSprint({ artifacts }: { artifacts: Week1Artifact[] 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          <Link href="/dashboard/sprint" className="hover:text-foreground hover:underline">
-            Search Sprint
-          </Link>
-        </CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Sprint</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-foreground">

@@ -1,82 +1,86 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import type { Mood } from '@prisma/client'
+import { TrendingDown, Minus, TrendingUp, Zap, type LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { checkInMood } from '@/app/dashboard/actions'
-import { MOOD_ORDER, MOOD_EMOJI, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
+import { MOOD_ORDER, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
 import { frameActionForMood, type TodaysPrimaryAction } from '@/lib/daily/primary-action'
-import type { Quote } from '@/lib/constants/quotes'
+
+const MOOD_ICON: Record<Mood, LucideIcon> = {
+  STUCK: TrendingDown,
+  GETTING_THERE: Minus,
+  MOVING: TrendingUp,
+  FIRED_UP: Zap,
+}
 
 export function MoodCheckInCard({
-  quote,
   todaysMood,
   currentStreak,
   primaryAction,
   firstName,
 }: {
-  quote: Quote
   todaysMood: Mood | null
   currentStreak: number
   primaryAction: TodaysPrimaryAction | null
   firstName: string | null
 }) {
-  const [editing, setEditing] = useState(false)
-  const showPicker = !todaysMood || editing
+  const [optimisticMood, setOptimisticMood] = useState<Mood | null>(todaysMood)
+  const [optimisticStreak, setOptimisticStreak] = useState(currentStreak)
+  const [isPending, startTransition] = useTransition()
+
+  const mood = optimisticMood ?? todaysMood
+
+  function handleCheckIn(selected: Mood) {
+    setOptimisticMood(selected)
+    if (!todaysMood) setOptimisticStreak((s) => s + 1)
+    startTransition(() => {
+      checkInMood(selected)
+    })
+  }
 
   return (
-    <Card>
+    <Card aria-busy={isPending}>
       <CardHeader>
         <CardTitle className="text-base font-medium text-foreground">
           How motivated are you today{firstName ? `, ${firstName}` : ''}?
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {showPicker && (
-          <blockquote className="text-sm text-muted-foreground italic">
-            &ldquo;{quote.text}&rdquo;
-            <footer className="mt-1 text-xs not-italic text-muted-foreground/80">— {quote.author}</footer>
-          </blockquote>
-        )}
-        {showPicker ? (
+        {!mood ? (
           <div className="flex flex-wrap gap-3 sm:flex-nowrap">
-            {MOOD_ORDER.map((mood) => (
-              <form key={mood} action={checkInMood.bind(null, mood)} className="min-w-[45%] flex-1 sm:min-w-0">
-                <SubmitButton
-                  variant={todaysMood === mood ? 'default' : 'outline'}
-                  className="h-auto w-full flex-col gap-1.5 py-5 text-base"
-                  onClick={() => setEditing(false)}
+            {MOOD_ORDER.map((option) => {
+              const Icon = MOOD_ICON[option]
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => handleCheckIn(option)}
+                  className="flex h-auto min-w-[45%] flex-1 flex-col items-center gap-1.5 rounded-md border border-input bg-white py-5 text-base transition-colors hover:border-brand disabled:cursor-wait sm:min-w-0"
                 >
-                  <span aria-hidden className="text-2xl">
-                    {MOOD_EMOJI[mood]}
-                  </span>
-                  {MOOD_LABEL[mood]}
-                </SubmitButton>
-              </form>
-            ))}
+                  <Icon aria-hidden className="size-5 text-brand" />
+                  {MOOD_LABEL[option]}
+                </button>
+              )
+            })}
           </div>
         ) : (
           <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-sm text-foreground">
-                <span aria-hidden className="mr-1">
-                  {MOOD_EMOJI[todaysMood!]}
-                </span>
-                {MOOD_RESPONSE[todaysMood!]}
-              </p>
-              <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="shrink-0 text-xs text-muted-foreground underline underline-offset-4"
-              >
-                Edit
-              </button>
-            </div>
+            <p className="text-sm text-foreground">
+              <span className="mr-1.5 inline-flex items-center align-text-bottom">
+                {(() => {
+                  const Icon = MOOD_ICON[mood]
+                  return <Icon aria-hidden className="size-4 text-brand" />
+                })()}
+              </span>
+              {MOOD_RESPONSE[mood]}
+            </p>
             {primaryAction && (
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">Today&apos;s move: </span>
-                {frameActionForMood(primaryAction.text, todaysMood!)}
+                {frameActionForMood(primaryAction.text, mood)}
                 {primaryAction.engineHint && (
                   <span className="ml-1 text-xs text-muted-foreground">
                     (moves your {primaryAction.engineHint})
@@ -87,9 +91,9 @@ export function MoodCheckInCard({
           </div>
         )}
 
-        {currentStreak > 0 && (
+        {optimisticStreak > 0 && (
           <p className="text-xs text-muted-foreground">
-            🔥 {currentStreak} day{currentStreak === 1 ? '' : 's'} checked in in a row
+            🔥 {optimisticStreak} day{optimisticStreak === 1 ? '' : 's'} checked in in a row
           </p>
         )}
       </CardContent>
