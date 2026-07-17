@@ -7,7 +7,6 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood } from '@/lib/daily/mood'
-import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { getTodaysConnectionAction } from '@/lib/daily/connection-action'
 import {
   getCurrentWeekSprint,
@@ -16,22 +15,21 @@ import {
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
+import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { getGoalLabel } from '@/lib/scoring/goal-label'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
+import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
-import { OnboardingEducationCard } from '@/components/dashboard/OnboardingEducationCard'
-import { WorkingStyleActionCard } from '@/components/dashboard/WorkingStyleActionCard'
-import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
+import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
-import type { ActionDay } from '@/lib/daily/primary-action'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
 import { getUnviewedSessionImpact } from '@/lib/coach/session-impact'
@@ -85,11 +83,12 @@ export default async function DashboardPage() {
     currentSprint,
     suggestedActions,
     searchExecutionAvailable,
-    latestReport,
+    ,
     narrative,
     outreachCount,
     existingBountyClaimCount,
     sessionImpact,
+    dashboardMessage,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id),
@@ -109,11 +108,10 @@ export default async function DashboardPage() {
     prisma.outreachLog.count({ where: { candidateId: profile.id } }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
+    getNextDashboardMessage(profile.id),
   ])
 
-  const primaryAction = latestReport
-    ? getTodaysPrimaryAction(latestReport.actionPlan as unknown as ActionDay[], latestReport.generatedAt)
-    : null
+  const todaysIdeas = getMoodCardIdeas(currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null)
 
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -143,16 +141,18 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {casuallySearching
             ? `Your goal is to ${goalLabel.toLowerCase()} — whenever you're ready to prioritize it.`
-            : `Week ${weekNumber} · Day ${dayNumber} — Your goal is to ${goalLabel}.`}
+            : `Your goal is to ${goalLabel}.`}
         </p>
       </div>
 
-      {isFirstWeek && <OnboardingEducationCard />}
+      <DashboardMessageCard message={dashboardMessage} />
 
       <DashboardTopStrip
         grade={grade}
         searchExecutionAvailable={searchExecutionAvailable}
         currentStreak={profile.currentStreak}
+        weekNumber={weekNumber}
+        dayNumber={dayNumber}
       />
 
       <EmployerInterestSection candidateId={profile.id} />
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
         <MoodCheckInCard
           todaysMood={todaysMood}
           currentStreak={profile.currentStreak}
-          primaryAction={primaryAction}
+          todaysIdeas={todaysIdeas}
           firstName={profile.firstName}
         />
 
@@ -188,13 +188,6 @@ export default async function DashboardPage() {
 
       <div className="space-y-4 border-t border-border pt-8">
         <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
-        <WorkingStyleActionCard
-          dimensionVectors={
-            profile.assessmentResponses[0]
-              ? (profile.assessmentResponses[0].dimensionVectors as unknown as DimensionVectors)
-              : null
-          }
-        />
         <CoachChatCard initialMessages={conversation.messages} />
       </div>
     </div>

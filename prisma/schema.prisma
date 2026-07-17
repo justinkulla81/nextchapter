@@ -476,6 +476,7 @@ model CandidateProfile {
   coachSessions CoachSession[]
 
   resumeSubmissionLeads ResumeSubmissionLead[]
+  messageDismissals     CandidateMessageDismissal[]
 
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
@@ -1567,4 +1568,33 @@ model Recruiter {
   accessToken  String   @unique @default(cuid())
   createdAt    DateTime @default(now())
   isSampleData Boolean  @default(false)
+}
+
+// Admin-authored dashboard message rotation. One message is always pinned
+// (isPinned — the "How NextChapter works" orientation content) and shown
+// first to every candidate until they dismiss it; after that, whichever
+// active, non-pinned message they haven't dismissed yet is shown next.
+// No scheduling/targeting here by design — that's more than the current
+// need (a simple rotating admin-authored feed) calls for.
+model DashboardMessage {
+  id        String   @id @default(cuid())
+  title     String
+  bullets   String[]
+  footer    String? // optional closing line, e.g. the "Start with this week's Sprint" nudge
+  isActive  Boolean  @default(true)
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  dismissals CandidateMessageDismissal[]
+}
+
+model CandidateMessageDismissal {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  messageId   String
+  message     DashboardMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  dismissedAt DateTime         @default(now())
+
+  @@unique([candidateId, messageId])
 }

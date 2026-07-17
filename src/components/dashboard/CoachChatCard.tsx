@@ -49,8 +49,9 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
             )}
           </span>
           <div>
-            <CardTitle className="text-sm font-medium text-foreground">Victoria, Your Executive Coach</CardTitle>
-            <p className="text-xs text-muted-foreground">What can I help you with your search?</p>
+            <CardTitle className="text-sm font-medium text-foreground">
+              Hi, I&apos;m Victoria, Your Executive Coach
+            </CardTitle>
           </div>
         </div>
       </CardHeader>

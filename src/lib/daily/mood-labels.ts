@@ -13,11 +13,12 @@ export const MOOD_LABEL: Record<Mood, string> = {
   FIRED_UP: 'Fired up',
 }
 
-// Victoria's immediate reaction to the tapped mood — shown right after
-// check-in, ahead of today's primary action.
+// Victoria's immediate reaction to the tapped mood — a short, clean line
+// shown right above today's ideas. No dash-interjection punctuation; each
+// is a complete, self-contained reaction.
 export const MOOD_RESPONSE: Record<Mood, string> = {
-  STUCK: "That's real, and it happens in every search. Let's not tackle everything today — just the smallest next step.",
-  GETTING_THERE: "Good — that counts as progress. Here's today's move.",
-  MOVING: "You're building something real. Let's keep the momentum going.",
-  FIRED_UP: "Let's use it. Here's today's move — and a stretch option if you want more.",
+  STUCK: "That's real, and it happens in every search.",
+  GETTING_THERE: 'Glad to hear it.',
+  MOVING: "That's great to hear.",
+  FIRED_UP: 'Love that energy.',
 }

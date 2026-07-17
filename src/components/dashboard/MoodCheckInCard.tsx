@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import type { Mood } from '@prisma/client'
+import Link from 'next/link'
 import { TrendingDown, Minus, TrendingUp, Zap, type LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { checkInMood } from '@/app/dashboard/actions'
 import { MOOD_ORDER, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
-import { frameActionForMood, type TodaysPrimaryAction } from '@/lib/daily/primary-action'
+import { ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
+import type { CommittedAction } from '@/lib/weekly/sprint'
 
 const MOOD_ICON: Record<Mood, LucideIcon> = {
   STUCK: TrendingDown,
@@ -18,12 +20,12 @@ const MOOD_ICON: Record<Mood, LucideIcon> = {
 export function MoodCheckInCard({
   todaysMood,
   currentStreak,
-  primaryAction,
+  todaysIdeas,
   firstName,
 }: {
   todaysMood: Mood | null
   currentStreak: number
-  primaryAction: TodaysPrimaryAction | null
+  todaysIdeas: CommittedAction[]
   firstName: string | null
 }) {
   const [optimisticMood, setOptimisticMood] = useState<Mood | null>(todaysMood)
@@ -77,16 +79,26 @@ export function MoodCheckInCard({
               </span>
               {MOOD_RESPONSE[mood]}
             </p>
-            {primaryAction && (
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Today&apos;s move: </span>
-                {frameActionForMood(primaryAction.text, mood)}
-                {primaryAction.engineHint && (
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    (moves your {primaryAction.engineHint})
-                  </span>
-                )}
-              </p>
+            {todaysIdeas.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Here&apos;s some ideas for you to do today:</p>
+                <ul className="list-disc space-y-1 pl-4 text-sm text-muted-foreground">
+                  {todaysIdeas.map((idea, i) => {
+                    const link = idea.actionType ? ACTION_TYPE_LINK[idea.actionType] : undefined
+                    return (
+                      <li key={i}>
+                        {link ? (
+                          <Link href={link.href} className="text-primary underline underline-offset-4">
+                            {idea.text}
+                          </Link>
+                        ) : (
+                          idea.text
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
             )}
           </div>
         )}

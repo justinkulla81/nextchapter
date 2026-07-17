@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts",
+    "seed:dashboard-messages": "tsx --env-file=.env.local scripts/seed-dashboard-messages.ts",
     "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts"
   },
   "dependencies": {

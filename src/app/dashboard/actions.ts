@@ -64,6 +64,19 @@ export async function checkInMood(mood: Mood) {
   revalidatePath('/dashboard')
 }
 
+export async function dismissDashboardMessage(messageId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateMessageDismissal.upsert({
+    where: { candidateId_messageId: { candidateId: profile.id, messageId } },
+    create: { candidateId: profile.id, messageId },
+    update: {},
+  })
+  captureServerEvent(profile.id, 'dashboard_message_dismissed', { messageId })
+  revalidatePath('/dashboard')
+}
+
 export async function setActionWindow(actionWindow: ActionWindow) {
   const profile = await getAuthedProfile()
   if (!profile) return

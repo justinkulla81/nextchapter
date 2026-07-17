@@ -120,12 +120,12 @@ function NavContent({
   }))
 
   return (
-    <nav className="flex h-full flex-col gap-5 overflow-y-auto px-4 py-6">
+    <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
       <Logo className="px-2 text-xl text-white" />
       {visibleSections.map((section, i) => (
-        <div key={section.title ?? `top-${i}`} className="space-y-0.5">
+        <div key={section.title ?? `top-${i}`} className="space-y-px">
           {section.title && (
-            <p className="px-2 pb-1 text-[10px] font-semibold tracking-widest text-white/50 uppercase">
+            <p className="px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase">
               {section.title}
             </p>
           )}
@@ -135,7 +135,7 @@ function NavContent({
               href={link.href}
               onClick={onNavigate}
               className={cn(
-                'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors',
+                'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium transition-colors',
                 isActive(link.href)
                   ? 'bg-white/15 text-white'
                   : 'text-white/70 hover:bg-white/10 hover:text-white'
