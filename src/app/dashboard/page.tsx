@@ -95,7 +95,7 @@ export default async function DashboardPage() {
     getTodaysMood(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprint(profile.id),
-    isFirstWeek ? Promise.resolve([]) : getSuggestedActions(profile.id, weekNumber),
+    getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
     // The registration-time after() callback that normally generates AND
     // emails the first report can get cut off by the platform's function
@@ -163,21 +163,19 @@ export default async function DashboardPage() {
           firstName={profile.firstName}
         />
 
-        {isFirstWeek ? (
-          <Week1ArtifactSprint artifacts={week1Artifacts} />
-        ) : (
-          <SuccessSprintCard
-            actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
-            suggestedActions={suggestedActions}
-            marketRealityGrade={grade.marketReality.grade}
-            weekNumber={weekNumber}
-            editWindowOpen={editWindowOpen}
-            weeklySprintsCount={profile._count.weeklySprints}
-            engines={grade.searchExecution.engines}
-            laggingEngines={grade.searchExecution.laggingEngines}
-            categoryMinimumsMet={grade.searchExecution.categoryMinimumsMet}
-          />
-        )}
+        {isFirstWeek && <Week1ArtifactSprint artifacts={week1Artifacts} />}
+
+        <SuccessSprintCard
+          actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
+          suggestedActions={suggestedActions}
+          marketRealityGrade={grade.marketReality.grade}
+          weekNumber={weekNumber}
+          editWindowOpen={editWindowOpen}
+          weeklySprintsCount={profile._count.weeklySprints}
+          engines={grade.searchExecution.engines}
+          laggingEngines={grade.searchExecution.laggingEngines}
+          categoryMinimumsMet={grade.searchExecution.categoryMinimumsMet}
+        />
       </div>
 
       {(showGotHiredCTA || showCoachingCTA || sessionImpact) && (
