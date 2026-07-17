@@ -46,17 +46,17 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
       links: [
         { href: '/dashboard/search-strategy', label: 'Search Strategy' },
         { href: '/dashboard/resume', label: 'My Resume' },
-        { href: '/dashboard/linkedin', label: 'Grow My LinkedIn' },
+        { href: '/dashboard/linkedin', label: 'My LinkedIn' },
         { href: '/dashboard/work-samples', label: 'My Proof Assets' },
-        { href: '/dashboard/thought-leadership', label: 'Build Thought Leadership' },
-        { href: '/dashboard/retake-assessment', label: 'My Working Style' },
+        { href: '/dashboard/retake-assessment', label: 'My Working Style Profile' },
       ],
     },
     {
       title: 'Effort',
       links: [
-        { href: '/dashboard/references', label: 'Get References' },
-        { href: '/dashboard/job-fit', label: 'Job Fit' },
+        { href: '/dashboard/references', label: 'My References' },
+        { href: '/dashboard/thought-leadership', label: 'My Thought Leadership' },
+        { href: '/dashboard/job-fit', label: 'Job Strategy' },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
       ],
     },
@@ -76,7 +76,7 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
     {
       title: 'Learning & Working',
       links: [
-        { href: '/dashboard/learning', label: 'New Skills' },
+        { href: '/dashboard/learning', label: 'Learn New Skills' },
         { href: '/dashboard/gig-directory', label: 'Find Interim Work' },
       ],
     },
@@ -85,7 +85,7 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
       links: [
         { href: '/dashboard/profile', label: 'My Profile' },
         { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
-        { href: '/dashboard/support', label: "I'm struggling" },
+        { href: '/dashboard/support', label: "I'm Struggling" },
         { href: '/dashboard/stats', label: 'My Stats & Reports' },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },
       ],
