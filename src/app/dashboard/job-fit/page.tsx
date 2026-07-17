@@ -17,6 +17,8 @@ import {
   markInterviewComplete,
 } from './actions'
 import { ThankYouNoteCard } from '@/components/dashboard/ThankYouNoteCard'
+import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
+import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
@@ -108,6 +110,8 @@ export default async function JobFitPage() {
         ) : (
           <JobUrlForm />
         )}
+
+        <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
 
         {profile.jobPostings.length > 0 && (
           <div className="space-y-4">
@@ -204,13 +208,9 @@ export default async function JobFitPage() {
                   )}
 
                   {posting.fitScore !== null && (
-                    <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                    <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
                       {!posting.appliedAt && (
-                        <form action={markApplied.bind(null, posting.id)}>
-                          <SubmitButton variant="outline" size="sm">
-                            Applied
-                          </SubmitButton>
-                        </form>
+                        <MarkAppliedForm jobPostingId={posting.id} markApplied={markApplied} />
                       )}
                       {!posting.coverLetter && (
                         <form action={generateCoverLetterAction.bind(null, posting.id)}>

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { JobReactionType, NotInterestedReason } from '@prisma/client'
+import type { ApplicationChannel, JobReactionType, NotInterestedReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -139,7 +139,7 @@ export async function submitJobPostingText(jobPostingId: string, formData: FormD
   revalidatePath('/dashboard/job-fit')
 }
 
-export async function markApplied(jobPostingId: string) {
+export async function markApplied(jobPostingId: string, formData: FormData) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -152,11 +152,14 @@ export async function markApplied(jobPostingId: string) {
   })
   if (!jobPosting || jobPosting.appliedAt) return
 
+  const channel = formData.get('channel') as ApplicationChannel | null
+
   await prisma.jobPosting.update({
     where: { id: jobPostingId },
-    data: { appliedAt: new Date() },
+    data: { appliedAt: new Date(), channel: channel ?? null },
   })
   await recalculateScore(profile.id, 'job_applied')
+  captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
 
   revalidatePath('/dashboard/job-fit')
 }

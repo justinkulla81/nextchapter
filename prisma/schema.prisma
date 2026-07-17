@@ -183,6 +183,14 @@ enum ContentVenue {
   PODCAST
 }
 
+enum ApplicationChannel {
+  COLD_APPLICATION // job board or company site, no personal connection
+  REFERRAL // someone at the company referred you
+  RECRUITER_OUTREACH // a recruiter reached out to you
+  WARM_NETWORK_INTRO // introduced through your network
+  OTHER
+}
+
 enum JobReactionType {
   INTERESTED
   NOT_INTERESTED
@@ -983,6 +991,7 @@ model JobPosting {
   negotiationAdviceAnalyzedAt DateTime?
 
   appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
+  channel                ApplicationChannel? // captured at the moment of marking applied; null on rows logged before this field existed
   coverLetter            String?   @db.Text
   coverLetterError       String?
   coverLetterGeneratedAt DateTime?
