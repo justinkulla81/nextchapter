@@ -29,6 +29,9 @@ export function LearningBadgeList({ badges }: { badges: LearningBadge[] }) {
               {badge.provider ? ` · ${badge.provider}` : ''} ·{' '}
               {badge.completedAt.toLocaleDateString()}
             </p>
+            {badge.description && (
+              <p className="mt-1 text-sm text-foreground">{badge.description}</p>
+            )}
           </div>
           <form action={deleteLearningBadge.bind(null, badge.id)}>
             <SubmitButton variant="ghost" size="sm">

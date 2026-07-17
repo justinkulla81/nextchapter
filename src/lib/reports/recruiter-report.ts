@@ -32,6 +32,10 @@ export interface RecruiterReportData {
     evidenceType: EvidenceType
   }[]
   learningItems: { title: string; provider: string | null; completedAt: Date; evidenceType: EvidenceType }[]
+  // AI projects — logged via the "Log an AI project" flow on the Learning
+  // page — kept separate from learningItems since they carry a description
+  // (what was actually built) rather than just a title/provider.
+  aiProjects: { title: string; toolUsed: string | null; description: string | null; evidenceType: EvidenceType }[]
   availability: {
     statusLabel: string | null
     targetRoleType: string | null
@@ -120,12 +124,22 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
       wouldHireAgain: r.wouldHireAgain,
       evidenceType: 'reference_verified' as const,
     })),
-    learningItems: candidate.learningBadges.map((b) => ({
-      title: b.title,
-      provider: b.provider,
-      completedAt: b.completedAt,
-      evidenceType: b.verified ? ('verified_fact' as const) : ('self_reported' as const),
-    })),
+    learningItems: candidate.learningBadges
+      .filter((b) => b.badgeType !== 'ai_project')
+      .map((b) => ({
+        title: b.title,
+        provider: b.provider,
+        completedAt: b.completedAt,
+        evidenceType: b.verified ? ('verified_fact' as const) : ('self_reported' as const),
+      })),
+    aiProjects: candidate.learningBadges
+      .filter((b) => b.badgeType === 'ai_project')
+      .map((b) => ({
+        title: b.title,
+        toolUsed: b.provider,
+        description: b.description,
+        evidenceType: b.verified ? ('verified_fact' as const) : ('self_reported' as const),
+      })),
     availability: {
       statusLabel: candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : null,
       targetRoleType: candidate.targetRoleType,

@@ -109,6 +109,32 @@ export default async function RecruiterReportPage() {
           </section>
         )}
 
+        {data.aiProjects.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                AI Fluency
+              </h3>
+              <EvidenceTypeBadge type={data.aiProjects[0].evidenceType} />
+            </div>
+            <div className="mt-2 space-y-3">
+              {data.aiProjects.map((project, i) => (
+                <div key={i}>
+                  <p className="text-sm font-medium text-foreground">
+                    {project.title}
+                    {project.toolUsed && (
+                      <span className="ml-2 text-xs text-muted-foreground">{project.toolUsed}</span>
+                    )}
+                  </p>
+                  {project.description && (
+                    <p className="text-sm text-muted-foreground">{project.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {data.learningItems.length > 0 && (
           <section>
             <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">

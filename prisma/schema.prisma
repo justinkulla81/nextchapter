@@ -642,6 +642,7 @@ model LearningBadge {
   badgeType       String // "course_completed" | "certification" | "ai_project" | "conference_talk" | "published"
   title           String
   provider        String?
+  description     String?        @db.Text // what was built/produced — only "ai_project" badges use this today
   completedAt     DateTime
   verificationUrl String?
   verified        Boolean  @default(false)

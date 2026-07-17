@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma'
 import { LearningResourceBrowser } from '@/components/dashboard/LearningResourceBrowser'
 import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 import { RecommendedLearningCard } from '@/components/dashboard/RecommendedLearningCard'
+import { LogAiProjectForm } from '@/components/dashboard/LogAiProjectForm'
 import { getAiToolsForFunction } from '@/lib/constants/ai-tools-by-function'
+import { getAiWorkflowForFunction } from '@/lib/constants/ai-fluency-workflows'
 
 interface Resource {
   name: string
@@ -178,6 +180,7 @@ export default async function LearningPage() {
     : []
 
   const aiTools = getAiToolsForFunction(profile.primaryFunction)
+  const aiWorkflow = getAiWorkflowForFunction(profile.primaryFunction)
   const loggedTitles = new Set(badges.map((b) => b.title))
 
   return (
@@ -231,6 +234,24 @@ export default async function LearningPage() {
                 completed={loggedTitles.has(tool.name)}
               />
             ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
+          <h3 className="text-sm font-medium text-foreground">
+            Guided workflow: {aiWorkflow.title}
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A concrete task you can run today with any AI tool above — finish it and log it as an AI
+            project below so it shows up as real proof, not a course completion.
+          </p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-foreground">
+            {aiWorkflow.steps.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+          <div className="mt-3">
+            <LogAiProjectForm />
           </div>
         </div>
 

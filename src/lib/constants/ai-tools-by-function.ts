@@ -75,8 +75,18 @@ const GENERAL_FALLBACK: AiToolRecommendation[] = [
 ]
 
 export function getAiToolsForFunction(primaryFunction: string | null): AiToolRecommendation[] {
-  if (!primaryFunction) return GENERAL_FALLBACK
+  return matchByFunction(primaryFunction, AI_TOOLS_BY_KEYWORD.map((g) => ({ keywords: g.keywords, value: g.tools }))) ?? GENERAL_FALLBACK
+}
+
+// Shared keyword-match mechanism — reused by ai-fluency-workflows.ts so the
+// "what's your function" branching logic isn't duplicated, even though the
+// two files' content (tools vs. guided workflows) is unrelated.
+export function matchByFunction<T>(
+  primaryFunction: string | null,
+  groups: { keywords: string[]; value: T }[]
+): T | null {
+  if (!primaryFunction) return null
   const normalized = primaryFunction.toLowerCase()
-  const match = AI_TOOLS_BY_KEYWORD.find((group) => group.keywords.some((k) => normalized.includes(k)))
-  return match?.tools ?? GENERAL_FALLBACK
+  const match = groups.find((group) => group.keywords.some((k) => normalized.includes(k)))
+  return match?.value ?? null
 }
