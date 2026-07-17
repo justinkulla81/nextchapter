@@ -191,6 +191,12 @@ enum ApplicationChannel {
   OTHER
 }
 
+enum NotificationTier {
+  FULL // daily nudge every day
+  ESSENTIALS // daily nudge twice a week (Mon/Thu) instead of daily
+  MINIMAL // no recurring nudge — core/transactional emails only
+}
+
 enum JobReactionType {
   INTERESTED
   NOT_INTERESTED
@@ -378,6 +384,13 @@ model CandidateProfile {
   lastDailyEmailSentAt DateTime?
   dailyEmailOptedOut   Boolean      @default(false)
   weeklyReportOptedOut Boolean      @default(false)
+  notificationTier     NotificationTier @default(FULL)
+
+  // TCPA-compliant SMS opt-in — deliberately separate from the resume-extracted
+  // `phone` field above and from email preferences; SMS consent must be its
+  // own explicit opt-in, never inferred. smsConsentedAt null = never send SMS.
+  smsPhone       String?
+  smsConsentedAt DateTime?
 
   // The Circle — community support + recognition
   aListOptOut              Boolean @default(false) // opt out of A-List name recognition specifically

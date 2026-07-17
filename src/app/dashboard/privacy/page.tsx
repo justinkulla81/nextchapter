@@ -1,5 +1,7 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
+import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
+import { SmsConsentForm } from '@/components/candidates/SmsConsentForm'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
@@ -34,7 +36,19 @@ export default async function PrivacyPage() {
 
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Notifications</h2>
+        <p className="text-sm text-muted-foreground">
+          How often you hear from us. Your Hireability Report and any reminder emails always send
+          regardless of this setting.
+        </p>
+        <NotificationTierSelector currentTier={profile.notificationTier} />
         <ActionWindowSelector current={profile.actionWindow} />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold">Text messages</h2>
+        </div>
+        <SmsConsentForm smsPhone={profile.smsPhone} smsConsented={!!profile.smsConsentedAt} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

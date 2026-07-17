@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     where: {
       registrationCompletedAt: { not: null },
       dailyEmailOptedOut: false,
+      notificationTier: { not: 'MINIMAL' },
       OR: [{ lastDailyEmailSentAt: null }, { lastDailyEmailSentAt: { lt: startOfTodayUTC } }],
     },
   })

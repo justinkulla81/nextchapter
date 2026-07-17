@@ -6,6 +6,7 @@ import { getVictoriaName } from '@/lib/victoria'
 import { getTodaysPrimaryAction, type ActionDay } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
+import { shouldSendDailyEmailForTier } from '@/lib/email/notification-tier'
 import DailyActionEmail from '@/emails/daily-action'
 import Week1KickoffEmail from '@/emails/week1-kickoff'
 
@@ -92,6 +93,12 @@ export async function sendDailyActionEmail(candidateId: string) {
         data: { lastDailyEmailSentAt: new Date() },
       })
       return { sent: true as const }
+    }
+
+    // The Week 1 kickoff above is a one-time onboarding email and always
+    // sends; only the recurring nudge below is gated by notification tier.
+    if (!shouldSendDailyEmailForTier(candidate.notificationTier, new Date())) {
+      return { sent: false as const }
     }
 
     const daysSinceCheckIn = candidate.lastCheckInAt
