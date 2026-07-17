@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Logo } from '@/components/Logo'
-import { Button } from '@/components/ui/button'
+import { PersonaOnboardingCta } from '@/components/start/PersonaOnboardingCta'
 import { PERSONAS, getPersona } from '@/lib/constants/personas'
 
 export function generateStaticParams() {
@@ -56,9 +56,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ person
           ))}
         </div>
         <div className="mt-8">
-          <Button size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
-            Get your Hireability Assessment
-          </Button>
+          <PersonaOnboardingCta persona={persona.slug} situation={persona.situation} />
         </div>
       </div>
 

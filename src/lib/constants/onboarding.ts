@@ -10,9 +10,10 @@ export const CURRENT_JOB_STATUS_LABELS: Record<CurrentJobStatus, string> = {
   NEW_GRADUATE_FIRST_JOB: 'New Graduate / First Job',
 }
 
-// Keys used by the homepage's situational entry cards — shared with the
-// onboarding circumstances step so a homepage click can pre-fill (and skip
-// re-asking) the equivalent CurrentJobStatus question.
+// Keys used by the homepage's situational entry cards and the persona
+// landing pages (/start/[persona]) — shared with the onboarding
+// circumstances step so a click on either entry point can pre-fill (and
+// skip re-asking) the equivalent CurrentJobStatus question.
 export const SITUATION_TO_JOB_STATUS = {
   worried_let_go: 'EMPLOYED_CONSIDERING_MOVE',
   just_resigned: 'RESIGNED',
