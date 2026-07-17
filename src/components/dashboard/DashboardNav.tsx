@@ -76,6 +76,7 @@ const SECTIONS: NavSection[] = [
   {
     title: null,
     links: [
+      { href: '/dashboard/search-strategy', label: 'Search Strategy' },
       { href: '/dashboard/retake-assessment', label: 'My Working Style' },
       { href: '/dashboard/hireability-report', label: 'Hireability Report' },
       { href: '/dashboard/stats', label: 'Your Stats' },

@@ -301,6 +301,15 @@ model CandidateProfile {
   equityImportant     Boolean  @default(false)
   dealBreakers        String?
 
+  // Search Strategy — a standalone, editable-anytime setup step. Search
+  // Stage itself isn't stored here — it's derived from currentJobStatus +
+  // gapDuration, see searchStage() in src/lib/search-strategy.ts.
+  applicationVolumeGoal     Int?     // target applications per week
+  isPivoting                Boolean  @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  skillsStillNeeded         String?
+  interimConsultingInterest Boolean  @default(false)
+  searchStrategyConfirmedAt DateTime?
+
   // Resume auto-fill (Phase 1) — unconfirmed until candidate confirms via action plan
   firstName               String?
   lastName                String?
