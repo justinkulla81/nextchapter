@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
-import { SubmitButton } from '@/components/ui/submit-button'
-import { markSessionComplete } from './actions'
+import { LogSessionForm } from '@/components/coach/LogSessionForm'
 
 const TREND_LABEL: Record<string, string> = {
   up: '↑ improving',
@@ -19,10 +18,10 @@ export default async function PreSessionBriefPage({
 }) {
   const { token, clientId } = await params
 
-  const coach = await prisma.coach.findUnique({ where: { accessToken: token } })
+  const coach = await getCoachByToken(token)
   if (!coach) notFound()
 
-  const candidate = await prisma.candidateProfile.findFirst({ where: { id: clientId, coachId: coach.id } })
+  const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
   const brief = await getPreSessionBrief(candidate.id)
@@ -101,9 +100,19 @@ export default async function PreSessionBriefPage({
           <p className="mt-1 text-sm text-foreground">&ldquo;{brief.suggestedOpeningQuestion}&rdquo;</p>
         </div>
 
-        <form action={markSessionComplete.bind(null, token, clientId)}>
-          <SubmitButton variant="outline">Mark session complete</SubmitButton>
-        </form>
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-muted-foreground">Log this session</p>
+          <div className="mt-3">
+            <LogSessionForm token={token} clientId={clientId} />
+          </div>
+        </div>
+
+        <Link
+          href={`/support/coach/clients/${token}/${clientId}/full`}
+          className="inline-block text-sm font-medium text-brand underline underline-offset-4"
+        >
+          View full client profile →
+        </Link>
       </div>
     </div>
   )

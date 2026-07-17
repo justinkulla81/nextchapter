@@ -1497,14 +1497,21 @@ model Coach {
   createdAt    DateTime      @default(now())
   isSampleData Boolean       @default(false)
 
+  // Branding-only white-label (Batch 13) — same domain, no custom domains.
+  // Applied to the coach's own settings/tools chrome and, when set, to a
+  // client-facing surface later; Calendar/Meet booking and billing are
+  // explicitly deferred, tracked as separate follow-ups.
+  logoUrl     String?
+  accentColor String? // hex, chosen from a small curated palette — not a free-form picker
+
   clients  CandidateProfile[]
   sessions CoachSession[]
 }
 
-// Minimal record that a 1:1 coaching session happened — deliberately just a
-// timestamp, no notes/directives fields, matching Coach P0-lite's own
-// intentional thinness above. Exists so the candidate-facing Session Impact
-// Report has a real before/after boundary to compute against.
+// A 1:1 coaching session. Batch 13 adds real notes (coach-private) and
+// directives (client-facing action items) on top of the original P0-lite
+// timestamp-only record — the Session Impact Report's before/after boundary
+// math is unchanged, this just gives the session actual content.
 model CoachSession {
   id                  String           @id @default(cuid())
   candidateId         String
@@ -1513,6 +1520,9 @@ model CoachSession {
   coach               Coach            @relation(fields: [coachId], references: [id])
   occurredAt          DateTime         @default(now())
   viewedByCandidateAt DateTime?
+  durationMinutes     Int?
+  notes               String?          @db.Text // coach-private, never shown to the candidate
+  directives          String?          @db.Text // client-facing action items from this session
 
   @@index([candidateId, occurredAt])
 }

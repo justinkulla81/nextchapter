@@ -113,6 +113,14 @@ export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
           <Link href="/" className="underline underline-offset-4">
             NextChapter for candidates
           </Link>
+          {tab.id === 'for-coaches' && (
+            <>
+              {' · '}
+              <Link href="/coach-platform" className="underline underline-offset-4">
+                Want your own branded platform? →
+              </Link>
+            </>
+          )}
         </div>
       </main>
     </div>

@@ -12,6 +12,7 @@ export interface SessionImpactReport {
   actionsCompletedSinceLastSession: number
   avoidancePatternStillPresent: string | null
   summary: string
+  directives: string | null
 }
 
 export async function getSessionImpactReport(candidateId: string): Promise<SessionImpactReport | null> {
@@ -78,6 +79,7 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
     actionsCompletedSinceLastSession,
     avoidancePatternStillPresent: avoidancePattern?.actionType ?? null,
     summary,
+    directives: latestSession.directives,
   }
 }
 
