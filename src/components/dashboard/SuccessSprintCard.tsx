@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ACTION_TYPE_LINK, formatMinutes, type SuggestedActionLike } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
-import type { Grade } from '@/lib/scoring/grade'
+import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, SEARCH_EXECUTION_ENGINE_LABEL } from '@/lib/scoring/grade'
+import type { Grade, SearchExecutionEngine } from '@/lib/scoring/grade'
 import { toggleSprintAction } from '@/app/dashboard/sprint/actions'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 
@@ -21,12 +22,20 @@ export function SuccessSprintCard({
   marketRealityGrade,
   weekNumber,
   editWindowOpen,
+  weeklySprintsCount,
+  engines,
+  laggingEngines,
+  categoryMinimumsMet,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
   marketRealityGrade: Grade
   weekNumber: number
   editWindowOpen: boolean
+  weeklySprintsCount: number
+  engines: SearchExecutionEngine[]
+  laggingEngines: SearchExecutionEngine['key'][]
+  categoryMinimumsMet: boolean
 }) {
   const [showSetup, setShowSetup] = useState(!actions || actions.length === 0)
 
@@ -38,6 +47,10 @@ export function SuccessSprintCard({
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Sprint</CardTitle>
+        <CardDescription>
+          Choose the actions you&apos;re committing to this week — each shows how long it takes and
+          how many points it&apos;s worth.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {actions && actions.length > 0 && (
@@ -117,6 +130,33 @@ export function SuccessSprintCard({
               locked={!editWindowOpen}
             />
           ))}
+
+        {weeklySprintsCount >= CATEGORY_MINIMUM_ENFORCED_FROM_WEEK && (
+          <div className="border-t border-border pt-4">
+            <h3 className="text-sm font-medium text-foreground">Week 4+ Requirements</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              From here on, an A in Search Action Grade requires real work across all four
+              engines — not just one you&apos;re comfortable with.
+            </p>
+            <ul className="mt-3 space-y-1.5 text-sm">
+              {engines.map((e) => (
+                <li key={e.key} className="flex items-center gap-2">
+                  <span>{laggingEngines.includes(e.key) ? '☐' : '☑'}</span>
+                  <span className="text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
+                  {laggingEngines.includes(e.key) && (
+                    <span className="text-xs text-muted-foreground">needs real work this week</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {!categoryMinimumsMet && (
+              <p className="mt-3 text-sm font-medium text-foreground">
+                Your grade is capped at B until every engine clears the bar — real effort spread
+                across all four, not stacked in one.
+              </p>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

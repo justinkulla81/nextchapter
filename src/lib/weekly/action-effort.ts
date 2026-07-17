@@ -184,18 +184,6 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
 }
 
-// The Mood Check-In card's "here's some ideas for today" list — the
-// current week's Sprint is the one real source of "what should I do today,"
-// so this just filters it down to what's left, capped to a short scannable
-// list rather than dumping the whole committed list.
-export function getMoodCardIdeas<T extends { text: string; actionType?: string; completed: boolean }>(
-  committedActions: T[] | null | undefined,
-  max = 3
-): T[] {
-  if (!committedActions) return []
-  return committedActions.filter((a) => !a.completed).slice(0, max)
-}
-
 export function formatMinutes(minutes: number): string {
   if (minutes < 60) return `~${minutes} min`
   const hours = minutes / 60

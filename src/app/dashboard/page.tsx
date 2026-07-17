@@ -6,7 +6,6 @@ import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { getTodaysMood } from '@/lib/daily/mood'
 import { getTodaysConnectionAction } from '@/lib/daily/connection-action'
 import {
   getCurrentWeekSprint,
@@ -15,7 +14,6 @@ import {
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
-import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
@@ -23,7 +21,6 @@ import { getGoalLabel } from '@/lib/scoring/goal-label'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
-import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
@@ -79,7 +76,6 @@ export default async function DashboardPage() {
     },
     conversation,
     grade,
-    todaysMood,
     currentSprint,
     suggestedActions,
     searchExecutionAvailable,
@@ -93,7 +89,6 @@ export default async function DashboardPage() {
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id),
     computeHireabilityGrade(profile),
-    getTodaysMood(profile.id),
     getCurrentWeekSprint(profile.id),
     isFirstWeek ? Promise.resolve([]) : getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
@@ -110,8 +105,6 @@ export default async function DashboardPage() {
     getUnviewedSessionImpact(profile.id),
     getNextDashboardMessage(profile.id),
   ])
-
-  const todaysIdeas = getMoodCardIdeas(currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null)
 
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -150,7 +143,6 @@ export default async function DashboardPage() {
       <DashboardTopStrip
         grade={grade}
         searchExecutionAvailable={searchExecutionAvailable}
-        currentStreak={profile.currentStreak}
         weekNumber={weekNumber}
         dayNumber={dayNumber}
       />
@@ -158,13 +150,6 @@ export default async function DashboardPage() {
       <EmployerInterestSection candidateId={profile.id} />
 
       <div className="space-y-3">
-        <MoodCheckInCard
-          todaysMood={todaysMood}
-          currentStreak={profile.currentStreak}
-          todaysIdeas={todaysIdeas}
-          firstName={profile.firstName}
-        />
-
         {isFirstWeek ? (
           <Week1ArtifactSprint artifacts={week1Artifacts} />
         ) : (
@@ -174,6 +159,10 @@ export default async function DashboardPage() {
             marketRealityGrade={grade.marketReality.grade}
             weekNumber={weekNumber}
             editWindowOpen={editWindowOpen}
+            weeklySprintsCount={profile._count.weeklySprints}
+            engines={grade.searchExecution.engines}
+            laggingEngines={grade.searchExecution.laggingEngines}
+            categoryMinimumsMet={grade.searchExecution.categoryMinimumsMet}
           />
         )}
       </div>
@@ -188,7 +177,7 @@ export default async function DashboardPage() {
 
       <div className="space-y-4 border-t border-border pt-8">
         <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
-        <CoachChatCard initialMessages={conversation.messages} />
+        <CoachChatCard initialMessages={conversation.messages} firstName={profile.firstName} />
       </div>
     </div>
   )

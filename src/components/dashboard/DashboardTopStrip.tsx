@@ -15,13 +15,11 @@ const GRADE_COLOR: Record<Grade, string> = {
 export function DashboardTopStrip({
   grade,
   searchExecutionAvailable,
-  currentStreak,
   weekNumber,
   dayNumber,
 }: {
   grade: HireabilityGrade
   searchExecutionAvailable: boolean
-  currentStreak: number
   weekNumber: number
   dayNumber: number
 }) {
@@ -54,14 +52,6 @@ export function DashboardTopStrip({
         ) : (
           <span className="text-lg font-bold text-muted-foreground">N/A</span>
         )}
-      </div>
-
-      <div className="h-6 w-px bg-border" />
-
-      <div className="flex items-center gap-1.5">
-        <span aria-hidden>🔥</span>
-        <span className="text-sm font-semibold text-foreground tabular-nums">{currentStreak}</span>
-        <span className="text-xs text-muted-foreground">day streak</span>
       </div>
 
       <Link href="/dashboard/stats" className="ml-auto text-xs font-medium text-primary underline underline-offset-4">

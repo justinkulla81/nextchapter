@@ -1,6 +1,5 @@
 // Pure, client-safe mood display constants — split out of mood.ts (which is
-// 'server-only', since it also holds the Prisma read/write functions) so
-// client components like MoodCheckInCard can import these directly.
+// 'server-only', since it also holds the Prisma read/write functions).
 
 import type { Mood } from '@prisma/client'
 
