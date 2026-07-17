@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-import { Button } from '@/components/ui/button'
 import { ByTheNumbers } from '@/components/home/ByTheNumbers'
 import { SituationalButtons } from '@/components/home/SituationalButtons'
 
@@ -14,17 +14,12 @@ export const metadata: Metadata = {
 }
 
 const painPoints = [
-  "Applications vanish into a void — you never find out how you're actually coming across.",
-  'ATS filters you out before a human ever reads your name, regardless of how qualified you are.',
-  'LinkedIn is a performance stage, not an honest marketplace — and "Open to Work" reads as a stigma.',
-  'A gap on your resume can feel like something to hide, not something to explain.',
-  "The loneliness is real — a search can feel like the only person who knows you're struggling is you.",
+  "Applications vanish into a void — you never learn why.",
+  "You know you should be networking — but it's hard and demoralizing.",
+  'LinkedIn doesn\'t work, and "Open to Work" reads as a stigma.',
+  "A gap on your resume is held against you unfairly — and there's nothing you could do about it. Until now, with NextChapter.",
+  "The loneliness is real — it's natural to have days, even weeks, of feeling disorganized and demotivated.",
   "The financial pressure doesn't wait, even when the process does.",
-]
-
-const genericRejectionExamples = [
-  '"Thank you for your interest in the [Role] position. After careful consideration, we have decided to move forward with other candidates who more closely match our needs at this time."',
-  '"We appreciate you taking the time to apply and interview with us. Unfortunately, we will not be moving forward with your application at this time. We wish you the best in your search."',
 ]
 
 export default function WhyStuckPage() {
@@ -46,62 +41,61 @@ export default function WhyStuckPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 py-20">
-        <div className="text-center">
+      <section className="bg-white px-6 py-20">
+        <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">
             Why you&apos;re stuck
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            You&apos;re not imagining it. This is genuinely hard — and most of it happens before a
-            human ever sees your name.
+            You&apos;re not imagining it. Unemployment is unpleasant and the search process is
+            genuinely hard.
           </p>
         </div>
+      </section>
 
-        <ul className="mx-auto mt-12 grid max-w-3xl gap-4 sm:grid-cols-2">
+      <section className="bg-off-white px-6 py-16">
+        <ul className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {painPoints.map((point) => (
             <li
               key={point}
-              className="flex items-start gap-3 rounded-xl border border-light-gray bg-off-white px-5 py-4"
+              className="flex items-start gap-3 rounded-xl border border-light-gray bg-white px-4 py-4"
             >
-              <X className="mt-0.5 size-4 shrink-0 text-orange" />
-              <span className="text-sm leading-relaxed text-foreground">{point}</span>
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/10">
+                <X className="size-3.5 text-orange" />
+              </span>
+              <span className="text-sm leading-snug text-foreground">{point}</span>
             </li>
           ))}
         </ul>
+      </section>
 
-        <div className="mx-auto mt-12 max-w-3xl">
-          <h2 className="text-center text-xl font-semibold text-navy">
+      <section className="bg-white px-6 py-16">
+        <ByTheNumbers />
+      </section>
+
+      <section className="bg-off-white px-6 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-xl font-semibold text-navy">
             The worst part isn&apos;t the rejection. It&apos;s never finding out why.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
             Most rejections read exactly like this — and give you nothing to actually learn from:
           </p>
-          <div className="mt-6 space-y-4">
-            {genericRejectionExamples.map((example) => (
-              <blockquote
-                key={example}
-                className="rounded-xl border border-light-gray bg-off-white px-6 py-5 text-sm text-muted-foreground italic"
-              >
-                {example}
-              </blockquote>
-            ))}
+          <div className="mt-8 flex justify-center">
+            <Image
+              src="/marketing/rejection-email-example.png"
+              alt="A generic rejection email: 'Thank you for your interest in the [Role] position. After careful consideration, we have decided to move forward with other candidates who more closely match our needs at this time.'"
+              width={640}
+              height={520}
+              className="w-full max-w-xl rounded-xl border border-light-gray shadow-sm"
+            />
           </div>
         </div>
+      </section>
 
-        <div className="mx-auto mt-16 max-w-4xl border-t border-border pt-12">
-          <ByTheNumbers />
-        </div>
-
-        <div className="mx-auto mt-16 max-w-4xl border-t border-border pt-12">
-          <SituationalButtons />
-        </div>
-
-        <div className="mt-16 text-center">
-          <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
-            Get your Hireability Assessment
-          </Button>
-        </div>
-      </div>
+      <section className="bg-white px-6 py-16">
+        <SituationalButtons />
+      </section>
     </div>
   )
 }

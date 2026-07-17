@@ -1,11 +1,5 @@
 const STATS = [
   {
-    value: '73%',
-    label: 'Of stay-at-home mothers report facing hiring bias when they try to return to work.',
-    href: 'https://www.forbes.com/sites/kimelsesser/2023/05/11/majority-of-stay-at-home-moms-face-bias-when-returning-to-work-survey-shows/',
-    source: 'Forbes',
-  },
-  {
     value: '~24%',
     label: 'Of unemployed workers fall into long-term unemployment — jobless 27+ weeks.',
     href: 'https://www.minneapolisfed.org/article/2025/the-journey-to-long-term-unemployment',
@@ -18,22 +12,22 @@ const STATS = [
     source: 'Dexian',
   },
   {
-    value: '5.6%',
-    label: 'Unemployment rate for recent college grads (22-27), vs. 4.2% overall.',
-    href: 'https://www.insidehighered.com/news/students/careers/2026/06/29/job-market-recent-college-grads-5-charts',
-    source: 'Inside Higher Ed',
+    value: '23-27%',
+    label: 'Of mid-career professionals go 5+ years without a meaningful raise or promotion.',
+    href: 'https://www.cbsnews.com/news/mid-career-stall-white-collar-workers-pay-promotions/',
+    source: 'CBS News',
+  },
+  {
+    value: '73%',
+    label: 'Of stay-at-home mothers report facing hiring bias when they try to return to work.',
+    href: 'https://www.forbes.com/sites/kimelsesser/2023/05/11/majority-of-stay-at-home-moms-face-bias-when-returning-to-work-survey-shows/',
+    source: 'Forbes',
   },
   {
     value: '41.5%',
     label: "Of employed recent grads are underemployed — working jobs that don't require a degree.",
     href: 'https://www.newyorkfed.org/research/college-labor-market',
     source: 'NY Fed',
-  },
-  {
-    value: '23-27%',
-    label: 'Of mid-career professionals go 5+ years without a meaningful raise or promotion.',
-    href: 'https://www.cbsnews.com/news/mid-career-stall-white-collar-workers-pay-promotions/',
-    source: 'CBS News',
   },
   {
     value: '~7%',
@@ -45,7 +39,7 @@ const STATS = [
 
 export function ByTheNumbers() {
   return (
-    <div className="mt-16">
+    <div>
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
           <h3 className="text-xl font-semibold text-navy">You&apos;re not imagining it</h3>
@@ -56,8 +50,8 @@ export function ByTheNumbers() {
         </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STATS.map((stat) => (
-            <div key={stat.label} className="rounded-xl border border-light-gray bg-off-white px-5 py-6">
-              <p className="text-2xl font-bold text-navy">{stat.value}</p>
+            <div key={stat.label} className="rounded-xl border border-light-gray bg-white px-5 py-6">
+              <p className="text-2xl font-bold text-brand">{stat.value}</p>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{stat.label}</p>
               <a
                 href={stat.href}
