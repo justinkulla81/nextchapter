@@ -28,6 +28,7 @@ interface NavLink {
   href: string
   label: string
   badge?: string
+  muted?: boolean
 }
 
 interface NavSection {
@@ -70,6 +71,7 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
           href: '/dashboard/privacy',
           label: 'Executive Recruiter',
           badge: recruiterUnlocked ? 'Unlocked' : 'Locked',
+          muted: !recruiterUnlocked,
         },
       ],
     },
@@ -78,6 +80,9 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
       links: [
         { href: '/dashboard/learning', label: 'Learn New Skills' },
         { href: '/dashboard/gig-directory', label: 'Find Interim Work' },
+        { href: '/dashboard/guides', label: 'Search Strategy Guides' },
+        { href: '/dashboard/benefits', label: 'Benefits' },
+        { href: '/faq', label: 'FAQ' },
       ],
     },
     {
@@ -88,14 +93,6 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
         { href: '/dashboard/support', label: "I'm Struggling" },
         { href: '/dashboard/stats', label: 'My Stats & Reports' },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },
-      ],
-    },
-    {
-      title: 'Resources',
-      links: [
-        { href: '/dashboard/guides', label: 'Search Strategy Guides' },
-        { href: '/dashboard/benefits', label: 'Benefits' },
-        { href: '/faq', label: 'FAQ' },
       ],
     },
   ]
@@ -138,7 +135,9 @@ function NavContent({
                 'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium transition-colors',
                 isActive(link.href)
                   ? 'bg-white/15 text-white'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  : link.muted
+                    ? 'text-white/40 hover:bg-white/10 hover:text-white/60'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
               )}
             >
               <span>{link.label}</span>

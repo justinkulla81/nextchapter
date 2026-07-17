@@ -1612,3 +1612,16 @@ model CandidateMessageDismissal {
 
   @@unique([candidateId, messageId])
 }
+
+// Sitewide counter for metered third-party APIs — currently just JSearch's
+// free 200-calls/month tier. One row per (service, calendar month); once
+// count reaches the cap, that service is skipped for the rest of the month
+// rather than erroring or silently paying for overage.
+model ApiUsageCounter {
+  id      String @id @default(cuid())
+  service String
+  period  String // "YYYY-MM"
+  count   Int    @default(0)
+
+  @@unique([service, period])
+}

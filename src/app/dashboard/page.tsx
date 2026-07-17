@@ -7,7 +7,6 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { getTodaysMood, getCheckInSummary } from '@/lib/daily/mood'
-import { getTodaysConnectionAction } from '@/lib/daily/connection-action'
 import {
   getCurrentWeekSprint,
   getSuggestedActions,
@@ -18,13 +17,10 @@ import {
 import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
-import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
-import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
-import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
 import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
@@ -64,7 +60,6 @@ export default async function DashboardPage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
   const weekNumber = profile._count.weeklySprints + 1
-  const isFirstWeek = weekNumber === 1
   const weekStartDate = getMondayOfWeek(new Date())
   const editWindowOpen = isSprintEditWindowOpen(weekStartDate)
 
@@ -83,8 +78,6 @@ export default async function DashboardPage() {
     suggestedActions,
     searchExecutionAvailable,
     ,
-    narrative,
-    outreachCount,
     existingBountyClaimCount,
     sessionImpact,
     dashboardMessage,
@@ -104,8 +97,6 @@ export default async function DashboardPage() {
     // just the first, and also covers the case where that background job
     // never even finished generating the report at all.
     resolveLatestReport(profile.id, profile.hireabilityReports[0]),
-    prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } }),
-    prisma.outreachLog.count({ where: { candidateId: profile.id } }),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
     getNextDashboardMessage(profile.id),
@@ -118,13 +109,6 @@ export default async function DashboardPage() {
     : 0
   const dayNumber = Math.floor(daysSinceRegistration) + 1
   const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
-
-  const week1Artifacts = getWeek1Artifacts({
-    linkedInPosted: profile.linkedInActivityLogs.length > 0,
-    coverLetterGenerated: profile.jobPostings.some((j) => !!j.coverLetter),
-    narrativeGenerated: !!narrative,
-    outreachLogged: outreachCount > 0,
-  })
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
@@ -163,8 +147,6 @@ export default async function DashboardPage() {
           firstName={profile.firstName}
         />
 
-        {isFirstWeek && <Week1ArtifactSprint artifacts={week1Artifacts} />}
-
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
@@ -187,7 +169,6 @@ export default async function DashboardPage() {
       )}
 
       <div className="space-y-4 border-t border-border pt-8">
-        <ConnectionActionCard action={getTodaysConnectionAction(profile.id)} />
         <CoachChatCard initialMessages={conversation.messages} firstName={profile.firstName} />
       </div>
     </div>

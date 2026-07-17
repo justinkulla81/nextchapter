@@ -12,6 +12,16 @@ export const MOOD_LABEL: Record<Mood, string> = {
   FIRED_UP: 'Fired up',
 }
 
+// Same 10/40/70/100 scale as the onboarding motivation slider
+// (jobSearchIntensity) — deliberately reused, not re-derived, so the two
+// can share one 0-100 axis on the Stats page motivation chart.
+export const MOOD_SCORE: Record<Mood, number> = {
+  STUCK: 10,
+  GETTING_THERE: 40,
+  MOVING: 70,
+  FIRED_UP: 100,
+}
+
 // Victoria's immediate reaction to the tapped mood — a short, clean line
 // shown right above today's ideas. No dash-interjection punctuation; each
 // is a complete, self-contained reaction.

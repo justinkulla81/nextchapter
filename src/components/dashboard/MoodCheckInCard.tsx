@@ -49,12 +49,22 @@ export function MoodCheckInCard({
     ? `You've checked in ${currentStreak} day${currentStreak === 1 ? '' : 's'} in a row.`
     : `You've checked in ${checkInsLast7Days} out of the last 7 days.`
 
+  if (dismissed) return null
+
   return (
     <Card aria-busy={isPending}>
-      <CardHeader>
+      <CardHeader className="relative">
         <CardTitle className="text-base font-medium text-foreground">
           How motivated are you today{firstName ? `, ${firstName}` : ''}?
         </CardTitle>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss"
+          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
       </CardHeader>
       <CardContent className="space-y-4">
         {!mood ? (
@@ -76,51 +86,41 @@ export function MoodCheckInCard({
             })}
           </div>
         ) : (
-          !dismissed && (
-            <div className="relative space-y-2 rounded-lg border border-border bg-muted/40 p-4 pr-9">
-              <button
-                type="button"
-                onClick={() => setDismissed(true)}
-                aria-label="Dismiss"
-                className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-4" />
-              </button>
-              <p className="text-sm text-foreground">
-                <span className="mr-1.5 inline-flex items-center align-text-bottom">
-                  {(() => {
-                    const Icon = MOOD_ICON[mood]
-                    return <Icon aria-hidden className="size-4 text-brand" />
-                  })()}
-                </span>
-                {MOOD_RESPONSE[mood]}
-              </p>
-              <p className="text-sm text-foreground">
-                {`${checkInSummary} Thanks for sharing, it helps us support you by knowing how you're doing. Keep it up!`}
-              </p>
-              {todaysIdeas.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">Here&apos;s some ideas for you to do today:</p>
-                  <ul className="list-disc space-y-1 pl-4 text-sm text-muted-foreground">
-                    {todaysIdeas.map((idea, i) => {
-                      const link = idea.actionType ? ACTION_TYPE_LINK[idea.actionType] : undefined
-                      return (
-                        <li key={i}>
-                          {link ? (
-                            <Link href={link.href} className="text-primary underline underline-offset-4">
-                              {idea.text}
-                            </Link>
-                          ) : (
-                            idea.text
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )
+          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4">
+            <p className="text-sm text-foreground">
+              <span className="mr-1.5 inline-flex items-center align-text-bottom">
+                {(() => {
+                  const Icon = MOOD_ICON[mood]
+                  return <Icon aria-hidden className="size-4 text-brand" />
+                })()}
+              </span>
+              {MOOD_RESPONSE[mood]}
+            </p>
+            <p className="text-sm text-foreground">
+              {`${checkInSummary} Thanks for sharing, it helps us support you by knowing how you're doing. Keep it up!`}
+            </p>
+            {todaysIdeas.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Here&apos;s some ideas for you to do today:</p>
+                <ul className="list-disc space-y-1 pl-4 text-sm text-muted-foreground">
+                  {todaysIdeas.map((idea, i) => {
+                    const link = idea.actionType ? ACTION_TYPE_LINK[idea.actionType] : undefined
+                    return (
+                      <li key={i}>
+                        {link ? (
+                          <Link href={link.href} className="text-primary underline underline-offset-4">
+                            {idea.text}
+                          </Link>
+                        ) : (
+                          idea.text
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>

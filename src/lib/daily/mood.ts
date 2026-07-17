@@ -83,3 +83,19 @@ export async function getCheckInSummary(
     isConsecutive: distinctDays.size <= candidate.currentStreak,
   }
 }
+
+// Oldest-first time series for the Stats page motivation chart — one point
+// per calendar day (dedupes same-day re-checks, since recordMoodCheckIn
+// upserts today's row rather than creating a second one).
+export async function getMoodHistory(
+  candidateId: string,
+  limit = 60
+): Promise<{ date: Date; mood: Mood }[]> {
+  const checkIns = await prisma.dailyCheckIn.findMany({
+    where: { candidateId },
+    orderBy: { checkedInAt: 'desc' },
+    take: limit,
+    select: { checkedInAt: true, mood: true },
+  })
+  return checkIns.reverse().map((c) => ({ date: c.checkedInAt, mood: c.mood }))
+}

@@ -86,7 +86,7 @@ export default function Home() {
             NextChapter
           </h1>
           <p className="mt-2 text-lg font-medium text-muted-foreground sm:text-xl">
-            Your Job Transition Platform
+            Your Free Job Transition Platform
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             LinkedIn doesn&apos;t work. Job boards are a black hole. Get started with your

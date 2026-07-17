@@ -7,7 +7,9 @@ import type { HireabilityGrade } from '@/lib/scoring/grade'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
+import { getMoodHistory } from '@/lib/daily/mood'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MotivationChart } from '@/components/dashboard/MotivationChart'
 
 type EngineKey = SearchExecutionEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
@@ -15,7 +17,7 @@ const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting'
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
 
-  const [grade, recentReports, applicationsCount, currentSprint] = await Promise.all([
+  const [grade, recentReports, applicationsCount, currentSprint, moodHistory] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.sundayNightReport.findMany({
       where: { candidateId: profile.id },
@@ -25,6 +27,7 @@ export default async function YourStatsPage() {
     }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     getCurrentWeekSprint(profile.id),
+    getMoodHistory(profile.id),
   ])
 
   const aListWeeks = recentReports.filter((r) => r.onAList)
@@ -75,6 +78,15 @@ export default async function YourStatsPage() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MotivationChart baseline={profile.jobSearchIntensity} history={moodHistory} />
         </CardContent>
       </Card>
 

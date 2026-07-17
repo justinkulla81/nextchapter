@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 export const metadata: Metadata = {
   title: 'How It Works — NextChapter',
   description:
-    'From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired.',
+    "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, on NextChapter's free job transition platform.",
   alternates: { canonical: '/how-it-works' },
 }
 
@@ -88,7 +88,8 @@ export default function HowItWorksPage() {
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">How it works</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             A clear path from &quot;I don&apos;t know where I stand&quot; to a job offer — five steps,
-            each one building proof the last one didn&apos;t have.
+            each one building proof the last one didn&apos;t have. NextChapter is a free job
+            transition platform, start to finish.
           </p>
         </div>
 

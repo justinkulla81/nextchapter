@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { searchAdzunaJobListings } from '@/lib/market/adzuna'
+import { searchAdzunaJobListings, type AdzunaListing } from '@/lib/market/adzuna'
+import { searchAtsJobs } from '@/lib/market/ats-jobs'
+import { searchJSearchJobs } from '@/lib/market/jsearch'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
@@ -26,25 +28,53 @@ function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; targe
   return [...candidate.resumeKeywords.slice(0, 3), ...candidate.targetIndustries.slice(0, 1)]
 }
 
-// Pulls fresh listings from Adzuna and stores any not already surfaced to
-// this candidate — surfaced to learn from reactions, not to encourage mass
+// Pulls fresh listings and stores any not already surfaced to this
+// candidate — surfaced to learn from reactions, not to encourage mass
 // applying (no apply button, no application tracking here).
+//
+// Waterfall, cheapest/highest-quality first: direct feeds from established
+// companies on Greenhouse/Lever/Ashby, then JSearch (broad aggregator,
+// capped at its 200 free calls/month), then Adzuna last — Adzuna has the
+// broadest coverage but the least reliably relevant listings of the three,
+// so it only fills whatever gap the first two didn't.
 export async function surfaceNewJobs(candidateId: string): Promise<number> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
   const query = buildSearchQuery(candidate)
   if (!query) return 0
 
-  const whatOr = buildSupplementaryKeywords(candidate)
-  const listings = await searchAdzunaJobListings(query, candidate.currentCity, SURFACE_LIMIT, {
-    whatOr: whatOr.length > 0 ? whatOr : undefined,
-    salaryMin: candidate.targetCompMin ?? undefined,
-  })
+  let listings: AdzunaListing[] = await searchAtsJobs(query, SURFACE_LIMIT, candidateId)
+
+  if (listings.length < SURFACE_LIMIT) {
+    const jsearchListings = await searchJSearchJobs(
+      query,
+      candidate.currentCity,
+      SURFACE_LIMIT - listings.length
+    )
+    listings = [...listings, ...jsearchListings]
+  }
+
+  if (listings.length < SURFACE_LIMIT) {
+    const whatOr = buildSupplementaryKeywords(candidate)
+    const adzunaListings = await searchAdzunaJobListings(
+      query,
+      candidate.currentCity,
+      SURFACE_LIMIT - listings.length,
+      { whatOr: whatOr.length > 0 ? whatOr : undefined, salaryMin: candidate.targetCompMin ?? undefined }
+    )
+    listings = [...listings, ...adzunaListings]
+  }
+
   if (listings.length === 0) return 0
 
   const existingUrls = new Set(
     (await prisma.surfacedJob.findMany({ where: { candidateId }, select: { url: true } })).map((j) => j.url)
   )
-  const newListings = listings.filter((l) => !existingUrls.has(l.url))
+  const seenInThisBatch = new Set<string>()
+  const newListings = listings.filter((l) => {
+    if (existingUrls.has(l.url) || seenInThisBatch.has(l.url)) return false
+    seenInThisBatch.add(l.url)
+    return true
+  })
   if (newListings.length === 0) return 0
 
   await prisma.surfacedJob.createMany({
