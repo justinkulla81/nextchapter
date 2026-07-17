@@ -23,12 +23,15 @@ import type { CandidateProfile } from '@prisma/client'
 export function GoalsForm({
   profile,
   inferredIndustries,
+  inferredFunction,
 }: {
   profile: CandidateProfile
   inferredIndustries: string[]
+  inferredFunction: string | null
 }) {
   const [state, formAction, pending] = useActionState(updateGoals, undefined)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
+  const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
 
   return (
     <form
@@ -66,6 +69,27 @@ export function GoalsForm({
           defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
           placeholder="e.g. Healthcare, Fintech"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="targetFunction">Target job function</Label>
+        <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
+          <SelectTrigger id="targetFunction" className="w-full">
+            <SelectValue placeholder="Select one" />
+          </SelectTrigger>
+          <SelectContent>
+            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+              <SelectItem key={fn} value={fn}>
+                {fn}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          {inferredFunction
+            ? 'Pre-filled based on your background — change it if you’re targeting something different.'
+            : 'The function you want to be doing next — it can differ from your background.'}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -110,7 +134,7 @@ export function GoalsForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="primaryFunction">Your primary job function</Label>
+        <Label htmlFor="primaryFunction">Your background function</Label>
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
           <SelectTrigger id="primaryFunction" className="w-full">
             <SelectValue placeholder="Select one" />
@@ -140,17 +164,6 @@ export function GoalsForm({
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
-            id="equityImportant"
-            name="equityImportant"
-            value="on"
-            defaultChecked={profile.equityImportant}
-          />
-          <Label htmlFor="equityImportant" className="font-normal">
-            Equity matters to me
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
             id="willingToStartLower"
             name="willingToStartLower"
             value="on"
@@ -167,6 +180,26 @@ export function GoalsForm({
             placeholder="Why? (optional, but helps employers understand the offer)"
             rows={2}
             defaultValue={profile.startLowerRationale ?? ''}
+          />
+        )}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="openToRelocation"
+            name="openToRelocation"
+            value="on"
+            checked={openToRelocation}
+            onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
+          />
+          <Label htmlFor="openToRelocation" className="font-normal">
+            Open to relocating
+          </Label>
+        </div>
+        {openToRelocation && (
+          <Textarea
+            name="relocationNotes"
+            placeholder="Relocation notes (optional)"
+            defaultValue={profile.relocationNotes ?? ''}
+            rows={2}
           />
         )}
       </div>

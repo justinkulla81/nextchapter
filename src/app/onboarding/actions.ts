@@ -6,7 +6,12 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { Prisma, type CurrentJobStatus, type GapDurationBucket } from '@prisma/client'
-import { TRADEOFF_PRIORITIES, CURRENT_ASSESSMENT_ROTATION_GROUP } from '@/lib/constants/onboarding'
+import {
+  TRADEOFF_PRIORITIES,
+  CURRENT_ASSESSMENT_ROTATION_GROUP,
+  SITUATION_TO_JOB_STATUS,
+  type SituationKey,
+} from '@/lib/constants/onboarding'
 import {
   computeDimensionVectors,
   computeInconsistency,
@@ -31,20 +36,19 @@ async function requireCandidateId() {
   return profile.id
 }
 
-export async function updateDesire(_prevState: FormState, formData: FormData): Promise<FormState> {
+export async function updateSituation(_prevState: FormState, formData: FormData): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
-  const intensityRaw = formData.get('jobSearchIntensity')
-  const jobSearchIntensity = intensityRaw ? Number(intensityRaw) : null
+  const situation = formData.get('situation') as SituationKey | null
 
-  if (jobSearchIntensity === null || Number.isNaN(jobSearchIntensity)) {
-    return { error: 'Please answer how much you want to get a job.' }
+  if (!situation || !(situation in SITUATION_TO_JOB_STATUS)) {
+    return { error: 'Please choose the option that best describes you.' }
   }
 
   try {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
-      data: { jobSearchIntensity, desireComplete: true },
+      data: { currentJobStatus: SITUATION_TO_JOB_STATUS[situation], desireComplete: true },
     })
   } catch {
     return { error: 'Something went wrong saving your answer. Please try again.' }
@@ -77,9 +81,31 @@ export async function updateCircumstances(
       : null
 
   const remotePreference = (formData.get('remotePreference') as string) || null
-  const openToRelocation = formData.get('openToRelocation') === 'on'
   const jobSearchDifficultyRaw = formData.get('jobSearchDifficultyLevel')
   const jobSearchDifficultyLevel = jobSearchDifficultyRaw ? Number(jobSearchDifficultyRaw) : null
+  const jobSearchIntensityRaw = formData.get('jobSearchIntensity')
+  const jobSearchIntensity = jobSearchIntensityRaw ? Number(jobSearchIntensityRaw) : null
+
+  // Job search activity self-report — every field here is optional.
+  const jobsAppliedBucket = (formData.get('jobsAppliedBucket') as string) || null
+  const interviewsReceivedRaw = formData.get('interviewsReceivedCount')
+  const interviewsReceivedCount = interviewsReceivedRaw ? Number(interviewsReceivedRaw) : null
+  const networkingLevelRaw = formData.get('networkingLevel')
+  const networkingLevel = networkingLevelRaw ? Number(networkingLevelRaw) : null
+  const learnedNewSkillsLevelRaw = formData.get('learnedNewSkillsLevel')
+  const learnedNewSkillsLevel = learnedNewSkillsLevelRaw ? Number(learnedNewSkillsLevelRaw) : null
+  const triedPartTimeOrConsultingRaw = formData.get('triedPartTimeOrConsulting') as string | null
+  const triedPartTimeOrConsulting =
+    triedPartTimeOrConsultingRaw === 'yes' ? true : triedPartTimeOrConsultingRaw === 'no' ? false : null
+  const triedExecutiveCoachingRaw = formData.get('triedExecutiveCoaching') as string | null
+  const triedExecutiveCoaching =
+    triedExecutiveCoachingRaw === 'yes' ? true : triedExecutiveCoachingRaw === 'no' ? false : null
+  const connectedWithRecruitersRaw = formData.get('connectedWithRecruiters') as string | null
+  const connectedWithRecruiters =
+    connectedWithRecruitersRaw === 'yes' ? true : connectedWithRecruitersRaw === 'no' ? false : null
+  const recruiterConnectionCountRaw = formData.get('recruiterConnectionCount')
+  const recruiterConnectionCount =
+    connectedWithRecruiters && recruiterConnectionCountRaw ? Number(recruiterConnectionCountRaw) : null
 
   try {
     await prisma.candidateProfile.update({
@@ -88,9 +114,16 @@ export async function updateCircumstances(
         currentJobStatus,
         gapDuration,
         remotePreference,
-        openToRelocation,
-        relocationNotes: openToRelocation ? (formData.get('relocationNotes') as string) || null : null,
         jobSearchDifficultyLevel,
+        jobSearchIntensity,
+        jobsAppliedBucket,
+        interviewsReceivedCount,
+        networkingLevel,
+        learnedNewSkillsLevel,
+        triedPartTimeOrConsulting,
+        triedExecutiveCoaching,
+        connectedWithRecruiters,
+        recruiterConnectionCount,
         part1Complete: true,
       },
     })
@@ -302,19 +335,23 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
     rankValues[key] = index + 1
   })
 
+  const openToRelocation = formData.get('openToRelocation') === 'on'
+
   try {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
       data: {
         targetRoleType: (formData.get('targetRoleType') as string) || null,
         targetIndustries: formData.getAll('targetIndustries').map(String),
+        targetFunction: (formData.get('targetFunction') as string) || null,
         targetCompanySize: (formData.get('targetCompanySize') as string) || null,
         targetCompanyStage: (formData.get('targetCompanyStage') as string) || null,
         primaryFunction: (formData.get('primaryFunction') as string) || null,
         compFlexible: formData.get('compFlexible') === 'on',
         willingToStartLower: formData.get('willingToStartLower') === 'on',
         startLowerRationale: (formData.get('startLowerRationale') as string) || null,
-        equityImportant: formData.get('equityImportant') === 'on',
+        openToRelocation,
+        relocationNotes: openToRelocation ? (formData.get('relocationNotes') as string) || null : null,
         dealBreakers: (formData.get('dealBreakers') as string) || null,
         ...rankValues,
         part4Complete: true,

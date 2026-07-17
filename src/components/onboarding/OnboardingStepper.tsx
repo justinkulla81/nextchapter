@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 const STEPS = [
   { href: '/onboarding/resume', label: 'Resume' },
-  { href: '/onboarding/desire', label: 'Your Why' },
+  { href: '/onboarding/desire', label: 'Your Path' },
   { href: '/onboarding/circumstances', label: 'Your Situation' },
   { href: '/onboarding/experience', label: 'Experience' },
   { href: '/onboarding/goals', label: 'Goals' },

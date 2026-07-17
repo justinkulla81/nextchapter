@@ -264,13 +264,15 @@ model CandidateProfile {
   recruiterDatabaseOptIn       Boolean   @default(false)
   recruiterDatabaseRequestedAt DateTime?
 
-  // Pre-onboarding: "Your Why"
-  jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
-  desireComplete     Boolean @default(false)
+  // Step 2: "Which of these sounds like you" persona picker — sets
+  // currentJobStatus via SITUATION_TO_JOB_STATUS the same way a homepage
+  // situational-entry click does, so Part 1 below never re-asks it.
+  desireComplete Boolean @default(false)
 
   // Part 1: Your Situation
   currentJobStatus CurrentJobStatus?
   gapDuration      GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
+  jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely" — asked alongside the rest of Part 1, not its own step
 
   // Admin-confirmed match to a LayoffCohort (candidate matching, not
   // self-selected) — set via /support/admin/layoff-cohorts, surfaces a
@@ -280,9 +282,17 @@ model CandidateProfile {
   currentCity      String? // resume-derived (Phase 1), candidate-confirmable
   currentState     String?
   currentCountry   String             @default("US")
-  openToRelocation Boolean            @default(false)
-  relocationNotes  String?
   remotePreference String? // "remote" | "hybrid" | "onsite" | "flexible" | "open_to_relocating"
+
+  // Part 1: Job search activity self-report — all optional, all self-reported.
+  jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
+  interviewsReceivedCount   Int?
+  networkingLevel           Int? // 1-4: Not much / Some but should do more / A lot / Can't do more
+  learnedNewSkillsLevel     Int? // 1-3: Not yet / A little / Yes, actively
+  triedPartTimeOrConsulting Boolean?
+  triedExecutiveCoaching    Boolean?
+  connectedWithRecruiters   Boolean?
+  recruiterConnectionCount  Int?
 
   // Part 2: Working Style — see QuadBlock/LikertItem/CandidateAssessmentResponse
   // below. Superseded the old -2..+2 self-rated sliders with an ipsative
@@ -313,12 +323,15 @@ model CandidateProfile {
   // Part 4: Goals
   targetRoleType      String?
   targetIndustries    String[]
+  targetFunction      String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
   targetCompanySize   String?
   targetCompanyStage  String?
   targetCompMin       Int?
   compFlexible        Boolean  @default(false)
   willingToStartLower Boolean  @default(false)
   startLowerRationale String?
+  openToRelocation    Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
+  relocationNotes     String?
   equityImportant     Boolean  @default(false)
   dealBreakers        String?
 

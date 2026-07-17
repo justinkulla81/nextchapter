@@ -6,8 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfidenceSlider } from './ConfidenceSlider'
+import { ChoiceButtons } from './ChoiceButtons'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
+
+const YES_NO_OPTIONS = [
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No' },
+] as const
 
 // Core job-function/AI skills go all the way to "best in my field" — these
 // are the kind of skills people can confidently self-assess as elite.
@@ -19,7 +25,7 @@ const CORE_SKILL_LABELS = [
 ] as const
 
 const ACTION_ORIENTED_LABELS = [
-  'Easy going',
+  'I am easy going',
   'I do what is asked of me',
   'I like to be first and on top of it',
   'I like to do things without being told, even if it means more work for me',
@@ -57,28 +63,13 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
     >
       <div className="space-y-2">
         <Label>Have you been a people manager?</Label>
-        <input type="hidden" name="isPeopleManager" value={isPeopleManager === null ? '' : isPeopleManager ? 'yes' : 'no'} />
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { value: true, label: 'Yes' },
-            { value: false, label: 'No' },
-          ].map((opt) => (
-            <button
-              key={String(opt.value)}
-              type="button"
-              onClick={() => setIsPeopleManager(opt.value)}
-              aria-pressed={isPeopleManager === opt.value}
-              className={cn(
-                'rounded-lg border-2 p-3 text-center text-sm font-medium transition-colors',
-                isPeopleManager === opt.value
-                  ? 'border-brand bg-brand/5 text-brand'
-                  : 'border-border bg-white text-foreground hover:border-brand/40'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <ChoiceButtons
+          name="isPeopleManager"
+          options={YES_NO_OPTIONS}
+          value={isPeopleManager === null ? null : isPeopleManager ? 'yes' : 'no'}
+          onChange={(value) => setIsPeopleManager(value === 'yes')}
+          columns={2}
+        />
       </div>
 
       {isPeopleManager && (
