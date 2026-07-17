@@ -37,7 +37,6 @@ export const QUOTES: Quote[] = [
   { text: 'Character cannot be developed in ease and quiet. Only through experience of trial and suffering can the soul be strengthened.', author: 'Helen Keller' },
   { text: 'Although the world is full of suffering, it is also full of the overcoming of it.', author: 'Helen Keller' },
   { text: 'You must do the thing you think you cannot do.', author: 'Eleanor Roosevelt' },
-  { text: 'A woman is like a tea bag — you never know how strong she is until she\'s in hot water.', author: 'Eleanor Roosevelt' },
   { text: 'Do not go where the path may lead; go instead where there is no path and leave a trail.', author: 'Ralph Waldo Emerson' },
   { text: 'That which does not kill us makes us stronger.', author: 'Friedrich Nietzsche' },
   { text: 'He who has a why to live can bear almost any how.', author: 'Friedrich Nietzsche' },
