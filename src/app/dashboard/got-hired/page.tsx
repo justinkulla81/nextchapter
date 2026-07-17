@@ -34,7 +34,7 @@ export default async function GotHiredPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Got Hired? 🎉</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Got An Offer? 🎉</h1>
         <p className="mt-1 text-muted-foreground">
           Landed a job through NextChapter? Tell us about it and claim your $500 Offer Bonus —
           we verify offer letters before paying out.

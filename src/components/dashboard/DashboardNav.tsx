@@ -56,7 +56,7 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
       links: [
         { href: '/dashboard/references', label: 'My References' },
         { href: '/dashboard/thought-leadership', label: 'My Thought Leadership' },
-        { href: '/dashboard/job-fit', label: 'Job Strategy' },
+        { href: '/dashboard/find-my-job', label: 'Find a Job' },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
       ],
     },
@@ -84,7 +84,7 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
       title: 'Profile',
       links: [
         { href: '/dashboard/profile', label: 'My Profile' },
-        { href: '/dashboard/got-hired', label: 'Got Hired 🎉' },
+        { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
         { href: '/dashboard/support', label: "I'm Struggling" },
         { href: '/dashboard/stats', label: 'My Stats & Reports' },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },

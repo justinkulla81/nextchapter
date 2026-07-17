@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { submitJobPostingText } from '@/app/dashboard/job-fit/actions'
+import { submitJobPostingText } from '@/app/dashboard/find-my-job/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Textarea } from '@/components/ui/textarea'
 

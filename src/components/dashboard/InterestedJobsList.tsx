@@ -1,12 +1,23 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState, useTransition } from 'react'
 import type { SurfacedJob } from '@prisma/client'
-import { createCoverLetterFromSurfacedJob } from '@/app/dashboard/job-fit/actions'
+import { createCoverLetterFromSurfacedJob, reactToSurfacedJob } from '@/app/dashboard/find-my-job/actions'
 import { Button } from '@/components/ui/button'
 
 function InterestedJobRow({ job }: { job: SurfacedJob }) {
   const [state, formAction, pending] = useActionState(createCoverLetterFromSurfacedJob.bind(null, job.id), undefined)
+  const [dismissed, setDismissed] = useState(false)
+  const [dismissing, startDismissing] = useTransition()
+
+  if (dismissed) return null
+
+  function handleNoLongerInterested() {
+    setDismissed(true)
+    startDismissing(() => {
+      reactToSurfacedJob(job.id, 'NOT_INTERESTED', null)
+    })
+  }
 
   return (
     <div className="space-y-2 rounded-lg border border-border p-4">
@@ -20,11 +31,23 @@ function InterestedJobRow({ job }: { job: SurfacedJob }) {
           </p>
         )}
       </div>
-      <form action={formAction}>
-        <Button type="submit" variant="outline" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
-          {pending ? 'Drafting…' : 'Create cover letter'}
+      <div className="flex flex-wrap gap-2">
+        <form action={formAction}>
+          <Button type="submit" variant="outline" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
+            {pending ? 'Drafting…' : 'Create cover letter'}
+          </Button>
+        </form>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={dismissing}
+          className={dismissing ? 'cursor-progress' : ''}
+          onClick={handleNoLongerInterested}
+        >
+          No longer interested
         </Button>
-      </form>
+      </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
     </div>
   )

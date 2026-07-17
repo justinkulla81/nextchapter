@@ -80,7 +80,7 @@ export async function submitJobUrl(_prevState: FormState, formData: FormData): P
     }
   }
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function retryJobFetch(jobPostingId: string) {
@@ -107,7 +107,7 @@ export async function retryJobFetch(jobPostingId: string) {
     await analyzeJobFit(jobPostingId, profile.id)
   }
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // Fallback for sites whose bot-detection blocks fetchJobPosting outright
@@ -136,7 +136,7 @@ export async function submitJobPostingText(jobPostingId: string, formData: FormD
 
   await analyzeJobFit(jobPostingId, profile.id)
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function markApplied(jobPostingId: string, formData: FormData) {
@@ -161,7 +161,7 @@ export async function markApplied(jobPostingId: string, formData: FormData) {
   await recalculateScore(profile.id, 'job_applied')
   captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function generateCoverLetterAction(jobPostingId: string) {
@@ -179,7 +179,7 @@ export async function generateCoverLetterAction(jobPostingId: string) {
 
   await generateCoverLetter(jobPostingId, profile.id)
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function markInterviewLanded(jobPostingId: string) {
@@ -202,7 +202,7 @@ export async function markInterviewLanded(jobPostingId: string) {
   await recalculateScore(profile.id, 'interview_landed')
   await generateInterviewPrep(jobPostingId, profile.id)
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // Pre-loads this job's posting text into the candidate's single shared
@@ -251,7 +251,7 @@ export async function markInterviewComplete(jobPostingId: string) {
     data: { interviewCompleteAt: new Date() },
   })
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function requestJobThankYouNote(jobPostingId: string, formData: FormData) {
@@ -295,7 +295,7 @@ export async function requestJobThankYouNote(jobPostingId: string, formData: For
 
   if (note) captureServerEvent(profile.id, 'thank_you_note_generated', { jobId: jobPostingId })
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function markJobThankYouSent(jobPostingId: string) {
@@ -314,7 +314,7 @@ export async function markJobThankYouSent(jobPostingId: string) {
 
   captureServerEvent(profile.id, 'thank_you_sent', { jobId: jobPostingId })
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function markOfferReceived(jobPostingId: string) {
@@ -337,7 +337,7 @@ export async function markOfferReceived(jobPostingId: string) {
   await recalculateScore(profile.id, 'offer_received')
   await generateNegotiationAdvice(jobPostingId, profile.id)
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function deleteJobPosting(jobPostingId: string) {
@@ -353,7 +353,7 @@ export async function deleteJobPosting(jobPostingId: string) {
     where: { id: jobPostingId, candidateId: profile.id },
   })
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // ── Surfaced jobs (merged in from the old standalone Job Discovery page) ──
@@ -372,7 +372,7 @@ export async function refreshSurfacedJobs() {
   if (!profile) return
 
   await surfaceNewJobs(profile.id)
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export async function reactToSurfacedJob(
@@ -388,7 +388,7 @@ export async function reactToSurfacedJob(
     data: { reaction, reactionReason: reason, reactedAt: new Date() },
   })
   captureServerEvent(profile.id, 'job_rated', { jobId, source: 'suggested', reaction })
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export type SummaryFormState = { summary?: string; error?: string } | undefined
@@ -449,5 +449,5 @@ export async function createCoverLetterFromSurfacedJob(
 
   await prisma.surfacedJob.delete({ where: { id: surfacedJobId } })
 
-  revalidatePath('/dashboard/job-fit')
+  revalidatePath('/dashboard/find-my-job')
 }

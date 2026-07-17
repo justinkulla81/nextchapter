@@ -2,11 +2,12 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import type { ActionWindow } from '@prisma/client'
+import type { ActionWindow, Mood } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recalculateScore } from '@/lib/scoring/recalculate'
+import { recordMoodCheckIn } from '@/lib/daily/mood'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export async function signOut() {
@@ -51,6 +52,15 @@ export async function markLinkedInActivity() {
 
   await prisma.linkedInActivityLog.create({ data: { candidateId: profile.id } })
   await recalculateScore(profile.id, 'linkedin_activity_logged')
+  revalidatePath('/dashboard')
+}
+
+export async function checkInMood(mood: Mood) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await recordMoodCheckIn(profile.id, mood)
+  captureServerEvent(profile.id, 'mood_checked_in', { mood })
   revalidatePath('/dashboard')
 }
 

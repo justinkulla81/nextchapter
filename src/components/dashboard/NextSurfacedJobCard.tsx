@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
-import { reactToSurfacedJob } from '@/app/dashboard/job-fit/actions'
+import { reactToSurfacedJob } from '@/app/dashboard/find-my-job/actions'
 
 const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
   { value: 'WRONG_FUNCTION', label: 'Wrong function' },
@@ -41,7 +41,7 @@ export function NextSurfacedJobCard({ job }: { job: SurfacedJob }) {
           </p>
         )}
         {job.description && (
-          <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{job.description}</p>
+          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{job.description}</p>
         )}
       </div>
 
@@ -56,7 +56,7 @@ export function NextSurfacedJobCard({ job }: { job: SurfacedJob }) {
             </Button>
           </form>
           <Button type="button" variant="outline" size="sm" onClick={() => setShowReasons(true)}>
-            Not interested
+            Not Interested
           </Button>
         </div>
       ) : (

@@ -23,6 +23,7 @@ const profileFieldsSchema = z.object({
   primaryFunction: z.enum(PRIMARY_FUNCTION_OPTIONS).nullable(),
   aiReadinessScore: z.number().int().min(0).max(100).nullable(),
   aiReadinessNotes: z.string().nullable(),
+  resumeKeywords: z.array(z.string()).max(15),
 })
 
 const PROMPT_PREFIX = `Extract the following fields from this resume. Only extract what is explicitly present in the text — never fabricate or guess a value that isn't there; use null instead.
@@ -36,6 +37,7 @@ const PROMPT_PREFIX = `Extract the following fields from this resume. Only extra
 - industry: the industry of their most recent employer, in a few words.
 - primaryFunction: their primary functional area, constrained to one of the provided categories.
 - aiReadinessScore (0-100) and aiReadinessNotes: assess how "AI-ready" this resume signals the candidate is — mentions of AI tools, automation, LLM usage, building with AI, etc. This is being captured for future use, not for immediate scoring — be honest and specific in the notes.
+- resumeKeywords: up to 15 concrete skills, tools, technologies, certifications, and role-specific terms pulled directly from the resume text (e.g. "Salesforce", "P&L management", "Six Sigma", "Python") — used to match this candidate against job postings. Prefer specific, searchable terms over generic ones (skip words like "communication" or "teamwork").
 
 Resume text:
 `
@@ -82,6 +84,7 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
         yearsExperience,
         resumeAiReadinessScore: data.aiReadinessScore,
         resumeAiReadinessNotes: data.aiReadinessNotes,
+        resumeKeywords: data.resumeKeywords,
       },
     })
   } catch {

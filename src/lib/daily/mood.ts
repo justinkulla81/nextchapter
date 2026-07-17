@@ -56,3 +56,30 @@ export async function getTodaysMood(candidateId: string): Promise<Mood | null> {
   })
   return existingToday?.mood ?? null
 }
+
+// currentStreak only counts consecutive days, so it silently goes back to 1
+// after any gap — checkInsLast7Days is the "how many days out of the last 7"
+// fallback the confirmation copy needs once a streak breaks.
+export async function getCheckInSummary(
+  candidateId: string
+): Promise<{ streak: number; checkInsLast7Days: number; isConsecutive: boolean }> {
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    select: { currentStreak: true },
+  })
+
+  const sevenDaysAgo = startOfUTCDay(new Date())
+  sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6)
+
+  const recentCheckIns = await prisma.dailyCheckIn.findMany({
+    where: { candidateId, checkedInAt: { gte: sevenDaysAgo } },
+    select: { checkedInAt: true },
+  })
+  const distinctDays = new Set(recentCheckIns.map((c) => startOfUTCDay(c.checkedInAt).getTime()))
+
+  return {
+    streak: candidate.currentStreak,
+    checkInsLast7Days: distinctDays.size,
+    isConsecutive: distinctDays.size <= candidate.currentStreak,
+  }
+}

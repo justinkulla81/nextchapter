@@ -33,7 +33,7 @@ export function getWeek1Artifacts(context: Week1ArtifactContext): Week1Artifact[
       id: 'cover-letter',
       label: 'Generate a cover letter',
       description: 'Paste in a real posting and get one tailored to it.',
-      href: '/dashboard/job-fit',
+      href: '/dashboard/find-my-job',
       complete: context.coverLetterGenerated,
     },
     {

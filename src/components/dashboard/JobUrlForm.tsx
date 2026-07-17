@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useActionState } from 'react'
-import { submitJobUrl } from '@/app/dashboard/job-fit/actions'
+import { submitJobUrl } from '@/app/dashboard/find-my-job/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

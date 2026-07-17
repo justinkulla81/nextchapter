@@ -26,14 +26,14 @@ export function ExclusiveJobsSection({
       ? 'Requires an A Search Action Grade and recruiter database opt-in (Privacy settings) — you haven\'t opted in yet.'
       : 'Requires an A Search Action Grade — real, admin-curated postings only shown to candidates currently holding one.'
     return (
-      <LockedFeatureNotice title="Exclusive NC Jobs" requirement={requirement} currentGrade={currentGrade} />
+      <LockedFeatureNotice title="Exclusive Next Chapter Jobs" requirement={requirement} currentGrade={currentGrade} />
     )
   }
 
   return (
     <div className="space-y-3 rounded-lg border border-brand/30 bg-brand/5 p-4">
       <div>
-        <p className="text-sm font-semibold text-foreground">Exclusive NC Jobs — unlocked</p>
+        <p className="text-sm font-semibold text-foreground">Exclusive Next Chapter Jobs — unlocked</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Real postings, curated for candidates holding an A Search Action Grade.
         </p>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import {
   requestJobThankYouNote,
   markJobThankYouSent,
-} from '@/app/dashboard/job-fit/actions'
+} from '@/app/dashboard/find-my-job/actions'
 
 const MIN_CHARS = 10
 

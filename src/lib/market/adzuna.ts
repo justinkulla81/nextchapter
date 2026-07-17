@@ -15,7 +15,8 @@ export interface AdzunaListing {
 export async function searchAdzunaJobListings(
   what: string,
   where: string | null,
-  limit = 10
+  limit = 10,
+  options?: { whatOr?: string[]; salaryMin?: number }
 ): Promise<AdzunaListing[]> {
   const appId = process.env.ADZUNA_APP_ID
   const appKey = process.env.ADZUNA_APP_KEY
@@ -28,6 +29,11 @@ export async function searchAdzunaJobListings(
     results_per_page: String(limit),
   })
   if (where) params.set('where', where)
+  // what_or broadens (any-of) rather than narrows — safe to layer resume
+  // keywords/industry on top of the core `what` query without risking zero
+  // results the way appending them to `what` (an AND match) would.
+  if (options?.whatOr && options.whatOr.length > 0) params.set('what_or', options.whatOr.join(' '))
+  if (options?.salaryMin) params.set('salary_min', String(options.salaryMin))
 
   try {
     const response = await fetch(

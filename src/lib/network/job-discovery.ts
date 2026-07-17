@@ -19,6 +19,13 @@ function buildSearchQuery(candidate: { targetRoleType: string | null; primaryFun
   return candidate.primaryFunction || candidate.targetRoleType || null
 }
 
+// Supplementary any-of terms layered onto the core query via what_or — resume
+// keywords and target industry sharpen relevance without the all-must-match
+// risk of folding them into `what` directly.
+function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; targetIndustries: string[] }): string[] {
+  return [...candidate.resumeKeywords.slice(0, 3), ...candidate.targetIndustries.slice(0, 1)]
+}
+
 // Pulls fresh listings from Adzuna and stores any not already surfaced to
 // this candidate — surfaced to learn from reactions, not to encourage mass
 // applying (no apply button, no application tracking here).
@@ -27,7 +34,11 @@ export async function surfaceNewJobs(candidateId: string): Promise<number> {
   const query = buildSearchQuery(candidate)
   if (!query) return 0
 
-  const listings = await searchAdzunaJobListings(query, candidate.currentCity, SURFACE_LIMIT)
+  const whatOr = buildSupplementaryKeywords(candidate)
+  const listings = await searchAdzunaJobListings(query, candidate.currentCity, SURFACE_LIMIT, {
+    whatOr: whatOr.length > 0 ? whatOr : undefined,
+    salaryMin: candidate.targetCompMin ?? undefined,
+  })
   if (listings.length === 0) return 0
 
   const existingUrls = new Set(

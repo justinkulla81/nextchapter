@@ -92,6 +92,32 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
+        {profile.resumeKeywords.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Resume keywords
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Pulled automatically from your resume — we use these to find better-matched jobs.
+                Upload a new resume to refresh this list.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.resumeKeywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="rounded-full border border-border bg-off-white px-2.5 py-0.5 text-xs font-medium text-foreground"
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
       </div>
 
       <ProfileSaveAllButton containerId="profile-cards" />

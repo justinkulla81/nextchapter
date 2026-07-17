@@ -160,7 +160,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_FOLLOW_UP: { href: '/dashboard/network', label: 'My Network' },
-  OUTREACH_CLOSE_APPLICATION: { href: '/dashboard/job-fit', label: 'Job Fit' },
+  OUTREACH_CLOSE_APPLICATION: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   ENGAGE_COMMENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_EVENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_POST_UPDATE: { href: '/dashboard/community', label: 'Support Network' },
@@ -176,12 +176,24 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   SKILLS_TRANSLATOR: { href: '/dashboard/resume', label: 'Resume' },
   INTERVIEW_PREP: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERVIEW_BEHAVIORAL_PRACTICE: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
-  NEGOTIATION_ADVICE: { href: '/dashboard/job-fit', label: 'Job Fit' },
+  NEGOTIATION_ADVICE: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   PROFILE_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   INDUSTRY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   FUNCTION_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   SALARY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
+}
+
+// The Mood Check-In card's "here's some ideas for today" list — the
+// current week's Sprint is the one real source of "what should I do today,"
+// so this just filters it down to what's left, capped to a short scannable
+// list rather than dumping the whole committed list.
+export function getMoodCardIdeas<T extends { text: string; actionType?: string; completed: boolean }>(
+  committedActions: T[] | null | undefined,
+  max = 3
+): T[] {
+  if (!committedActions) return []
+  return committedActions.filter((a) => !a.completed).slice(0, max)
 }
 
 export function formatMinutes(minutes: number): string {

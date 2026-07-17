@@ -293,6 +293,7 @@ model CandidateProfile {
   highestLevelReached       String? // "IC", "Manager", "Director", "VP", "C-Suite"
   primaryFunction           String? // resume-derived (Phase 1), candidate-confirmable
   industryContext           String? // resume-derived (Phase 1), candidate-confirmable
+  resumeKeywords            String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
   isPeopleManager           Boolean? // gates teamSizeManaged + managementSkillConfidence questions
   teamSizeManaged           Int? // 0 = IC, otherwise largest team managed
   knownFor                  String? // "How former colleagues would describe me" — required before requesting references
@@ -1000,7 +1001,7 @@ model JobPosting {
   extractedText String?
 
   fitScore        Int? // 0-100
-  fitFeedback     String?
+  fitFeedback     String[] @default([]) // short, scannable bullets — no more than 5
   keywords        String[]  @default([]) // extracted from the posting, ATS/recruiter scan terms
   tailoredBullets Json? // [{ original: string, tailored: string }] — real work-history bullets reframed to the posting
   analyzedAt      DateTime?

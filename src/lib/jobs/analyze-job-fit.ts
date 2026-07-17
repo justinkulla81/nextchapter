@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 
 const jobFitSchema = z.object({
   fitScore: z.number().int().min(0).max(100),
-  fitFeedback: z.string(),
+  fitFeedback: z.array(z.string()).min(1).max(5),
   keywords: z.array(z.string()).min(3).max(10),
   tailoredBullets: z
     .array(z.object({ original: z.string(), tailored: z.string() }))
@@ -15,6 +15,8 @@ const jobFitSchema = z.object({
 })
 
 const PROMPT_PREFIX = `You are giving a candidate honest, specific feedback about how well they fit a job posting. Do not be generically encouraging — if the fit is weak, say so plainly and explain why. Consider their stated experience level, function, industry background, and target role against what the posting actually asks for.
+
+Return fitFeedback as no more than 5 short, scannable bullets (each one sentence, plain language) — not a paragraph. Lead with the most decision-relevant point (the biggest strength or the biggest gap).
 
 Also extract 3-10 of the most important keywords/skills from the posting (exact terms an ATS or recruiter would scan for), and rewrite up to 5 of the candidate's real work-history achievement bullets (given below) in the posting's own language — never invent facts or numbers not present in the original bullet, only reframe wording and emphasis to mirror the posting. If the candidate has no work-history achievements listed, return an empty tailoredBullets array rather than inventing any.
 

@@ -6,6 +6,7 @@ import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { getTodaysMood, getCheckInSummary } from '@/lib/daily/mood'
 import { getTodaysConnectionAction } from '@/lib/daily/connection-action'
 import {
   getCurrentWeekSprint,
@@ -14,13 +15,13 @@ import {
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
+import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
-import { getGoalLabel } from '@/lib/scoring/goal-label'
-import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
+import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { ConnectionActionCard } from '@/components/dashboard/ConnectionActionCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { Week1ArtifactSprint } from '@/components/dashboard/Week1ArtifactSprint'
@@ -76,6 +77,8 @@ export default async function DashboardPage() {
     },
     conversation,
     grade,
+    todaysMood,
+    checkInSummary,
     currentSprint,
     suggestedActions,
     searchExecutionAvailable,
@@ -89,6 +92,8 @@ export default async function DashboardPage() {
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id),
     computeHireabilityGrade(profile),
+    getTodaysMood(profile.id),
+    getCheckInSummary(profile.id),
     getCurrentWeekSprint(profile.id),
     isFirstWeek ? Promise.resolve([]) : getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
@@ -106,12 +111,12 @@ export default async function DashboardPage() {
     getNextDashboardMessage(profile.id),
   ])
 
+  const todaysIdeas = getMoodCardIdeas(currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null)
+
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
   const dayNumber = Math.floor(daysSinceRegistration) + 1
-  const goalLabel = getGoalLabel(profile.currentJobStatus)
-  const casuallySearching = isCasuallySearching(profile.jobSearchIntensity)
   const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
 
   const week1Artifacts = getWeek1Artifacts({
@@ -132,9 +137,7 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {casuallySearching
-            ? `Your goal is to ${goalLabel.toLowerCase()} — whenever you're ready to prioritize it.`
-            : `Your goal is to ${goalLabel}.`}
+          NextChapter&apos;s goal is to get you a job. Let&apos;s go!
         </p>
       </div>
 
@@ -143,6 +146,7 @@ export default async function DashboardPage() {
       <DashboardTopStrip
         grade={grade}
         searchExecutionAvailable={searchExecutionAvailable}
+        currentStreak={checkInSummary.streak}
         weekNumber={weekNumber}
         dayNumber={dayNumber}
       />
@@ -150,6 +154,15 @@ export default async function DashboardPage() {
       <EmployerInterestSection candidateId={profile.id} />
 
       <div className="space-y-3">
+        <MoodCheckInCard
+          todaysMood={todaysMood}
+          currentStreak={checkInSummary.streak}
+          checkInsLast7Days={checkInSummary.checkInsLast7Days}
+          isConsecutive={checkInSummary.isConsecutive}
+          todaysIdeas={todaysIdeas}
+          firstName={profile.firstName}
+        />
+
         {isFirstWeek ? (
           <Week1ArtifactSprint artifacts={week1Artifacts} />
         ) : (

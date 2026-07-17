@@ -19,7 +19,7 @@ export default async function ExclusiveJobsAdminPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-10 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Exclusive NC Jobs</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Exclusive Next Chapter Jobs</h1>
         <p className="mt-1 text-muted-foreground">
           Real postings only — every listing here is a real one you&apos;ve chosen to feature. Visible only to
           candidates currently holding an A Search Action Grade and opted into the recruiter database.

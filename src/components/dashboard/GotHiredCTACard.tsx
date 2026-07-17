@@ -13,7 +13,7 @@ export function GotHiredCTACard() {
           </p>
         </div>
         <Button nativeButton={false} render={<Link href="/dashboard/got-hired" />} size="sm" className="shrink-0">
-          I got hired
+          I got an offer
         </Button>
       </CardContent>
     </Card>
