@@ -59,7 +59,7 @@ const SECTIONS: NavSection[] = [
   {
     title: 'Discover',
     links: [
-      { href: '/dashboard/gig-directory', label: 'Interim Roles' },
+      { href: '/dashboard/gig-directory', label: 'Interim Launch Plan' },
       { href: '/dashboard/community', label: 'Community' },
       { href: '/dashboard/learning', label: 'Learning' },
       { href: '/dashboard/benefits', label: 'Benefits' },

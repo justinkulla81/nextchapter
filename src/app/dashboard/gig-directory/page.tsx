@@ -1,5 +1,6 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
+import { InterimLaunchPlanTracker } from '@/components/dashboard/InterimLaunchPlanTracker'
+import { getInterimLaunchPlan } from '@/lib/gig-directory/interim-launch-plan'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface Platform {
@@ -66,19 +67,32 @@ const CATEGORIES: PlatformCategory[] = [
 
 export default async function GigDirectoryPage() {
   const profile = await getDashboardData()
+  const phases = await getInterimLaunchPlan(profile)
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Fractional &amp; Gig Directory</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Interim Consulting Launch Plan</h1>
         <p className="mt-1 text-muted-foreground">
-          Real platforms for fractional, consulting, and contract work — useful as a bridge while you
-          search, or as a real Gap Analysis remediation path in its own right. NextChapter isn&apos;t
-          affiliated with any of these; do your own diligence before signing up.
+          Fractional and interim work is a real bridge while you search, or a Gap Analysis
+          remediation path in its own right — but &ldquo;browse a directory&rdquo; isn&apos;t a
+          plan. Work through the phases below.
         </p>
       </div>
 
-      {!profile.gigDirectoryUnlockAnswer && <GigDirectoryUnlockForm />}
+      <InterimLaunchPlanTracker phases={phases} />
+
+      {profile.gigDirectoryUnlockAnswer && (
+        <div className="space-y-3 border-t border-border pt-8">
+          <div>
+            <h2 className="text-lg font-semibold">Where to look</h2>
+            <p className="text-sm text-muted-foreground">
+              Real platforms for fractional, consulting, and contract work. NextChapter isn&apos;t
+              affiliated with any of these; do your own diligence before signing up.
+            </p>
+          </div>
+        </div>
+      )}
 
       {profile.gigDirectoryUnlockAnswer && CATEGORIES.map((category) => (
         <div key={category.title} className="space-y-3">
