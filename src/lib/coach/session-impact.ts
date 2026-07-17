@@ -111,9 +111,9 @@ async function generateImpactSummary(facts: string): Promise<string> {
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-5',
       max_tokens: 300,
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'disabled' },
       messages: [
         {
           role: 'user',

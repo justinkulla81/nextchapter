@@ -72,9 +72,9 @@ Write 2-4 sentences identifying the real pattern in what they're rejecting vs. s
 
   const client = getAnthropicClient()
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-sonnet-5',
     max_tokens: 800,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
   })
   const message = await stream.finalMessage()

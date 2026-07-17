@@ -48,9 +48,9 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 3000,
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'disabled' },
       output_config: { format: zodOutputFormat(profileFieldsSchema), effort: 'medium' },
       messages: [{ role: 'user', content: PROMPT_PREFIX + resume.extractedText }],
     })

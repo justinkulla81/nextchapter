@@ -53,7 +53,7 @@ Known for: ${candidate.knownFor ?? 'not specified'}
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-5',
       max_tokens: 2000,
       thinking: { type: 'adaptive' },
       output_config: { format: zodOutputFormat(critiqueSchema), effort: 'medium' },

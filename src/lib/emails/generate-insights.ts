@@ -52,9 +52,9 @@ Areas to work on: ${context.weaknesses.map((w) => `${w.title} — ${w.detail}`).
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-5',
       max_tokens: 1000,
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: `${PROMPT_PREFIX}${summary}` }],
     })
     const message = await stream.finalMessage()

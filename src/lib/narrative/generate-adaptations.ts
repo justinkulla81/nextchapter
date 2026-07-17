@@ -32,9 +32,9 @@ export async function generateAdaptations(candidateId: string): Promise<void> {
 
   const client = getAnthropicClient()
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-sonnet-5',
     max_tokens: 1500,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: `${PROMPT_PREFIX}${narrative.coreStatement}` }],
   })
   const message = await stream.finalMessage()

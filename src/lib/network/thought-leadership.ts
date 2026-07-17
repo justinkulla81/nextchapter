@@ -73,9 +73,9 @@ ${summary}`
 
   const client = getAnthropicClient()
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-sonnet-5',
     max_tokens: 2000,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     output_config: { format: zodOutputFormat(postIdeasSchema), effort: 'medium' },
     messages: [{ role: 'user', content: prompt }],
   })
@@ -124,9 +124,9 @@ ${summary}`
 
   const client = getAnthropicClient()
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-sonnet-5',
     max_tokens: 1200,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
   })
   const message = await stream.finalMessage()

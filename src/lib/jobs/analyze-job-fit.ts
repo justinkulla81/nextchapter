@@ -53,7 +53,7 @@ ${
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-5',
       max_tokens: 4000,
       thinking: { type: 'adaptive' },
       output_config: { format: zodOutputFormat(jobFitSchema), effort: 'medium' },

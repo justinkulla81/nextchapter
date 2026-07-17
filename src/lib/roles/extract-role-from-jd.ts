@@ -30,9 +30,9 @@ Job description:
 export async function extractRoleFromJD(text: string): Promise<ExtractedRoleFields> {
   const client = getAnthropicClient()
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 1000,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: `${PROMPT_PREFIX}${text.slice(0, 8000)}` }],
   })
   const message = await stream.finalMessage()

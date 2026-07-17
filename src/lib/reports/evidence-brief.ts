@@ -35,9 +35,9 @@ ${input.candidateFacts}
 ${input.roleFacts ? `Role requirements:\n${input.roleFacts}` : 'No specific role requirements provided — write generally about their strongest evidence.'}`
 
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 400,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
   })
   const message = await stream.finalMessage()
@@ -59,9 +59,9 @@ ${gaps.map((g) => `- ${g}`).join('\n')}
 ${roleFacts ? `Role context:\n${roleFacts}` : ''}`
 
   const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 400,
-    thinking: { type: 'adaptive' },
+    thinking: { type: 'disabled' },
     messages: [{ role: 'user', content: prompt }],
   })
   const message = await stream.finalMessage()

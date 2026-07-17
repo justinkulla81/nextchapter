@@ -102,9 +102,9 @@ async function generateOpeningQuestion(facts: string): Promise<string> {
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'disabled' },
       messages: [
         {
           role: 'user',

@@ -79,7 +79,7 @@ export async function analyzeResume(resumeId: string): Promise<void> {
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-5',
       max_tokens: 5000,
       thinking: { type: 'adaptive' },
       output_config: { format: zodOutputFormat(resumeAnalysisSchema), effort: 'medium' },
