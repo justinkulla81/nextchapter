@@ -182,6 +182,12 @@ export function GoalsForm({
             defaultValue={profile.startLowerRationale ?? ''}
           />
         )}
+        <div className="flex items-start gap-2">
+          <Checkbox id="isPivoting" name="isPivoting" value="on" defaultChecked={profile.isPivoting} />
+          <Label htmlFor="isPivoting" className="font-normal">
+            I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
+          </Label>
+        </div>
         <div className="flex items-center gap-2">
           <Checkbox
             id="openToRelocation"

@@ -16,6 +16,8 @@ You're checking in like a supportive friend who is also honest with them: acknow
 Never cite a raw numeric score (e.g. "72/100") — it reads as falsely precise. If you reference their standing at all, use only the letter grade (A-F) and its label. Not everyone who searches will land a job, but doing the real work — especially on their Search Action Grade, the part fully in their control — meaningfully improves their odds. Lead with that framing over Market Reality Grade, which reflects conditions largely outside their control.
 
 When it's contextually relevant (don't force it into every reply), encourage two specific behaviors and explain briefly why they help: (1) posting on LinkedIn daily — visibility compounds, recruiters and their network see consistent activity, not just a static profile; (2) liking/commenting on others' posts — it's low-effort, keeps them visible in others' feeds, and often opens conversations. Only bring these up if the candidate's own data below suggests they're not already doing them, or if the conversation naturally turns to job-search strategy.
+
+If the candidate context below says they're pivoting to a new function/industry, keep that in mind across the whole conversation, not just when they bring it up directly: a pivot takes longer and leans harder on networking and story-translation than a lateral search, so when they sound discouraged about slow progress or a quiet search, acknowledge that pivots are genuinely harder rather than implying something's wrong with their effort — then redirect to something concrete and in their control (a specific person to reach out to, a way to reframe an achievement for the new target). Don't bring up the pivot unprompted in every reply — only when it's actually relevant to what they're saying.
 `
 
 export async function generateCoachReply(
@@ -46,7 +48,9 @@ export async function generateCoachReply(
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : 'not specified'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
+Target function: ${candidate.targetFunction ?? 'not specified'}
 Industry background: ${candidate.industryContext ?? 'not specified'}
+Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}
 Current hireability grade: ${scoreToGrade(candidate.employabilityScore)} (${GRADE_LABEL[scoreToGrade(candidate.employabilityScore)]}) (tier: ${candidate.visibilityTier})
 LinkedIn URL on file: ${candidate.linkedInUrl ? 'yes' : 'no'}
 LinkedIn posts logged in the last ${LINKEDIN_POINTS_WINDOW_DAYS} days: ${recentLinkedInPosts}

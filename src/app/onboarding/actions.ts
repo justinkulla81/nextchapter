@@ -350,6 +350,7 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
         compFlexible: formData.get('compFlexible') === 'on',
         willingToStartLower: formData.get('willingToStartLower') === 'on',
         startLowerRationale: (formData.get('startLowerRationale') as string) || null,
+        isPivoting: formData.get('isPivoting') === 'on',
         openToRelocation,
         relocationNotes: openToRelocation ? (formData.get('relocationNotes') as string) || null : null,
         dealBreakers: (formData.get('dealBreakers') as string) || null,
