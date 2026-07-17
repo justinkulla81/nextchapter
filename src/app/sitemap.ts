@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
+import { PERSONAS } from '@/lib/constants/personas'
 
 const siteUrl = 'https://launchyournextchapter.com'
 
@@ -47,6 +48,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.4,
     },
+    {
+      url: `${siteUrl}/refer`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    ...PERSONAS.map((p) => ({
+      url: `${siteUrl}/start/${p.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
     {
       url: `${siteUrl}/for-organizations`,
       lastModified: new Date(),

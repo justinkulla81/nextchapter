@@ -125,9 +125,9 @@ export default function HowItWorksPage() {
         <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
           <Image
             src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Market Reality Grade and a Search Execution Grade trending upward, with an action plan"
-            width={2404}
-            height={1762}
+            alt="NextChapter Success Dashboard showing a Market Reality B grade, an A weekly Search Score, a 12-day streak, and completed Search Action Tasks with their point values"
+            width={1040}
+            height={815}
             className="w-full"
           />
         </div>
