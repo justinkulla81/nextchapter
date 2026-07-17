@@ -127,6 +127,23 @@ export default function HowItWorksPage() {
           ))}
         </div>
 
+        <div className="mx-auto mt-16 max-w-2xl text-center">
+          <h2 className="text-xl font-semibold text-navy">Hear it from Sarah</h2>
+          <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
+            A NextChapter member on what the process actually looked like for her.
+          </p>
+          <div className="mx-auto mt-6 overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
+            <video
+              controls
+              preload="metadata"
+              className="w-full"
+              src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/sarah-story.mp4"
+            >
+              Your browser doesn&apos;t support embedded video.
+            </video>
+          </div>
+        </div>
+
         <div className="mt-16 text-center">
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
             Get your Hireability Assessment

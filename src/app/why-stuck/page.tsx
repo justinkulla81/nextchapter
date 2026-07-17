@@ -94,6 +94,25 @@ export default function WhyStuckPage() {
       </section>
 
       <section className="bg-white px-6 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-xl font-semibold text-navy">Hear it from Chris</h2>
+          <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
+            A NextChapter member on what being stuck actually felt like — and what changed.
+          </p>
+          <div className="mx-auto mt-6 overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
+            <video
+              controls
+              preload="metadata"
+              className="w-full"
+              src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/chris-story.mp4"
+            >
+              Your browser doesn&apos;t support embedded video.
+            </video>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-off-white px-6 py-16">
         <SituationalButtons />
       </section>
     </div>
