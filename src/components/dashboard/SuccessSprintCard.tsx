@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ACTION_TYPE_LINK, formatMinutes, type SuggestedActionLike } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
@@ -37,8 +35,6 @@ export function SuccessSprintCard({
   laggingEngines: SearchExecutionEngine['key'][]
   categoryMinimumsMet: boolean
 }) {
-  const [showSetup, setShowSetup] = useState(!actions || actions.length === 0)
-
   const completedCount = actions?.filter((a) => a.completed).length ?? 0
   const totalPoints = actions?.reduce((sum, a) => sum + a.points, 0) ?? 0
   const totalMinutes = actions?.reduce((sum, a) => sum + a.estimatedMinutes, 0) ?? 0
@@ -111,25 +107,24 @@ export function SuccessSprintCard({
           </div>
         )}
 
-        {editWindowOpen && !showSetup && (
-          <Button variant="ghost" size="sm" onClick={() => setShowSetup(true)} className="cursor-pointer">
-            Update this week&apos;s actions →
-          </Button>
+        {actions && actions.length > 0 && editWindowOpen && (
+          <p className="text-sm text-muted-foreground">
+            You&apos;ve already committed to goals this week. Submitting below replaces them.
+          </p>
         )}
 
-        {showSetup &&
-          (suggestedActions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Your report is still generating — check back in a moment for suggested actions.
-            </p>
-          ) : (
-            <SprintSetupForm
-              suggestedActions={suggestedActions}
-              marketRealityGrade={marketRealityGrade}
-              weekNumber={weekNumber}
-              locked={!editWindowOpen}
-            />
-          ))}
+        {suggestedActions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Your report is still generating — check back in a moment for suggested actions.
+          </p>
+        ) : (
+          <SprintSetupForm
+            suggestedActions={suggestedActions}
+            marketRealityGrade={marketRealityGrade}
+            weekNumber={weekNumber}
+            locked={!editWindowOpen}
+          />
+        )}
 
         {weeklySprintsCount >= CATEGORY_MINIMUM_ENFORCED_FROM_WEEK && (
           <div className="border-t border-border pt-4">
