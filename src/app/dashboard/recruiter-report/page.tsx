@@ -16,9 +16,9 @@ export default async function RecruiterReportPage() {
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Recruiter Report</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Certified Executive Dossier</h1>
           <p className="mt-1 text-muted-foreground">
-            Your executive dossier — every reference, work sample, and network signal you&apos;ve
+            Every reference, work sample, and network signal you&apos;ve
             built here, plus your execution score, in one document. Hand it to any hiring manager,
             recruiter, or coach alongside your resume and cover letter. You control when this is
             generated and shared; it&apos;s never sent automatically.

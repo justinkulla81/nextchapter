@@ -1,7 +1,9 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { BountyClaimForm } from '@/components/dashboard/BountyClaimForm'
+import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
+import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 
 const STATUS_COPY: Record<string, { heading: string; body: string }> = {
   PENDING: {
@@ -20,10 +22,14 @@ const STATUS_COPY: Record<string, { heading: string; body: string }> = {
 
 export default async function GotHiredPage() {
   const profile = await getDashboardData()
-  const latestClaim = await prisma.bountyClaim.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  const [latestClaim, grade] = await Promise.all([
+    prisma.bountyClaim.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+  ])
+  const isAGrade = grade.searchExecution.grade === 'A'
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -55,11 +61,19 @@ export default async function GotHiredPage() {
               <p className="mt-2 text-muted-foreground">You can submit a new claim below.</p>
             </div>
           )}
-          <Card>
-            <CardContent className="pt-6">
-              <BountyClaimForm />
-            </CardContent>
-          </Card>
+          {isAGrade ? (
+            <Card>
+              <CardContent className="pt-6">
+                <BountyClaimForm />
+              </CardContent>
+            </Card>
+          ) : (
+            <LockedFeatureNotice
+              title="Offer Bonus"
+              requirement="Requires an A Search Action Grade to submit — this is checked at the moment you submit, not sustained over time. Hit an A this week and come back."
+              currentGrade={grade.searchExecution.grade}
+            />
+          )}
         </>
       )}
     </div>

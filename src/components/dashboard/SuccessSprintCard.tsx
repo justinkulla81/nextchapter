@@ -9,7 +9,7 @@ export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | nu
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">This Week&apos;s Success Sprint</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">This Week&apos;s Search Sprint</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
@@ -28,7 +28,7 @@ export function SuccessSprintCard({ actions }: { actions: CommittedAction[] | nu
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">This Week&apos;s Success Sprint</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">This Week&apos;s Search Sprint</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-foreground">

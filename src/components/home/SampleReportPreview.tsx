@@ -33,7 +33,7 @@ export function SampleReportPreview() {
             </button>
             <Image
               src="/marketing/success-dashboard.png"
-              alt="NextChapter Success Dashboard showing a Hireability Grade trending upward, with an action plan"
+              alt="NextChapter Success Dashboard showing grades trending upward, with an action plan"
               width={2404}
               height={1762}
               className="w-full rounded-lg"

@@ -202,7 +202,7 @@ export default async function LearningPage() {
           <h2 className="text-lg font-semibold">Recommended for you</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Based on your background, goals, and Hireability Report — not a generic list. Mark
-            something done and it counts toward the learning signal in your Search Execution
+            something done and it counts toward the learning signal in your Search Action
             Grade, the same as anything else here.
           </p>
         </div>

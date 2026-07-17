@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCoachByToken } from '@/lib/coach/access'
 import { getCoachClientSummaries } from '@/lib/coach/client-summary'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 
 const TREND_LABEL: Record<string, string> = {
   up: '↑ improving',
@@ -44,7 +45,7 @@ export default async function CoachClientsPage({
     <div className="mx-auto max-w-3xl px-6 py-16">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">NextChapter for Coaches</p>
+          <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
           <h1 className="text-2xl font-semibold tracking-tight">Your clients</h1>
           <p className="text-muted-foreground">
             {clients.length === 0

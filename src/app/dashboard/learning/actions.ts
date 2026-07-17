@@ -10,7 +10,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 // One-click completion from a recommendation card — skips the manual
 // title/type/date form since we already know what it is and that it's done
 // today; still creates a real LearningBadge so it counts toward the
-// Recruiter Report the same as a manually logged one.
+// Certified Executive Dossier the same as a manually logged one.
 export async function markRecommendationCompleted(title: string, provider: string | null): Promise<void> {
   const supabase = await createClient()
   const {

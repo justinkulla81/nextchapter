@@ -7,7 +7,7 @@ import { StructuredData } from '@/components/StructuredData'
 
 export const metadata: Metadata = {
   title: 'FAQ',
-  description: 'Answers to common questions about NextChapter — pricing, the Hireability Grade, privacy, and how matching with employers works.',
+  description: 'Answers to common questions about NextChapter — pricing, the Market Reality Grade and Search Action Grade, privacy, and how matching with employers works.',
 }
 
 const jsonLd = {

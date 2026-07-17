@@ -35,7 +35,7 @@ export default async function ReferenceDisputesAdminPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Reference Disputes</h1>
         <p className="mt-1 text-muted-foreground">
           References a candidate has flagged as incorrect — {rows.length} awaiting review. Held
-          out of that candidate&apos;s Recruiter Report and Evidence Brief until resolved here.
+          out of that candidate&apos;s Certified Executive Dossier and Evidence Brief until resolved here.
         </p>
       </div>
 

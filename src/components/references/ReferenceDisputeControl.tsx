@@ -26,7 +26,7 @@ export function ReferenceDisputeControl({
     return (
       <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
         <span className="font-medium">Under review</span> — this reference won&apos;t appear in
-        your Recruiter Report until it&apos;s resolved.
+        your Certified Executive Dossier until it&apos;s resolved.
         {disputeNote && <p className="mt-1 text-amber-700">Your note: &quot;{disputeNote}&quot;</p>}
       </div>
     )
@@ -51,7 +51,7 @@ export function ReferenceDisputeControl({
         name="note"
         required
         rows={3}
-        placeholder="What seems off about this reference? We'll hold it out of your Recruiter Report while we look into it."
+        placeholder="What seems off about this reference? We'll hold it out of your Certified Executive Dossier while we look into it."
         className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
       />
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}

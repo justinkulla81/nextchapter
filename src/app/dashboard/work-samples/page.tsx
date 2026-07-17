@@ -27,7 +27,7 @@ export default async function WorkSamplesPage() {
           <div>
             <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
+              Feeds your Certified Executive Dossier and What They See — fractional/interim/consulting roles
               are never labeled as such externally, so add them here without hesitation.
             </p>
           </div>
@@ -54,7 +54,7 @@ export default async function WorkSamplesPage() {
           <div>
             <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
+              Feeds your Certified Executive Dossier and What They See — fractional/interim/consulting roles
               are never labeled as such externally, so add them here without hesitation.
             </p>
           </div>
@@ -113,7 +113,7 @@ export default async function WorkSamplesPage() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Feeds your Recruiter Report and What They See — fractional/interim/consulting roles
+            Feeds your Certified Executive Dossier and What They See — fractional/interim/consulting roles
             are never labeled as such externally, so add them here without hesitation.
           </p>
         </div>

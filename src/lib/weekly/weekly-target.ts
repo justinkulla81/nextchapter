@@ -1,4 +1,4 @@
-// The weekly time commitment that earns an A in Search Execution — grows
+// The weekly time commitment that earns an A in Search Action Grade — grows
 // from 2.5 hours in Week 1 by 1 hour/week, flatlining at 7.5 hours/week from
 // Week 6 onward. This is the concrete mechanic behind the onboarding
 // contract screen's "8 to 12 hours by Week 6" framing (that copy is

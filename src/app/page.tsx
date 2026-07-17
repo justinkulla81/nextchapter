@@ -13,8 +13,8 @@ const heroStats = [
 ]
 
 const STUCK_TO_FIX = [
-  { stuck: "You don't know where you actually stand", fix: 'Hireability Grade' },
-  { stuck: "You're overwhelmed and don't know what to do next", fix: 'Success Sprint' },
+  { stuck: "You don't know where you actually stand", fix: 'Market Reality Grade' },
+  { stuck: "You're overwhelmed and don't know what to do next", fix: 'Search Sprint' },
   { stuck: "You're isolated and don't have anyone to talk to about it", fix: 'Community' },
   { stuck: "Your resume doesn't show what actually makes you valuable", fix: 'Executive Dossier' },
   { stuck: "You're applying and hearing nothing back", fix: 'Job Fit + recruiter matching' },
@@ -22,9 +22,9 @@ const STUCK_TO_FIX = [
 ]
 
 const HOW_IT_WORKS_STEPS = [
-  { title: 'Hireability Grade', description: 'A clearer view of where you stand and what to do next.' },
-  { title: 'Success Sprint', description: 'A clear weekly plan, not a guessing game.' },
-  { title: 'Search Score', description: 'Momentum you can actually see, points that never feel abstract.' },
+  { title: 'Market Reality Grade', description: 'A clearer view of where you stand and what to do next.' },
+  { title: 'Search Sprint', description: 'A clear weekly plan, not a guessing game.' },
+  { title: 'Weekly Search Score', description: 'Momentum you can actually see, points that never feel abstract.' },
   { title: 'Executive Dossier', description: 'Helps employers see what your résumé leaves out.' },
 ]
 
@@ -34,7 +34,7 @@ const jsonLd = {
   name: 'NextChapter',
   url: 'https://launchyournextchapter.com',
   description:
-    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Hireability Grade with a personalized action plan.',
+    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Grade and Search Action Grade with a personalized action plan.',
   publisher: {
     '@type': 'Organization',
     name: 'NextChapter',
@@ -83,16 +83,31 @@ export default function Home() {
 
         <div className="mx-auto max-w-4xl px-6 pt-16 pb-20 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-6xl">
-            Find out what&apos;s holding back your <span className="whitespace-nowrap">job search.</span>
+            NextChapter
           </h1>
+          <p className="mt-2 text-lg font-medium text-muted-foreground sm:text-xl">
+            Your Job Transition Platform
+          </p>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Get an honest Hireability Grade and a personalized action plan that actually gets you
-            hired — not another job board, not another LinkedIn stigma.
+            LinkedIn doesn&apos;t work. Job boards are a black hole. Get started with your
+            Hireability Report — we&apos;ll tell you exactly where you stand today, then give you
+            a personalized action plan that actually gets you hired.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
               Get your Hireability Assessment
             </Button>
+          </div>
+
+          <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
+            <video
+              controls
+              preload="metadata"
+              className="w-full"
+              src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/homepage-explainer.mp4"
+            >
+              Your browser doesn&apos;t support embedded video.
+            </video>
           </div>
 
           <div className="mt-16 grid gap-4 sm:grid-cols-4">
@@ -173,7 +188,7 @@ export default function Home() {
           <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
             <Image
               src="/marketing/success-dashboard.png"
-              alt="NextChapter Success Dashboard showing a Market Reality B grade, an A weekly Search Score, a 12-day streak, and completed Search Action Tasks with their point values"
+              alt="NextChapter Success Dashboard showing a Market Reality Grade of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
               width={1040}
               height={815}
               className="w-full"

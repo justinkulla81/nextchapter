@@ -68,7 +68,7 @@ export function WorkHistoryList({ entries }: { entries: WorkHistoryEntry[] }) {
       {showPrimaryToggle && (
         <p className="text-xs text-muted-foreground">
           You have more than one active fractional/interim role — only the one marked &quot;Shown
-          externally&quot; appears on your Recruiter Report and What They See.
+          externally&quot; appears on your Certified Executive Dossier and What They See.
         </p>
       )}
     </div>

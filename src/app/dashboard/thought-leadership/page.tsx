@@ -37,7 +37,7 @@ export default async function ThoughtLeadershipPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           Posting is one of the highest-leverage things you can do right now — it&apos;s how
           recruiters and your network see you&apos;re active before you ever apply anywhere, and
-          consistent activity shows up on your Recruiter Report as a real, visible signal, not a
+          consistent activity shows up on your Certified Executive Dossier as a real, visible signal, not a
           resume claim.
         </p>
       </div>

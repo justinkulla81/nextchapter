@@ -239,7 +239,7 @@ export async function deleteWorkHistoryEntry(entryId: string): Promise<void> {
 }
 
 // When a candidate has more than one concurrent fractional/interim/consulting
-// engagement, external-facing views (Recruiter Report, What They See) show
+// engagement, external-facing views (Certified Executive Dossier, What They See) show
 // only one at a time — see selectDisplayedWorkHistory(). This is how the
 // candidate picks which one that is.
 export async function setPrimaryEngagement(entryId: string): Promise<void> {

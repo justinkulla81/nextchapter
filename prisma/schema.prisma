@@ -557,8 +557,8 @@ model Reference {
   contextNotes      String?
 
   // Candidate-initiated dispute/correction, before this reference is ever
-  // shared in a Dossier. A disputed-and-unresolved reference is excluded
-  // from the Recruiter Report — see getRecruiterReportData.
+  // shared in a Certified Executive Dossier. A disputed-and-unresolved
+  // reference is excluded from it — see getRecruiterReportData.
   candidateDisputeNote String?
   candidateDisputedAt  DateTime?
   disputeResolvedAt    DateTime?
@@ -1174,7 +1174,7 @@ model SundayNightReport {
   aListMemberNames String[] @default([]) // "First L." for the whole cohort, shown to everyone
   aListCount       Int      @default(0)
 
-  // Market Response Funnel — tracked separately from Search Execution, since
+  // Market Response Funnel — tracked separately from Search Action Grade, since
   // doing the work (execution) and the market actually responding (this) are
   // different things. See MarketResponseLog for the self-reported signals
   // aggregated into this snapshot, plus real JobPosting interview/offer data.
@@ -1370,6 +1370,12 @@ model BountyClaim {
   rejectionReason String?
   paidAt          DateTime?
 
+  // Search Action Grade at the moment of submission — snapshotted for audit
+  // purposes since the requirement (must be A to submit) is enforced at
+  // submission time, and the candidate's grade can move afterward. Null on
+  // claims submitted before this gate existed (grandfathered, not re-checked).
+  gradeAtSubmission String?
+
   createdAt DateTime @default(now())
 
   @@index([status])
@@ -1462,6 +1468,26 @@ model SurfacedJob {
 
   @@unique([candidateId, url])
   @@index([candidateId, surfacedAt])
+}
+
+// Admin-curated real job postings, visible only to candidates currently
+// holding an A Search Action Grade (and opted into the recruiter database —
+// same consent gate as Talent visibility, since this is another
+// employer-facing surface). Distinct from JobPosting (a candidate's own
+// private, capped-at-5 job-fit tracker) and SurfacedJob (algorithmic,
+// per-candidate matches) — this is a single shared, admin-authored list.
+model ExclusiveJobPosting {
+  id          String   @id @default(cuid())
+  title       String
+  companyName String
+  location    String?
+  url         String
+  description String?
+  addedBy     String // admin email, from requireAdmin()
+  createdAt   DateTime @default(now())
+  archivedAt  DateTime? // soft-hide instead of delete, keeps admin history
+
+  @@index([archivedAt, createdAt])
 }
 
 model PivotIdea {

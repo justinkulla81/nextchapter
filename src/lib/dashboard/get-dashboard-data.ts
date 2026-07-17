@@ -41,6 +41,7 @@ export async function getDashboardData() {
       hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       _count: { select: { weeklySprints: true } },
+      coach: { select: { focus: true } },
     },
   })
 

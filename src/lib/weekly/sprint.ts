@@ -36,8 +36,8 @@ export async function getCurrentWeekSprint(candidateId: string) {
   return prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } })
 }
 
-// Search Execution is graded from real weekly follow-through — until a
-// candidate has committed to at least one Success Sprint, there's nothing
+// Search Action Grade is graded from real weekly follow-through — until a
+// candidate has committed to at least one Search Sprint, there's nothing
 // to grade yet, so every surface should show "N/A, starting line" instead
 // of a computed letter grade.
 export async function hasStartedSprint(candidateId: string): Promise<boolean> {

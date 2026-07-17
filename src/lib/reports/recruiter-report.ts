@@ -5,13 +5,14 @@ import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 import { characterSignalsUnlocked, type EvidenceType } from '@/lib/reports/evidence-type'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 
-// The Recruiter Report is a self-serve, candidate-controlled PDF handed to
-// anyone off-platform, alongside a resume — never auto-sent. Deliberately
-// template-based rather than LLM-generated: every line is a real, countable
-// fact, so there's no hallucination risk in a document a third party reads
-// as an attestation of effort. Never includes comp expectations (this
-// document, once downloaded, can't be revoked the way a What They See link
-// can) or the Hireability Grade (grade never appears outside the product).
+// The Certified Executive Dossier (formerly "Recruiter Report") is a
+// self-serve, candidate-controlled PDF handed to anyone off-platform,
+// alongside a resume — never auto-sent. Deliberately template-based rather
+// than LLM-generated: every line is a real, countable fact, so there's no
+// hallucination risk in a document a third party reads as an attestation of
+// effort. Never includes comp expectations (this document, once downloaded,
+// can't be revoked the way a What They See link can) or the Market Reality
+// Grade or Search Action Grade (grades never appear outside the product).
 
 export interface RecruiterReportData {
   candidateName: string
@@ -105,7 +106,7 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
   const peerSupportLine =
     peerSupportCount > 0
       ? {
-          text: `Substantively helped ${peerSupportCount} other job seeker${peerSupportCount === 1 ? '' : 's'} — answering questions, making introductions, or offering encouragement. Unscored by design: this earns no Search Score points, which is what makes it a genuinely voluntary signal.`,
+          text: `Substantively helped ${peerSupportCount} other job seeker${peerSupportCount === 1 ? '' : 's'} — answering questions, making introductions, or offering encouragement. Unscored by design: this earns no Weekly Search Score points, which is what makes it a genuinely voluntary signal.`,
           evidenceType: 'verified_fact' as const,
         }
       : null

@@ -1,4 +1,4 @@
-// Every statement in the Dossier (Recruiter Report) and Evidence Brief comes
+// Every statement in the Certified Executive Dossier and Evidence Brief comes
 // from one of three places, and a hiring manager reading it off-platform has
 // no way to tell them apart without an explicit label. This is that
 // taxonomy — attached to report output at generation time, not persisted,

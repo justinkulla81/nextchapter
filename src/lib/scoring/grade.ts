@@ -1,4 +1,5 @@
-// Pure types/values for the Hireability Grade — no server-only dependencies,
+// Pure types/values for the Market Reality Grade and Search Action Grade —
+// no server-only dependencies,
 // so client components (e.g. the animated score-reveal ring) can import
 // these directly without pulling in the Prisma/market-data computation in
 // hireability-grade.ts.
@@ -148,12 +149,22 @@ export interface HireabilityGrade {
     engines: SearchExecutionEngine[]
     categoryMinimumsMet: boolean
     laggingEngines: SearchExecutionEngine['key'][]
-    // Real Search Score points for the current Weekly Search Sprint — 1
+    // Real Weekly Search Score points for the current Search Sprint — 1
     // point = 1 minute of effort, shown transparently to the candidate
     // (deliberately not hidden behind the "no raw numbers" convention that
     // applies to the algorithmic grades above, since visible points are the
     // whole point of this system).
     weeklyPoints: number
     weeklyPointsTarget: number
+    // Bonus fields, optional since older stored report snapshots predate
+    // them (undefined on those rows, never backfilled — historical reports
+    // reflect the rules at the time they were generated). hasExecutiveCoach
+    // = +25% recognized points; hadPriorWeekA = +10% more, universal to
+    // anyone coming off an A week, coach or not. Grade is computed from
+    // recognizedWeeklyPoints, not the raw weeklyPoints above.
+    bonusMultiplier?: number
+    hasExecutiveCoach?: boolean
+    hadPriorWeekA?: boolean
+    recognizedWeeklyPoints?: number
   }
 }

@@ -33,6 +33,7 @@ export default async function ScorePage() {
       resumes: { orderBy: { uploadedAt: 'desc' } },
       surfacedJobs: { select: { reaction: true } },
       _count: { select: { weeklySprints: true } },
+      coach: { select: { focus: true } },
     },
   })
 
@@ -43,7 +44,7 @@ export default async function ScorePage() {
     <div className="flex flex-col items-center gap-8 text-center">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Hireability Grade'}
+          {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Market Reality Grade'}
         </h1>
         <p className="mt-2 max-w-md text-sm text-muted-foreground italic">
           &ldquo;Your initial grade is based on what you&apos;ve told me. The confidence level on

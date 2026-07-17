@@ -1,4 +1,5 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
 import { SmsConsentForm } from '@/components/candidates/SmsConsentForm'
@@ -12,6 +13,7 @@ import Link from 'next/link'
 
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
+  const grade = await computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations)
 
   return (
     <div className="space-y-8">
@@ -31,7 +33,7 @@ export default async function PrivacyPage() {
             NextChapter&apos;s Talent tools can match you against open roles at all.
           </p>
         </div>
-        <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} />
+        <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} currentGrade={grade.searchExecution.grade} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

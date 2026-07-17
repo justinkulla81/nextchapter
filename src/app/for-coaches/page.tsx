@@ -8,12 +8,12 @@ const tab = AUDIENCE_TABS.find((t) => t.id === 'for-coaches')!
 export const metadata: Metadata = {
   title: 'Bring Your Clients Onto NextChapter — For Coaches',
   description:
-    'Give your career, life, and executive coaching clients a free Hireability Grade, action plan, and daily accountability between your sessions. Free, set up in under a minute.',
+    'Give your career, life, and executive coaching clients a free Market Reality Grade and Search Action Grade, action plan, and daily accountability between your sessions. Free, set up in under a minute.',
   alternates: { canonical: '/for-coaches' },
   openGraph: {
     title: 'Bring Your Clients Onto NextChapter — For Coaches',
     description:
-      'Give your coaching clients a free Hireability Grade, action plan, and daily accountability between your sessions.',
+      'Give your coaching clients a free Market Reality Grade and Search Action Grade, action plan, and daily accountability between your sessions.',
     url: 'https://launchyournextchapter.com/for-coaches',
   },
 }
@@ -27,7 +27,7 @@ const jsonLd = {
   areaServed: 'US',
   audience: { '@type': 'Audience', audienceType: 'Career coaches' },
   description:
-    'Give your coaching clients a free Hireability Grade, action plan, and daily accountability between your sessions.',
+    'Give your coaching clients a free Market Reality Grade and Search Action Grade, action plan, and daily accountability between your sessions.',
   url: 'https://launchyournextchapter.com/for-coaches',
 }
 

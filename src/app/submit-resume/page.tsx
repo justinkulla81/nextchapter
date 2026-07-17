@@ -40,7 +40,7 @@ export default function SubmitResumePage() {
         <p className="mt-6 text-sm text-muted-foreground">
           Want a free assessment of your search instead?{' '}
           <Link href="/onboarding/resume" className="text-primary underline underline-offset-4">
-            Get your Hireability Grade
+            Get your grades
           </Link>
           .
         </p>

@@ -110,7 +110,8 @@ export function CreateShareForm() {
 
       {recipientType === 'COACH' && (
         <p className="text-xs text-muted-foreground">
-          Coaches see your full profile, including your Hireability Grade. Your private
+          Coaches see your full profile, including your Market Reality Grade and Search Action
+          Grade. Your private
           conversations with Victoria are never included.
         </p>
       )}

@@ -40,7 +40,7 @@ const SECTIONS: NavSection[] = [
     title: null,
     links: [
       { href: '/dashboard', label: 'Success Dashboard' },
-      { href: '/dashboard/sprint', label: 'Success Sprint' },
+      { href: '/dashboard/sprint', label: 'Search Sprint' },
     ],
   },
   {

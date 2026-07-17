@@ -98,7 +98,7 @@ export function SprintSetupForm({
         {meetsB && !meetsA && (
           <p className="mt-2 text-xs text-foreground">
             A B is real effort, but it&apos;s not everything — you&apos;re choosing to do most of this week&apos;s
-            plan, not all of it. Given your current Market Reality grade of{' '}
+            plan, not all of it. Given your current Market Reality Grade of{' '}
             <span className="font-semibold">{marketRealityGrade}</span>,{' '}
             {marketRealityGrade === 'A' || marketRealityGrade === 'B'
               ? "your market position gives you some room, but every action you skip is ground you're not covering."

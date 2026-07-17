@@ -159,7 +159,7 @@ export default async function HireabilityReportPage() {
           {report && (
             <>
               <Button nativeButton={false} variant="outline" render={<Link href="/dashboard/recruiter-report" />}>
-                Recruiter Report →
+                Executive Dossier →
               </Button>
               <PrintReportButton />
               {!report.emailSentAt && (
@@ -225,9 +225,9 @@ export default async function HireabilityReportPage() {
             </div>
           </div>
 
-          {/* Executive Summary — Hireability Grade */}
+          {/* Executive Summary — grades */}
           <div className="mt-10 border-t border-border pt-8">
-            <SectionHeading>Your Hireability Grade</SectionHeading>
+            <SectionHeading>Your Grades</SectionHeading>
             {report.hireabilityGradeAtGeneration === null ? (
               <p className="mt-3 text-sm text-muted-foreground">
                 Grade breakdown unavailable for this report — regenerate to see it.
@@ -240,7 +240,7 @@ export default async function HireabilityReportPage() {
                   <div className="mt-4 grid gap-6 sm:grid-cols-2">
                     <div>
                       <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                        Market Reality
+                        Market Reality Grade
                       </p>
                       <p
                         className={cn(
@@ -284,13 +284,13 @@ export default async function HireabilityReportPage() {
                     </div>
                     <div>
                       <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                        Search Execution
+                        Search Action Grade
                       </p>
                       {!searchExecutionAvailable ? (
                         <>
                           <p className="mt-1 text-5xl font-bold text-muted-foreground">N/A</p>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            You haven&apos;t started your Success Sprint yet — that&apos;s not a
+                            You haven&apos;t started your Search Sprint yet — that&apos;s not a
                             failure, it&apos;s a starting line. Commit to this week&apos;s goals and
                             I&apos;ll grade your execution this Sunday.
                           </p>
@@ -337,7 +337,7 @@ export default async function HireabilityReportPage() {
             )}
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
               Everyone will not make it — but doing the real work meaningfully improves your odds.
-              It&apos;s all about your Search Execution: the one grade above that&apos;s entirely
+              It&apos;s all about your Search Action Grade: the one grade above that&apos;s entirely
               in your hands.
             </p>
             <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
@@ -345,15 +345,15 @@ export default async function HireabilityReportPage() {
                 <p className="text-sm font-medium text-foreground">
                   When you&apos;re ready to prioritize this, your{' '}
                   <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
-                    Success Sprint
+                    Search Sprint
                   </Link>{' '}
-                  will show you exactly what moves an A on Search Execution — no clock running in
-                  the meantime.
+                  will show you exactly what moves an A on your Search Action Grade — no clock
+                  running in the meantime.
                 </p>
               ) : (
                 <>
                   <p className="text-sm font-medium text-foreground">
-                    This week, to get an A on Search Execution, it takes about{' '}
+                    This week, to get an A on your Search Action Grade, it takes about{' '}
                     <span className="font-semibold">{aTargetHours}h</span> of real committed work; a
                     B takes about <span className="font-semibold">{bTargetHours}h</span>.
                   </p>
@@ -361,7 +361,7 @@ export default async function HireabilityReportPage() {
                     That target grows a little each week through Week 6, then holds steady — see
                     your{' '}
                     <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
-                      Success Sprint
+                      Search Sprint
                     </Link>{' '}
                     for this week&apos;s exact commitment.
                   </p>
@@ -442,14 +442,14 @@ export default async function HireabilityReportPage() {
             </div>
           </div>
 
-          {/* Your Success Sprint — the same list the Success Sprint page draws from */}
+          {/* Your Search Sprint — the same list the Search Sprint page draws from */}
           <div className="mt-10 border-t border-border pt-8 print:hidden">
-            <SectionHeading>Your Success Sprint – Week&apos;s Activities</SectionHeading>
+            <SectionHeading>Your Search Sprint – Week&apos;s Activities</SectionHeading>
             <p className="mt-4 text-sm text-muted-foreground">
-              Everything below is a real, available action toward your Search Execution grade.
+              Everything below is a real, available action toward your Search Action Grade.
               Click into your{' '}
               <Link href="/dashboard/sprint" className="text-primary underline underline-offset-4">
-                Success Sprint
+                Search Sprint
               </Link>{' '}
               to define your weekly goal by Monday night — if you don&apos;t, I&apos;ll set an
               A-level goal for you automatically.

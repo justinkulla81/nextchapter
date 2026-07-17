@@ -32,7 +32,7 @@ export default async function ReferencesPage() {
         <p className="mt-1 text-muted-foreground">
           Real relationship capital. A hiring manager trusts a former colleague&apos;s account of
           how you work more than anything on your resume — and it&apos;s one of the few signals in
-          your Hireability Grade that you can&apos;t inflate yourself. Request at least 3, ideally
+          your Market Reality Grade that you can&apos;t inflate yourself. Request at least 3, ideally
           5-10, from people who&apos;ve actually worked alongside you.
         </p>
       </div>

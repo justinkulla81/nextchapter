@@ -465,7 +465,7 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
     ),
     row(
       'avgSearchExecutionGrade',
-      'Average Search Execution grade',
+      'Average Search Action Grade',
       cur.avgSearchExecutionGrade ? `${cur.avgSearchExecutionGrade} (${GRADE_LABEL[cur.avgSearchExecutionGrade]})` : null,
       null,
       'grade',
@@ -474,7 +474,7 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
     ),
     row(
       'avgMarketPositionGrade',
-      'Average Market Reality grade',
+      'Average Market Reality Grade',
       cur.avgMarketPositionGrade ? `${cur.avgMarketPositionGrade} (${GRADE_LABEL[cur.avgMarketPositionGrade]})` : null,
       null,
       'grade',

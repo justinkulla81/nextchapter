@@ -19,9 +19,11 @@ import {
 import { ThankYouNoteCard } from '@/components/dashboard/ThankYouNoteCard'
 import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
+import { ExclusiveJobsSection } from '@/components/dashboard/ExclusiveJobsSection'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
+import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 
 const SURFACED_JOB_LIST_SIZE = 5
@@ -68,7 +70,7 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [surfacedJobs, interestedJobs, reactedCount] = await Promise.all([
+  const [surfacedJobs, interestedJobs, reactedCount, grade, exclusivePostings] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -80,6 +82,12 @@ export default async function JobFitPage() {
     }),
     prisma.surfacedJob.count({
       where: { candidateId: profile.id, reaction: { not: null } },
+    }),
+    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    prisma.exclusiveJobPosting.findMany({
+      where: { archivedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
     }),
   ])
 
@@ -94,13 +102,19 @@ export default async function JobFitPage() {
           feedback on how well you actually fit each one.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Rating jobs and applying counts toward the working signal in your Search Execution
+          Rating jobs and applying counts toward the working signal in your Search Action
           Grade.
         </p>
         <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">
           {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
         </p>
       </div>
+
+      <ExclusiveJobsSection
+        currentGrade={grade.searchExecution.grade}
+        recruiterDatabaseOptIn={profile.recruiterDatabaseOptIn}
+        postings={exclusivePostings}
+      />
 
       <div className="space-y-4">
         {atCap ? (

@@ -3,6 +3,7 @@ import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { CandidateCard } from '@/components/talent/CandidateCard'
+import type { HireabilityGrade } from '@/lib/scoring/grade'
 
 export default async function MatchInboxPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -11,7 +12,14 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
   const role = await prisma.roleProfile.findFirst({ where: { id, employerId: employer.id } })
   if (!role) notFound()
 
-  const candidates = await prisma.candidateProfile.findMany({
+  // Opting in is necessary but not sufficient — a candidate is only actually
+  // surfaced here while their current standing (latest report snapshot) is
+  // an A Search Action Grade. Live-recomputing the grade for up to 100
+  // candidates on every match-inbox load would be too expensive (per-
+  // candidate market-data lookups); the latest stored snapshot is the same
+  // "current standing" source of truth used elsewhere (Full Client View,
+  // Session Impact Report).
+  const candidatesRaw = await prisma.candidateProfile.findMany({
     where: {
       recruiterDatabaseOptIn: true,
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
@@ -29,9 +37,21 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       openToRelocation: true,
       targetCompMin: true,
       compFlexible: true,
+      hireabilityReports: {
+        orderBy: { generatedAt: 'desc' },
+        take: 1,
+        select: { hireabilityGradeAtGeneration: true },
+      },
     },
-    take: 100,
+    take: 200,
   })
+
+  const candidates = candidatesRaw
+    .filter((c) => {
+      const grade = c.hireabilityReports[0]?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined
+      return grade?.searchExecution.grade === 'A'
+    })
+    .slice(0, 100)
 
   const scored = candidates
     .map((candidate) => ({ candidate, match: computeMatchScore(candidate, role) }))

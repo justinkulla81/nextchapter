@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getCurrentSearchActionGrade } from '@/lib/scoring/hireability-grade'
 
 export type FormState = { error?: string; submitted?: boolean } | undefined
 
@@ -19,6 +20,14 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
   if (!user) return { error: 'You need to be logged in to do this.' }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+
+  const currentGrade = await getCurrentSearchActionGrade(profile.id)
+  if (currentGrade !== 'A') {
+    return {
+      error:
+        'The Offer Bonus requires an A Search Action Grade to submit. Get your grade to an A this week and come back to claim it.',
+    }
+  }
 
   const companyName = (formData.get('companyName') as string | null)?.trim()
   const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
@@ -60,6 +69,7 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
       roleTitle,
       startDate,
       offerLetterUrl: path,
+      gradeAtSubmission: currentGrade,
     },
   })
 

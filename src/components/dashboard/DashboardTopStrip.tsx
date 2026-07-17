@@ -26,7 +26,7 @@ export function DashboardTopStrip({
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-white px-5 py-3">
       <div className="flex items-center gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Market Reality</span>
+        <span className="text-xs font-medium text-muted-foreground">Market Reality Grade</span>
         <span className={`text-lg font-bold ${GRADE_COLOR[grade.marketReality.grade]}`}>
           {grade.marketReality.grade}
         </span>

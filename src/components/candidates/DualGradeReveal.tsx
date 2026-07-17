@@ -107,8 +107,8 @@ function HardHillCallout() {
     <div className="w-full max-w-sm space-y-2 border-l-4 border-navy bg-off-white px-[1.375rem] py-4 text-left">
       <p className="font-bold text-navy">We know this seems like a hard hill to climb.</p>
       <p className="text-[15px] text-foreground">
-        But that&apos;s exactly what NextChapter is for. We help you improve your Hireability Grade
-        with a structured execution plan — one activity at a time.
+        But that&apos;s exactly what NextChapter is for. We help you build a strong Search Action
+        Grade with a structured plan — one activity at a time.
       </p>
       <p className="text-[15px] text-foreground">
         You can also show recruiters you&apos;re serious with a strong Execution Score — earned by
@@ -127,7 +127,7 @@ export function DualGradeReveal({
 }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <GradeRing label="Market Reality" grade={grade.marketReality.grade} />
+      <GradeRing label="Market Reality Grade" grade={grade.marketReality.grade} />
 
       <GradeLegend />
 

@@ -40,7 +40,7 @@ export function ReferenceDisputeRow({
         disabled={isPending}
         onClick={() => startTransition(() => resolveReferenceDispute(id))}
       >
-        Mark resolved (restore to Recruiter Report)
+        Mark resolved (restore to Executive Dossier)
       </Button>
     </div>
   )

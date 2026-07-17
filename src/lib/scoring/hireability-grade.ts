@@ -1,11 +1,14 @@
-// The Hireability Grade — replaces the single numeric Hireability Score
-// display with two named, separately-meaningful grades:
+// The Market Reality Grade and Search Action Grade — replace the single
+// numeric Hireability Score display with two named, separately-meaningful
+// grades:
 //
-//   Market Reality   — an honest read on current market position, including
-//                       factors the candidate cannot control (experience,
-//                       market demand, how big a leap their target is).
-//   Search Execution — how well they're running the search they're capable
-//                       of running. Everyone can bring this one to an A.
+//   Market Reality Grade — an honest read on current market position,
+//                           including factors the candidate cannot control
+//                           (experience, market demand, how big a leap their
+//                           target is).
+//   Search Action Grade  — how well they're running the search they're
+//                           capable of running. Everyone can bring this one
+//                           to an A.
 //
 // Both are A-F. Each Market Reality dimension carries a fixed factor-type
 // label (controllable / influenceable / structural) — the label itself is
@@ -19,6 +22,7 @@
 import 'server-only'
 import type {
   CandidateProfile,
+  CoachingFocus,
   JobPosting,
   LinkedInActivityLog,
   Reference,
@@ -27,9 +31,10 @@ import type {
   WorkHistoryEntry,
   WorkSample,
 } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
-import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import {
   pointsNeededForA,
   gradeForWeeklyPoints,
@@ -44,6 +49,7 @@ import {
   type MarketRealityDimension,
   type SearchExecutionEngine,
   type HireabilityGrade,
+  type Grade,
 } from '@/lib/scoring/grade'
 
 export type { Grade, FactorType, MarketRealityDimension, SearchExecutionEngine, HireabilityGrade } from '@/lib/scoring/grade'
@@ -59,6 +65,7 @@ export type CandidateWithGradeRelations = CandidateProfile & {
   communityPosts: { createdAt: Date }[]
   surfacedJobs: Pick<SurfacedJob, 'reaction'>[]
   _count: { weeklySprints: number }
+  coach: { focus: CoachingFocus } | null
 }
 
 // How much real signal backs each Market Reality dimension — separate from
@@ -262,8 +269,9 @@ async function computeMarketRealityDimensions(
   ]
 }
 
-// Search Execution is now driven by real Search Score points earned this
-// week (1 point = 1 minute), not a lifetime profile-completeness proxy —
+// Search Action Grade is now driven by real Weekly Search Score points
+// earned this week (1 point = 1 minute), not a lifetime profile-completeness
+// proxy —
 // each of the four engines sums the points of *completed* committed actions
 // that map to it (see engineForActionType), and each engine's 0-100 score is
 // its share of points relative to a proportional quarter of the week's
@@ -311,6 +319,29 @@ async function computeSearchExecutionEngines(
   return { engines, weeklyPoints, weeklyPointsTarget }
 }
 
+// Did the candidate earn an A the calendar week immediately before the
+// current one? Recomputed directly from that week's WeeklySprint rather than
+// read back from a HireabilityReport snapshot, since reports aren't
+// generated on a strict weekly cadence — this stays accurate regardless of
+// when/whether a report happened to be generated that week.
+async function hadPriorWeekA(candidateId: string, weekNumber: number): Promise<boolean> {
+  if (weekNumber <= 1) return false
+
+  const priorMonday = getMondayOfWeek(new Date())
+  priorMonday.setUTCDate(priorMonday.getUTCDate() - 7)
+
+  const priorSprint = await prisma.weeklySprint.findUnique({
+    where: { candidateId_weekStartDate: { candidateId, weekStartDate: priorMonday } },
+  })
+  if (!priorSprint) return false
+
+  const priorActions = priorSprint.committedActions as unknown as CommittedAction[]
+  const priorPoints = priorActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+  const priorTarget = pointsNeededForA(weekNumber - 1)
+
+  return gradeForWeeklyPoints(priorPoints, priorTarget) === 'A'
+}
+
 export async function computeHireabilityGrade(
   candidate: CandidateWithGradeRelations
 ): Promise<HireabilityGrade> {
@@ -322,7 +353,18 @@ export async function computeHireabilityGrade(
   )
 
   const marketRealityScore = clamp(dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length)
-  const searchExecutionGradeFromPoints = gradeForWeeklyPoints(weeklyPoints, weeklyPointsTarget)
+
+  // Executive Coach bonus (+25% recognized points) and a universal
+  // consistency bonus (+10%, anyone coming off an A week) stack additively
+  // and apply only to the grade-from-points calculation below — the raw
+  // weeklyPoints figure (and each engine's own score) stays unboosted, so
+  // "real effort" and "recognized score" stay distinguishable in the UI.
+  const hasExecutiveCoach = candidate.coach?.focus === 'EXECUTIVE'
+  const hadAGradeLastWeek = await hadPriorWeekA(candidate.id, weekNumber)
+  const bonusMultiplier = 1 + (hasExecutiveCoach ? 0.25 : 0) + (hadAGradeLastWeek ? 0.1 : 0)
+  const recognizedWeeklyPoints = Math.round(weeklyPoints * bonusMultiplier)
+
+  const searchExecutionGradeFromPoints = gradeForWeeklyPoints(recognizedWeeklyPoints, weeklyPointsTarget)
 
   const laggingEngines = engines.filter((e) => e.score < CATEGORY_MINIMUM_SCORE_FLOOR).map((e) => e.key)
   const categoryMinimumsMet =
@@ -349,6 +391,37 @@ export async function computeHireabilityGrade(
       laggingEngines,
       weeklyPoints,
       weeklyPointsTarget,
+      bonusMultiplier,
+      hasExecutiveCoach,
+      hadPriorWeekA: hadAGradeLastWeek,
+      recognizedWeeklyPoints,
     },
   }
+}
+
+const GRADE_RELATIONS_INCLUDE = {
+  references: true,
+  workSamples: true,
+  workHistory: true,
+  linkedInActivityLogs: true,
+  jobPostings: true,
+  resumes: { orderBy: { uploadedAt: 'desc' as const } },
+  communityPosts: { where: { isActive: true } },
+  surfacedJobs: { select: { reaction: true } },
+  _count: { select: { weeklySprints: true } },
+  coach: { select: { focus: true } },
+} as const
+
+// Single-candidate convenience wrapper for the three A-grade gates
+// (recruiter visibility snapshot check aside, which uses stored report
+// snapshots instead — see the match-inbox query — this is for the two
+// gates that need a live, current-standing check on one candidate: the
+// bounty claim submission gate and the Exclusive Jobs unlock check).
+export async function getCurrentSearchActionGrade(candidateId: string): Promise<Grade> {
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    include: GRADE_RELATIONS_INCLUDE,
+  })
+  const grade = await computeHireabilityGrade(candidate as unknown as CandidateWithGradeRelations)
+  return grade.searchExecution.grade
 }

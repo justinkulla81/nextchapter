@@ -6,7 +6,7 @@ export interface EffortSummaryInputs {
   outreachCount: number
 }
 
-// Shared by the candidate-facing Recruiter Report and the employer-facing
+// Shared by the candidate-facing Certified Executive Dossier and the employer-facing
 // Evidence Brief — one implementation so the two never drift out of sync.
 // Deliberately template-based, not LLM-generated: every line is a real,
 // countable fact, so there's no hallucination risk in a document read as an

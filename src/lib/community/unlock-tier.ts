@@ -20,7 +20,7 @@ export const TIER_NAME: Record<UnlockTier, string> = {
 // of tier, so it's no longer listed as a tier 3/4 reward — only A-List
 // highlighting at tier 5 is still actually gated by this system.
 export const TIER_UNLOCKS: Record<UnlockTier, string> = {
-  1: 'Grade report, Success Sprint, resume feedback, coach chat',
+  1: 'Grade report, Search Sprint, resume feedback, coach chat',
   2: 'Nothing new yet — outreach scripts and networking tools unlock here once built',
   3: 'Nothing new yet — future features will unlock here',
   4: 'Nothing new yet — future features will unlock here',

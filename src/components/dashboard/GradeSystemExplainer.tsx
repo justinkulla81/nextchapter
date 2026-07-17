@@ -61,7 +61,7 @@ export function GradeSystemExplainer() {
           Controllable, influenceable, structural
         </h3>
         <p className="mt-2 text-muted-foreground">
-          Some of what feeds Market Reality is fully yours to move; some of it isn&apos;t. We label
+          Some of what feeds Market Reality Grade is fully yours to move; some of it isn&apos;t. We label
           each one so a low grade doesn&apos;t read as a verdict on your effort when it&apos;s really
           a verdict on the market.
         </p>
@@ -96,7 +96,7 @@ export function GradeSystemExplainer() {
         </div>
         <div>
           <h3 className="text-xs font-semibold tracking-widest text-brand uppercase">
-            Search Execution engines
+            Search Action engines
           </h3>
           <div className="mt-3 space-y-2">
             {SEARCH_EXECUTION_KEYS.map((key) => (
@@ -113,14 +113,14 @@ export function GradeSystemExplainer() {
 
       <div className="rounded-lg border border-brand/20 bg-brand/5 p-4">
         <h3 className="text-xs font-semibold tracking-widest text-brand uppercase">
-          How to earn an A in Search Execution
+          How to earn an A in Search Action Grade
         </h3>
         <p className="mt-2 text-muted-foreground">
-          Unlike Market Reality, everyone can bring Search Execution to an A — it&apos;s entirely
-          made of things you do: finishing your profile and assessment, completing your action-plan
-          confirmations, running jobs through fit feedback, keeping a resume and work samples
-          current, posting on LinkedIn, and following through on your weekly Success Sprints. There&apos;s
-          no ceiling imposed by your background here.
+          Unlike Market Reality Grade, everyone can bring Search Action Grade to an A — it&apos;s
+          entirely made of things you do: finishing your profile and assessment, completing your
+          action-plan confirmations, running jobs through fit feedback, keeping a resume and work
+          samples current, posting on LinkedIn, and following through on your weekly Search
+          Sprints. There&apos;s no ceiling imposed by your background here.
         </p>
         <p className="mt-2 text-muted-foreground">
           Building it up unlocks real things as you go — reach Tier 5 and you&apos;re in the running
@@ -128,13 +128,13 @@ export function GradeSystemExplainer() {
         </p>
         <p className="mt-2 text-muted-foreground">
           Starting Week 4, an A requires real work across all four engines — you can&apos;t max out
-          Search Execution by leaning on just one. If any engine falls behind, your grade is capped
-          at B until it catches up.
+          your Search Action Grade by leaning on just one. If any engine falls behind, your grade is
+          capped at B until it catches up.
         </p>
         <p className="mt-3 font-medium text-foreground">
           Not everyone who searches will land the role they want — that&apos;s the honest truth. But
-          putting in the work meaningfully improves your odds, and Search Execution is the lever
-          that&apos;s entirely in your hands. It&apos;s all about your Search Execution.
+          putting in the work meaningfully improves your odds, and Search Action Grade is the lever
+          that&apos;s entirely in your hands. It&apos;s all about your Search Action Grade.
         </p>
       </div>
     </div>

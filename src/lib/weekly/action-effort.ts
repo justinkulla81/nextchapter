@@ -1,6 +1,7 @@
-// Search Score points model — 1 point = 1 minute of real effort, exactly as
-// documented to candidates in the FAQ/Glossary. Every Search Action Task has
-// a fixed point value; nothing is estimated or judgment-weighted anymore.
+// Weekly Search Score points model — 1 point = 1 minute of real effort,
+// exactly as documented to candidates in the FAQ/Glossary. Every Search
+// Action has a fixed point value; nothing is estimated or judgment-weighted
+// anymore.
 
 export interface SuggestedActionLike {
   actionType?: string
@@ -13,7 +14,7 @@ export interface ActionEffort {
   points: number
 }
 
-// The canonical Search Action Task point table. Keys map onto the six
+// The canonical Search Action point table. Keys map onto the six
 // Search Action Plans (Outreach, Engage, Thought Leadership, Learning,
 // Resume/Assets, Interview Prep) plus one-time setup items. 1 point = 1
 // minute in every row here — keep it that way when adding new task types.
@@ -165,7 +166,7 @@ export function formatMinutes(minutes: number): string {
   return `~${hours % 1 === 0 ? hours : hours.toFixed(1)} hr`
 }
 
-// The weekly Search Score point target for an A — ramps up over the first
+// The Weekly Search Score point target for an A — ramps up over the first
 // six weeks, then holds flat. Week is 1-indexed (week 1 = the candidate's
 // first Weekly Search Sprint).
 const WEEKLY_POINTS_RAMP = [60, 90, 120, 150, 180, 210]

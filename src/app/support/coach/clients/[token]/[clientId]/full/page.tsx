@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getFullClientView } from '@/lib/coach/full-client-view'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 
 export default async function FullClientViewPage({
   params,
@@ -29,6 +30,7 @@ export default async function FullClientViewPage({
       </Link>
 
       <div className="mt-4 mb-8 space-y-1">
+        <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
         <p className="text-sm font-medium text-muted-foreground">Full Client View</p>
         <h1 className="text-2xl font-semibold tracking-tight">{view.candidateName}</h1>
         <p className="text-muted-foreground">

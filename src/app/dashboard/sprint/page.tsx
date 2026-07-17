@@ -28,7 +28,7 @@ export default async function SprintSetupPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">This Week&apos;s Success Sprint</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">This Week&apos;s Search Sprint</h1>
         <p className="mt-1 text-muted-foreground">
           Choose the actions you&apos;re committing to this week — each shows how long it takes and
           how many points it&apos;s worth.
@@ -93,7 +93,7 @@ export default async function SprintSetupPage() {
         <div className="border-t border-border pt-6">
           <h2 className="text-sm font-medium text-foreground">Week 4+ Requirements</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            From here on, an A in Search Execution requires real work across all four engines — not
+            From here on, an A in Search Action Grade requires real work across all four engines — not
             just one you&apos;re comfortable with.
           </p>
           <ul className="mt-3 space-y-1.5 text-sm">

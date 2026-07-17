@@ -220,7 +220,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     points: [
       {
         lead: 'Real help for your members.',
-        body: 'Every participant gets a free Hireability Grade, a personalized action plan, and direct matches to hiring employers — practical next steps, not a portal they log into once and abandon.',
+        body: 'Every participant gets a free Market Reality Grade and Search Action Grade, a personalized action plan, and direct matches to hiring employers — practical next steps, not a portal they log into once and abandon.',
       },
       {
         lead: 'Built for the people programs usually leave behind.',
@@ -322,7 +322,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     eyebrow: 'For Coaches',
     headline: 'Bring your existing clients onto NextChapter — free, in under a minute.',
     subhead:
-      "You already know your clients' situations better than any assessment could. NextChapter gives them a free Hireability Grade, a personalized action plan, and daily accountability between your sessions — while you keep the human relationship you already have.",
+      "You already know your clients' situations better than any assessment could. NextChapter gives them a free Market Reality Grade and Search Action Grade, a personalized action plan, and daily accountability between your sessions — while you keep the human relationship you already have.",
     points: [
       {
         lead: 'A force-multiplier, not a replacement.',

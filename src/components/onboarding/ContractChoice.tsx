@@ -25,7 +25,7 @@ export function ContractChoice() {
         <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4 text-left text-sm text-muted-foreground">
           <p>
             That&apos;s okay — NextChapter still works at a lower intensity. It just means the bar
-            for an A in Search Execution adjusts to match what you can actually put in right now,
+            for an A in Search Action Grade adjusts to match what you can actually put in right now,
             instead of assuming 8-12 hours a week. You can always come back and commit later.
           </p>
           <form action={continueWithoutContract}>

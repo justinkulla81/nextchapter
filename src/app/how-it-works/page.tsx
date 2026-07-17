@@ -31,7 +31,7 @@ const FEATURES: { icon: LucideIcon; title: string; description: string; href: st
     icon: Users,
     title: 'Network',
     description:
-      'Build a support network from your real contacts, get anxiety-calibrated outreach scripts, and track what you send — the connecting signal in your Search Execution Grade.',
+      'Build a support network from your real contacts, get anxiety-calibrated outreach scripts, and track what you send — the connecting signal in your Search Action Grade.',
     href: '/dashboard/network',
   },
   {
@@ -52,7 +52,7 @@ const FEATURES: { icon: LucideIcon; title: string; description: string; href: st
     icon: Zap,
     title: 'Update',
     description:
-      'A weekly Success Sprint turns your action plan into committed, trackable actions — the follow-through that moves your grade in real time.',
+      'A weekly Search Sprint turns your action plan into committed, trackable actions — the follow-through that moves your grade in real time.',
     href: '/dashboard/sprint',
   },
 ]
@@ -106,7 +106,7 @@ export default function HowItWorksPage() {
             </p>
           </div>
           <div className="rounded-xl border border-light-gray bg-off-white p-6">
-            <h2 className="font-semibold text-navy">Search Execution Grade — your progress</h2>
+            <h2 className="font-semibold text-navy">Search Action Grade — your progress</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               This is the score you control. Every activity in your action plan raises it in real
               time — proof, in numbers, that you&apos;re doing the work.
@@ -125,7 +125,7 @@ export default function HowItWorksPage() {
         <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
           <Image
             src="/marketing/success-dashboard.png"
-            alt="NextChapter Success Dashboard showing a Market Reality B grade, an A weekly Search Score, a 12-day streak, and completed Search Action Tasks with their point values"
+            alt="NextChapter Success Dashboard showing a Market Reality Grade of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
             width={1040}
             height={815}
             className="w-full"
@@ -134,7 +134,7 @@ export default function HowItWorksPage() {
 
         <div className="mt-16">
           <h2 className="text-center text-2xl font-bold tracking-tight text-navy">
-            The four things that move your Search Execution Grade
+            The four things that move your Search Action Grade
           </h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             {FEATURES.map(({ icon: Icon, title, description }) => (
@@ -151,8 +151,8 @@ export default function HowItWorksPage() {
 
         <div className="mx-auto mt-16 max-w-3xl rounded-xl border border-light-gray bg-navy px-8 py-8 text-center text-white">
           <p className="text-lg leading-relaxed">
-            Every reference, work sample, and network signal you build here becomes part of an
-            executive dossier — the Recruiter Report you hand to a hiring manager, a recruiter, or
+            Every reference, work sample, and network signal you build here becomes part of your
+            Certified Executive Dossier — the report you hand to a hiring manager, a recruiter, or
             a coach alongside your resume and cover letter. Not just a resume claim, but proof
             you&apos;re actively, effectively working the process.
           </p>

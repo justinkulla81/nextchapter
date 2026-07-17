@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { CopyLinkButton } from '@/components/dashboard/CopyLinkButton'
+import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 
 export default async function CoachInvitePage({
   params,
@@ -25,7 +26,7 @@ export default async function CoachInvitePage({
   return (
     <div className="mx-auto max-w-md px-6 py-16">
       <div className="mb-6 space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">NextChapter for Coaches</p>
+        <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
         <h1 className="text-2xl font-semibold tracking-tight">Hi {coach.fullName}</h1>
         <p className="text-muted-foreground">
           Send this link to clients you want on NextChapter. Anyone who signs up through it shows

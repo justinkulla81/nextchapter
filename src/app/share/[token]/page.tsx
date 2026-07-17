@@ -189,11 +189,11 @@ export default async function SharedProfilePage({
         {view.hireabilityGrade && (
           <section>
             <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-              Hireability Grade
+              Grades
             </h2>
             <div className="mt-2 flex gap-6">
               <div>
-                <p className="text-xs text-muted-foreground">Market Reality</p>
+                <p className="text-xs text-muted-foreground">Market Reality Grade</p>
                 <p className="text-lg font-semibold">
                   {view.hireabilityGrade.marketReality.grade}{' '}
                   <span className="text-sm font-normal text-muted-foreground">
@@ -202,7 +202,7 @@ export default async function SharedProfilePage({
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Search Execution</p>
+                <p className="text-xs text-muted-foreground">Search Action Grade</p>
                 <p className="text-lg font-semibold">
                   {view.hireabilityGrade.searchExecution.grade}{' '}
                   <span className="text-sm font-normal text-muted-foreground">

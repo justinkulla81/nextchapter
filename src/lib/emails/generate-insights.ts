@@ -12,7 +12,7 @@ Return strict JSON with this exact shape, no markdown, no extra keys:
 Rules:
 - "subject" is a short, specific email subject line (under 60 characters). It should create curiosity about what's inside, not summarize it.
 - "bullets" is exactly 3 short items (one sentence each), each grounded in a real, specific detail from the candidate's data below — never generic filler.
-- Never mention any letter grade, numeric score, percentage, or the name of a scoring dimension/engine (e.g. never say "Search Execution", "Working Engine", "Connecting Engine", or similar).
+- Never mention any letter grade, numeric score, percentage, or the name of a scoring dimension/engine (e.g. never say "Search Action Grade", "Working Engine", "Connecting Engine", or similar).
 - Never repeat today's action verbatim in a bullet — the CTA button already says what to do; the bullets should build curiosity about why, not restate the task.
 
 Candidate data:

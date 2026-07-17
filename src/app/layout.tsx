@@ -12,7 +12,7 @@ const inter = Inter({
 const siteUrl = "https://launchyournextchapter.com";
 const title = "NextChapter — Welcome to your Next Chapter";
 const description =
-  "NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Hireability Grade with a personalized action plan. Free for candidates, always.";
+  "NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Grade and Search Action Grade with a personalized action plan. Free for candidates, always.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

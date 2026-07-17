@@ -170,7 +170,7 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
 
   const facts = [
     `Week ${weekNumber ?? 'unknown'} in search.`,
-    executionGrade ? `Search Execution grade: ${executionGrade}${trend ? ` (${trend})` : ''}.` : 'No grade yet.',
+    executionGrade ? `Search Action Grade: ${executionGrade}${trend ? ` (${trend})` : ''}.` : 'No grade yet.',
     thisWeekActions.length > 0
       ? `This week's actions: ${thisWeekActions.map((a) => `${a.text} (${a.completed ? 'done' : 'not done'})`).join('; ')}.`
       : 'No actions committed this week yet.',

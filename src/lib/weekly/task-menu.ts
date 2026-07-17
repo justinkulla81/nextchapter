@@ -1,4 +1,4 @@
-// Canonical Search Action Task menu — one representative, candidate-facing
+// Canonical Search Action menu — one representative, candidate-facing
 // task per scored action type in action-effort.ts's point table. Used to
 // top up the LLM-personalized suggestions so there's always enough
 // available point volume to actually reach a given week's ramp target

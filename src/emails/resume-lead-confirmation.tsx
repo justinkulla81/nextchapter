@@ -37,8 +37,8 @@ export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConf
         follow up, they&apos;ll reach out at this email address directly.
       </p>
       <p>
-        In the meantime, a free Hireability Grade and personalized action plan is the fastest way to
-        strengthen your search on your own —{' '}
+        In the meantime, a free Market Reality Grade and Search Action Grade, plus a personalized
+        action plan, is the fastest way to strengthen your search on your own —{' '}
         <a href="https://launchyournextchapter.com/onboarding/resume">get yours here</a>.
       </p>
       <p style={footer}>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</p>

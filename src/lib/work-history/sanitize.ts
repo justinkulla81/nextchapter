@@ -1,7 +1,7 @@
 import type { WorkHistoryEntry } from '@prisma/client'
 
 // A fractional/interim/consulting engagement should never be labeled as such
-// on an external-facing document (Recruiter Report, What They See) — those
+// on an external-facing document (Certified Executive Dossier, What They See) — those
 // words read as less-than to a reader skimming a work history, regardless of
 // how the candidate is actually doing. Strips them as whole words only, so
 // "Consulting" the company name (e.g. "Acme Consulting Group") is untouched —

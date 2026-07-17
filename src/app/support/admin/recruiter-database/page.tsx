@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { HireabilityGrade } from '@/lib/scoring/grade'
 
 export const maxDuration = 30
 
@@ -20,6 +21,11 @@ export default async function RecruiterDatabaseAdminPage() {
       targetRoleType: true,
       privacyTier: true,
       recruiterDatabaseRequestedAt: true,
+      hireabilityReports: {
+        orderBy: { generatedAt: 'desc' },
+        take: 1,
+        select: { hireabilityGradeAtGeneration: true },
+      },
     },
   })
 
@@ -27,6 +33,8 @@ export default async function RecruiterDatabaseAdminPage() {
   const rows = await Promise.all(
     candidates.map(async (c) => {
       const { data: userData } = await admin.auth.admin.getUserById(c.userId)
+      const grade = c.hireabilityReports[0]?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined
+      const searchActionGrade = grade?.searchExecution.grade ?? null
       return {
         id: c.id,
         name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
@@ -36,17 +44,21 @@ export default async function RecruiterDatabaseAdminPage() {
         targetRoleType: c.targetRoleType ?? '—',
         privacyTier: c.privacyTier,
         requestedAt: c.recruiterDatabaseRequestedAt?.toLocaleDateString() ?? '—',
+        searchActionGrade,
+        currentlySurfaced: searchActionGrade === 'A',
       }
     })
   )
+  const surfacedCount = rows.filter((r) => r.currentlySurfaced).length
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Recruiter Database</h1>
         <p className="mt-1 text-muted-foreground">
-          Candidates who explicitly requested to be matched against Talent roles — {rows.length} total.
-          This is the only pool the Talent match engine draws from.
+          {rows.length} candidates opted in; {surfacedCount} currently surfaced to the Talent match engine.
+          Opting in is necessary but not sufficient — a candidate is only actually matched to roles while
+          holding an A Search Action Grade.
         </p>
       </div>
 
@@ -60,6 +72,7 @@ export default async function RecruiterDatabaseAdminPage() {
               <th className="px-3 py-2 font-medium">Level</th>
               <th className="px-3 py-2 font-medium">Target role</th>
               <th className="px-3 py-2 font-medium">Privacy tier</th>
+              <th className="px-3 py-2 font-medium">Search Action Grade</th>
               <th className="px-3 py-2 font-medium">Requested</th>
             </tr>
           </thead>
@@ -72,12 +85,19 @@ export default async function RecruiterDatabaseAdminPage() {
                 <td className="px-3 py-2">{r.level}</td>
                 <td className="px-3 py-2">{r.targetRoleType}</td>
                 <td className="px-3 py-2">{r.privacyTier}</td>
+                <td className="px-3 py-2">
+                  {r.currentlySurfaced ? (
+                    <span className="font-medium text-success">{r.searchActionGrade} — surfaced</span>
+                  ) : (
+                    <span className="text-muted-foreground">{r.searchActionGrade ?? 'Not graded'} — locked</span>
+                  )}
+                </td>
                 <td className="px-3 py-2 tabular-nums">{r.requestedAt}</td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
+                <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
                   No candidates have opted in yet.
                 </td>
               </tr>

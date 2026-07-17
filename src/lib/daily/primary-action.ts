@@ -16,7 +16,7 @@ function normalizeItem(item: RawActionPlanItem): ActionPlanItem {
   return typeof item === 'string' ? { text: item } : item
 }
 
-// Maps an action item's actionType tag to the Search Execution engine it
+// Maps an action item's actionType tag to the Search Action engine it
 // mainly moves — a hint, not a computed point value (that granularity isn't
 // tracked per-item yet).
 const ACTION_TYPE_ENGINE_HINT: Record<string, string> = {

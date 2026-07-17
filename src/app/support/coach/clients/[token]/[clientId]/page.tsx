@@ -4,6 +4,7 @@ import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { LogSessionForm } from '@/components/coach/LogSessionForm'
+import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 
 const TREND_LABEL: Record<string, string> = {
   up: '↑ improving',
@@ -33,6 +34,7 @@ export default async function PreSessionBriefPage({
       </Link>
 
       <div className="mt-4 mb-8 space-y-1">
+        <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
         <p className="text-sm font-medium text-muted-foreground">Pre-Session Brief</p>
         <h1 className="text-2xl font-semibold tracking-tight">{brief.candidateName}</h1>
         <p className="text-muted-foreground">
@@ -42,7 +44,7 @@ export default async function PreSessionBriefPage({
 
       <div className="space-y-5">
         <div className="rounded-lg border border-border p-4">
-          <p className="text-sm font-medium text-muted-foreground">Search Execution</p>
+          <p className="text-sm font-medium text-muted-foreground">Search Action Grade</p>
           <p className="mt-1 text-lg font-semibold text-foreground">
             {brief.executionGrade ? (
               <>

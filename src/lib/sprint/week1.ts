@@ -1,4 +1,4 @@
-// Week 1's Success Sprint is replaced entirely by a fixed 5-artifact
+// Week 1's Search Sprint is replaced entirely by a fixed 5-artifact
 // checklist instead of the usual pick-your-own-actions plan — a brand new
 // candidate doesn't have enough signal yet to know what to commit to, and
 // producing these 5 real things is more valuable than an arbitrary points
