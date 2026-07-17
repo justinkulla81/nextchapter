@@ -3,6 +3,7 @@ import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { generateEvidenceBrief } from '@/lib/reports/evidence-brief'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
 
 export default async function CandidateEvidenceBriefPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -32,8 +33,9 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">What they&apos;ve done</CardTitle>
+          <EvidenceTypeBadge type="self_reported" />
         </CardHeader>
         <CardContent className="space-y-3">
           {brief.workHistory.length === 0 ? (
@@ -62,8 +64,9 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">Effort & motivation signal</CardTitle>
+          <EvidenceTypeBadge type="verified_fact" />
         </CardHeader>
         <CardContent>
           {brief.effortSummaryLines.length === 0 ? (
@@ -80,8 +83,9 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
 
       {brief.whyTheyMightFit && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center gap-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Why they might fit</CardTitle>
+            <EvidenceTypeBadge type={brief.whyTheyMightFitEvidenceType} />
           </CardHeader>
           <CardContent>
             <p className="text-sm text-foreground">{brief.whyTheyMightFit}</p>

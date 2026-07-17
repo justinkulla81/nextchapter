@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getRecruiterReportData } from '@/lib/reports/recruiter-report'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
+import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
+import { CHARACTER_SIGNAL_MIN_REFERENCES } from '@/lib/reports/evidence-type'
 import { Logo } from '@/components/Logo'
 
 export default async function RecruiterReportPage() {
@@ -43,13 +45,16 @@ export default async function RecruiterReportPage() {
         </div>
 
         <section>
-          <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-            Effort summary
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              Effort summary
+            </h3>
+            {hasEffort && <EvidenceTypeBadge type={data.effortSummaryLines[0].evidenceType} />}
+          </div>
           {hasEffort ? (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground">
               {data.effortSummaryLines.map((line, i) => (
-                <li key={i}>{line}</li>
+                <li key={i}>{line.text}</li>
               ))}
             </ul>
           ) : (
@@ -61,28 +66,46 @@ export default async function RecruiterReportPage() {
 
         {data.peerSupportLine && (
           <section>
-            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-              Peer Support
-            </h3>
-            <p className="mt-2 text-sm text-foreground">{data.peerSupportLine}</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                Peer Support
+              </h3>
+              <EvidenceTypeBadge type={data.peerSupportLine.evidenceType} />
+            </div>
+            <p className="mt-2 text-sm text-foreground">{data.peerSupportLine.text}</p>
           </section>
         )}
 
         {data.references.length > 0 && (
           <section>
-            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-              References
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+                References
+              </h3>
+              <EvidenceTypeBadge type="reference_verified" />
+            </div>
             <div className="mt-2 space-y-3">
               {data.references.map((r, i) => (
                 <div key={i}>
-                  <p className="text-sm font-medium text-foreground">{r.refereeName}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {r.refereeName}
+                    {r.wouldHireAgain === true && (
+                      <span className="ml-2 text-xs text-muted-foreground">Would hire again</span>
+                    )}
+                  </p>
                   {r.strengthSummary && (
                     <p className="text-sm text-muted-foreground">{r.strengthSummary}</p>
                   )}
                 </div>
               ))}
             </div>
+            {!data.characterSignalsUnlocked && (
+              <p className="mt-2 text-xs text-muted-foreground italic">
+                Character signals (what references say about how this candidate works) unlock once{' '}
+                {CHARACTER_SIGNAL_MIN_REFERENCES}+ references are on file — a single account isn&apos;t
+                enough to triangulate against.
+              </p>
+            )}
           </section>
         )}
 
@@ -93,12 +116,15 @@ export default async function RecruiterReportPage() {
             </h3>
             <ul className="mt-2 space-y-1 text-sm text-foreground">
               {data.learningItems.map((item, i) => (
-                <li key={i}>
-                  {item.title}
-                  {item.provider ? ` — ${item.provider}` : ''}{' '}
-                  <span className="text-muted-foreground">
-                    ({item.completedAt.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })})
+                <li key={i} className="flex items-center gap-2">
+                  <span>
+                    {item.title}
+                    {item.provider ? ` — ${item.provider}` : ''}{' '}
+                    <span className="text-muted-foreground">
+                      ({item.completedAt.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })})
+                    </span>
                   </span>
+                  <EvidenceTypeBadge type={item.evidenceType} />
                 </li>
               ))}
             </ul>
@@ -106,9 +132,12 @@ export default async function RecruiterReportPage() {
         )}
 
         <section>
-          <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-            Availability &amp; fit
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              Availability &amp; fit
+            </h3>
+            <EvidenceTypeBadge type={data.availability.evidenceType} />
+          </div>
           <dl className="mt-2 grid grid-cols-2 gap-3 text-sm">
             {data.availability.statusLabel && (
               <div>

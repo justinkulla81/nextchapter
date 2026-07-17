@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
+import { characterSignalsUnlocked, type EvidenceType } from '@/lib/reports/evidence-type'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 
 // The Recruiter Report is a self-serve, candidate-controlled PDF handed to
@@ -15,13 +16,22 @@ import type { CommittedAction } from '@/lib/weekly/sprint'
 export interface RecruiterReportData {
   candidateName: string
   generatedAt: Date
-  effortSummaryLines: string[]
+  effortSummaryLines: { text: string; evidenceType: EvidenceType }[]
   // "Peer Support" — deliberately unscored (see action-effort.ts), shown as
   // its own labeled Dossier line rather than folded into effortSummaryLines,
   // which are all point-earning activity.
-  peerSupportLine: string | null
-  references: { refereeName: string; strengthSummary: string | null; wouldHireAgain: boolean | null }[]
-  learningItems: { title: string; provider: string | null; completedAt: Date }[]
+  peerSupportLine: { text: string; evidenceType: EvidenceType } | null
+  // Character Signals — see evidence-type.ts. Below the 2-reference
+  // threshold, strengthSummary is withheld (referee name + hire-again fact
+  // still show, since those aren't character claims) and this is false.
+  characterSignalsUnlocked: boolean
+  references: {
+    refereeName: string
+    strengthSummary: string | null
+    wouldHireAgain: boolean | null
+    evidenceType: EvidenceType
+  }[]
+  learningItems: { title: string; provider: string | null; completedAt: Date; evidenceType: EvidenceType }[]
   availability: {
     statusLabel: string | null
     targetRoleType: string | null
@@ -29,6 +39,7 @@ export interface RecruiterReportData {
     highestLevelReached: string | null
     targetIndustries: string[]
     locationPreference: string
+    evidenceType: EvidenceType
   }
 }
 
@@ -77,7 +88,9 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
   const outreachCount = candidate.outreachLogs.length
   const learningCount = candidate.learningBadges.length
 
-  const effortSummaryLines = computeEffortSummaryLines({ learningCount, applicationsCount, outreachCount })
+  const effortSummaryLines = computeEffortSummaryLines({ learningCount, applicationsCount, outreachCount }).map(
+    (text) => ({ text, evidenceType: 'verified_fact' as const })
+  )
 
   const encouragementSentCount = candidate._count.encouragementNotesSent
   const peerSupportActionCount = candidate.weeklySprints.reduce((sum, sprint) => {
@@ -87,23 +100,31 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
   const peerSupportCount = encouragementSentCount + peerSupportActionCount
   const peerSupportLine =
     peerSupportCount > 0
-      ? `Substantively helped ${peerSupportCount} other job seeker${peerSupportCount === 1 ? '' : 's'} — answering questions, making introductions, or offering encouragement. Unscored by design: this earns no Search Score points, which is what makes it a genuinely voluntary signal.`
+      ? {
+          text: `Substantively helped ${peerSupportCount} other job seeker${peerSupportCount === 1 ? '' : 's'} — answering questions, making introductions, or offering encouragement. Unscored by design: this earns no Search Score points, which is what makes it a genuinely voluntary signal.`,
+          evidenceType: 'verified_fact' as const,
+        }
       : null
+
+  const signalsUnlocked = characterSignalsUnlocked(candidate.references.length)
 
   return {
     candidateName,
     generatedAt: new Date(),
     effortSummaryLines,
     peerSupportLine,
+    characterSignalsUnlocked: signalsUnlocked,
     references: candidate.references.map((r) => ({
       refereeName: r.refereeName,
-      strengthSummary: r.strengthSummary,
+      strengthSummary: signalsUnlocked ? r.strengthSummary : null,
       wouldHireAgain: r.wouldHireAgain,
+      evidenceType: 'reference_verified' as const,
     })),
     learningItems: candidate.learningBadges.map((b) => ({
       title: b.title,
       provider: b.provider,
       completedAt: b.completedAt,
+      evidenceType: b.verified ? ('verified_fact' as const) : ('self_reported' as const),
     })),
     availability: {
       statusLabel: candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : null,
@@ -117,6 +138,7 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
         candidate.currentCity,
         candidate.currentState
       ),
+      evidenceType: 'self_reported' as const,
     },
   }
 }

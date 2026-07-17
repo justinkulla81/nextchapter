@@ -3,6 +3,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { selectDisplayedWorkHistory, sanitizeRoleTitle } from '@/lib/work-history/sanitize'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
+import { CHARACTER_SIGNAL_MIN_REFERENCES, characterSignalsUnlocked, type EvidenceType } from '@/lib/reports/evidence-type'
 
 export interface EvidenceBrief {
   identityRevealed: boolean
@@ -11,6 +12,7 @@ export interface EvidenceBrief {
   workSamples: { title: string; description: string; outcome: string | null }[]
   effortSummaryLines: string[]
   whyTheyMightFit: string | null
+  whyTheyMightFitEvidenceType: EvidenceType
   gaps: string[]
   questionsWorthAsking: string[]
   availability: {
@@ -134,11 +136,18 @@ export async function generateEvidenceBrief(
   if (candidate.workSamples.length === 0) gaps.push('No work samples or case studies provided.')
   if (!candidate.targetCompMin) gaps.push('Compensation expectations not confirmed.')
 
+  // A single reference's character-y prose isn't trustworthy triangulated
+  // evidence on its own — see evidence-type.ts. Below the threshold, the fit
+  // narrative draws only on objective facts (function, level, work history),
+  // not one person's characterization.
+  const signalsUnlocked = characterSignalsUnlocked(candidate.references.length)
   const candidateFacts = [
     `Function: ${candidate.primaryFunction ?? 'not specified'}`,
     `Level: ${candidate.highestLevelReached ?? 'not specified'}`,
     `Work history: ${displayedWorkHistory.map((w) => `${w.roleTitle} at ${w.companyName}`).join('; ') || 'none logged'}`,
-    `Reference themes: ${candidate.references.map((r) => r.strengthSummary).filter(Boolean).join('; ') || 'none yet'}`,
+    signalsUnlocked
+      ? `Reference themes: ${candidate.references.map((r) => r.strengthSummary).filter(Boolean).join('; ') || 'none yet'}`
+      : `Reference themes: not enough references yet to characterize (need ${CHARACTER_SIGNAL_MIN_REFERENCES - candidate.references.length} more)`,
   ].join('\n')
 
   const roleFacts = role
@@ -167,6 +176,7 @@ export async function generateEvidenceBrief(
     })),
     effortSummaryLines,
     whyTheyMightFit,
+    whyTheyMightFitEvidenceType: 'ai_inferred',
     gaps,
     questionsWorthAsking,
     availability: {
