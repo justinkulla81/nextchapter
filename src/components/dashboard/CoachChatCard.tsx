@@ -22,13 +22,7 @@ interface CoachMessageItem {
   content: string
 }
 
-export function CoachChatCard({
-  initialMessages,
-  firstName,
-}: {
-  initialMessages: CoachMessageItem[]
-  firstName: string | null
-}) {
+export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessageItem[] }) {
   const [state, formAction, pending] = useActionState(sendCoachMessage, undefined)
   const formRef = useRef<HTMLFormElement>(null)
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
@@ -60,9 +54,6 @@ export function CoachChatCard({
             <CardTitle className="text-sm font-medium text-foreground">
               Hi, I&apos;m Victoria, Your Executive Coach
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              {firstName ? `${firstName}, ` : ''}How can I help you with your search?
-            </p>
           </div>
         </div>
       </CardHeader>

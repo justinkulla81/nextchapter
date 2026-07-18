@@ -3,18 +3,22 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { COACH_OPENING_MESSAGE } from '@/lib/constants/coach'
 
-export async function getOrCreateCoachConversation(candidateId: string) {
+export async function getOrCreateCoachConversation(candidateId: string, firstName?: string | null) {
   const existing = await prisma.coachConversation.findUnique({
     where: { candidateId },
     include: { messages: { orderBy: { createdAt: 'asc' } } },
   })
   if (existing) return existing
 
+  const openingMessage = firstName
+    ? `${firstName}, ${COACH_OPENING_MESSAGE.charAt(0).toLowerCase()}${COACH_OPENING_MESSAGE.slice(1)}`
+    : COACH_OPENING_MESSAGE
+
   try {
     return await prisma.coachConversation.create({
       data: {
         candidateId,
-        messages: { create: [{ role: 'assistant', content: COACH_OPENING_MESSAGE }] },
+        messages: { create: [{ role: 'assistant', content: openingMessage }] },
       },
       include: { messages: { orderBy: { createdAt: 'asc' } } },
     })

@@ -25,7 +25,7 @@ export async function sendCoachMessage(_prevState: FormState, formData: FormData
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
-  const conversation = await getOrCreateCoachConversation(profile.id)
+  const conversation = await getOrCreateCoachConversation(profile.id, profile.firstName)
 
   await prisma.coachMessage.create({
     data: { conversationId: conversation.id, role: 'user', content },

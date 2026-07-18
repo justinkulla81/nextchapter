@@ -83,7 +83,7 @@ export default async function DashboardPage() {
     dashboardMessage,
   ] = await Promise.all([
     supabase.auth.getUser(),
-    getOrCreateCoachConversation(profile.id),
+    getOrCreateCoachConversation(profile.id, profile.firstName),
     computeHireabilityGrade(profile),
     getTodaysMood(profile.id),
     getCheckInSummary(profile.id),
@@ -169,7 +169,7 @@ export default async function DashboardPage() {
       )}
 
       <div className="space-y-4 border-t border-border pt-8">
-        <CoachChatCard initialMessages={conversation.messages} firstName={profile.firstName} />
+        <CoachChatCard initialMessages={conversation.messages} />
       </div>
     </div>
   )
