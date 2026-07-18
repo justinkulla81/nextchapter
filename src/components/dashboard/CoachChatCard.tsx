@@ -9,10 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-// Swap for the real headshot once /marketing/victoria-headshot.jpg exists —
-// falls back to a plain avatar icon so a missing asset never 404s.
 const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot.jpg'
-const HAS_VICTORIA_PHOTO = false
+const HAS_VICTORIA_PHOTO = true
 
 interface CoachMessageItem {
   id: string
