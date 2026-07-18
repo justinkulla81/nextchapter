@@ -9,25 +9,17 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 const EXAMPLES = [
-  { before: '/marketing/headshot-man-before-v2.png', after: '/marketing/headshot-man-after-v2.png' },
-  { before: '/marketing/headshot-woman-before-v2.png', after: '/marketing/headshot-woman-after-v2.png' },
+  { before: '/marketing/headshot-chris-before-v3.png', after: '/marketing/headshot-chris-after-v3.png' },
+  { before: '/marketing/headshot-sarah-before-v3.png', after: '/marketing/headshot-sarah-after-v3.png' },
 ]
 
+// Before/after labels are baked into these photos, so the pair renders as a
+// single flush image — no gap, no per-image caption, no re-cropping.
 function ExamplePair({ before, after }: { before: string; after: string }) {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <div className="space-y-1">
-        <div className="overflow-hidden rounded-lg border border-border">
-          <Image src={before} alt="Before — casual photo" width={300} height={300} className="w-full" />
-        </div>
-        <p className="text-center text-xs text-muted-foreground">Before</p>
-      </div>
-      <div className="space-y-1">
-        <div className="overflow-hidden rounded-lg border border-brand">
-          <Image src={after} alt="After — professional headshot" width={300} height={300} className="w-full" />
-        </div>
-        <p className="text-center text-xs font-medium text-brand">After</p>
-      </div>
+    <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border">
+      <Image src={before} alt="Before" width={300} height={450} className="w-full" />
+      <Image src={after} alt="After" width={300} height={450} className="w-full" />
     </div>
   )
 }

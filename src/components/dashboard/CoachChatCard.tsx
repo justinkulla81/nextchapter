@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 // image optimizer rejects a query string on a local src (400s), and caches
 // by URL rather than file content, so reusing the old filename after a
 // redeploy would keep serving the stale cached crop.
-const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot-v2.jpg'
+const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot-v3.jpg'
 const HAS_VICTORIA_PHOTO = true
 
 interface CoachMessageItem {
