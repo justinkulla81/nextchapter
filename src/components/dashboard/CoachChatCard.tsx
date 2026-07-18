@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-// Cache-busting query param — bump this whenever the underlying photo file
-// changes, since Vercel's image optimizer caches by URL, not file content,
-// so an unchanged path can keep serving a stale cached crop after a redeploy.
-const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot.jpg?v=2'
+// Filename carries a version suffix (bump it on future photo swaps) — Next's
+// image optimizer rejects a query string on a local src (400s), and caches
+// by URL rather than file content, so reusing the old filename after a
+// redeploy would keep serving the stale cached crop.
+const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot-v2.jpg'
 const HAS_VICTORIA_PHOTO = true
 
 interface CoachMessageItem {
