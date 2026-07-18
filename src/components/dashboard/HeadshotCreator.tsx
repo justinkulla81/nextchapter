@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 const EXAMPLES = [
-  { before: '/marketing/headshot-man-before.png', after: '/marketing/headshot-man-after.png' },
-  { before: '/marketing/headshot-woman-before.png', after: '/marketing/headshot-woman-after.png' },
+  { before: '/marketing/headshot-man-before-v2.png', after: '/marketing/headshot-man-after-v2.png' },
+  { before: '/marketing/headshot-woman-before-v2.png', after: '/marketing/headshot-woman-after-v2.png' },
 ]
 
 function ExamplePair({ before, after }: { before: string; after: string }) {
