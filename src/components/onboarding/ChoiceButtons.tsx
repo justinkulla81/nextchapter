@@ -13,7 +13,7 @@ export function ChoiceButtons<T extends string>({
   columns,
 }: {
   name: string
-  options: readonly { value: T; label: string }[]
+  options: readonly { value: T; label: string; subtext?: string }[]
   value: T | null
   onChange: (value: T) => void
   columns?: number
@@ -41,6 +41,11 @@ export function ChoiceButtons<T extends string>({
               )}
             >
               {opt.label}
+              {opt.subtext && (
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                  {opt.subtext}
+                </span>
+              )}
             </button>
           )
         })}

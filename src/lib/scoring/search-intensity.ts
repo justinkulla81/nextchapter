@@ -1,12 +1,17 @@
-// Derived from jobSearchDifficultyLevel (the "How difficult has your job
-// search been so far?" 1-4 slider on the Your Situation page) — this
-// superseded the old jobSearchIntensity question (Batch 24), which asked
-// desire/urgency directly. Only the bottom stop ("I'm taking my time")
-// represents a candidate who isn't actively racing a clock — the other three
-// stops are all gradients of active urgency.
+// Two independent signals feed "casual": jobSearchDifficultyLevel (only its
+// bottom stop, "I'm taking my time", implies no active time pressure — the
+// other three stops are gradients of active urgency) and searchIntensity
+// (a direct "how actively are you searching" self-report — anything other
+// than ACTIVELY_SEARCHING means the candidate isn't racing a clock, whether
+// or not they've called their search "difficult").
 const CASUAL_THRESHOLD = 1
+const CASUAL_SEARCH_INTENSITIES = new Set(['CASUALLY_LOOKING', 'EXPLORING', 'OPEN'])
 
-export function isCasuallySearching(jobSearchDifficultyLevel: number | null): boolean {
+export function isCasuallySearching(
+  jobSearchDifficultyLevel: number | null,
+  searchIntensity?: string | null
+): boolean {
+  if (searchIntensity && CASUAL_SEARCH_INTENSITIES.has(searchIntensity)) return true
   return jobSearchDifficultyLevel !== null && jobSearchDifficultyLevel <= CASUAL_THRESHOLD
 }
 

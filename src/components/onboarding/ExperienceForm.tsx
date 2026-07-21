@@ -27,7 +27,7 @@ const CORE_SKILL_LABELS = [
 ] as const
 
 const ACTION_ORIENTED_LABELS = [
-  'I am easy going',
+  "I'm easy going on this",
   'I do what is asked of me',
   'I like to be first and on top of it',
   'I like to do things without being told, even if it means more work for me',

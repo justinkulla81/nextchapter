@@ -278,6 +278,12 @@ model CandidateProfile {
   // aren't destroyed — do not read this in new code.
   jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
   biggestBarriers    String[] @default([]) // multi-select (select-all), "What do you think are the biggest barriers to get a new job?" — see BIGGEST_BARRIER_OPTIONS
+  // "How actively are you searching right now?" — a distinct axis from
+  // jobSearchDifficultyLevel (how hard the search feels vs. how actively
+  // they're even looking). Feeds Victoria's directness calibration
+  // (isCasuallySearching) and suppresses week-count urgency language for
+  // non-active searchers.
+  searchIntensity SearchIntensity?
 
   // Admin-confirmed match to a LayoffCohort (candidate matching, not
   // self-selected) — set via /support/admin/layoff-cohorts, surfaces a

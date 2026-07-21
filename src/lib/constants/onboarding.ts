@@ -47,6 +47,33 @@ export const JOB_SEARCH_DIFFICULTY_OPTIONS = [
   { value: 4, label: "Honestly, I'm getting desperate" },
 ] as const
 
+// "How actively are you searching right now?" — Your Situation page.
+// Distinct from JOB_SEARCH_DIFFICULTY_OPTIONS (how hard it feels) — this is
+// whether they're really looking at all. Drives Victoria's directness
+// calibration and week-count urgency language (see isCasuallySearching).
+export const SEARCH_INTENSITY_OPTIONS = [
+  {
+    value: 'ACTIVELY_SEARCHING',
+    label: 'Actively searching',
+    subtext: 'This is my full focus right now',
+  },
+  {
+    value: 'CASUALLY_LOOKING',
+    label: 'Casually looking',
+    subtext: 'Open to the right thing, not urgent',
+  },
+  {
+    value: 'EXPLORING',
+    label: 'Exploring my options',
+    subtext: "Figuring out what I want next",
+  },
+  {
+    value: 'OPEN',
+    label: 'Not looking, but open',
+    subtext: 'Happy where I am, but curious',
+  },
+] as const
+
 // "What do you think are the biggest barriers to get a new job?" — multi-select
 // (select-all), Your Situation page. Deliberately excludes a "Network" option
 // per explicit product direction.

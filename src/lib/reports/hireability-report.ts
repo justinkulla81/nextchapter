@@ -218,7 +218,10 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
   const startedSprint = await hasStartedSprint(candidateId)
 
   const weekNumber = candidate._count.weeklySprints + 1
-  const directnessLevel = computeDirectnessLevel(weekNumber, isCasuallySearching(candidate.jobSearchDifficultyLevel))
+  const directnessLevel = computeDirectnessLevel(
+    weekNumber,
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+  )
 
   const summary = `
 ${DIRECTNESS_INSTRUCTION[directnessLevel]}

@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { Prisma, type CurrentJobStatus, type GapDurationBucket } from '@prisma/client'
+import { Prisma, type CurrentJobStatus, type GapDurationBucket, type SearchIntensity } from '@prisma/client'
 import {
   TRADEOFF_PRIORITIES,
   CURRENT_ASSESSMENT_ROTATION_GROUP,
@@ -89,6 +89,8 @@ export async function updateCircumstances(
   const jobSearchDifficultyRaw = formData.get('jobSearchDifficultyLevel')
   const jobSearchDifficultyLevel = jobSearchDifficultyRaw ? Number(jobSearchDifficultyRaw) : null
   const biggestBarriers = formData.getAll('biggestBarriers').map(String)
+  const searchIntensityRaw = (formData.get('searchIntensity') as string) || null
+  const searchIntensity = searchIntensityRaw as SearchIntensity | null
 
   // Job search activity self-report — every field here is optional.
   const jobsAppliedBucket = (formData.get('jobsAppliedBucket') as string) || null
@@ -119,6 +121,7 @@ export async function updateCircumstances(
         gapDuration,
         jobSearchDifficultyLevel,
         biggestBarriers,
+        searchIntensity,
         jobsAppliedBucket,
         interviewsReceivedCount,
         networkingLevel,

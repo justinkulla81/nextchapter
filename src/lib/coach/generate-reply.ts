@@ -42,7 +42,10 @@ export async function generateCoachReply(
   const recentLinkedInPosts = candidate.linkedInActivityLogs.filter((l) => l.loggedAt > windowStart).length
 
   const weekNumber = candidate._count.weeklySprints + 1
-  const directnessLevel = computeDirectnessLevel(weekNumber, isCasuallySearching(candidate.jobSearchDifficultyLevel))
+  const directnessLevel = computeDirectnessLevel(
+    weekNumber,
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+  )
 
   const contextBlock = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}

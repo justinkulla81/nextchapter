@@ -22,20 +22,29 @@ export function DashboardTopStrip({
   currentStreak,
   weekNumber,
   dayNumber,
+  suppressUrgency,
 }: {
   grade: HireabilityGrade
   searchExecutionAvailable: boolean
   currentStreak: number
   weekNumber: number
   dayNumber: number
+  // True for candidates who told us they're only casually looking/exploring/
+  // not actively searching — a week/day countdown implies a clock they're
+  // not actually racing, so we drop it rather than manufacture urgency.
+  suppressUrgency?: boolean
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-white px-5 py-3">
-      <span className="text-xs font-medium text-muted-foreground tabular-nums">
-        Week {weekNumber}, Day {dayNumber}
-      </span>
+      {!suppressUrgency && (
+        <>
+          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+            Week {weekNumber}, Day {dayNumber}
+          </span>
 
-      <Divider />
+          <Divider />
+        </>
+      )}
 
       <div className="flex items-center gap-1.5">
         <span aria-hidden>🔥</span>

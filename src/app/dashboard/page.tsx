@@ -6,6 +6,7 @@ import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary } from '@/lib/daily/mood'
 import {
   getCurrentWeekSprint,
@@ -133,6 +134,7 @@ export default async function DashboardPage() {
         currentStreak={checkInSummary.streak}
         weekNumber={weekNumber}
         dayNumber={dayNumber}
+        suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
       />
 
       <EmployerInterestSection candidateId={profile.id} />
