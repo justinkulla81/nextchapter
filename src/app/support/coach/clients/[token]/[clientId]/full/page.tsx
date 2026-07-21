@@ -2,8 +2,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getFullClientView } from '@/lib/coach/full-client-view'
+import { getDossierSections } from '@/lib/reports/dossier-sections'
+import { getCoachingNotes } from '@/lib/coach/coaching-notes'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
+import { DossierSectionsView } from '@/components/dashboard/DossierSections'
+import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 
 export default async function FullClientViewPage({
   params,
@@ -19,6 +23,10 @@ export default async function FullClientViewPage({
   if (!candidate) notFound()
 
   const view = await getFullClientView(candidate.id)
+  const hasConsent = candidate.coachDossierConsentedAt !== null
+  const [dossier, coachingNotes] = hasConsent
+    ? await Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id)])
+    : [null, null]
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -151,6 +159,30 @@ export default async function FullClientViewPage({
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-muted-foreground">Executive Dossier &amp; Coaching Notes</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            In-app only — never downloadable, exportable, or forwardable from here.
+          </p>
+          {!hasConsent ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {candidate.firstName ?? 'This candidate'}{' '}
+              hasn&apos;t agreed to share their Executive Dossier and Coaching Notes with you yet.
+              Nothing below this point is available until they do.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-6">
+              <div className="space-y-5">{dossier && <DossierSectionsView dossier={dossier} readOnly />}</div>
+              <div className="border-t border-border pt-5">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Coaching Notes
+                </p>
+                {coachingNotes && <CoachingNotesPanel notes={coachingNotes} />}
+              </div>
             </div>
           )}
         </div>

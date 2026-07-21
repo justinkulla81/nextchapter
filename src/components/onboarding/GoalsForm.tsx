@@ -16,14 +16,17 @@ import {
 } from '@/components/ui/select'
 import { TagInput } from './TagInput'
 import { TradeoffRanking } from './TradeoffRanking'
+import { ChoiceButtons } from './ChoiceButtons'
 import {
   COMPANY_SIZE_OPTIONS,
   COMPANY_STAGE_OPTIONS,
   PRIMARY_FUNCTION_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
+  PUBLIC_DISCLOSURE_COMFORT_OPTIONS,
+  REFERRAL_RECENCY_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
-import type { CandidateProfile } from '@prisma/client'
+import type { CandidateProfile, PublicDisclosureComfort, ReferralRecency } from '@prisma/client'
 
 export function GoalsForm({
   profile,
@@ -38,6 +41,11 @@ export function GoalsForm({
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
   const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
   const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
+  const [publicDisclosureComfort, setPublicDisclosureComfort] = useState<PublicDisclosureComfort | null>(
+    profile.publicDisclosureComfort
+  )
+  const [hasBeenReferredBefore, setHasBeenReferredBefore] = useState(profile.hasBeenReferredBefore)
+  const [referralRecency, setReferralRecency] = useState<ReferralRecency | null>(profile.referralRecency)
 
   return (
     <form
@@ -154,6 +162,48 @@ export function GoalsForm({
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">Pre-filled from your resume — correct anything that&apos;s off.</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          How comfortable are you with being publicly visible as job-searching — things like
+          LinkedIn&apos;s &quot;Open to Work&quot; or a public post — separate from telling people you know
+          directly?
+        </Label>
+        <ChoiceButtons
+          name="publicDisclosureComfort"
+          options={PUBLIC_DISCLOSURE_COMFORT_OPTIONS}
+          value={publicDisclosureComfort}
+          onChange={setPublicDisclosureComfort}
+          columns={2}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="hasBeenReferredBefore"
+            name="hasBeenReferredBefore"
+            value="on"
+            defaultChecked={hasBeenReferredBefore ?? false}
+            onCheckedChange={(checked) => setHasBeenReferredBefore(checked === true)}
+          />
+          <Label htmlFor="hasBeenReferredBefore" className="font-normal">
+            Have you networked or been referred into a job before?
+          </Label>
+        </div>
+        {hasBeenReferredBefore && (
+          <div className="space-y-2 pl-6">
+            <Label>How recently?</Label>
+            <ChoiceButtons
+              name="referralRecency"
+              options={REFERRAL_RECENCY_OPTIONS}
+              value={referralRecency}
+              onChange={setReferralRecency}
+              columns={3}
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

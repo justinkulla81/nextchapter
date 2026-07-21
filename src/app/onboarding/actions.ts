@@ -11,6 +11,8 @@ import {
   type CurrentJobStatus,
   type GapDurationBucket,
   type SearchIntensity,
+  type PublicDisclosureComfort,
+  type ReferralRecency,
 } from '@prisma/client'
 import {
   TRADEOFF_PRIORITIES,
@@ -390,6 +392,12 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
         openToRelocation,
         relocationNotes: openToRelocation ? (formData.get('relocationNotes') as string) || null : null,
         dealBreakers: (formData.get('dealBreakers') as string) || null,
+        publicDisclosureComfort: (formData.get('publicDisclosureComfort') as PublicDisclosureComfort) || null,
+        hasBeenReferredBefore: formData.get('hasBeenReferredBefore') === 'on',
+        referralRecency:
+          formData.get('hasBeenReferredBefore') === 'on'
+            ? (formData.get('referralRecency') as ReferralRecency) || null
+            : null,
         ...rankValues,
         part4Complete: true,
         assessmentComplete: true,
@@ -404,4 +412,26 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/contract')
+}
+
+// Mandatory, specific consent gate (Prompt 54) — being assigned a coachId
+// via the invite-link cookie is NOT sufficient on its own for that coach to
+// see the candidate's Executive Dossier or Coaching Notes. This is the one
+// place coachDossierConsentedAt is ever set to a non-null value; every
+// coach-facing read path checks it explicitly before rendering anything.
+export async function submitCoachConsent(intent: 'agree' | 'not_now'): Promise<void> {
+  const candidateId = await requireCandidateId()
+
+  if (intent === 'agree') {
+    await prisma.candidateProfile.update({
+      where: { id: candidateId },
+      data: { coachDossierConsentedAt: new Date() },
+    })
+    captureServerEvent(candidateId, 'coach_dossier_consent_granted')
+  } else {
+    captureServerEvent(candidateId, 'coach_dossier_consent_deferred')
+  }
+
+  revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/score')
 }

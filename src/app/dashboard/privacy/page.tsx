@@ -1,4 +1,5 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
@@ -7,6 +8,7 @@ import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelecto
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
+import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -14,6 +16,9 @@ import Link from 'next/link'
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
   const grade = await computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations)
+  const coach = profile.coachId
+    ? await prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
+    : null
 
   return (
     <div className="space-y-8">
@@ -62,6 +67,13 @@ export default async function PrivacyPage() {
       </div>
 
       <WhatTheySeeSection candidateId={profile.id} />
+
+      {coach && (
+        <div className="space-y-3 border-t border-border pt-8">
+          <h2 className="text-lg font-semibold">Coach access</h2>
+          <CoachAccessSettings coachName={coach.fullName} hasConsented={profile.coachDossierConsentedAt !== null} />
+        </div>
+      )}
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>

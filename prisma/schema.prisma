@@ -173,6 +173,26 @@ enum NetworkComfortLevel {
   RATHER_NOT
 }
 
+// Comfort with PUBLIC visibility of being unemployed/searching (LinkedIn
+// "Open to Work", public posts, etc.) — a distinct axis from
+// NetworkComfortLevel above, which is about telling people you know
+// directly, privately. Deliberately not merged: public-comfort and
+// private-comfort don't necessarily move together (Prompt 53).
+enum PublicDisclosureComfort {
+  PRIVATE_ONLY
+  CLOSE_CONTACTS_ONLY
+  BECOMING_COMFORTABLE
+  FULLY_COMFORTABLE
+}
+
+// How recently a candidate was last networked/referred into a job —
+// lightweight, not a detailed history capture (Prompt 53).
+enum ReferralRecency {
+  THIS_SEARCH
+  PAST_TWO_YEARS
+  LONGER_AGO
+}
+
 enum ContentVenue {
   LINKEDIN
   SUBSTACK
@@ -355,6 +375,13 @@ model CandidateProfile {
   equityImportant     Boolean  @default(false)
   dealBreakers        String?
 
+  // Hireability Assessment (Prompt 53) — feeds Market Reality Grade
+  // (Prompt 46) and the Coach Dossier's Coaching Notes (Prompt 54); never
+  // the external Executive Dossier (Prompt 47).
+  publicDisclosureComfort PublicDisclosureComfort?
+  hasBeenReferredBefore   Boolean?
+  referralRecency         ReferralRecency?
+
   // Search Strategy — a standalone, editable-anytime setup step. Search
   // Stage itself isn't stored here — it's derived from currentJobStatus +
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
@@ -514,6 +541,15 @@ model CandidateProfile {
   coach         Coach?         @relation(fields: [coachId], references: [id])
   coachSessions CoachSession[]
 
+  // Mandatory, specific consent gate (Prompt 54) before a coach can see the
+  // Executive Dossier or Coaching Notes — being assigned a coachId is NOT
+  // sufficient on its own. Null = no coach-side access to either document,
+  // full stop; every read path checks this explicitly. Cleared whenever the
+  // candidate disconnects their coach (see disconnectCoach action), which is
+  // what "revoke access" means in this codebase since coachId itself is
+  // otherwise never reassigned.
+  coachDossierConsentedAt DateTime?
+
   resumeSubmissionLeads ResumeSubmissionLead[]
   messageDismissals     CandidateMessageDismissal[]
 
@@ -559,6 +595,14 @@ model WorkHistoryEntry {
   // can be collapsed to one displayed at a time via isPrimaryEngagement.
   engagementType      EngagementType @default(FULL_TIME)
   isPrimaryEngagement Boolean        @default(false)
+
+  // Re-verification for active fractional/interim engagements (Prompt 51) —
+  // Victoria checks in roughly every 30 days (or at expectedEndDate, if
+  // given) asking "still doing this work?" so isCurrent/endDate stay
+  // accurate — the resume's "one active engagement at a time" rule
+  // (sanitize.ts) depends on this being current, not stale.
+  expectedEndDate DateTime?
+  nextReverifyAt  DateTime?
 
   @@index([candidateId])
 }

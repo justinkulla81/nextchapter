@@ -163,3 +163,45 @@ export async function deleteMyAccount(
 
   redirect('/')
 }
+
+// Revokes a coach's access (Prompt 54) — the only mechanism in this
+// codebase that changes/removes coachId once set, and specifically clears
+// coachDossierConsentedAt at the same time, since that's what actually
+// gates the coach-facing Dossier/Coaching Notes read path.
+export async function disconnectCoach(): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { coachId: null, coachDossierConsentedAt: null },
+  })
+
+  captureServerEvent(profile.id, 'coach_disconnected')
+  revalidatePath('/dashboard/privacy')
+}
+
+// Lets a candidate turn consent on later if they chose "Not right now"
+// during onboarding — the only other place coachDossierConsentedAt is set.
+export async function grantCoachDossierConsent(): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  if (!profile.coachId) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { coachDossierConsentedAt: new Date() },
+  })
+
+  captureServerEvent(profile.id, 'coach_dossier_consent_granted')
+  revalidatePath('/dashboard/privacy')
+}

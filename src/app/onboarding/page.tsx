@@ -11,6 +11,7 @@ export default async function OnboardingIndexPage() {
   if (!profile.part3Complete) redirect('/onboarding/experience')
   if (!profile.part4Complete) redirect('/onboarding/goals')
   if (!profile.contractAcceptedAt) redirect('/onboarding/contract')
+  if (profile.coachId && !profile.coachDossierConsentedAt) redirect('/onboarding/coach-consent')
   if (!profile.registrationCompletedAt) redirect('/onboarding/score')
   redirect('/dashboard')
 }

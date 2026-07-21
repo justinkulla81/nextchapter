@@ -1,4 +1,10 @@
-import type { CurrentJobStatus, GapDurationBucket, NotificationTier } from '@prisma/client'
+import type {
+  CurrentJobStatus,
+  GapDurationBucket,
+  NotificationTier,
+  PublicDisclosureComfort,
+  ReferralRecency,
+} from '@prisma/client'
 
 // First-person commitment framing for the onboarding contract screen — the
 // candidate's own words for how much they want to be nudged, distinct from
@@ -296,3 +302,21 @@ export function detectManagementGoalConflict(
     targetRoleType,
   }
 }
+
+// "How comfortable are you with being publicly visible as job-searching?"
+// — Goals step, Prompt 53. Distinct from NetworkComfortLevel (Activate My
+// Network page), which is about telling people you know directly, privately.
+export const PUBLIC_DISCLOSURE_COMFORT_OPTIONS: { value: PublicDisclosureComfort; label: string }[] = [
+  { value: 'PRIVATE_ONLY', label: "I'd rather keep this completely private — no public signals" },
+  { value: 'CLOSE_CONTACTS_ONLY', label: "I'm okay with close contacts knowing, but not publicly" },
+  { value: 'BECOMING_COMFORTABLE', label: "I'm becoming more comfortable being visible about it" },
+  { value: 'FULLY_COMFORTABLE', label: "I'm fully comfortable being public about it" },
+]
+
+// "Have you networked or been referred into a job before?" follow-up —
+// how recently, kept lightweight (Prompt 53).
+export const REFERRAL_RECENCY_OPTIONS: { value: ReferralRecency; label: string }[] = [
+  { value: 'THIS_SEARCH', label: 'This search' },
+  { value: 'PAST_TWO_YEARS', label: 'Past 2 years' },
+  { value: 'LONGER_AGO', label: 'Longer ago' },
+]

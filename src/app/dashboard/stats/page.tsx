@@ -9,35 +9,67 @@ import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
 import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
+import { getDailyActivity } from '@/lib/stats/activity-heatmap'
+import { getLastWeekActions } from '@/lib/stats/last-week-actions'
+import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
+import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { MarketRealityTrendChart } from '@/components/dashboard/MarketRealityTrendChart'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
+import { StreakHeroBanner } from '@/components/dashboard/StreakHeroBanner'
+import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
+import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 
 type EngineKey = SearchExecutionEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
 
+const GRADE_VALUE: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
+type Delta = 'up' | 'down' | 'flat' | null
+function gradeDelta(current: Grade, previous: Grade | null): Delta {
+  if (!previous) return null
+  const diff = GRADE_VALUE[current] - GRADE_VALUE[previous]
+  if (diff > 0) return 'up'
+  if (diff < 0) return 'down'
+  return 'flat'
+}
+const DELTA_ICON: Record<Exclude<Delta, null>, string> = { up: '↑', down: '↓', flat: '→' }
+
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
 
-  const [grade, recentReports, applicationsCount, currentSprint, moodHistory, marketRealitySnapshots] =
-    await Promise.all([
-      computeHireabilityGrade(profile),
-      prisma.sundayNightReport.findMany({
-        where: { candidateId: profile.id },
-        orderBy: { weekStartDate: 'desc' },
-        take: 12,
-        select: { weekStartDate: true, gradeSnapshot: true, onAList: true },
-      }),
-      prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
-      getCurrentWeekSprint(profile.id),
-      getMoodHistory(profile.id),
-      prisma.marketRealitySnapshot.findMany({
-        where: { candidateId: profile.id },
-        orderBy: { weekStartDate: 'asc' },
-      }),
-    ])
+  const [
+    grade,
+    recentReports,
+    applicationsCount,
+    currentSprint,
+    moodHistory,
+    marketRealitySnapshots,
+    dailyActivity,
+    lastWeekActions,
+    weeklyBadges,
+    milestoneBadges,
+  ] = await Promise.all([
+    computeHireabilityGrade(profile),
+    prisma.sundayNightReport.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { weekStartDate: 'desc' },
+      take: 12,
+      select: { weekStartDate: true, gradeSnapshot: true, onAList: true },
+    }),
+    prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
+    getCurrentWeekSprint(profile.id),
+    getMoodHistory(profile.id),
+    prisma.marketRealitySnapshot.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { weekStartDate: 'asc' },
+    }),
+    getDailyActivity(profile.id),
+    getLastWeekActions(profile.id),
+    computeWeeklyBadges(profile.id),
+    computeMilestoneBadges(profile.id),
+  ])
 
   const aListWeeks = recentReports.filter((r) => r.onAList)
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
@@ -58,6 +90,28 @@ export default async function YourStatsPage() {
     ])
   }
 
+  // 7-day activity strip for the hero banner — "had activity" = checked in
+  // that day, same signal that drives currentStreak, so the strip and the
+  // streak number never disagree.
+  const checkedInDays = new Set(moodHistory.map((m) => m.date.toISOString().slice(0, 10)))
+  const activeDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    return checkedInDays.has(d.toISOString().slice(0, 10))
+  })
+
+  const previousMarketRealityGrade =
+    marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
+  const previousSearchExecutionGrade =
+    recentReports.length > 0 ? (recentReports[0].gradeSnapshot as unknown as HireabilityGrade).searchExecution.grade : null
+
+  const weeklyScoreSnapshots = [...recentReports]
+    .reverse()
+    .map((r) => ({
+      weekStartDate: r.weekStartDate,
+      grade: (r.gradeSnapshot as unknown as HireabilityGrade).searchExecution.grade,
+    }))
+
   return (
     <div className="space-y-8">
       <div>
@@ -68,25 +122,80 @@ export default async function YourStatsPage() {
         </p>
       </div>
 
+      <StreakHeroBanner currentStreak={profile.currentStreak} activeDays={activeDays} />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Grade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-foreground">{grade.marketReality.grade}</span>
+              {(() => {
+                const delta = gradeDelta(grade.marketReality.grade, previousMarketRealityGrade)
+                return delta ? (
+                  <span className="text-sm text-muted-foreground">
+                    {DELTA_ICON[delta]} vs last week ({previousMarketRealityGrade})
+                  </span>
+                ) : null
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-foreground">{grade.searchExecution.grade}</span>
+              {(() => {
+                const delta = gradeDelta(grade.searchExecution.grade, previousSearchExecutionGrade)
+                return delta ? (
+                  <span className="text-sm text-muted-foreground">
+                    {DELTA_ICON[delta]} vs last week ({previousSearchExecutionGrade})
+                  </span>
+                ) : null
+              })()}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+              {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget} points
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s Search Score</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Badges</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-foreground">{grade.searchExecution.grade}</span>
-            <span className="text-sm text-muted-foreground tabular-nums">
-              {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget} points
-            </span>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {grade.searchExecution.engines.map((e) => (
-              <div key={e.key} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <span className="text-sm text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
-                <span className="text-sm font-semibold text-foreground tabular-nums">{e.grade}</span>
-              </div>
-            ))}
-          </div>
+          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Grade trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MarketRealityTrendChart
+            snapshots={marketRealitySnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MarketRealityTrendChart
+            snapshots={weeklyScoreSnapshots}
+            emptyStateText="Your Weekly Search Score trend will show up here after a couple of weekly reports."
+            ariaLabel="Weekly Search Score over time"
+          />
         </CardContent>
       </Card>
 
@@ -96,6 +205,119 @@ export default async function YourStatsPage() {
         </CardHeader>
         <CardContent>
           <MotivationChart baseline={difficultyLevelToIntensityScore(profile.jobSearchDifficultyLevel)} history={moodHistory} />
+          <p className="mt-3 text-xs text-muted-foreground">
+            Private — only you and your coach (if you have one) ever see this. Never part of any
+            export, and never visible to hiring managers or recruiters.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActivityHeatmap activity={dailyActivity} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Last week&apos;s actions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {!lastWeekActions ? (
+            <p className="text-sm text-muted-foreground">No committed Sprint on file for last week.</p>
+          ) : (
+            <>
+              {lastWeekActions.committed.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Committed</h3>
+                  <ul className="mt-2 space-y-1">
+                    {lastWeekActions.committed.map((a, i) => (
+                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                        <span className={a.completed ? 'text-foreground' : 'text-muted-foreground'}>
+                          {a.completed ? '✓ ' : ''}
+                          {a.text}
+                        </span>
+                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{a.points} pts</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {lastWeekActions.fromCatalog.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    From the catalog
+                  </h3>
+                  <ul className="mt-2 space-y-1">
+                    {lastWeekActions.fromCatalog.map((a, i) => (
+                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                        <span className={a.completed ? 'text-foreground' : 'text-muted-foreground'}>
+                          {a.completed ? '✓ ' : ''}
+                          {a.text}
+                        </span>
+                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{a.points} pts</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Grade history log</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MarketRealitySnapshotArchive
+            snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
+              id: s.id,
+              weekStartDate: s.weekStartDate,
+              grade: s.grade as Grade,
+              namedReasons: s.namedReasons as unknown as NamedReason[],
+            }))}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Streak details</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{profile.currentStreak}</p>
+            <p className="text-xs text-muted-foreground">current streak</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{profile.longestStreak}</p>
+            <p className="text-xs text-muted-foreground">longest streak ever</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{applicationsCount}</p>
+            <p className="text-xs text-muted-foreground">applications sent</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s Search Score detail</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {grade.searchExecution.engines.map((e) => (
+              <div key={e.key} className="flex items-center justify-between rounded-lg border border-border p-3">
+                <span className="text-sm text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
+                <span className="text-sm font-semibold text-foreground tabular-nums">{e.grade}</span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -170,22 +392,6 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Streak &amp; applications</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{profile.currentStreak}</p>
-            <p className="text-xs text-muted-foreground">day streak</p>
-          </div>
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{applicationsCount}</p>
-            <p className="text-xs text-muted-foreground">applications sent</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Weekly A List</CardTitle>
         </CardHeader>
         <CardContent>
@@ -208,66 +414,6 @@ export default async function YourStatsPage() {
           <p className="mt-3 text-xs text-muted-foreground">
             Private and personal — never a public leaderboard. Only you see this.
           </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Grade trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MarketRealityTrendChart
-            snapshots={marketRealitySnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Snapshot archive</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MarketRealitySnapshotArchive
-            snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-              id: s.id,
-              weekStartDate: s.weekStartDate,
-              grade: s.grade as Grade,
-              namedReasons: s.namedReasons as unknown as NamedReason[],
-            }))}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Grade history</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentReports.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Your weekly grade history will show up here after your first Sunday Night Report.
-            </p>
-          ) : (
-            <ul className="space-y-1.5">
-              {recentReports.map((r) => {
-                const snapshot = r.gradeSnapshot as unknown as HireabilityGrade
-                return (
-                  <li
-                    key={r.weekStartDate.toISOString()}
-                    className="flex items-center justify-between text-sm text-foreground"
-                  >
-                    <span>
-                      Week of {r.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
-                    <span className="tabular-nums">
-                      {snapshot.marketReality.grade} / {snapshot.searchExecution.grade}
-                      {r.onAList && ' 🅰️'}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
         </CardContent>
       </Card>
 

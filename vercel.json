@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/community-coaching-digest",
       "schedule": "0 15 * * 6"
+    },
+    {
+      "path": "/api/cron/interim-role-reverify",
+      "schedule": "0 14 * * *"
     }
   ]
 }

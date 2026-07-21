@@ -33,13 +33,17 @@ const TREND_COPY: Record<'up' | 'down' | 'flat', { icon: string; label: string }
   flat: { icon: '→', label: 'Holding steady' },
 }
 
-export function MarketRealityTrendChart({ snapshots }: { snapshots: TrendSnapshot[] }) {
+export function MarketRealityTrendChart({
+  snapshots,
+  emptyStateText = 'Your Market Reality Grade trend will show up here once a few weekly snapshots have been archived.',
+  ariaLabel = 'Market Reality Grade over time',
+}: {
+  snapshots: TrendSnapshot[]
+  emptyStateText?: string
+  ariaLabel?: string
+}) {
   if (snapshots.length < 2) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Your Market Reality Grade trend will show up here once a few weekly snapshots have been archived.
-      </p>
-    )
+    return <p className="text-sm text-muted-foreground">{emptyStateText}</p>
   }
 
   const innerWidth = WIDTH - PAD_X * 2
@@ -61,7 +65,7 @@ export function MarketRealityTrendChart({ snapshots }: { snapshots: TrendSnapsho
           {TREND_COPY[direction].icon} {TREND_COPY[direction].label}
         </p>
       )}
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" role="img" aria-label="Market Reality Grade over time">
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" role="img" aria-label={ariaLabel}>
         {(['F', 'D', 'C', 'B', 'A'] as Grade[]).map((g) => (
           <line
             key={g}
