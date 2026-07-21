@@ -7,7 +7,7 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import { getTodaysMood, getCheckInSummary } from '@/lib/daily/mood'
+import { getTodaysMood, getCheckInSummary, startOfUTCDay } from '@/lib/daily/mood'
 import {
   getCurrentWeekSprint,
   getSuggestedActions,
@@ -130,6 +130,9 @@ export default async function DashboardPage() {
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
+  const moodCardDismissedToday =
+    profile.moodCardDismissedAt !== null && profile.moodCardDismissedAt >= startOfUTCDay()
+
   return (
     <div className="space-y-8">
       {user && !user.email_confirmed_at && user.email && (
@@ -164,6 +167,7 @@ export default async function DashboardPage() {
           isConsecutive={checkInSummary.isConsecutive}
           todaysIdeas={todaysIdeas}
           firstName={profile.firstName}
+          dismissedToday={moodCardDismissedToday}
         />
 
         <SuccessSprintCard

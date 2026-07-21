@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { startOfUTCDay } from '@/lib/daily/mood'
 
 export interface DashboardMessageView {
   id: string
@@ -13,9 +14,11 @@ export interface DashboardMessageView {
 // candidate, until they dismiss it — after that, whichever active,
 // non-pinned message they haven't dismissed yet shows, oldest first so a
 // rotation actually rotates instead of always landing on the newest.
+// Dismissals only count for the rest of the day they were made — a message
+// dismissed today reappears tomorrow rather than being gone for good.
 export async function getNextDashboardMessage(candidateId: string): Promise<DashboardMessageView | null> {
   const dismissed = await prisma.candidateMessageDismissal.findMany({
-    where: { candidateId },
+    where: { candidateId, dismissedAt: { gte: startOfUTCDay() } },
     select: { messageId: true },
   })
   const dismissedIds = dismissed.map((d) => d.messageId)

@@ -68,12 +68,30 @@ export async function dismissDashboardMessage(messageId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
+  // Bumping dismissedAt on every dismiss (not just the first) matters here —
+  // getNextDashboardMessage only treats a dismissal as active for the rest
+  // of the day it happened, so re-dismissing after that day's reset needs a
+  // fresh timestamp, not the original one from days ago.
   await prisma.candidateMessageDismissal.upsert({
     where: { candidateId_messageId: { candidateId: profile.id, messageId } },
     create: { candidateId: profile.id, messageId },
-    update: {},
+    update: { dismissedAt: new Date() },
   })
   captureServerEvent(profile.id, 'dashboard_message_dismissed', { messageId })
+  revalidatePath('/dashboard')
+}
+
+// The "How motivated are you today?" card's X — dismissal only lasts through
+// the rest of the day (see startOfUTCDay in dashboard/page.tsx), same
+// contract as dismissDashboardMessage above.
+export async function dismissMoodCard() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { moodCardDismissedAt: new Date() },
+  })
   revalidatePath('/dashboard')
 }
 

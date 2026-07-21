@@ -2,7 +2,9 @@ import 'server-only'
 import type { Mood } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
-function startOfUTCDay(d: Date): Date {
+// Shared daily-reset boundary — also used by dashboard message and mood-card
+// dismissal so "resets the next day" means the same thing everywhere.
+export function startOfUTCDay(d: Date = new Date()): Date {
   const copy = new Date(d)
   copy.setUTCHours(0, 0, 0, 0)
   return copy

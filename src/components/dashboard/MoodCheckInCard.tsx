@@ -5,7 +5,7 @@ import type { Mood } from '@prisma/client'
 import Link from 'next/link'
 import { TrendingDown, Minus, TrendingUp, Zap, X, type LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { checkInMood } from '@/app/dashboard/actions'
+import { checkInMood, dismissMoodCard } from '@/app/dashboard/actions'
 import { MOOD_ORDER, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
 import { ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
@@ -24,6 +24,7 @@ export function MoodCheckInCard({
   isConsecutive,
   todaysIdeas,
   firstName,
+  dismissedToday,
 }: {
   todaysMood: Mood | null
   currentStreak: number
@@ -31,10 +32,13 @@ export function MoodCheckInCard({
   isConsecutive: boolean
   todaysIdeas: CommittedAction[]
   firstName: string | null
+  // Server-computed: whether this was already dismissed today (see
+  // moodCardDismissedAt / startOfUTCDay) — resets automatically tomorrow.
+  dismissedToday: boolean
 }) {
   const [optimisticMood, setOptimisticMood] = useState<Mood | null>(todaysMood)
   const [isPending, startTransition] = useTransition()
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(dismissedToday)
 
   const mood = optimisticMood ?? todaysMood
 
@@ -42,6 +46,13 @@ export function MoodCheckInCard({
     setOptimisticMood(selected)
     startTransition(() => {
       checkInMood(selected)
+    })
+  }
+
+  function handleDismiss() {
+    setDismissed(true)
+    startTransition(() => {
+      dismissMoodCard()
     })
   }
 
@@ -59,7 +70,7 @@ export function MoodCheckInCard({
         </CardTitle>
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
           aria-label="Dismiss"
           className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
         >

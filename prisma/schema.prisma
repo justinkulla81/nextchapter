@@ -409,6 +409,7 @@ model CandidateProfile {
   currentStreak        Int          @default(0) // consecutive days with a mood check-in
   longestStreak        Int          @default(0)
   lastCheckInAt        DateTime?
+  moodCardDismissedAt  DateTime? // when the "How motivated are you today?" card's X was last clicked — resets daily, see startOfUTCDay
   lastDailyEmailSentAt DateTime?
   dailyEmailOptedOut   Boolean      @default(false)
   weeklyReportOptedOut Boolean      @default(false)
