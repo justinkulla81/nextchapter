@@ -136,3 +136,28 @@ export async function disputeReference(
 
   revalidatePath('/dashboard/references')
 }
+
+// Mandatory candidate-approval gate for a Victoria-drafted reference quote
+// (Prompt 48) — nothing becomes Dossier-eligible without this. approve:
+// false rejects it permanently; it never resurfaces.
+export async function reviewReferenceQuote(quoteId: string, approve: boolean): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const quote = await prisma.referenceQuote.findUnique({ where: { id: quoteId } })
+  if (!quote || quote.candidateId !== profile.id) return
+
+  await prisma.referenceQuote.update({
+    where: { id: quoteId },
+    data: approve
+      ? { approvedByCandidateAt: new Date() }
+      : { rejectedAt: new Date() },
+  })
+
+  revalidatePath('/dashboard/references')
+}

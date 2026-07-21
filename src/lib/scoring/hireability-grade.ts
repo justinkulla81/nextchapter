@@ -129,7 +129,7 @@ function looselyMatches(a: string | null, b: string | null): boolean {
   return wordsB.some((w) => wordsA.has(w))
 }
 
-async function computeMarketRealityDimensions(
+export async function computeMarketRealityDimensions(
   candidate: CandidateWithGradeRelations
 ): Promise<MarketRealityDimension[]> {
   const jobReactionsCount = candidate.surfacedJobs.filter((j) => j.reaction !== null).length
@@ -401,7 +401,7 @@ export async function computeHireabilityGrade(
   }
 }
 
-const GRADE_RELATIONS_INCLUDE = {
+export const GRADE_RELATIONS_INCLUDE = {
   references: true,
   workSamples: true,
   workHistory: true,

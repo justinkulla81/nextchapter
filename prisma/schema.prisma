@@ -270,29 +270,29 @@ model CandidateProfile {
   desireComplete Boolean @default(false)
 
   // Part 1: Your Situation
-  currentJobStatus CurrentJobStatus?
-  gapDuration      GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
+  currentJobStatus   CurrentJobStatus?
+  gapDuration        GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
   // DEPRECATED — question removed from Your Situation page (Batch 24); the
   // "how difficult has your search been" question below covers this signal
   // instead. Column kept (not dropped) only so existing historical answers
   // aren't destroyed — do not read this in new code.
   jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
-  biggestBarriers    String[] @default([]) // multi-select (select-all), "What do you think are the biggest barriers to get a new job?" — see BIGGEST_BARRIER_OPTIONS
+  biggestBarriers    String[]           @default([]) // multi-select (select-all), "What do you think are the biggest barriers to get a new job?" — see BIGGEST_BARRIER_OPTIONS
   // "How actively are you searching right now?" — a distinct axis from
   // jobSearchDifficultyLevel (how hard the search feels vs. how actively
   // they're even looking). Feeds Victoria's directness calibration
   // (isCasuallySearching) and suppresses week-count urgency language for
   // non-active searchers.
-  searchIntensity SearchIntensity?
+  searchIntensity    SearchIntensity?
 
   // Admin-confirmed match to a LayoffCohort (candidate matching, not
   // self-selected) — set via /support/admin/layoff-cohorts, surfaces a
   // cohort-scoped view inside Community once assigned.
   layoffCohortId String?
   layoffCohort   LayoffCohort? @relation(fields: [layoffCohortId], references: [id])
-  currentCity      String? // resume-derived (Phase 1), candidate-confirmable
-  currentState     String?
-  currentCountry   String             @default("US")
+  currentCity    String? // resume-derived (Phase 1), candidate-confirmable
+  currentState   String?
+  currentCountry String        @default("US")
 
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
@@ -309,15 +309,23 @@ model CandidateProfile {
   // forced-choice + Likert cross-validation instrument.
 
   // Part 3: Experience
-  yearsExperience           Int? // resume-derived (Phase 1), candidate-confirmable
-  highestLevelReached       String? // "IC", "Manager", "Director", "VP", "C-Suite"
-  primaryFunction           String? // resume-derived (Phase 1), candidate-confirmable
-  industryContext           String? // resume-derived (Phase 1), candidate-confirmable
-  resumeKeywords            String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
-  isPeopleManager           Boolean? // gates teamSizeManaged + managementSkillConfidence questions
-  teamSizeManaged           Int? // 0 = IC, otherwise largest team managed
-  topStrengths              String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
-  knownFor                  String? // "How former colleagues would describe me" — required before requesting references
+  yearsExperience     Int? // resume-derived (Phase 1), candidate-confirmable
+  highestLevelReached String? // "IC", "Manager", "Director", "VP", "C-Suite"
+  primaryFunction     String? // resume-derived (Phase 1), candidate-confirmable
+  industryContext     String? // resume-derived (Phase 1), candidate-confirmable
+  resumeKeywords      String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
+  isPeopleManager     Boolean? // gates teamSizeManaged + managementSkillConfidence questions
+  teamSizeManaged     Int? // 0 = IC, otherwise largest team managed
+  topStrengths        String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
+  knownFor            String? // "How former colleagues would describe me" — required before requesting references
+
+  // Executive Dossier Positioning Statement (Prompt 47) — AI-drafted from
+  // profile/accomplishment data, but never published in the Dossier until
+  // the candidate explicitly approves or edits it. positioningStatementText
+  // null = not yet approved; the draft alone is never Dossier-eligible.
+  positioningStatementDraft String?   @db.Text
+  positioningStatementText  String?   @db.Text
+  positioningStatementSetAt DateTime?
   functionSkillConfidence   Int? // 0-100, 4-stop discrete scale ("Good" -> "Among the best in my field")
   aiFlexibilityLevel        Int? // 0-100, repurposed as AI-skill confidence slider, same 4-stop scale
   managementSkillConfidence Int? // 0-100, 4-stop "soft trait" scale, only asked if isPeopleManager
@@ -350,10 +358,10 @@ model CandidateProfile {
   // Search Strategy — a standalone, editable-anytime setup step. Search
   // Stage itself isn't stored here — it's derived from currentJobStatus +
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
-  applicationVolumeGoal     Int?     // target applications per week
-  isPivoting                Boolean  @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  applicationVolumeGoal     Int? // target applications per week
+  isPivoting                Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
   skillsStillNeeded         String?
-  interimConsultingInterest Boolean  @default(false)
+  interimConsultingInterest Boolean   @default(false)
   searchStrategyConfirmedAt DateTime?
 
   // Resume auto-fill (Phase 1) — unconfirmed until candidate confirms via action plan
@@ -405,16 +413,16 @@ model CandidateProfile {
   substackAnalyzedAt            DateTime?
 
   // Daily loop — mood check-in + daily Victoria email
-  actionWindow         ActionWindow @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
-  currentStreak        Int          @default(0) // consecutive days with a mood check-in
-  longestStreak        Int          @default(0)
-  lastCheckInAt        DateTime?
-  moodCardDismissedAt  DateTime? // when the "How motivated are you today?" card's X was last clicked — resets daily, see startOfUTCDay
-  lastDailyEmailSentAt DateTime?
-  dailyEmailOptedOut   Boolean      @default(false)
-  weeklyReportOptedOut Boolean      @default(false) // opt-out for the Friday gap nudge + Community & Coaching digest (the "Sunday Night Report" this was originally named for was retired before it ever shipped — this field was repurposed rather than left dead)
-  sprintGoalEmailsOptedOut Boolean  @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
-  notificationTier     NotificationTier @default(FULL)
+  actionWindow             ActionWindow     @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
+  currentStreak            Int              @default(0) // consecutive days with a mood check-in
+  longestStreak            Int              @default(0)
+  lastCheckInAt            DateTime?
+  moodCardDismissedAt      DateTime? // when the "How motivated are you today?" card's X was last clicked — resets daily, see startOfUTCDay
+  lastDailyEmailSentAt     DateTime?
+  dailyEmailOptedOut       Boolean          @default(false)
+  weeklyReportOptedOut     Boolean          @default(false) // opt-out for the Friday gap nudge + Community & Coaching digest (the "Sunday Night Report" this was originally named for was retired before it ever shipped — this field was repurposed rather than left dead)
+  sprintGoalEmailsOptedOut Boolean          @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
+  notificationTier         NotificationTier @default(FULL)
 
   // TCPA-compliant SMS opt-in — deliberately separate from the resume-extracted
   // `phone` field above and from email preferences; SMS consent must be its
@@ -465,6 +473,7 @@ model CandidateProfile {
   // Relations
   workHistory                WorkHistoryEntry[]
   references                 Reference[]
+  referenceQuotes            ReferenceQuote[]
   workSamples                WorkSample[]
   interviewResponses         InterviewResponse[]
   peerNominations            PeerNomination[]
@@ -488,6 +497,7 @@ model CandidateProfile {
   dailyCheckIns              DailyCheckIn[]
   weeklySprints              WeeklySprint[]
   sundayNightReports         SundayNightReport[]
+  marketRealitySnapshots     MarketRealitySnapshot[]
   encouragementNotesSent     EncouragementNote[]           @relation("EncouragementSent")
   encouragementNotesReceived EncouragementNote[]           @relation("EncouragementReceived")
   supportNetworkContacts     SupportNetworkContact[]
@@ -606,8 +616,62 @@ model Reference {
   barsCommitment        Int? // 1=protects hours, 5=whatever it takes
   barsConscientiousness Int? // 1=flexible with process, 5=rigorous with detail
 
+  // Reference Testimony Intake (Dossier Prompt 48) — five reference-only
+  // character traits, deliberately NOT mirrored from Working Style's 9
+  // neutral either-direction dimensions (Velocity, Structure, etc. don't
+  // read as virtues on an external reference form). Each 1-5 rating pairs
+  // with a required one-example text, same "give one example" spec as the
+  // original prompt. Used for the Dossier's "confirmed by N of M
+  // references" callout via testimony-processing.ts's strength-to-trait
+  // mapping against the candidate's self-identified topStrengths.
+  traitAdaptabilityRating   Int?
+  traitAdaptabilityExample  String? @db.Text
+  traitFollowThroughRating  Int?
+  traitFollowThroughExample String? @db.Text
+  traitPresenceRating       Int?
+  traitPresenceExample      String? @db.Text
+  traitCollaborationRating  Int?
+  traitCollaborationExample String? @db.Text
+  traitComposureRating      Int?
+  traitComposureExample     String? @db.Text
+
+  // Open-ended, reference-only questions (never asked of the candidate) —
+  // raw material for Victoria's themed pull-quote drafts (ReferenceQuote).
+  superpowerText           String? @db.Text
+  underPressureStory       String? @db.Text
+  definingStory            String? @db.Text // "one story that shows who they are, not just what they did"
+  wouldWorkWithAgainReason String? @db.Text
+
+  // null = not yet answered; true = ok to quote with name/title in the
+  // Dossier; false = "available on request" only, never printed verbatim.
+  quotableWithAttribution Boolean?
+
+  quotes ReferenceQuote[]
+
   @@index([candidateId, status])
   @@index([token])
+}
+
+// Victoria-drafted, themed pull-quote sourced from a reference's open-ended
+// answers — MANDATORY candidate approval gate before it can appear in the
+// Dossier (Prompt 47/48's "never auto-publish a reference's words" rule).
+// approvedByCandidateAt null = not yet Dossier-eligible; rejectedAt set =
+// candidate removed it, never resurface.
+model ReferenceQuote {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  referenceId String
+  reference   Reference        @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+
+  theme     String // e.g. "Under pressure", "Developing people", "Raising the bar"
+  quoteText String @db.Text
+
+  approvedByCandidateAt DateTime?
+  rejectedAt            DateTime?
+  createdAt             DateTime  @default(now())
+
+  @@index([candidateId, approvedByCandidateAt])
 }
 
 model WorkSample {
@@ -672,7 +736,8 @@ model LearningBadge {
   badgeType       String // "course_completed" | "certification" | "ai_project" | "conference_talk" | "published"
   title           String
   provider        String?
-  description     String?        @db.Text // what was built/produced — only "ai_project" badges use this today
+  description     String?  @db.Text // what was built/produced — only "ai_project" badges use this today
+  judgmentCall    String?  @db.Text // "ai_project" only — the specific judgment call the candidate made while directing the AI (not just "completed a course"); the AI Fluency signal for Market Reality named reasons and the Dossier's AI Fluency section
   completedAt     DateTime
   verificationUrl String?
   verified        Boolean  @default(false)
@@ -1029,7 +1094,7 @@ model JobPosting {
   extractedText String?
 
   fitScore        Int? // 0-100
-  fitFeedback     String[] @default([]) // short, scannable bullets — no more than 5
+  fitFeedback     String[]  @default([]) // short, scannable bullets — no more than 5
   keywords        String[]  @default([]) // extracted from the posting, ATS/recruiter scan terms
   tailoredBullets Json? // [{ original: string, tailored: string }] — real work-history bullets reframed to the posting
   analyzedAt      DateTime?
@@ -1046,7 +1111,7 @@ model JobPosting {
 
   appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
   channel                ApplicationChannel? // captured at the moment of marking applied; null on rows logged before this field existed
-  coverLetter            String?   @db.Text
+  coverLetter            String?             @db.Text
   coverLetterError       String?
   coverLetterGeneratedAt DateTime?
 
@@ -1215,6 +1280,32 @@ model SundayNightReport {
   emailSentAt DateTime?
   generatedAt DateTime  @default(now())
 
+  @@index([candidateId, generatedAt])
+}
+
+// Weekly, append-only Market Reality Grade + named-reasons snapshot.
+// Regenerated once per week right after that week's Weekly Search Sprint
+// locks (Monday 12:01pm PT, see auto-assign-sprint cron) so each snapshot
+// reflects that week's actually-completed work rather than work still in
+// progress. Never overwritten — permanent, growing archive per candidate,
+// surfaced on the Stats page (trend graph + openable archive).
+// Deliberately distinct from SundayNightReport — that's a pre-existing
+// weekly email digest keyed to Sunday night with its own gradeSnapshot;
+// this model exists specifically so named reasons have a stable home with
+// lock-triggered timing, not to duplicate that report.
+model MarketRealitySnapshot {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC of the week this snapshot closes out
+
+  grade        String // 'A'..'F', see scoreToGrade
+  dimensions   Json // MarketRealityDimension[] as computed that week
+  namedReasons Json // NamedReason[] — structured, individually-referenceable (see named-reasons.ts)
+
+  generatedAt DateTime @default(now())
+
+  @@unique([candidateId, weekStartDate])
   @@index([candidateId, generatedAt])
 }
 
@@ -1507,14 +1598,14 @@ model SurfacedJob {
 // private, capped-at-5 job-fit tracker) and SurfacedJob (algorithmic,
 // per-candidate matches) — this is a single shared, admin-authored list.
 model ExclusiveJobPosting {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   companyName String
   location    String?
   url         String
   description String?
   addedBy     String // admin email, from requireAdmin()
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   archivedAt  DateTime? // soft-hide instead of delete, keeps admin history
 
   @@index([archivedAt, createdAt])
@@ -1606,18 +1697,18 @@ model Recruiter {
 // No scheduling/targeting here by design — that's more than the current
 // need (a simple rotating admin-authored feed) calls for.
 model DashboardMessage {
-  id        String   @id @default(cuid())
-  title     String
-  bullets   String[]
-  footer    String? // optional closing line, e.g. the "Start with this week's Sprint" nudge
-  isActive  Boolean  @default(true)
-  isPinned  Boolean  @default(false)
+  id            String   @id @default(cuid())
+  title         String
+  bullets       String[]
+  footer        String? // optional closing line, e.g. the "Start with this week's Sprint" nudge
+  isActive      Boolean  @default(true)
+  isPinned      Boolean  @default(false)
   // Non-pinned messages with a sequenceOrder set are a curated first-login
   // education sequence — shown in ascending order, before any message
   // without one (which fall back to createdAt ordering, the original
   // rotation behavior). Null for all pre-existing rotation content.
   sequenceOrder Int?
-  createdAt DateTime @default(now())
+  createdAt     DateTime @default(now())
 
   dismissals CandidateMessageDismissal[]
 }

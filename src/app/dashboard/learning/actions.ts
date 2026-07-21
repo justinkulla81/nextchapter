@@ -50,6 +50,7 @@ export async function logAiProject(
   const title = (formData.get('title') as string | null)?.trim()
   const toolUsed = (formData.get('toolUsed') as string | null)?.trim()
   const rawDescription = (formData.get('description') as string | null)?.trim()
+  const judgmentCall = (formData.get('judgmentCall') as string | null)?.trim() || null
 
   if (!title || !toolUsed || !rawDescription) {
     return { error: 'Please fill in the title, tool, and description.' }
@@ -65,6 +66,7 @@ export async function logAiProject(
       title,
       provider: toolUsed,
       description: polishedDescription,
+      judgmentCall,
       badgeType: 'ai_project',
       completedAt: new Date(),
     },

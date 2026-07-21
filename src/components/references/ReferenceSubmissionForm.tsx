@@ -84,11 +84,99 @@ export function ReferenceSubmissionForm({
         <Textarea id="contextNotes" name="contextNotes" rows={2} />
       </div>
 
+      <div className="space-y-6 border-t border-border pt-6">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          A few traits, one example each — these help paint a fuller picture than ratings alone.
+        </h2>
+        <TraitRow
+          name="adaptability"
+          label="Adaptability — how they handle change and ambiguity"
+          candidateName={candidateName}
+        />
+        <TraitRow
+          name="followThrough"
+          label="Follow-Through — reliability, does what they say"
+          candidateName={candidateName}
+        />
+        <TraitRow
+          name="presence"
+          label="Presence — how they show up with people, communication style"
+          candidateName={candidateName}
+        />
+        <TraitRow
+          name="collaboration"
+          label="Collaboration — team impact, how they make others better"
+          candidateName={candidateName}
+        />
+        <TraitRow
+          name="composure"
+          label="Composure — how they operate under pressure"
+          candidateName={candidateName}
+        />
+      </div>
+
+      <div className="space-y-6 border-t border-border pt-6">
+        <div className="space-y-2">
+          <Label htmlFor="superpowerText">
+            What&apos;s their superpower — the thing they&apos;re better at than almost anyone
+            you&apos;ve worked with?
+          </Label>
+          <Textarea id="superpowerText" name="superpowerText" rows={2} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="underPressureStory">
+            Describe {candidateName} under real pressure — a specific moment, not a generality.
+          </Label>
+          <Textarea id="underPressureStory" name="underPressureStory" rows={3} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="definingStory">One story that shows who they are, not just what they did.</Label>
+          <Textarea id="definingStory" name="definingStory" rows={3} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="wouldWorkWithAgainReason">Why (or why not)?</Label>
+          <Textarea id="wouldWorkWithAgainReason" name="wouldWorkWithAgainReason" rows={2} />
+        </div>
+      </div>
+
+      <fieldset className="space-y-2 rounded-lg border border-border p-4">
+        <legend className="px-1 text-sm font-medium">Can we quote you by name?</legend>
+        <p className="text-sm text-muted-foreground">
+          {candidateName} reviews and approves every quote before it&apos;s used — nothing is
+          published automatically.
+        </p>
+        <div className="flex flex-col gap-2 pt-1">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name="quotableWithAttribution" value="yes" required /> Yes, quote me with my name
+            and title
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name="quotableWithAttribution" value="no" /> Keep this available on request only
+          </label>
+        </div>
+      </fieldset>
+
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <Button type="submit" disabled={pending}>
         {pending ? 'Submitting…' : 'Submit reference'}
       </Button>
     </form>
+  )
+}
+
+// One of the five reference-only trait ratings (Prompt 48) — a 1-5 scale
+// plus a required one-example text, same shape for all five.
+function TraitRow({ name, label, candidateName }: { name: string; label: string; candidateName: string }) {
+  return (
+    <div className="space-y-2">
+      <RatingScale name={`trait-${name}`} label={label} lowLabel="Rarely" highLabel="Consistently" />
+      <div className="space-y-1">
+        <Label htmlFor={`trait-example-${name}`} className="text-sm font-normal text-muted-foreground">
+          One example of {candidateName} showing this
+        </Label>
+        <Textarea id={`trait-example-${name}`} name={`traitExample-${name}`} rows={2} />
+      </div>
+    </div>
   )
 }

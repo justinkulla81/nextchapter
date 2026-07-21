@@ -3,7 +3,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { SEARCH_EXECUTION_ENGINE_LABEL, type SearchExecutionEngine } from '@/lib/scoring/grade'
-import type { HireabilityGrade } from '@/lib/scoring/grade'
+import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
@@ -11,6 +11,9 @@ import { getMoodHistory } from '@/lib/daily/mood'
 import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
+import { MarketRealityTrendChart } from '@/components/dashboard/MarketRealityTrendChart'
+import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
+import type { NamedReason } from '@/lib/scoring/named-reasons'
 
 type EngineKey = SearchExecutionEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
@@ -18,18 +21,23 @@ const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting'
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
 
-  const [grade, recentReports, applicationsCount, currentSprint, moodHistory] = await Promise.all([
-    computeHireabilityGrade(profile),
-    prisma.sundayNightReport.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { weekStartDate: 'desc' },
-      take: 12,
-      select: { weekStartDate: true, gradeSnapshot: true, onAList: true },
-    }),
-    prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
-    getCurrentWeekSprint(profile.id),
-    getMoodHistory(profile.id),
-  ])
+  const [grade, recentReports, applicationsCount, currentSprint, moodHistory, marketRealitySnapshots] =
+    await Promise.all([
+      computeHireabilityGrade(profile),
+      prisma.sundayNightReport.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { weekStartDate: 'desc' },
+        take: 12,
+        select: { weekStartDate: true, gradeSnapshot: true, onAList: true },
+      }),
+      prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
+      getCurrentWeekSprint(profile.id),
+      getMoodHistory(profile.id),
+      prisma.marketRealitySnapshot.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { weekStartDate: 'asc' },
+      }),
+    ])
 
   const aListWeeks = recentReports.filter((r) => r.onAList)
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
@@ -200,6 +208,33 @@ export default async function YourStatsPage() {
           <p className="mt-3 text-xs text-muted-foreground">
             Private and personal — never a public leaderboard. Only you see this.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Grade trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MarketRealityTrendChart
+            snapshots={marketRealitySnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Snapshot archive</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MarketRealitySnapshotArchive
+            snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
+              id: s.id,
+              weekStartDate: s.weekStartDate,
+              grade: s.grade as Grade,
+              namedReasons: s.namedReasons as unknown as NamedReason[],
+            }))}
+          />
         </CardContent>
       </Card>
 

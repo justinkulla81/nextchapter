@@ -1,6 +1,8 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { prisma } from '@/lib/prisma'
 import { ReferenceRequestForm } from '@/components/references/ReferenceRequestForm'
 import { ReferenceDisputeControl } from '@/components/references/ReferenceDisputeControl'
+import { ReferenceQuoteReview } from '@/components/references/ReferenceQuoteReview'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/constants/references'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -25,6 +27,12 @@ const STATUS_LABELS: Record<ReferenceStatus, string> = {
 export default async function ReferencesPage() {
   const profile = await getDashboardData()
 
+  const pendingQuotes = await prisma.referenceQuote.findMany({
+    where: { candidateId: profile.id, approvedByCandidateAt: null, rejectedAt: null },
+    include: { reference: { select: { refereeName: true } } },
+    orderBy: { createdAt: 'asc' },
+  })
+
   return (
     <div className="space-y-8">
       <div>
@@ -36,6 +44,15 @@ export default async function ReferencesPage() {
           5-10, from people who&apos;ve actually worked alongside you.
         </p>
       </div>
+
+      <ReferenceQuoteReview
+        quotes={pendingQuotes.map((q) => ({
+          id: q.id,
+          theme: q.theme,
+          quoteText: q.quoteText,
+          refereeName: q.reference.refereeName,
+        }))}
+      />
 
       <ReferenceRequestForm />
 

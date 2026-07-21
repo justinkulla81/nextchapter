@@ -43,6 +43,18 @@ export function LogAiProjectForm() {
         </Label>
         <Textarea id="ai-project-description" name="description" required rows={3} />
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="ai-project-judgment-call">
+          What judgment call did you make along the way? Not &ldquo;it worked&rdquo; — the moment you decided to
+          trust the AI&apos;s output, override it, or steer it differently than it first suggested.
+        </Label>
+        <Textarea
+          id="ai-project-judgment-call"
+          name="judgmentCall"
+          rows={2}
+          placeholder="e.g. It suggested cutting a feature to hit the deadline — I pushed back because it would've broken a client commitment, and had it rework the plan around that constraint instead"
+        />
+      </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <div className="flex gap-2">
         <SubmitButton pendingLabel="Saving…">Save AI project</SubmitButton>

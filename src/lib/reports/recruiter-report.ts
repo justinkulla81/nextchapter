@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 import { characterSignalsUnlocked, type EvidenceType } from '@/lib/reports/evidence-type'
-import type { CommittedAction } from '@/lib/weekly/sprint'
+import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
 
 // The Certified Executive Dossier (formerly "Recruiter Report") is a
 // self-serve, candidate-controlled PDF handed to anyone off-platform,
@@ -36,7 +36,13 @@ export interface RecruiterReportData {
   // AI projects — logged via the "Log an AI project" flow on the Learning
   // page — kept separate from learningItems since they carry a description
   // (what was actually built) rather than just a title/provider.
-  aiProjects: { title: string; toolUsed: string | null; description: string | null; evidenceType: EvidenceType }[]
+  aiProjects: {
+    title: string
+    toolUsed: string | null
+    description: string | null
+    judgmentCall: string | null
+    evidenceType: EvidenceType
+  }[]
   availability: {
     statusLabel: string | null
     targetRoleType: string | null
@@ -82,8 +88,6 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
       learningBadges: { orderBy: { completedAt: 'desc' } },
       jobPostings: { select: { appliedAt: true } },
       outreachLogs: { select: { id: true } },
-      weeklySprints: { select: { committedActions: true } },
-      _count: { select: { encouragementNotesSent: true } },
     },
   })
 
@@ -97,19 +101,14 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
     (text) => ({ text, evidenceType: 'verified_fact' as const })
   )
 
-  const encouragementSentCount = candidate._count.encouragementNotesSent
-  const peerSupportActionCount = candidate.weeklySprints.reduce((sum, sprint) => {
-    const actions = sprint.committedActions as unknown as CommittedAction[]
-    return sum + actions.filter((a) => a.completed && a.actionType === 'ENGAGE_PEER_SUPPORT').length
-  }, 0)
-  const peerSupportCount = encouragementSentCount + peerSupportActionCount
-  const peerSupportLine =
-    peerSupportCount > 0
-      ? {
-          text: `Substantively helped ${peerSupportCount} other job seeker${peerSupportCount === 1 ? '' : 's'} — answering questions, making introductions, or offering encouragement. Unscored by design: this earns no Weekly Search Score points, which is what makes it a genuinely voluntary signal.`,
-          evidenceType: 'verified_fact' as const,
-        }
-      : null
+  const peerSupportCount = await computeCandidatePeerSupportCount(candidateId)
+  const peerSupportNarrative = communityTierNarrative(peerSupportCount)
+  const peerSupportLine = peerSupportNarrative
+    ? {
+        text: peerSupportNarrative,
+        evidenceType: 'verified_fact' as const,
+      }
+    : null
 
   const signalsUnlocked = characterSignalsUnlocked(candidate.references.length)
 
@@ -139,6 +138,7 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
         title: b.title,
         toolUsed: b.provider,
         description: b.description,
+        judgmentCall: b.judgmentCall,
         evidenceType: b.verified ? ('verified_fact' as const) : ('self_reported' as const),
       })),
     availability: {
