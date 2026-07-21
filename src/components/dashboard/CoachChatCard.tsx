@@ -83,7 +83,7 @@ export function CoachChatCard({
               <div
                 className={cn(
                   'max-w-[80%] rounded-lg px-3 py-2 text-sm',
-                  m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                  m.role === 'user' ? 'bg-navy text-white' : 'bg-muted'
                 )}
               >
                 {m.content}

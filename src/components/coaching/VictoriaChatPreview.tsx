@@ -30,7 +30,7 @@ export function VictoriaChatPreview() {
             </div>
           </div>
           <div className="flex justify-end">
-            <div className="max-w-[80%] rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">
+            <div className="max-w-[80%] rounded-lg bg-navy px-3 py-2 text-sm text-white">
               I got rejected today — not great.
             </div>
           </div>
