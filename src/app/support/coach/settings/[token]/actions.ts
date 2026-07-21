@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCoachByToken } from '@/lib/coach/access'
 import { ACCENT_COLOR_OPTIONS } from '@/lib/constants/coach-branding'
+import { saveCoachTemplate, type EffectiveTemplateQuestion } from '@/lib/coach/onboarding-form'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type BrandingFormState = { error?: string } | undefined
 
@@ -50,5 +52,32 @@ export async function updateCoachBranding(
     },
   })
 
+  revalidatePath(`/support/coach/settings/${token}`)
+}
+
+export type SaveOnboardingTemplateResult = { error?: string } | undefined
+
+// Prompt 60 — saves the coach's standing question set for the candidate-
+// completed Coaching Onboarding Form. Applied automatically to every new
+// client; not reconfigured per client.
+export async function saveOnboardingTemplate(
+  token: string,
+  template: EffectiveTemplateQuestion[]
+): Promise<SaveOnboardingTemplateResult> {
+  const coach = await getCoachByToken(token)
+  if (!coach) return { error: 'This link isn’t valid.' }
+
+  for (const q of template) {
+    if (!q.label.trim()) return { error: 'Every question needs text.' }
+    if (q.type === 'multiple_choice' && (!q.options || q.options.filter((o) => o.trim()).length < 2)) {
+      return { error: 'Multiple-choice questions need at least two options.' }
+    }
+    if (q.type === 'scale' && (!q.scaleMax || q.scaleMax < 2)) {
+      return { error: 'Scale questions need a maximum of at least 2.' }
+    }
+  }
+
+  await saveCoachTemplate(coach.id, template)
+  captureServerEvent(coach.id, 'coaching_onboarding_template_saved', { questionCount: template.length })
   revalidatePath(`/support/coach/settings/${token}`)
 }

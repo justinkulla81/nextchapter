@@ -550,6 +550,10 @@ model CandidateProfile {
   // otherwise never reassigned.
   coachDossierConsentedAt DateTime?
 
+  // Prompt 60 — set once the candidate completes the Coaching Onboarding
+  // Form; its mere existence is the "already submitted" check everywhere.
+  coachingOnboardingResponse CoachingOnboardingResponse?
+
   resumeSubmissionLeads ResumeSubmissionLead[]
   messageDismissals     CandidateMessageDismissal[]
 
@@ -1695,8 +1699,16 @@ model Coach {
   logoUrl     String?
   accentColor String? // hex, chosen from a small curated palette — not a free-form picker
 
-  clients  CandidateProfile[]
-  sessions CoachSession[]
+  // Prompt 60 — this coach's standing question set for the candidate-
+  // completed Coaching Onboarding Form, applied automatically to every new
+  // client. Null = the NextChapter-provided baseline template applies as-is
+  // (see BASELINE_ONBOARDING_QUESTIONS); once the coach saves any edit, this
+  // holds their full resolved template (baseline toggles/order + customs).
+  onboardingTemplate Json?
+
+  clients                     CandidateProfile[]
+  sessions                    CoachSession[]
+  coachingOnboardingResponses CoachingOnboardingResponse[]
 }
 
 // A 1:1 coaching session. Batch 13 adds real notes (coach-private) and
@@ -1716,6 +1728,22 @@ model CoachSession {
   directives          String?          @db.Text // client-facing action items from this session
 
   @@index([candidateId, occurredAt])
+}
+
+// Prompt 60 — candidate-completed, self-serve coaching kickoff form (goal-
+// setting + working-relationship preferences). Requires coachDossierConsentedAt
+// to already be set, since these answers also feed Coaching Notes. Deliberately
+// NOT the same thing as a coach-completed sensitive-topics intake (a separate,
+// not-yet-built feature) — this form must only ever carry non-sensitive,
+// standard-coaching material; never merge the two.
+model CoachingOnboardingResponse {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  coachId     String
+  coach       Coach            @relation(fields: [coachId], references: [id])
+  answers     Json // keyed by question id -> string | string[] | number
+  submittedAt DateTime         @default(now())
 }
 
 // Recruiter P0-lite — the smallest possible entry point for the Instant

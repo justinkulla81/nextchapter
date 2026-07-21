@@ -5,6 +5,7 @@ import type { CommittedAction } from '@/lib/weekly/sprint'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
 
@@ -25,6 +26,11 @@ export interface PreSessionBrief {
   lastMood: { label: string; checkedInAt: Date } | null
   moodPatternNote: string | null
   suggestedOpeningQuestion: string
+  // Prompt 60 — pulled straight from the Coaching Onboarding Form once
+  // submitted; useful context for prepping an early session, not just a
+  // one-time reference buried in Coaching Notes.
+  nonNegotiables: string | null
+  biggestWorry: string | null
 }
 
 // Reused by the Session Impact Report (src/lib/coach/session-impact.ts) to
@@ -124,7 +130,7 @@ async function generateOpeningQuestion(facts: string): Promise<string> {
 }
 
 export async function getPreSessionBrief(candidateId: string): Promise<PreSessionBrief> {
-  const [candidate, recentReports, currentSprint, avoidancePattern, moodInfo] = await Promise.all([
+  const [candidate, recentReports, currentSprint, avoidancePattern, moodInfo, keyOnboardingAnswers] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
     prisma.hireabilityReport.findMany({
       where: { candidateId },
@@ -137,6 +143,7 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     }),
     detectAvoidancePattern(candidateId),
     getMoodPatternNote(candidateId),
+    getKeyCoachingOnboardingAnswers(candidateId),
   ])
 
   const [latestReport, previousReport] = recentReports
@@ -178,6 +185,8 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
       ? `Has committed to "${avoidancePattern.actionType}" actions ${avoidancePattern.weeksAvoided} weeks running without completing any.`
       : '',
     moodInfo.lastMood ? `Last mood check-in: ${moodInfo.lastMood.label}.${moodInfo.note ? ` ${moodInfo.note}` : ''}` : '',
+    keyOnboardingAnswers.nonNegotiables ? `Stated non-negotiables/constraints: ${keyOnboardingAnswers.nonNegotiables}` : '',
+    keyOnboardingAnswers.biggestWorry ? `Stated biggest worry about the process: ${keyOnboardingAnswers.biggestWorry}` : '',
   ]
     .filter(Boolean)
     .join('\n')
@@ -193,6 +202,8 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     avoidancePattern,
     lastMood: moodInfo.lastMood,
     moodPatternNote: moodInfo.note,
+    nonNegotiables: keyOnboardingAnswers.nonNegotiables,
+    biggestWorry: keyOnboardingAnswers.biggestWorry,
     suggestedOpeningQuestion,
   }
 }

@@ -27,6 +27,13 @@ import {
 } from '@/lib/scoring/assessment-vectors'
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { captureServerEvent } from '@/lib/posthog/server'
+import {
+  getCoachTemplate,
+  hasSubmittedCoachingOnboardingForm,
+  submitCoachingOnboardingForm,
+  validateAnswers,
+  type CoachingOnboardingAnswers,
+} from '@/lib/coach/onboarding-form'
 
 export type FormState = { error?: string } | undefined
 
@@ -431,6 +438,38 @@ export async function submitCoachConsent(intent: 'agree' | 'not_now'): Promise<v
   } else {
     captureServerEvent(candidateId, 'coach_dossier_consent_deferred')
   }
+
+  revalidatePath('/onboarding', 'layout')
+  redirect(intent === 'agree' ? '/onboarding/coaching-form' : '/onboarding/score')
+}
+
+// Prompt 60 — the candidate-completed Coaching Onboarding Form. Only
+// reachable once coachDossierConsentedAt is set (see submitCoachConsent
+// above); answers feed Coaching Notes and the Pre-Session Brief, never the
+// external Executive Dossier.
+export async function submitCoachingOnboardingFormOnboarding(
+  answers: CoachingOnboardingAnswers
+): Promise<{ error?: string } | void> {
+  const candidateId = await requireCandidateId()
+  const profile = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    select: { coachId: true, coachDossierConsentedAt: true },
+  })
+  if (!profile.coachId || !profile.coachDossierConsentedAt) {
+    redirect('/onboarding')
+  }
+  if (await hasSubmittedCoachingOnboardingForm(candidateId)) {
+    redirect('/onboarding/score')
+  }
+
+  const template = await getCoachTemplate(profile.coachId)
+  const errors = validateAnswers(template, answers)
+  if (errors.length > 0) {
+    return { error: 'Please answer every required question before continuing.' }
+  }
+
+  await submitCoachingOnboardingForm(candidateId, profile.coachId, answers)
+  captureServerEvent(candidateId, 'coaching_onboarding_form_submitted', { source: 'onboarding' })
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/score')

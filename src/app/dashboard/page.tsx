@@ -29,6 +29,8 @@ import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
 import { getUnviewedSessionImpact } from '@/lib/coach/session-impact'
+import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
+import { CoachingFormReminderCard } from '@/components/dashboard/CoachingFormReminderCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 
@@ -88,6 +90,7 @@ export default async function DashboardPage() {
     existingBountyClaimCount,
     sessionImpact,
     dashboardMessage,
+    hasCoachingFormResponse,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -107,7 +110,15 @@ export default async function DashboardPage() {
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
     getNextDashboardMessage(profile.id),
+    // Prompt 60 — passive fallback for candidates whose consent was granted
+    // before this feature existed (or who navigated away before completing
+    // the form); the explicit redirects at consent-grant time are the
+    // primary path, this just catches anyone who slips past them.
+    profile.coachId && profile.coachDossierConsentedAt
+      ? hasSubmittedCoachingOnboardingForm(profile.id)
+      : Promise.resolve(true),
   ])
+  const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
   const todaysIdeas = getMoodCardIdeas(currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null)
 
@@ -186,11 +197,12 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {(showGotHiredCTA || showCoachingCTA || sessionImpact) && (
+      {(showGotHiredCTA || showCoachingCTA || sessionImpact || needsCoachingForm) && (
         <div className="space-y-4">
           {showGotHiredCTA && <GotHiredCTACard />}
           {showCoachingCTA && <CoachingCTACard />}
           {sessionImpact && <SessionImpactCard report={sessionImpact} />}
+          {needsCoachingForm && <CoachingFormReminderCard />}
         </div>
       )}
 

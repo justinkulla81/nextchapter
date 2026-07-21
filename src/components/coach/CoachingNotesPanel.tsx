@@ -88,6 +88,20 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.coachingOnboardingAnswers && notes.coachingOnboardingAnswers.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Coaching Onboarding Form answers</p>
+          <dl className="mt-2 grid gap-3 text-sm">
+            {notes.coachingOnboardingAnswers.map((a, i) => (
+              <div key={i}>
+                <dt className="text-muted-foreground">{a.label}</dt>
+                <dd className="text-foreground">{a.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+
       {notes.jobFitHistory.length > 0 && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">Full Job Fit reaction history</p>

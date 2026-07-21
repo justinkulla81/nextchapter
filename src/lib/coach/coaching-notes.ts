@@ -4,6 +4,10 @@ import type { Mood } from '@prisma/client'
 import { getMoodHistory } from '@/lib/daily/mood'
 import { detectAvoidancePattern, type AvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { PUBLIC_DISCLOSURE_COMFORT_OPTIONS, REFERRAL_RECENCY_OPTIONS } from '@/lib/constants/onboarding'
+import {
+  getCoachingOnboardingAnswersForDisplay,
+  type CoachingOnboardingAnswerDisplay,
+} from '@/lib/coach/onboarding-form'
 
 export interface GapAnalysisGap {
   area: string
@@ -35,10 +39,13 @@ export interface CoachingNotes {
   avoidancePattern: AvoidancePattern | null
   financialPressureContext: string | null
   jobFitHistory: JobFitHistoryEntry[]
+  // Prompt 60 — the candidate's Coaching Onboarding Form answers, once
+  // submitted. Null until they've completed it.
+  coachingOnboardingAnswers: CoachingOnboardingAnswerDisplay[] | null
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, avoidancePattern, latestReport, surfacedJobs] = await Promise.all([
+  const [candidate, moodHistory, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -63,6 +70,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       select: { title: true, companyName: true, reaction: true, reactedAt: true },
       take: 50,
     }),
+    getCoachingOnboardingAnswersForDisplay(candidateId),
   ])
 
   return {
@@ -82,5 +90,6 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     avoidancePattern,
     financialPressureContext: candidate.benefitsUnlockAnswer,
     jobFitHistory: surfacedJobs,
+    coachingOnboardingAnswers,
   }
 }

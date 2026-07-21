@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import type { PrivacyTier, NotificationTier } from '@prisma/client'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
@@ -204,4 +205,10 @@ export async function grantCoachDossierConsent(): Promise<void> {
 
   captureServerEvent(profile.id, 'coach_dossier_consent_granted')
   revalidatePath('/dashboard/privacy')
+
+  // Prompt 60 — send them straight to the Coaching Onboarding Form now that
+  // consent is in place, rather than leaving it to a passive dashboard gate.
+  if (!(await hasSubmittedCoachingOnboardingForm(profile.id))) {
+    redirect('/dashboard/coaching-form')
+  }
 }

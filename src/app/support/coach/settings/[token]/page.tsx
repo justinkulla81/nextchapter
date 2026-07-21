@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { getCoachByToken } from '@/lib/coach/access'
 import { CoachBrandingForm } from '@/components/coach/CoachBrandingForm'
+import { OnboardingTemplateEditor } from '@/components/coach/OnboardingTemplateEditor'
+import { getCoachTemplate } from '@/lib/coach/onboarding-form'
 
 export default async function CoachSettingsPage({
   params,
@@ -18,6 +20,8 @@ export default async function CoachSettingsPage({
       </div>
     )
   }
+
+  const onboardingTemplate = await getCoachTemplate(coach.id)
 
   return (
     <div className="mx-auto max-w-md px-6 py-16">
@@ -37,6 +41,20 @@ export default async function CoachSettingsPage({
       </div>
 
       <CoachBrandingForm token={token} coach={coach} />
+
+      <div className="mt-10 mb-6 space-y-1 border-t border-border pt-8">
+        <p className="text-sm font-medium text-muted-foreground">Client kickoff</p>
+        <h2 className="text-2xl font-semibold tracking-tight">Coaching Onboarding Form</h2>
+        <p className="text-muted-foreground">
+          The self-serve questions a new client answers on their own, right after they agree to
+          share their Dossier and Coaching Notes with you. Goal-setting and working-relationship
+          logistics only — never a place for sensitive topics, which stay a live, verbal
+          conversation between the two of you. Toggle, reorder, or add your own; this becomes the
+          standing template applied to every new client automatically.
+        </p>
+      </div>
+
+      <OnboardingTemplateEditor token={token} focus={coach.focus} initialTemplate={onboardingTemplate} />
     </div>
   )
 }
