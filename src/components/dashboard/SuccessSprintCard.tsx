@@ -3,7 +3,13 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { ACTION_TYPE_LINK, estimateActionEffort, type SuggestedActionLike } from '@/lib/weekly/action-effort'
+import {
+  ACTION_TYPE_LINK,
+  estimateActionEffort,
+  formatMinutes,
+  isRecurringActionType,
+  type SuggestedActionLike,
+} from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, SEARCH_EXECUTION_ENGINE_LABEL } from '@/lib/scoring/grade'
 import type { Grade, SearchExecutionEngine } from '@/lib/scoring/grade'
@@ -25,6 +31,7 @@ function actionKey(a: { actionType?: string; text: string }): string {
 function ActionRow({
   text,
   points,
+  estimatedMinutes,
   actionType,
   completed,
   recurring,
@@ -34,10 +41,14 @@ function ActionRow({
 }: {
   text: string
   points: number
+  estimatedMinutes: number
   actionType?: string
   completed: boolean
   recurring: boolean
   committed: boolean
+  // Omitted entirely for actions that can't be revised right now (e.g. the
+  // "Defined this week's goal" line outside the edit window) — no button
+  // renders rather than a disabled one, since there's nothing to explain.
   onToggle?: () => void
   onLog?: { text: string; actionType?: string }
 }) {
@@ -59,14 +70,19 @@ function ActionRow({
           {completed && !recurring ? '✓ ' : ''}
           {text}
         </Link>
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {recurring ? 'Recurring' : 'One-time'}
+        </span>
         {!committed && (
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             Not committed
           </span>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <span className="text-xs text-muted-foreground tabular-nums">{points} pts</span>
+      <div className="flex shrink-0 items-center gap-3">
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {formatMinutes(estimatedMinutes)} · {points} pts
+        </span>
         {recurring ? (
           completed ? (
             <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">Started</span>
@@ -90,12 +106,12 @@ function ActionRow({
         ) : onToggle ? (
           <form action={onToggle}>
             <SubmitButton variant={completed ? 'ghost' : 'outline'} size="sm">
-              {completed ? 'Mark not done' : 'Mark done'}
+              {completed ? 'Edit' : 'Mark done'}
             </SubmitButton>
           </form>
         ) : (
           onLog && (
-            <form action={completeCatalogAction.bind(null)}>
+            <form action={completeCatalogAction}>
               <input type="hidden" name="text" value={onLog.text} />
               {onLog.actionType && <input type="hidden" name="actionType" value={onLog.actionType} />}
               <SubmitButton variant="outline" size="sm">
@@ -183,16 +199,21 @@ export function SuccessSprintCard({
               <div className="space-y-1.5">
                 {committedTier.map((action, i) => {
                   const realIndex = actions.indexOf(action)
+                  // The goal-defined bonus line isn't a real action to revise —
+                  // only offer to edit it while the window that created it is
+                  // still open; otherwise show it with no control at all.
+                  const canEdit = !action.isGoalBonus || editWindowOpen
                   return (
                     <ActionRow
                       key={i}
                       text={action.text}
                       points={action.points}
+                      estimatedMinutes={action.estimatedMinutes}
                       actionType={action.actionType}
                       completed={action.completed}
                       recurring={action.recurring}
                       committed
-                      onToggle={toggleSprintAction.bind(null, realIndex)}
+                      onToggle={canEdit ? toggleSprintAction.bind(null, realIndex) : undefined}
                     />
                   )
                 })}
@@ -213,6 +234,7 @@ export function SuccessSprintCard({
                         key={`extra-${i}`}
                         text={action.text}
                         points={action.points}
+                        estimatedMinutes={action.estimatedMinutes}
                         actionType={action.actionType}
                         completed={action.completed}
                         recurring={action.recurring}
@@ -226,9 +248,10 @@ export function SuccessSprintCard({
                           key={`available-${i}`}
                           text={action.text}
                           points={effort.points}
+                          estimatedMinutes={effort.minutes}
                           actionType={action.actionType}
                           completed={false}
-                          recurring={false}
+                          recurring={isRecurringActionType(action.actionType)}
                           committed={false}
                           onLog={{ text: action.text, actionType: action.actionType }}
                         />

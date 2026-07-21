@@ -15,6 +15,10 @@ export interface CommittedAction {
   // recurring actions are an ongoing habit and only ever move from
   // not-started to Started (see isRecurringActionType).
   recurring: boolean
+  // True only for the auto-injected "Defined this week's goal" line —
+  // undoing it isn't a real action to revise, so it's only ever editable
+  // while the goal-setting window is still open (see SuccessSprintCard).
+  isGoalBonus?: boolean
   // True only for actions logged mid-week from the "More Actions Available"
   // catalog rather than picked at goal-setting time — kept separate so the
   // two-tier split (locked commitment vs. broader catalog) stays stable even
@@ -108,6 +112,26 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const suggestions = [...personalized]
   let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
 
+  // The two work-status confirmations are real, unfinished one-time setup
+  // steps (see SalaryAuthorizationConfirmForm) — surface them until
+  // answered regardless of point budget, so they don't get silently
+  // skipped just because the rest of the list already covers this week's
+  // target.
+  const profile = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: { salaryConfirmedAt: true, workAuthConfirmedAt: true },
+  })
+  if (profile && !profile.salaryConfirmedAt && !usedTypes.has('SALARY_CONFIRM')) {
+    suggestions.push({ text: 'Confirm your last salary', actionType: 'SALARY_CONFIRM' })
+    usedTypes.add('SALARY_CONFIRM')
+    total += estimateActionEffort({ actionType: 'SALARY_CONFIRM' }).points
+  }
+  if (profile && !profile.workAuthConfirmedAt && !usedTypes.has('WORK_AUTHORIZATION')) {
+    suggestions.push({ text: 'Confirm your work authorization status', actionType: 'WORK_AUTHORIZATION' })
+    usedTypes.add('WORK_AUTHORIZATION')
+    total += estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
+  }
+
   for (const task of CANONICAL_TASK_MENU) {
     if (total >= buffer) break
     if (task.actionType && usedTypes.has(task.actionType)) continue
@@ -138,6 +162,7 @@ export async function commitWeeklySprint(
       completed: true,
       completedAt: new Date().toISOString(),
       recurring: false,
+      isGoalBonus: true,
     },
     ...actions.map((a) => ({
       text: a.text,
