@@ -25,3 +25,23 @@ export async function findExistingRegisteredAccount(
     select: { id: true, passwordSetAt: true },
   })
 }
+
+// Runs the same check and, if it finds a match, persists duplicateEmailBlockedAt
+// on the calling profile in the same step — used by every place that needs to
+// both check AND record the block (resume-upload, and a returning visit to
+// /onboarding/resume that skips re-uploading because resumeStepComplete is
+// already true) so the flag is set the moment the collision is first seen,
+// not just when registration is finally attempted.
+export async function checkAndFlagDuplicateEmail(
+  profileId: string,
+  email: string
+): Promise<ExistingAccountMatch | null> {
+  const existing = await findExistingRegisteredAccount(email, profileId)
+  if (existing) {
+    await prisma.candidateProfile.update({
+      where: { id: profileId },
+      data: { duplicateEmailBlockedAt: new Date() },
+    })
+  }
+  return existing
+}

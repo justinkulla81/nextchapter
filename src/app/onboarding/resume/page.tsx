@@ -3,6 +3,8 @@ import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
+import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
+import { checkAndFlagDuplicateEmail, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
@@ -13,16 +15,57 @@ export default async function OnboardingResumePage() {
   const profile = user ? await getOrCreateCandidateProfile(user.id) : null
 
   if (profile) {
-    if (profile.resumeStepComplete) {
-      redirect('/onboarding/desire')
+    if (profile.registrationCompletedAt) {
+      redirect('/dashboard')
     }
 
-    const resumeCount = await prisma.resume.count({ where: { candidateId: profile.id } })
-    if (resumeCount > 0) {
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { resumeStepComplete: true },
-      })
+    // A prior visit already flagged this profile's email as belonging to
+    // someone else's registered account (either right here, or at upload
+    // time in uploadResume) — show the same notice again rather than
+    // silently resuming an onboarding session that can never finish.
+    if (profile.duplicateEmailBlockedAt) {
+      const existing = profile.email
+        ? await findExistingRegisteredAccount(profile.email, profile.id)
+        : null
+      return (
+        <div className="space-y-6">
+          <h1 className="text-2xl font-semibold tracking-tight">You already have an account</h1>
+          <ExistingAccountNotice needsPassword={!existing?.passwordSetAt} email={profile.email} />
+        </div>
+      )
+    }
+
+    // Returning to this page after the resume step was already completed —
+    // either in an earlier visit (resumeStepComplete) or just now for the
+    // first time (resumeCount > 0, the legacy fallback below). uploadResume's
+    // own duplicate check only runs at the moment of upload, so a session
+    // that uploaded a resume, then came back later without ever finishing
+    // registration, would otherwise skip straight into "Your Path" every
+    // time and only get caught at the very last step (create-account) after
+    // redoing the whole flow. Re-check here, before either exit redirects,
+    // instead of just resuming.
+    if (profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id } })) > 0) {
+      if (profile.email) {
+        const existingAccount = await checkAndFlagDuplicateEmail(profile.id, profile.email)
+        if (existingAccount) {
+          return (
+            <div className="space-y-6">
+              <h1 className="text-2xl font-semibold tracking-tight">You already have an account</h1>
+              <ExistingAccountNotice
+                needsPassword={!existingAccount.passwordSetAt}
+                email={profile.email}
+              />
+            </div>
+          )
+        }
+      }
+
+      if (!profile.resumeStepComplete) {
+        await prisma.candidateProfile.update({
+          where: { id: profile.id },
+          data: { resumeStepComplete: true },
+        })
+      }
       redirect('/onboarding/desire')
     }
   }

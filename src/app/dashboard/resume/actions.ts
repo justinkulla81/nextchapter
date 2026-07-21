@@ -13,7 +13,7 @@ import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -88,7 +88,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
       select: { email: true },
     })
     if (updated?.email) {
-      const existingAccount = await findExistingRegisteredAccount(updated.email, profile.id)
+      const existingAccount = await checkAndFlagDuplicateEmail(profile.id, updated.email)
       if (existingAccount) {
         return existingAccount.passwordSetAt
           ? { existingAccountFound: true }
