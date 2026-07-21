@@ -5,8 +5,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { commitWeeklySprint, toggleSprintActionCompletion, getMondayOfWeek } from '@/lib/weekly/sprint'
-import { estimateActionEffort, pointsNeededForA } from '@/lib/weekly/action-effort'
+import { commitWeeklySprint, toggleSprintActionCompletion, logCatalogAction, getMondayOfWeek } from '@/lib/weekly/sprint'
+import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 
 async function getAuthedProfile() {
@@ -29,7 +29,7 @@ export async function submitWeeklySprint(
 
   if (!isSprintEditWindowOpen(getMondayOfWeek(new Date()))) {
     return {
-      error: "This week's goals are locked. Editing opens Saturday midnight PT through Monday midnight PT.",
+      error: "This week's goals are locked. Editing opens Sunday 12:01am PT through Monday 12:01pm PT.",
     }
   }
 
@@ -71,5 +71,27 @@ export async function toggleSprintAction(actionIndex: number) {
   if (!profile) return
 
   await toggleSprintActionCompletion(profile.id, actionIndex)
+  revalidatePath('/dashboard')
+}
+
+// Logging something from "More Actions Available" — it wasn't part of the
+// locked commitment, so there's no existing row to toggle; this creates one
+// already marked done/started, since logging it IS the action here.
+export async function completeCatalogAction(formData: FormData) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const text = formData.get('text') as string | null
+  if (!text) return
+  const actionType = (formData.get('actionType') as string | null) || undefined
+  const effort = estimateActionEffort({ actionType })
+
+  await logCatalogAction(profile.id, {
+    text,
+    actionType,
+    points: effort.points,
+    estimatedMinutes: effort.minutes,
+    recurring: isRecurringActionType(actionType),
+  })
   revalidatePath('/dashboard')
 }

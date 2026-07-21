@@ -15,6 +15,12 @@ export interface CommittedAction {
   // recurring actions are an ongoing habit and only ever move from
   // not-started to Started (see isRecurringActionType).
   recurring: boolean
+  // True only for actions logged mid-week from the "More Actions Available"
+  // catalog rather than picked at goal-setting time — kept separate so the
+  // two-tier split (locked commitment vs. broader catalog) stays stable even
+  // as extra completed actions get added after lock. Absent/false for
+  // everything chosen during the original goal-setting flow.
+  addedFromCatalog?: boolean
 }
 
 export interface SuggestedAction {
@@ -173,6 +179,36 @@ export async function toggleSprintActionCompletion(candidateId: string, actionIn
     target.completed = !target.completed
     target.completedAt = target.completed ? new Date().toISOString() : undefined
   }
+
+  await prisma.weeklySprint.update({
+    where: { id: sprint.id },
+    data: { committedActions: actions as unknown as Prisma.InputJsonValue },
+  })
+}
+
+// Logs an action picked from "More Actions Available" — the broader catalog
+// shown alongside the locked commitment (Prompt 45 §6). Unlike a committed
+// action, there's no separate row to toggle yet, so this both adds the row
+// and marks it done/started in one step: there's nothing else you'd do with
+// a catalog item except log that you did it.
+export async function logCatalogAction(
+  candidateId: string,
+  action: { text: string; actionType?: string; points: number; estimatedMinutes: number; recurring: boolean }
+) {
+  const sprint = await getCurrentWeekSprint(candidateId)
+  if (!sprint) return
+
+  const actions = sprint.committedActions as unknown as CommittedAction[]
+  actions.push({
+    text: action.text,
+    actionType: action.actionType,
+    points: action.points,
+    estimatedMinutes: action.estimatedMinutes,
+    completed: true,
+    completedAt: new Date().toISOString(),
+    recurring: action.recurring,
+    addedFromCatalog: true,
+  })
 
   await prisma.weeklySprint.update({
     where: { id: sprint.id },

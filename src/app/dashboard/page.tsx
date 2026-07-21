@@ -105,6 +105,17 @@ export default async function DashboardPage() {
 
   const todaysIdeas = getMoodCardIdeas(currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null)
 
+  // Prompt 45 §8: on_track is measured against the system's points_target
+  // (the ramp), never against whatever the candidate personally committed
+  // to — those are different numbers and only points_target should decide
+  // pacing.
+  const daysElapsedThisWeek = Math.min(
+    7,
+    Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+  )
+  const onTrack =
+    grade.searchExecution.weeklyPoints > (grade.searchExecution.weeklyPointsTarget * daysElapsedThisWeek) / 7
+
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
@@ -159,6 +170,9 @@ export default async function DashboardPage() {
           engines={grade.searchExecution.engines}
           laggingEngines={grade.searchExecution.laggingEngines}
           categoryMinimumsMet={grade.searchExecution.categoryMinimumsMet}
+          weeklyPoints={grade.searchExecution.weeklyPoints}
+          weeklyPointsTarget={grade.searchExecution.weeklyPointsTarget}
+          onTrack={onTrack}
         />
       </div>
 

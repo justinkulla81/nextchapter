@@ -25,16 +25,18 @@ function formatHoursMinutes(totalMinutes: number): string {
   return `${hours}h ${minutes}m`
 }
 
+// Only ever rendered while the goal-setting window is open (see
+// SuccessSprintCard) — there's no locked/read-only state to render here
+// anymore, since the parent simply doesn't show this form at all once the
+// window closes.
 export function SprintSetupForm({
   suggestedActions,
   marketRealityGrade,
   weekNumber,
-  locked = false,
 }: {
   suggestedActions: SuggestedAction[]
   marketRealityGrade: Grade
   weekNumber: number
-  locked?: boolean
 }) {
   const [state, formAction, pending] = useActionState(submitWeeklySprint, undefined)
   const [selected, setSelected] = useState<boolean[]>(suggestedActions.map(() => true))
@@ -113,23 +115,18 @@ export function SprintSetupForm({
           return (
             <div
               key={i}
-              role={locked ? undefined : 'button'}
-              tabIndex={locked ? undefined : 0}
-              onClick={locked ? undefined : () => toggle(i)}
-              onKeyDown={
-                locked
-                  ? undefined
-                  : (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        toggle(i)
-                      }
-                    }
-              }
+              role="button"
+              tabIndex={0}
+              onClick={() => toggle(i)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  toggle(i)
+                }
+              }}
               className={cn(
-                'flex items-start gap-3 p-4 transition-colors',
-                locked ? 'cursor-default' : 'cursor-pointer',
-                selected[i] ? 'bg-brand/5' : !locked && 'hover:bg-muted/40'
+                'flex items-start gap-3 p-4 transition-colors cursor-pointer',
+                selected[i] ? 'bg-brand/5' : 'hover:bg-muted/40'
               )}
             >
               <input type="hidden" name={`text_${i}`} value={action.text} />
@@ -140,9 +137,8 @@ export function SprintSetupForm({
                 name={`selected_${i}`}
                 value="on"
                 checked={selected[i]}
-                disabled={locked}
-                onCheckedChange={locked ? undefined : () => toggle(i)}
-                onClick={locked ? undefined : (e) => e.stopPropagation()}
+                onCheckedChange={() => toggle(i)}
+                onClick={(e) => e.stopPropagation()}
                 className="mt-0.5"
               />
               <div className="flex-1">
@@ -164,16 +160,9 @@ export function SprintSetupForm({
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      {locked ? (
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <span aria-hidden>🔒</span> Unlocks Sunday 12:01am PT through Monday 12:01pm PT, ahead
-          of next week.
-        </p>
-      ) : (
-        <Button type="submit" disabled={pending || !meetsB} className="cursor-pointer">
-          {pending ? 'Committing…' : "Commit to this week's goals"}
-        </Button>
-      )}
+      <Button type="submit" disabled={pending || !meetsB} className="cursor-pointer">
+        {pending ? 'Committing…' : "Commit to this week's goals"}
+      </Button>
     </form>
   )
 }
