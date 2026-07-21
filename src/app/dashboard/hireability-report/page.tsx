@@ -129,7 +129,7 @@ export default async function HireabilityReportPage() {
     isAtOrBelowGrade(gradeAtGeneration.searchExecution.grade, 'C')
   const aTargetHours = weeklyTimeTargetHours(weekNumber)
   const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
-  const casuallySearching = isCasuallySearching(profile.jobSearchIntensity)
+  const casuallySearching = isCasuallySearching(profile.jobSearchDifficultyLevel)
 
   const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate'
   const preparedDate = report

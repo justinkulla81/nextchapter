@@ -16,7 +16,12 @@ import {
 } from '@/components/ui/select'
 import { TagInput } from './TagInput'
 import { TradeoffRanking } from './TradeoffRanking'
-import { COMPANY_SIZE_OPTIONS, COMPANY_STAGE_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import {
+  COMPANY_SIZE_OPTIONS,
+  COMPANY_STAGE_OPTIONS,
+  PRIMARY_FUNCTION_OPTIONS,
+  LOCATION_PREFERENCE_OPTIONS,
+} from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
@@ -32,6 +37,7 @@ export function GoalsForm({
   const [state, formAction, pending] = useActionState(updateGoals, undefined)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
   const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
+  const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
 
   return (
     <form
@@ -148,6 +154,30 @@ export function GoalsForm({
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">Pre-filled from your resume — correct anything that&apos;s off.</p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="remotePreference">Location preference</Label>
+        <Select
+          name="remotePreference"
+          value={remotePreference}
+          onValueChange={(value) => setRemotePreference(value ?? '')}
+        >
+          <SelectTrigger id="remotePreference" className="w-full">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) =>
+                LOCATION_PREFERENCE_OPTIONS.find((opt) => opt.value === value)?.label ?? 'Select one'
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {LOCATION_PREFERENCE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-3">

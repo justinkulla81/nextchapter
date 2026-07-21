@@ -20,6 +20,7 @@ import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-
 import { captureServerEvent } from '@/lib/posthog/server'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
+import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { hasStartedSprint } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
@@ -217,7 +218,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
   const startedSprint = await hasStartedSprint(candidateId)
 
   const weekNumber = candidate._count.weeklySprints + 1
-  const directnessLevel = computeDirectnessLevel(weekNumber, isCasuallySearching(candidate.jobSearchIntensity))
+  const directnessLevel = computeDirectnessLevel(weekNumber, isCasuallySearching(candidate.jobSearchDifficultyLevel))
 
   const summary = `
 ${DIRECTNESS_INSTRUCTION[directnessLevel]}
@@ -250,7 +251,19 @@ Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.c
 Location preference: ${candidate.remotePreference ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Deal breakers: ${candidate.dealBreakers ?? 'not specified'}
-Job search intensity (0-100, how much they want this): ${candidate.jobSearchIntensity ?? 'not specified'}
+How difficult their job search has been so far (1=taking their time, 4=getting desperate): ${candidate.jobSearchDifficultyLevel ?? 'not specified'}
+Biggest barriers they believe they face: ${
+    candidate.biggestBarriers.length > 0
+      ? candidate.biggestBarriers
+          .map((v) => BIGGEST_BARRIER_OPTIONS.find((o) => o.value === v)?.label ?? v)
+          .join(', ')
+      : 'not specified'
+  }
+Top strengths they identify with (up to 3): ${
+    candidate.topStrengths.length > 0
+      ? candidate.topStrengths.map((v) => TOP_STRENGTH_OPTIONS.find((o) => o.value === v)?.label ?? v).join(', ')
+      : 'not specified'
+  }
 
 Work-style profile (self-reported): ${
     dimensionSummary

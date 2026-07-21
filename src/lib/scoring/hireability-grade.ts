@@ -34,6 +34,7 @@ import type {
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
+import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
 import { getCurrentWeekSprint, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import {
   pointsNeededForA,
@@ -208,7 +209,8 @@ async function computeMarketRealityDimensions(
   // 6. Search Strategy — controllable, highest leverage. How they're
   // looking, not just what for: flexibility, honest engagement, motivation.
   let searchStrategy = 0
-  if (candidate.jobSearchIntensity !== null) searchStrategy += candidate.jobSearchIntensity * 0.35
+  const intensityScore = difficultyLevelToIntensityScore(candidate.jobSearchDifficultyLevel)
+  if (intensityScore !== null) searchStrategy += intensityScore * 0.35
   if (candidate.networkingListSubmittedAt) searchStrategy += 20
   if (candidate.askedForHelpAt) searchStrategy += 15
   const flexibilityCount = [candidate.willingToStartLower, candidate.compFlexible, candidate.openToRelocation].filter(

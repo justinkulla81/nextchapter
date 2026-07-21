@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfidenceSlider } from './ConfidenceSlider'
 import { ChoiceButtons } from './ChoiceButtons'
+import { MultiChoiceButtons } from './MultiChoiceButtons'
+import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
@@ -55,12 +57,36 @@ const MANAGEMENT_LABELS = [
 export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateExperience, undefined)
   const [isPeopleManager, setIsPeopleManager] = useState<boolean | null>(profile.isPeopleManager)
+  const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
+
+  // Tailors the confidence sliders below toward a strength the candidate
+  // just told us they stand out at — only the strengths with an unambiguous
+  // 1:1 match to an existing slider get this treatment (see the mapped
+  // constants below), rather than forcing a weak match everywhere.
+  const suggestFunctionSkill = topStrengths.includes('expert_in_field') ? 100 : null
+  const suggestCommunicator = topStrengths.includes('clear_communicator') ? 100 : null
+  const suggestManagement = topStrengths.includes('people_manager') ? 100 : null
 
   return (
     <form
       action={formAction}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <div className="space-y-2">
+        <Label>
+          Every great candidate is exceptional at a few things rather than good at everything.
+          Select up to {TOP_STRENGTHS_MAX} strengths that best describe where you truly stand out.
+        </Label>
+        <MultiChoiceButtons
+          name="topStrengths"
+          options={TOP_STRENGTH_OPTIONS}
+          value={topStrengths}
+          onChange={setTopStrengths}
+          columns={2}
+          max={TOP_STRENGTHS_MAX}
+        />
+      </div>
+
       <div className="space-y-2">
         <Label>Have you been a people manager?</Label>
         <ChoiceButtons
@@ -90,6 +116,7 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
         label="How confident are you in your core job function skills?"
         defaultValue={profile.functionSkillConfidence}
         labels={CORE_SKILL_LABELS}
+        suggestedValue={suggestFunctionSkill}
       />
 
       <ConfidenceSlider
@@ -118,6 +145,7 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
         label="How strong a communicator are you?"
         defaultValue={profile.communicatorConfidence}
         labels={COMMUNICATOR_LABELS}
+        suggestedValue={suggestCommunicator}
       />
 
       {isPeopleManager && (
@@ -126,6 +154,7 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
           label="How confident are you in your management skills?"
           defaultValue={profile.managementSkillConfidence}
           labels={MANAGEMENT_LABELS}
+          suggestedValue={suggestManagement}
         />
       )}
 

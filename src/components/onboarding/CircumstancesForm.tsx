@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { FourStopSlider } from './FourStopSlider'
 import { ChoiceButtons } from './ChoiceButtons'
+import { MultiChoiceButtons } from './MultiChoiceButtons'
 import {
   Select,
   SelectContent,
@@ -17,21 +18,14 @@ import {
 import {
   CURRENT_JOB_STATUS_LABELS,
   GAP_DURATION_LABELS,
-  LOCATION_PREFERENCE_OPTIONS,
   JOB_SEARCH_DIFFICULTY_OPTIONS,
+  BIGGEST_BARRIER_OPTIONS,
   SITUATION_TO_JOB_STATUS,
   SITUATION_SESSION_KEY,
   type SituationKey,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
-
-const DESIRE_CHOICES = [
-  { value: 10, label: 'Casually looking' },
-  { value: 40, label: "I'm interested and will work hard" },
-  { value: 70, label: 'I really need a job and will work extremely hard' },
-  { value: 100, label: "I need this and will do whatever it takes" },
-] as const
 
 const JOBS_APPLIED_OPTIONS = [
   { value: '0-20', label: '0–20' },
@@ -60,13 +54,10 @@ const YES_NO_OPTIONS = [
 export function CircumstancesForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateCircumstances, undefined)
   const [currentJobStatus, setCurrentJobStatus] = useState(profile.currentJobStatus ?? '')
-  const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
   const [jobSearchDifficulty, setJobSearchDifficulty] = useState<number | null>(
     profile.jobSearchDifficultyLevel
   )
-  const [jobSearchIntensity, setJobSearchIntensity] = useState<number>(
-    profile.jobSearchIntensity ?? DESIRE_CHOICES[0].value
-  )
+  const [biggestBarriers, setBiggestBarriers] = useState<string[]>(profile.biggestBarriers)
   const [prefilledFromHomepage, setPrefilledFromHomepage] = useState(Boolean(profile.currentJobStatus))
   const [overridePrefill, setOverridePrefill] = useState(false)
   const isNewGrad = currentJobStatus === 'NEW_GRADUATE_FIRST_JOB'
@@ -179,53 +170,23 @@ export function CircumstancesForm({ profile }: { profile: CandidateProfile }) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="remotePreference">Location preference</Label>
-        <Select
-          name="remotePreference"
-          value={remotePreference}
-          onValueChange={(value) => setRemotePreference(value ?? '')}
-        >
-          <SelectTrigger id="remotePreference" className="w-full">
-            <SelectValue placeholder="Select one">
-              {(value: string | null) =>
-                LOCATION_PREFERENCE_OPTIONS.find((opt) => opt.value === value)?.label ?? 'Select one'
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {LOCATION_PREFERENCE_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>How much do you want to get a job?</Label>
-        <FourStopSlider
-          name="jobSearchIntensity"
-          choices={DESIRE_CHOICES}
-          defaultValue={profile.jobSearchIntensity}
-          onChange={setJobSearchIntensity}
-        />
-        {jobSearchIntensity < 25 && (
-          <p className="rounded-md border border-orange/30 bg-orange/5 p-3 text-sm text-foreground">
-            Honestly — this level of intensity will show up in your Market Reality Grade. Recruiters
-            notice candidates who are all-in. If you&apos;re just testing the waters, that&apos;s
-            okay, but know it will affect your grade until that changes.
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
         <Label>How difficult has your job search been so far?</Label>
         <FourStopSlider
           name="jobSearchDifficultyLevel"
           choices={JOB_SEARCH_DIFFICULTY_OPTIONS}
           defaultValue={jobSearchDifficulty}
           onChange={setJobSearchDifficulty}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>What do you think are the biggest barriers to getting a new job? (select all that apply)</Label>
+        <MultiChoiceButtons
+          name="biggestBarriers"
+          options={BIGGEST_BARRIER_OPTIONS}
+          value={biggestBarriers}
+          onChange={setBiggestBarriers}
+          columns={2}
         />
       </div>
 
@@ -268,7 +229,7 @@ export function CircumstancesForm({ profile }: { profile: CandidateProfile }) {
         </div>
 
         <div className="space-y-2">
-          <Label>Have you used your time to learn new skills? (optional)</Label>
+          <Label>Have you used your time during your job search to learn new skills? (optional)</Label>
           <ChoiceButtons
             name="learnedNewSkillsLevel"
             options={LEARNED_NEW_SKILLS_OPTIONS}
@@ -279,7 +240,7 @@ export function CircumstancesForm({ profile }: { profile: CandidateProfile }) {
         </div>
 
         <div className="space-y-2">
-          <Label>Have you used your time to get a part-time/interim job or done consulting? (optional)</Label>
+          <Label>Have you used your time during your job search to get a part-time/interim job or done consulting? (optional)</Label>
           <ChoiceButtons
             name="triedPartTimeOrConsulting"
             options={YES_NO_OPTIONS}

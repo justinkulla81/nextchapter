@@ -8,6 +8,7 @@ import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
+import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 
@@ -86,7 +87,7 @@ export default async function YourStatsPage() {
           <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
         </CardHeader>
         <CardContent>
-          <MotivationChart baseline={profile.jobSearchIntensity} history={moodHistory} />
+          <MotivationChart baseline={difficultyLevelToIntensityScore(profile.jobSearchDifficultyLevel)} history={moodHistory} />
         </CardContent>
       </Card>
 

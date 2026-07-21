@@ -12,9 +12,10 @@ export const MOOD_LABEL: Record<Mood, string> = {
   FIRED_UP: 'Fired up',
 }
 
-// Same 10/40/70/100 scale as the onboarding motivation slider
-// (jobSearchIntensity) — deliberately reused, not re-derived, so the two
-// can share one 0-100 axis on the Stats page motivation chart.
+// Same 10/40/70/100 scale as jobSearchDifficultyLevel converted via
+// difficultyLevelToIntensityScore() (src/lib/scoring/search-intensity.ts) —
+// deliberately reused, not re-derived, so the two can share one 0-100 axis
+// on the Stats page motivation chart.
 export const MOOD_SCORE: Record<Mood, number> = {
   STUCK: 10,
   GETTING_THERE: 40,

@@ -17,6 +17,7 @@ import { LINKEDIN_PRESENCE_POINTS, LINKEDIN_POINTS_PER_LOG, LINKEDIN_POINTS_WIND
 import { INTERVIEW_LANDED_POINTS_PER_JOB, INTERVIEW_LANDED_CAP, OFFER_RECEIVED_POINTS_PER_JOB, OFFER_RECEIVED_CAP, APPLIED_POINTS_PER_JOB, APPLIED_CAP } from '@/lib/constants/job-milestones'
 import { NETWORKING_LIST_POINTS, ASK_FOR_HELP_POINTS } from '@/lib/constants/desire-signal'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
+import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
 
 // Sub-score ceilings. These are deliberately HIGHER than 100 now — see
 // `saturate()` below for why. Each is the sum of its own per-term caps
@@ -169,11 +170,12 @@ export function computeRawBreakdown(candidate: CandidateWithScoringRelations): R
   if (candidate.networkingListSubmittedAt) desireSignal += NETWORKING_LIST_POINTS
   if (candidate.askedForHelpAt) desireSignal += ASK_FOR_HELP_POINTS
 
-  // "How much do you want to get a job" pre-onboarding slider (0-100) —
-  // default 50/neutral for anyone who onboarded before this field existed,
-  // so retroactive recalculation doesn't crater their score. "Casually
-  // looking" visibly costs real points here, as intended.
-  desireSignal += Math.round((candidate.jobSearchIntensity ?? 50) * 0.2)
+  // "How difficult has your job search been so far?" (jobSearchDifficultyLevel,
+  // 1-4) converted onto the old 0-100 intensity scale — default 50/neutral
+  // for anyone who hasn't answered, so retroactive recalculation doesn't
+  // crater their score. "I'm taking my time" visibly costs real points here,
+  // as intended.
+  desireSignal += Math.round((difficultyLevelToIntensityScore(candidate.jobSearchDifficultyLevel) ?? 50) * 0.2)
 
   // A vague target role ("flexible", "open", etc. instead of an actual
   // title) reads as not having a strong direction yet — a real, if modest,

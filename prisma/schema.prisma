@@ -272,7 +272,12 @@ model CandidateProfile {
   // Part 1: Your Situation
   currentJobStatus CurrentJobStatus?
   gapDuration      GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
-  jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely" — asked alongside the rest of Part 1, not its own step
+  // DEPRECATED — question removed from Your Situation page (Batch 24); the
+  // "how difficult has your search been" question below covers this signal
+  // instead. Column kept (not dropped) only so existing historical answers
+  // aren't destroyed — do not read this in new code.
+  jobSearchIntensity Int? // 0-100 slider, "casually looking" -> "extremely"
+  biggestBarriers    String[] @default([]) // multi-select (select-all), "What do you think are the biggest barriers to get a new job?" — see BIGGEST_BARRIER_OPTIONS
 
   // Admin-confirmed match to a LayoffCohort (candidate matching, not
   // self-selected) — set via /support/admin/layoff-cohorts, surfaces a
@@ -282,7 +287,6 @@ model CandidateProfile {
   currentCity      String? // resume-derived (Phase 1), candidate-confirmable
   currentState     String?
   currentCountry   String             @default("US")
-  remotePreference String? // "remote" | "hybrid" | "onsite" | "flexible" | "open_to_relocating"
 
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
@@ -306,6 +310,7 @@ model CandidateProfile {
   resumeKeywords            String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
   isPeopleManager           Boolean? // gates teamSizeManaged + managementSkillConfidence questions
   teamSizeManaged           Int? // 0 = IC, otherwise largest team managed
+  topStrengths              String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
   knownFor                  String? // "How former colleagues would describe me" — required before requesting references
   functionSkillConfidence   Int? // 0-100, 4-stop discrete scale ("Good" -> "Among the best in my field")
   aiFlexibilityLevel        Int? // 0-100, repurposed as AI-skill confidence slider, same 4-stop scale
@@ -321,6 +326,7 @@ model CandidateProfile {
   elevatorPitchReady Int?
 
   // Part 4: Goals
+  remotePreference    String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
   targetRoleType      String?
   targetIndustries    String[]
   targetFunction      String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)

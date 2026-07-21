@@ -47,6 +47,34 @@ export const JOB_SEARCH_DIFFICULTY_OPTIONS = [
   { value: 4, label: "Honestly, I'm getting desperate" },
 ] as const
 
+// "What do you think are the biggest barriers to get a new job?" — multi-select
+// (select-all), Your Situation page. Deliberately excludes a "Network" option
+// per explicit product direction.
+export const BIGGEST_BARRIER_OPTIONS = [
+  { value: 'ats_blackhole', label: 'ATS Blackhole' },
+  { value: 'skills_gap', label: 'Skills Gap' },
+  { value: 'hiring_bias', label: 'Hiring Bias' },
+  { value: 'interview_nerves', label: 'Interview Nerves' },
+  { value: 'career_gap', label: 'Career Gap' },
+  { value: 'life_logistics', label: 'Life Logistics' },
+  { value: 'local_job_market', label: 'Local Job Market' },
+] as const
+
+// "Select up to 3 strengths that best describe where you truly stand out" —
+// first question on the Experience page.
+export const TOP_STRENGTH_OPTIONS = [
+  { value: 'expert_in_field', label: 'Expert in My Field' },
+  { value: 'fast_learner', label: 'Fast Learner' },
+  { value: 'clear_communicator', label: 'Clear Communicator' },
+  { value: 'calm_under_pressure', label: 'Calm Under Pressure' },
+  { value: 'team_player', label: 'Team Player' },
+  { value: 'people_manager', label: 'People Manager' },
+  { value: 'detail_oriented', label: 'Detail Oriented' },
+  { value: 'work_ethic', label: 'Work Ethic' },
+] as const
+
+export const TOP_STRENGTHS_MAX = 3
+
 export const HIGHEST_LEVEL_OPTIONS = ['IC', 'Manager', 'Director', 'VP', 'C-Suite'] as const
 
 export const PRIMARY_FUNCTION_OPTIONS = [

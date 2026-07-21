@@ -80,11 +80,9 @@ export async function updateCircumstances(
         : ((formData.get('gapDuration') as GapDurationBucket | null) ?? null)
       : null
 
-  const remotePreference = (formData.get('remotePreference') as string) || null
   const jobSearchDifficultyRaw = formData.get('jobSearchDifficultyLevel')
   const jobSearchDifficultyLevel = jobSearchDifficultyRaw ? Number(jobSearchDifficultyRaw) : null
-  const jobSearchIntensityRaw = formData.get('jobSearchIntensity')
-  const jobSearchIntensity = jobSearchIntensityRaw ? Number(jobSearchIntensityRaw) : null
+  const biggestBarriers = formData.getAll('biggestBarriers').map(String)
 
   // Job search activity self-report — every field here is optional.
   const jobsAppliedBucket = (formData.get('jobsAppliedBucket') as string) || null
@@ -113,9 +111,8 @@ export async function updateCircumstances(
       data: {
         currentJobStatus,
         gapDuration,
-        remotePreference,
         jobSearchDifficultyLevel,
-        jobSearchIntensity,
+        biggestBarriers,
         jobsAppliedBucket,
         interviewsReceivedCount,
         networkingLevel,
@@ -278,6 +275,7 @@ export async function updateExperience(
   }
 
   const isPeopleManager = isPeopleManagerRaw === 'yes'
+  const topStrengths = formData.getAll('topStrengths').map(String)
   const functionSkillConfidence = formData.get('functionSkillConfidence')
   const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
   const managementSkillConfidence = formData.get('managementSkillConfidence')
@@ -290,6 +288,7 @@ export async function updateExperience(
       where: { id: candidateId },
       data: {
         isPeopleManager,
+        topStrengths,
         teamSizeManaged: isPeopleManager
           ? formData.get('teamSizeManaged')
             ? Number(formData.get('teamSizeManaged'))
@@ -347,6 +346,7 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
         targetCompanySize: (formData.get('targetCompanySize') as string) || null,
         targetCompanyStage: (formData.get('targetCompanyStage') as string) || null,
         primaryFunction: (formData.get('primaryFunction') as string) || null,
+        remotePreference: (formData.get('remotePreference') as string) || null,
         compFlexible: formData.get('compFlexible') === 'on',
         willingToStartLower: formData.get('willingToStartLower') === 'on',
         startLowerRationale: (formData.get('startLowerRationale') as string) || null,
