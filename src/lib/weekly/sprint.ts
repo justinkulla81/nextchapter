@@ -45,6 +45,20 @@ export function getMondayOfWeek(date: Date): Date {
   return d
 }
 
+// getMondayOfWeek(now) resolves to the right target on every day except
+// Sunday — Sunday belongs to the week that started the PRECEDING Monday, so
+// it would return LAST Monday. The Sun 12:01am-Mon 12:01pm PT goal-setting
+// window always concerns the week starting the very NEXT Monday, so on a
+// Sunday specifically this bumps the reference forward a day first. Every
+// caller that gates or writes the goal-setting commitment must use this,
+// not getMondayOfWeek directly — otherwise a Sunday submission silently
+// lands on the outgoing week's record instead of creating the new one.
+export function getGoalSettingWeekStart(reference: Date = new Date()): Date {
+  const isSunday = new Date(reference).getUTCDay() === 0
+  const adjusted = isSunday ? new Date(reference.getTime() + 24 * 60 * 60 * 1000) : reference
+  return getMondayOfWeek(adjusted)
+}
+
 export async function getCurrentWeekSprint(candidateId: string) {
   const weekStartDate = getMondayOfWeek(new Date())
   return prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } })
@@ -153,7 +167,7 @@ export async function commitWeeklySprint(
   actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[],
   autoAssigned = false
 ) {
-  const weekStartDate = getMondayOfWeek(new Date())
+  const weekStartDate = getGoalSettingWeekStart()
   const committedActions: CommittedAction[] = [
     {
       text: "Defined this week's goal",

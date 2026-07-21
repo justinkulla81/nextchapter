@@ -12,6 +12,7 @@ import {
   getCurrentWeekSprint,
   getSuggestedActions,
   getMondayOfWeek,
+  getGoalSettingWeekStart,
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
@@ -62,7 +63,12 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const weekNumber = profile._count.weeklySprints + 1
   const weekStartDate = getMondayOfWeek(new Date())
-  const editWindowOpen = isSprintEditWindowOpen(weekStartDate)
+  // Deliberately NOT weekStartDate above — the edit window always concerns
+  // the week starting the very next Monday, and weekStartDate (this week,
+  // for progress-tracking purposes) resolves to LAST Monday on a Sunday,
+  // which would wrongly report the window as closed. See
+  // getGoalSettingWeekStart's comment for why these two need to differ.
+  const editWindowOpen = isSprintEditWindowOpen(getGoalSettingWeekStart())
 
   // All of these are independent of one another — issuing them together
   // instead of one-by-one turns ~9 sequential round trips into one parallel

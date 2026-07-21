@@ -5,7 +5,12 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { commitWeeklySprint, toggleSprintActionCompletion, logCatalogAction, getMondayOfWeek } from '@/lib/weekly/sprint'
+import {
+  commitWeeklySprint,
+  toggleSprintActionCompletion,
+  logCatalogAction,
+  getGoalSettingWeekStart,
+} from '@/lib/weekly/sprint'
 import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 
@@ -27,7 +32,7 @@ export async function submitWeeklySprint(
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
-  if (!isSprintEditWindowOpen(getMondayOfWeek(new Date()))) {
+  if (!isSprintEditWindowOpen(getGoalSettingWeekStart())) {
     return {
       error: "This week's goals are locked. Editing opens Sunday 12:01am PT through Monday 12:01pm PT.",
     }
