@@ -129,7 +129,7 @@ export default async function HireabilityReportPage() {
     isAtOrBelowGrade(gradeAtGeneration.searchExecution.grade, 'C')
   const aTargetHours = weeklyTimeTargetHours(weekNumber)
   const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
-  const casuallySearching = isCasuallySearching(profile.jobSearchDifficultyLevel)
+  const casuallySearching = isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)
 
   const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate'
   const preparedDate = report
@@ -337,7 +337,7 @@ export default async function HireabilityReportPage() {
             )}
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
               Everyone will not make it — but doing the real work meaningfully improves your odds.
-              It&apos;s all about your Search Action Grade: the one grade above that&apos;s entirely
+              It&apos;s all about your <strong className="font-semibold text-foreground">Search Action Grade</strong>: the one grade above that&apos;s entirely
               in your hands.
             </p>
             <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
