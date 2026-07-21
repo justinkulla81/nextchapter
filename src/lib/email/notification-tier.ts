@@ -11,3 +11,11 @@ export function shouldSendDailyEmailForTier(tier: NotificationTier, date: Date):
   const day = date.getUTCDay()
   return day === 1 || day === 4
 }
+
+// Gates the two once-a-week extras (the Friday gap nudge, the Community &
+// Coaching digest) — unlike the daily nudge these already only fire once a
+// week, so there's no day-of-week split to make: Full/Essentials get them,
+// Minimal doesn't.
+export function shouldSendWeeklyExtraForTier(tier: NotificationTier): boolean {
+  return tier !== 'MINIMAL'
+}

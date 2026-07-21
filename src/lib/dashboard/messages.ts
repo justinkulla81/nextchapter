@@ -12,8 +12,11 @@ export interface DashboardMessageView {
 
 // The pinned message (How NextChapter works) always shows first, for every
 // candidate, until they dismiss it — after that, whichever active,
-// non-pinned message they haven't dismissed yet shows, oldest first so a
-// rotation actually rotates instead of always landing on the newest.
+// non-pinned message they haven't dismissed yet shows next. Messages with a
+// sequenceOrder set (the first-login education cards) show first, in that
+// order; once those are exhausted, the general rotation falls back to
+// createdAt, oldest first, so it actually rotates instead of always landing
+// on the newest.
 // Dismissals only count for the rest of the day they were made — a message
 // dismissed today reappears tomorrow rather than being gone for good.
 export async function getNextDashboardMessage(candidateId: string): Promise<DashboardMessageView | null> {
@@ -30,7 +33,7 @@ export async function getNextDashboardMessage(candidateId: string): Promise<Dash
 
   const next = await prisma.dashboardMessage.findFirst({
     where: { isPinned: false, isActive: true, id: { notIn: dismissedIds } },
-    orderBy: { createdAt: 'asc' },
+    orderBy: [{ sequenceOrder: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
   })
   return next
 }

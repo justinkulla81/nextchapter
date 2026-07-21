@@ -78,10 +78,12 @@ export default function HireabilityReportEmail({
         where you stand today. It only moves when you re-assess, not from weekly activity.
       </p>
       <p>
-        Each week you&apos;ll commit to a <strong>Weekly Search Sprint</strong>: a short list of real
-        actions, each worth points, that earns your <strong>Weekly Search Score</strong>. Consistent
-        effort there builds your <strong>Dossier</strong> — a reference-verified profile that shows
-        hiring managers what your resume can&apos;t.
+        Each week you&apos;ll commit to a <strong>Weekly Search Sprint</strong>: pick real actions
+        worth points — 1 point = 1 minute of real effort — and hit that week&apos;s target to earn
+        an A on your <strong>Weekly Search Score</strong>. You can set or change your commitment
+        starting Sunday 12:01am PT, up until it locks Monday 12:01pm PT. Consistent effort there
+        builds your <strong>Dossier</strong> — a reference-verified profile that shows hiring
+        managers what your resume can&apos;t.
       </p>
 
       <p style={{ marginTop: '24px' }}>

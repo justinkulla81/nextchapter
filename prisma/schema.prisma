@@ -412,7 +412,7 @@ model CandidateProfile {
   moodCardDismissedAt  DateTime? // when the "How motivated are you today?" card's X was last clicked — resets daily, see startOfUTCDay
   lastDailyEmailSentAt DateTime?
   dailyEmailOptedOut   Boolean      @default(false)
-  weeklyReportOptedOut Boolean      @default(false)
+  weeklyReportOptedOut Boolean      @default(false) // opt-out for the Friday gap nudge + Community & Coaching digest (the "Sunday Night Report" this was originally named for was retired before it ever shipped — this field was repurposed rather than left dead)
   sprintGoalEmailsOptedOut Boolean  @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
   notificationTier     NotificationTier @default(FULL)
 
@@ -1612,6 +1612,11 @@ model DashboardMessage {
   footer    String? // optional closing line, e.g. the "Start with this week's Sprint" nudge
   isActive  Boolean  @default(true)
   isPinned  Boolean  @default(false)
+  // Non-pinned messages with a sequenceOrder set are a curated first-login
+  // education sequence — shown in ascending order, before any message
+  // without one (which fall back to createdAt ordering, the original
+  // rotation behavior). Null for all pre-existing rotation content.
+  sequenceOrder Int?
   createdAt DateTime @default(now())
 
   dismissals CandidateMessageDismissal[]

@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/sprint-goal-final-reminder",
       "schedule": "35 18 * * 1"
+    },
+    {
+      "path": "/api/cron/weekly-gap-nudge",
+      "schedule": "0 21 * * 5"
+    },
+    {
+      "path": "/api/cron/community-coaching-digest",
+      "schedule": "0 15 * * 6"
     }
   ]
 }
