@@ -73,12 +73,18 @@ export async function updateCircumstances(
   }
 
   const isNewGrad = currentJobStatus === 'NEW_GRADUATE_FIRST_JOB'
-  const gapDuration =
-    currentJobStatus !== 'EMPLOYED_CONSIDERING_MOVE'
-      ? isNewGrad
-        ? 'ZERO_TO_THREE_MONTHS'
-        : ((formData.get('gapDuration') as GapDurationBucket | null) ?? null)
-      : null
+  const gapDurationRequired = currentJobStatus !== 'EMPLOYED_CONSIDERING_MOVE' && !isNewGrad
+  const gapDurationRaw = (formData.get('gapDuration') as string) || null
+
+  if (gapDurationRequired && !gapDurationRaw) {
+    return { error: 'Please answer all required questions.' }
+  }
+
+  const gapDuration = isNewGrad
+    ? 'ZERO_TO_THREE_MONTHS'
+    : currentJobStatus === 'EMPLOYED_CONSIDERING_MOVE'
+      ? null
+      : (gapDurationRaw as GapDurationBucket)
 
   const jobSearchDifficultyRaw = formData.get('jobSearchDifficultyLevel')
   const jobSearchDifficultyLevel = jobSearchDifficultyRaw ? Number(jobSearchDifficultyRaw) : null

@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { checkEmailAvailableForSignup } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { cn } from '@/lib/utils'
 
 export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | null }) {
@@ -14,6 +16,7 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
   const [sent, setSent] = useState(false)
   const [resent, setResent] = useState(false)
   const [resendError, setResendError] = useState<string | null>(null)
+  const [blocked, setBlocked] = useState<{ needsPassword: boolean } | null>(null)
 
   async function sendConfirmation() {
     const supabase = createClient()
@@ -30,6 +33,13 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    const availability = await checkEmailAvailableForSignup(email)
+    if (availability.blocked) {
+      setLoading(false)
+      setBlocked({ needsPassword: availability.needsPassword })
+      return
+    }
 
     const { error } = await sendConfirmation()
 
@@ -52,6 +62,10 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
       return
     }
     setResent(true)
+  }
+
+  if (blocked) {
+    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email} />
   }
 
   if (sent) {

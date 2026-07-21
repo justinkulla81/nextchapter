@@ -449,6 +449,7 @@ model CandidateProfile {
   resumeStepComplete      Boolean   @default(false)
   registrationCompletedAt DateTime? // set once the anonymous->permanent auth conversion completes
   passwordSetAt           DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
+  duplicateEmailBlockedAt DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
   lastReminderSentAt      DateTime?
   reminderEmailCount      Int       @default(0)
   reminderEmailsOptedOut  Boolean   @default(false)

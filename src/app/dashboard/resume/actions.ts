@@ -13,6 +13,7 @@ import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { recalculateScore } from '@/lib/scoring/recalculate'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -87,14 +88,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
       select: { email: true },
     })
     if (updated?.email) {
-      const existingAccount = await prisma.candidateProfile.findFirst({
-        where: {
-          id: { not: profile.id },
-          registrationCompletedAt: { not: null },
-          email: { equals: updated.email, mode: 'insensitive' },
-        },
-        select: { id: true, passwordSetAt: true },
-      })
+      const existingAccount = await findExistingRegisteredAccount(updated.email, profile.id)
       if (existingAccount) {
         return existingAccount.passwordSetAt
           ? { existingAccountFound: true }

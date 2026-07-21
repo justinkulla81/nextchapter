@@ -94,7 +94,13 @@ export default function Home() {
             a personalized action plan that actually gets you hired.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/resume" />}>
+            <Button
+              nativeButton={false}
+              size="lg"
+              variant="cta"
+              className="h-14 px-8 text-base"
+              render={<Link href="/onboarding/resume" />}
+            >
               Get your Hireability Assessment
             </Button>
           </div>

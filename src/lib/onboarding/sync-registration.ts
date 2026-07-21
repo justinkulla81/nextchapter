@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { prisma } from '@/lib/prisma'
 import type { CandidateProfile } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -29,13 +30,36 @@ export async function syncRegistrationCompletion(
     })
   }
 
-  if (user.is_anonymous || profile.registrationCompletedAt) {
+  if (user.is_anonymous || profile.registrationCompletedAt || profile.duplicateEmailBlockedAt) {
     return { profile, justRegistered: false }
+  }
+
+  // The Supabase auth user itself has already been confirmed as
+  // non-anonymous at this point (email confirmed, or a Google identity
+  // linked) — that can't be undone here. What we still control is whether
+  // THIS profile gets treated as a second, real account for someone who
+  // already has one: if the now-confirmed email matches another registered
+  // candidate, refuse to complete registration and flag it instead, so the
+  // create-account page can send them to log into their existing account
+  // rather than silently building a duplicate. `user.email` (not
+  // `profile.email`, which is only ever resume-derived) is the authoritative
+  // address here, since it's the one Supabase just confirmed.
+  const confirmedEmail = user.email ?? profile.email
+  if (confirmedEmail) {
+    const existing = await findExistingRegisteredAccount(confirmedEmail, profile.id)
+    if (existing) {
+      const blocked = await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { duplicateEmailBlockedAt: new Date() },
+      })
+      captureServerEvent(blocked.id, 'duplicate_account_blocked', { email: confirmedEmail })
+      return { profile: blocked, justRegistered: false }
+    }
   }
 
   const updated = await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { registrationCompletedAt: new Date() },
+    data: { registrationCompletedAt: new Date(), email: confirmedEmail ?? undefined },
   })
 
   captureServerEvent(updated.id, 'account_created', { email: updated.email ?? undefined })
