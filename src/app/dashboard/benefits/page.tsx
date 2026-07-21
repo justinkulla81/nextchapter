@@ -80,8 +80,17 @@ const TOPICS: Topic[] = [
   },
 ]
 
+// These two topics' own detail boxes are folded into the action plan below
+// instead of getting a separate panel — their links are pulled in there,
+// keeping WIOA/budgeting/retirement/severance as the standalone topic cards.
+const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bridge']
+
 export default async function BenefitsPage() {
   const profile = await getDashboardData()
+  const actionPlanLinks = TOPICS.filter((t) => ACTION_PLAN_LINK_TOPICS.includes(t.title)).flatMap(
+    (t) => t.links
+  )
+  const cardTopics = TOPICS.filter((t) => !ACTION_PLAN_LINK_TOPICS.includes(t.title))
 
   return (
     <div className="space-y-8">
@@ -99,14 +108,27 @@ export default async function BenefitsPage() {
       ) : (
         <>
           {profile.benefitsActionPlan && (
-            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-4">
+            <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
               <h2 className="text-sm font-medium text-muted-foreground">Your action plan</h2>
               <p className="whitespace-pre-wrap text-sm text-foreground">{profile.benefitsActionPlan}</p>
+              <div className="space-y-1 border-t border-border pt-3">
+                {actionPlanLinks.map((link) => (
+                  <a
+                    key={link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-sm text-primary underline underline-offset-4"
+                  >
+                    {link.name} →
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {TOPICS.map((topic) => (
+            {cardTopics.map((topic) => (
               <Card key={topic.title}>
                 <CardHeader>
                   <CardTitle className="text-base">{topic.title}</CardTitle>

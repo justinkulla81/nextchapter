@@ -31,7 +31,7 @@ export default async function RecruiterReportPage() {
 
       <div className="space-y-8 rounded-xl border border-border p-8 print:border-0 print:p-0">
         <div className="flex items-center justify-between border-b border-border pb-4">
-          <Logo className="text-xl" />
+          <Logo className="text-xl print:text-3xl" />
           <p className="text-sm text-muted-foreground">
             Generated {data.generatedAt.toLocaleDateString()}
           </p>
