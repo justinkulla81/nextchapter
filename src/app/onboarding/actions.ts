@@ -5,7 +5,13 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { Prisma, type CurrentJobStatus, type GapDurationBucket, type SearchIntensity } from '@prisma/client'
+import {
+  Prisma,
+  NotificationTier,
+  type CurrentJobStatus,
+  type GapDurationBucket,
+  type SearchIntensity,
+} from '@prisma/client'
 import {
   TRADEOFF_PRIORITIES,
   CURRENT_ASSESSMENT_ROTATION_GROUP,
@@ -140,32 +146,53 @@ export async function updateCircumstances(
   captureServerEvent(candidateId, 'onboarding_part_complete', { part: 1 })
 
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/contract')
-}
-
-export async function acceptContract() {
-  const candidateId = await requireCandidateId()
-
-  await prisma.candidateProfile.update({
-    where: { id: candidateId },
-    data: { contractAccepted: true, contractAcceptedAt: new Date() },
-  })
-
   redirect('/onboarding/experience')
 }
 
-// "Not right now" still records the moment they saw the contract (so we
-// know they've been through this screen), just without accepting it — the
-// candidate continues at a lower assumed intensity rather than being blocked.
-export async function continueWithoutContract() {
+// The contract screen is the last question before the score reveal — both
+// the commitment choice and the notification-preference question below it
+// submit together in one form, distinguished by which button was clicked
+// ("intent"). "Not right now" still records that the candidate saw the
+// contract (so we know they've been through this screen), just without
+// accepting it — they continue at a lower assumed intensity rather than
+// being blocked.
+export async function submitContract(_prevState: FormState, formData: FormData): Promise<FormState> {
   const candidateId = await requireCandidateId()
+
+  const intent = formData.get('intent') === 'accept' ? 'accept' : 'decline'
+  const notificationTier = formData.get('notificationTier') as NotificationTier | null
+  if (!notificationTier || !Object.values(NotificationTier).includes(notificationTier)) {
+    return { error: 'Choose how much you want to be nudged before continuing.' }
+  }
+
+  const smsConsent = formData.get('smsConsent') === 'on'
+  const smsPhone = (formData.get('smsPhone') as string | null)?.trim() || null
+
+  if (notificationTier === 'FULL' && smsConsent && !smsPhone) {
+    return { error: 'Enter a mobile number to opt in to texts, or leave that box unchecked.' }
+  }
 
   await prisma.candidateProfile.update({
     where: { id: candidateId },
-    data: { contractAccepted: false, contractAcceptedAt: new Date() },
+    data: {
+      contractAccepted: intent === 'accept',
+      contractAcceptedAt: new Date(),
+      notificationTier,
+      // SMS consent is only ever offered when FULL is selected — if someone
+      // switches down to a lower tier after checking the box, don't persist
+      // a stale opt-in tied to a preference they no longer hold.
+      smsPhone: notificationTier === 'FULL' && smsConsent ? smsPhone : null,
+      smsConsentedAt: notificationTier === 'FULL' && smsConsent ? new Date() : null,
+    },
   })
 
-  redirect('/onboarding/experience')
+  captureServerEvent(candidateId, 'onboarding_notification_preference_set', { tier: notificationTier })
+  if (notificationTier === 'FULL' && smsConsent) {
+    captureServerEvent(candidateId, 'sms_consent_opted_in')
+  }
+
+  revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/score')
 }
 
 export async function updateAssessment(
@@ -376,5 +403,5 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
   captureServerEvent(candidateId, 'onboarding_part_complete', { part: 4 })
 
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/score')
+  redirect('/onboarding/contract')
 }

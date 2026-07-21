@@ -10,6 +10,7 @@ export default async function OnboardingIndexPage() {
   if (!profile.part1Complete) redirect('/onboarding/circumstances')
   if (!profile.part3Complete) redirect('/onboarding/experience')
   if (!profile.part4Complete) redirect('/onboarding/goals')
+  if (!profile.contractAcceptedAt) redirect('/onboarding/contract')
   if (!profile.registrationCompletedAt) redirect('/onboarding/score')
   redirect('/dashboard')
 }
