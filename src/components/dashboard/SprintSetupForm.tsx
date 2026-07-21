@@ -166,7 +166,7 @@ export function SprintSetupForm({
 
       {locked ? (
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <span aria-hidden>🔒</span> Unlocks Saturday midnight PT through Monday midnight PT, ahead
+          <span aria-hidden>🔒</span> Unlocks Sunday 12:01am PT through Monday 12:01pm PT, ahead
           of next week.
         </p>
       ) : (
