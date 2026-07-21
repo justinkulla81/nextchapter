@@ -53,6 +53,8 @@ export default async function CoachingPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const isLoggedIn = !!user && !user.is_anonymous
+
   let knownContact: { email: string; firstName: string | null; lastName: string | null } | undefined
   let liveConversation: Awaited<ReturnType<typeof getOrCreateCoachConversation>> | null = null
 
@@ -77,13 +79,15 @@ export default async function CoachingPage() {
       <StructuredData data={jsonLd} />
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
+          <Link href={isLoggedIn ? '/dashboard' : '/'} className="shrink-0">
             <Logo className="text-2xl" />
           </Link>
           <nav className="flex min-w-0 items-center gap-4 text-sm">
-            <Link href="/" className="shrink-0 text-muted-foreground hover:text-foreground">
-              Home
-            </Link>
+            {!isLoggedIn && (
+              <Link href="/" className="shrink-0 text-muted-foreground hover:text-foreground">
+                Home
+              </Link>
+            )}
             <Link href="/dashboard" className="shrink-0 font-medium text-brand hover:text-navy">
               Dashboard
             </Link>
