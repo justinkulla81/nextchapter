@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useOptimistic, useRef } from 'react'
+import { useActionState, useOptimistic, useRef, useState } from 'react'
 import Image from 'next/image'
 import { UserRound } from 'lucide-react'
 import { sendCoachMessage } from '@/app/dashboard/coach/actions'
@@ -22,21 +22,40 @@ interface CoachMessageItem {
   content: string
 }
 
-export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessageItem[] }) {
+export function CoachChatCard({
+  initialMessages,
+  suggestedQuestions,
+}: {
+  initialMessages: CoachMessageItem[]
+  // Shown as clickable chips above the input, only before the candidate has
+  // sent their own first message — a light nudge for someone seeing this
+  // chat for the first time (e.g. on the Coaching page), not a permanent
+  // fixture once they're actually mid-conversation.
+  suggestedQuestions?: string[]
+}) {
   const [state, formAction, pending] = useActionState(sendCoachMessage, undefined)
   const formRef = useRef<HTMLFormElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [content, setContent] = useState('')
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     initialMessages,
     (current: CoachMessageItem[], newMessage: CoachMessageItem) => [...current, newMessage]
   )
+  const hasSentMessage = optimisticMessages.some((m) => m.role === 'user')
 
   async function handleAction(formData: FormData) {
-    const content = (formData.get('content') as string | null)?.trim()
-    if (content) {
-      addOptimisticMessage({ id: `optimistic-${Date.now()}`, role: 'user', content })
+    const submitted = (formData.get('content') as string | null)?.trim()
+    if (submitted) {
+      addOptimisticMessage({ id: `optimistic-${Date.now()}`, role: 'user', content: submitted })
     }
+    setContent('')
     formRef.current?.reset()
     await formAction(formData)
+  }
+
+  function selectSuggestion(question: string) {
+    setContent(question)
+    inputRef.current?.focus()
   }
 
   return (
@@ -80,12 +99,37 @@ export function CoachChatCard({ initialMessages }: { initialMessages: CoachMessa
           )}
         </div>
 
+        {suggestedQuestions && suggestedQuestions.length > 0 && !hasSentMessage && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">Try asking her:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestedQuestions.map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => selectSuggestion(question)}
+                  className="rounded-full border border-border bg-white px-3 py-1 text-left text-xs text-foreground transition-colors hover:border-brand/40 hover:text-brand"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <form
           ref={formRef}
           action={handleAction}
           className={cn('flex gap-2', pending && 'cursor-progress [&_*]:cursor-progress')}
         >
-          <Input name="content" placeholder="Type a message…" autoComplete="off" />
+          <Input
+            ref={inputRef}
+            name="content"
+            placeholder="Type a message…"
+            autoComplete="off"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
           <Button type="submit" disabled={pending}>
             Send
           </Button>

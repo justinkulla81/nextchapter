@@ -38,4 +38,5 @@ export async function sendCoachMessage(_prevState: FormState, formData: FormData
   })
 
   revalidatePath('/dashboard')
+  revalidatePath('/coaching')
 }

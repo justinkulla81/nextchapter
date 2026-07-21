@@ -4,9 +4,20 @@ import { ChevronRight, Check } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { CoachingWaitlistForm } from '@/components/coaching/CoachingWaitlistForm'
+import { VictoriaChatPreview } from '@/components/coaching/VictoriaChatPreview'
+import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { StructuredData } from '@/components/StructuredData'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
+
+const SUGGESTED_QUESTIONS = [
+  "What's actually dragging my grade down right now?",
+  'How do I explain a layoff without sounding defensive?',
+  'I got rejected today — help me not spiral.',
+  'What should I focus on this week?',
+  'Help me tighten my LinkedIn headline.',
+]
 
 export const metadata: Metadata = {
   title: 'Executive Coach — A Real Human Coach, When You Want One | NextChapter',
@@ -43,12 +54,22 @@ export default async function CoachingPage() {
   } = await supabase.auth.getUser()
 
   let knownContact: { email: string; firstName: string | null; lastName: string | null } | undefined
+  let liveConversation: Awaited<ReturnType<typeof getOrCreateCoachConversation>> | null = null
+
   if (user?.email) {
     const profile = await prisma.candidateProfile.findUnique({
       where: { userId: user.id },
-      select: { firstName: true, lastName: true },
+      select: { id: true, firstName: true, lastName: true, registrationCompletedAt: true },
     })
     knownContact = { email: user.email, firstName: profile?.firstName ?? null, lastName: profile?.lastName ?? null }
+
+    // Only a fully registered candidate has a durable conversation worth
+    // showing here — a still-anonymous or mid-onboarding session has no
+    // profile Victoria can actually ground her replies in, so those visitors
+    // get the static preview instead (below).
+    if (!user.is_anonymous && profile?.registrationCompletedAt) {
+      liveConversation = await getOrCreateCoachConversation(profile.id, profile.firstName)
+    }
   }
 
   return (
@@ -74,56 +95,83 @@ export default async function CoachingPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl px-6 py-16">
+      <main className="mx-auto w-full max-w-5xl px-6 py-10">
         <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
           <div>
             <p className="text-sm font-semibold tracking-wide text-brand uppercase">
-              Executive Coach
+              Meet Victoria
             </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-              Victoria is free, always. Executive Coach adds a real human on top.
+            <h1 className="mt-3 text-2xl font-bold tracking-tight text-navy sm:text-3xl">
+              Your free AI coach — chat with her right now
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Victoria — our AI coach — is included for every candidate and isn&apos;t going
-              anywhere. Executive Coach is a separate, paid option for people who want a real
-              human career coach in their corner too: someone who&apos;s done real hiring, run
-              real mock interviews, and can give you a second opinion Victoria isn&apos;t built to
-              give.
+            <p className="mt-3 text-base text-muted-foreground">
+              Victoria is included free for every candidate. Tell her how the search is going and
+              she&apos;ll help you figure out what to actually do next — talk through a rejection,
+              get a straight answer on where your grade stands, or just check in when the job
+              hunt is grinding you down.
             </p>
 
-            <div className="mt-10 space-y-3">
-              <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-                What&apos;s included
-              </h2>
-              <ul className="space-y-2">
-                {INCLUDED.map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <Check className="mt-0.5 size-4 shrink-0 text-success" />
-                    <span className="text-base text-foreground">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-10 rounded-xl border border-border bg-off-white p-6">
-              <p className="text-lg font-semibold text-navy">A premium, paid add-on</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Cancel anytime. Join the waitlist and we&apos;ll reach out with pricing as spots open up.
-              </p>
+            <div className="mt-6">
+              {liveConversation ? (
+                <CoachChatCard initialMessages={liveConversation.messages} suggestedQuestions={SUGGESTED_QUESTIONS} />
+              ) : (
+                <>
+                  <VictoriaChatPreview />
+                  <div className="mt-4 space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground">Ask her things like</p>
+                    <ul className="flex flex-wrap gap-1.5">
+                      {SUGGESTED_QUESTIONS.map((question) => (
+                        <li
+                          key={question}
+                          className="rounded-full border border-border bg-white px-3 py-1 text-xs text-foreground"
+                        >
+                          {question}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
-          <Card className="h-fit border-brand/20 bg-off-white">
-            <CardContent className="space-y-4 pt-6">
-              <div>
-                <h3 className="font-semibold text-foreground">Join the waitlist</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  We&apos;ll email you when a coach is available.
-                </p>
-              </div>
-              <CoachingWaitlistForm source="coaching_page" knownContact={knownContact} />
-            </CardContent>
-          </Card>
+          <div className="space-y-8">
+            <Card className="h-fit border-brand/20 bg-off-white">
+              <CardContent className="space-y-4 pt-6">
+                <div>
+                  <h3 className="font-semibold text-foreground">Join the Executive Coach waitlist</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    A real human coach on top of Victoria. We&apos;ll email you when a spot opens up.
+                  </p>
+                </div>
+                <CoachingWaitlistForm source="coaching_page" knownContact={knownContact} />
+              </CardContent>
+            </Card>
+
+            <div>
+              <p className="text-sm font-semibold tracking-wide text-brand uppercase">
+                Executive Coach
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Victoria isn&apos;t going anywhere. Executive Coach is a separate, paid option for
+                people who want a real human career coach too — someone who&apos;s done real
+                hiring and can give you a second opinion Victoria isn&apos;t built to give.
+              </p>
+
+              <ul className="mt-4 space-y-2">
+                {INCLUDED.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <Check className="mt-0.5 size-4 shrink-0 text-success" />
+                    <span className="text-sm text-foreground">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="mt-4 text-xs text-muted-foreground">
+                Cancel anytime. Pricing shared when spots open up.
+              </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
