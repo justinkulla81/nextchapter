@@ -20,6 +20,7 @@ export function CandidateCard({
   candidate,
   match,
   roleId,
+  effortSummary,
 }: {
   candidate: Pick<
     CandidateProfile,
@@ -27,6 +28,10 @@ export function CandidateCard({
   >
   match: MatchResult
   roleId: string
+  // Condensed version of the same effort-summary facts shown in the full
+  // Evidence Brief (computeEffortSummaryLines) — narrative/counts only,
+  // never the raw grade, same rule as everywhere else external audiences see.
+  effortSummary?: string
 }) {
   const posthog = usePostHog()
 
@@ -45,6 +50,7 @@ export function CandidateCard({
           {match.label}
         </span>
       </div>
+      {effortSummary && <p className="text-xs text-muted-foreground">{effortSummary}</p>}
       <div className="flex gap-2 pt-1">
         <form action={expressInterest.bind(null, candidate.id, roleId)}>
           <SubmitButton

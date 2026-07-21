@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { CandidateCard } from '@/components/talent/CandidateCard'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 
 export default async function MatchInboxPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -42,6 +43,8 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
         take: 1,
         select: { hireabilityGradeAtGeneration: true },
       },
+      _count: { select: { learningBadges: true, outreachLogs: true } },
+      jobPostings: { select: { appliedAt: true } },
     },
     take: 200,
   })
@@ -54,7 +57,16 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
     .slice(0, 100)
 
   const scored = candidates
-    .map((candidate) => ({ candidate, match: computeMatchScore(candidate, role) }))
+    .map((candidate) => {
+      const effortSummary = computeEffortSummaryLines({
+        learningCount: candidate._count.learningBadges,
+        applicationsCount: candidate.jobPostings.filter((j) => j.appliedAt !== null).length,
+        outreachCount: candidate._count.outreachLogs,
+      })
+        .map((line) => line.replace(/\.$/, ''))
+        .join(', ')
+      return { candidate, match: computeMatchScore(candidate, role), effortSummary }
+    })
     .sort((a, b) => b.match.score - a.match.score)
 
   return (
@@ -70,8 +82,14 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
         </p>
       ) : (
         <div className="space-y-3">
-          {scored.map(({ candidate, match }) => (
-            <CandidateCard key={candidate.id} candidate={candidate} match={match} roleId={role.id} />
+          {scored.map(({ candidate, match, effortSummary }) => (
+            <CandidateCard
+              key={candidate.id}
+              candidate={candidate}
+              match={match}
+              roleId={role.id}
+              effortSummary={effortSummary}
+            />
           ))}
         </div>
       )}
