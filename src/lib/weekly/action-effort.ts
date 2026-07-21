@@ -15,7 +15,7 @@ export interface ActionEffort {
 }
 
 // The canonical Search Action point table. Keys map onto the six
-// Search Action Plans (Outreach, Engage, Thought Leadership, Learning,
+// engines (Outreach, Engage, Thought Leadership, Learning,
 // Resume/Assets, Interview Prep) plus one-time setup items. 1 point = 1
 // minute in every row here — keep it that way when adding new task types.
 const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
@@ -203,9 +203,9 @@ export function formatMinutes(minutes: number): string {
 }
 
 // The Weekly Search Score point target for an A — ramps up over the first
-// six weeks, then holds flat. Week is 1-indexed (week 1 = the candidate's
+// five weeks, then holds flat. Week is 1-indexed (week 1 = the candidate's
 // first Weekly Search Sprint).
-const WEEKLY_POINTS_RAMP = [60, 90, 120, 150, 180, 210]
+const WEEKLY_POINTS_RAMP = [60, 75, 90, 105, 120]
 
 export function pointsNeededForA(weekNumber: number): number {
   const index = Math.min(Math.max(weekNumber, 1), WEEKLY_POINTS_RAMP.length) - 1

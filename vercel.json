@@ -10,7 +10,19 @@
     },
     {
       "path": "/api/cron/auto-assign-sprint",
-      "schedule": "0 9 * * 1"
+      "schedule": "5 20 * * 1"
+    },
+    {
+      "path": "/api/cron/sprint-goal-open",
+      "schedule": "5 8 * * 0"
+    },
+    {
+      "path": "/api/cron/sprint-goal-reminder",
+      "schedule": "5 8 * * 1"
+    },
+    {
+      "path": "/api/cron/sprint-goal-final-reminder",
+      "schedule": "35 18 * * 1"
     }
   ]
 }

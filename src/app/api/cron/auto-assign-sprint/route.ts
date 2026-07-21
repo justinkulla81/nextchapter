@@ -2,12 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, getSuggestedActions, commitWeeklySprint } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { isMondayMidnightPTPassed } from '@/lib/weekly/pt-time'
+import { isLockTimePassed } from '@/lib/weekly/pt-time'
 
-// Fires Monday morning (see vercel.json, scheduled well after Monday
-// midnight PT in both DST states) — any candidate who hasn't committed to a
-// Sprint for the week gets the full "A-level" suggested set auto-assigned,
-// so no one starts the week with literally nothing tracked.
+// Fires Monday afternoon (see vercel.json, scheduled well after Monday
+// 12:01pm PT lock in both DST states) — any candidate who hasn't committed
+// to a Sprint for the week gets the full "A-level" suggested set
+// auto-assigned, so no one starts the week with literally nothing tracked.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   const weekStartDate = getMondayOfWeek(new Date())
-  if (!isMondayMidnightPTPassed(weekStartDate)) {
-    return NextResponse.json({ skipped: 'Monday midnight PT has not passed yet' })
+  if (!isLockTimePassed(weekStartDate)) {
+    return NextResponse.json({ skipped: 'Monday 12:01pm PT lock has not passed yet' })
   }
 
   const eligible = await prisma.candidateProfile.findMany({

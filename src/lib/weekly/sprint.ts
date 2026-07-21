@@ -89,9 +89,9 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 }
 
 // Personalized suggestions alone (capped at 5) can fall short of later
-// weeks' point targets — the ramp reaches 210 points by week 6, which a
+// weeks' point targets — the ramp reaches 120 points by week 5, which a
 // 5-item shortlist can't reliably cover. Tops up with canonical Search
-// Action Tasks (skipping any actionType already suggested) until the
+// Actions (skipping any actionType already suggested) until the
 // available point total comfortably clears this week's target.
 export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
   const personalized = await getPersonalizedSuggestions(candidateId)

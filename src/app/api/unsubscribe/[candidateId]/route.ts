@@ -13,7 +13,9 @@ export async function GET(
       ? { dailyEmailOptedOut: true }
       : type === 'weekly'
         ? { weeklyReportOptedOut: true }
-        : { reminderEmailsOptedOut: true }
+        : type === 'sprintGoal'
+          ? { sprintGoalEmailsOptedOut: true }
+          : { reminderEmailsOptedOut: true }
 
   await prisma.candidateProfile.update({ where: { id: candidateId }, data }).catch(() => {
     // Unknown/already-deleted candidate — nothing to do, still show the
@@ -25,7 +27,9 @@ export async function GET(
       ? "You won't receive any more daily action emails from Vic."
       : type === 'weekly'
         ? "You won't receive any more Sunday Night Reports from Victoria."
-        : "You won't receive any more reminder emails from NextChapter about finishing your account."
+        : type === 'sprintGoal'
+          ? "You won't receive any more Weekly Search Sprint goal-setting reminders."
+          : "You won't receive any more reminder emails from NextChapter about finishing your account."
 
   return new NextResponse(
     `<!doctype html><html><body style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 64px auto; padding: 0 24px; color: #111;"><p>${message}</p></body></html>`,

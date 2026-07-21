@@ -76,7 +76,10 @@ export function DashboardTopStrip({
 
       <Divider />
 
-      <div className="flex items-center gap-1.5">
+      <div
+        className="flex items-center gap-1.5"
+        title="On track means this week's points are ahead of pace for the week's target — measured against the target, not against whatever you personally committed to."
+      >
         <span className="text-xs font-medium text-muted-foreground">Weekly Search Score</span>
         {searchExecutionAvailable ? (
           <span className="text-sm font-semibold text-foreground tabular-nums">
@@ -84,6 +87,11 @@ export function DashboardTopStrip({
           </span>
         ) : (
           <span className="text-sm font-semibold text-muted-foreground">N/A</span>
+        )}
+        {searchExecutionAvailable && grade.searchExecution.weeklyPoints > grade.searchExecution.weeklyPointsTarget && (
+          <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+            Over-delivering
+          </span>
         )}
       </div>
 

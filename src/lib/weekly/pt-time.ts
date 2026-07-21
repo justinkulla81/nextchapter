@@ -32,23 +32,23 @@ export function nowInPacific(reference: Date = new Date()): Date {
 }
 
 // The Sprint commitment for the week starting `weekStartDate` (a Monday) is
-// only editable Saturday midnight PT through Monday midnight PT of that
-// same week's start — i.e. the weekend immediately before it begins. Outside
-// that window it's locked for the week.
+// only editable Sunday 12:01am PT through Monday 12:01pm PT of that same
+// week's start (a 36-hour window) — fully editable at any point before lock,
+// even after an initial commit. Outside that window it's locked for the week.
 export function isSprintEditWindowOpen(weekStartDate: Date, reference: Date = new Date()): boolean {
   const pt = nowInPacific(reference)
   const windowOpen = new Date(weekStartDate)
-  windowOpen.setUTCDate(windowOpen.getUTCDate() - 2) // Saturday before the Monday start
-  windowOpen.setUTCHours(0, 0, 0, 0)
+  windowOpen.setUTCDate(windowOpen.getUTCDate() - 1) // Sunday before the Monday start
+  windowOpen.setUTCHours(0, 1, 0, 0) // 12:01am
   const windowClose = new Date(weekStartDate)
-  windowClose.setUTCHours(0, 0, 0, 0)
+  windowClose.setUTCHours(12, 1, 0, 0) // 12:01pm
 
   return pt >= windowOpen && pt < windowClose
 }
 
-export function isMondayMidnightPTPassed(weekStartDate: Date, reference: Date = new Date()): boolean {
+export function isLockTimePassed(weekStartDate: Date, reference: Date = new Date()): boolean {
   const pt = nowInPacific(reference)
   const windowClose = new Date(weekStartDate)
-  windowClose.setUTCHours(0, 0, 0, 0)
+  windowClose.setUTCHours(12, 1, 0, 0) // Monday 12:01pm PT
   return pt >= windowClose
 }

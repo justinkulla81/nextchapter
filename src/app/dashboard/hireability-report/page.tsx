@@ -11,7 +11,7 @@ import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
-import { weeklyTimeTargetHours } from '@/lib/weekly/weekly-target'
+import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
@@ -127,7 +127,10 @@ export default async function HireabilityReportPage() {
     !!gradeAtGeneration &&
     isAtOrBelowGrade(gradeAtGeneration.marketReality.grade, 'C') &&
     isAtOrBelowGrade(gradeAtGeneration.searchExecution.grade, 'C')
-  const aTargetHours = weeklyTimeTargetHours(weekNumber)
+  // Derived from the same canonical Weekly Search Score points ramp everything
+  // else reads from (1 point = 1 minute) — this used to be a separately
+  // maintained hours target that had drifted out of sync with the points ramp.
+  const aTargetHours = Math.round((pointsNeededForA(weekNumber) / 60) * 10) / 10
   const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
   const casuallySearching = isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)
 
@@ -358,7 +361,7 @@ export default async function HireabilityReportPage() {
                     B takes about <span className="font-semibold">{bTargetHours}h</span>.
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    That target grows a little each week through Week 6, then holds steady — see
+                    That target grows a little each week through Week 5, then holds steady — see
                     your{' '}
                     <Link href="/dashboard" className="text-primary underline underline-offset-4">
                       Search Sprint

@@ -412,6 +412,7 @@ model CandidateProfile {
   lastDailyEmailSentAt DateTime?
   dailyEmailOptedOut   Boolean      @default(false)
   weeklyReportOptedOut Boolean      @default(false)
+  sprintGoalEmailsOptedOut Boolean  @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
   notificationTier     NotificationTier @default(FULL)
 
   // TCPA-compliant SMS opt-in — deliberately separate from the resume-extracted
