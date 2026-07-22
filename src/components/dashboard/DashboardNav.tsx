@@ -29,6 +29,7 @@ interface NavLink {
   label: string
   badge?: string
   muted?: boolean
+  disabled?: boolean
 }
 
 interface NavSection {
@@ -36,7 +37,7 @@ interface NavSection {
   links: NavLink[]
 }
 
-function buildSections(recruiterUnlocked: boolean): NavSection[] {
+function buildSections(portfolioAssetCount: number, supportNetworkUnreadCount: number): NavSection[] {
   return [
     {
       title: null,
@@ -45,11 +46,15 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
     {
       title: 'Building',
       links: [
-        { href: '/dashboard/search-strategy', label: 'Search Strategy' },
+        { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
+        { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
         { href: '/dashboard/resume', label: 'My Resume' },
-        { href: '/dashboard/linkedin', label: 'My LinkedIn' },
-        { href: '/dashboard/portfolio', label: 'My Portfolio' },
-        { href: '/dashboard/retake-assessment', label: 'My Working Style Profile' },
+        { href: '/dashboard/find-my-job', label: 'My Cover Letter' },
+        {
+          href: '/dashboard/portfolio',
+          label: 'My Portfolio',
+          badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
+        },
       ],
     },
     {
@@ -65,13 +70,18 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
       title: 'Connecting',
       links: [
         { href: '/dashboard/network', label: 'Your Network' },
-        { href: '/dashboard/community', label: 'Support Network' },
+        {
+          href: '/dashboard/community',
+          label: 'Support Network',
+          badge: supportNetworkUnreadCount > 0 ? String(supportNetworkUnreadCount) : undefined,
+        },
         { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
         {
           href: '/dashboard/privacy',
           label: 'Executive Recruiter',
-          badge: recruiterUnlocked ? 'Unlocked' : 'Locked',
-          muted: !recruiterUnlocked,
+          badge: 'Coming Soon',
+          muted: true,
+          disabled: true,
         },
       ],
     },
@@ -101,14 +111,16 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
 function NavContent({
   pathname,
   onNavigate,
-  recruiterUnlocked,
+  portfolioAssetCount,
+  supportNetworkUnreadCount,
 }: {
   pathname: string
   onNavigate?: () => void
-  recruiterUnlocked: boolean
+  portfolioAssetCount: number
+  supportNetworkUnreadCount: number
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(recruiterUnlocked)
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount)
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -120,35 +132,50 @@ function NavContent({
               {section.title}
             </p>
           )}
-          {section.links.map((link) => (
-            <Link
-              key={`${section.title ?? 'top'}-${link.href}`}
-              href={link.href}
-              onClick={onNavigate}
-              className={cn(
-                'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium transition-colors',
-                isActive(link.href)
-                  ? 'bg-white/15 text-white'
-                  : link.muted
-                    ? 'text-white/40 hover:bg-white/10 hover:text-white/60'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-              )}
-            >
-              <span>{link.label}</span>
-              {link.badge && (
-                <span
-                  className={cn(
-                    'rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
-                    link.badge === 'Locked'
-                      ? 'bg-white/10 text-white/50'
-                      : 'bg-orange/20 text-orange'
-                  )}
+          {section.links.map((link) => {
+            const badgeEl = link.badge && (
+              <span
+                className={cn(
+                  'rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
+                  link.muted ? 'bg-white/10 text-white/50' : 'bg-orange/20 text-orange'
+                )}
+              >
+                {link.badge}
+              </span>
+            )
+
+            if (link.disabled) {
+              return (
+                <div
+                  key={`${section.title ?? 'top'}-${link.href}`}
+                  aria-disabled="true"
+                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium text-white/40"
                 >
-                  {link.badge}
-                </span>
-              )}
-            </Link>
-          ))}
+                  <span>{link.label}</span>
+                  {badgeEl}
+                </div>
+              )
+            }
+
+            return (
+              <Link
+                key={`${section.title ?? 'top'}-${link.href}`}
+                href={link.href}
+                onClick={onNavigate}
+                className={cn(
+                  'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium transition-colors',
+                  isActive(link.href)
+                    ? 'bg-white/15 text-white'
+                    : link.muted
+                      ? 'text-white/40 hover:bg-white/10 hover:text-white/60'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                <span>{link.label}</span>
+                {badgeEl}
+              </Link>
+            )
+          })}
         </div>
       ))}
       <div className="mt-auto px-2">
@@ -160,10 +187,16 @@ function NavContent({
   )
 }
 
-export function DashboardNav({ recruiterUnlocked = false }: { recruiterUnlocked?: boolean }) {
+export function DashboardNav({
+  portfolioAssetCount = 0,
+  supportNetworkUnreadCount = 0,
+}: {
+  portfolioAssetCount?: number
+  supportNetworkUnreadCount?: number
+}) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const sections = buildSections(recruiterUnlocked)
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount)
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
   )
@@ -172,7 +205,11 @@ export function DashboardNav({ recruiterUnlocked = false }: { recruiterUnlocked?
     <>
       {/* Desktop: persistent sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <NavContent pathname={pathname} recruiterUnlocked={recruiterUnlocked} />
+        <NavContent
+          pathname={pathname}
+          portfolioAssetCount={portfolioAssetCount}
+          supportNetworkUnreadCount={supportNetworkUnreadCount}
+        />
       </aside>
 
       {/* Mobile: top bar with toggle + slide-out drawer */}
@@ -198,7 +235,12 @@ export function DashboardNav({ recruiterUnlocked = false }: { recruiterUnlocked?
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <NavContent pathname={pathname} onNavigate={() => setOpen(false)} recruiterUnlocked={recruiterUnlocked} />
+            <NavContent
+              pathname={pathname}
+              onNavigate={() => setOpen(false)}
+              portfolioAssetCount={portfolioAssetCount}
+              supportNetworkUnreadCount={supportNetworkUnreadCount}
+            />
           </div>
         </div>
       )}

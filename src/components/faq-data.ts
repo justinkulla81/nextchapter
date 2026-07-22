@@ -40,12 +40,12 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'How are the grades calculated?',
         answer:
-          "Market Reality Grade combines your experience and goals with a work-style assessment built on 9 cross-validated dimensions — things like how fast you move, how you handle ambiguity, how you communicate, and how you lead — measured in a way that's hard to game by just picking the “best-sounding” answer. Search Action Grade is separate: it tracks the real steps you take each week, like outreach, references, and interviews, not a quiz score.",
+          "Market Reality Grade combines your experience and goals with a How I Work Best assessment built on 9 cross-validated dimensions — things like how fast you move, how you handle ambiguity, how you communicate, and how you lead — measured in a way that's hard to game by just picking the “best-sounding” answer. Search Action Grade is separate: it tracks the real steps you take each week, like outreach, references, and interviews, not a quiz score.",
       },
       {
         question: 'How long does the assessment take?',
         answer:
-          'About 8–10 minutes, in five short steps: Resume, Your Why, Your Situation, Experience, and Goals. It’s designed to feel like reflection, not a test — most people find the "Your Why" part genuinely clarifying. (There\'s also an optional Work Style Assessment you can take anytime from your dashboard — it\'s not required to get your Grade.)',
+          'About 8–10 minutes, in five short steps: Resume, Your Why, Your Situation, Experience, and Goals. It’s designed to feel like reflection, not a test — most people find the "Your Why" part genuinely clarifying. (There\'s also an optional How I Work Best assessment you can take anytime from your dashboard — it\'s not required to get your Grade.)',
       },
       {
         question: 'Can I save my progress and finish later?',
@@ -110,7 +110,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'How does matching with employers work?',
         answer:
-          "Employers see profiles based on your work style, experience, and verification — not just resume keywords. What won't change is that you control your visibility the whole time.",
+          "Employers see profiles based on how you work best, experience, and verification — not just resume keywords. What won't change is that you control your visibility the whole time.",
       },
       {
         question: 'Do I have to be actively job-hunting to use it?',

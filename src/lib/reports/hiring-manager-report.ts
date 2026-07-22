@@ -116,7 +116,7 @@ export async function generateHiringManagerReport(candidateId: string): Promise<
       profileConsistencyAlert = {
         label: 'Profile Consistency Alert',
         message:
-          "This candidate's assessment answers showed meaningful internal contradictions — their quad-block choices and follow-up ratings didn't consistently agree. Treat the self-reported work-style profile as a starting point to probe in interview, not a settled fact.",
+          "This candidate's assessment answers showed meaningful internal contradictions — their quad-block choices and follow-up ratings didn't consistently agree. Treat the self-reported How They Work Best profile as a starting point to probe in interview, not a settled fact.",
       }
     }
 

@@ -24,9 +24,9 @@ export default async function RetakeAssessmentPage() {
       return (
         <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">My Working Style</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">How I Work Best</h1>
             <p className="text-muted-foreground">
-              You can retake your Work Style Assessment once a week — next retake available in{' '}
+              You can retake your How I Work Best assessment once a week — next retake available in{' '}
               {daysRemaining} day{daysRemaining === 1 ? '' : 's'}.
             </p>
           </div>
@@ -59,10 +59,10 @@ export default async function RetakeAssessmentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Working Style</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">How I Work Best</h1>
         <p className="mt-2 text-muted-foreground">
-          Your work style can shift as your search progresses — this replaces your Work Style
-          Profile with a fresh read. No wrong answers.
+          How you work can shift as your search progresses — this replaces your How I Work Best
+          profile with a fresh read. No wrong answers.
         </p>
       </div>
       <Card>

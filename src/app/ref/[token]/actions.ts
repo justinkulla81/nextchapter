@@ -58,7 +58,7 @@ export async function submitReference(_prevState: FormState, formData: FormData)
   for (const dim of ASSESSMENT_DIMENSIONS) {
     const raw = formData.get(`barsScore-${dim.key}`)
     if (raw === null) {
-      return { error: 'Please answer every work-style question.' }
+      return { error: 'Please answer every How They Work Best question.' }
     }
     const num = Number(raw)
     if (!Number.isInteger(num) || num < 1 || num > 5) {

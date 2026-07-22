@@ -557,6 +557,12 @@ model CandidateProfile {
   resumeSubmissionLeads ResumeSubmissionLead[]
   messageDismissals     CandidateMessageDismissal[]
 
+  // Support Network nav badge — "how many new things since I last opened
+  // this" needs a baseline. Defaults to now() so existing candidates don't
+  // see a surprise flood of historical activity counted as unread the
+  // moment this field ships; it only starts counting forward from here.
+  communityLastViewedAt DateTime @default(now())
+
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
   @@index([currentJobStatus])

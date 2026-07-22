@@ -48,6 +48,14 @@ export default async function CommunityPage({
     )
   }
 
+  // Resets the Support Network nav badge's baseline the moment they can
+  // actually see feed content — whether that's the intro-gated preview
+  // below or the full feed further down.
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { communityLastViewedAt: new Date() },
+  })
+
   const hasIntroduced = await prisma.communityPost.findFirst({
     where: { candidateId: profile.id, postType: 'SELF_INTRO' },
     select: { id: true },

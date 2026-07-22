@@ -56,7 +56,7 @@ export const MARKET_REALITY_DIMENSION_EXPLANATION: Record<MarketRealityDimension
 }
 
 export const SEARCH_EXECUTION_ENGINE_EXPLANATION: Record<SearchExecutionEngine['key'], string> = {
-  learning: "Whether you've done the foundational work — a complete profile, the work-style assessment, a real target defined.",
+  learning: "Whether you've done the foundational work — a complete profile, the How I Work Best assessment, a real target defined.",
   effort: "How many of your action-plan confirmations you've actually completed, plus jobs you've run through fit feedback.",
   working: 'Real assets you\'ve built — a resume on file, work samples, active LinkedIn posting.',
   connecting: "Real outreach and network signals — your networking list, references requested, and community engagement.",

@@ -74,7 +74,7 @@ export async function requestReference(
 
   if (!profile.assessmentComplete) {
     return {
-      error: 'Please complete the Work Style Assessment before requesting a reference.',
+      error: 'Please complete the How I Work Best assessment before requesting a reference.',
     }
   }
 

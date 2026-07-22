@@ -42,7 +42,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     eyebrow: 'For Employers',
     headline: 'Hire for how people actually work — verified, not self-declared.',
     subhead:
-      'Every candidate on NextChapter completes a structured work-style assessment and gathers verified references before you ever see their profile — so you\'re evaluating demonstrated fit and work ethic, not a résumé\'s best guess at itself.',
+      'Every candidate on NextChapter completes a structured How They Work Best assessment and gathers verified references before you ever see their profile — so you\'re evaluating demonstrated fit and work ethic, not a résumé\'s best guess at itself.',
     insightSection: {
       heading: 'What a bad hire actually costs you',
       items: [
@@ -60,14 +60,14 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         },
         {
           lead: 'Motivation and work ethic are the signal ATS systems can\'t see.',
-          body: 'The candidates most likely to succeed and stay are the ones who are genuinely motivated, coachable, and verified by people who\'ve actually worked with them — exactly what our references and work-style data surface, and what a keyword filter never will.',
+          body: 'The candidates most likely to succeed and stay are the ones who are genuinely motivated, coachable, and verified by people who\'ve actually worked with them — exactly what our references and How They Work Best data surface, and what a keyword filter never will.',
         },
       ],
     },
     points: [
       {
         lead: 'See the person, the way an executive recruiter would.',
-        body: "Our 9-dimension work-style assessment, cross-checked against verified references, shows how someone collaborates, decides, and handles ambiguity — the fit signal a résumé can't give you.",
+        body: "Our 9-dimension How They Work Best assessment, cross-checked against verified references, shows how someone collaborates, decides, and handles ambiguity — the fit signal a résumé can't give you.",
       },
       {
         lead: 'One flat price, no per-hire tax.',
@@ -82,7 +82,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     directSignupLabel: 'Post a role free — no waitlist',
     contrastLabel: 'What you see vs. what you don\'t:',
     contrastBody:
-      "you get verified references, demonstrated work ethic, real work samples, and a work-style profile — the same caliber of signal an executive recruiter would hand you. You never see a candidate's private Grade, their goals, or their compensation expectations. That's theirs, not a filter for you to game.",
+      "you get verified references, demonstrated work ethic, real work samples, and a How They Work Best profile — the same caliber of signal an executive recruiter would hand you. You never see a candidate's private Grade, their goals, or their compensation expectations. That's theirs, not a filter for you to game.",
     formHeading: 'Join the employer waitlist',
     formSubtext: "Be first to post roles and search verified profiles when we open to your region.",
     fields: [
@@ -122,14 +122,14 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         },
         {
           lead: 'Cold outreach to passive profiles has a ceiling.',
-          body: 'Every candidate here opted in and completed a real work-style assessment — you\'re not guessing from a static profile, you\'re working from verified signal on how someone actually operates.',
+          body: 'Every candidate here opted in and completed a real How They Work Best assessment — you\'re not guessing from a static profile, you\'re working from verified signal on how someone actually operates.',
         },
       ],
     },
     points: [
       {
         lead: 'Opted-in, assessment-backed talent.',
-        body: 'Every profile is verified and enriched with work-style data, so your shortlist is built on fit — not guesswork from a keyword match.',
+        body: 'Every profile is verified and enriched with How They Work Best data, so your shortlist is built on fit — not guesswork from a keyword match.',
       },
       {
         lead: 'Reach hidden gems.',
@@ -253,7 +253,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     eyebrow: 'For Nonprofits & Academia',
     headline: 'Partner on the mission — and help fund the research behind fairer hiring.',
     subhead:
-      'Whether you serve jobseekers, fund workforce solutions, or research the labor market, NextChapter offers a candidate-first platform and a consented, structured dataset connecting self-reported work style, reference-verified behavior, and real placement outcomes.',
+      'Whether you serve jobseekers, fund workforce solutions, or research the labor market, NextChapter offers a candidate-first platform and a consented, structured dataset connecting self-reported How They Work Best data, reference-verified behavior, and real placement outcomes.',
     insightSection: {
       heading: 'A research asset worth funding',
       items: [
@@ -267,7 +267,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         },
         {
           lead: 'A dataset that doesn\'t exist elsewhere.',
-          body: 'Most hiring data stops at the resume or the interview. Ours connects a candidate\'s self-reported work style, what their references independently verified, and what actually happened next — a foundation for research on hiring equity, ATS bias, and what really predicts success.',
+          body: 'Most hiring data stops at the resume or the interview. Ours connects a candidate\'s self-reported How They Work Best answers, what their references independently verified, and what actually happened next — a foundation for research on hiring equity, ATS bias, and what really predicts success.',
         },
       ],
     },
@@ -279,7 +279,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       {
         lead: 'A research asset, ethically sourced.',
         // [OWNER TO CONFIRM: data-access terms, defined per partnership and IRB.]
-        body: 'Consent-based, structured data on work-style dimensions and outcomes — a foundation for studies on hiring equity, gaps, and mobility.',
+        body: 'Consent-based, structured data on How They Work Best dimensions and outcomes — a foundation for studies on hiring equity, gaps, and mobility.',
       },
       {
         lead: 'Grants, pilots, and co-design.',
