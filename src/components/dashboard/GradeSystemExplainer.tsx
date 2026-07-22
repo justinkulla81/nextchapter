@@ -46,6 +46,14 @@ export function GradeSystemExplainer() {
           &ldquo;72/100&rdquo; implies a precision the underlying signals don&apos;t actually have.
           The letter, plus the description below, is the whole story.
         </p>
+        <p className="mt-2 text-muted-foreground">
+          We&apos;re hard graders on purpose. Most candidates land on C — that&apos;s the honest,
+          expected result, not a failure: it means you have real things going for you, but they
+          aren&apos;t yet coming together into a search that&apos;s working. B is a genuine
+          strength. A is rare, reserved for candidates where almost everything is already lined
+          up. D means something is actively holding you back. F marks a real, major gap or
+          missing piece, not just an average result.
+        </p>
         <div className="mt-3 space-y-1.5">
           {GRADE_ORDER.map((g) => (
             <div key={g} className="flex items-baseline gap-2">

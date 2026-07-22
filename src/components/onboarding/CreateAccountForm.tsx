@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { checkEmailAvailableForSignup } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { cn } from '@/lib/utils'
 
-export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | null }) {
-  const [email, setEmail] = useState(defaultEmail ?? '')
+// The email is already known (resume-derived / confirmed earlier in
+// onboarding) — this step is just finishing account creation, never asking
+// the candidate to type or retype it. It still has to go out as a real
+// Supabase email-confirmation send (mailer_autoconfirm=false), just without
+// making the candidate do anything but click one button.
+export function CreateAccountForm({ email }: { email: string | null }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
@@ -24,13 +26,13 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
     // same userId, same profile, no password. Sends a confirmation link to
     // this address; clicking it finishes registration.
     return supabase.auth.updateUser(
-      { email },
+      { email: email ?? '' },
       { emailRedirectTo: `${window.location.origin}/auth/callback?next=secure-account` }
     )
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSend() {
+    if (!email) return
     setLoading(true)
     setError(null)
 
@@ -65,16 +67,16 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
   }
 
   if (blocked) {
-    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email} />
+    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email ?? ''} />
   }
 
   if (sent) {
     return (
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">
-          Check <span className="font-medium">{email}</span> for a link to your full Hireability
-          Report. Confirmation emails can occasionally take a while to arrive — if you don&apos;t
-          see it after a few minutes, check spam or resend it below.
+          Check <span className="font-medium">{email}</span> for a link to set your password and
+          see your full Hireability Report. Confirmation emails can occasionally take a while to
+          arrive — if you don&apos;t see it after a few minutes, check spam or resend it below.
         </p>
         <button
           type="button"
@@ -90,27 +92,17 @@ export function CreateAccountForm({ defaultEmail }: { defaultEmail: string | nul
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn('space-y-4', loading && 'cursor-progress [&_*]:cursor-progress')}
-    >
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
+    <div className={cn('space-y-4', loading && 'cursor-progress [&_*]:cursor-progress')}>
+      <p className="text-sm text-foreground">
+        We&apos;ll send a confirmation link to <span className="font-medium">{email}</span>.
+      </p>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Sending…' : 'Send my report →'}
+      <Button type="button" className="w-full" disabled={loading} onClick={handleSend}>
+        {loading ? 'Sending…' : 'Send me the link →'}
       </Button>
       <p className="text-xs text-muted-foreground">
         We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.
       </p>
-    </form>
+    </div>
   )
 }

@@ -32,26 +32,18 @@ export function SearchStrategyForm({
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
+  const [isTargetFlexible, setIsTargetFlexible] = useState(profile.targetRoleType === 'Flexible')
+  const [targetRoleType, setTargetRoleType] = useState(
+    profile.targetRoleType && profile.targetRoleType !== 'Flexible'
+      ? profile.targetRoleType
+      : profile.resumeLatestJobTitle ?? ''
+  )
 
   return (
     <form
       action={formAction}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <div className="space-y-2">
-        <Label htmlFor="targetRoleType">Target role</Label>
-        <Input id="targetRoleType" name="targetRoleType" defaultValue={profile.targetRoleType ?? ''} />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Target industries</Label>
-        <TagInput
-          name="targetIndustries"
-          defaultValue={profile.targetIndustries}
-          placeholder="e.g. Healthcare, Fintech"
-        />
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="primaryFunction">Your primary job function</Label>
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
@@ -66,6 +58,38 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="targetRoleType">Target role</Label>
+        {/* Disabled inputs aren't included in FormData, so the real
+            submitted value lives in this hidden input instead. */}
+        <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
+        <Input
+          id="targetRoleType"
+          value={isTargetFlexible ? 'Flexible' : targetRoleType}
+          onChange={(e) => setTargetRoleType(e.target.value)}
+          disabled={isTargetFlexible}
+        />
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="targetRoleFlexible"
+            checked={isTargetFlexible}
+            onCheckedChange={(checked) => setIsTargetFlexible(checked === true)}
+          />
+          <Label htmlFor="targetRoleFlexible" className="font-normal text-muted-foreground">
+            I&apos;m flexible — open to a range of roles
+          </Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Target industries</Label>
+        <TagInput
+          name="targetIndustries"
+          defaultValue={profile.targetIndustries}
+          placeholder="e.g. Healthcare, Fintech"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

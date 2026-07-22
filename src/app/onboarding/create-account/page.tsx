@@ -40,9 +40,11 @@ export default async function CreateAccountPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Your report is ready.</h1>
-        <p className="mt-1 text-muted-foreground">Enter your email and we&apos;ll send it now.</p>
+        <p className="mt-1 text-muted-foreground">
+          Confirm your email to set a password and see it.
+        </p>
       </div>
-      <CreateAccountForm defaultEmail={profile.email} />
+      <CreateAccountForm email={profile.email} />
     </div>
   )
 }

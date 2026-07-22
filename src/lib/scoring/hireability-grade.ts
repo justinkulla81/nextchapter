@@ -35,6 +35,7 @@ import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
+import { computeDetailOrientednessScore } from '@/lib/scoring/detail-orientedness'
 import { getCurrentWeekSprint, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import {
   pointsNeededForA,
@@ -108,6 +109,16 @@ function getDimensionConfidence(
     case 'searchStrategy':
       // Revealed by actual behavior (reactions) over time, not self-report.
       return jobReactionsCount >= 10 ? 'HIGH' : jobReactionsCount >= 3 ? 'BUILDING' : 'PROVISIONAL'
+
+    case 'focus':
+      // A direct yes/no on whether a specific target is named — always
+      // confirmed, there's nothing to build up over time.
+      return 'HIGH'
+
+    case 'detailOrientedness':
+      // Directly observable from which fields are filled in — always
+      // confirmed, same reasoning as focus.
+      return 'HIGH'
   }
 }
 
@@ -219,6 +230,14 @@ export async function computeMarketRealityDimensions(
   searchStrategy += flexibilityCount * 10
   searchStrategy = clamp(searchStrategy)
 
+  // 7. Focus — controllable. A named, specific target beats "flexible,"
+  // which reads as a lack of direction rather than open-mindedness.
+  const focus = isVagueTargetRole(candidate.targetRoleType) ? 35 : 90
+
+  // 8. Detail-Orientedness — controllable. How many of the optional
+  // job-search self-report questions were actually answered.
+  const detailOrientedness = computeDetailOrientednessScore(candidate)
+
   return [
     {
       key: 'experienceMatch',
@@ -267,6 +286,22 @@ export async function computeMarketRealityDimensions(
       grade: scoreToGrade(searchStrategy),
       factorType: 'controllable',
       confidence: confidenceFor('searchStrategy'),
+    },
+    {
+      key: 'focus',
+      label: 'Focus',
+      score: focus,
+      grade: scoreToGrade(focus),
+      factorType: 'controllable',
+      confidence: confidenceFor('focus'),
+    },
+    {
+      key: 'detailOrientedness',
+      label: 'Detail-Orientedness',
+      score: detailOrientedness,
+      grade: scoreToGrade(detailOrientedness),
+      factorType: 'controllable',
+      confidence: confidenceFor('detailOrientedness'),
     },
   ]
 }

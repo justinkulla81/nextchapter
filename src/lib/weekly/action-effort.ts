@@ -65,6 +65,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   FUNCTION_CONFIRM: { minutes: 5, points: 5 },
   SALARY_CONFIRM: { minutes: 5, points: 5 },
   WORK_AUTHORIZATION: { minutes: 5, points: 5 },
+  ANSWER_OPTIONAL_QUESTIONS: { minutes: 2, points: 5 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -120,6 +121,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   FUNCTION_CONFIRM: 'effort',
   SALARY_CONFIRM: 'effort',
   WORK_AUTHORIZATION: 'effort',
+  ANSWER_OPTIONAL_QUESTIONS: 'effort',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {

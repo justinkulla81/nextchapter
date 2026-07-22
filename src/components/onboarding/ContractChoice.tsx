@@ -38,7 +38,7 @@ export function ContractChoice() {
 
       {tier === 'FULL' && (
         <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4 text-left">
-          <p className="text-sm font-medium text-foreground">Want text nudges too?</p>
+          <p className="text-sm font-medium text-foreground">Want text nudges too? (optional)</p>
           <div className="space-y-2">
             <Label htmlFor="smsPhone">Mobile number</Label>
             <Input

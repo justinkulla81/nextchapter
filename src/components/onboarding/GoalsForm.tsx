@@ -46,27 +46,57 @@ export function GoalsForm({
   )
   const [hasBeenReferredBefore, setHasBeenReferredBefore] = useState(profile.hasBeenReferredBefore)
   const [referralRecency, setReferralRecency] = useState<ReferralRecency | null>(profile.referralRecency)
+  const [isTargetFlexible, setIsTargetFlexible] = useState(profile.targetRoleType === 'Flexible')
+  const [targetRoleType, setTargetRoleType] = useState(
+    profile.targetRoleType && profile.targetRoleType !== 'Flexible'
+      ? profile.targetRoleType
+      : profile.resumeLatestJobTitle ?? ''
+  )
 
   return (
     <form
       action={formAction}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      {profile.resumeLatestJobTitle && (
-        <p className="text-sm text-muted-foreground">
-          Your last title was <span className="font-medium text-foreground">{profile.resumeLatestJobTitle}</span>.
-        </p>
-      )}
+      <div className="space-y-2">
+        <Label htmlFor="primaryFunction">Your background function</Label>
+        <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
+          <SelectTrigger id="primaryFunction" className="w-full">
+            <SelectValue placeholder="Select one" />
+          </SelectTrigger>
+          <SelectContent>
+            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+              <SelectItem key={fn} value={fn}>
+                {fn}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">Pre-filled from your resume — correct anything that&apos;s off.</p>
+      </div>
 
       <div className="space-y-2">
-        <Label htmlFor="targetRoleType">
-          What role are you targeting? <span className="font-normal text-muted-foreground">(it&apos;s OK to say &quot;flexible&quot;)</span>
-        </Label>
+        <Label htmlFor="targetRoleType">What role are you targeting?</Label>
+        {/* Disabled inputs aren't included in FormData, so the real
+            submitted value lives in this hidden input instead — the
+            visible one is just for typing/display. */}
+        <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
         <Input
           id="targetRoleType"
-          name="targetRoleType"
-          defaultValue={profile.targetRoleType ?? ''}
+          value={isTargetFlexible ? 'Flexible' : targetRoleType}
+          onChange={(e) => setTargetRoleType(e.target.value)}
+          disabled={isTargetFlexible}
         />
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="targetRoleFlexible"
+            checked={isTargetFlexible}
+            onCheckedChange={(checked) => setIsTargetFlexible(checked === true)}
+          />
+          <Label htmlFor="targetRoleFlexible" className="font-normal text-muted-foreground">
+            I&apos;m flexible — open to a range of roles
+          </Label>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -145,23 +175,6 @@ export function GoalsForm({
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="primaryFunction">Your background function</Label>
-        <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
-          <SelectTrigger id="primaryFunction" className="w-full">
-            <SelectValue placeholder="Select one" />
-          </SelectTrigger>
-          <SelectContent>
-            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
-              <SelectItem key={fn} value={fn}>
-                {fn}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-muted-foreground">Pre-filled from your resume — correct anything that&apos;s off.</p>
       </div>
 
       <div className="space-y-2">

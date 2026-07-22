@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { recalculateScore } from '@/lib/scoring/recalculate'
-import { scoreToNextSteps } from '@/lib/scoring/employability-score'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { DualGradeReveal } from '@/components/candidates/DualGradeReveal'
 import { Button } from '@/components/ui/button'
@@ -19,7 +18,7 @@ export default async function ScorePage() {
     redirect('/dashboard')
   }
 
-  const { breakdown } = await recalculateScore(profile.id, 'onboarding_complete')
+  await recalculateScore(profile.id, 'onboarding_complete')
 
   const candidateWithRelations = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: profile.id },
@@ -37,7 +36,6 @@ export default async function ScorePage() {
     },
   })
 
-  const nextSteps = scoreToNextSteps(candidateWithRelations, breakdown)
   const grade = await computeHireabilityGrade(candidateWithRelations)
 
   return (
@@ -54,7 +52,7 @@ export default async function ScorePage() {
           <span className="mt-1 block not-italic text-xs text-muted-foreground/80">— Victoria</span>
         </p>
       </div>
-      <DualGradeReveal grade={grade} nextSteps={nextSteps} />
+      <DualGradeReveal grade={grade} />
       <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
         Create your account to get your full report and action plan
       </Button>

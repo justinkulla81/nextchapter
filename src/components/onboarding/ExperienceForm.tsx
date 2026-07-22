@@ -59,13 +59,14 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
   const [isPeopleManager, setIsPeopleManager] = useState<boolean | null>(profile.isPeopleManager)
   const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
 
-  // Tailors the confidence sliders below toward a strength the candidate
-  // just told us they stand out at — only the strengths with an unambiguous
-  // 1:1 match to an existing slider get this treatment (see the mapped
-  // constants below), rather than forcing a weak match everywhere.
-  const suggestFunctionSkill = topStrengths.includes('expert_in_field') ? 100 : null
-  const suggestCommunicator = topStrengths.includes('clear_communicator') ? 100 : null
+  // Tailors the management-confidence slider toward a strength the
+  // candidate just told us they stand out at. The function-skill and
+  // communicator sliders used to get the same treatment, but auto-jumping
+  // them straight to "Among the best in my field" biased the answer before
+  // the candidate had a chance to pick it themselves — removed.
   const suggestManagement = topStrengths.includes('people_manager') ? 100 : null
+
+  const functionLabel = profile.resumeLatestJobTitle ?? profile.primaryFunction
 
   return (
     <form
@@ -113,10 +114,13 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
 
       <ConfidenceSlider
         name="functionSkillConfidence"
-        label="How confident are you in your core job function skills?"
+        label={
+          functionLabel
+            ? `How confident are you in your core job function (as a ${functionLabel})?`
+            : 'How confident are you in your core job function skills?'
+        }
         defaultValue={profile.functionSkillConfidence}
         labels={CORE_SKILL_LABELS}
-        suggestedValue={suggestFunctionSkill}
       />
 
       <ConfidenceSlider
@@ -145,7 +149,6 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
         label="How strong a communicator are you?"
         defaultValue={profile.communicatorConfidence}
         labels={COMMUNICATOR_LABELS}
-        suggestedValue={suggestCommunicator}
       />
 
       {isPeopleManager && (

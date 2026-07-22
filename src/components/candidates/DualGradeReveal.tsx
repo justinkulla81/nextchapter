@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
-import type { NextStep } from '@/lib/scoring/employability-score'
-import { NextStepsList } from '@/components/candidates/NextStepsList'
 import { cn } from '@/lib/utils'
 
 const GRADE_ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
@@ -19,14 +17,20 @@ const GRADE_LEGEND_COLOR: Record<Grade, string> = {
 
 function GradeLegend() {
   return (
-    <div className="w-full max-w-sm space-y-1.5 text-left text-sm">
-      <h3 className="text-xs font-medium text-muted-foreground">What the letters mean</h3>
-      {GRADE_ORDER.map((g) => (
-        <div key={g} className="flex items-baseline gap-2">
-          <span className={cn('w-4 shrink-0 font-bold', GRADE_LEGEND_COLOR[g])}>{g}</span>
-          <span className="text-muted-foreground">{GRADE_BAND_DESCRIPTION[g]}</span>
-        </div>
-      ))}
+    <div className="w-full max-w-sm space-y-3 text-left text-sm">
+      <p className="text-muted-foreground">
+        We&apos;re hard graders on purpose — a C isn&apos;t a bad grade, it&apos;s the honest,
+        expected result for most candidates. A and F are reserved for real extremes.
+      </p>
+      <div className="space-y-1.5">
+        <h3 className="text-xs font-medium text-muted-foreground">What the letters mean</h3>
+        {GRADE_ORDER.map((g) => (
+          <div key={g} className="flex items-baseline gap-2">
+            <span className={cn('w-4 shrink-0 font-bold', GRADE_LEGEND_COLOR[g])}>{g}</span>
+            <span className="text-muted-foreground">{GRADE_BAND_DESCRIPTION[g]}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -118,13 +122,7 @@ function HardHillCallout() {
   )
 }
 
-export function DualGradeReveal({
-  grade,
-  nextSteps,
-}: {
-  grade: HireabilityGrade
-  nextSteps: NextStep[]
-}) {
+export function DualGradeReveal({ grade }: { grade: HireabilityGrade }) {
   return (
     <div className="flex flex-col items-center gap-6">
       <GradeRing label="Market Reality Grade" grade={grade.marketReality.grade} />
@@ -134,8 +132,6 @@ export function DualGradeReveal({
       {grade.marketReality.grade !== null && HARD_HILL_GRADES.includes(grade.marketReality.grade) && (
         <HardHillCallout />
       )}
-
-      <NextStepsList nextSteps={nextSteps} heading="Get your full action plan, including:" />
     </div>
   )
 }

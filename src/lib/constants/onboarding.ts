@@ -18,9 +18,9 @@ export const ACCOUNTABILITY_LEVEL_OPTIONS: {
   subtext: string
 }[] = [
   {
-    value: 'FULL',
-    label: 'I know I need to be held accountable — hold me to the highest standard.',
-    subtext: 'The most support: a nudge every day, a Friday check-in, and weekly updates.',
+    value: 'MINIMAL',
+    label: "I've got this — just the essentials.",
+    subtext: 'No recurring nudges. Still get your Hireability Report and anything time-sensitive.',
   },
   {
     value: 'ESSENTIALS',
@@ -28,9 +28,9 @@ export const ACCOUNTABILITY_LEVEL_OPTIONS: {
     subtext: 'A nudge twice a week (Monday and Thursday) instead of daily, plus weekly updates.',
   },
   {
-    value: 'MINIMAL',
-    label: "I've got this — just the essentials.",
-    subtext: 'No recurring nudges. Still get your Hireability Report and anything time-sensitive.',
+    value: 'FULL',
+    label: 'I know I need to be held accountable — hold me to the highest standard.',
+    subtext: 'The most support: a nudge every day, a Friday check-in, and weekly updates.',
   },
 ]
 
@@ -119,6 +119,7 @@ export const BIGGEST_BARRIER_OPTIONS = [
   { value: 'career_gap', label: 'Career Gap' },
   { value: 'life_logistics', label: 'Life Logistics' },
   { value: 'local_job_market', label: 'Local Job Market' },
+  { value: 'self_doubt', label: 'Self-Doubt/Confidence' },
 ] as const
 
 // "Select up to 3 strengths that best describe where you truly stand out" —
@@ -152,6 +153,7 @@ export const PRIMARY_FUNCTION_OPTIONS = [
   'Customer Success',
   'Data & Analytics',
   'Executive Leadership',
+  'General',
   'Other',
 ] as const
 

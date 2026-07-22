@@ -19,7 +19,6 @@ import {
   CURRENT_JOB_STATUS_LABELS,
   GAP_DURATION_LABELS,
   JOB_SEARCH_DIFFICULTY_OPTIONS,
-  SEARCH_INTENSITY_OPTIONS,
   BIGGEST_BARRIER_OPTIONS,
   SITUATION_TO_JOB_STATUS,
   SITUATION_SESSION_KEY,
@@ -59,7 +58,6 @@ export function CircumstancesForm({ profile }: { profile: CandidateProfile }) {
     profile.jobSearchDifficultyLevel
   )
   const [biggestBarriers, setBiggestBarriers] = useState<string[]>(profile.biggestBarriers)
-  const [searchIntensity, setSearchIntensity] = useState(profile.searchIntensity ?? '')
   const [prefilledFromHomepage, setPrefilledFromHomepage] = useState(Boolean(profile.currentJobStatus))
   const [overridePrefill, setOverridePrefill] = useState(false)
   const isNewGrad = currentJobStatus === 'NEW_GRADUATE_FIRST_JOB'
@@ -178,17 +176,6 @@ export function CircumstancesForm({ profile }: { profile: CandidateProfile }) {
           choices={JOB_SEARCH_DIFFICULTY_OPTIONS}
           defaultValue={jobSearchDifficulty}
           onChange={setJobSearchDifficulty}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>How actively are you searching right now?</Label>
-        <ChoiceButtons
-          name="searchIntensity"
-          options={SEARCH_INTENSITY_OPTIONS}
-          value={searchIntensity || null}
-          onChange={setSearchIntensity}
-          columns={2}
         />
       </div>
 

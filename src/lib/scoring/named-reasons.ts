@@ -44,6 +44,14 @@ const DIMENSION_REASONS: Record<MarketRealityDimension['key'], { gap: string; st
     gap: 'Search strategy could widen the funnel — more flexibility on location, comp, or role would open more doors.',
     strength: "You're running a flexible, well-calibrated search strategy.",
   },
+  focus: {
+    gap: "No specific target role named yet — 'flexible' reads as a lack of direction to recruiters, not open-mindedness.",
+    strength: "You've named a specific target role — that focus reads well to recruiters and hiring managers.",
+  },
+  detailOrientedness: {
+    gap: 'Several optional profile questions are still blank — the same thoroughness employers judge in a resume.',
+    strength: "You've filled in the optional profile details most candidates skip — that thoroughness shows.",
+  },
 }
 
 const AI_FLUENCY_GAP_ID = 'ai_fluency_gap'

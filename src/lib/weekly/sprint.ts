@@ -133,7 +133,17 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   // target.
   const profile = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
-    select: { salaryConfirmedAt: true, workAuthConfirmedAt: true },
+    select: {
+      salaryConfirmedAt: true,
+      workAuthConfirmedAt: true,
+      jobsAppliedBucket: true,
+      interviewsReceivedCount: true,
+      networkingLevel: true,
+      learnedNewSkillsLevel: true,
+      triedPartTimeOrConsulting: true,
+      triedExecutiveCoaching: true,
+      connectedWithRecruiters: true,
+    },
   })
   if (profile && !profile.salaryConfirmedAt && !usedTypes.has('SALARY_CONFIRM')) {
     suggestions.push({ text: 'Confirm your last salary', actionType: 'SALARY_CONFIRM' })
@@ -144,6 +154,25 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     suggestions.push({ text: 'Confirm your work authorization status', actionType: 'WORK_AUTHORIZATION' })
     usedTypes.add('WORK_AUTHORIZATION')
     total += estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
+  }
+  const hasUnansweredOptionalQuestion =
+    profile &&
+    [
+      profile.jobsAppliedBucket,
+      profile.interviewsReceivedCount,
+      profile.networkingLevel,
+      profile.learnedNewSkillsLevel,
+      profile.triedPartTimeOrConsulting,
+      profile.triedExecutiveCoaching,
+      profile.connectedWithRecruiters,
+    ].some((f) => f === null)
+  if (hasUnansweredOptionalQuestion && !usedTypes.has('ANSWER_OPTIONAL_QUESTIONS')) {
+    suggestions.push({
+      text: 'Answer the remaining optional questions about your job search — improves your Detail-Orientedness score',
+      actionType: 'ANSWER_OPTIONAL_QUESTIONS',
+    })
+    usedTypes.add('ANSWER_OPTIONAL_QUESTIONS')
+    total += estimateActionEffort({ actionType: 'ANSWER_OPTIONAL_QUESTIONS' }).points
   }
 
   for (const task of CANONICAL_TASK_MENU) {

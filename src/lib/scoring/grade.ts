@@ -7,11 +7,17 @@
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 export type FactorType = 'controllable' | 'influenceable' | 'structural'
 
+// Deliberately hard grading — most candidates should land on C, with A and
+// F reserved for real extremes (see GRADE_BAND_DESCRIPTION and the "we're
+// hard graders" copy in GradeSystemExplainer). This is a first-pass curve,
+// not fit to real usage data — this product has too few real scored
+// candidates yet to calibrate against an actual distribution; revisit once
+// there's a meaningful population to check it against.
 export function scoreToGrade(score: number): Grade {
-  if (score >= 85) return 'A'
-  if (score >= 70) return 'B'
-  if (score >= 50) return 'C'
-  if (score >= 30) return 'D'
+  if (score >= 90) return 'A'
+  if (score >= 75) return 'B'
+  if (score >= 40) return 'C'
+  if (score >= 20) return 'D'
   return 'F'
 }
 
@@ -26,12 +32,16 @@ export const GRADE_LABEL: Record<Grade, string> = {
 // Deliberately no raw numbers shown anywhere in the product — a number
 // like "62/100" reads as more precise than the underlying signals actually
 // are. The letter grade plus this band description is the whole story.
+//
+// We're hard graders on purpose — see GradeSystemExplainer for the full
+// explanation. Most candidates land on C; that's the honest, expected
+// result, not a failure. A and F are reserved for real extremes.
 export const GRADE_BAND_DESCRIPTION: Record<Grade, string> = {
-  A: 'Excellent — at or near the top of what this dimension can show',
-  B: 'Good — solid, with room to sharpen',
-  C: 'Average — a real gap worth closing',
-  D: 'Needs work — this is actively holding you back',
-  F: 'Critical gap — the single highest-leverage thing to fix',
+  A: "Excellent — you'll likely move fast. This is rare, and it means almost everything here is already working in your favor.",
+  B: 'Good — a real strength, with a bit more sharpening to reach the top tier.',
+  C: "You have some good stuff going, but it's clearly not working the way it needs to yet — this takes real, focused work to fix. Most candidates land here.",
+  D: 'Needs work — this is actively holding you back, and it needs attention before the rest of your search can gain traction.',
+  F: 'Critical gap — a major weakness or missing piece here is the single highest-leverage thing to fix first.',
 }
 
 export const FACTOR_TYPE_LABEL: Record<FactorType, string> = {
@@ -53,6 +63,8 @@ export const MARKET_REALITY_DIMENSION_EXPLANATION: Record<MarketRealityDimension
   presentation: 'How well your resume, LinkedIn, and story come across on paper — the first impression before anyone talks to you.',
   socialProof: 'Completed references and work samples — real people and real evidence vouching for you, not just your own word.',
   searchStrategy: 'How intensively and flexibly you\'re approaching the search itself — your stated intensity, flexibility, and follow-through on setup steps.',
+  focus: 'Whether you\'ve committed to a specific target role. Saying you\'re "flexible" on what you want next reads as a lack of direction, not open-mindedness — recruiters and hiring managers respond to candidates who know exactly what they\'re after.',
+  detailOrientedness: 'How many of the optional job-search questions in your profile you actually answered. Skipping them isn\'t neutral — it\'s the same thoroughness a hiring manager is judging in your resume and applications.',
 }
 
 export const SEARCH_EXECUTION_ENGINE_EXPLANATION: Record<SearchExecutionEngine['key'], string> = {
@@ -72,6 +84,8 @@ export const MARKET_REALITY_DIMENSION_LABEL: Record<MarketRealityDimension['key'
   presentation: 'Presentation',
   socialProof: 'Social Proof',
   searchStrategy: 'Search Strategy',
+  focus: 'Focus',
+  detailOrientedness: 'Detail-Orientedness',
 }
 
 export const MARKET_REALITY_DIMENSION_FACTOR_TYPE: Record<MarketRealityDimension['key'], FactorType> = {
@@ -81,6 +95,8 @@ export const MARKET_REALITY_DIMENSION_FACTOR_TYPE: Record<MarketRealityDimension
   presentation: 'controllable',
   socialProof: 'controllable',
   searchStrategy: 'controllable',
+  focus: 'controllable',
+  detailOrientedness: 'controllable',
 }
 
 export const SEARCH_EXECUTION_ENGINE_LABEL: Record<SearchExecutionEngine['key'], string> = {
@@ -119,7 +135,15 @@ export const CONFIDENCE_STYLE: Record<ConfidenceLevel, string> = {
 }
 
 export interface MarketRealityDimension {
-  key: 'experienceMatch' | 'marketPosition' | 'targetComplexity' | 'presentation' | 'socialProof' | 'searchStrategy'
+  key:
+    | 'experienceMatch'
+    | 'marketPosition'
+    | 'targetComplexity'
+    | 'presentation'
+    | 'socialProof'
+    | 'searchStrategy'
+    | 'focus'
+    | 'detailOrientedness'
   label: string
   score: number
   grade: Grade
