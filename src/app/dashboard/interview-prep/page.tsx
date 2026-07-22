@@ -6,7 +6,10 @@ import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
 export default async function InterviewPrepPage() {
   const profile = await getDashboardData()
-  const narrative = await prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } })
+  const narrative = await prisma.candidateNarrative.findFirst({
+    where: { candidateId: profile.id },
+    orderBy: { generatedAt: 'asc' },
+  })
 
   return (
     <div className="space-y-8">

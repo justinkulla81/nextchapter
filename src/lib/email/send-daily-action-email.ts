@@ -50,7 +50,7 @@ export async function sendDailyActionEmail(candidateId: string) {
       const [jobPostings, linkedInActivityLogs, narrative, outreachCount] = await Promise.all([
         prisma.jobPosting.findMany({ where: { candidateId }, select: { coverLetter: true } }),
         prisma.linkedInActivityLog.findMany({ where: { candidateId }, select: { id: true } }),
-        prisma.candidateNarrative.findUnique({ where: { candidateId } }),
+        prisma.candidateNarrative.findFirst({ where: { candidateId } }),
         prisma.outreachLog.count({ where: { candidateId } }),
       ])
       const artifacts = getWeek1Artifacts({

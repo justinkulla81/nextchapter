@@ -48,7 +48,7 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
         { href: '/dashboard/search-strategy', label: 'Search Strategy' },
         { href: '/dashboard/resume', label: 'My Resume' },
         { href: '/dashboard/linkedin', label: 'My LinkedIn' },
-        { href: '/dashboard/work-samples', label: 'My Proof Assets' },
+        { href: '/dashboard/portfolio', label: 'My Portfolio' },
         { href: '/dashboard/retake-assessment', label: 'My Working Style Profile' },
       ],
     },
@@ -101,25 +101,19 @@ function buildSections(recruiterUnlocked: boolean): NavSection[] {
 function NavContent({
   pathname,
   onNavigate,
-  hideWorkSamples,
   recruiterUnlocked,
 }: {
   pathname: string
   onNavigate?: () => void
-  hideWorkSamples?: boolean
   recruiterUnlocked: boolean
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(recruiterUnlocked)
-  const visibleSections = sections.map((section) => ({
-    ...section,
-    links: section.links.filter((link) => !(hideWorkSamples && link.href === '/dashboard/work-samples')),
-  }))
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
       <Logo className="px-2 text-xl text-white" />
-      {visibleSections.map((section, i) => (
+      {sections.map((section, i) => (
         <div key={section.title ?? `top-${i}`} className="space-y-px">
           {section.title && (
             <p className="px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase">
@@ -166,13 +160,7 @@ function NavContent({
   )
 }
 
-export function DashboardNav({
-  hideWorkSamples,
-  recruiterUnlocked = false,
-}: {
-  hideWorkSamples?: boolean
-  recruiterUnlocked?: boolean
-}) {
+export function DashboardNav({ recruiterUnlocked = false }: { recruiterUnlocked?: boolean }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const sections = buildSections(recruiterUnlocked)
@@ -184,7 +172,7 @@ export function DashboardNav({
     <>
       {/* Desktop: persistent sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <NavContent pathname={pathname} hideWorkSamples={hideWorkSamples} recruiterUnlocked={recruiterUnlocked} />
+        <NavContent pathname={pathname} recruiterUnlocked={recruiterUnlocked} />
       </aside>
 
       {/* Mobile: top bar with toggle + slide-out drawer */}
@@ -210,12 +198,7 @@ export function DashboardNav({
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <NavContent
-              pathname={pathname}
-              onNavigate={() => setOpen(false)}
-              hideWorkSamples={hideWorkSamples}
-              recruiterUnlocked={recruiterUnlocked}
-            />
+            <NavContent pathname={pathname} onNavigate={() => setOpen(false)} recruiterUnlocked={recruiterUnlocked} />
           </div>
         </div>
       )}

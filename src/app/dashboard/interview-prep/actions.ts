@@ -37,11 +37,18 @@ export async function updateCoreStatement(newStatement: string) {
   const trimmed = newStatement.trim()
   if (!trimmed) return
 
-  await prisma.candidateNarrative.upsert({
+  const existing = await prisma.candidateNarrative.findFirst({
     where: { candidateId: profile.id },
-    create: { candidateId: profile.id, coreStatement: trimmed, adaptations: {} },
-    update: { coreStatement: trimmed },
+    orderBy: { generatedAt: 'asc' },
   })
+
+  if (existing) {
+    await prisma.candidateNarrative.update({ where: { id: existing.id }, data: { coreStatement: trimmed } })
+  } else {
+    await prisma.candidateNarrative.create({
+      data: { candidateId: profile.id, coreStatement: trimmed, adaptations: {} },
+    })
+  }
   await generateAdaptations(profile.id)
   revalidatePath('/dashboard/interview-prep')
 }

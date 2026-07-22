@@ -9,7 +9,7 @@ HARD REQUIREMENT: if "Considering a pivot to a different function/industry" belo
 Candidate profile:
 `
 
-export async function generateCoreNarrative(candidateId: string): Promise<void> {
+async function draftCoreStatement(candidateId: string, scenarioContext?: string): Promise<string | null> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: { workHistory: true },
@@ -26,27 +26,71 @@ Considering a pivot to a different function/industry: ${candidate.isPivoting ? '
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}${w.keyAchievement ? ` — ${w.keyAchievement}` : ''}`).join('; ') || 'not specified'}
 ${candidate.activeJobDescription ? `Job posting they're preparing for: ${candidate.activeJobDescription}` : ''}
+${scenarioContext ? `\nThis particular narrative should be framed specifically around: ${scenarioContext}` : ''}
 `.trim()
 
-  const client = getAnthropicClient()
-  const stream = client.messages.stream({
-    model: 'claude-sonnet-5',
-    max_tokens: 500,
-    thinking: { type: 'adaptive' },
-    messages: [{ role: 'user', content: `${PROMPT_PREFIX}${summary}` }],
-  })
-  const message = await stream.finalMessage()
-  const text = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text)
-    .join('')
-    .trim()
+  try {
+    const client = getAnthropicClient()
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-5',
+      max_tokens: 500,
+      thinking: { type: 'adaptive' },
+      messages: [{ role: 'user', content: `${PROMPT_PREFIX}${summary}` }],
+    })
+    const message = await stream.finalMessage()
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim()
 
+    return text || null
+  } catch (error) {
+    console.error('Failed to draft core narrative statement for candidate', candidateId, error)
+    return null
+  }
+}
+
+// Every candidate has one implicit "default" narrative — the earliest-created
+// row for that candidateId — which all single-narrative consumers (interview
+// prep, guides, profile share) read via `findFirst({ orderBy: { generatedAt: 'asc' } })`.
+// `narrativeId` targets a specific (e.g. additional named-scenario) row instead.
+export async function generateCoreNarrative(
+  candidateId: string,
+  narrativeId?: string,
+  scenarioContext?: string
+): Promise<void> {
+  const text = await draftCoreStatement(candidateId, scenarioContext)
   if (!text) return
 
-  await prisma.candidateNarrative.upsert({
-    where: { candidateId },
-    create: { candidateId, coreStatement: text, adaptations: {} },
-    update: { coreStatement: text },
+  const targetId =
+    narrativeId ??
+    (
+      await prisma.candidateNarrative.findFirst({
+        where: { candidateId },
+        orderBy: { generatedAt: 'asc' },
+        select: { id: true },
+      })
+    )?.id
+
+  if (targetId) {
+    await prisma.candidateNarrative.update({ where: { id: targetId }, data: { coreStatement: text } })
+  } else {
+    await prisma.candidateNarrative.create({ data: { candidateId, coreStatement: text, adaptations: {} } })
+  }
+}
+
+// Always creates a new row (a named scenario narrative), never touches the default.
+export async function createNamedNarrative(
+  candidateId: string,
+  label: string,
+  scenarioContext?: string
+): Promise<string | null> {
+  const text = await draftCoreStatement(candidateId, scenarioContext)
+  if (!text) return null
+
+  const created = await prisma.candidateNarrative.create({
+    data: { candidateId, label, coreStatement: text, adaptations: {} },
   })
+  return created.id
 }

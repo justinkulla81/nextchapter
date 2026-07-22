@@ -71,7 +71,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
           workHistory: { orderBy: { startDate: 'desc' } },
           resumes: { orderBy: { uploadedAt: 'desc' }, take: 1 },
           references: { where: { status: 'COMPLETED' } },
-          narrative: true,
+          narratives: { orderBy: { generatedAt: 'asc' }, take: 1 },
           hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
         },
       },
@@ -117,7 +117,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
     yearsExperience: candidate.yearsExperience,
     primaryFunction: candidate.primaryFunction,
     knownFor: candidate.knownFor,
-    coreStatement: candidate.narrative?.coreStatement ?? null,
+    coreStatement: candidate.narratives[0]?.coreStatement ?? null,
     workHistory,
   }
 

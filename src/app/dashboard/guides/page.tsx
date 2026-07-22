@@ -31,7 +31,7 @@ function isUnlocked(
 
 export default async function GuidesPage() {
   const profile = await getDashboardData()
-  const narrative = await prisma.candidateNarrative.findUnique({ where: { candidateId: profile.id } })
+  const narrative = await prisma.candidateNarrative.findFirst({ where: { candidateId: profile.id } })
 
   const unlockedCount = GUIDES.filter((g) => isUnlocked(g.slug, profile, !!narrative)).length
 

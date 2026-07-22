@@ -26,22 +26,30 @@ Return strict JSON with this exact shape, no markdown, no extra keys:
 Core Narrative Statement:
 `
 
-export async function generateAdaptations(candidateId: string): Promise<void> {
-  const narrative = await prisma.candidateNarrative.findUnique({ where: { candidateId } })
-  if (!narrative) return
+export async function generateAdaptations(candidateId: string, narrativeId?: string): Promise<void> {
+  const narrative = narrativeId
+    ? await prisma.candidateNarrative.findUnique({ where: { id: narrativeId } })
+    : await prisma.candidateNarrative.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'asc' } })
+  if (!narrative || narrative.candidateId !== candidateId) return
 
-  const client = getAnthropicClient()
-  const stream = client.messages.stream({
-    model: 'claude-sonnet-5',
-    max_tokens: 1500,
-    thinking: { type: 'disabled' },
-    messages: [{ role: 'user', content: `${PROMPT_PREFIX}${narrative.coreStatement}` }],
-  })
-  const message = await stream.finalMessage()
-  const text = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text)
-    .join('')
+  let text: string
+  try {
+    const client = getAnthropicClient()
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-5',
+      max_tokens: 1500,
+      thinking: { type: 'disabled' },
+      messages: [{ role: 'user', content: `${PROMPT_PREFIX}${narrative.coreStatement}` }],
+    })
+    const message = await stream.finalMessage()
+    text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+  } catch (error) {
+    console.error('Failed to generate narrative adaptations for candidate', candidateId, error)
+    return
+  }
 
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) return
@@ -49,7 +57,7 @@ export async function generateAdaptations(candidateId: string): Promise<void> {
   try {
     const parsed = JSON.parse(match[0]) as NarrativeAdaptations
     await prisma.candidateNarrative.update({
-      where: { candidateId },
+      where: { id: narrative.id },
       data: { adaptations: parsed as unknown as object },
     })
   } catch {

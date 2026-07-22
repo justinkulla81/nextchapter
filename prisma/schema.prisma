@@ -517,7 +517,7 @@ model CandidateProfile {
   hireabilityReports         HireabilityReport[]
   linkedInActivityLogs       LinkedInActivityLog[]
   coachConversation          CoachConversation?
-  narrative                  CandidateNarrative?
+  narratives                 CandidateNarrative[]
   coachingWaitlistEntries    CoachingWaitlist[]
   guideLeadEntries           GuideLead[]
   bountyClaims               BountyClaim[]
@@ -563,16 +563,25 @@ model CandidateProfile {
   @@index([currentState, currentCity])
 }
 
+// Prompt: Portfolio — a candidate can hold several distinct narratives (e.g.
+// "Why I'm leaving finance for product", "The RIF story"), not just one.
+// The earliest-created row per candidate ("My Story") stays the one Interview
+// Prep and the Guides unlock-gate read by default, so that existing single-
+// narrative UX keeps working unchanged; everything past the first is a
+// portfolio-only addition.
 model CandidateNarrative {
   id          String           @id @default(cuid())
-  candidateId String           @unique
+  candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
+  label         String @default("My Story") // candidate-facing name for this narrative/scenario
   coreStatement String // 2-3 sentence "Core Narrative Statement", candidate-editable
   adaptations   Json // {linkedinHeadline, linkedinAbout, resumeSummary, emailOpening, verbal30s, tellMeAboutYourself}
 
   generatedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([candidateId, generatedAt])
 }
 
 model WorkHistoryEntry {
