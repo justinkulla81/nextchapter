@@ -16,9 +16,14 @@ const STUCK_TO_FIX = [
   { stuck: "You don't know where you actually stand", fix: 'Market Reality Grade' },
   { stuck: "You're overwhelmed and don't know what to do next", fix: 'Search Sprint' },
   { stuck: "You're isolated and don't have anyone to talk to about it", fix: 'Support Network' },
-  { stuck: "Your resume doesn't show what actually makes you valuable", fix: 'Executive Dossier' },
   { stuck: "You're applying and hearing nothing back", fix: 'Job Fit + recruiter matching' },
   { stuck: 'Your skills feel stale, or AI is changing what "qualified" means', fix: 'Learning' },
+  { stuck: "You need income now and don't want a gap on your resume", fix: 'Interim & gig work' },
+  {
+    stuck: "You don't want to waste time applying to jobs that are black holes or don't even exist",
+    fix: 'NextChapter Job Board & Recruiters',
+  },
+  { stuck: "Your resume doesn't show what actually makes you valuable", fix: 'Executive Dossier' },
 ]
 
 const HOW_IT_WORKS_STEPS = [
@@ -138,11 +143,15 @@ export default function Home() {
           <h2 className="text-center text-3xl font-bold tracking-tight text-navy">
             If the job search feels stuck, here&apos;s why — and how we fix it.
           </h2>
-          <div className="mt-10 divide-y divide-border overflow-hidden rounded-xl border border-light-gray bg-white">
+          <div className="mt-10 hidden justify-between px-6 sm:flex">
+            <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Problem</span>
+            <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Solution</span>
+          </div>
+          <div className="mt-2 divide-y divide-border overflow-hidden rounded-xl border border-light-gray bg-white sm:mt-3">
             {STUCK_TO_FIX.map((row) => (
-              <div key={row.stuck} className="flex flex-col gap-2 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div key={row.stuck} className="flex flex-col gap-2 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                 <p className="text-sm text-foreground">{row.stuck}</p>
-                <p className="shrink-0 text-sm font-semibold text-brand">{row.fix}</p>
+                <p className="shrink-0 text-sm font-semibold text-brand sm:text-right">{row.fix}</p>
               </div>
             ))}
           </div>
@@ -167,10 +176,18 @@ export default function Home() {
               <Link
                 key={persona.slug}
                 href={`/start/${persona.slug}`}
-                className="rounded-xl border border-light-gray bg-off-white p-6 text-left transition-colors hover:border-brand/40"
+                className="group flex items-start justify-between gap-3 rounded-xl border border-light-gray bg-white p-6 text-left shadow-sm transition-all hover:border-brand hover:shadow-md"
               >
-                <p className="font-semibold text-navy">{persona.label}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{persona.hook}</p>
+                <div>
+                  <p className="font-semibold text-navy">{persona.label}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{persona.hook}</p>
+                </div>
+                <span
+                  aria-hidden="true"
+                  className="mt-1 shrink-0 text-lg text-brand transition-transform group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
               </Link>
             ))}
           </div>
