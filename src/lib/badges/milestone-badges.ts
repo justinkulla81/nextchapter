@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
-import { getDossierSections } from '@/lib/reports/dossier-sections'
+import { isDossierComplete } from '@/lib/reports/dossier-sections'
 
 // Milestone badges (Prompt 51) — earned once, permanent, never reset.
 // Computed live from existing data, same "don't persist a duplicate"
@@ -96,7 +96,7 @@ function computeOverDeliveringStreak(sprints: { weekStartDate: Date; committedAc
 }
 
 export async function computeMilestoneBadges(candidateId: string): Promise<MilestoneBadgeStatus[]> {
-  const [candidate, checkIns, allSprints, references, latestAiProject, marketRealitySnapshots, dossier] =
+  const [candidate, checkIns, allSprints, references, latestAiProject, marketRealitySnapshots, dossierComplete] =
     await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({
         where: { id: candidateId },
@@ -113,7 +113,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
         orderBy: { weekStartDate: 'asc' },
         select: { namedReasons: true },
       }),
-      getDossierSections(candidateId),
+      isDossierComplete(candidateId),
     ])
 
   const comeback = detectComeback(checkIns.map((c) => c.checkedInAt))
@@ -121,17 +121,6 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
   const landedInterimRole = candidate.workHistory.some(
     (w) => w.engagementType === 'FRACTIONAL' || w.engagementType === 'INTERIM'
   )
-
-  const dossierComplete =
-    Boolean(dossier.positioning.approvedText) &&
-    (dossier.howIOperate.dimensionSummaries.length > 0 || dossier.howIOperate.superpowers.length > 0) &&
-    (Boolean(dossier.whatDrivesMe.effortStatText) || Boolean(dossier.whatDrivesMe.motivationNarrative)) &&
-    Boolean(dossier.aiFluencyExample) &&
-    (dossier.impactOnPeople.quotes.length > 0 || Boolean(dossier.impactOnPeople.communityNarrative)) &&
-    dossier.selfAwareness.growthEdges.length > 0 &&
-    dossier.learningGrowth.items.length > 0 &&
-    Boolean(dossier.fit.patternSummary) &&
-    dossier.proofPoints.length > 0
 
   const referenceChampion = references.length > 0 && references.every((r) => r.status === 'COMPLETED')
 

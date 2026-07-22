@@ -337,16 +337,22 @@ Openings matching their exact target title: ${titleSpecificCount !== null ? `${t
 Openings matching their target function + industry: ${industrySpecificCount !== null ? `${industrySpecificCount} listed` : 'not available — do not mention a specific count'}
 `.trim()
 
-  const client = getAnthropicClient()
-  const stream = client.messages.stream({
-    model: 'claude-opus-4-8',
-    max_tokens: 8000,
-    thinking: { type: 'adaptive' },
-    output_config: { format: zodOutputFormat(hireabilityReportSchema), effort: 'medium' },
-    messages: [{ role: 'user', content: PROMPT_PREFIX + summary }],
-  })
-  const message = await stream.finalMessage()
-  const data = message.parsed_output
+  let data: ReturnType<typeof hireabilityReportSchema.parse> | null | undefined
+  try {
+    const client = getAnthropicClient()
+    const stream = client.messages.stream({
+      model: 'claude-opus-4-8',
+      max_tokens: 8000,
+      thinking: { type: 'adaptive' },
+      output_config: { format: zodOutputFormat(hireabilityReportSchema), effort: 'medium' },
+      messages: [{ role: 'user', content: PROMPT_PREFIX + summary }],
+    })
+    const message = await stream.finalMessage()
+    data = message.parsed_output
+  } catch (error) {
+    console.error('Failed to generate hireability report for candidate', candidateId, error)
+    return
+  }
 
   if (!data) return
 

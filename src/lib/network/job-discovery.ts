@@ -8,7 +8,7 @@ import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 
 const SURFACE_LIMIT = 10
-const MIN_REACTIONS_FOR_SUMMARY = 3
+export const MIN_REACTIONS_FOR_SUMMARY = 3
 
 // A vague/no-direction targetRoleType (e.g. "flexible", "open") makes for a
 // generic Adzuna text query that surfaces irrelevant gig-economy noise (e.g.
@@ -111,17 +111,22 @@ ${summary}
 
 Write 2-4 sentences identifying the real pattern in what they're rejecting vs. showing interest in, and one concrete, specific recommendation for adjusting their target based on it. Reference actual reasons/roles from the data above — never invent a pattern that isn't there. If there's genuinely no clear pattern yet, say so honestly instead of forcing one.`
 
-  const client = getAnthropicClient()
-  const stream = client.messages.stream({
-    model: 'claude-sonnet-5',
-    max_tokens: 800,
-    thinking: { type: 'disabled' },
-    messages: [{ role: 'user', content: prompt }],
-  })
-  const message = await stream.finalMessage()
-  const text = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text)
-    .join('')
-  return text || null
+  try {
+    const client = getAnthropicClient()
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-5',
+      max_tokens: 800,
+      thinking: { type: 'disabled' },
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const message = await stream.finalMessage()
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+    return text || null
+  } catch (error) {
+    console.error('Failed to generate job-reaction pattern summary for candidate', candidateId, error)
+    return null
+  }
 }

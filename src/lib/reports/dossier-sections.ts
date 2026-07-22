@@ -11,7 +11,7 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
-import { generateReactionSummary } from '@/lib/network/job-discovery'
+import { generateReactionSummary, MIN_REACTIONS_FOR_SUMMARY } from '@/lib/network/job-discovery'
 
 // The Executive Dossier's dynamic sections (Prompt 47) — everything beyond
 // the existing Effort Summary / References / AI Projects / Learning /
@@ -195,7 +195,7 @@ How they're known by colleagues: ${candidate.knownFor ?? 'not given'}`
   }
 }
 
-async function getHowIOperate(
+export async function getHowIOperate(
   candidateId: string,
   candidateTopStrengths: string[]
 ): Promise<{ dimensionSummaries: string[]; superpowers: DossierSuperpower[] }> {
@@ -224,7 +224,7 @@ async function getHowIOperate(
   return { dimensionSummaries, superpowers }
 }
 
-async function getWhatDrivesMe(
+export async function getWhatDrivesMe(
   candidateId: string,
   knownFor: string | null
 ): Promise<{ motivationNarrative: string | null; effortStatText: string | null }> {
@@ -243,7 +243,7 @@ async function getWhatDrivesMe(
   return { motivationNarrative: knownFor, effortStatText }
 }
 
-async function getSelfAwareness(candidateId: string): Promise<{ growthEdges: string[] }> {
+export async function getSelfAwareness(candidateId: string): Promise<{ growthEdges: string[] }> {
   const latestReport = await prisma.hireabilityReport.findFirst({
     where: { candidateId },
     orderBy: { generatedAt: 'desc' },
@@ -259,7 +259,7 @@ async function getSelfAwareness(candidateId: string): Promise<{ growthEdges: str
   return { growthEdges }
 }
 
-async function getLearningGrowth(
+export async function getLearningGrowth(
   candidateId: string
 ): Promise<{ items: { title: string; closedGapArea: string | null }[] }> {
   const [learningItems, latestReport] = await Promise.all([
@@ -379,4 +379,62 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     fit: { patternSummary },
     proofPoints,
   }
+}
+
+// A cheap, LLM-free equivalent of "would getDossierSections consider this
+// dossier complete" — for the Dossier Complete badge (Prompt 51), which
+// re-checks on every Stats page load. Calling the real getDossierSections
+// there was triggering 3 real Anthropic generations per candidate per page
+// view (positioning draft, proof-point follow-ups, job-reaction pattern
+// summary) just to read a boolean, and any one of those failing used to take
+// the whole Stats page down with it. This checks the same underlying
+// existence conditions directly instead of generating anything.
+export async function isDossierComplete(candidateId: string): Promise<boolean> {
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    select: { positioningStatementText: true, topStrengths: true, knownFor: true },
+  })
+  if (!candidate.positioningStatementText) return false
+
+  const [
+    howIOperate,
+    whatDrivesMe,
+    latestAiProject,
+    impactQuoteCount,
+    peerSupportCount,
+    selfAwareness,
+    learningGrowth,
+    reactedJobCount,
+    starResponses,
+  ] = await Promise.all([
+    getHowIOperate(candidateId, candidate.topStrengths),
+    getWhatDrivesMe(candidateId, candidate.knownFor),
+    prisma.learningBadge.findFirst({
+      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+    }),
+    prisma.referenceQuote.count({ where: { candidateId, approvedByCandidateAt: { not: null } } }),
+    computeCandidatePeerSupportCount(candidateId),
+    getSelfAwareness(candidateId),
+    getLearningGrowth(candidateId),
+    prisma.surfacedJob.count({ where: { candidateId, reaction: { not: null } } }),
+    prisma.interviewResponse.findMany({
+      where: { candidateId, responseType: 'text', responseText: { not: null } },
+      select: { feedback: true },
+    }),
+  ])
+
+  const hasStarResponse = starResponses.some(
+    (r) => (r.feedback as { usesStarStructure?: boolean } | null)?.usesStarStructure === true
+  )
+
+  return (
+    (howIOperate.dimensionSummaries.length > 0 || howIOperate.superpowers.length > 0) &&
+    (Boolean(whatDrivesMe.effortStatText) || Boolean(whatDrivesMe.motivationNarrative)) &&
+    Boolean(latestAiProject?.judgmentCall) &&
+    (impactQuoteCount > 0 || Boolean(communityTierNarrative(peerSupportCount))) &&
+    selfAwareness.growthEdges.length > 0 &&
+    learningGrowth.items.length > 0 &&
+    reactedJobCount >= MIN_REACTIONS_FOR_SUMMARY &&
+    hasStarResponse
+  )
 }

@@ -28,55 +28,61 @@ async function generateFitNarrative(input: {
   candidateFacts: string
   roleFacts: string | null
 }): Promise<string | null> {
-  const client = getAnthropicClient()
-  const prompt = `You are helping a hiring manager understand why a candidate might fit a role. Write 2-3 sentences of grounded narrative — strictly based on the facts below, never inventing claims not present in the facts.
+  try {
+    const client = getAnthropicClient()
+    const prompt = `You are helping a hiring manager understand why a candidate might fit a role. Write 2-3 sentences of grounded narrative — strictly based on the facts below, never inventing claims not present in the facts.
 
 Candidate facts:
 ${input.candidateFacts}
 
 ${input.roleFacts ? `Role requirements:\n${input.roleFacts}` : 'No specific role requirements provided — write generally about their strongest evidence.'}`
 
-  const stream = client.messages.stream({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 400,
-    thinking: { type: 'disabled' },
-    messages: [{ role: 'user', content: prompt }],
-  })
-  const message = await stream.finalMessage()
-  const text = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text)
-    .join('')
-  return text.trim() || null
+    const stream = client.messages.stream({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      thinking: { type: 'disabled' },
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const message = await stream.finalMessage()
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+    return text.trim() || null
+  } catch (error) {
+    console.error('Failed to generate fit narrative for evidence brief', error)
+    return null
+  }
 }
 
 async function generateQuestionsWorthAsking(gaps: string[], roleFacts: string | null): Promise<string[]> {
   if (gaps.length === 0) return []
-  const client = getAnthropicClient()
-  const prompt = `Given these uncertainties about a job candidate, generate exactly 3 concrete interview questions a hiring manager could ask to probe them. Return strict JSON: {"questions": ["...", "...", "..."]}. Do NOT produce a scorecard, rubric, or decision framework — just 3 plain questions.
+  try {
+    const client = getAnthropicClient()
+    const prompt = `Given these uncertainties about a job candidate, generate exactly 3 concrete interview questions a hiring manager could ask to probe them. Return strict JSON: {"questions": ["...", "...", "..."]}. Do NOT produce a scorecard, rubric, or decision framework — just 3 plain questions.
 
 Uncertainties:
 ${gaps.map((g) => `- ${g}`).join('\n')}
 
 ${roleFacts ? `Role context:\n${roleFacts}` : ''}`
 
-  const stream = client.messages.stream({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 400,
-    thinking: { type: 'disabled' },
-    messages: [{ role: 'user', content: prompt }],
-  })
-  const message = await stream.finalMessage()
-  const text = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text)
-    .join('')
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) return []
-  try {
+    const stream = client.messages.stream({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      thinking: { type: 'disabled' },
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const message = await stream.finalMessage()
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+    const match = text.match(/\{[\s\S]*\}/)
+    if (!match) return []
     const parsed = JSON.parse(match[0]) as { questions?: string[] }
     return parsed.questions?.slice(0, 3) ?? []
-  } catch {
+  } catch (error) {
+    console.error('Failed to generate questions worth asking for evidence brief', error)
     return []
   }
 }
