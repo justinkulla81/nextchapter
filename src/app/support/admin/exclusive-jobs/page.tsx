@@ -1,11 +1,25 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { createExclusiveJobPosting, archiveExclusiveJobPosting } from './actions'
+import {
+  createExclusiveJobPosting,
+  archiveExclusiveJobPosting,
+  approveJobPosting,
+  rejectJobPosting,
+  reconfirmJobPostingAdmin,
+} from './actions'
 import { ExclusiveJobPostingForm } from '@/components/admin/ExclusiveJobPostingForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { Input } from '@/components/ui/input'
 
 export const maxDuration = 30
+
+const SOURCE_LABEL: Record<string, string> = {
+  admin: 'Added by admin',
+  employer: 'Employer submission',
+  recruiter: 'Recruiter submission',
+  ats_feed: 'ATS feed',
+}
 
 export default async function ExclusiveJobsAdminPage() {
   await requireAdmin()
@@ -13,25 +27,92 @@ export default async function ExclusiveJobsAdminPage() {
   const postings = await prisma.exclusiveJobPosting.findMany({
     orderBy: { createdAt: 'desc' },
   })
-  const active = postings.filter((p) => !p.archivedAt)
-  const archived = postings.filter((p) => p.archivedAt)
+  const pending = postings.filter((p) => p.status === 'pending' && !p.archivedAt)
+  const active = postings.filter((p) => p.status === 'approved' && !p.archivedAt)
+  const archived = postings.filter((p) => p.archivedAt || p.status === 'rejected')
 
   return (
     <div className="mx-auto max-w-3xl space-y-10 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Exclusive Next Chapter Jobs</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">NC Job Board</h1>
         <p className="mt-1 text-muted-foreground">
-          Real postings only — every listing here is a real one you&apos;ve chosen to feature. Visible only to
-          candidates currently holding an A Search Action Grade and opted into the recruiter database.
+          Every non-admin submission lands here as pending until approved — no employer/recruiter
+          domain verification exists yet, so this review is the trust gate. Visible only to
+          candidates currently holding an A Search Action Grade and opted into the recruiter
+          database.
         </p>
       </div>
 
       <ExclusiveJobPostingForm action={createExclusiveJobPosting} />
 
       <div className="space-y-3">
+        <h2 className="text-sm font-medium text-muted-foreground">Pending review ({pending.length})</h2>
+        {pending.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing waiting on review.</p>
+        ) : (
+          pending.map((posting) => {
+            const missing: string[] = []
+            if (!posting.contactName) missing.push('named contact')
+            if (!posting.salaryMin || !posting.salaryMax) missing.push('salary band')
+            return (
+              <Card key={posting.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div>
+                    <p className="font-medium">
+                      {posting.title} <span className="text-muted-foreground">at {posting.companyName}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {SOURCE_LABEL[posting.source]} · {posting.createdAt.toLocaleDateString()}
+                    </p>
+                    {posting.location && <p className="text-sm text-muted-foreground">{posting.location}</p>}
+                    <a
+                      href={posting.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary underline underline-offset-4"
+                    >
+                      View posting
+                    </a>
+                    <p className="mt-1 text-sm text-foreground">
+                      {posting.postingType === 'recruiter_search' ? 'Recruiter-led search' : 'Direct employer'} ·{' '}
+                      {posting.contactName ?? 'No named contact'}
+                      {posting.contactEmail ? ` (${posting.contactEmail})` : ''}
+                    </p>
+                    <p className="text-sm text-foreground">
+                      {posting.salaryMin && posting.salaryMax
+                        ? `${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`
+                        : 'No salary band'}
+                    </p>
+                    {missing.length > 0 && (
+                      <p className="mt-1 text-sm font-medium text-destructive">
+                        Missing: {missing.join(', ')} — needs manual follow-up before approving
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <form action={approveJobPosting.bind(null, posting.id)}>
+                      <SubmitButton size="sm" pendingLabel="Approving…">
+                        Approve
+                      </SubmitButton>
+                    </form>
+                    <form action={rejectJobPosting.bind(null, posting.id)} className="flex items-center gap-2">
+                      <Input name="rejectionReason" placeholder="Reason (optional)" className="h-8 max-w-xs" />
+                      <SubmitButton variant="destructive" size="sm" pendingLabel="Rejecting…">
+                        Reject
+                      </SubmitButton>
+                    </form>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })
+        )}
+      </div>
+
+      <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Active ({active.length})</h2>
         {active.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No exclusive postings yet.</p>
+          <p className="text-sm text-muted-foreground">No active postings yet.</p>
         ) : (
           active.map((posting) => (
             <Card key={posting.id}>
@@ -51,14 +132,24 @@ export default async function ExclusiveJobsAdminPage() {
                   </a>
                   {posting.description && <p className="mt-1 text-sm text-muted-foreground">{posting.description}</p>}
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Added by {posting.addedBy} · {posting.createdAt.toLocaleDateString()}
+                    {SOURCE_LABEL[posting.source]} · added by {posting.addedBy} · {posting.createdAt.toLocaleDateString()}
+                    {posting.expiresAt && ` · expires ${posting.expiresAt.toLocaleDateString()}`}
                   </p>
                 </div>
-                <form action={archiveExclusiveJobPosting.bind(null, posting.id)}>
-                  <SubmitButton variant="ghost" size="sm">
-                    Archive
-                  </SubmitButton>
-                </form>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  {posting.expiresAt && (
+                    <form action={reconfirmJobPostingAdmin.bind(null, posting.id)}>
+                      <SubmitButton variant="outline" size="sm" pendingLabel="Confirming…">
+                        Still open — confirm
+                      </SubmitButton>
+                    </form>
+                  )}
+                  <form action={archiveExclusiveJobPosting.bind(null, posting.id)}>
+                    <SubmitButton variant="ghost" size="sm">
+                      Archive
+                    </SubmitButton>
+                  </form>
+                </div>
               </CardContent>
             </Card>
           ))
@@ -67,11 +158,13 @@ export default async function ExclusiveJobsAdminPage() {
 
       {archived.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Archived ({archived.length})</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Archived / rejected ({archived.length})</h2>
           <div className="space-y-1">
             {archived.map((posting) => (
               <p key={posting.id} className="text-sm text-muted-foreground">
                 {posting.title} at {posting.companyName}
+                {posting.status === 'rejected' && ' — rejected'}
+                {posting.rejectionReason && `: ${posting.rejectionReason}`}
               </p>
             ))}
           </div>

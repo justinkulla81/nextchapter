@@ -39,6 +39,14 @@
     {
       "path": "/api/cron/interim-role-reverify",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/expire-job-postings",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/ats-job-board-feed",
+      "schedule": "30 10 * * *"
     }
   ]
 }

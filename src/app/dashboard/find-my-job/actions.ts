@@ -451,3 +451,59 @@ export async function createCoverLetterFromSurfacedJob(
 
   revalidatePath('/dashboard/find-my-job')
 }
+
+const HEAVY_USAGE = new Set(['daily', 'few_times_week'])
+const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+const NETWORK_NUDGE_TITLE = 'Your network is your fastest path'
+
+export type JobBoardUsageState = { nudge: { title: string; bullets: string[] } | null } | undefined
+
+// Prompt 62 — reads the board-usage frequency selections, then decides
+// whether to surface the "network beats aggregators" nudge. The nudge
+// content is read live from the existing DashboardMessage rotation content
+// (see scripts/seed-dashboard-messages.ts) rather than duplicated here, so
+// there's one source of truth for that copy.
+export async function updateJobBoardUsage(
+  _prevState: JobBoardUsageState,
+  formData: FormData
+): Promise<JobBoardUsageState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { nudge: null }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const usage = {
+    linkedin: (formData.get('linkedin') as string | null) || 'never',
+    indeed: (formData.get('indeed') as string | null) || 'never',
+    ziprecruiter: (formData.get('ziprecruiter') as string | null) || 'never',
+    company_pages: (formData.get('company_pages') as string | null) || 'never',
+  }
+
+  const heavyAggregatorUse = HEAVY_USAGE.has(usage.linkedin) || HEAVY_USAGE.has(usage.indeed)
+  const nudgeIsStale =
+    !profile.jobBoardUsageNudgeShownAt ||
+    Date.now() - profile.jobBoardUsageNudgeShownAt.getTime() > NUDGE_COOLDOWN_MS
+  const showNudge = heavyAggregatorUse && nudgeIsStale
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: {
+      jobBoardUsage: usage,
+      ...(showNudge ? { jobBoardUsageNudgeShownAt: new Date() } : {}),
+    },
+  })
+
+  revalidatePath('/dashboard/find-my-job')
+
+  if (!showNudge) return { nudge: null }
+
+  const message = await prisma.dashboardMessage.findFirst({
+    where: { title: NETWORK_NUDGE_TITLE, isActive: true },
+  })
+  if (!message) return { nudge: null }
+
+  return { nudge: { title: message.title, bullets: message.bullets } }
+}

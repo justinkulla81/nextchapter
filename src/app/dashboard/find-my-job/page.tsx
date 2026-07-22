@@ -20,8 +20,8 @@ import {
 import { ThankYouNoteCard } from '@/components/dashboard/ThankYouNoteCard'
 import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
-import { ExclusiveJobsSection } from '@/components/dashboard/ExclusiveJobsSection'
 import { JobBoardRecommendations } from '@/components/dashboard/JobBoardRecommendations'
+import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckIn'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -73,7 +73,7 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [surfacedJobs, interestedJobs, reactedCount, grade, exclusivePostings] = await Promise.all([
+  const [surfacedJobs, interestedJobs, reactedCount, grade] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -87,12 +87,9 @@ export default async function JobFitPage() {
       where: { candidateId: profile.id, reaction: { not: null } },
     }),
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
-    prisma.exclusiveJobPosting.findMany({
-      where: { archivedAt: null },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    }),
   ])
+
+  const jobBoardUnlocked = grade.searchExecution.grade === 'A' && profile.recruiterDatabaseOptIn
 
   const ratedCount = profile.jobPostings.length + reactedCount
   const appliedJobPostings = profile.jobPostings
@@ -116,10 +113,10 @@ export default async function JobFitPage() {
         </p>
       </div>
 
-      <ExclusiveJobsSection
-        currentGrade={grade.searchExecution.grade}
-        recruiterDatabaseOptIn={profile.recruiterDatabaseOptIn}
-        postings={exclusivePostings}
+      <JobBoardUsageCheckIn
+        currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null}
+        nudgeShownAt={profile.jobBoardUsageNudgeShownAt}
+        jobBoardUnlocked={jobBoardUnlocked}
       />
 
       <JobBoardRecommendations targetIndustries={profile.targetIndustries} />

@@ -563,6 +563,11 @@ model CandidateProfile {
   // moment this field ships; it only starts counting forward from here.
   communityLastViewedAt DateTime @default(now())
 
+  // Prompt 62 — job-board usage check-in (Find a Job / Job Fit page).
+  // jobBoardUsage: { linkedin, indeed, ziprecruiter, company_pages } -> 'daily' | 'few_times_week' | 'rarely' | 'never'
+  jobBoardUsage             Json?
+  jobBoardUsageNudgeShownAt DateTime? // caps the Victoria nudge to once/week
+
   @@index([privacyTier, visibilityTier])
   @@index([employabilityScore])
   @@index([currentJobStatus])
@@ -975,6 +980,7 @@ model EmployerProfile {
   roleProfiles          RoleProfile[]
   candidateInteractions CandidateInteraction[]
   approvedCandidates    ApprovedEmployer[]
+  jobBoardSubmissions   ExclusiveJobPosting[]
 
   @@index([subscriptionTier, subscriptionStatus])
 }
@@ -1660,6 +1666,13 @@ model SurfacedJob {
 // employer-facing surface). Distinct from JobPosting (a candidate's own
 // private, capped-at-5 job-fit tracker) and SurfacedJob (algorithmic,
 // per-candidate matches) — this is a single shared, admin-authored list.
+// NC Job Board (Prompt 61) — started as a purely admin-curated "Exclusive
+// Next Chapter Jobs" list (model name kept for continuity), now extended
+// to accept employer/recruiter self-submissions and direct ATS feed rows.
+// No employer/recruiter domain verification exists elsewhere in this
+// codebase, so `status` is the trust gate: every non-admin row starts
+// 'pending' and only becomes candidate-visible once a human admin
+// approves it — see src/app/support/admin/exclusive-jobs/actions.ts.
 model ExclusiveJobPosting {
   id          String    @id @default(cuid())
   title       String
@@ -1667,11 +1680,48 @@ model ExclusiveJobPosting {
   location    String?
   url         String
   description String?
-  addedBy     String // admin email, from requireAdmin()
+  addedBy     String // admin email, from requireAdmin() — for admin-added rows
   createdAt   DateTime  @default(now())
   archivedAt  DateTime? // soft-hide instead of delete, keeps admin history
 
+  // 'direct' | 'recruiter_search' — shown prominently on the listing itself,
+  // per Prompt 61: this is a real trust differentiator, never buried.
+  postingType String?
+
+  // Required for every new submission (enforced in the action layer, not
+  // the DB, since these fields are additive to existing rows). No ATS
+  // public feed exposes a named contact, so ats_feed rows always have
+  // contactName: null and are flagged for manual admin review.
+  contactName  String?
+  contactEmail String?
+
+  salaryMin      Int?
+  salaryMax      Int?
+  salaryCurrency String? @default("USD")
+
+  // 'pending' | 'approved' | 'rejected'. Existing admin-added rows default
+  // to 'approved' — they were already trusted before this field existed.
+  status String @default("approved")
+
+  // 'admin' | 'employer' | 'recruiter' | 'ats_feed'
+  source String @default("admin")
+
+  submittedByEmployerId  String?
+  submittedByEmployer    EmployerProfile? @relation(fields: [submittedByEmployerId], references: [id], onDelete: SetNull)
+  submittedByRecruiterId String?
+  submittedByRecruiter   Recruiter?       @relation(fields: [submittedByRecruiterId], references: [id], onDelete: SetNull)
+
+  rejectionReason String?
+
+  // Freshness enforcement — the only way expiresAt moves forward is the
+  // explicit reconfirmJobPosting action (genuine re-confirmation), never a
+  // bare "bump" that resets the clock without it. A daily cron
+  // (src/app/api/cron/expire-job-postings) archives anything past this.
+  expiresAt       DateTime?
+  lastConfirmedAt DateTime?
+
   @@index([archivedAt, createdAt])
+  @@index([status, archivedAt])
 }
 
 model PivotIdea {
@@ -1775,6 +1825,8 @@ model Recruiter {
   accessToken  String   @unique @default(cuid())
   createdAt    DateTime @default(now())
   isSampleData Boolean  @default(false)
+
+  jobBoardSubmissions ExclusiveJobPosting[]
 }
 
 // Admin-authored dashboard message rotation. One message is always pinned
