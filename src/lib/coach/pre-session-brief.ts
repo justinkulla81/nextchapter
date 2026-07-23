@@ -5,6 +5,7 @@ import type { CommittedAction } from '@/lib/weekly/sprint'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
@@ -148,9 +149,9 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
 
   const [latestReport, previousReport] = recentReports
   const executionGrade =
-    (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
+    normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration)?.grade ?? null
   const previousGrade =
-    (previousReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
+    normalizeGradeSnapshot(previousReport?.hireabilityGradeAtGeneration)?.grade ?? null
   const trend: Trend =
     executionGrade && previousGrade
       ? GRADE_ORDER.indexOf(executionGrade) > GRADE_ORDER.indexOf(previousGrade)

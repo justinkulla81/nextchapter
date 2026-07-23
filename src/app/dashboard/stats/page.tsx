@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { computeHireabilityGrade, normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { WEEKLY_ENGINE_LABEL, type WeeklyEngine } from '@/lib/scoring/grade'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
@@ -106,7 +106,7 @@ export default async function YourStatsPage() {
     .reverse()
     .map((r) => ({
       weekStartDate: r.weekStartDate,
-      grade: (r.gradeSnapshot as unknown as HireabilityGrade).grade,
+      grade: normalizeGradeSnapshot(r.gradeSnapshot)!.grade,
     }))
 
   return (

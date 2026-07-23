@@ -115,9 +115,20 @@ function looselyMatches(a: string | null, b: string | null): boolean {
 // rescaled to 0-100. Returns null when no completed reference has rated
 // this field yet — callers fall back to the self-report-only component and
 // mark confidence/self-awareness accordingly rather than inventing a score.
+//
+// Field choice: the Reference model's original ratingReliability/
+// ratingCommunication/ratingTeamLift/ratingWorkEthic/ratingGrowthMindset
+// columns are legacy — the live reference form (src/app/ref/[token]/actions.ts)
+// never writes to them. The Reference Testimony Intake (Prompt 48) trait
+// fields are what's actually populated, and map more directly onto these
+// categories anyway: traitFollowThroughRating is literally reliability,
+// traitCollaborationRating is literally communication/collaboration,
+// traitAdaptabilityRating is literally adaptability. overallRating stands
+// in for skills/execution and traitPresenceRating for leadership, since
+// there's no closer-matching trait for either.
 function averageReferenceRating(
   references: Reference[],
-  field: 'ratingReliability' | 'ratingCommunication' | 'ratingTeamLift' | 'ratingWorkEthic' | 'ratingGrowthMindset'
+  field: 'traitPresenceRating' | 'overallRating' | 'traitCollaborationRating' | 'traitAdaptabilityRating' | 'traitFollowThroughRating'
 ): number | null {
   const values = references
     .filter((r) => r.status === 'COMPLETED')
@@ -216,7 +227,7 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   const leadershipSelfReport = candidate.isPeopleManager
     ? clamp(30 + Math.min(candidate.teamSizeManaged ?? 0, 20) * 2 + (candidate.managementSkillConfidence ?? 50) * 0.3)
     : 40 // not a penalty — an IC candidate simply has less direct-management evidence to show yet
-  const leadershipRefRating = averageReferenceRating(refs, 'ratingTeamLift')
+  const leadershipRefRating = averageReferenceRating(refs, 'traitPresenceRating')
   const leadershipScore =
     leadershipRefRating !== null ? clamp(leadershipSelfReport * 0.5 + leadershipRefRating * 0.5) : leadershipSelfReport
 
@@ -227,14 +238,14 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   const skillsSelfReport = clamp(
     (candidate.functionSkillConfidence ?? 50) * 0.6 + (resumeExperienceScore ?? 50) * 0.4
   )
-  const skillsRefRating = averageReferenceRating(refs, 'ratingWorkEthic')
+  const skillsRefRating = averageReferenceRating(refs, 'overallRating')
   const skillsExecutionScore =
     skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : skillsSelfReport
 
   // ---- Communication & Collaboration — self-rated communicator
   // confidence, blended with the reference communication rating.
   const communicationSelfReport = candidate.communicatorConfidence ?? 50
-  const communicationRefRating = averageReferenceRating(refs, 'ratingCommunication')
+  const communicationRefRating = averageReferenceRating(refs, 'traitCollaborationRating')
   const communicationScore =
     communicationRefRating !== null
       ? clamp(communicationSelfReport * 0.5 + communicationRefRating * 0.5)
@@ -249,7 +260,7 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
     Boolean
   ).length
   const adaptabilitySelfReport = clamp(40 + flexibilityCount * 15 + (candidate.isPivoting ? 10 : 0))
-  const adaptabilityRefRating = averageReferenceRating(refs, 'ratingGrowthMindset')
+  const adaptabilityRefRating = averageReferenceRating(refs, 'traitAdaptabilityRating')
   const adaptabilityScore =
     adaptabilityRefRating !== null
       ? clamp(adaptabilitySelfReport * 0.5 + adaptabilityRefRating * 0.5)
@@ -259,7 +270,7 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   // there's no good self-report proxy for "can you be trusted without
   // supervision," so this leans on the reference reliability rating far
   // more than the others, with a neutral default until one exists.
-  const ownershipRefRating = averageReferenceRating(refs, 'ratingReliability')
+  const ownershipRefRating = averageReferenceRating(refs, 'traitFollowThroughRating')
   const ownershipScore = ownershipRefRating ?? 55
 
   const scores: Record<CategoryKey, number> = {
@@ -468,4 +479,56 @@ export async function getCurrentGrade(candidateId: string): Promise<Grade> {
   })
   const grade = await computeHireabilityGrade(candidate as unknown as CandidateWithGradeRelations)
   return grade.grade
+}
+
+// Legacy shape, stored in HireabilityReport.hireabilityGradeAtGeneration
+// (and MarketRealitySnapshot-adjacent JSON) before the Scoring Model 2.0
+// collapse — kept narrow and local to this one adapter, not re-exported,
+// since nothing should be written in this shape going forward.
+interface LegacyHireabilityGradeSnapshot {
+  marketReality: { score: number; grade: Grade }
+  searchExecution: {
+    engines: WeeklyEngine[]
+    categoryMinimumsMet: boolean
+    laggingEngines: WeeklyEngineKey[]
+    weeklyPoints: number
+    weeklyPointsTarget: number
+    bonusMultiplier?: number
+    hasExecutiveCoach?: boolean
+    hadPriorWeekA?: boolean
+    recognizedWeeklyPoints?: number
+  }
+}
+
+function isLegacySnapshot(raw: object): raw is LegacyHireabilityGradeSnapshot {
+  return 'marketReality' in raw && 'searchExecution' in raw
+}
+
+// Reads a stored grade snapshot in either shape. Old (pre-collapse) rows
+// have no six-category breakdown to recover — the dimensions they stored
+// don't map cleanly onto the new categories, so rather than fabricate a
+// wrong-looking breakdown, categories comes back empty and callers that
+// render it should treat that the same as "not available for this report."
+// The overall grade, weekly engines, and bonus fields all carry over
+// faithfully, since those kept the same shape or a directly compatible one
+// (the four weekly engine keys didn't change).
+export function normalizeGradeSnapshot(raw: unknown): HireabilityGrade | null {
+  if (!raw || typeof raw !== 'object') return null
+  if (isLegacySnapshot(raw)) {
+    return {
+      score: raw.marketReality.score,
+      grade: raw.marketReality.grade,
+      categories: [],
+      weeklyEngines: raw.searchExecution.engines,
+      categoryMinimumsMet: raw.searchExecution.categoryMinimumsMet,
+      laggingEngines: raw.searchExecution.laggingEngines,
+      weeklyPoints: raw.searchExecution.weeklyPoints,
+      weeklyPointsTarget: raw.searchExecution.weeklyPointsTarget,
+      recognizedWeeklyPoints: raw.searchExecution.recognizedWeeklyPoints ?? raw.searchExecution.weeklyPoints,
+      bonusMultiplier: raw.searchExecution.bonusMultiplier ?? 1,
+      hasExecutiveCoach: raw.searchExecution.hasExecutiveCoach ?? false,
+      hadPriorWeekA: raw.searchExecution.hadPriorWeekA ?? false,
+    }
+  }
+  return raw as HireabilityGrade
 }

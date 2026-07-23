@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
 
@@ -35,9 +36,9 @@ export async function getCoachClientSummaries(coachId: string): Promise<ClientSu
   return clients.map((c) => {
     const [latestReport, previousReport] = c.hireabilityReports
     const latestGrade =
-      (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
+      normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration)?.grade ?? null
     const previousGrade =
-      (previousReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
+      normalizeGradeSnapshot(previousReport?.hireabilityGradeAtGeneration)?.grade ?? null
 
     const weekNumber = c.registrationCompletedAt
       ? Math.floor((Date.now() - c.registrationCompletedAt.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1

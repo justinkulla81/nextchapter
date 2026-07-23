@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { polishAiProjectDescription } from '@/lib/learning/polish-ai-project'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions'
 
 // One-click completion from a recommendation card — skips the manual
 // title/type/date form since we already know what it is and that it's done
@@ -29,6 +30,12 @@ export async function markRecommendationCompleted(title: string, provider: strin
       completedAt: new Date(),
     },
   })
+
+  try {
+    await applyLearningClosesBarrierRewrite(profile.id)
+  } catch (error) {
+    console.error('Failed to apply learning-closes-barrier baseline rewrite:', error)
+  }
 
   revalidatePath('/dashboard/learning')
 }
@@ -73,6 +80,12 @@ export async function logAiProject(
   })
 
   captureServerEvent(profile.id, 'ai_project_logged', { toolUsed })
+
+  try {
+    await applyLearningClosesBarrierRewrite(profile.id)
+  } catch (error) {
+    console.error('Failed to apply learning-closes-barrier baseline rewrite:', error)
+  }
 
   revalidatePath('/dashboard/learning')
   revalidatePath('/dashboard/recruiter-report')

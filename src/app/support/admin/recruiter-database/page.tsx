@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 
 export const maxDuration = 30
 
@@ -33,7 +34,7 @@ export default async function RecruiterDatabaseAdminPage() {
   const rows = await Promise.all(
     candidates.map(async (c) => {
       const { data: userData } = await admin.auth.admin.getUserById(c.userId)
-      const grade = c.hireabilityReports[0]?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined
+      const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
       const searchActionGrade = grade?.grade ?? null
       return {
         id: c.id,

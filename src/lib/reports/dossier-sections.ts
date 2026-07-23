@@ -7,6 +7,7 @@ import {
   type CandidateWithGradeRelations,
 } from '@/lib/scoring/hireability-grade'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
+import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
@@ -98,10 +99,27 @@ export interface DossierProofPoint {
   followUps: string[]
 }
 
+export interface DossierCategoryStrength {
+  category: CategoryKey
+  label: string
+  text: string
+  // Independently corroborated (a completed reference backs this category),
+  // not just self-report — see grade.ts's confidence machinery. Shown as a
+  // small "confirmed" marker rather than gating the strength in/out, since
+  // most of what candidates report can't be independently checked at all.
+  confirmed: boolean
+}
+
 export interface DossierData {
   namedReasons: NamedReason[]
   sections: DossierSection[] // dynamically reweighted, ready to render in order
   closedLoopCallouts: ClosedLoopCallout[]
+  // Category strengths only, no grade — the Dossier is read by a hiring
+  // manager, not the candidate, so it stays evidence-first rather than
+  // showing a letter grade. Self-awareness only ever appears here in the
+  // flattering direction (a match reads as a strength); a mismatch stays
+  // private to Coaching Notes.
+  categoryStrengths: DossierCategoryStrength[]
   positioning: { draftText: string | null; approvedText: string | null }
   howIOperate: { dimensionSummaries: string[]; superpowers: DossierSuperpower[] }
   whatDrivesMe: { motivationNarrative: string | null; effortStatText: string | null }
@@ -114,6 +132,24 @@ export interface DossierData {
   learningGrowth: { items: { title: string; closedGapArea: string | null }[] }
   fit: { patternSummary: string | null }
   proofPoints: DossierProofPoint[]
+}
+
+// Reuses the strength copy already computed for namedReasons (kind ===
+// 'strength' entries exist exactly for categories graded B or better) —
+// no separate copy to maintain. "Confirmed" mirrors the category's own
+// confidence read (HIGH means at least one completed reference backs it).
+function categoryStrengths(categories: CategoryGrade[], namedReasons: NamedReason[]): DossierCategoryStrength[] {
+  const strengthTextByCategory = new Map(
+    namedReasons.filter((r) => r.kind === 'strength').map((r) => [r.category, r.text])
+  )
+  return categories
+    .filter((c) => strengthTextByCategory.has(c.key))
+    .map((c) => ({
+      category: c.key,
+      label: c.label,
+      text: strengthTextByCategory.get(c.key)!,
+      confirmed: c.confidence === 'HIGH',
+    }))
 }
 
 function reweightedSections(namedReasons: NamedReason[]): DossierSection[] {
@@ -366,6 +402,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     namedReasons,
     sections: reweightedSections(namedReasons),
     closedLoopCallouts: closedLoopCallouts(namedReasons),
+    categoryStrengths: categoryStrengths(categories, namedReasons),
     positioning,
     howIOperate,
     whatDrivesMe,

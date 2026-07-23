@@ -13,6 +13,7 @@ import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
+import { applyWorkHistoryDuringGapRewrite } from '@/lib/scoring/rewrite-actions'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -205,6 +206,12 @@ export async function addWorkHistoryEntry(
 
   revalidatePath('/dashboard/resume')
   revalidatePath('/dashboard/privacy')
+
+  try {
+    await applyWorkHistoryDuringGapRewrite(profile.id, engagementType)
+  } catch (error) {
+    console.error('Failed to apply work-history baseline rewrite:', error)
+  }
 
   if (engagementType !== 'FULL_TIME') {
     return {

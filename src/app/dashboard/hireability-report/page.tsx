@@ -13,6 +13,7 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { GRADE_LABEL, GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
@@ -114,7 +115,7 @@ export default async function HireabilityReportPage() {
   ])
   const isFirstReport = priorReportCount === 0
 
-  const gradeAtGeneration = report?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
+  const gradeAtGeneration = normalizeGradeSnapshot(report?.hireabilityGradeAtGeneration)
   const showCoachingCTA = !!gradeAtGeneration && isAtOrBelowGrade(gradeAtGeneration.grade, 'C')
   // Derived from the same canonical Weekly Search Score points ramp everything
   // else reads from (1 point = 1 minute) — this used to be a separately
@@ -226,7 +227,7 @@ export default async function HireabilityReportPage() {
               </p>
             ) : (
               (() => {
-                const grade = report.hireabilityGradeAtGeneration as unknown as HireabilityGrade
+                const grade = normalizeGradeSnapshot(report.hireabilityGradeAtGeneration)!
                 const gradeDisplay = displayGrade(grade.grade, isFirstReport)
                 return (
                   <div className="mt-4">

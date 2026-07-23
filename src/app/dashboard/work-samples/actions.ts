@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { applyWorkSampleUploadedRewrite } from '@/lib/scoring/rewrite-actions'
 
 export type FormState = { error?: string } | undefined
 
@@ -91,6 +92,11 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
     },
   })
 
+  try {
+    await applyWorkSampleUploadedRewrite(profile.id)
+  } catch (error) {
+    console.error('Failed to apply work-sample baseline rewrite:', error)
+  }
 
   revalidatePath('/dashboard/work-samples')
   revalidatePath('/dashboard')

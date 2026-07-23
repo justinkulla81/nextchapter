@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { CandidateCard } from '@/components/talent/CandidateCard'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 
 export default async function MatchInboxPage({ params }: { params: Promise<{ id: string }> }) {
@@ -51,7 +52,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
 
   const candidates = candidatesRaw
     .filter((c) => {
-      const grade = c.hireabilityReports[0]?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined
+      const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
       return grade?.grade === 'A'
     })
     .slice(0, 100)

@@ -3,6 +3,7 @@ import type { ShareRecipientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { sanitizeRoleTitle, selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
 
 export type ShareStatus = 'active' | 'expired' | 'revoked' | 'not_found'
@@ -167,6 +168,6 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
     resumeSignedUrl: await signResume(),
     references: referencesFor(),
     targetCompMin: candidate.targetCompMin,
-    hireabilityGrade: (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade) ?? null,
+    hireabilityGrade: normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration),
   }
 }

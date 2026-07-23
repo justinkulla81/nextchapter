@@ -7,6 +7,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { scoreToGrade, GRADE_LABEL, type Grade, type HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { GapDurationBucket, MarketResponseType } from '@prisma/client'
 
@@ -100,7 +101,7 @@ function snapshotAsOf(rows: CandidateRow[], asOf: Date): CandidateSnapshot[] {
           generatedAt: rep.generatedAt,
           weekStartDate: rep.weekStartDate,
           onAList: rep.onAList,
-          gradeSnapshot: rep.gradeSnapshot as unknown as HireabilityGrade,
+          gradeSnapshot: normalizeGradeSnapshot(rep.gradeSnapshot)!,
         })),
       marketResponseLogs: r.marketResponseLogs.filter((l) => l.loggedAt <= asOf),
       outreachLogs: r.outreachLogs.map((o) => o.loggedAt).filter((d) => d <= asOf),

@@ -4,6 +4,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { detectAvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export interface SessionImpactReport {
@@ -52,9 +53,9 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
   ])
 
   const gradeFrom =
-    (gradeBefore?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
+    normalizeGradeSnapshot(gradeBefore?.hireabilityGradeAtGeneration)?.grade ?? null
   const gradeTo =
-    (gradeAfter?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
+    normalizeGradeSnapshot(gradeAfter?.hireabilityGradeAtGeneration)?.grade ?? null
 
   const actionsCompletedSinceLastSession = sprintsInWindow.reduce((sum, sprint) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]

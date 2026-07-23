@@ -6,6 +6,7 @@ import { syncReferenceDelta, BARS_FIELD_BY_DIMENSION } from '@/lib/scoring/refer
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
 import { generateReferenceQuotes } from '@/lib/references/testimony-processing'
+import { applyReferenceCompletedRewrite } from '@/lib/scoring/rewrite-actions'
 
 // The five reference-only traits (Prompt 48) — see prisma/schema.prisma's
 // Reference model comment for why these aren't mirrored from Working
@@ -117,6 +118,12 @@ export async function submitReference(_prevState: FormState, formData: FormData)
     await generateReferenceQuotes(updatedReference)
   } catch (error) {
     console.error('Failed to generate reference quotes after reference completion:', error)
+  }
+
+  try {
+    await applyReferenceCompletedRewrite(reference.candidateId, updatedReference)
+  } catch (error) {
+    console.error('Failed to apply reference-completed baseline rewrite:', error)
   }
 
   redirect(`/ref/${token}/complete`)

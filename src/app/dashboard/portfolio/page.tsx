@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { NarrativeManager, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
@@ -110,7 +111,7 @@ export default async function PortfolioPage() {
           ) : (
             <ul className="space-y-1.5 text-sm">
               {reportHistory.map((r) => {
-                const g = r.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
+                const g = normalizeGradeSnapshot(r.hireabilityGradeAtGeneration)
                 return (
                   <li key={r.id} className="flex items-center justify-between text-foreground">
                     <span>{r.generatedAt.toLocaleDateString()}</span>

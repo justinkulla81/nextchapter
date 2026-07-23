@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 
 export interface FullClientView {
   candidateName: string
@@ -68,7 +69,7 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
     primaryFunction: candidate.primaryFunction,
     targetIndustries: candidate.targetIndustries,
     gradeHistory: reports.map((r) => {
-      const grade = r.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
+      const grade = normalizeGradeSnapshot(r.hireabilityGradeAtGeneration)
       return {
         generatedAt: r.generatedAt,
         executionGrade: grade?.grade ?? null,
