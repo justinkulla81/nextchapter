@@ -21,7 +21,7 @@ export function ContractChoice() {
   return (
     <form
       action={formAction}
-      className={cn('w-full max-w-md space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+      className={cn('w-full max-w-2xl space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <div className="space-y-2 text-left">
         <p className="text-sm font-medium text-foreground">
@@ -32,7 +32,8 @@ export function ContractChoice() {
           options={ACCOUNTABILITY_LEVEL_OPTIONS}
           value={tier}
           onChange={setTier}
-          columns={1}
+          columns={3}
+          responsive
         />
       </div>
 

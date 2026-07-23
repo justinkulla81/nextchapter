@@ -9,7 +9,7 @@ const GRADE_ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
 
 function GradeLegend() {
   return (
-    <div className="w-full max-w-sm space-y-3 text-left text-sm">
+    <div className="w-full max-w-lg space-y-3 text-left text-sm">
       <p className="text-muted-foreground">
         We&apos;re hard graders on purpose — a C isn&apos;t a bad grade, it&apos;s the honest,
         expected result for most candidates. A and F are reserved for real extremes.
@@ -84,7 +84,7 @@ const HARD_HILL_GRADES: Grade[] = ['C', 'D', 'F']
 
 function HardHillCallout() {
   return (
-    <div className="w-full max-w-sm space-y-2 border-l-4 border-navy bg-off-white px-[1.375rem] py-4 text-left">
+    <div className="w-full max-w-lg space-y-2 border-l-4 border-navy bg-off-white px-[1.375rem] py-4 text-left">
       <p className="font-bold text-navy">We know this seems like a hard hill to climb.</p>
       <p className="text-[15px] text-foreground">
         But that&apos;s exactly what NextChapter is for. Real, consistent weekly effort — networking,

@@ -41,7 +41,7 @@ export default async function CreateAccountPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Your report is ready.</h1>
         <p className="mt-1 text-muted-foreground">
-          Confirm your email to set a password and see it.
+          Set a password to see it — we&apos;re emailing you a confirmation link now.
         </p>
       </div>
       <CreateAccountForm email={profile.email} />

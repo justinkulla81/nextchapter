@@ -1,13 +1,17 @@
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { ContractChoice } from '@/components/onboarding/ContractChoice'
+import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 
 export default async function ContractPage() {
   await getCandidateProfileForUser()
 
   return (
     <div className="flex flex-col items-center gap-6 text-center">
-      <div className="max-w-md space-y-3 text-left">
-        <p className="text-muted-foreground">Victoria says:</p>
+      <div className="max-w-2xl space-y-3 text-left">
+        <div className="flex items-center gap-2">
+          <VictoriaAvatar size={32} />
+          <p className="text-muted-foreground">Victoria says:</p>
+        </div>
         <blockquote className="space-y-3 text-lg text-foreground">
           <p>
             &ldquo;NextChapter will make your plan clear, reduce the friction, and support you
