@@ -1768,6 +1768,12 @@ model CoachSession {
   notes               String?          @db.Text // coach-private, never shown to the candidate
   directives          String?          @db.Text // client-facing action items from this session
 
+  // Set when a coach marks this session's directives as followed through on
+  // by the candidate — a real, discrete event, not a self-report, so it
+  // feeds a rewrite-action baseline bump (see applyDirectiveResolvedRewrite).
+  directivesResolvedAt       DateTime?
+  directivesResolvedCategory String?
+
   @@index([candidateId, occurredAt])
 }
 

@@ -37,6 +37,24 @@ export async function applyOfferReceivedRewrite(candidateId: string): Promise<vo
   await updateCategoryBaseline(candidateId, 'targetFit', clamp(current + 15))
 }
 
+// A second distinct opportunity landing an interview is a different, higher
+// signal than the first: one interview could be a fluke of a lax screen,
+// but two confirms a real pattern the market is responding to. Since
+// JobPosting has no company/title field, distinct-JobPosting-row count is
+// used as the practical proxy for "a different opportunity," and this fires
+// once, specifically on the 1-to-2 crossing — not on every interview after
+// the first, which applyInterviewLandedRewrite (called on every interview,
+// unbounded up to the 100 clamp) already covers.
+export async function applyInterviewPatternConfirmedRewrite(candidateId: string): Promise<void> {
+  const interviewCount = await prisma.jobPosting.count({
+    where: { candidateId, interviewLandedAt: { not: null } },
+  })
+  if (interviewCount !== 2) return
+
+  const current = await currentBaseline(candidateId, 'targetFit')
+  await updateCategoryBaseline(candidateId, 'targetFit', clamp(current + 10))
+}
+
 // A completed reference is the strongest available third-party evidence
 // for the five competency categories — each maps to one reference field
 // (see hireability-grade.ts's averageReferenceRating comment for why these
@@ -161,4 +179,14 @@ function averageOf(a: number | null | undefined, b: number | null | undefined): 
 function isMeaningfulGain(before: number | null, after: number): boolean {
   if (before === null) return after >= 60 // first real score, decent on its own
   return after - before >= MEANINGFUL_RESUME_IMPROVEMENT
+}
+
+const DIRECTIVE_RESOLVED_BUMP = 10
+
+// A coach directly observing that a directive was followed through on is
+// the strongest available evidence for a category — a real human watched
+// it happen over time, stronger than a reference's point-in-time read.
+export async function applyDirectiveResolvedRewrite(candidateId: string, category: CategoryKey): Promise<void> {
+  const current = await currentBaseline(candidateId, category)
+  await updateCategoryBaseline(candidateId, category, clamp(current + DIRECTIVE_RESOLVED_BUMP))
 }

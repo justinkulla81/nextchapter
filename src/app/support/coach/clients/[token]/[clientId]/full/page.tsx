@@ -8,6 +8,8 @@ import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
+import { ResolveDirectiveForm } from '@/components/coach/ResolveDirectiveForm'
+import { CATEGORY_LABEL, CATEGORY_ORDER, type CategoryKey } from '@/lib/scoring/grade'
 
 export default async function FullClientViewPage({
   params,
@@ -156,6 +158,17 @@ export default async function FullClientViewPage({
                   )}
                   {!s.notes && !s.directives && (
                     <p className="mt-1 text-sm text-muted-foreground">No notes or directives logged.</p>
+                  )}
+                  {s.directives && s.directivesResolvedAt ? (
+                    <p className="mt-1 text-xs text-success">
+                      Followed through on{' '}
+                      {s.directivesResolvedCategory && CATEGORY_ORDER.includes(s.directivesResolvedCategory as CategoryKey)
+                        ? CATEGORY_LABEL[s.directivesResolvedCategory as CategoryKey]
+                        : 'a category'}{' '}
+                      — confirmed {s.directivesResolvedAt.toLocaleDateString()}.
+                    </p>
+                  ) : (
+                    s.directives && <ResolveDirectiveForm token={token} clientId={clientId} sessionId={s.id} />
                   )}
                 </div>
               ))}

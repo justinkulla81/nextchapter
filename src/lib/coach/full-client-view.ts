@@ -23,6 +23,8 @@ export interface FullClientView {
     durationMinutes: number | null
     notes: string | null
     directives: string | null
+    directivesResolvedAt: Date | null
+    directivesResolvedCategory: string | null
   }[]
 }
 
@@ -52,7 +54,15 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
     prisma.coachSession.findMany({
       where: { candidateId },
       orderBy: { occurredAt: 'desc' },
-      select: { id: true, occurredAt: true, durationMinutes: true, notes: true, directives: true },
+      select: {
+        id: true,
+        occurredAt: true,
+        durationMinutes: true,
+        notes: true,
+        directives: true,
+        directivesResolvedAt: true,
+        directivesResolvedCategory: true,
+      },
     }),
   ])
 

@@ -15,7 +15,11 @@ import { surfaceNewJobs, generateReactionSummary } from '@/lib/network/job-disco
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { applyInterviewLandedRewrite, applyOfferReceivedRewrite } from '@/lib/scoring/rewrite-actions'
+import {
+  applyInterviewLandedRewrite,
+  applyOfferReceivedRewrite,
+  applyInterviewPatternConfirmedRewrite,
+} from '@/lib/scoring/rewrite-actions'
 
 export type FormState = { error?: string } | undefined
 
@@ -199,6 +203,7 @@ export async function markInterviewLanded(jobPostingId: string) {
     data: { interviewLandedAt: new Date() },
   })
   await applyInterviewLandedRewrite(profile.id)
+  await applyInterviewPatternConfirmedRewrite(profile.id)
   await generateInterviewPrep(jobPostingId, profile.id)
 
   revalidatePath('/dashboard/find-my-job')
