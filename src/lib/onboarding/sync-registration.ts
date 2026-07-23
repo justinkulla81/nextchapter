@@ -30,7 +30,22 @@ export async function syncRegistrationCompletion(
     })
   }
 
-  if (user.is_anonymous || profile.registrationCompletedAt || profile.duplicateEmailBlockedAt) {
+  // A real candidate only ever stops being anonymous at the very last
+  // onboarding step (create-account), which itself refuses to run until
+  // assessmentComplete is already true (see onboarding/create-account/
+  // page.tsx) — so requiring it here changes nothing for any normal user.
+  // It guards against the one edge case that doesn't go through that path:
+  // an account created directly (e.g. an admin-side recreation) that's
+  // non-anonymous from birth but has done none of the actual onboarding —
+  // without this, that shape gets stamped "registered" immediately, while
+  // every step-completion flag stays false, and pages that gate on one but
+  // not the other end up redirecting a candidate in circles.
+  if (
+    user.is_anonymous ||
+    profile.registrationCompletedAt ||
+    profile.duplicateEmailBlockedAt ||
+    !profile.assessmentComplete
+  ) {
     return { profile, justRegistered: false }
   }
 

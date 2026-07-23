@@ -1696,8 +1696,35 @@ model ExclusiveJobPosting {
   expiresAt       DateTime?
   lastConfirmedAt DateTime?
 
+  // NC Job Board 2.0 — visibility model. Existing rows are backfilled to
+  // audienceTier: 'A_LIST_ONLY' (see the db-push follow-up script) so
+  // nothing already live becomes more exposed than it was; admin can
+  // reclassify individual rows to 'ALL_CANDIDATES' afterward.
+  //
+  // 'ALL_CANDIDATES' | 'A_LIST_ONLY' — is a candidate even eligible to see
+  // this at all, before Distribution is considered.
+  audienceTier String @default("A_LIST_ONLY")
+  // 'OPEN' | 'TARGETED' | 'EXCLUDED' — within the eligible audience, is
+  // this shown to everyone or only fit-matched candidates, or never shown
+  // in the browse feed at all (recruiter private-pipeline use).
+  distribution String @default("OPEN")
+  // 'OPEN' | 'CONFIDENTIAL' — is companyName shown to candidates. Only
+  // ever set to 'CONFIDENTIAL' via the recruiter submission form; enforced
+  // in the action layer, not the DB.
+  disclosure String @default("OPEN")
+
+  // Targeting criteria, populated only when distribution = 'TARGETED'.
+  // Denormalized rather than a RoleProfile FK — Recruiters and NC don't
+  // own an EmployerProfile, so they can't share RoleProfile rows the way
+  // the Match Inbox feature does.
+  targetFunction     String?
+  targetLevel        String?
+  targetLocation     String?
+  targetRemotePolicy String?
+
   @@index([archivedAt, createdAt])
   @@index([status, archivedAt])
+  @@index([audienceTier, distribution])
 }
 
 model PivotIdea {
