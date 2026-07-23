@@ -1,20 +1,16 @@
 import 'server-only'
 import type { CandidateProfile, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
+import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 
 // The "Quick-read" fit signal shown on every Discover card — free, no LLM
 // call, computed for every candidate x listing pair. Deliberately a bucket,
 // never a raw number, matching the sitewide rule against showing precise
 // scores anywhere a candidate can see them. The real per-listing fit
 // analysis (analyzeJobFit) only runs on demand, from the "See full fit"
-// bridge action.
-export type FitBucket = 'strong' | 'good' | 'stretch'
-
-export const FIT_BUCKET_LABEL: Record<FitBucket, string> = {
-  strong: 'Strong fit',
-  good: 'Good fit',
-  stretch: 'Stretch',
-}
+// bridge action. See fit-bucket-types.ts for the FitBucket type/label
+// (kept separate, with no 'server-only' import, so client components can
+// render the label without pulling this file's server-only deps in).
 
 function bucketFromScore(score: number): FitBucket {
   if (score >= 70) return 'strong'

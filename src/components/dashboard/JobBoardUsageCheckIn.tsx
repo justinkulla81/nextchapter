@@ -1,7 +1,6 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import Link from 'next/link'
 import { updateJobBoardUsage, type JobBoardUsageState } from '@/app/dashboard/find-my-job/actions'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -25,11 +24,8 @@ const BOARDS: readonly { key: string; label: string }[] = [
 
 export function JobBoardUsageCheckIn({
   currentUsage,
-  jobBoardUnlocked,
 }: {
   currentUsage: Record<string, string> | null
-  nudgeShownAt: Date | null
-  jobBoardUnlocked: boolean
 }) {
   const [state, formAction, pending] = useActionState<JobBoardUsageState, FormData>(
     updateJobBoardUsage,
@@ -70,16 +66,6 @@ export function JobBoardUsageCheckIn({
             ))}
           </ul>
         </div>
-      )}
-
-      {!jobBoardUnlocked && (
-        <p className="text-sm text-muted-foreground">
-          Hit an A this week to unlock{' '}
-          <Link href="/dashboard/job-board" className="text-primary underline underline-offset-4">
-            NC Job Board
-          </Link>{' '}
-          — verified, named-contact, freshness-enforced listings.
-        </p>
       )}
     </div>
   )

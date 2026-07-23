@@ -62,8 +62,7 @@ function buildSections(portfolioAssetCount: number, supportNetworkUnreadCount: n
       links: [
         { href: '/dashboard/references', label: 'My References' },
         { href: '/dashboard/thought-leadership', label: 'My Thought Leadership' },
-        { href: '/dashboard/find-my-job', label: 'Find a Job' },
-        { href: '/dashboard/job-board', label: 'NC Job Board' },
+        { href: '/dashboard/find-my-job', label: 'Jobs' },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
       ],
     },

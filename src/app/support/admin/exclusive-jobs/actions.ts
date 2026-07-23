@@ -23,9 +23,16 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
     salaryMin: formData.get('salaryMin') ? Number(formData.get('salaryMin')) : null,
     salaryMax: formData.get('salaryMax') ? Number(formData.get('salaryMax')) : null,
     salaryCurrency: (formData.get('salaryCurrency') as string | null)?.trim() || null,
+    audienceTier: (formData.get('audienceTier') as string | null) || 'A_LIST_ONLY',
+    distribution: (formData.get('distribution') as string | null) || 'OPEN',
+    disclosure: 'OPEN', // NC-sourced listings always name the company.
+    targetFunction: (formData.get('targetFunction') as string | null)?.trim() || null,
+    targetLevel: (formData.get('targetLevel') as string | null)?.trim() || null,
+    targetLocation: (formData.get('targetLocation') as string | null)?.trim() || null,
+    targetRemotePolicy: (formData.get('targetRemotePolicy') as string | null) || null,
   }
 
-  const error = validateJobBoardSubmission(input)
+  const error = validateJobBoardSubmission(input, 'admin')
   if (error) return { error }
 
   const posting = await prisma.exclusiveJobPosting.create({

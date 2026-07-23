@@ -10,6 +10,8 @@ import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 import { ResolveDirectiveForm } from '@/components/coach/ResolveDirectiveForm'
 import { CATEGORY_LABEL, CATEGORY_ORDER, type CategoryKey } from '@/lib/scoring/grade'
+import { getCoachJobsSnapshot } from '@/lib/coach/coach-jobs-view'
+import { FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
 
 export default async function FullClientViewPage({
   params,
@@ -26,9 +28,9 @@ export default async function FullClientViewPage({
 
   const view = await getFullClientView(candidate.id)
   const hasConsent = candidate.coachDossierConsentedAt !== null
-  const [dossier, coachingNotes] = hasConsent
-    ? await Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id)])
-    : [null, null]
+  const [dossier, coachingNotes, jobsSnapshot] = hasConsent
+    ? await Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id), getCoachJobsSnapshot(candidate.id)])
+    : [null, null, null]
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -195,6 +197,43 @@ export default async function FullClientViewPage({
                   Coaching Notes
                 </p>
                 {coachingNotes && <CoachingNotesPanel notes={coachingNotes} />}
+              </div>
+              <div className="border-t border-border pt-5">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Jobs — same view {view.candidateName} sees, read-only
+                </p>
+                {jobsSnapshot && (
+                  <div className="space-y-2 text-sm">
+                    {jobsSnapshot.openPostings.length === 0 && jobsSnapshot.surfacedJobs.length === 0 ? (
+                      <p className="text-muted-foreground">Nothing surfaced yet.</p>
+                    ) : (
+                      <>
+                        {jobsSnapshot.openPostings.map((p) => (
+                          <div key={p.id} className="rounded-md border border-border p-2">
+                            <p className="text-foreground">
+                              {p.disclosure === 'CONFIDENTIAL' ? `${p.title} — confidential search` : `${p.title} at ${p.companyName}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{FIT_BUCKET_LABEL[p.fitBucket]}</p>
+                          </div>
+                        ))}
+                        {jobsSnapshot.surfacedJobs.map((job) => (
+                          <div key={job.id} className="rounded-md border border-dashed border-border p-2">
+                            <p className="text-foreground">{job.title}{job.companyName && ` at ${job.companyName}`}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Automated match · {FIT_BUCKET_LABEL[job.fitBucket]}
+                            </p>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    {jobsSnapshot.lockedCount > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        +{jobsSnapshot.lockedCount} A-List-exclusive listing{jobsSnapshot.lockedCount === 1 ? '' : 's'} locked
+                        until {view.candidateName} reaches an A.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

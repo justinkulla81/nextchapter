@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { AUDIENCE_TIER_OPTIONS, DISTRIBUTION_OPTIONS } from '@/lib/jobs/job-board-visibility'
 import { cn } from '@/lib/utils'
 
 const POSTING_TYPE_OPTIONS = [
@@ -20,6 +21,8 @@ export function ExclusiveJobPostingForm({
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const [postingType, setPostingType] = useState<'direct' | 'recruiter_search' | null>(null)
+  const [audienceTier, setAudienceTier] = useState<'ALL_CANDIDATES' | 'A_LIST_ONLY' | null>('A_LIST_ONLY')
+  const [distribution, setDistribution] = useState<'OPEN' | 'TARGETED' | null>('OPEN')
 
   return (
     <form
@@ -85,6 +88,27 @@ export function ExclusiveJobPostingForm({
       <div className="space-y-2">
         <Label htmlFor="description">Note for candidates (optional)</Label>
         <Input id="description" name="description" placeholder="Why this one's worth a look" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4">
+        <div className="space-y-2">
+          <Label>Who can see this?</Label>
+          <ChoiceButtons
+            name="audienceTier"
+            options={AUDIENCE_TIER_OPTIONS}
+            value={audienceTier}
+            onChange={setAudienceTier}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Distribution</Label>
+          <ChoiceButtons
+            name="distribution"
+            options={DISTRIBUTION_OPTIONS}
+            value={distribution}
+            onChange={setDistribution}
+          />
+        </div>
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

@@ -456,6 +456,91 @@ export async function createCoverLetterFromSurfacedJob(
   revalidatePath('/dashboard/find-my-job')
 }
 
+export type PromoteFormState = { error?: string; jobPostingId?: string } | undefined
+
+// A candidate wanting the full fit analysis on an NC Job Board listing
+// (Discover section) pulls it into the same tracked-application pipeline
+// every self-found job already uses — one fit engine, one funnel,
+// regardless of source. Unlike createCoverLetterFromSurfacedJob above, this
+// never deletes the source row: an ExclusiveJobPosting is a shared listing
+// other candidates still need to see, not a per-candidate suggestion.
+export async function promoteJobBoardListing(postingId: string, _prevState: PromoteFormState): Promise<PromoteFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const posting = await prisma.exclusiveJobPosting.findFirst({
+    where: { id: postingId, status: 'approved', archivedAt: null },
+  })
+  if (!posting) return { error: 'Could not find that listing.' }
+
+  // Dedup by URL against the candidate's own tracker — clicking "See full
+  // fit" twice on the same listing (or having already found it themselves)
+  // should reuse the existing tracked posting, not create a duplicate. No
+  // such check exists elsewhere on JobPosting today; this is the first.
+  const existing = await prisma.jobPosting.findFirst({
+    where: { candidateId: profile.id, url: posting.url },
+  })
+  if (existing) {
+    revalidatePath('/dashboard/find-my-job')
+    return { jobPostingId: existing.id }
+  }
+
+  const existingCount = await prisma.jobPosting.count({
+    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null },
+  })
+  if (existingCount >= MAX_ACTIVE_FIT_CHECK_SLOTS) {
+    return { error: 'You can track up to 5 active job postings at a time — remove one to add another.' }
+  }
+
+  const jobPosting = await prisma.jobPosting.create({
+    data: { candidateId: profile.id, url: posting.url, fetchStatus: 'pending' },
+  })
+
+  // The board listing often already carries a real description — prefer it
+  // over a redundant fetch; only hit the URL directly when it doesn't.
+  let text = posting.description
+  let fetchStatus = 'success'
+  let fetchError: string | null = null
+  if (!text) {
+    const result = await fetchJobPosting(posting.url)
+    text = result.text
+    fetchStatus = result.status
+    fetchError = result.error
+  }
+
+  await prisma.jobPosting.update({
+    where: { id: jobPosting.id },
+    data: { fetchStatus, fetchError, extractedText: text },
+  })
+
+  if (text) {
+    await analyzeJobFit(jobPosting.id, profile.id)
+  }
+
+  captureServerEvent(profile.id, 'job_board_listing_promoted', { postingId, jobPostingId: jobPosting.id })
+
+  revalidatePath('/dashboard/find-my-job')
+  return { jobPostingId: jobPosting.id }
+}
+
+// Confidential recruiter listings never reveal the company name outright —
+// this is the "soft-reveal handshake" instead: it signals real interest
+// (captured for the recruiter to follow up on) rather than exposing the
+// client relationship to every candidate who's merely curious.
+export async function requestJobBoardIntro(postingId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const posting = await prisma.exclusiveJobPosting.findFirst({
+    where: { id: postingId, status: 'approved', archivedAt: null },
+  })
+  if (!posting) return
+
+  captureServerEvent(profile.id, 'job_board_intro_requested', { postingId, contactEmail: posting.contactEmail })
+
+  revalidatePath('/dashboard/find-my-job')
+}
+
 const HEAVY_USAGE = new Set(['daily', 'few_times_week'])
 const NUDGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
 const NETWORK_NUDGE_TITLE = 'Your network is your fastest path'

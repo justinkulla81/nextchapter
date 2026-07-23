@@ -4,6 +4,14 @@ import { useState } from 'react'
 import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { reactToSurfacedJob } from '@/app/dashboard/find-my-job/actions'
+import { FIT_BUCKET_LABEL, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { cn } from '@/lib/utils'
+
+const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
+  strong: 'bg-success/10 text-success',
+  good: 'bg-brand/10 text-brand',
+  stretch: 'bg-muted text-muted-foreground',
+}
 
 const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
   { value: 'WRONG_FUNCTION', label: 'Wrong function' },
@@ -20,28 +28,35 @@ const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
 // One-at-a-time surfaced job — Interested/Not Interested only (no "Unsure").
 // Reacting removes it from the unreacted queue server-side, and the next
 // render naturally shows whatever's next — no client-side "advance" state.
-export function NextSurfacedJobCard({ job }: { job: SurfacedJob }) {
+export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitBucket?: FitBucket }) {
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
 
   return (
     <div className="space-y-3 rounded-lg border border-border p-4">
-      <div>
-        <a
-          href={job.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-primary hover:underline"
-        >
-          {job.title}
-        </a>
-        {(job.companyName || job.location) && (
-          <p className="text-sm text-muted-foreground">
-            {[job.companyName, job.location].filter(Boolean).join(' — ')}
-          </p>
-        )}
-        {job.description && (
-          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{job.description}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <a
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            {job.title}
+          </a>
+          {(job.companyName || job.location) && (
+            <p className="text-sm text-muted-foreground">
+              {[job.companyName, job.location].filter(Boolean).join(' — ')}
+            </p>
+          )}
+          {job.description && (
+            <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{job.description}</p>
+          )}
+        </div>
+        {fitBucket && (
+          <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[fitBucket])}>
+            {FIT_BUCKET_LABEL[fitBucket]}
+          </span>
         )}
       </div>
 

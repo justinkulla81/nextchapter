@@ -35,6 +35,13 @@ export async function submitEmployerJobBoardPosting(
     salaryMin: formData.get('salaryMin') ? Number(formData.get('salaryMin')) : null,
     salaryMax: formData.get('salaryMax') ? Number(formData.get('salaryMax')) : null,
     salaryCurrency: (formData.get('salaryCurrency') as string | null)?.trim() || null,
+    audienceTier: (formData.get('audienceTier') as string | null) || 'A_LIST_ONLY',
+    distribution: (formData.get('distribution') as string | null) || 'OPEN',
+    disclosure: 'OPEN', // Hiring Managers never post confidentially — their own company.
+    targetFunction: (formData.get('targetFunction') as string | null)?.trim() || null,
+    targetLevel: (formData.get('targetLevel') as string | null)?.trim() || null,
+    targetLocation: (formData.get('targetLocation') as string | null)?.trim() || null,
+    targetRemotePolicy: (formData.get('targetRemotePolicy') as string | null) || null,
   }
 
   const values = {
@@ -49,9 +56,15 @@ export async function submitEmployerJobBoardPosting(
     salaryMax: input.salaryMax?.toString() ?? '',
     salaryCurrency: input.salaryCurrency ?? 'USD',
     description: input.description ?? '',
+    audienceTier: input.audienceTier,
+    distribution: input.distribution,
+    targetFunction: input.targetFunction ?? '',
+    targetLevel: input.targetLevel ?? '',
+    targetLocation: input.targetLocation ?? '',
+    targetRemotePolicy: input.targetRemotePolicy ?? '',
   }
 
-  const error = validateJobBoardSubmission(input)
+  const error = validateJobBoardSubmission(input, 'employer')
   if (error) return { error, values }
 
   const posting = await createPendingJobBoardPosting(input, 'employer', employer.id, user.email ?? employer.companyName)

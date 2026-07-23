@@ -21,6 +21,26 @@ const SOURCE_LABEL: Record<string, string> = {
   ats_feed: 'ATS feed',
 }
 
+const AUDIENCE_TIER_LABEL: Record<string, string> = {
+  ALL_CANDIDATES: 'All candidates',
+  A_LIST_ONLY: 'A-List only',
+}
+
+const DISTRIBUTION_LABEL: Record<string, string> = {
+  OPEN: 'Open',
+  TARGETED: 'Targeted',
+  EXCLUDED: 'Excluded from board',
+}
+
+function visibilitySummary(posting: { audienceTier: string; distribution: string; disclosure: string }) {
+  const parts = [
+    AUDIENCE_TIER_LABEL[posting.audienceTier] ?? posting.audienceTier,
+    DISTRIBUTION_LABEL[posting.distribution] ?? posting.distribution,
+  ]
+  if (posting.disclosure === 'CONFIDENTIAL') parts.push('Confidential — company hidden from candidates')
+  return parts.join(' · ')
+}
+
 export default async function ExclusiveJobsAdminPage() {
   await requireAdmin()
 
@@ -83,6 +103,12 @@ export default async function ExclusiveJobsAdminPage() {
                         ? `${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`
                         : 'No salary band'}
                     </p>
+                    <p className="text-xs text-muted-foreground">{visibilitySummary(posting)}</p>
+                    {posting.disclosure === 'CONFIDENTIAL' && (
+                      <p className="text-xs font-medium text-warning">
+                        Confidential — double-check {posting.companyName} is a real client before approving.
+                      </p>
+                    )}
                     {missing.length > 0 && (
                       <p className="mt-1 text-sm font-medium text-destructive">
                         Missing: {missing.join(', ')} — needs manual follow-up before approving
@@ -135,6 +161,7 @@ export default async function ExclusiveJobsAdminPage() {
                     {SOURCE_LABEL[posting.source]} · added by {posting.addedBy} · {posting.createdAt.toLocaleDateString()}
                     {posting.expiresAt && ` · expires ${posting.expiresAt.toLocaleDateString()}`}
                   </p>
+                  <p className="text-xs text-muted-foreground">{visibilitySummary(posting)}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   {posting.expiresAt && (

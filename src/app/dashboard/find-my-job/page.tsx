@@ -7,6 +7,7 @@ import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFal
 import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { JobReactionSummary } from '@/components/dashboard/JobReactionSummary'
+import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -28,6 +29,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
+import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 
 const SURFACED_JOB_LIST_SIZE = 5
 
@@ -73,7 +75,7 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [surfacedJobs, interestedJobs, reactedCount, grade] = await Promise.all([
+  const [surfacedJobs, interestedJobs, reactedCount, grade, boardPostings] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -87,9 +89,31 @@ export default async function JobFitPage() {
       where: { candidateId: profile.id, reaction: { not: null } },
     }),
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    prisma.exclusiveJobPosting.findMany({
+      where: {
+        status: 'approved',
+        archivedAt: null,
+        distribution: { not: 'EXCLUDED' },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
   ])
 
-  const jobBoardUnlocked = grade.grade === 'A' && profile.recruiterDatabaseOptIn
+  const isAList = grade.grade === 'A'
+  const openBoardPostings = boardPostings.filter(
+    (p) => p.audienceTier === 'ALL_CANDIDATES' || isAList
+  )
+  const lockedBoardPostings = boardPostings.filter(
+    (p) => p.audienceTier === 'A_LIST_ONLY' && !isAList
+  )
+  // A Targeted listing is only shown to candidates who actually fit it —
+  // an Open one is shown to everyone regardless of fit (the bucket badge
+  // still tells them how good a match it is).
+  const visibleBoardPostings = openBoardPostings.filter((p) => {
+    if (p.distribution !== 'TARGETED') return true
+    return computeBoardListingFitBucket(profile, p) !== 'stretch'
+  })
 
   const ratedCount = profile.jobPostings.length + reactedCount
   const appliedJobPostings = profile.jobPostings
@@ -99,30 +123,60 @@ export default async function JobFitPage() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Find My Job</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
         <p className="mt-1 text-muted-foreground">
-          Review jobs you&apos;ve found or that we&apos;ve surfaced for you, and get honest
-          feedback on how well you actually fit each one.
+          Discover real openings — from NC&apos;s job board and our automated search partners —
+          and track every application through offer.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Rating jobs and applying counts toward the working signal in your Search Action
-          Grade.
+          Rating jobs and applying counts toward your grade&apos;s weekly effort.
         </p>
         <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">
           {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
         </p>
       </div>
 
-      <JobBoardUsageCheckIn
-        currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null}
-        nudgeShownAt={profile.jobBoardUsageNudgeShownAt}
-        jobBoardUnlocked={jobBoardUnlocked}
-      />
-
-      <JobBoardRecommendations targetIndustries={profile.targetIndustries} />
-
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">See How You Fit a Job</h2>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Discover</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Real openings from NC&apos;s job board, plus roles our automated search partners
+            found for you — no grade required to see these.
+          </p>
+        </div>
+
+        {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No jobs surfaced yet — set a target role in your Goals to get started.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {visibleBoardPostings.map((posting) => (
+              <DiscoverJobCard key={posting.id} posting={posting} fitBucket={computeBoardListingFitBucket(profile, posting)} />
+            ))}
+            {lockedBoardPostings.map((posting) => (
+              <LockedDiscoverJobCard key={posting.id} posting={posting} />
+            ))}
+            {surfacedJobs.map((job) => (
+              <NextSurfacedJobCard key={job.id} job={job} fitBucket={computeSurfacedJobFitBucket(profile, job)} />
+            ))}
+          </div>
+        )}
+
+        <JobReactionSummary ratedCount={ratedCount} />
+        <InterestedJobsList jobs={interestedJobs} />
+
+        <details className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground">More places to look</summary>
+          <div className="mt-3 space-y-4">
+            <JobBoardRecommendations targetIndustries={profile.targetIndustries} />
+            <JobBoardUsageCheckIn currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null} />
+          </div>
+        </details>
+      </div>
+
+      <div className="space-y-4 border-t border-border pt-8">
+        <h2 className="text-lg font-semibold tracking-tight">My Applications</h2>
         {atCap ? (
           <p className="text-sm text-muted-foreground">
             You have 5 job postings tracked — remove one below to add another.
@@ -432,32 +486,6 @@ export default async function JobFitPage() {
           </div>
         </div>
       )}
-
-      <div className="space-y-4 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Jobs You Might Be Interested In</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Here are some jobs we found. We want your feedback to train our system about your
-            interests and get a better fit.
-          </p>
-        </div>
-
-        <JobReactionSummary ratedCount={ratedCount} />
-
-        {surfacedJobs.length > 0 ? (
-          <div className="space-y-3">
-            {surfacedJobs.map((job) => (
-              <NextSurfacedJobCard key={job.id} job={job} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No jobs surfaced yet — set a target role in your Goals to get started.
-          </p>
-        )}
-
-        <InterestedJobsList jobs={interestedJobs} />
-      </div>
     </div>
   )
 }

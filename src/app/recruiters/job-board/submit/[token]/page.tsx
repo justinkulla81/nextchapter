@@ -22,7 +22,11 @@ export default async function RecruiterJobBoardSubmitPage({
           a named contact and a real salary band, and is reviewed by a person before it goes live.
         </p>
       </div>
-      <JobBoardSubmissionForm action={submitRecruiterJobBoardPosting.bind(null, token)} />
+      <JobBoardSubmissionForm
+        action={submitRecruiterJobBoardPosting.bind(null, token)}
+        allowExcluded
+        allowDisclosure
+      />
     </div>
   )
 }
