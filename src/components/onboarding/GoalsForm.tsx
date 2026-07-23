@@ -46,6 +46,7 @@ export function GoalsForm({
   )
   const [hasBeenReferredBefore, setHasBeenReferredBefore] = useState(profile.hasBeenReferredBefore)
   const [referralRecency, setReferralRecency] = useState<ReferralRecency | null>(profile.referralRecency)
+  const [isPivoting, setIsPivoting] = useState(profile.isPivoting)
   const [isTargetFlexible, setIsTargetFlexible] = useState(profile.targetRoleType === 'Flexible')
   const [targetRoleType, setTargetRoleType] = useState(
     profile.targetRoleType && profile.targetRoleType !== 'Flexible'
@@ -75,6 +76,60 @@ export function GoalsForm({
         <p className="text-xs text-muted-foreground">Pre-filled from your resume — correct anything that&apos;s off.</p>
       </div>
 
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="isPivoting"
+          name="isPivoting"
+          value="on"
+          checked={isPivoting}
+          onCheckedChange={(checked) => setIsPivoting(checked === true)}
+        />
+        <Label htmlFor="isPivoting" className="font-normal">
+          I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
+        </Label>
+      </div>
+
+      {isPivoting && (
+        <>
+          <div className="space-y-2">
+            {inferredIndustries.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Your past industries included:{' '}
+                <span className="font-medium text-foreground">{inferredIndustries.join(', ')}</span>.
+                We&apos;ve added these below — remove any that don&apos;t apply, or add more.
+              </p>
+            )}
+            <Label>Target industries</Label>
+            <TagInput
+              name="targetIndustries"
+              defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
+              placeholder="e.g. Healthcare, Fintech"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="targetFunction">Target job function</Label>
+            <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
+              <SelectTrigger id="targetFunction" className="w-full">
+                <SelectValue placeholder="Select one" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+                  <SelectItem key={fn} value={fn}>
+                    {fn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {inferredFunction
+                ? 'Pre-filled based on your background — change it if you’re targeting something different.'
+                : 'The function you want to be doing next — it can differ from your background.'}
+            </p>
+          </div>
+        </>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="targetRoleType">What role are you targeting?</Label>
         {/* Disabled inputs aren't included in FormData, so the real
@@ -97,43 +152,6 @@ export function GoalsForm({
             I&apos;m flexible — open to a range of roles
           </Label>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        {inferredIndustries.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            Your past industries included:{' '}
-            <span className="font-medium text-foreground">{inferredIndustries.join(', ')}</span>.
-            We&apos;ve added these below — remove any that don&apos;t apply, or add more.
-          </p>
-        )}
-        <Label>Target industries</Label>
-        <TagInput
-          name="targetIndustries"
-          defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
-          placeholder="e.g. Healthcare, Fintech"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="targetFunction">Target job function</Label>
-        <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
-          <SelectTrigger id="targetFunction" className="w-full">
-            <SelectValue placeholder="Select one" />
-          </SelectTrigger>
-          <SelectContent>
-            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
-              <SelectItem key={fn} value={fn}>
-                {fn}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-muted-foreground">
-          {inferredFunction
-            ? 'Pre-filled based on your background — change it if you’re targeting something different.'
-            : 'The function you want to be doing next — it can differ from your background.'}
-        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -275,12 +293,6 @@ export function GoalsForm({
             defaultValue={profile.startLowerRationale ?? ''}
           />
         )}
-        <div className="flex items-start gap-2">
-          <Checkbox id="isPivoting" name="isPivoting" value="on" defaultChecked={profile.isPivoting} />
-          <Label htmlFor="isPivoting" className="font-normal">
-            I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
-          </Label>
-        </div>
         <div className="flex items-center gap-2">
           <Checkbox
             id="openToRelocation"
