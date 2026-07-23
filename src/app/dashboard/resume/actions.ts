@@ -13,7 +13,7 @@ import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
-import { applyWorkHistoryDuringGapRewrite } from '@/lib/scoring/rewrite-actions'
+import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/lib/scoring/rewrite-actions'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -63,6 +63,14 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
 
   const { text, error: extractionError } = await extractResumeText(file, fileType)
 
+  // Captured before creating the new row — the baseline to compare the
+  // freshly analyzed resume against for the rewrite-action below.
+  const previousResume = await prisma.resume.findFirst({
+    where: { candidateId: profile.id },
+    orderBy: { uploadedAt: 'desc' },
+    select: { atsScore: true, resultsScore: true, experienceScore: true },
+  })
+
   const resume = await prisma.resume.create({
     data: {
       candidateId: profile.id,
@@ -77,6 +85,18 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   await analyzeResume(resume.id)
   await extractProfileFieldsFromResume(resume.id)
   captureServerEvent(profile.id, 'resume_analyzed')
+
+  try {
+    const analyzed = await prisma.resume.findUnique({
+      where: { id: resume.id },
+      select: { atsScore: true, resultsScore: true, experienceScore: true },
+    })
+    if (analyzed) {
+      await applyResumeImprovedRewrite(profile.id, previousResume, analyzed)
+    }
+  } catch (error) {
+    console.error('Failed to apply resume-improved baseline rewrite:', error)
+  }
 
   // Mid-onboarding (still an anonymous session) — if the resume's extracted
   // email already belongs to a real, registered account, send them to log in

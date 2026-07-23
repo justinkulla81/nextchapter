@@ -178,12 +178,25 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   // ---- Target Fit — real market demand + how well matched/focused the
   // target is. Same math as the old marketPosition/targetComplexity/focus/
   // experienceMatch dimensions, now averaged into one category.
-  let experienceMatch = 0
-  if (candidate.yearsExperience !== null) experienceMatch += 40
-  if (candidate.highestLevelReached) experienceMatch += 20
-  if (candidate.resumeLatestJobTitle) experienceMatch += 20
-  if (looselyMatches(candidate.primaryFunction, candidate.targetRoleType)) experienceMatch += 20
-  experienceMatch = clamp(experienceMatch)
+  const latestResume = candidate.resumes[0]
+
+  // The resume's own experienceScore (gaps, tenure, alignment with stated
+  // goals — see analyze-resume.ts's prompt) is a genuinely richer read on
+  // the same question this heuristic is approximating, so once a resume
+  // exists it's blended in rather than left unused. atsScore/resultsScore
+  // are deliberately NOT here — those are about how clearly the resume
+  // communicates, not whether the underlying experience fits, so they
+  // belong to Communication & Collaboration instead (below).
+  let experienceMatchHeuristic = 0
+  if (candidate.yearsExperience !== null) experienceMatchHeuristic += 40
+  if (candidate.highestLevelReached) experienceMatchHeuristic += 20
+  if (candidate.resumeLatestJobTitle) experienceMatchHeuristic += 20
+  if (looselyMatches(candidate.primaryFunction, candidate.targetRoleType)) experienceMatchHeuristic += 20
+  experienceMatchHeuristic = clamp(experienceMatchHeuristic)
+  const experienceMatch =
+    latestResume?.experienceScore != null
+      ? clamp(experienceMatchHeuristic * 0.5 + latestResume.experienceScore * 0.5)
+      : experienceMatchHeuristic
 
   let marketPosition = 60
   const marketConditions = await getMarketConditions({
@@ -231,20 +244,26 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   const leadershipScore =
     leadershipRefRating !== null ? clamp(leadershipSelfReport * 0.5 + leadershipRefRating * 0.5) : leadershipSelfReport
 
-  // ---- Skills & Execution — self-rated core-skill confidence + resume
-  // experience quality, blended with the reference "work ethic" rating.
-  const latestResume = candidate.resumes[0]
-  const resumeExperienceScore = latestResume?.experienceScore ?? null
-  const skillsSelfReport = clamp(
-    (candidate.functionSkillConfidence ?? 50) * 0.6 + (resumeExperienceScore ?? 50) * 0.4
-  )
+  // ---- Skills & Execution — self-rated core-skill confidence, blended
+  // with the reference "work ethic" rating.
+  const skillsSelfReport = candidate.functionSkillConfidence ?? 50
   const skillsRefRating = averageReferenceRating(refs, 'overallRating')
   const skillsExecutionScore =
-    skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : skillsSelfReport
+    skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : clamp(skillsSelfReport)
 
   // ---- Communication & Collaboration — self-rated communicator
-  // confidence, blended with the reference communication rating.
-  const communicationSelfReport = candidate.communicatorConfidence ?? 50
+  // confidence blended with how clearly the resume itself communicates
+  // (ATS readability + quantified-results framing — both fundamentally
+  // about writing clearly, not about whether the underlying experience
+  // fits), then blended again with the reference communication rating.
+  const presentationScore =
+    latestResume?.atsScore != null && latestResume?.resultsScore != null
+      ? clamp((latestResume.atsScore + latestResume.resultsScore) / 2)
+      : null
+  const communicationSelfReport =
+    presentationScore !== null
+      ? clamp((candidate.communicatorConfidence ?? 50) * 0.6 + presentationScore * 0.4)
+      : (candidate.communicatorConfidence ?? 50)
   const communicationRefRating = averageReferenceRating(refs, 'traitCollaborationRating')
   const communicationScore =
     communicationRefRating !== null

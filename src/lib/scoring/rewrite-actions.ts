@@ -116,3 +116,49 @@ export async function applyWorkSampleUploadedRewrite(candidateId: string): Promi
   const current = await currentBaseline(candidateId, 'skillsExecution')
   await updateCategoryBaseline(candidateId, 'skillsExecution', clamp(current + 5))
 }
+
+interface ResumeScoreSnapshot {
+  atsScore: number | null
+  resultsScore: number | null
+  experienceScore: number | null
+}
+
+const MEANINGFUL_RESUME_IMPROVEMENT = 15
+const RESUME_IMPROVEMENT_BUMP = 6
+
+// A resume re-upload that meaningfully raises how clearly it communicates
+// (ATS readability + quantified results) or how well the underlying
+// experience reads against the candidate's target is real, inspectable
+// evidence of improvement — not just weekly effort. Also fires on a first
+// resume with a decent score, the same "first real evidence" treatment as
+// a first reference (see applyReferenceCompletedRewrite). atsScore and
+// resultsScore feed Communication & Collaboration; experienceScore feeds
+// Target Fit — matching how hireability-grade.ts's computeCategoryGrades
+// now uses these three fields.
+export async function applyResumeImprovedRewrite(
+  candidateId: string,
+  previous: ResumeScoreSnapshot | null,
+  current: ResumeScoreSnapshot
+): Promise<void> {
+  const presentationBefore = averageOf(previous?.atsScore, previous?.resultsScore)
+  const presentationAfter = averageOf(current.atsScore, current.resultsScore)
+  if (presentationAfter !== null && isMeaningfulGain(presentationBefore, presentationAfter)) {
+    const baseline = await currentBaseline(candidateId, 'communication')
+    await updateCategoryBaseline(candidateId, 'communication', clamp(baseline + RESUME_IMPROVEMENT_BUMP))
+  }
+
+  if (current.experienceScore !== null && isMeaningfulGain(previous?.experienceScore ?? null, current.experienceScore)) {
+    const baseline = await currentBaseline(candidateId, 'targetFit')
+    await updateCategoryBaseline(candidateId, 'targetFit', clamp(baseline + RESUME_IMPROVEMENT_BUMP))
+  }
+}
+
+function averageOf(a: number | null | undefined, b: number | null | undefined): number | null {
+  if (a == null || b == null) return null
+  return (a + b) / 2
+}
+
+function isMeaningfulGain(before: number | null, after: number): boolean {
+  if (before === null) return after >= 60 // first real score, decent on its own
+  return after - before >= MEANINGFUL_RESUME_IMPROVEMENT
+}

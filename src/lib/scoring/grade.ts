@@ -112,7 +112,7 @@ export const CATEGORY_EXPLANATION: Record<CategoryKey, string> = {
   skillsExecution:
     'Whether you can do the work and finish what you start — your How I Work Best results, your own confidence in your core skills, and any certifications or learning you\'ve logged.',
   communication:
-    'Whether people can work with you and you explain yourself clearly — your How I Work Best results, your own confidence, and anything references say about it.',
+    'Whether people can work with you and you explain yourself clearly — your own confidence, how clearly your resume communicates (readability and quantified results), and anything references say about it.',
   adaptability:
     "How you handle ambiguity and change, and — if you're pivoting — how realistic your expectations are about the change you're asking for.",
   ownership:
