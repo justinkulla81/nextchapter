@@ -22,7 +22,7 @@ export function LockedFeatureNotice({
       </div>
       <p className="mt-1.5 text-sm text-muted-foreground">{requirement}</p>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Your current Search Action Grade:{' '}
+        Your current Market Reality Grade:{' '}
         <span className="font-semibold text-foreground">{currentGrade ?? 'Not yet graded'}</span>
       </p>
     </div>

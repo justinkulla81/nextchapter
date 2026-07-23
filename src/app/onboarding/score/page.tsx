@@ -2,8 +2,12 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
-import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { DualGradeReveal } from '@/components/candidates/DualGradeReveal'
+import {
+  computeHireabilityGrade,
+  GRADE_RELATIONS_INCLUDE,
+  type CandidateWithGradeRelations,
+} from '@/lib/scoring/hireability-grade'
+import { GradeReveal } from '@/components/candidates/GradeReveal'
 import { Button } from '@/components/ui/button'
 
 export default async function ScorePage() {
@@ -19,21 +23,10 @@ export default async function ScorePage() {
 
   const candidateWithRelations = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: profile.id },
-    include: {
-      references: true,
-      workSamples: true,
-      workHistory: true,
-      jobPostings: true,
-      linkedInActivityLogs: true,
-      communityPosts: { where: { isActive: true } },
-      resumes: { orderBy: { uploadedAt: 'desc' } },
-      surfacedJobs: { select: { reaction: true } },
-      _count: { select: { weeklySprints: true } },
-      coach: { select: { focus: true } },
-    },
+    include: GRADE_RELATIONS_INCLUDE,
   })
 
-  const grade = await computeHireabilityGrade(candidateWithRelations)
+  const grade = await computeHireabilityGrade(candidateWithRelations as unknown as CandidateWithGradeRelations)
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
@@ -49,7 +42,7 @@ export default async function ScorePage() {
           <span className="mt-1 block not-italic text-xs text-muted-foreground/80">— Victoria</span>
         </p>
       </div>
-      <DualGradeReveal grade={grade} />
+      <GradeReveal grade={grade} />
       <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
         Create your account to get your full report and action plan
       </Button>

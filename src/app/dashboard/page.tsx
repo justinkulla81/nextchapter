@@ -7,7 +7,8 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import { getTodaysMood, getCheckInSummary, startOfUTCDay } from '@/lib/daily/mood'
+import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
+import { SentimentSupportCard } from '@/components/dashboard/SentimentSupportCard'
 import {
   getCurrentWeekSprint,
   getSuggestedActions,
@@ -91,6 +92,7 @@ export default async function DashboardPage() {
     sessionImpact,
     dashboardMessage,
     hasCoachingFormResponse,
+    sentimentAlert,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -117,6 +119,7 @@ export default async function DashboardPage() {
     profile.coachId && profile.coachDossierConsentedAt
       ? hasSubmittedCoachingOnboardingForm(profile.id)
       : Promise.resolve(true),
+    getSentimentAlert(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -130,14 +133,13 @@ export default async function DashboardPage() {
     7,
     Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
   )
-  const onTrack =
-    grade.searchExecution.weeklyPoints > (grade.searchExecution.weeklyPointsTarget * daysElapsedThisWeek) / 7
+  const onTrack = grade.weeklyPoints > (grade.weeklyPointsTarget * daysElapsedThisWeek) / 7
 
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
   const dayNumber = Math.floor(daysSinceRegistration) + 1
-  const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.searchExecution.grade, 'C')
+  const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.grade, 'C')
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
@@ -184,18 +186,20 @@ export default async function DashboardPage() {
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
-          marketRealityGrade={grade.marketReality.grade}
+          marketRealityGrade={grade.grade}
           weekNumber={weekNumber}
           editWindowOpen={editWindowOpen}
           weeklySprintsCount={profile._count.weeklySprints}
-          engines={grade.searchExecution.engines}
-          laggingEngines={grade.searchExecution.laggingEngines}
-          categoryMinimumsMet={grade.searchExecution.categoryMinimumsMet}
-          weeklyPoints={grade.searchExecution.weeklyPoints}
-          weeklyPointsTarget={grade.searchExecution.weeklyPointsTarget}
+          engines={grade.weeklyEngines}
+          laggingEngines={grade.laggingEngines}
+          categoryMinimumsMet={grade.categoryMinimumsMet}
+          weeklyPoints={grade.weeklyPoints}
+          weeklyPointsTarget={grade.weeklyPointsTarget}
           onTrack={onTrack}
         />
       </div>
+
+      {sentimentAlert.lowSentiment && <SentimentSupportCard hasCoach={!!profile.coachId} />}
 
       {(showGotHiredCTA || showCoachingCTA || sessionImpact || needsCoachingForm) && (
         <div className="space-y-4">

@@ -71,8 +71,8 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
       const grade = r.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
       return {
         generatedAt: r.generatedAt,
-        executionGrade: grade?.searchExecution.grade ?? null,
-        marketGrade: grade?.marketReality.grade ?? null,
+        executionGrade: grade?.grade ?? null,
+        marketGrade: grade?.grade ?? null,
       }
     }),
     workHistory,

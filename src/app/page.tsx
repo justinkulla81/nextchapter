@@ -39,7 +39,7 @@ const jsonLd = {
   name: 'NextChapter',
   url: 'https://launchyournextchapter.com',
   description:
-    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Grade and Search Action Grade with a personalized action plan.',
+    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Grade with a personalized action plan.',
   publisher: {
     '@type': 'Organization',
     name: 'NextChapter',

@@ -38,7 +38,7 @@ export default async function PrivacyPage() {
             NextChapter&apos;s Talent tools can match you against open roles at all.
           </p>
         </div>
-        <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} currentGrade={grade.searchExecution.grade} />
+        <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} currentGrade={grade.grade} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

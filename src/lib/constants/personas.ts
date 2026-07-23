@@ -18,7 +18,7 @@ export const PERSONAS: Persona[] = [
     situation: 'worried_let_go',
     body: [
       "If you sense a layoff coming, the worst thing you can do is wait until it's official to start moving. You don't need to post \"open to work\" or tell your team — you just need a clear read on where you actually stand and a plan for what's next.",
-      "Get your free Market Reality Grade and Search Action Grade privately. Nothing about using NextChapter is visible to your employer, your team, or anyone in your network unless you choose to share it.",
+      "Get your free Market Reality Grade privately. Nothing about using NextChapter is visible to your employer, your team, or anyone in your network unless you choose to share it.",
     ],
   },
   {
@@ -29,7 +29,7 @@ export const PERSONAS: Persona[] = [
     situation: 'just_laid_off',
     body: [
       "A layoff is disorienting — the structure of your day disappears along with the job. The fastest way back is a plan that turns \"I should probably look for a job\" into specific actions with a real weekly target.",
-      'Get an honest Market Reality Grade and Search Action Grade, a Weekly Search Score you can actually move, and a community of people going through the exact same thing right now.',
+      'Get an honest Market Reality Grade, a Weekly Search Score you can actually move, and a community of people going through the exact same thing right now.',
     ],
   },
   {

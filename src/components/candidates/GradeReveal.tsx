@@ -2,18 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL, GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
+import { GRADE_LABEL, GRADE_BAND_DESCRIPTION, GRADE_TEXT_COLOR, GRADE_RING_STROKE } from '@/lib/scoring/grade'
 import { cn } from '@/lib/utils'
 
 const GRADE_ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
-
-const GRADE_LEGEND_COLOR: Record<Grade, string> = {
-  A: 'text-success',
-  B: 'text-brand',
-  C: 'text-light-blue',
-  D: 'text-warning',
-  F: 'text-error',
-}
 
 function GradeLegend() {
   return (
@@ -26,7 +18,7 @@ function GradeLegend() {
         <h3 className="text-xs font-medium text-muted-foreground">What the letters mean</h3>
         {GRADE_ORDER.map((g) => (
           <div key={g} className="flex items-baseline gap-2">
-            <span className={cn('w-4 shrink-0 font-bold', GRADE_LEGEND_COLOR[g])}>{g}</span>
+            <span className={cn('w-4 shrink-0 font-bold', GRADE_TEXT_COLOR[g])}>{g}</span>
             <span className="text-muted-foreground">{GRADE_BAND_DESCRIPTION[g]}</span>
           </div>
         ))}
@@ -35,23 +27,7 @@ function GradeLegend() {
   )
 }
 
-const GRADE_RING_STROKE: Record<Grade, string> = {
-  A: 'stroke-success',
-  B: 'stroke-brand',
-  C: 'stroke-light-blue',
-  D: 'stroke-warning',
-  F: 'stroke-error',
-}
-
-const GRADE_TEXT_COLOR: Record<Grade, string> = {
-  A: 'text-success',
-  B: 'text-brand',
-  C: 'text-light-blue',
-  D: 'text-warning',
-  F: 'text-error',
-}
-
-function GradeRing({ label, grade }: { label: string; grade: Grade | null }) {
+function GradeRing({ grade }: { grade: Grade | null }) {
   const [animatedFraction, setAnimatedFraction] = useState(0)
   const targetFraction = grade === null ? 0 : 1
 
@@ -99,7 +75,7 @@ function GradeRing({ label, grade }: { label: string; grade: Grade | null }) {
           )}
         </div>
       </div>
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium text-muted-foreground">Market Reality Grade</p>
     </div>
   )
 }
@@ -111,27 +87,25 @@ function HardHillCallout() {
     <div className="w-full max-w-sm space-y-2 border-l-4 border-navy bg-off-white px-[1.375rem] py-4 text-left">
       <p className="font-bold text-navy">We know this seems like a hard hill to climb.</p>
       <p className="text-[15px] text-foreground">
-        But that&apos;s exactly what NextChapter is for. We help you build a strong Search Action
-        Grade with a structured plan — one activity at a time.
+        But that&apos;s exactly what NextChapter is for. Real, consistent weekly effort — networking,
+        learning, and putting yourself out there — moves this grade over time.
       </p>
       <p className="text-[15px] text-foreground">
-        You can also show recruiters you&apos;re serious with a strong Execution Score — earned by
-        completing real activities in your action plan. Recruiters see your effort, not your grade.
+        You can also show recruiters you&apos;re serious by keeping your action plan up to date.
+        Recruiters see your effort, not a raw number.
       </p>
     </div>
   )
 }
 
-export function DualGradeReveal({ grade }: { grade: HireabilityGrade }) {
+export function GradeReveal({ grade }: { grade: HireabilityGrade }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <GradeRing label="Market Reality Grade" grade={grade.marketReality.grade} />
+      <GradeRing grade={grade.grade} />
 
       <GradeLegend />
 
-      {grade.marketReality.grade !== null && HARD_HILL_GRADES.includes(grade.marketReality.grade) && (
-        <HardHillCallout />
-      )}
+      {grade.grade !== null && HARD_HILL_GRADES.includes(grade.grade) && <HardHillCallout />}
     </div>
   )
 }

@@ -1,13 +1,6 @@
 import Link from 'next/link'
-import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-
-const GRADE_COLOR: Record<Grade, string> = {
-  A: 'text-success',
-  B: 'text-brand',
-  C: 'text-light-blue',
-  D: 'text-warning',
-  F: 'text-error',
-}
+import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 
 function Divider() {
   return <div className="h-6 w-px bg-border" />
@@ -56,22 +49,7 @@ export function DashboardTopStrip({
 
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Market Reality Grade</span>
-        <span className={`text-lg font-bold ${GRADE_COLOR[grade.marketReality.grade]}`}>
-          {grade.marketReality.grade}
-        </span>
-      </div>
-
-      <Divider />
-
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Search Action Grade</span>
-        {searchExecutionAvailable ? (
-          <span className={`text-lg font-bold ${GRADE_COLOR[grade.searchExecution.grade]}`}>
-            {grade.searchExecution.grade}
-          </span>
-        ) : (
-          <span className="text-lg font-bold text-muted-foreground">N/A</span>
-        )}
+        <span className={`text-lg font-bold ${GRADE_TEXT_COLOR[grade.grade]}`}>{grade.grade}</span>
       </div>
 
       <Divider />
@@ -83,12 +61,12 @@ export function DashboardTopStrip({
         <span className="text-xs font-medium text-muted-foreground">Weekly Search Score</span>
         {searchExecutionAvailable ? (
           <span className="text-sm font-semibold text-foreground tabular-nums">
-            {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget}
+            {grade.weeklyPoints} / {grade.weeklyPointsTarget}
           </span>
         ) : (
           <span className="text-sm font-semibold text-muted-foreground">N/A</span>
         )}
-        {searchExecutionAvailable && grade.searchExecution.weeklyPoints > grade.searchExecution.weeklyPointsTarget && (
+        {searchExecutionAvailable && grade.weeklyPoints > grade.weeklyPointsTarget && (
           <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
             Over-delivering
           </span>

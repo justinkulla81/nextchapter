@@ -34,7 +34,7 @@ export default async function RecruiterDatabaseAdminPage() {
     candidates.map(async (c) => {
       const { data: userData } = await admin.auth.admin.getUserById(c.userId)
       const grade = c.hireabilityReports[0]?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined
-      const searchActionGrade = grade?.searchExecution.grade ?? null
+      const searchActionGrade = grade?.grade ?? null
       return {
         id: c.id,
         name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
@@ -58,7 +58,7 @@ export default async function RecruiterDatabaseAdminPage() {
         <p className="mt-1 text-muted-foreground">
           {rows.length} candidates opted in; {surfacedCount} currently surfaced to the Talent match engine.
           Opting in is necessary but not sufficient — a candidate is only actually matched to roles while
-          holding an A Search Action Grade.
+          holding an A Market Reality Grade.
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export default async function RecruiterDatabaseAdminPage() {
               <th className="px-3 py-2 font-medium">Level</th>
               <th className="px-3 py-2 font-medium">Target role</th>
               <th className="px-3 py-2 font-medium">Privacy tier</th>
-              <th className="px-3 py-2 font-medium">Search Action Grade</th>
+              <th className="px-3 py-2 font-medium">Market Reality Grade</th>
               <th className="px-3 py-2 font-medium">Requested</th>
             </tr>
           </thead>

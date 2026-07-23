@@ -52,11 +52,9 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
   ])
 
   const gradeFrom =
-    (gradeBefore?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.searchExecution.grade ??
-    null
+    (gradeBefore?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
   const gradeTo =
-    (gradeAfter?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.searchExecution.grade ??
-    null
+    (gradeAfter?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
 
   const actionsCompletedSinceLastSession = sprintsInWindow.reduce((sum, sprint) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]

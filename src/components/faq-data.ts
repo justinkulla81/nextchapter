@@ -15,7 +15,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Is NextChapter really free for me?',
         answer:
-          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Market Reality Grade, Search Action Grade, and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
+          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Market Reality Grade and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
       },
       {
         question: "Then what's the catch? How do you actually make money?",
@@ -33,14 +33,14 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     category: 'Your grades & assessment',
     items: [
       {
-        question: 'What are the Market Reality Grade and Search Action Grade?',
+        question: 'What is the Market Reality Grade?',
         answer:
-          "They're two letter grades, A through F — not one number. Market Reality Grade is how ready you are to land your next role today, based on how you actually work, not just what's on your resume. Search Action Grade is how effectively you're running your own search, and starts blank until you begin your first weekly action plan. After you finish the assessment, you get your Market Reality Grade plus a personalized action plan; Search Action Grade fills in as you take action. It's meant to be useful to you first, not just a number for employers.",
+          "One letter grade, A through F — not a number. It's built from six categories: Target Fit (real hiring demand plus how well-matched and focused your target is) and five hiring-manager categories — Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, and Ownership & Reliability. After you finish the assessment you get an honest first read; from there, your weekly effort — networking, learning, and working your search — nudges the grade up or down each week, without ever resetting your baseline. It's meant to be useful to you first, not just a number for employers.",
       },
       {
-        question: 'How are the grades calculated?',
+        question: 'How is the grade calculated?',
         answer:
-          "Market Reality Grade combines your experience and goals with a How I Work Best assessment built on 9 cross-validated dimensions — things like how fast you move, how you handle ambiguity, how you communicate, and how you lead — measured in a way that's hard to game by just picking the “best-sounding” answer. Search Action Grade is separate: it tracks the real steps you take each week, like outreach, references, and interviews, not a quiz score.",
+          "Target Fit combines real labor-market demand with how well your background and target line up. The five competency categories draw mostly from your How I Work Best assessment, references, and resume — built to be harder to game than just picking the \"best-sounding\" answer. Each week, your baseline (which only moves when something real changes — a reference lands, an interview happens) is nudged by how much real effort you put in that week across Networking, Learning, and Working.",
       },
       {
         question: 'How long does the assessment take?',
@@ -65,7 +65,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Can I retake the assessment or improve my Grade?',
         answer:
-          'You don’t retake the quiz itself — instead, your Search Action Grade updates automatically as you take real steps: adding references and work samples, confirming your details, logging networking activity, landing an interview. The more of your action plan you complete, the more it reflects it. Your Market Reality Grade can shift too, as you round out your profile with more experience, references, and work samples.',
+          'You don’t retake the quiz itself — instead, your Market Reality Grade updates automatically as you take real steps: adding references and work samples, confirming your details, logging networking activity, landing an interview. The more of your action plan you complete, the more it reflects it. Your Market Reality Grade can shift too, as you round out your profile with more experience, references, and work samples.',
       },
     ],
   },
@@ -105,7 +105,12 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'What happens once I finish?',
         answer:
-          "You get your Market Reality Grade and a personalized action plan immediately — your Search Action Grade fills in as you start taking action each week. From there, your profile becomes visible to employers according to the privacy setting you've chosen — you don't have to fire off dozens of applications into the void.",
+          "You get your Market Reality Grade and a personalized action plan immediately — the grade keeps moving as you take real action each week. From there, your profile becomes visible to employers according to the privacy setting you've chosen — you don't have to fire off dozens of applications into the void.",
+      },
+      {
+        question: 'What does an A unlock?',
+        answer:
+          "An A means we're ready to unabashedly support and market you as an excellent candidate — not just a badge for effort. It unlocks recruiter visibility, our job board, and the executive recruiter database. We can't promise it gets you a job — nobody can — but doing the real work behind it (a well-matched target, real weekly effort) genuinely improves your odds either way.",
       },
       {
         question: 'How does matching with employers work?',

@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import {
-  computeMarketRealityDimensions,
+  computeCategoryGrades,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
 } from '@/lib/scoring/hireability-grade'
@@ -342,8 +342,8 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     orderBy: { completedAt: 'desc' },
   })
 
-  const dimensions = await computeMarketRealityDimensions(candidate as unknown as CandidateWithGradeRelations)
-  const namedReasons = computeNamedReasons(dimensions, latestAiProject?.judgmentCall ?? null)
+  const categories = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
+  const namedReasons = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null)
 
   const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, patternSummary, proofPoints] =
     await Promise.all([

@@ -1,18 +1,23 @@
-// Pure types/values for the Market Reality Grade and Search Action Grade —
-// no server-only dependencies,
-// so client components (e.g. the animated score-reveal ring) can import
-// these directly without pulling in the Prisma/market-data computation in
-// hireability-grade.ts.
+// Pure types/values for the single Market Reality Grade — no server-only
+// dependencies, so client components (e.g. the animated score-reveal ring)
+// can import these directly without pulling in the Prisma/market-data
+// computation in hireability-grade.ts.
+//
+// Scoring Model 2.0: there is one grade, built from six categories (Target
+// Fit plus five hiring-manager competency categories) and a weekly-effort
+// nudge. There is no longer a separate "Search Action Grade" — weekly
+// effort is an input to the one grade, not a second grade of its own.
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
-export type FactorType = 'controllable' | 'influenceable' | 'structural'
 
 // Deliberately hard grading — most candidates should land on C, with A and
 // F reserved for real extremes (see GRADE_BAND_DESCRIPTION and the "we're
 // hard graders" copy in GradeSystemExplainer). This is a first-pass curve,
 // not fit to real usage data — this product has too few real scored
 // candidates yet to calibrate against an actual distribution; revisit once
-// there's a meaningful population to check it against.
+// there's a meaningful population to check it against, and once there's
+// real data on how the new baseline+weekly-nudge formula actually moves
+// scores week to week.
 export function scoreToGrade(score: number): Grade {
   if (score >= 90) return 'A'
   if (score >= 75) return 'B'
@@ -44,73 +49,109 @@ export const GRADE_BAND_DESCRIPTION: Record<Grade, string> = {
   F: 'Critical gap — a major weakness or missing piece here is the single highest-leverage thing to fix first.',
 }
 
-export const FACTOR_TYPE_LABEL: Record<FactorType, string> = {
-  controllable: 'Controllable',
-  influenceable: 'Influenceable',
-  structural: 'Structural',
+// Shared color tokens for every grade display in the product — previously
+// duplicated across DualGradeReveal, GradeSystemExplainer, DashboardTopStrip,
+// and the hireability-report page. One source of truth now.
+export const GRADE_TEXT_COLOR: Record<Grade, string> = {
+  A: 'text-success',
+  B: 'text-brand',
+  C: 'text-light-blue',
+  D: 'text-warning',
+  F: 'text-error',
 }
 
-export const FACTOR_TYPE_EXPLANATION: Record<FactorType, string> = {
-  controllable: "Fully in your hands. This is where effort converts most directly into a better grade.",
-  influenceable: 'You can shift it, but it also depends on things you already brought with you — like your work history.',
-  structural: "Mostly outside your control. It reflects real market/role conditions, not effort — don't blame yourself for a low grade here.",
+export const GRADE_RING_STROKE: Record<Grade, string> = {
+  A: 'stroke-success',
+  B: 'stroke-brand',
+  C: 'stroke-light-blue',
+  D: 'stroke-warning',
+  F: 'stroke-error',
 }
 
-export const MARKET_REALITY_DIMENSION_EXPLANATION: Record<MarketRealityDimension['key'], string> = {
-  experienceMatch: 'Whether your background — years, level, title — actually lines up with the role you\'re targeting.',
-  marketPosition: 'Real hiring demand for your role and location, from labor-market data — not something you can change by trying harder.',
-  targetComplexity: "How big a leap your target is from your current function and industry. A same-function, same-industry target is the easiest case.",
-  presentation: 'How well your resume, LinkedIn, and story come across on paper — the first impression before anyone talks to you.',
-  socialProof: 'Completed references and work samples — real people and real evidence vouching for you, not just your own word.',
-  searchStrategy: 'How intensively and flexibly you\'re approaching the search itself — your stated intensity, flexibility, and follow-through on setup steps.',
-  focus: 'Whether you\'ve committed to a specific target role. Saying you\'re "flexible" on what you want next reads as a lack of direction, not open-mindedness — recruiters and hiring managers respond to candidates who know exactly what they\'re after.',
-  detailOrientedness: 'How many of the optional job-search questions in your profile you actually answered. Skipping them isn\'t neutral — it\'s the same thoroughness a hiring manager is judging in your resume and applications.',
+// The six categories that make up the grade. Target Fit carries the old
+// structural/market-condition signal (real hiring demand, how big a leap
+// the target is, whether a specific target has been named, experience
+// match) as a first-class, gradeable, improvable category — not a caveat
+// label on the others. It stays in the score on purpose: someone
+// reapplying to the same function in a market with plenty of open roles
+// really is more market-ready than someone pivoting into a scarce one, and
+// that's exactly what "Market Reality" means. The other five are
+// hiring-manager competency categories, built mostly from the How I Work
+// Best assessment, references, and resume data.
+export type CategoryKey =
+  | 'targetFit'
+  | 'leadership'
+  | 'skillsExecution'
+  | 'communication'
+  | 'adaptability'
+  | 'ownership'
+
+export const CATEGORY_ORDER: CategoryKey[] = [
+  'targetFit',
+  'leadership',
+  'skillsExecution',
+  'communication',
+  'adaptability',
+  'ownership',
+]
+
+export const CATEGORY_LABEL: Record<CategoryKey, string> = {
+  targetFit: 'Target Fit',
+  leadership: 'Leadership & Management',
+  skillsExecution: 'Skills & Execution',
+  communication: 'Communication & Collaboration',
+  adaptability: 'Adaptability & Change Readiness',
+  ownership: 'Ownership & Reliability',
 }
 
-export const SEARCH_EXECUTION_ENGINE_EXPLANATION: Record<SearchExecutionEngine['key'], string> = {
-  learning: "Whether you've done the foundational work — a complete profile, the How I Work Best assessment, a real target defined.",
-  effort: "How many of your action-plan confirmations you've actually completed, plus jobs you've run through fit feedback.",
-  working: 'Real assets you\'ve built — a resume on file, work samples, active LinkedIn posting.',
-  connecting: "Real outreach and network signals — your networking list, references requested, and community engagement.",
+export const CATEGORY_EXPLANATION: Record<CategoryKey, string> = {
+  targetFit:
+    "Is there real hiring demand for what you're targeting, and how well your background lines up with it. Unlike the categories below, this one reflects real market conditions as well as your own choices — but it's still improvable: a better-matched target, more location or function flexibility, or simply naming a specific target instead of staying flexible all move this.",
+  leadership:
+    "Whether you've actually led or managed at the scope you're describing — team size, cross-functional influence — and what references and your How I Work Best results say about how you lead.",
+  skillsExecution:
+    'Whether you can do the work and finish what you start — your How I Work Best results, your own confidence in your core skills, and any certifications or learning you\'ve logged.',
+  communication:
+    'Whether people can work with you and you explain yourself clearly — your How I Work Best results, your own confidence, and anything references say about it.',
+  adaptability:
+    "How you handle ambiguity and change, and — if you're pivoting — how realistic your expectations are about the change you're asking for.",
+  ownership:
+    "Whether people can hand you something and trust it gets done without hovering — your How I Work Best results and what references say about your follow-through.",
 }
 
-// Static labels/factor-types for the system explainer — the live computed
-// grade already carries a label+factorType per dimension, but the explainer
-// describes the system in the abstract, without a candidate's grade in hand.
-export const MARKET_REALITY_DIMENSION_LABEL: Record<MarketRealityDimension['key'], string> = {
-  experienceMatch: 'Experience Match',
-  marketPosition: 'Market Position',
-  targetComplexity: 'Target Complexity',
-  presentation: 'Presentation',
-  socialProof: 'Social Proof',
-  searchStrategy: 'Search Strategy',
-  focus: 'Focus',
-  detailOrientedness: 'Detail-Orientedness',
+// Some categories lean on reference data to move from a self-report into a
+// confirmed read. When there isn't enough evidence yet for a category (or
+// a self-awareness comparison within one) to mean anything, the report
+// shows "N/A" plus this concrete next step, rather than guessing.
+export const CATEGORY_UNLOCK_ACTION: Partial<Record<CategoryKey, string>> = {
+  leadership: 'Request a reference from someone who saw you manage or lead — it turns this from a self-report into a confirmed read.',
+  communication: 'Request a reference — it lets us confirm how you communicate instead of relying only on your own rating.',
+  ownership: "Request a reference — follow-through is hard to self-assess accurately, and a reference closes that gap.",
 }
 
-export const MARKET_REALITY_DIMENSION_FACTOR_TYPE: Record<MarketRealityDimension['key'], FactorType> = {
-  experienceMatch: 'influenceable',
-  marketPosition: 'structural',
-  targetComplexity: 'structural',
-  presentation: 'controllable',
-  socialProof: 'controllable',
-  searchStrategy: 'controllable',
-  focus: 'controllable',
-  detailOrientedness: 'controllable',
+// Whether a candidate's self-report on a category agrees with harder
+// evidence (a completed reference, or a How I Work Best result). Shown
+// only where it's flattering on the Dossier; shown both directions in
+// Coaching Notes and the Hireability Report. 'not_available' — not a
+// guessed pass — is used whenever the evidence needed to make the
+// comparison doesn't exist yet (most commonly: no completed reference).
+export type SelfAwarenessStatus = 'match' | 'mismatch' | 'not_available'
+
+export interface SelfAwarenessRead {
+  status: SelfAwarenessStatus
+  note?: string
+  unlockAction?: string
 }
 
-export const SEARCH_EXECUTION_ENGINE_LABEL: Record<SearchExecutionEngine['key'], string> = {
-  learning: 'Learning',
-  effort: 'Effort',
-  working: 'Working',
-  connecting: 'Connecting',
-}
+export const SELF_AWARENESS_UNLOCK_ACTION =
+  'Request a reference to compare your self-assessment against an outside view.'
 
-// How much real signal backs a dimension's grade today, separate from the
+// How much real signal backs a category's grade today, separate from the
 // grade itself — a candidate should be able to tell "this is confirmed by
 // real data" apart from "this is our best guess so far." Improves as the
-// candidate reveals more (job reactions, resume/LinkedIn completion, etc.),
-// independent of whether the grade itself goes up or down.
+// candidate reveals more (references, job reactions, resume/LinkedIn
+// completion, etc.), independent of whether the grade itself goes up or
+// down.
 export type ConfidenceLevel = 'HIGH' | 'BUILDING' | 'PROVISIONAL'
 
 export const CONFIDENCE_LABEL: Record<ConfidenceLevel, string> = {
@@ -125,70 +166,83 @@ export const CONFIDENCE_EXPLANATION: Record<ConfidenceLevel, string> = {
   PROVISIONAL: "Our best early read — treat it as a starting point, not a verdict.",
 }
 
-// Tailwind classes for the small confidence pill shown next to each Market
-// Reality dimension — deliberately quieter than the grade color itself,
-// since confidence is metadata about the grade, not a second grade.
+// Tailwind classes for the small confidence pill shown next to each
+// category — deliberately quieter than the grade color itself, since
+// confidence is metadata about the grade, not a second grade.
 export const CONFIDENCE_STYLE: Record<ConfidenceLevel, string> = {
   HIGH: 'bg-success/10 text-success',
   BUILDING: 'bg-brand/10 text-brand',
   PROVISIONAL: 'bg-muted text-muted-foreground',
 }
 
-export interface MarketRealityDimension {
-  key:
-    | 'experienceMatch'
-    | 'marketPosition'
-    | 'targetComplexity'
-    | 'presentation'
-    | 'socialProof'
-    | 'searchStrategy'
-    | 'focus'
-    | 'detailOrientedness'
+export interface CategoryGrade {
+  key: CategoryKey
   label: string
   score: number
   grade: Grade
-  factorType: FactorType
   confidence: ConfidenceLevel
+  selfAwareness?: SelfAwarenessRead
 }
 
-export interface SearchExecutionEngine {
-  key: 'learning' | 'effort' | 'working' | 'connecting'
+// The four weekly-effort engines — internal machinery for the weekly nudge
+// and the category-minimum floor rule below, not a displayed grade of
+// their own. "Networking" is the candidate-facing label for what used to
+// be called "Connecting." "Effort" (interview prep + one-time setup
+// confirmations) isn't given its own tile in the UI — its points are shown
+// transparently as part of the raw weekly point total instead.
+export type WeeklyEngineKey = 'learning' | 'effort' | 'working' | 'connecting'
+
+export const WEEKLY_ENGINE_LABEL: Record<WeeklyEngineKey, string> = {
+  learning: 'Learning',
+  effort: 'Effort',
+  working: 'Working',
+  connecting: 'Networking',
+}
+
+export const WEEKLY_ENGINE_EXPLANATION: Record<WeeklyEngineKey, string> = {
+  learning: "Whether you've done the foundational work — a complete profile, the How I Work Best assessment, a real target defined.",
+  effort: "How many of your action-plan confirmations you've actually completed, plus jobs you've run through fit feedback.",
+  working: 'Real assets you\'ve built — a resume on file, work samples, active LinkedIn posting.',
+  connecting: "Real outreach and network signals — your networking list, references requested, and community engagement.",
+}
+
+export interface WeeklyEngine {
+  key: WeeklyEngineKey
   label: string
   score: number
   grade: Grade
 }
 
-// From this week onward, an A requires every engine to individually clear a
-// floor score — you can't earn an A by maxing one engine while neglecting
-// the others. Below this week, a single strong engine can still carry the
-// grade, since there's been no time yet to build all four out.
+// From week 4 onward, none of the four engines can fall below this floor —
+// you can't earn credit for a strong week by maxing one engine while
+// neglecting the others. Below week 4, a single strong engine can still
+// carry the weekly nudge, since there's been no time yet to build all four
+// out. This only affects the weekly nudge, never the category baselines.
 export const CATEGORY_MINIMUM_ENFORCED_FROM_WEEK = 4
 export const CATEGORY_MINIMUM_SCORE_FLOOR = 50 // grade C
 
 export interface HireabilityGrade {
-  marketReality: { score: number; grade: Grade; dimensions: MarketRealityDimension[] }
-  searchExecution: {
-    score: number
-    grade: Grade
-    engines: SearchExecutionEngine[]
-    categoryMinimumsMet: boolean
-    laggingEngines: SearchExecutionEngine['key'][]
-    // Real Weekly Search Score points for the current Search Sprint — 1
-    // point = 1 minute of effort, shown transparently to the candidate
-    // (deliberately not hidden behind the "no raw numbers" convention that
-    // applies to the algorithmic grades above, since visible points are the
-    // whole point of this system).
-    weeklyPoints: number
-    weeklyPointsTarget: number
-    // Bonus fields, optional since older stored report snapshots predate
-    // them (undefined on those rows, never backfilled — historical reports
-    // reflect the rules at the time they were generated). hasExecutiveCoach
-    // = +25% recognized points; hadPriorWeekA = +10% more, universal to
-    // anyone coming off an A week, coach or not. Grade is computed from
-    // recognizedWeeklyPoints, not the raw weeklyPoints above.
-    bonusMultiplier?: number
-    hasExecutiveCoach?: boolean
-    hadPriorWeekA?: boolean
-    recognizedWeeklyPoints?: number
-  }
+  score: number
+  grade: Grade
+  categories: CategoryGrade[]
+
+  // Weekly effort — an input to the score above, not a second grade.
+  weeklyEngines: WeeklyEngine[]
+  categoryMinimumsMet: boolean
+  laggingEngines: WeeklyEngineKey[]
+  // Real point counts for the current Weekly Search Sprint — 1 point = 1
+  // minute of effort, shown transparently to the candidate (deliberately
+  // not hidden behind the "no raw numbers" convention that applies to the
+  // category grades above, since visible points are the whole point of
+  // this system).
+  weeklyPoints: number
+  weeklyPointsTarget: number
+  recognizedWeeklyPoints: number
+
+  // Bonus multiplier: executive coach +10%, prior-week-A +10%, both stack,
+  // capped at +20% total combined. Applied to recognizedWeeklyPoints before
+  // it feeds the weekly nudge — never to the category baselines directly.
+  bonusMultiplier: number
+  hasExecutiveCoach: boolean
+  hadPriorWeekA: boolean
 }

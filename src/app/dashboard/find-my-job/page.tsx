@@ -89,7 +89,7 @@ export default async function JobFitPage() {
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
   ])
 
-  const jobBoardUnlocked = grade.searchExecution.grade === 'A' && profile.recruiterDatabaseOptIn
+  const jobBoardUnlocked = grade.grade === 'A' && profile.recruiterDatabaseOptIn
 
   const ratedCount = profile.jobPostings.length + reactedCount
   const appliedJobPostings = profile.jobPostings

@@ -1,13 +1,14 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Mood } from '@prisma/client'
-import { getMoodHistory } from '@/lib/daily/mood'
+import { getMoodHistory, getSentimentAlert, type SentimentAlert } from '@/lib/daily/mood'
 import { detectAvoidancePattern, type AvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { PUBLIC_DISCLOSURE_COMFORT_OPTIONS, REFERRAL_RECENCY_OPTIONS } from '@/lib/constants/onboarding'
 import {
   getCoachingOnboardingAnswersForDisplay,
   type CoachingOnboardingAnswerDisplay,
 } from '@/lib/coach/onboarding-form'
+import type { TrendSnapshot } from '@/components/dashboard/MarketRealityTrendChart'
 
 export interface GapAnalysisGap {
   area: string
@@ -30,6 +31,8 @@ export interface JobFitHistoryEntry {
 // candidate's explicit consent (coachDossierConsentedAt) is recorded.
 export interface CoachingNotes {
   moodHistory: { date: Date; mood: Mood }[]
+  sentimentAlert: SentimentAlert
+  marketRealityTrend: TrendSnapshot[]
   publicDisclosureComfortLabel: string | null
   hasBeenReferredBefore: boolean | null
   referralRecencyLabel: string | null
@@ -45,7 +48,7 @@ export interface CoachingNotes {
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -58,6 +61,12 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       },
     }),
     getMoodHistory(candidateId),
+    getSentimentAlert(candidateId),
+    prisma.marketRealitySnapshot.findMany({
+      where: { candidateId },
+      orderBy: { weekStartDate: 'asc' },
+      select: { weekStartDate: true, grade: true },
+    }),
     detectAvoidancePattern(candidateId),
     prisma.hireabilityReport.findFirst({
       where: { candidateId },
@@ -75,6 +84,8 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
 
   return {
     moodHistory,
+    sentimentAlert,
+    marketRealityTrend: marketRealitySnapshots as unknown as TrendSnapshot[],
     publicDisclosureComfortLabel: candidate.publicDisclosureComfort
       ? (PUBLIC_DISCLOSURE_COMFORT_OPTIONS.find((o) => o.value === candidate.publicDisclosureComfort)?.label ?? null)
       : null,

@@ -13,7 +13,7 @@ import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
-import { GRADE_LABEL, FACTOR_TYPE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL, GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
@@ -25,14 +25,6 @@ import { cn } from '@/lib/utils'
 // N/A instead until a second report exists to actually compare against.
 function displayGrade(grade: Grade, isFirstReport: boolean): Grade | 'N/A' {
   return isFirstReport && grade === 'F' ? 'N/A' : grade
-}
-
-const GRADE_COLOR: Record<Grade, string> = {
-  A: 'text-success',
-  B: 'text-brand',
-  C: 'text-light-blue',
-  D: 'text-warning',
-  F: 'text-error',
 }
 
 interface Strength {
@@ -123,10 +115,7 @@ export default async function HireabilityReportPage() {
   const isFirstReport = priorReportCount === 0
 
   const gradeAtGeneration = report?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | null
-  const showCoachingCTA =
-    !!gradeAtGeneration &&
-    isAtOrBelowGrade(gradeAtGeneration.marketReality.grade, 'C') &&
-    isAtOrBelowGrade(gradeAtGeneration.searchExecution.grade, 'C')
+  const showCoachingCTA = !!gradeAtGeneration && isAtOrBelowGrade(gradeAtGeneration.grade, 'C')
   // Derived from the same canonical Weekly Search Score points ramp everything
   // else reads from (1 point = 1 minute) — this used to be a separately
   // maintained hours target that had drifted out of sync with the points ramp.
@@ -238,110 +227,64 @@ export default async function HireabilityReportPage() {
             ) : (
               (() => {
                 const grade = report.hireabilityGradeAtGeneration as unknown as HireabilityGrade
-                const marketRealityDisplay = displayGrade(grade.marketReality.grade, isFirstReport)
+                const gradeDisplay = displayGrade(grade.grade, isFirstReport)
                 return (
-                  <div className="mt-4 grid gap-6 sm:grid-cols-2">
-                    <div>
-                      <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                        Market Reality Grade
-                      </p>
-                      <p
-                        className={cn(
-                          'text-5xl font-bold tabular-nums',
-                          marketRealityDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_COLOR[marketRealityDisplay]
-                        )}
-                      >
-                        {marketRealityDisplay}
-                        <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
-                          {marketRealityDisplay === 'N/A' ? 'Not enough signal yet' : GRADE_LABEL[marketRealityDisplay]}
-                        </span>
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {marketRealityDisplay === 'N/A'
-                          ? "This is your first report — there's not enough real signal yet for a fair grade here. It'll sharpen as you add more."
-                          : "Your honest market position — some of this you control, some you don't."}
-                      </p>
-                      <div className="mt-3 space-y-1.5">
-                        {grade.marketReality.dimensions.map((d) => {
-                          const dimensionDisplay = displayGrade(d.grade, isFirstReport)
-                          return (
-                            <div key={d.key} className="flex items-center justify-between gap-2 text-sm">
-                              <span className="text-foreground">{d.label}</span>
-                              <span className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground">
-                                  {FACTOR_TYPE_LABEL[d.factorType]}
-                                </span>
-                                <span
-                                  className={cn(
-                                    'font-semibold tabular-nums',
-                                    dimensionDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_COLOR[dimensionDisplay]
-                                  )}
-                                >
-                                  {dimensionDisplay}
-                                </span>
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                        Search Action Grade
-                      </p>
-                      {!searchExecutionAvailable ? (
-                        <>
-                          <p className="mt-1 text-5xl font-bold text-muted-foreground">N/A</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            You haven&apos;t started your Search Sprint yet — that&apos;s not a
-                            failure, it&apos;s a starting line. Commit to this week&apos;s goals and
-                            I&apos;ll grade your execution this Sunday.
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p
-                            className={cn(
-                              'text-5xl font-bold tabular-nums',
-                              GRADE_COLOR[grade.searchExecution.grade]
-                            )}
-                          >
-                            {grade.searchExecution.grade}
-                            <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
-                              {GRADE_LABEL[grade.searchExecution.grade]}
-                            </span>
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            How well you&apos;re running your search — everyone can bring this one
-                            to an A.
-                          </p>
-                          <div className="mt-3 space-y-1.5">
-                            {grade.searchExecution.engines.map((e) => (
-                              <div key={e.key} className="flex items-center justify-between gap-2 text-sm">
-                                <span className="text-foreground">{e.label} Engine</span>
-                                <span className={cn('font-semibold tabular-nums', GRADE_COLOR[e.grade])}>
-                                  {e.grade}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          {!grade.searchExecution.categoryMinimumsMet && (
-                            <p className="mt-3 text-xs font-medium text-foreground">
-                              Capped at B — an A now requires real work across all four engines, not
-                              just one.
-                            </p>
-                          )}
-                        </>
+                  <div className="mt-4">
+                    <p
+                      className={cn(
+                        'text-5xl font-bold tabular-nums',
+                        gradeDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_TEXT_COLOR[gradeDisplay]
                       )}
+                    >
+                      {gradeDisplay}
+                      <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
+                        {gradeDisplay === 'N/A' ? 'Not enough signal yet' : GRADE_LABEL[gradeDisplay]}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {gradeDisplay === 'N/A'
+                        ? "This is your first report — there's not enough real signal yet for a fair grade here. It'll sharpen as you add more."
+                        : "A stable baseline, plus how this week's effort is going — some of this you control, some you don't."}
+                    </p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {grade.categories.map((c) => {
+                        const categoryDisplay = displayGrade(c.grade, isFirstReport)
+                        return (
+                          <div key={c.key} className="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm">
+                            <span className="text-foreground">{c.label}</span>
+                            <span
+                              className={cn(
+                                'font-semibold tabular-nums',
+                                categoryDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_TEXT_COLOR[categoryDisplay]
+                              )}
+                            >
+                              {categoryDisplay}
+                            </span>
+                          </div>
+                        )
+                      })}
                     </div>
+                    {!searchExecutionAvailable ? (
+                      <p className="mt-4 text-xs text-muted-foreground">
+                        You haven&apos;t started your Search Sprint yet — that&apos;s not a failure,
+                        it&apos;s a starting line. Commit to this week&apos;s goals and weekly effort
+                        starts factoring into your grade this Sunday.
+                      </p>
+                    ) : (
+                      !grade.categoryMinimumsMet && (
+                        <p className="mt-4 text-xs font-medium text-foreground">
+                          This week is capped at B — an A now requires real work across Networking,
+                          Learning, and Working, not just one.
+                        </p>
+                      )
+                    )}
                   </div>
                 )
               })()
             )}
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
               Everyone will not make it — but doing the real work meaningfully improves your odds.
-              It&apos;s all about your <strong className="font-semibold text-foreground">Search Action Grade</strong>: the one grade above that&apos;s entirely
-              in your hands.
+              Weekly effort is the lever above that&apos;s entirely in your hands.
             </p>
             <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
               {casuallySearching ? (
@@ -350,15 +293,15 @@ export default async function HireabilityReportPage() {
                   <Link href="/dashboard" className="text-primary underline underline-offset-4">
                     Search Sprint
                   </Link>{' '}
-                  will show you exactly what moves an A on your Search Action Grade — no clock
-                  running in the meantime.
+                  will show you exactly what moves your grade toward an A — no clock running in the
+                  meantime.
                 </p>
               ) : (
                 <>
                   <p className="text-sm font-medium text-foreground">
-                    This week, to get an A on your Search Action Grade, it takes about{' '}
+                    This week, a strong week of effort takes about{' '}
                     <span className="font-semibold">{aTargetHours}h</span> of real committed work; a
-                    B takes about <span className="font-semibold">{bTargetHours}h</span>.
+                    modest week takes about <span className="font-semibold">{bTargetHours}h</span>.
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     That target grows a little each week through Week 5, then holds steady — see
@@ -449,7 +392,7 @@ export default async function HireabilityReportPage() {
           <div className="mt-10 border-t border-border pt-8 print:hidden">
             <SectionHeading>Your Search Sprint – Week&apos;s Activities</SectionHeading>
             <p className="mt-4 text-sm text-muted-foreground">
-              Everything below is a real, available action toward your Search Action Grade.
+              Everything below is a real, available action that counts toward this week&apos;s effort.
               Click into your{' '}
               <Link href="/dashboard" className="text-primary underline underline-offset-4">
                 Search Sprint

@@ -116,7 +116,7 @@ export default async function PortfolioPage() {
                     <span>{r.generatedAt.toLocaleDateString()}</span>
                     <span className="text-muted-foreground">
                       {g
-                        ? `Market ${g.marketReality.grade}, Execution ${g.searchExecution.grade}`
+                        ? `Grade ${g.grade}`
                         : '—'}
                     </span>
                   </li>

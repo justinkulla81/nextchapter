@@ -12,13 +12,13 @@ const POSTING_TYPE_LABEL: Record<string, string> = {
 export default async function JobBoardPage() {
   const profile = await getDashboardData()
   const grade = await computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations)
-  const currentGrade = grade.searchExecution.grade
+  const currentGrade = grade.grade
   const unlocked = currentGrade === 'A' && profile.recruiterDatabaseOptIn
 
   if (!unlocked) {
     const requirement = !profile.recruiterDatabaseOptIn
-      ? "Requires an A Search Action Grade and recruiter database opt-in (Privacy settings) — you haven't opted in yet."
-      : 'Requires an A Search Action Grade this week — hit an A to unlock verified, named-contact, freshness-enforced listings.'
+      ? "Requires an A Market Reality Grade and recruiter database opt-in (Privacy settings) — you haven't opted in yet."
+      : 'Requires an A Market Reality Grade this week — hit an A to unlock verified, named-contact, freshness-enforced listings.'
     return (
       <div className="space-y-6">
         <div>

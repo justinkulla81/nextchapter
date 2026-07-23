@@ -29,7 +29,7 @@ export default async function GotHiredPage() {
     }),
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
   ])
-  const isAGrade = grade.searchExecution.grade === 'A'
+  const isAGrade = grade.grade === 'A'
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -70,8 +70,8 @@ export default async function GotHiredPage() {
           ) : (
             <LockedFeatureNotice
               title="Offer Bonus"
-              requirement="Requires an A Search Action Grade to submit — this is checked at the moment you submit, not sustained over time. Hit an A this week and come back."
-              currentGrade={grade.searchExecution.grade}
+              requirement="Requires an A Market Reality Grade to submit — this is checked at the moment you submit, not sustained over time. Hit an A this week and come back."
+              currentGrade={grade.grade}
             />
           )}
         </>

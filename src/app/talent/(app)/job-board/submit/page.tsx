@@ -7,7 +7,7 @@ export default function TalentJobBoardSubmitPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Post to NC Job Board</h1>
         <p className="mt-1 text-muted-foreground">
-          Shown only to candidates currently holding an A Search Action Grade. Every posting needs
+          Shown only to candidates currently holding an A Market Reality Grade. Every posting needs
           a named contact and a real salary band, and is reviewed by a person before it goes live.
         </p>
       </div>

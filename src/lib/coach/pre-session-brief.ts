@@ -148,11 +148,9 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
 
   const [latestReport, previousReport] = recentReports
   const executionGrade =
-    (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.searchExecution.grade ??
-    null
+    (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
   const previousGrade =
-    (previousReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.searchExecution
-      .grade ?? null
+    (previousReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
   const trend: Trend =
     executionGrade && previousGrade
       ? GRADE_ORDER.indexOf(executionGrade) > GRADE_ORDER.indexOf(previousGrade)
@@ -177,7 +175,7 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
 
   const facts = [
     `Week ${weekNumber ?? 'unknown'} in search.`,
-    executionGrade ? `Search Action Grade: ${executionGrade}${trend ? ` (${trend})` : ''}.` : 'No grade yet.',
+    executionGrade ? `Market Reality Grade: ${executionGrade}${trend ? ` (${trend})` : ''}.` : 'No grade yet.',
     thisWeekActions.length > 0
       ? `This week's actions: ${thisWeekActions.map((a) => `${a.text} (${a.completed ? 'done' : 'not done'})`).join('; ')}.`
       : 'No actions committed this week yet.',

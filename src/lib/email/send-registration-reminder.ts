@@ -36,7 +36,7 @@ export async function sendRegistrationReminderEmail({
       subject: 'Finish creating your NextChapter account to unlock your report',
       react: CompleteRegistrationReminderEmail({
         firstName: candidate.firstName,
-        gradeDescription: GRADE_BAND_DESCRIPTION[grade.marketReality.grade],
+        gradeDescription: GRADE_BAND_DESCRIPTION[grade.grade],
         magicLink,
         unsubscribeUrl,
       }),

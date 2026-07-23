@@ -256,12 +256,10 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
   const latestSnapshots = candidates
     .map((c) => (c.reports.length > 0 ? c.reports[c.reports.length - 1] : null))
     .filter((r): r is NonNullable<typeof r> => r !== null)
-  const avgSearchExecScore = latestSnapshots.length
-    ? latestSnapshots.reduce((sum, r) => sum + r.gradeSnapshot.searchExecution.score, 0) / latestSnapshots.length
-    : null
   const avgMarketRealityScore = latestSnapshots.length
-    ? latestSnapshots.reduce((sum, r) => sum + r.gradeSnapshot.marketReality.score, 0) / latestSnapshots.length
+    ? latestSnapshots.reduce((sum, r) => sum + r.gradeSnapshot.score, 0) / latestSnapshots.length
     : null
+  const avgSearchExecScore = avgMarketRealityScore
 
   const candidatesAtWeek4Plus = signups.filter(
     (c) => daysBetween(c.registrationCompletedAt!, asOf) >= 28
@@ -465,7 +463,7 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
     ),
     row(
       'avgSearchExecutionGrade',
-      'Average Search Action Grade',
+      'Average Weekly Effort Grade',
       cur.avgSearchExecutionGrade ? `${cur.avgSearchExecutionGrade} (${GRADE_LABEL[cur.avgSearchExecutionGrade]})` : null,
       null,
       'grade',

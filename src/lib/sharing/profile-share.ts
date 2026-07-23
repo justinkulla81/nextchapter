@@ -136,7 +136,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
     }))
 
   // Hiring Manager and Recruiter views never include the Market Reality Grade
-  // or Search Action Grade — those stay internal-only, never shown to an
+  // or Market Reality Grade — those stay internal-only, never shown to an
   // external viewer.
   if (share.recipientType === 'HIRING_MANAGER') {
     return {

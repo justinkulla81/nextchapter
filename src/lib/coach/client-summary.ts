@@ -35,11 +35,9 @@ export async function getCoachClientSummaries(coachId: string): Promise<ClientSu
   return clients.map((c) => {
     const [latestReport, previousReport] = c.hireabilityReports
     const latestGrade =
-      (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.searchExecution
-        .grade ?? null
+      (latestReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
     const previousGrade =
-      (previousReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.searchExecution
-        .grade ?? null
+      (previousReport?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined)?.grade ?? null
 
     const weekNumber = c.registrationCompletedAt
       ? Math.floor((Date.now() - c.registrationCompletedAt.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1

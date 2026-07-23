@@ -1,5 +1,5 @@
 import 'server-only'
-import type { MarketRealityDimension, FactorType } from '@/lib/scoring/grade'
+import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 
 // Market Reality Grade's structured, individually-referenceable named
 // reasons — short, specific, labeled gaps/strengths (not a paragraph of
@@ -10,86 +10,75 @@ export interface NamedReason {
   id: string
   kind: 'gap' | 'strength'
   text: string
-  factorType: FactorType
+  category: CategoryKey
 }
 
-const GRADE_TO_SCORE: Record<MarketRealityDimension['grade'], number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
+const GRADE_TO_SCORE: Record<CategoryGrade['grade'], number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
 
-// Per-dimension gap/strength copy. C-grade dimensions are deliberately
+// Per-category gap/strength copy. C-grade categories are deliberately
 // skipped — not clearly enough a gap or a strength to name with confidence,
 // same "don't fabricate a pattern" principle used elsewhere in this scoring
 // system (see coach/pre-session-brief.ts's avoidance-pattern heuristic).
-const DIMENSION_REASONS: Record<MarketRealityDimension['key'], { gap: string; strength: string }> = {
-  experienceMatch: {
-    gap: "Experience and target role don't clearly line up yet — worth sharpening how your background maps to what you're going after.",
-    strength: 'Strong function/level match for target roles.',
+const CATEGORY_REASONS: Record<CategoryKey, { gap: string; strength: string }> = {
+  targetFit: {
+    gap: "Your target — the role, industry, and how well it lines up with your background — is working against you right now, not just your effort.",
+    strength: 'Real market demand and a well-matched, clearly named target are working in your favor.',
   },
-  marketPosition: {
-    gap: 'Compensation expectations may sit above current market band for this level.',
-    strength: 'Compensation expectations and market position look well-calibrated to your target.',
+  leadership: {
+    gap: "Leadership scope isn't clearly evidenced yet — worth sharpening how you describe scale and impact, or gathering a reference that speaks to it directly.",
+    strength: 'Clear, evidenced leadership scope — this reads well to a hiring manager.',
   },
-  targetComplexity: {
-    gap: "You're targeting a real pivot — new function and/or industry — which raises the bar versus a lateral move.",
-    strength: 'Target role is a natural next step in your existing lane, not a pivot.',
+  skillsExecution: {
+    gap: 'Core skill confidence or evidence of finishing what you start could be sharper.',
+    strength: 'Strong, well-evidenced core skills and follow-through.',
   },
-  presentation: {
-    gap: 'Resume underrepresents your full scope of impact — recruiters may not see it at a glance.',
-    strength: 'Resume and LinkedIn both clearly show your full scope of impact.',
+  communication: {
+    gap: 'How you communicate could come across more clearly, on paper or in how references describe it.',
+    strength: 'Communication reads clearly and consistently across your profile and references.',
   },
-  socialProof: {
-    gap: 'Limited third-party evidence so far — few completed references or work samples on file.',
-    strength: 'Multiple completed references independently back up your track record.',
+  adaptability: {
+    gap: "Flexibility or realism about the change you're asking for could be stronger.",
+    strength: "You're showing real flexibility and a clear-eyed read on the change you're pursuing.",
   },
-  searchStrategy: {
-    gap: 'Search strategy could widen the funnel — more flexibility on location, comp, or role would open more doors.',
-    strength: "You're running a flexible, well-calibrated search strategy.",
-  },
-  focus: {
-    gap: "No specific target role named yet — 'flexible' reads as a lack of direction to recruiters, not open-mindedness.",
-    strength: "You've named a specific target role — that focus reads well to recruiters and hiring managers.",
-  },
-  detailOrientedness: {
-    gap: 'Several optional profile questions are still blank — the same thoroughness employers judge in a resume.',
-    strength: "You've filled in the optional profile details most candidates skip — that thoroughness shows.",
+  ownership: {
+    gap: 'Limited third-party evidence yet that people can hand you something and trust it gets done.',
+    strength: 'References back up that you can be trusted to follow through without supervision.',
   },
 }
 
 const AI_FLUENCY_GAP_ID = 'ai_fluency_gap'
 const AI_FLUENCY_STRENGTH_ID = 'ai_fluency_strength'
 
-export function computeNamedReasons(
-  dimensions: MarketRealityDimension[],
-  aiFluencyExample: string | null
-): NamedReason[] {
+export function computeNamedReasons(categories: CategoryGrade[], aiFluencyExample: string | null): NamedReason[] {
   const reasons: NamedReason[] = []
 
-  for (const dim of dimensions) {
-    const score = GRADE_TO_SCORE[dim.grade]
-    const copy = DIMENSION_REASONS[dim.key]
+  for (const cat of categories) {
+    const score = GRADE_TO_SCORE[cat.grade]
+    const copy = CATEGORY_REASONS[cat.key]
     if (score >= 3) {
-      reasons.push({ id: `${dim.key}_strength`, kind: 'strength', text: copy.strength, factorType: dim.factorType })
+      reasons.push({ id: `${cat.key}_strength`, kind: 'strength', text: copy.strength, category: cat.key })
     } else if (score <= 1) {
-      reasons.push({ id: `${dim.key}_gap`, kind: 'gap', text: copy.gap, factorType: dim.factorType })
+      reasons.push({ id: `${cat.key}_gap`, kind: 'gap', text: copy.gap, category: cat.key })
     }
   }
 
-  // AI Fluency isn't one of the six scored Market Reality dimensions (no
-  // reliable signal existed until the "judgment call" capture on the AI
-  // project log) — named as a standalone reason rather than forcing it into
-  // the fixed six-dimension scoring model.
+  // AI Fluency isn't one of the six scored categories (no reliable signal
+  // existed until the "judgment call" capture on the AI project log) —
+  // named as a standalone reason rather than forcing it into the fixed
+  // six-category scoring model.
   if (aiFluencyExample) {
     reasons.push({
       id: AI_FLUENCY_STRENGTH_ID,
       kind: 'strength',
       text: `Concrete evidence of directing AI toward a real judgment call: ${aiFluencyExample}`,
-      factorType: 'controllable',
+      category: 'skillsExecution',
     })
   } else {
     reasons.push({
       id: AI_FLUENCY_GAP_ID,
       kind: 'gap',
       text: 'No visible signal of AI fluency in a function being reshaped by it.',
-      factorType: 'controllable',
+      category: 'skillsExecution',
     })
   }
 

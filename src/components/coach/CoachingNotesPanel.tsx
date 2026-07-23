@@ -1,5 +1,11 @@
 import type { CoachingNotes } from '@/lib/coach/coaching-notes'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
+import { MarketRealityTrendChart } from '@/components/dashboard/MarketRealityTrendChart'
+
+const SENTIMENT_ALERT_REASON_TEXT: Record<'low_average' | 'declining_trend', string> = {
+  low_average: "their mood check-ins have run mostly \"Stuck\" over the last two weeks",
+  declining_trend: 'their mood check-ins have been trending down over the last two weeks',
+}
 
 // Coach-only panel (Prompt 54) — deliberately broader than the external
 // Executive Dossier ever shows. In-app only: no download, export, print, or
@@ -7,10 +13,27 @@ import { MotivationChart } from '@/components/dashboard/MotivationChart'
 export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">Sentiment trend</p>
-        <div className="mt-2">
-          <MotivationChart baseline={null} history={notes.moodHistory} />
+      {notes.sentimentAlert.lowSentiment && notes.sentimentAlert.reason && (
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <p className="text-sm font-semibold text-foreground">Sentiment flag</p>
+          <p className="mt-1 text-sm text-foreground">
+            Worth a check-in: {SENTIMENT_ALERT_REASON_TEXT[notes.sentimentAlert.reason]}.
+          </p>
+        </div>
+      )}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Sentiment trend</p>
+          <div className="mt-2">
+            <MotivationChart baseline={null} history={notes.moodHistory} />
+          </div>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Market Reality Grade trend</p>
+          <div className="mt-2">
+            <MarketRealityTrendChart snapshots={notes.marketRealityTrend} />
+          </div>
         </div>
       </div>
 

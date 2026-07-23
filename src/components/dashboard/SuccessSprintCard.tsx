@@ -11,8 +11,8 @@ import {
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
-import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, SEARCH_EXECUTION_ENGINE_LABEL } from '@/lib/scoring/grade'
-import type { Grade, SearchExecutionEngine } from '@/lib/scoring/grade'
+import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
+import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
 import { toggleSprintAction, completeCatalogAction } from '@/app/dashboard/sprint/actions'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 import { cn } from '@/lib/utils'
@@ -145,8 +145,8 @@ export function SuccessSprintCard({
   weekNumber: number
   editWindowOpen: boolean
   weeklySprintsCount: number
-  engines: SearchExecutionEngine[]
-  laggingEngines: SearchExecutionEngine['key'][]
+  engines: WeeklyEngine[]
+  laggingEngines: WeeklyEngine['key'][]
   categoryMinimumsMet: boolean
   weeklyPoints: number
   weeklyPointsTarget: number
@@ -290,14 +290,14 @@ export function SuccessSprintCard({
           <div className="border-t border-border pt-4">
             <h3 className="text-sm font-medium text-foreground">Week 4+ Requirements</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              From here on, an A in Search Action Grade requires real work across all four
-              engines — not just one you&apos;re comfortable with.
+              From here on, an A requires real work across all four areas — not just one
+              you&apos;re comfortable with.
             </p>
             <ul className="mt-3 space-y-1.5 text-sm">
               {engines.map((e) => (
                 <li key={e.key} className="flex items-center gap-2">
                   <span>{laggingEngines.includes(e.key) ? '☐' : '☑'}</span>
-                  <span className="text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
+                  <span className="text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
                   {laggingEngines.includes(e.key) && (
                     <span className="text-xs text-muted-foreground">needs real work this week</span>
                   )}

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { SEARCH_EXECUTION_ENGINE_LABEL, type SearchExecutionEngine } from '@/lib/scoring/grade'
+import { WEEKLY_ENGINE_LABEL, type WeeklyEngine } from '@/lib/scoring/grade'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
@@ -22,7 +22,7 @@ import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 
-type EngineKey = SearchExecutionEngine['key']
+type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
 
 const GRADE_VALUE: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
@@ -102,14 +102,11 @@ export default async function YourStatsPage() {
 
   const previousMarketRealityGrade =
     marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
-  const previousSearchExecutionGrade =
-    recentReports.length > 0 ? (recentReports[0].gradeSnapshot as unknown as HireabilityGrade).searchExecution.grade : null
-
   const weeklyScoreSnapshots = [...recentReports]
     .reverse()
     .map((r) => ({
       weekStartDate: r.weekStartDate,
-      grade: (r.gradeSnapshot as unknown as HireabilityGrade).searchExecution.grade,
+      grade: (r.gradeSnapshot as unknown as HireabilityGrade).grade,
     }))
 
   return (
@@ -131,9 +128,9 @@ export default async function YourStatsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">{grade.marketReality.grade}</span>
+              <span className="text-3xl font-bold text-foreground">{grade.grade}</span>
               {(() => {
-                const delta = gradeDelta(grade.marketReality.grade, previousMarketRealityGrade)
+                const delta = gradeDelta(grade.grade, previousMarketRealityGrade)
                 return delta ? (
                   <span className="text-sm text-muted-foreground">
                     {DELTA_ICON[delta]} vs last week ({previousMarketRealityGrade})
@@ -148,20 +145,10 @@ export default async function YourStatsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">{grade.searchExecution.grade}</span>
-              {(() => {
-                const delta = gradeDelta(grade.searchExecution.grade, previousSearchExecutionGrade)
-                return delta ? (
-                  <span className="text-sm text-muted-foreground">
-                    {DELTA_ICON[delta]} vs last week ({previousSearchExecutionGrade})
-                  </span>
-                ) : null
-              })()}
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-              {grade.searchExecution.weeklyPoints} / {grade.searchExecution.weeklyPointsTarget} points
+            <p className="text-3xl font-bold text-foreground tabular-nums">
+              {grade.weeklyPoints} / {grade.weeklyPointsTarget}
             </p>
+            <p className="mt-1 text-sm text-muted-foreground">points this week</p>
           </CardContent>
         </Card>
       </div>
@@ -311,9 +298,9 @@ export default async function YourStatsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2">
-            {grade.searchExecution.engines.map((e) => (
+            {grade.weeklyEngines.map((e) => (
               <div key={e.key} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <span className="text-sm text-foreground">{SEARCH_EXECUTION_ENGINE_LABEL[e.key]}</span>
+                <span className="text-sm text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
                 <span className="text-sm font-semibold text-foreground tabular-nums">{e.grade}</span>
               </div>
             ))}
@@ -337,7 +324,7 @@ export default async function YourStatsPage() {
               return (
                 <div key={engine}>
                   <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                    {SEARCH_EXECUTION_ENGINE_LABEL[engine]}
+                    {WEEKLY_ENGINE_LABEL[engine]}
                   </h3>
                   <ul className="mt-2 space-y-1">
                     {actions.map((a, i) => (
@@ -365,7 +352,7 @@ export default async function YourStatsPage() {
             return (
               <div key={engine}>
                 <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                  {SEARCH_EXECUTION_ENGINE_LABEL[engine]}
+                  {WEEKLY_ENGINE_LABEL[engine]}
                 </h3>
                 <ul className="mt-2 space-y-1">
                   {tasks.map((task, i) => {

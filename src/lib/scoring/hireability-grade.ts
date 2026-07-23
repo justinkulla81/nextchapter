@@ -1,26 +1,40 @@
-// The Market Reality Grade and Search Action Grade — replace the single
-// numeric Hireability Score display with two named, separately-meaningful
-// grades:
+// Scoring Model 2.0 — one Market Reality Grade, built from six categories:
 //
-//   Market Reality Grade — an honest read on current market position,
-//                           including factors the candidate cannot control
-//                           (experience, market demand, how big a leap their
-//                           target is).
-//   Search Action Grade  — how well they're running the search they're
-//                           capable of running. Everyone can bring this one
-//                           to an A.
+//   Target Fit                      — real hiring demand + how well matched
+//                                      and focused the candidate's target is.
+//                                      Carries the old structural/market-
+//                                      condition signal, now a first-class,
+//                                      improvable category rather than a
+//                                      caveat label on the others.
+//   Leadership & Management         \
+//   Skills & Execution               |  Five hiring-manager competency
+//   Communication & Collaboration    |  categories — built from resume/
+//   Adaptability & Change Readiness  |  self-report facts, confidence
+//   Ownership & Reliability         /   sliders, and reference BARS ratings
+//                                       where available.
 //
-// Both are A-F. Each Market Reality dimension carries a fixed factor-type
-// label (controllable / influenceable / structural) — the label itself is
-// what tells the candidate where to spend effort, not the grade alone.
+// Weekly effort (Networking/Learning/Working, plus raw Effort points) is an
+// INPUT to the one grade — a bounded, non-compounding nudge on top of a
+// persisted per-category baseline — not a second grade of its own.
 //
-// This reuses the existing sub-score building blocks in employability-score.ts
-// (references, work samples, resume analysis, action-plan confirmations,
-// etc.) regrouped into the new framework — it is not a relabel of one
-// number, each dimension/engine is computed from its own real signals.
+// Working Style (the How I Work Best assessment) is deliberately NOT used
+// to compute any category's numeric score. Its 9 dimensions are ipsative
+// style poles (e.g. "async & written" vs "sync & verbal," "protects 40
+// hours" vs "whatever it takes") — neither pole is objectively better, and
+// assessment-vectors.ts explicitly documents that these vectors are valid
+// only for within-candidate profile shape, never for comparing candidates
+// against each other. Working Style stays exactly what the codebase
+// already treats it as: a narrative/fit signal (Dossier "friction
+// surfaces," self-awareness comparisons) — never a scoring input here.
+//
+// This reuses the existing sub-score building blocks (references, work
+// samples, resume analysis, market data, action-plan confirmations) — it is
+// not a relabel of one number; each category is computed from its own real
+// signals.
 
 import 'server-only'
 import type {
+  CandidateAssessmentResponse,
   CandidateProfile,
   CoachingFocus,
   JobPosting,
@@ -36,25 +50,33 @@ import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
 import { computeDetailOrientednessScore } from '@/lib/scoring/detail-orientedness'
+import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
 import { getCurrentWeekSprint, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
-import {
-  pointsNeededForA,
-  gradeForWeeklyPoints,
-  engineForActionType,
-  type SearchExecutionEngineKey,
-} from '@/lib/weekly/action-effort'
+import { pointsNeededForA, gradeForWeeklyPoints, engineForActionType } from '@/lib/weekly/action-effort'
 import {
   scoreToGrade,
+  CATEGORY_ORDER,
+  CATEGORY_LABEL,
   CATEGORY_MINIMUM_ENFORCED_FROM_WEEK,
   CATEGORY_MINIMUM_SCORE_FLOOR,
+  WEEKLY_ENGINE_LABEL,
+  type CategoryKey,
   type ConfidenceLevel,
-  type MarketRealityDimension,
-  type SearchExecutionEngine,
+  type CategoryGrade,
+  type WeeklyEngine,
+  type WeeklyEngineKey,
   type HireabilityGrade,
   type Grade,
 } from '@/lib/scoring/grade'
 
-export type { Grade, FactorType, MarketRealityDimension, SearchExecutionEngine, HireabilityGrade } from '@/lib/scoring/grade'
+export type {
+  Grade,
+  CategoryKey,
+  CategoryGrade,
+  WeeklyEngine,
+  WeeklyEngineKey,
+  HireabilityGrade,
+} from '@/lib/scoring/grade'
 export { scoreToGrade, GRADE_LABEL, type ConfidenceLevel } from '@/lib/scoring/grade'
 
 export type CandidateWithGradeRelations = CandidateProfile & {
@@ -66,60 +88,9 @@ export type CandidateWithGradeRelations = CandidateProfile & {
   resumes: Resume[]
   communityPosts: { createdAt: Date }[]
   surfacedJobs: Pick<SurfacedJob, 'reaction'>[]
+  assessmentResponses: Pick<CandidateAssessmentResponse, 'dimensionVectors' | 'completedAt'>[]
   _count: { weeklySprints: number }
   coach: { focus: CoachingFocus } | null
-}
-
-// How much real signal backs each Market Reality dimension — separate from
-// the grade itself. "Job reactions" (Interested/Not Interested/Unsure on
-// surfaced postings, from the Job Discovery Engine) are the clearest signal
-// of a candidate's real, revealed preferences, so several dimensions grow
-// more confident as that count grows.
-function getDimensionConfidence(
-  dimension: MarketRealityDimension['key'],
-  candidate: CandidateWithGradeRelations,
-  jobReactionsCount: number
-): ConfidenceLevel {
-  switch (dimension) {
-    case 'experienceMatch':
-      // Based on verifiable resume/profile data — high confidence from day 1.
-      return 'HIGH'
-
-    case 'marketPosition':
-      // Improves with a stated comp floor plus enough job reactions to know
-      // the candidate is actually engaging with real postings.
-      return candidate.targetCompMin && jobReactionsCount >= 5
-        ? 'HIGH'
-        : candidate.targetCompMin
-          ? 'BUILDING'
-          : 'PROVISIONAL'
-
-    case 'targetComplexity':
-      // Improves as job reactions reveal what the candidate actually goes for.
-      return jobReactionsCount >= 10 ? 'HIGH' : jobReactionsCount >= 3 ? 'BUILDING' : 'PROVISIONAL'
-
-    case 'presentation':
-      // High once both a resume and a LinkedIn URL are on file.
-      return candidate.resumes.length > 0 && candidate.linkedInUrl ? 'HIGH' : 'BUILDING'
-
-    case 'socialProof':
-      // Always building — there's no ceiling, you can always add more proof.
-      return 'BUILDING'
-
-    case 'searchStrategy':
-      // Revealed by actual behavior (reactions) over time, not self-report.
-      return jobReactionsCount >= 10 ? 'HIGH' : jobReactionsCount >= 3 ? 'BUILDING' : 'PROVISIONAL'
-
-    case 'focus':
-      // A direct yes/no on whether a specific target is named — always
-      // confirmed, there's nothing to build up over time.
-      return 'HIGH'
-
-    case 'detailOrientedness':
-      // Directly observable from which fields are filled in — always
-      // confirmed, same reasoning as focus.
-      return 'HIGH'
-  }
 }
 
 function clamp(n: number): number {
@@ -127,8 +98,8 @@ function clamp(n: number): number {
 }
 
 // A loose token-overlap check — no NLP available, but this is enough to
-// distinguish "same function" from "clearly different function" for the
-// Target Complexity dimension without false precision.
+// distinguish "same function" from "clearly different function" for Target
+// Fit without false precision.
 function looselyMatches(a: string | null, b: string | null): boolean {
   if (!a || !b) return false
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
@@ -140,14 +111,62 @@ function looselyMatches(a: string | null, b: string | null): boolean {
   return wordsB.some((w) => wordsA.has(w))
 }
 
-export async function computeMarketRealityDimensions(
-  candidate: CandidateWithGradeRelations
-): Promise<MarketRealityDimension[]> {
-  const jobReactionsCount = candidate.surfacedJobs.filter((j) => j.reaction !== null).length
-  const confidenceFor = (key: MarketRealityDimension['key']) =>
-    getDimensionConfidence(key, candidate, jobReactionsCount)
+// Average of a reference BARS field (1-5) across completed references,
+// rescaled to 0-100. Returns null when no completed reference has rated
+// this field yet — callers fall back to the self-report-only component and
+// mark confidence/self-awareness accordingly rather than inventing a score.
+function averageReferenceRating(
+  references: Reference[],
+  field: 'ratingReliability' | 'ratingCommunication' | 'ratingTeamLift' | 'ratingWorkEthic' | 'ratingGrowthMindset'
+): number | null {
+  const values = references
+    .filter((r) => r.status === 'COMPLETED')
+    .map((r) => r[field])
+    .filter((v): v is number => v !== null && v !== undefined)
+  if (values.length === 0) return null
+  const avg = values.reduce((sum, v) => sum + v, 0) / values.length
+  return clamp(((avg - 1) / 4) * 100)
+}
 
-  // 1. Experience Match — mix of structural/influenceable
+function completedReferenceCount(references: Reference[]): number {
+  return references.filter((r) => r.status === 'COMPLETED').length
+}
+
+// How much real signal backs each category's grade today, separate from
+// the grade itself. A category that leans on reference data moves from
+// PROVISIONAL/BUILDING toward HIGH as completed references accumulate.
+function getCategoryConfidence(
+  category: CategoryKey,
+  candidate: CandidateWithGradeRelations,
+  jobReactionsCount: number
+): ConfidenceLevel {
+  const refCount = completedReferenceCount(candidate.references)
+  switch (category) {
+    case 'targetFit':
+      return jobReactionsCount >= 10 ? 'HIGH' : jobReactionsCount >= 3 ? 'BUILDING' : 'PROVISIONAL'
+    case 'leadership':
+      return refCount >= 1 ? 'HIGH' : candidate.isPeopleManager !== null ? 'BUILDING' : 'PROVISIONAL'
+    case 'skillsExecution':
+      return refCount >= 1 ? 'HIGH' : candidate.functionSkillConfidence !== null ? 'BUILDING' : 'PROVISIONAL'
+    case 'communication':
+      return refCount >= 1 ? 'HIGH' : candidate.communicatorConfidence !== null ? 'BUILDING' : 'PROVISIONAL'
+    case 'adaptability':
+      return refCount >= 1 ? 'HIGH' : 'BUILDING'
+    case 'ownership':
+      return refCount >= 1 ? 'HIGH' : 'BUILDING'
+  }
+}
+
+export async function computeCategoryGrades(candidate: CandidateWithGradeRelations): Promise<CategoryGrade[]> {
+  const jobReactionsCount = candidate.surfacedJobs.filter((j) => j.reaction !== null).length
+  const refs = candidate.references
+  const latestVectors = candidate.assessmentResponses[0]?.dimensionVectors as
+    | Record<string, number>
+    | undefined
+
+  // ---- Target Fit — real market demand + how well matched/focused the
+  // target is. Same math as the old marketPosition/targetComplexity/focus/
+  // experienceMatch dimensions, now averaged into one category.
   let experienceMatch = 0
   if (candidate.yearsExperience !== null) experienceMatch += 40
   if (candidate.highestLevelReached) experienceMatch += 20
@@ -155,9 +174,6 @@ export async function computeMarketRealityDimensions(
   if (looselyMatches(candidate.primaryFunction, candidate.targetRoleType)) experienceMatch += 20
   experienceMatch = clamp(experienceMatch)
 
-  // 2. Market Position — mostly structural, driven by real BLS/Adzuna data
-  // where available; a neutral default when no market data exists rather
-  // than penalizing candidates in under-covered locations/functions.
   let marketPosition = 60
   const marketConditions = await getMarketConditions({
     roleType: candidate.targetRoleType,
@@ -176,11 +192,9 @@ export async function computeMarketRealityDimensions(
   }
   marketPosition = clamp(marketPosition)
 
-  // 3. Target Complexity — structural. Same function + same industry is the
-  // baseline; a pivot on either axis raises the bar, both axes is hardest.
   let targetComplexity: number
   if (isVagueTargetRole(candidate.targetRoleType)) {
-    targetComplexity = 60 // no named target yet — can't grade the leap
+    targetComplexity = 60
   } else {
     const sameFunction = looselyMatches(candidate.primaryFunction, candidate.targetRoleType)
     const sameIndustry =
@@ -193,144 +207,141 @@ export async function computeMarketRealityDimensions(
   }
   targetComplexity = clamp(targetComplexity)
 
-  // 4. Presentation — controllable, high leverage
-  let presentation = 0
+  const focus = isVagueTargetRole(candidate.targetRoleType) ? 35 : 90
+  const targetFitScore = clamp((experienceMatch + marketPosition + targetComplexity + focus) / 4)
+
+  // ---- Leadership & Management — resume scope (isPeopleManager,
+  // teamSizeManaged) + self-rated management confidence, blended with the
+  // reference "team lift" rating where available.
+  const leadershipSelfReport = candidate.isPeopleManager
+    ? clamp(30 + Math.min(candidate.teamSizeManaged ?? 0, 20) * 2 + (candidate.managementSkillConfidence ?? 50) * 0.3)
+    : 40 // not a penalty — an IC candidate simply has less direct-management evidence to show yet
+  const leadershipRefRating = averageReferenceRating(refs, 'ratingTeamLift')
+  const leadershipScore =
+    leadershipRefRating !== null ? clamp(leadershipSelfReport * 0.5 + leadershipRefRating * 0.5) : leadershipSelfReport
+
+  // ---- Skills & Execution — self-rated core-skill confidence + resume
+  // experience quality, blended with the reference "work ethic" rating.
   const latestResume = candidate.resumes[0]
-  if (latestResume) {
-    const resumeAvg =
-      ((latestResume.atsScore ?? 0) + (latestResume.resultsScore ?? 0) + (latestResume.experienceScore ?? 0)) / 3
-    presentation += resumeAvg * 0.5
-  }
-  if (candidate.linkedInUrl) presentation += 20
-  const narrativeParts = [candidate.part1Complete, candidate.part3Complete, candidate.part4Complete].filter(
-    Boolean
-  ).length
-  presentation += narrativeParts * 8
-  if (candidate.knownFor) presentation += 6
-  presentation = clamp(presentation)
+  const resumeExperienceScore = latestResume?.experienceScore ?? null
+  const skillsSelfReport = clamp(
+    (candidate.functionSkillConfidence ?? 50) * 0.6 + (resumeExperienceScore ?? 50) * 0.4
+  )
+  const skillsRefRating = averageReferenceRating(refs, 'ratingWorkEthic')
+  const skillsExecutionScore =
+    skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : skillsSelfReport
 
-  // 5. Social Proof — controllable, high leverage
-  let socialProof = 0
-  const completedRefs = candidate.references.filter((r) => r.status === 'COMPLETED')
-  socialProof += Math.min(completedRefs.length * 20, 60)
-  socialProof += Math.min(candidate.workSamples.length * 15, 30)
-  socialProof += completedRefs.length >= 2 ? 10 : 0
-  socialProof = clamp(socialProof)
+  // ---- Communication & Collaboration — self-rated communicator
+  // confidence, blended with the reference communication rating.
+  const communicationSelfReport = candidate.communicatorConfidence ?? 50
+  const communicationRefRating = averageReferenceRating(refs, 'ratingCommunication')
+  const communicationScore =
+    communicationRefRating !== null
+      ? clamp(communicationSelfReport * 0.5 + communicationRefRating * 0.5)
+      : clamp(communicationSelfReport)
 
-  // 6. Search Strategy — controllable, highest leverage. How they're
-  // looking, not just what for: flexibility, honest engagement, motivation.
-  let searchStrategy = 0
-  const intensityScore = difficultyLevelToIntensityScore(candidate.jobSearchDifficultyLevel)
-  if (intensityScore !== null) searchStrategy += intensityScore * 0.35
-  if (candidate.networkingListSubmittedAt) searchStrategy += 20
-  if (candidate.askedForHelpAt) searchStrategy += 15
+  // ---- Adaptability & Change Readiness — behavioral flexibility already
+  // on file (comp/level/location) plus, if pivoting, whether that's paired
+  // with real preparation (learning activity — read at report-generation
+  // time, not here, so this stays a pure/no-extra-query function); blended
+  // with the reference growth-mindset rating.
   const flexibilityCount = [candidate.willingToStartLower, candidate.compFlexible, candidate.openToRelocation].filter(
     Boolean
   ).length
-  searchStrategy += flexibilityCount * 10
-  searchStrategy = clamp(searchStrategy)
+  const adaptabilitySelfReport = clamp(40 + flexibilityCount * 15 + (candidate.isPivoting ? 10 : 0))
+  const adaptabilityRefRating = averageReferenceRating(refs, 'ratingGrowthMindset')
+  const adaptabilityScore =
+    adaptabilityRefRating !== null
+      ? clamp(adaptabilitySelfReport * 0.5 + adaptabilityRefRating * 0.5)
+      : adaptabilitySelfReport
 
-  // 7. Focus — controllable. A named, specific target beats "flexible,"
-  // which reads as a lack of direction rather than open-mindedness.
-  const focus = isVagueTargetRole(candidate.targetRoleType) ? 35 : 90
+  // ---- Ownership & Reliability — almost entirely a reference signal;
+  // there's no good self-report proxy for "can you be trusted without
+  // supervision," so this leans on the reference reliability rating far
+  // more than the others, with a neutral default until one exists.
+  const ownershipRefRating = averageReferenceRating(refs, 'ratingReliability')
+  const ownershipScore = ownershipRefRating ?? 55
 
-  // 8. Detail-Orientedness — controllable. How many of the optional
-  // job-search self-report questions were actually answered.
-  const detailOrientedness = computeDetailOrientednessScore(candidate)
+  const scores: Record<CategoryKey, number> = {
+    targetFit: targetFitScore,
+    leadership: leadershipScore,
+    skillsExecution: skillsExecutionScore,
+    communication: communicationScore,
+    adaptability: adaptabilityScore,
+    ownership: ownershipScore,
+  }
 
-  return [
-    {
-      key: 'experienceMatch',
-      label: 'Experience Match',
-      score: experienceMatch,
-      grade: scoreToGrade(experienceMatch),
-      factorType: 'influenceable',
-      confidence: confidenceFor('experienceMatch'),
-    },
-    {
-      key: 'marketPosition',
-      label: 'Market Position',
-      score: marketPosition,
-      grade: scoreToGrade(marketPosition),
-      factorType: 'structural',
-      confidence: confidenceFor('marketPosition'),
-    },
-    {
-      key: 'targetComplexity',
-      label: 'Target Complexity',
-      score: targetComplexity,
-      grade: scoreToGrade(targetComplexity),
-      factorType: 'structural',
-      confidence: confidenceFor('targetComplexity'),
-    },
-    {
-      key: 'presentation',
-      label: 'Presentation',
-      score: presentation,
-      grade: scoreToGrade(presentation),
-      factorType: 'controllable',
-      confidence: confidenceFor('presentation'),
-    },
-    {
-      key: 'socialProof',
-      label: 'Social Proof',
-      score: socialProof,
-      grade: scoreToGrade(socialProof),
-      factorType: 'controllable',
-      confidence: confidenceFor('socialProof'),
-    },
-    {
-      key: 'searchStrategy',
-      label: 'Search Strategy',
-      score: searchStrategy,
-      grade: scoreToGrade(searchStrategy),
-      factorType: 'controllable',
-      confidence: confidenceFor('searchStrategy'),
-    },
-    {
-      key: 'focus',
-      label: 'Focus',
-      score: focus,
-      grade: scoreToGrade(focus),
-      factorType: 'controllable',
-      confidence: confidenceFor('focus'),
-    },
-    {
-      key: 'detailOrientedness',
-      label: 'Detail-Orientedness',
-      score: detailOrientedness,
-      grade: scoreToGrade(detailOrientedness),
-      factorType: 'controllable',
-      confidence: confidenceFor('detailOrientedness'),
-    },
-  ]
+  const selfAwarenessInputs: SelfAwarenessInputs = {
+    communicatorConfidence: candidate.communicatorConfidence,
+    managementSkillConfidence: candidate.managementSkillConfidence,
+    isPeopleManager: candidate.isPeopleManager,
+    topStrengths: candidate.topStrengths,
+    dimensionVectors: latestVectors ?? null,
+    hasCompletedReference: completedReferenceCount(refs) > 0,
+  }
+
+  return CATEGORY_ORDER.map((key) => ({
+    key,
+    label: CATEGORY_LABEL[key],
+    score: scores[key],
+    grade: scoreToGrade(scores[key]),
+    confidence: getCategoryConfidence(key, candidate, jobReactionsCount),
+    selfAwareness: getSelfAwarenessRead(key, selfAwarenessInputs),
+  }))
 }
 
-// Search Action Grade is now driven by real Weekly Search Score points
-// earned this week (1 point = 1 minute), not a lifetime profile-completeness
-// proxy —
-// each of the four engines sums the points of *completed* committed actions
-// that map to it (see engineForActionType), and each engine's 0-100 score is
-// its share of points relative to a proportional quarter of the week's
-// overall ramp target, so a candidate can't max the headline grade by
-// stacking one engine while leaving the other three untouched.
-async function computeSearchExecutionEngines(
+// Reads the persisted per-category baseline, backfilling it from a live
+// computation the first time a candidate is graded (so there's never a
+// "no baseline yet" gap for an existing candidate mid-migration).
+export async function getCategoryBaseline(
+  candidate: CandidateWithGradeRelations
+): Promise<Record<CategoryKey, number>> {
+  const stored = candidate.categoryBaselineScores as Record<CategoryKey, number> | null
+  if (stored) return stored
+
+  const categories = await computeCategoryGrades(candidate)
+  const baseline = Object.fromEntries(categories.map((c) => [c.key, c.score])) as Record<CategoryKey, number>
+  await prisma.candidateProfile.update({
+    where: { id: candidate.id },
+    data: { categoryBaselineScores: baseline, categoryBaselineUpdatedAt: new Date() },
+  })
+  return baseline
+}
+
+// Called by rewrite-actions.ts when a real event (a landed interview, a
+// reference that rebuts a named weakness, etc.) should move a category's
+// baseline directly, rather than waiting for the bounded weekly nudge.
+export async function updateCategoryBaseline(
+  candidateId: string,
+  category: CategoryKey,
+  newScore: number
+): Promise<void> {
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
+  const current = (candidate.categoryBaselineScores as Record<CategoryKey, number> | null) ?? {}
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: {
+      categoryBaselineScores: { ...current, [category]: clamp(newScore) },
+      categoryBaselineUpdatedAt: new Date(),
+    },
+  })
+}
+
+// Weekly effort — an input to the grade, not a second grade. Same point
+// math as before: each of the four engines sums the points of *completed*
+// committed actions that map to it, scored against a proportional quarter
+// of the week's overall ramp target.
+async function computeWeeklyEngines(
   candidateId: string,
   weekNumber: number
-): Promise<{ engines: SearchExecutionEngine[]; weeklyPoints: number; weeklyPointsTarget: number }> {
+): Promise<{ engines: WeeklyEngine[]; weeklyPoints: number; weeklyPointsTarget: number }> {
   const weeklyPointsTarget = pointsNeededForA(weekNumber)
   const perEngineTarget = weeklyPointsTarget / 4
 
   const sprint = await getCurrentWeekSprint(candidateId)
   const committedActions = sprint ? (sprint.committedActions as unknown as CommittedAction[]) : []
 
-  const pointsByEngine: Record<SearchExecutionEngineKey, number> = {
-    learning: 0,
-    effort: 0,
-    working: 0,
-    connecting: 0,
-  }
-
+  const pointsByEngine: Record<WeeklyEngineKey, number> = { learning: 0, effort: 0, working: 0, connecting: 0 }
   for (const action of committedActions) {
     if (!action.completed) continue
     const engine = engineForActionType(action.actionType)
@@ -339,28 +350,18 @@ async function computeSearchExecutionEngines(
 
   const weeklyPoints = Object.values(pointsByEngine).reduce((sum, p) => sum + p, 0)
 
-  const label: Record<SearchExecutionEngineKey, string> = {
-    learning: 'Learning',
-    effort: 'Effort',
-    working: 'Working',
-    connecting: 'Connecting',
-  }
-
-  const engines: SearchExecutionEngine[] = (['learning', 'effort', 'working', 'connecting'] as const).map(
-    (key) => {
-      const score = perEngineTarget > 0 ? clamp((pointsByEngine[key] / perEngineTarget) * 100) : 0
-      return { key, label: label[key], score, grade: scoreToGrade(score) }
-    }
-  )
+  const engines: WeeklyEngine[] = (['learning', 'effort', 'working', 'connecting'] as const).map((key) => {
+    const score = perEngineTarget > 0 ? clamp((pointsByEngine[key] / perEngineTarget) * 100) : 0
+    return { key, label: WEEKLY_ENGINE_LABEL[key], score, grade: scoreToGrade(score) }
+  })
 
   return { engines, weeklyPoints, weeklyPointsTarget }
 }
 
 // Did the candidate earn an A the calendar week immediately before the
-// current one? Recomputed directly from that week's WeeklySprint rather than
-// read back from a HireabilityReport snapshot, since reports aren't
-// generated on a strict weekly cadence — this stays accurate regardless of
-// when/whether a report happened to be generated that week.
+// current one? Recomputed directly from that week's WeeklySprint rather
+// than read back from a HireabilityReport snapshot, since reports aren't
+// generated on a strict weekly cadence.
 async function hadPriorWeekA(candidateId: string, weekNumber: number): Promise<boolean> {
   if (weekNumber <= 1) return false
 
@@ -379,60 +380,66 @@ async function hadPriorWeekA(candidateId: string, weekNumber: number): Promise<b
   return gradeForWeeklyPoints(priorPoints, priorTarget) === 'A'
 }
 
-export async function computeHireabilityGrade(
-  candidate: CandidateWithGradeRelations
-): Promise<HireabilityGrade> {
-  const dimensions = await computeMarketRealityDimensions(candidate)
+// The non-compounding weekly blend: baseline (stable, only moves via a
+// rewrite-action event or a full retake) plus a bounded nudge from this
+// week's effort — never a running multiplier across weeks. A perfect week
+// moves the grade up to 15 points; a dead week moves it down up to 15; an
+// average, at-target week leaves the baseline untouched.
+function blendCategoryScore(baselineScore: number, weeklyPerformanceRatio: number): number {
+  const nudge = Math.max(-15, Math.min(15, (weeklyPerformanceRatio - 0.5) * 30))
+  return clamp(baselineScore + nudge)
+}
+
+export async function computeHireabilityGrade(candidate: CandidateWithGradeRelations): Promise<HireabilityGrade> {
   const weekNumber = candidate._count.weeklySprints + 1
-  const { engines, weeklyPoints, weeklyPointsTarget } = await computeSearchExecutionEngines(
-    candidate.id,
-    weekNumber
-  )
+  const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget }] = await Promise.all([
+    getCategoryBaseline(candidate),
+    computeCategoryGrades(candidate),
+    computeWeeklyEngines(candidate.id, weekNumber),
+  ])
 
-  const marketRealityScore = clamp(dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length)
-
-  // Executive Coach bonus (+25% recognized points) and a universal
-  // consistency bonus (+10%, anyone coming off an A week) stack additively
-  // and apply only to the grade-from-points calculation below — the raw
-  // weeklyPoints figure (and each engine's own score) stays unboosted, so
-  // "real effort" and "recognized score" stay distinguishable in the UI.
   const hasExecutiveCoach = candidate.coach?.focus === 'EXECUTIVE'
   const hadAGradeLastWeek = await hadPriorWeekA(candidate.id, weekNumber)
-  const bonusMultiplier = 1 + (hasExecutiveCoach ? 0.25 : 0) + (hadAGradeLastWeek ? 0.1 : 0)
+  const bonusMultiplier = 1 + Math.min(0.2, (hasExecutiveCoach ? 0.1 : 0) + (hadAGradeLastWeek ? 0.1 : 0))
   const recognizedWeeklyPoints = Math.round(weeklyPoints * bonusMultiplier)
 
-  const searchExecutionGradeFromPoints = gradeForWeeklyPoints(recognizedWeeklyPoints, weeklyPointsTarget)
+  const weeklyPerformanceRatio =
+    weeklyPointsTarget > 0 ? Math.min(1.5, recognizedWeeklyPoints / weeklyPointsTarget) : 0
 
   const laggingEngines = engines.filter((e) => e.score < CATEGORY_MINIMUM_SCORE_FLOOR).map((e) => e.key)
   const categoryMinimumsMet =
     candidate._count.weeklySprints < CATEGORY_MINIMUM_ENFORCED_FROM_WEEK || laggingEngines.length === 0
 
-  let searchExecutionGrade = searchExecutionGradeFromPoints
-  if (!categoryMinimumsMet && searchExecutionGrade === 'A') {
-    searchExecutionGrade = 'B'
+  // The weekly nudge (and the week-4+ engine floor) apply to the grade as a
+  // whole, not per category — categories keep their own baselines but move
+  // together with the week's overall effort level. Live-computed category
+  // scores (categoriesLive) are used for confidence/self-awareness/commentary;
+  // the graded score/grade per category comes from the blended baseline.
+  const categories: CategoryGrade[] = categoriesLive.map((c) => {
+    const blendedScore = blendCategoryScore(baseline[c.key] ?? c.score, weeklyPerformanceRatio)
+    return { ...c, score: blendedScore, grade: scoreToGrade(blendedScore) }
+  })
+
+  let overallScore = clamp(categories.reduce((sum, c) => sum + c.score, 0) / categories.length)
+  let overallGrade = scoreToGrade(overallScore)
+  if (!categoryMinimumsMet && overallGrade === 'A') {
+    overallGrade = 'B'
+    overallScore = Math.min(overallScore, 89)
   }
 
-  const searchExecutionScore = clamp(engines.reduce((sum, e) => sum + e.score, 0) / engines.length)
-
   return {
-    marketReality: {
-      score: marketRealityScore,
-      grade: scoreToGrade(marketRealityScore),
-      dimensions,
-    },
-    searchExecution: {
-      score: searchExecutionScore,
-      grade: searchExecutionGrade,
-      engines,
-      categoryMinimumsMet,
-      laggingEngines,
-      weeklyPoints,
-      weeklyPointsTarget,
-      bonusMultiplier,
-      hasExecutiveCoach,
-      hadPriorWeekA: hadAGradeLastWeek,
-      recognizedWeeklyPoints,
-    },
+    score: overallScore,
+    grade: overallGrade,
+    categories,
+    weeklyEngines: engines,
+    categoryMinimumsMet,
+    laggingEngines,
+    weeklyPoints,
+    weeklyPointsTarget,
+    recognizedWeeklyPoints,
+    bonusMultiplier,
+    hasExecutiveCoach,
+    hadPriorWeekA: hadAGradeLastWeek,
   }
 }
 
@@ -445,20 +452,20 @@ export const GRADE_RELATIONS_INCLUDE = {
   resumes: { orderBy: { uploadedAt: 'desc' as const } },
   communityPosts: { where: { isActive: true } },
   surfacedJobs: { select: { reaction: true } },
+  assessmentResponses: { orderBy: { completedAt: 'desc' as const }, take: 1, select: { dimensionVectors: true, completedAt: true } },
   _count: { select: { weeklySprints: true } },
   coach: { select: { focus: true } },
 } as const
 
-// Single-candidate convenience wrapper for the three A-grade gates
-// (recruiter visibility snapshot check aside, which uses stored report
-// snapshots instead — see the match-inbox query — this is for the two
-// gates that need a live, current-standing check on one candidate: the
-// bounty claim submission gate and the Exclusive Jobs unlock check).
-export async function getCurrentSearchActionGrade(candidateId: string): Promise<Grade> {
+// Single-candidate convenience wrapper for the live A-grade gates (the
+// bounty-claim submission gate and the Exclusive Jobs unlock check;
+// recruiter visibility instead reads from stored report snapshots — see
+// the match-inbox query).
+export async function getCurrentGrade(candidateId: string): Promise<Grade> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: GRADE_RELATIONS_INCLUDE,
   })
   const grade = await computeHireabilityGrade(candidate as unknown as CandidateWithGradeRelations)
-  return grade.searchExecution.grade
+  return grade.grade
 }

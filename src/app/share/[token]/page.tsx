@@ -195,18 +195,9 @@ export default async function SharedProfilePage({
               <div>
                 <p className="text-xs text-muted-foreground">Market Reality Grade</p>
                 <p className="text-lg font-semibold">
-                  {view.hireabilityGrade.marketReality.grade}{' '}
+                  {view.hireabilityGrade.grade}{' '}
                   <span className="text-sm font-normal text-muted-foreground">
-                    ({GRADE_LABEL[view.hireabilityGrade.marketReality.grade]})
-                  </span>
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Search Action Grade</p>
-                <p className="text-lg font-semibold">
-                  {view.hireabilityGrade.searchExecution.grade}{' '}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    ({GRADE_LABEL[view.hireabilityGrade.searchExecution.grade]})
+                    ({GRADE_LABEL[view.hireabilityGrade.grade]})
                   </span>
                 </p>
               </div>

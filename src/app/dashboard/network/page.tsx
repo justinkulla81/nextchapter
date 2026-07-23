@@ -82,7 +82,7 @@ export default async function NetworkPage() {
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Every contact you add and outreach you log counts toward the connecting signal in your
-          Search Action Grade.
+          Market Reality Grade.
         </p>
       </div>
 

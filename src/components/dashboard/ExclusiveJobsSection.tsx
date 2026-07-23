@@ -23,8 +23,8 @@ export function ExclusiveJobsSection({
 
   if (!unlocked) {
     const requirement = !recruiterDatabaseOptIn
-      ? 'Requires an A Search Action Grade and recruiter database opt-in (Privacy settings) — you haven\'t opted in yet.'
-      : 'Requires an A Search Action Grade — real, admin-curated postings only shown to candidates currently holding one.'
+      ? 'Requires an A Market Reality Grade and recruiter database opt-in (Privacy settings) — you haven\'t opted in yet.'
+      : 'Requires an A Market Reality Grade — real, admin-curated postings only shown to candidates currently holding one.'
     return (
       <LockedFeatureNotice title="Exclusive Next Chapter Jobs" requirement={requirement} currentGrade={currentGrade} />
     )
@@ -35,7 +35,7 @@ export function ExclusiveJobsSection({
       <div>
         <p className="text-sm font-semibold text-foreground">Exclusive Next Chapter Jobs — unlocked</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Real postings, curated for candidates holding an A Search Action Grade.
+          Real postings, curated for candidates holding an A Market Reality Grade.
         </p>
       </div>
       {postings.length === 0 ? (

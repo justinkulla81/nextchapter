@@ -15,7 +15,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
 
   // Opting in is necessary but not sufficient — a candidate is only actually
   // surfaced here while their current standing (latest report snapshot) is
-  // an A Search Action Grade. Live-recomputing the grade for up to 100
+  // an A Market Reality Grade. Live-recomputing the grade for up to 100
   // candidates on every match-inbox load would be too expensive (per-
   // candidate market-data lookups); the latest stored snapshot is the same
   // "current standing" source of truth used elsewhere (Full Client View,
@@ -52,7 +52,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
   const candidates = candidatesRaw
     .filter((c) => {
       const grade = c.hireabilityReports[0]?.hireabilityGradeAtGeneration as unknown as HireabilityGrade | undefined
-      return grade?.searchExecution.grade === 'A'
+      return grade?.grade === 'A'
     })
     .slice(0, 100)
 

@@ -557,6 +557,16 @@ model CandidateProfile {
   jobBoardUsage             Json?
   jobBoardUsageNudgeShownAt DateTime? // caps the Victoria nudge to once/week
 
+  // Scoring Model 2.0 — persisted per-category baseline (Record<CategoryKey,
+  // number>, 0-100 each). The weekly grade is baseline + a bounded weekly
+  // performance nudge, NOT a full live recompute — this is the state that
+  // carries forward week to week. Null until the first grade computation
+  // backfills it. Only changes via a rewrite-action event (see
+  // src/lib/scoring/rewrite-actions.ts) or a full assessment retake, never
+  // on ordinary page reads.
+  categoryBaselineScores    Json?
+  categoryBaselineUpdatedAt DateTime?
+
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])

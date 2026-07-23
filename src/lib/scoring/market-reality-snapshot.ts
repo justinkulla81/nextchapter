@@ -1,11 +1,11 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import {
-  computeMarketRealityDimensions,
+  computeCategoryGrades,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
 } from '@/lib/scoring/hireability-grade'
-import { scoreToGrade } from '@/lib/scoring/grade'
+import { scoreToGrade, type CategoryGrade } from '@/lib/scoring/grade'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 
 function clamp(n: number): number {
@@ -33,17 +33,17 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
     orderBy: { completedAt: 'desc' },
   })
 
-  const dimensions = await computeMarketRealityDimensions(candidate as unknown as CandidateWithGradeRelations)
-  const marketRealityScore = clamp(dimensions.reduce((sum, d) => sum + d.score, 0) / dimensions.length)
+  const categories: CategoryGrade[] = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
+  const marketRealityScore = clamp(categories.reduce((sum, c) => sum + c.score, 0) / categories.length)
   const grade = scoreToGrade(marketRealityScore)
-  const namedReasons: NamedReason[] = computeNamedReasons(dimensions, latestAiProject?.judgmentCall ?? null)
+  const namedReasons: NamedReason[] = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null)
 
   await prisma.marketRealitySnapshot.create({
     data: {
       candidateId,
       weekStartDate,
       grade,
-      dimensions: dimensions as unknown as object,
+      dimensions: categories as unknown as object,
       namedReasons: namedReasons as unknown as object,
     },
   })

@@ -84,7 +84,7 @@ export default async function OnboardingResumePage() {
       <ul className="space-y-1.5 text-sm text-muted-foreground">
         <li>• A free account, no credit card required.</li>
         <li>• A free, honest review of your resume — see exactly what&apos;s holding it back.</li>
-        <li>• Your Market Reality Grade, Search Action Grade, and a personalized action plan, not vague advice.</li>
+        <li>• Your Market Reality Grade and a personalized action plan, not vague advice.</li>
         <li>• Access to a community of people who get exactly what you&apos;re going through.</li>
       </ul>
 

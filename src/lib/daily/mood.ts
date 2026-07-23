@@ -1,6 +1,7 @@
 import 'server-only'
 import type { Mood } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { MOOD_SCORE } from '@/lib/daily/mood-labels'
 
 // Shared daily-reset boundary — also used by dashboard message and mood-card
 // dismissal so "resets the next day" means the same thing everywhere.
@@ -100,4 +101,47 @@ export async function getMoodHistory(
     select: { checkedInAt: true, mood: true },
   })
   return checkIns.reverse().map((c) => ({ date: c.checkedInAt, mood: c.mood }))
+}
+
+export interface SentimentAlert {
+  lowSentiment: boolean
+  reason: 'low_average' | 'declining_trend' | null
+}
+
+const LOW_SENTIMENT_THRESHOLD = 30 // mostly "Stuck" over the trailing window
+const DECLINING_TREND_THRESHOLD = 0.75 // same threshold as the half-vs-half check below
+
+// Real, threshold-based low-sentiment detection — not just the descriptive
+// up/down trend note elsewhere, an actual signal to alert on. Fires when
+// either the trailing 14-day average reads mostly "Stuck," or the first
+// half of that window is meaningfully worse than the second half reversed
+// (i.e. things have been trending down), using the same 0-3 mapping and
+// delta threshold as getMoodPatternNote (src/lib/coach/pre-session-brief.ts).
+export async function getSentimentAlert(candidateId: string): Promise<SentimentAlert> {
+  const fourteenDaysAgo = startOfUTCDay(new Date())
+  fourteenDaysAgo.setUTCDate(fourteenDaysAgo.getUTCDate() - 13)
+
+  const checkIns = await prisma.dailyCheckIn.findMany({
+    where: { candidateId, checkedInAt: { gte: fourteenDaysAgo } },
+    orderBy: { checkedInAt: 'asc' },
+    select: { mood: true },
+  })
+
+  if (checkIns.length === 0) return { lowSentiment: false, reason: null }
+
+  const average = checkIns.reduce((sum, c) => sum + MOOD_SCORE[c.mood], 0) / checkIns.length
+  if (average < LOW_SENTIMENT_THRESHOLD) return { lowSentiment: true, reason: 'low_average' }
+
+  if (checkIns.length >= 3) {
+    const moodValue: Record<Mood, number> = { STUCK: 0, GETTING_THERE: 1, MOVING: 2, FIRED_UP: 3 }
+    const mid = Math.floor(checkIns.length / 2)
+    const firstHalf = checkIns.slice(0, mid)
+    const secondHalf = checkIns.slice(mid)
+    const avg = (arr: typeof checkIns) => arr.reduce((sum, c) => sum + moodValue[c.mood], 0) / arr.length
+    if (avg(firstHalf) - avg(secondHalf) >= DECLINING_TREND_THRESHOLD) {
+      return { lowSentiment: true, reason: 'declining_trend' }
+    }
+  }
+
+  return { lowSentiment: false, reason: null }
 }

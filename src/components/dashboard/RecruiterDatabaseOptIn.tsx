@@ -19,7 +19,7 @@ export function RecruiterDatabaseOptIn({ optedIn, currentGrade }: { optedIn: boo
         <p className="mt-1 text-sm text-muted-foreground">
           {isAGrade ? (
             <span className="font-medium text-success">
-              You&apos;re currently surfaced to recruiters — your Search Action Grade is A.
+              You&apos;re currently surfaced to recruiters — your Market Reality Grade is A.
             </span>
           ) : (
             <>

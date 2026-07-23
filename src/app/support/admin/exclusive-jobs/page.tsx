@@ -38,7 +38,7 @@ export default async function ExclusiveJobsAdminPage() {
         <p className="mt-1 text-muted-foreground">
           Every non-admin submission lands here as pending until approved — no employer/recruiter
           domain verification exists yet, so this review is the trust gate. Visible only to
-          candidates currently holding an A Search Action Grade and opted into the recruiter
+          candidates currently holding an A Market Reality Grade and opted into the recruiter
           database.
         </p>
       </div>
