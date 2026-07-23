@@ -6,7 +6,6 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { sendPostInterestNotification } from '@/lib/email/send-post-interest-notification'
 import { sendEncouragementNote, markEncouragementNoteRead } from '@/lib/community/encouragement'
 
@@ -62,7 +61,6 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
     },
   })
 
-  await recalculateScore(profile.id, 'community_post_created')
 
   revalidatePath('/dashboard/community')
   revalidatePath('/dashboard')

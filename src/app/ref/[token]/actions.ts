@@ -2,7 +2,6 @@
 
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { syncReferenceDelta, BARS_FIELD_BY_DIMENSION } from '@/lib/scoring/reference-delta'
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
@@ -106,7 +105,6 @@ export async function submitReference(_prevState: FormState, formData: FormData)
     },
   })
 
-  await recalculateScore(reference.candidateId, 'reference_completed')
 
   // Must never block the referee's submission from succeeding.
   try {

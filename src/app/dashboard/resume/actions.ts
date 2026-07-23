@@ -11,7 +11,6 @@ import { ensureUser } from '@/lib/auth/ensure-user'
 import { extractResumeText } from '@/lib/resume/extract-text'
 import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
 
@@ -129,7 +128,6 @@ export async function setLinkedInUrl(_prevState: FormState, formData: FormData):
     where: { id: profile.id },
     data: { linkedInUrl },
   })
-  await recalculateScore(profile.id, 'linkedin_url_added')
 
   revalidatePath('/dashboard/resume')
   revalidatePath('/dashboard')

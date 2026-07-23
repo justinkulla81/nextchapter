@@ -2,7 +2,8 @@ import 'server-only'
 import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import CompleteRegistrationReminderEmail from '@/emails/complete-registration-reminder'
-import { scoreToGrade, GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
+import { GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
+import { computeHireabilityGrade, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/hireability-grade'
 
 export async function sendRegistrationReminderEmail({
   candidateId,
@@ -17,11 +18,15 @@ export async function sendRegistrationReminderEmail({
   }
 
   try {
-    const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
+    const candidate = await prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      include: GRADE_RELATIONS_INCLUDE,
+    })
     if (!candidate.email) return { sent: false as const }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}`
+    const grade = await computeHireabilityGrade(candidate)
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
@@ -31,7 +36,7 @@ export async function sendRegistrationReminderEmail({
       subject: 'Finish creating your NextChapter account to unlock your report',
       react: CompleteRegistrationReminderEmail({
         firstName: candidate.firstName,
-        gradeDescription: GRADE_BAND_DESCRIPTION[scoreToGrade(candidate.employabilityScore)],
+        gradeDescription: GRADE_BAND_DESCRIPTION[grade.marketReality.grade],
         magicLink,
         unsubscribeUrl,
       }),

@@ -5,7 +5,8 @@ import { COACH_HISTORY_MESSAGE_LIMIT } from '@/lib/constants/coach'
 import { LINKEDIN_POINTS_WINDOW_DAYS } from '@/lib/constants/linkedin'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
-import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
+import { GRADE_LABEL } from '@/lib/scoring/grade'
+import { computeHireabilityGrade, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/hireability-grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 
@@ -28,7 +29,7 @@ export async function generateCoachReply(
   const [candidate, history] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
-      include: { linkedInActivityLogs: true, _count: { select: { weeklySprints: true } } },
+      include: GRADE_RELATIONS_INCLUDE,
     }),
     prisma.coachMessage.findMany({
       where: { conversationId },
@@ -41,6 +42,7 @@ export async function generateCoachReply(
   windowStart.setDate(windowStart.getDate() - LINKEDIN_POINTS_WINDOW_DAYS)
   const recentLinkedInPosts = candidate.linkedInActivityLogs.filter((l) => l.loggedAt > windowStart).length
 
+  const grade = await computeHireabilityGrade(candidate)
   const weekNumber = candidate._count.weeklySprints + 1
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
@@ -54,7 +56,8 @@ Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Target function: ${candidate.targetFunction ?? 'not specified'}
 Industry background: ${candidate.industryContext ?? 'not specified'}
 Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}
-Current hireability grade: ${scoreToGrade(candidate.employabilityScore)} (${GRADE_LABEL[scoreToGrade(candidate.employabilityScore)]}) (tier: ${candidate.visibilityTier})
+Market Reality Grade: ${grade.marketReality.grade} (${GRADE_LABEL[grade.marketReality.grade]})
+Search Action Grade: ${grade.searchExecution.grade} (${GRADE_LABEL[grade.searchExecution.grade]})
 LinkedIn URL on file: ${candidate.linkedInUrl ? 'yes' : 'no'}
 LinkedIn posts logged in the last ${LINKEDIN_POINTS_WINDOW_DAYS} days: ${recentLinkedInPosts}
 Networking list (25 people) submitted: ${candidate.networkingListSubmittedAt ? 'yes' : 'no'}

@@ -364,7 +364,6 @@ Openings matching their target function + industry: ${industrySpecificCount !== 
       hillToClimb: data.hillToClimb,
       actionPlan: normalizeActionPlan(data.actionPlan),
       gapAnalysis: data.gapAnalysis,
-      employabilityScoreAtGeneration: candidate.employabilityScore,
       hireabilityGradeAtGeneration: grade as unknown as Prisma.InputJsonValue,
       marketConditions: marketConditions.dataAvailable
         ? {

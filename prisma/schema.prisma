@@ -82,13 +82,6 @@ enum GapDurationBucket {
   TWELVE_PLUS_MONTHS
 }
 
-enum VisibilityTier {
-  EMERGING // Assessment complete
-  SIGNAL // 2 refs + 1 work sample
-  VERIFIED // 360 survey + 3 refs + full suite
-  SPOTLIGHT // All verified + extras
-}
-
 // "When are you most ready to take action?" — controls daily email timing.
 enum ActionWindow {
   MORNING // Plan and act in the morning
@@ -273,10 +266,7 @@ model CandidateProfile {
   updatedAt DateTime @updatedAt
 
   // Privacy & Visibility
-  privacyTier         PrivacyTier    @default(LOCKED)
-  visibilityTier      VisibilityTier @default(EMERGING)
-  employabilityScore  Int            @default(0)
-  scoreLastCalculated DateTime?
+  privacyTier PrivacyTier @default(LOCKED)
 
   // Recruiter database — explicit candidate opt-in required before appearing
   // in any employer-facing Talent match list. privacyTier alone is opt-out,
@@ -506,7 +496,6 @@ model CandidateProfile {
   peerNominations            PeerNomination[]
   learningBadges             LearningBadge[]
   employerInteractions       CandidateInteraction[]
-  scoreHistory               EmployabilityScoreHistory[]
   approvedEmployers          ApprovedEmployer[]
   assessmentResults          AssessmentResult[]
   assessmentResponses        CandidateAssessmentResponse[]
@@ -568,8 +557,7 @@ model CandidateProfile {
   jobBoardUsage             Json?
   jobBoardUsageNudgeShownAt DateTime? // caps the Victoria nudge to once/week
 
-  @@index([privacyTier, visibilityTier])
-  @@index([employabilityScore])
+  @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
 }
@@ -897,23 +885,6 @@ model BARSAnchor {
   scalePoint Int // 1-5
   anchorText String // Specific observable behavior at this scale point
   isActive   Boolean @default(true)
-}
-
-model EmployabilityScoreHistory {
-  id          String           @id @default(cuid())
-  candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-
-  score            Int
-  signalDepth      Int // Sub-score 0-100
-  narrativeClarity Int // Sub-score 0-100
-  desireSignal     Int // Sub-score 0-100
-  consistency      Int // Sub-score 0-100
-  aiFlexibility    Int // Sub-score 0-100
-  calculatedAt     DateTime @default(now())
-  triggerEvent     String? // What caused the recalculation
-
-  @@index([candidateId, calculatedAt])
 }
 
 model ApprovedEmployer {
@@ -1276,11 +1247,6 @@ model HireabilityReport {
   gapAnalysis      Json // {targetRole, gaps: [{area, why, remediation, remediationType}]}
   marketConditions Json? // {narrative: string[], adzunaCount, blsYoyChangePct, ...} | null when unavailable
   hillToClimb      Json? // {tone: 'very_positive'|'positive_with_work'|'significant_climb', narrative: string[]}
-
-  // Snapshot of the score at generation time — this row is append-only
-  // history, but CandidateProfile.employabilityScore keeps mutating, so
-  // without this an old report would silently show today's score.
-  employabilityScoreAtGeneration Int @default(0)
 
   // Snapshot of the new dual-grade breakdown (HireabilityGrade shape from
   // hireability-grade.ts) at generation time, same reasoning as the score

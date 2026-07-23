@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { DualGradeReveal } from '@/components/candidates/DualGradeReveal'
 import { Button } from '@/components/ui/button'
@@ -17,8 +16,6 @@ export default async function ScorePage() {
   if (profile.registrationCompletedAt) {
     redirect('/dashboard')
   }
-
-  await recalculateScore(profile.id, 'onboarding_complete')
 
   const candidateWithRelations = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: profile.id },

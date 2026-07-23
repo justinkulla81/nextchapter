@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 
 export type FormState = { error?: string } | undefined
 
@@ -92,7 +91,6 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
     },
   })
 
-  await recalculateScore(profile.id, 'work_sample_added')
 
   revalidatePath('/dashboard/work-samples')
   revalidatePath('/dashboard')
@@ -112,7 +110,6 @@ export async function deleteWorkSample(sampleId: string) {
     where: { id: sampleId, candidateId: profile.id },
   })
 
-  await recalculateScore(profile.id, 'work_sample_removed')
 
   revalidatePath('/dashboard/work-samples')
   revalidatePath('/dashboard')

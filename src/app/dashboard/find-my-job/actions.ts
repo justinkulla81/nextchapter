@@ -11,7 +11,6 @@ import { analyzeJobFit } from '@/lib/jobs/analyze-job-fit'
 import { generateInterviewPrep } from '@/lib/jobs/generate-interview-prep'
 import { generateNegotiationAdvice } from '@/lib/jobs/generate-negotiation-advice'
 import { generateCoverLetter } from '@/lib/reports/cover-letter'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { surfaceNewJobs, generateReactionSummary } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
@@ -158,7 +157,6 @@ export async function markApplied(jobPostingId: string, formData: FormData) {
     where: { id: jobPostingId },
     data: { appliedAt: new Date(), channel: channel ?? null },
   })
-  await recalculateScore(profile.id, 'job_applied')
   captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
 
   revalidatePath('/dashboard/find-my-job')
@@ -199,7 +197,6 @@ export async function markInterviewLanded(jobPostingId: string) {
     where: { id: jobPostingId },
     data: { interviewLandedAt: new Date() },
   })
-  await recalculateScore(profile.id, 'interview_landed')
   await generateInterviewPrep(jobPostingId, profile.id)
 
   revalidatePath('/dashboard/find-my-job')
@@ -334,7 +331,6 @@ export async function markOfferReceived(jobPostingId: string) {
     where: { id: jobPostingId },
     data: { offerReceivedAt: new Date() },
   })
-  await recalculateScore(profile.id, 'offer_received')
   await generateNegotiationAdvice(jobPostingId, profile.id)
 
   revalidatePath('/dashboard/find-my-job')

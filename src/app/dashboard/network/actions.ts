@@ -13,7 +13,6 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { parseLinkedInConnectionsCsv } from '@/lib/network/csv-import'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 const NETWORKING_LIST_TARGET = 25
@@ -41,7 +40,6 @@ async function markNetworkingListSubmittedIfThresholdMet(candidateId: string) {
     where: { id: candidateId },
     data: { networkingListSubmittedAt: new Date() },
   })
-  await recalculateScore(candidateId, 'networking_list_submitted')
 }
 
 export type NetworkFormState = { error?: string; imported?: number } | undefined

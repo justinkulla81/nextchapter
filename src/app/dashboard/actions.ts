@@ -6,7 +6,6 @@ import type { ActionWindow, Mood } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { recalculateScore } from '@/lib/scoring/recalculate'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -33,7 +32,6 @@ export async function markAskedForHelp() {
     where: { id: profile.id },
     data: { askedForHelpAt: new Date() },
   })
-  await recalculateScore(profile.id, 'asked_for_help')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/network')
 }
@@ -51,7 +49,6 @@ export async function markLinkedInActivity() {
   if (alreadyLoggedToday) return
 
   await prisma.linkedInActivityLog.create({ data: { candidateId: profile.id } })
-  await recalculateScore(profile.id, 'linkedin_activity_logged')
   revalidatePath('/dashboard')
 }
 
@@ -137,7 +134,6 @@ export async function confirmProfile(
       profileConfirmedAt: new Date(),
     },
   })
-  await recalculateScore(profile.id, 'profile_confirmed')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
@@ -157,7 +153,6 @@ export async function confirmIndustry(
       industryConfirmedAt: new Date(),
     },
   })
-  await recalculateScore(profile.id, 'industry_confirmed')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
@@ -182,7 +177,6 @@ export async function confirmFunctionAndExperience(
       functionConfirmedAt: new Date(),
     },
   })
-  await recalculateScore(profile.id, 'function_confirmed')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
@@ -209,7 +203,6 @@ export async function confirmLinkedIn(
       linkedInConfirmedAt: new Date(),
     },
   })
-  await recalculateScore(profile.id, 'linkedin_confirmed')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/linkedin')
   revalidatePath('/dashboard/hireability-report')
@@ -248,7 +241,6 @@ export async function confirmSalaryAndAuthorization(
       workAuthConfirmedAt: now,
     },
   })
-  await recalculateScore(profile.id, 'salary_and_work_authorization_confirmed')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
