@@ -16,26 +16,20 @@ export function ForgotPasswordForm() {
 
   if (state?.sent) {
     return (
-      <p className="text-sm text-muted-foreground">
-        If an account exists for <span className="font-medium">{email}</span>, we&apos;ve sent a
-        link to reset your password.
-      </p>
-    )
-  }
-
-  if (state?.noAccount) {
-    return (
       <div className="space-y-2">
-        <p className="text-sm text-foreground">
-          We couldn&apos;t find an account for <span className="font-medium">{email}</span>. You&apos;ll
-          need to create one first.
+        <p className="text-sm text-muted-foreground">
+          If an account exists for <span className="font-medium">{email}</span>, we&apos;ve sent a
+          link to reset your password.
         </p>
-        <Link
-          href="/onboarding/resume"
-          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-        >
-          Create an account
-        </Link>
+        <p className="text-sm text-muted-foreground">
+          Don&apos;t have an account yet?{' '}
+          <Link
+            href="/onboarding/resume"
+            className="font-medium text-primary underline underline-offset-4"
+          >
+            Create one
+          </Link>
+        </p>
       </div>
     )
   }

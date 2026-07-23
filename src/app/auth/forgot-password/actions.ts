@@ -1,9 +1,8 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export type ForgotPasswordState = { error?: string; sent?: boolean; noAccount?: boolean } | undefined
+export type ForgotPasswordState = { error?: string; sent?: boolean } | undefined
 
 export async function requestPasswordReset(
   _prevState: ForgotPasswordState,
@@ -14,21 +13,15 @@ export async function requestPasswordReset(
     return { error: 'Please enter your email.' }
   }
 
-  // Anonymous onboarding-in-progress profiles share the email column too —
-  // only a completed registration (registrationCompletedAt set) has a real
-  // password to reset, so that's the bar for "an activated account exists."
-  const existingAccount = await prisma.candidateProfile.findFirst({
-    where: {
-      registrationCompletedAt: { not: null },
-      email: { equals: email, mode: 'insensitive' },
-    },
-    select: { id: true },
-  })
-
-  if (!existingAccount) {
-    return { noAccount: true }
-  }
-
+  // Deliberately no "does an account exist" pre-check: this used to query
+  // CandidateProfile, which only covers completed candidate registrations
+  // — any other real Supabase user (an admin-only login, employer,
+  // recruiter, coach) has no CandidateProfile row at all and would get a
+  // false "no account" answer, exactly the bug that left a real, previously
+  // logged-in account unable to ever receive a reset email. Supabase's own
+  // resetPasswordForEmail already no-ops safely for an email with no
+  // matching user (no error, nothing sent) — checking against the wrong
+  // table only made this worse for anyone outside the candidate table.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const admin = createAdminClient()
   const { error } = await admin.auth.resetPasswordForEmail(email, {
