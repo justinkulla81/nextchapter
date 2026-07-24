@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { SignOutButton } from '@/components/auth/SignOutButton'
+import { getRecruiterUnreadCount } from '@/lib/messaging/threads'
 
 export default async function RecruiterDashboardPage() {
   const supabase = await createClient()
@@ -14,6 +15,8 @@ export default async function RecruiterDashboardPage() {
 
   const recruiter = await prisma.recruiter.findUnique({ where: { userId: user.id } })
   if (!recruiter) redirect('/recruiters/signup')
+
+  const unreadMessages = await getRecruiterUnreadCount(recruiter.id)
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-16">
@@ -38,6 +41,17 @@ export default async function RecruiterDashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Add people from your own network and invite them to NextChapter.
           </p>
+        </Link>
+        <Link href="/recruiters/messages" className="rounded-lg border border-border p-4 hover:border-primary">
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-foreground">Messages</p>
+            {unreadMessages > 0 && (
+              <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+                {unreadMessages}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">Direct messages with candidates you&apos;ve sourced.</p>
         </Link>
         <Link
           href={`/recruiters/job-board/submit/${recruiter.accessToken}`}
