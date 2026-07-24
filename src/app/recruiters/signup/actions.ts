@@ -1,31 +1,76 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
+import { captureServerEvent } from '@/lib/posthog/server'
 
-export type FormState = { error?: string; accessToken?: string } | undefined
+export type CompleteRecruiterSignupState = { error?: string } | undefined
 
-export async function createRecruiter(_prevState: FormState, formData: FormData): Promise<FormState> {
+async function finishRecruiterSignup(
+  userId: string,
+  fullName: string,
+  workEmail: string,
+  firmName: string | null,
+  specialty: string | null
+) {
+  // A recruiter who ran the old (pre-login) P0-lite flow may already have a
+  // token-only row under this same work email — link this new login to it
+  // rather than creating a duplicate.
+  const existing = await prisma.recruiter.findUnique({ where: { workEmail } })
+  const recruiter = existing
+    ? await prisma.recruiter.update({ where: { id: existing.id }, data: { userId, fullName, firmName, specialty } })
+    : await prisma.recruiter.create({ data: { userId, fullName, workEmail, firmName, specialty } })
+
+  captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id })
+  return recruiter
+}
+
+export async function completeRecruiterSignup(
+  _prevState: CompleteRecruiterSignupState,
+  formData: FormData
+): Promise<CompleteRecruiterSignupState> {
   const fullName = (formData.get('fullName') as string | null)?.trim()
-  const workEmail = (formData.get('workEmail') as string | null)?.trim().toLowerCase()
   const firmName = (formData.get('firmName') as string | null)?.trim() || null
   const specialty = (formData.get('specialty') as string | null)?.trim() || null
 
-  if (!fullName || !workEmail) {
-    return { error: 'Please fill in your name and work email.' }
+  if (!fullName) {
+    return { error: 'Please fill in your name.' }
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workEmail)) {
-    return { error: 'Please enter a valid email address.' }
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user || !user.email) {
+    return { error: 'Something went wrong starting your session. Please try again.' }
   }
 
-  const existing = await prisma.recruiter.findUnique({ where: { workEmail } })
-  if (existing) {
-    return { accessToken: existing.accessToken }
+  await finishRecruiterSignup(user.id, fullName, user.email, firmName, specialty)
+
+  redirect('/recruiters/dashboard')
+}
+
+// Called from CallbackHandler once a fresh recruiter signUp's confirmation
+// email is clicked and a session is established — mirrors
+// completeEmployerSignupFromSession (see src/app/talent/signup/actions.ts).
+export async function completeRecruiterSignupFromSession(): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user || !user.email) return { error: 'Something went wrong starting your session. Please try again.' }
+
+  const fullName = (user.user_metadata?.full_name as string | undefined)?.trim()
+  const firmName = ((user.user_metadata?.firm_name as string | undefined)?.trim() || null) as string | null
+  const specialty = ((user.user_metadata?.specialty as string | undefined)?.trim() || null) as string | null
+
+  if (!fullName) {
+    return { error: 'Missing signup details — please try creating your account again.' }
   }
 
-  const recruiter = await prisma.recruiter.create({
-    data: { fullName, workEmail, firmName, specialty },
-  })
-
-  return { accessToken: recruiter.accessToken }
+  await finishRecruiterSignup(user.id, fullName, user.email, firmName, specialty)
+  return {}
 }

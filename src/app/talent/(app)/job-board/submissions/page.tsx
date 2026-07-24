@@ -25,7 +25,7 @@ export default async function TalentJobBoardSubmissionsPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My NC Job Board postings</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My Job Board postings</h1>
           <p className="mt-1 text-muted-foreground">
             Postings expire 30 days after they&apos;re approved unless you confirm the role is
             still open.

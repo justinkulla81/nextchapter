@@ -78,7 +78,7 @@ export function JobBoardSubmissionForm({
   if (state?.success) {
     return (
       <div className="rounded-lg border border-brand/30 bg-brand/5 p-4 text-sm text-foreground">
-        Submitted for review — you&apos;ll hear back once it&apos;s approved. Every listing on NC
+        Submitted for review — you&apos;ll hear back once it&apos;s approved. Every listing on the
         Job Board is reviewed by a person before it goes live.
       </div>
     )

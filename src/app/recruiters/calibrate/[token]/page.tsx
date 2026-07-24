@@ -25,7 +25,7 @@ export default async function RecruiterCalibratePage({
       <CalibrationTool token={token} />
       <div className="mt-10 flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-4 text-sm">
         <Link href={`/recruiters/job-board/submit/${token}`} className="text-primary underline underline-offset-4">
-          Post a role to NC Job Board
+          Post a role to the Job Board
         </Link>
         <Link
           href={`/recruiters/job-board/submissions/${token}`}

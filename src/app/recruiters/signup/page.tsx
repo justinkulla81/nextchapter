@@ -1,8 +1,6 @@
 import { RecruiterSignupForm } from '@/components/recruiter/RecruiterSignupForm'
 
 export default function RecruiterSignupPage() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-
   return (
     <div className="mx-auto max-w-md px-6 py-16">
       <div className="mb-6 space-y-2">
@@ -13,7 +11,13 @@ export default function RecruiterSignupPage() {
           candidates you might be overlooking.
         </p>
       </div>
-      <RecruiterSignupForm appUrl={appUrl} />
+      <RecruiterSignupForm />
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        Already set up?{' '}
+        <a href="/auth/login" className="underline underline-offset-4">
+          Log in
+        </a>
+      </p>
     </div>
   )
 }

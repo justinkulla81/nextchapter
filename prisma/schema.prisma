@@ -1760,6 +1760,13 @@ model Coach {
   createdAt    DateTime      @default(now())
   isSampleData Boolean       @default(false)
 
+  // Real Supabase-auth login, added on top of the original P0-lite
+  // accessToken model — nullable because legacy/invite-only coach rows can
+  // still exist token-only. Once set, /auth/login + /auth/forgot-password
+  // work for this coach exactly like any other account (see
+  // completeCoachSignupFromSession).
+  userId String? @unique
+
   // Branding-only white-label (Batch 13) — same domain, no custom domains.
   // Applied to the coach's own settings/tools chrome and, when set, to a
   // client-facing surface later; Calendar/Meet booking and billing are
@@ -1834,6 +1841,10 @@ model Recruiter {
   accessToken  String   @unique @default(cuid())
   createdAt    DateTime @default(now())
   isSampleData Boolean  @default(false)
+
+  // Real Supabase-auth login, added on top of the original P0-lite
+  // accessToken model — nullable for the same reason as Coach.userId above.
+  userId String? @unique
 
   jobBoardSubmissions ExclusiveJobPosting[]
 }

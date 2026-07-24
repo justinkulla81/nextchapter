@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
-import { createCoach } from '@/app/support/coach/signup/actions'
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { completeCoachSignup } from '@/app/support/coach/signup/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,57 +23,100 @@ const FOCUS_OPTIONS = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-export function CoachSignupForm({ appUrl }: { appUrl: string }) {
-  const [state, formAction, pending] = useActionState(createCoach, undefined)
+export function CoachSignupForm() {
+  const [fullName, setFullName] = useState('')
+  const [firmName, setFirmName] = useState('')
+  const [focus, setFocus] = useState('CAREER')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [sent, setSent] = useState(false)
 
-  if (state?.accessToken) {
-    const inviteUrl = `${appUrl}/support/coach/invite/${state.accessToken}`
-    const clientsUrl = `${appUrl}/support/coach/clients/${state.accessToken}`
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    const supabase = createClient()
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, account_type: 'coach', firm_name: firmName, focus },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=coach`,
+      },
+    })
+
+    if (signUpError) {
+      setLoading(false)
+      setError(signUpError.message)
+      return
+    }
+
+    // With email confirmation required at the project level, signUp doesn't
+    // return an active session — the confirmation link lands on
+    // CallbackHandler, which finishes the coach setup itself (see
+    // completeCoachSignupFromSession) once the session exists.
+    if (!data.session) {
+      setLoading(false)
+      setSent(true)
+      return
+    }
+
+    const form = new FormData()
+    form.set('fullName', fullName)
+    form.set('firmName', firmName)
+    form.set('focus', focus)
+
+    const result = await completeCoachSignup(undefined, form)
+    if (result?.error) {
+      setLoading(false)
+      setError(result.error)
+    }
+    // On success, completeCoachSignup redirects — leave loading true.
+  }
+
+  if (sent) {
     return (
-      <div className="space-y-4 rounded-lg border border-border p-4">
-        <p className="font-medium text-foreground">You&apos;re set up.</p>
-        <p className="text-sm text-muted-foreground">
-          Bookmark these two links — there&apos;s no password, so they&apos;re your only way back
-          in:
-        </p>
-        <div className="space-y-2 text-sm">
-          <p>
-            <span className="font-medium text-foreground">Your invite link: </span>
-            <a href={inviteUrl} className="text-primary underline underline-offset-4">
-              {inviteUrl}
-            </a>
-          </p>
-          <p>
-            <span className="font-medium text-foreground">Your client list: </span>
-            <a href={clientsUrl} className="text-primary underline underline-offset-4">
-              {clientsUrl}
-            </a>
-          </p>
-        </div>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Check <span className="font-medium">{email}</span> for a link to confirm your account and
+        start inviting clients.
+      </p>
     )
   }
 
   return (
     <form
-      action={formAction}
-      className={cn('space-y-4 rounded-lg border border-border p-4', pending && 'cursor-progress [&_*]:cursor-progress')}
+      onSubmit={handleSubmit}
+      className={cn('space-y-4 rounded-lg border border-border p-4', loading && 'cursor-progress [&_*]:cursor-progress')}
     >
       <div className="space-y-2">
         <Label htmlFor="coach-name">Full name</Label>
-        <Input id="coach-name" name="fullName" required />
+        <Input id="coach-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="coach-email">Work email</Label>
-        <Input id="coach-email" name="workEmail" type="email" required />
+        <Input id="coach-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="coach-password">Password</Label>
+        <Input
+          id="coach-password"
+          type="password"
+          required
+          minLength={8}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="coach-firm">Practice / firm name (optional)</Label>
-        <Input id="coach-firm" name="firmName" />
+        <Input id="coach-firm" value={firmName} onChange={(e) => setFirmName(e.target.value)} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="coach-focus">Coaching focus</Label>
-        <Select name="focus" defaultValue="CAREER">
+        <Select value={focus} onValueChange={(value) => setFocus(value ?? 'CAREER')}>
           <SelectTrigger id="coach-focus" className="w-full">
             <SelectValue placeholder="Select one">
               {(value: string | null) =>
@@ -90,10 +134,10 @@ export function CoachSignupForm({ appUrl }: { appUrl: string }) {
         </Select>
       </div>
 
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Button type="submit" disabled={pending} className={pending ? 'cursor-progress' : ''}>
-        {pending ? 'Setting up…' : 'Get my invite link'}
+      <Button type="submit" disabled={loading} className={loading ? 'cursor-progress' : ''}>
+        {loading ? 'Creating account…' : 'Create your account'}
       </Button>
     </form>
   )

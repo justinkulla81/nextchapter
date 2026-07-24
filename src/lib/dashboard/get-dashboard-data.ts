@@ -16,14 +16,31 @@ export async function getDashboardData() {
     redirect('/auth/login')
   }
 
-  // A hiring manager landing here by mistake (stale link, back button)
-  // should never silently get a stray CandidateProfile created for them.
+  // A hiring manager, recruiter, or coach landing here by mistake (stale
+  // link, back button) should never silently get a stray CandidateProfile
+  // created for them.
   const employer = await prisma.employerProfile.findUnique({
     where: { userId: user.id },
     select: { id: true },
   })
   if (employer) {
     redirect('/talent')
+  }
+
+  const recruiter = await prisma.recruiter.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  })
+  if (recruiter) {
+    redirect('/recruiters/dashboard')
+  }
+
+  const coach = await prisma.coach.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  })
+  if (coach) {
+    redirect('/support/coach')
   }
 
   let profile = await prisma.candidateProfile.findUnique({

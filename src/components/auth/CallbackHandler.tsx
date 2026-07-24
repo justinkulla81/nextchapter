@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
+import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
+import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -17,6 +19,8 @@ export function CallbackHandler() {
   const otpType = searchParams.get('type') as EmailOtpType | null
   const nextIsSecureAccount = searchParams.get('next') === 'secure-account'
   const nextIsEmployer = searchParams.get('next') === 'employer'
+  const nextIsRecruiter = searchParams.get('next') === 'recruiter'
+  const nextIsCoach = searchParams.get('next') === 'coach'
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -49,6 +53,28 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/talent/roles/new')
+      return
+    }
+    if (nextIsRecruiter) {
+      const result = await completeRecruiterSignupFromSession()
+      if (result.error) {
+        console.error('completeRecruiterSignupFromSession error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/recruiters/dashboard')
+      return
+    }
+    if (nextIsCoach) {
+      const result = await completeCoachSignupFromSession()
+      if (result.error) {
+        console.error('completeCoachSignupFromSession error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/support/coach')
       return
     }
     setStatus('redirecting')

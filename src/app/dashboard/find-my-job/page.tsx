@@ -125,7 +125,7 @@ export default async function JobFitPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
         <p className="mt-1 text-muted-foreground">
-          Discover real openings — from NC&apos;s job board and our automated search partners —
+          Discover real openings — from our job board and our automated search partners —
           and track every application through offer.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -140,7 +140,7 @@ export default async function JobFitPage() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Discover</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Real openings from NC&apos;s job board, plus roles our automated search partners
+            Real openings from our job board, plus roles our automated search partners
             found for you — no grade required to see these.
           </p>
         </div>

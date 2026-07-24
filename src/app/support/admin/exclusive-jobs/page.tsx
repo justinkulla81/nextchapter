@@ -54,7 +54,7 @@ export default async function ExclusiveJobsAdminPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-10 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">NC Job Board</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Job Board</h1>
         <p className="mt-1 text-muted-foreground">
           Every non-admin submission lands here as pending until approved — no employer/recruiter
           domain verification exists yet, so this review is the trust gate. Visible only to
