@@ -1933,3 +1933,76 @@ model ApiUsageCounter {
 
   @@unique([service, period])
 }
+
+// The five triage buckets every ingested URL gets auto-classified into —
+// see ResearchLibraryItem below.
+enum ResearchBucket {
+  GUIDE_SEO
+  MARKET_BRIEF
+  PRODUCT_POSITIONING
+  PR_MEDIA_HOOK
+  PERSONA_RESEARCH
+}
+
+// Admin-only Research Library: every external article/URL ingested (via the
+// company research@ inbox or manual paste), fetched, AI-summarized, and
+// classified. Permanent, growing — rows are never deleted, only moved
+// through `status`.
+model ResearchLibraryItem {
+  id        String   @id @default(cuid())
+  url       String
+  dateFound DateTime @default(now())
+  // 'inbox' | 'manual'
+  ingestionSource String
+
+  title          String?
+  fetchedContent String? @db.Text
+  fetchFailed    Boolean @default(false)
+
+  summary         String?         @db.Text
+  bucket          ResearchBucket?
+  confidenceScore Float?
+  // Low-confidence classifications land here instead of being auto-filed —
+  // surfaced separately in the admin triage view rather than silently
+  // buried in their guessed bucket.
+  needsReview Boolean @default(false)
+  // 'recognized' | 'unknown' — source credibility, always surfaced, never hidden.
+  credibilityTier String?
+
+  suggestedAction String? @db.Text
+  // PERSONA_RESEARCH items that appear to contradict an existing locked
+  // product decision get flagged prominently and separately, never folded
+  // quietly into a routine digest entry.
+  contradictsLockedDecision Boolean @default(false)
+  // EmploymentSituation enum value, set only when bucket = PERSONA_RESEARCH —
+  // reuses the existing persona-adjacent taxonomy rather than a new one.
+  personaTag String?
+
+  // MARKET_BRIEF items an admin has queued into the next Weekly Market
+  // Digest send (see the Digest Composer).
+  queuedForDigest Boolean @default(false)
+
+  // 'new' | 'reviewed' | 'actioned' | 'dismissed'
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+
+  @@index([bucket, status])
+  @@index([needsReview])
+  @@index([queuedForDigest])
+}
+
+// One company-owned Gmail inbox (research@...), connected via OAuth by an
+// admin — reads Google Alert emails only, never a candidate's personal
+// account, so this carries none of the CASA/sensitive-scope weight of a
+// third-party personal-account integration. Most-recent row wins if
+// reconnected; not a hard singleton constraint.
+model GoogleInboxConnection {
+  id               String    @id @default(cuid())
+  email            String
+  accessToken      String    @db.Text
+  refreshToken     String    @db.Text
+  expiresAt        DateTime
+  connectedByEmail String
+  connectedAt      DateTime  @default(now())
+  lastSweepAt      DateTime?
+}

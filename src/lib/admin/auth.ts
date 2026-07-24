@@ -25,3 +25,11 @@ export async function requireAdmin() {
 
   return user
 }
+
+// Target for research-library alerts (PR/media hooks, product-positioning
+// flags) — a dedicated env var if set, otherwise the first allowlisted
+// admin. No "Victoria/Dossier copy owner" role exists yet, so this is the
+// practical stand-in until one does.
+export function getResearchLibraryAlertEmail(): string | null {
+  return process.env.RESEARCH_LIBRARY_ALERT_EMAIL ?? adminEmails()[0] ?? null
+}

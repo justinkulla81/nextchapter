@@ -47,6 +47,10 @@
     {
       "path": "/api/cron/ats-job-board-feed",
       "schedule": "30 10 * * *"
+    },
+    {
+      "path": "/api/cron/research-inbox-sweep",
+      "schedule": "0 */4 * * *"
     }
   ]
 }
