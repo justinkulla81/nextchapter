@@ -1,10 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
 import { sendCoachClientInviteEmail } from '@/lib/email/send-coach-client-invite'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -66,32 +66,18 @@ async function sendOrResendInvite(
     }))
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const admin = createAdminClient()
 
-  // Only create a fresh, pre-confirmed auth user the first time — a resend
-  // reuses the same user and just mints a new link.
-  if (!priorInvite) {
-    const { error: createError } = await admin.auth.admin.createUser({ email, email_confirm: true })
-    if (createError) {
-      // Most likely someone else raced us to register this email between
-      // our duplicate-check and here — surface the same message rather
-      // than a raw Supabase error.
-      await prisma.coachClientInvite.delete({ where: { id: invite.id } })
-      return { error: 'This email address can’t be invited right now. Please try again.' }
-    }
-  }
-
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
+  const { actionLink, error: inviteError } = await createPreConfirmedInviteUser(
     email,
-    options: { redirectTo: `${appUrl}/auth/callback?next=coach-invite&inviteToken=${invite.inviteToken}` },
-  })
-  if (linkError || !linkData.properties?.action_link) {
-    console.error('Failed to generate coach client invite link:', linkError)
-    return { error: 'Something went wrong sending the invite. Please try again.' }
+    `${appUrl}/auth/callback?next=coach-invite&inviteToken=${invite.inviteToken}`,
+    { isFirstSend: !priorInvite }
+  )
+  if (inviteError || !actionLink) {
+    if (!priorInvite) await prisma.coachClientInvite.delete({ where: { id: invite.id } })
+    return { error: inviteError ?? 'Something went wrong sending the invite. Please try again.' }
   }
 
-  await sendCoachClientInviteEmail(email, coach.fullName, coach.firmName, linkData.properties.action_link)
+  await sendCoachClientInviteEmail(email, coach.fullName, coach.firmName, actionLink)
 
   captureServerEvent(coach.id, 'coach_client_invite_sent', { coachId: coach.id, inviteId: invite.id })
 
@@ -140,7 +126,7 @@ export async function finishAcceptingCoachInvite(inviteToken: string): Promise<{
     return { error: 'This email already has a NextChapter account. Log in with it instead.' }
   }
 
-  const profile = await getOrCreateCandidateProfile(user.id, invite.coachId)
+  const profile = await getOrCreateCandidateProfile(user.id, { coachId: invite.coachId })
   await prisma.coachClientInvite.update({
     where: { id: invite.id },
     data: { acceptedAt: new Date(), candidateId: profile.id },

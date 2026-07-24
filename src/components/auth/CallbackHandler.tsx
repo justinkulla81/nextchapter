@@ -11,6 +11,7 @@ import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/acti
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 import { finishAcceptingCoachInvite } from '@/app/support/coach/invite-client/actions'
+import { finishAcceptingRecruiterSource } from '@/app/recruiters/candidates/actions'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -26,6 +27,7 @@ export function CallbackHandler() {
   const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
+  const nextIsRecruiterSource = searchParams.get('next') === 'recruiter-source'
   const inviteToken = searchParams.get('inviteToken')
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
@@ -112,6 +114,22 @@ export function CallbackHandler() {
       const result = await finishAcceptingCoachInvite(inviteToken)
       if (result.error) {
         console.error('finishAcceptingCoachInvite error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('secure-account')
+      return
+    }
+    if (nextIsRecruiterSource) {
+      // Same shape as nextIsCoachInvite above — sourcingRecruiterId gets set
+      // inside finishAcceptingRecruiterSource itself.
+      if (!inviteToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishAcceptingRecruiterSource(inviteToken)
+      if (result.error) {
+        console.error('finishAcceptingRecruiterSource error:', result.error)
         setStatus('error')
         return
       }

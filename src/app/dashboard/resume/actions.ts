@@ -48,7 +48,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
 
   const cookieStore = await cookies()
   const coachId = cookieStore.get('nc_coach')?.value
-  const profile = await getOrCreateCandidateProfile(user.id, coachId)
+  const profile = await getOrCreateCandidateProfile(user.id, { coachId })
 
   const admin = createAdminClient()
   const path = `${profile.id}/${crypto.randomUUID()}.${ext}`

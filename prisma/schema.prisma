@@ -532,6 +532,14 @@ model CandidateProfile {
   coach         Coach?         @relation(fields: [coachId], references: [id])
   coachSessions CoachSession[]
 
+  // Recruiter candidate book — set once, at profile creation, when the
+  // candidate came in through a recruiter's sourced-candidate invite. Same
+  // write-once invariant as coachId above; a candidate can have both a coach
+  // and a sourcing recruiter simultaneously, they're independent.
+  sourcingRecruiterId String?
+  sourcingRecruiter   Recruiter?        @relation(fields: [sourcingRecruiterId], references: [id])
+  sourcedCandidate    SourcedCandidate?
+
   // Coach-Candidate Matching System, Phase 1 — captured once, when the
   // candidate requests a match (see generateCoachShortlist in
   // src/lib/coach/matching.ts). All optional; every one defaults to "no
@@ -1971,6 +1979,41 @@ model Recruiter {
 
   jobBoardSubmissions ExclusiveJobPosting[]
   calibrationMemos    CalibrationMemo[]
+  sourcedCandidates   SourcedCandidate[]
+  sourcedProfiles     CandidateProfile[]
+}
+
+enum SourcedCandidateStatus {
+  ADDED
+  INVITED
+  SIGNED_UP
+  ALREADY_HAD_ACCOUNT
+}
+
+// A recruiter's private book of candidates from their own network who
+// aren't NC users yet — distinct from the searchable candidate pool
+// (existing registered candidates a recruiter can already browse). Once
+// invited and signed up, the person becomes an ordinary candidate (full
+// onboarding, joins the general pool); this row just keeps the recruiter's
+// own tracking + records the sourcing relationship via
+// CandidateProfile.sourcingRecruiterId.
+model SourcedCandidate {
+  id          String                 @id @default(cuid())
+  recruiterId String
+  recruiter   Recruiter              @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  notes       String?                @db.Text
+  status      SourcedCandidateStatus @default(ADDED)
+  inviteToken String?                @unique
+  invitedAt   DateTime?
+  candidateId String?                @unique
+  candidate   CandidateProfile?      @relation(fields: [candidateId], references: [id])
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([recruiterId, email])
+  @@index([recruiterId, status])
 }
 
 // Persists what used to be a stateless one-shot Calibration Memo generation
