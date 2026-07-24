@@ -50,7 +50,7 @@
     },
     {
       "path": "/api/cron/research-inbox-sweep",
-      "schedule": "0 */4 * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/market-digest-candidates",
