@@ -1878,6 +1878,28 @@ model Coach {
   clients                     CandidateProfile[]
   sessions                    CoachSession[]
   coachingOnboardingResponses CoachingOnboardingResponse[]
+  clientInvites               CoachClientInvite[]
+}
+
+// A coach inviting a SPECIFIC candidate by email, distinct from the generic
+// shareable link (/support/coach/invite/[accessToken]) — the coach already
+// knows and vouches for this email, so the account created from it skips
+// the normal click-to-confirm step. coachId on the resulting CandidateProfile
+// is set once, at profile-create time, same never-reassign invariant as the
+// cookie-link path.
+model CoachClientInvite {
+  id           String    @id @default(cuid())
+  coachId      String
+  coach        Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  invitedEmail String
+  invitedName  String?
+  inviteToken  String    @unique @default(cuid())
+  invitedAt    DateTime  @default(now())
+  acceptedAt   DateTime?
+  candidateId  String?   @unique
+
+  @@unique([coachId, invitedEmail])
+  @@index([invitedEmail])
 }
 
 // A 1:1 coaching session. Batch 13 adds real notes (coach-private) and

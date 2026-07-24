@@ -69,11 +69,20 @@ export default async function CoachHomePage() {
           <p className="mt-1 text-sm text-muted-foreground">Roster-level grade trends and who&apos;s stalled.</p>
         </Link>
         <Link
+          href="/support/coach/invite-client"
+          className="rounded-lg border border-border p-4 hover:border-primary"
+        >
+          <p className="font-medium text-foreground">Invite a client by email</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Invite someone directly — they skip the confirmation step and start right away.
+          </p>
+        </Link>
+        <Link
           href={`/support/coach/invite/${coach.accessToken}`}
           className="rounded-lg border border-border p-4 hover:border-primary"
         >
-          <p className="font-medium text-foreground">Invite a client</p>
-          <p className="mt-1 text-sm text-muted-foreground">Share your invite link with someone you coach.</p>
+          <p className="font-medium text-foreground">Share invite link</p>
+          <p className="mt-1 text-sm text-muted-foreground">A generic link anyone can sign up through.</p>
         </Link>
         <Link href="/support/coach/settings" className="rounded-lg border border-border p-4 hover:border-primary">
           <p className="font-medium text-foreground">Settings</p>

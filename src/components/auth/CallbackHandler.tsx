@@ -10,6 +10,7 @@ import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
+import { finishAcceptingCoachInvite } from '@/app/support/coach/invite-client/actions'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -24,6 +25,8 @@ export function CallbackHandler() {
   const nextIsCoach = searchParams.get('next') === 'coach'
   const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
   const seatToken = searchParams.get('seatToken')
+  const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
+  const inviteToken = searchParams.get('inviteToken')
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -93,6 +96,26 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/talent')
+      return
+    }
+    if (nextIsCoachInvite) {
+      // Admin-generated magic link (createUser + email_confirm: true) —
+      // this is the candidate's very first time authenticating, so unlike
+      // the other next= branches they still need to set a real password
+      // before going anywhere. coachId gets set inside
+      // finishAcceptingCoachInvite itself; SecureAccountForm below just
+      // needs a valid session, which already exists at this point.
+      if (!inviteToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishAcceptingCoachInvite(inviteToken)
+      if (result.error) {
+        console.error('finishAcceptingCoachInvite error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('secure-account')
       return
     }
     setStatus('redirecting')
