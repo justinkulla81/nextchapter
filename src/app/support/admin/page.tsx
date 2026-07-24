@@ -17,6 +17,7 @@ const ADMIN_PAGES = [
   { href: '/support/admin/recruiters', label: 'Recruiters', description: 'Recruiter accounts and their job-board activity.' },
   { href: '/support/admin/coaches', label: 'Coaches', description: 'Coach accounts, clients, and session activity.' },
   { href: '/support/admin/research', label: 'Research Library', description: 'Ingested articles — triage, classify, and queue for the weekly digest.' },
+  { href: '/support/admin/digest', label: 'Weekly Market Digest', description: 'Review the queue for the next send and see send history per audience.' },
 ]
 
 export default async function AdminHomePage() {

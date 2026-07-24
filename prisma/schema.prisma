@@ -439,6 +439,7 @@ model CandidateProfile {
   dailyEmailOptedOut       Boolean          @default(false)
   weeklyReportOptedOut     Boolean          @default(false) // opt-out for the Friday gap nudge + Community & Coaching digest (the "Sunday Night Report" this was originally named for was retired before it ever shipped — this field was repurposed rather than left dead)
   sprintGoalEmailsOptedOut Boolean          @default(false) // the 3-email Weekly Search Sprint goal-setting reminder sequence
+  marketDigestOptedOut     Boolean          @default(false) // the new Weekly Market Digest — own flag, deliberately not folded into weeklyReportOptedOut above
   notificationTier         NotificationTier @default(FULL)
 
   // TCPA-compliant SMS opt-in — deliberately separate from the resume-extracted
@@ -956,6 +957,8 @@ model EmployerProfile {
   cultureAttritionRate      Float?
   cultureHonestyDeclaration Json? // What they offer more/less of vs market
   cultureVerifiedAt         DateTime?
+
+  marketDigestOptedOut Boolean @default(false)
 
   // Relations
   savedSearches         SavedSearch[]
@@ -1819,6 +1822,10 @@ model Coach {
   // holds their full resolved template (baseline toggles/order + customs).
   onboardingTemplate Json?
 
+  // Weekly Market Digest opt-out — same convention as CandidateProfile's
+  // marketDigestOptedOut, no other digest exists for coaches yet.
+  marketDigestOptedOut Boolean @default(false)
+
   clients                     CandidateProfile[]
   sessions                    CoachSession[]
   coachingOnboardingResponses CoachingOnboardingResponse[]
@@ -1883,6 +1890,8 @@ model Recruiter {
   // Real Supabase-auth login, added on top of the original P0-lite
   // accessToken model — nullable for the same reason as Coach.userId above.
   userId String? @unique
+
+  marketDigestOptedOut Boolean @default(false)
 
   jobBoardSubmissions ExclusiveJobPosting[]
 }
@@ -2005,4 +2014,17 @@ model GoogleInboxConnection {
   connectedByEmail String
   connectedAt      DateTime  @default(now())
   lastSweepAt      DateTime?
+}
+
+// One row per Weekly Market Digest send run (aggregate, not per-recipient —
+// recipient PII doesn't belong in a permanent admin-visible history table).
+// Written by each audience's cron once per run.
+model DigestSend {
+  id             String   @id @default(cuid())
+  audience       String // 'candidate' | 'coach' | 'recruiter' | 'employer'
+  sentAt         DateTime @default(now())
+  recipientCount Int
+  itemIds        String[] // ResearchLibraryItem ids included in this send, for audit
+
+  @@index([audience, sentAt])
 }

@@ -51,6 +51,22 @@
     {
       "path": "/api/cron/research-inbox-sweep",
       "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/market-digest-candidates",
+      "schedule": "0 14 * * 2"
+    },
+    {
+      "path": "/api/cron/market-digest-coaches",
+      "schedule": "30 14 * * 2"
+    },
+    {
+      "path": "/api/cron/market-digest-recruiters",
+      "schedule": "0 15 * * 2"
+    },
+    {
+      "path": "/api/cron/market-digest-employers",
+      "schedule": "30 15 * * 2"
     }
   ]
 }
