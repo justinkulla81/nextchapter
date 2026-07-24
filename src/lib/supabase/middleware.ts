@@ -43,10 +43,15 @@ export async function updateSession(request: NextRequest) {
   // /talent/signup is intentionally NOT protected — same reasoning as
   // /onboarding above: a first-time hiring-manager visitor has no session
   // yet, and the signup form is what creates one.
+  // /talent/seats/accept is intentionally NOT protected — an invited
+  // teammate with no NextChapter account yet must be able to view the
+  // invite and create one; the page itself handles the logged-in-vs-not
+  // branching once loaded.
   const protectedPaths = ['/dashboard', '/talent']
+  const publicExceptions = ['/talent/signup', '/talent/seats/accept']
   const isProtected =
     protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
-    !request.nextUrl.pathname.startsWith('/talent/signup')
+    !publicExceptions.some((path) => request.nextUrl.pathname.startsWith(path))
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()

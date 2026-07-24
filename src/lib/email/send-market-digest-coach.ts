@@ -14,7 +14,7 @@ export async function sendMarketDigestCoachEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const portalUrl = `${appUrl}/support/coach`
-  const unsubscribeUrl = `${appUrl}/api/unsubscribe/coach/${coach.id}`
+  const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/coach/${coach.id}`
 
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({

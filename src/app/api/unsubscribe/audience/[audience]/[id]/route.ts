@@ -3,7 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 // Generalized unsubscribe for the Weekly Market Digest, which sends to 4
 // audiences that don't share a model — the original /api/unsubscribe/[candidateId]
-// route stays untouched for its existing 4 candidate-only email types.
+// route stays untouched for its existing 4 candidate-only email types. Nested
+// under a static "audience" segment (not directly under /api/unsubscribe/)
+// because Next.js's App Router rejects sibling dynamic segments with
+// different param names at the same directory level — [audience] can't sit
+// next to the existing [candidateId] directory.
 type Audience = 'candidate' | 'coach' | 'recruiter' | 'employer'
 
 const AUDIENCE_LABEL: Record<Audience, string> = {
