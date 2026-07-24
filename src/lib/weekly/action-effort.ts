@@ -184,6 +184,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   FUNCTION_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   SALARY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
+  WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

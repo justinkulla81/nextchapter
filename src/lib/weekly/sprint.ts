@@ -155,6 +155,21 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     usedTypes.add('WORK_AUTHORIZATION')
     total += estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
   }
+
+  // "How I Work Best" is a genuinely optional dashboard action, never part
+  // of mandatory onboarding — but it's valuable enough to nudge hard on,
+  // so unlike the two confirmations above (appended), this goes to the
+  // very front of the list, ahead of anything personalized, whenever it's
+  // still unfinished.
+  if (!usedTypes.has('WORKING_STYLE_QUIZ')) {
+    const hasCompletedWorkStyleQuiz = (await prisma.candidateAssessmentResponse.count({ where: { candidateId } })) > 0
+    if (!hasCompletedWorkStyleQuiz) {
+      suggestions.unshift({ text: 'Take the How I Work Best assessment', actionType: 'WORKING_STYLE_QUIZ' })
+      usedTypes.add('WORKING_STYLE_QUIZ')
+      total += estimateActionEffort({ actionType: 'WORKING_STYLE_QUIZ' }).points
+    }
+  }
+
   const hasUnansweredOptionalQuestion =
     profile &&
     [

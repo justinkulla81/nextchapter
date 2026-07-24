@@ -37,7 +37,11 @@ interface NavSection {
   links: NavLink[]
 }
 
-function buildSections(portfolioAssetCount: number, supportNetworkUnreadCount: number): NavSection[] {
+function buildSections(
+  portfolioAssetCount: number,
+  supportNetworkUnreadCount: number,
+  needsWorkStyleSurvey: boolean
+): NavSection[] {
   return [
     {
       title: null,
@@ -47,7 +51,11 @@ function buildSections(portfolioAssetCount: number, supportNetworkUnreadCount: n
       title: 'Building',
       links: [
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
-        { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
+        {
+          href: '/dashboard/retake-assessment',
+          label: 'How I Work Best',
+          badge: needsWorkStyleSurvey ? 'Recommended' : undefined,
+        },
         { href: '/dashboard/resume', label: 'My Resume' },
         { href: '/dashboard/find-my-job', label: 'My Cover Letter' },
         {
@@ -113,14 +121,16 @@ function NavContent({
   onNavigate,
   portfolioAssetCount,
   supportNetworkUnreadCount,
+  needsWorkStyleSurvey,
 }: {
   pathname: string
   onNavigate?: () => void
   portfolioAssetCount: number
   supportNetworkUnreadCount: number
+  needsWorkStyleSurvey: boolean
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount)
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, needsWorkStyleSurvey)
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -190,13 +200,15 @@ function NavContent({
 export function DashboardNav({
   portfolioAssetCount = 0,
   supportNetworkUnreadCount = 0,
+  needsWorkStyleSurvey = false,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
+  needsWorkStyleSurvey?: boolean
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount)
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, needsWorkStyleSurvey)
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
   )
@@ -209,6 +221,7 @@ export function DashboardNav({
           pathname={pathname}
           portfolioAssetCount={portfolioAssetCount}
           supportNetworkUnreadCount={supportNetworkUnreadCount}
+          needsWorkStyleSurvey={needsWorkStyleSurvey}
         />
       </aside>
 
@@ -240,6 +253,7 @@ export function DashboardNav({
               onNavigate={() => setOpen(false)}
               portfolioAssetCount={portfolioAssetCount}
               supportNetworkUnreadCount={supportNetworkUnreadCount}
+              needsWorkStyleSurvey={needsWorkStyleSurvey}
             />
           </div>
         </div>
