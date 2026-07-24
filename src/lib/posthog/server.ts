@@ -1,5 +1,7 @@
 import 'server-only'
 import { PostHog } from 'posthog-node'
+import type { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 const globalForPostHog = globalThis as unknown as { posthogServer?: PostHog }
 
@@ -19,6 +21,11 @@ export function captureServerEvent(
   event: string,
   properties?: Record<string, unknown>
 ) {
-  if (!client) return
-  client.capture({ distinctId, event, properties })
+  if (client) client.capture({ distinctId, event, properties })
+
+  // Mirror into Postgres so admin can query/segment server-side events —
+  // PostHog's API isn't practical to join against our own candidate data.
+  prisma.analyticsEvent
+    .create({ data: { distinctId, event, properties: (properties ?? {}) as Prisma.InputJsonValue } })
+    .catch(() => {})
 }

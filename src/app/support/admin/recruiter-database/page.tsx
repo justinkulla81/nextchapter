@@ -1,56 +1,87 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { createAdminClient } from '@/lib/supabase/admin'
-import type { HireabilityGrade } from '@/lib/scoring/grade'
+import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 
 export const maxDuration = 30
+
+interface Row {
+  id: string
+  name: string
+  email: string
+  primaryFunction: string
+  level: string
+  targetRoleType: string
+  privacyTier: string
+  requestedAt: string
+  searchActionGrade: string | null
+  currentlySurfaced: boolean
+}
 
 export default async function RecruiterDatabaseAdminPage() {
   await requireAdmin()
 
-  const candidates = await prisma.candidateProfile.findMany({
-    where: { recruiterDatabaseOptIn: true },
-    orderBy: { recruiterDatabaseRequestedAt: 'desc' },
-    select: {
-      id: true,
-      userId: true,
-      firstName: true,
-      lastName: true,
-      primaryFunction: true,
-      highestLevelReached: true,
-      targetRoleType: true,
-      privacyTier: true,
-      recruiterDatabaseRequestedAt: true,
-      hireabilityReports: {
-        orderBy: { generatedAt: 'desc' },
-        take: 1,
-        select: { hireabilityGradeAtGeneration: true },
+  const [candidates, authUsers] = await Promise.all([
+    prisma.candidateProfile.findMany({
+      where: { recruiterDatabaseOptIn: true },
+      orderBy: { recruiterDatabaseRequestedAt: 'desc' },
+      select: {
+        id: true,
+        userId: true,
+        firstName: true,
+        lastName: true,
+        primaryFunction: true,
+        highestLevelReached: true,
+        targetRoleType: true,
+        privacyTier: true,
+        recruiterDatabaseRequestedAt: true,
+        hireabilityReports: {
+          orderBy: { generatedAt: 'desc' },
+          take: 1,
+          select: { hireabilityGradeAtGeneration: true },
+        },
       },
-    },
-  })
+    }),
+    listAllAuthUsers(),
+  ])
 
-  const admin = createAdminClient()
-  const rows = await Promise.all(
-    candidates.map(async (c) => {
-      const { data: userData } = await admin.auth.admin.getUserById(c.userId)
-      const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
-      const searchActionGrade = grade?.grade ?? null
-      return {
-        id: c.id,
-        name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
-        email: userData.user?.email ?? 'unknown',
-        primaryFunction: c.primaryFunction ?? '—',
-        level: c.highestLevelReached ?? '—',
-        targetRoleType: c.targetRoleType ?? '—',
-        privacyTier: c.privacyTier,
-        requestedAt: c.recruiterDatabaseRequestedAt?.toLocaleDateString() ?? '—',
-        searchActionGrade,
-        currentlySurfaced: searchActionGrade === 'A',
-      }
-    })
-  )
+  const rows: Row[] = candidates.map((c) => {
+    const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
+    const searchActionGrade = grade?.grade ?? null
+    return {
+      id: c.id,
+      name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
+      email: getAuthEmail(authUsers, c.userId),
+      primaryFunction: c.primaryFunction ?? '—',
+      level: c.highestLevelReached ?? '—',
+      targetRoleType: c.targetRoleType ?? '—',
+      privacyTier: c.privacyTier,
+      requestedAt: c.recruiterDatabaseRequestedAt?.toLocaleDateString() ?? '—',
+      searchActionGrade,
+      currentlySurfaced: searchActionGrade === 'A',
+    }
+  })
   const surfacedCount = rows.filter((r) => r.currentlySurfaced).length
+
+  const columns: AdminColumn<Row>[] = [
+    { header: 'Name', render: (r) => r.name },
+    { header: 'Email', render: (r) => r.email },
+    { header: 'Function', render: (r) => r.primaryFunction },
+    { header: 'Level', render: (r) => r.level },
+    { header: 'Target role', render: (r) => r.targetRoleType },
+    { header: 'Privacy tier', render: (r) => r.privacyTier },
+    {
+      header: 'Market Reality Grade',
+      render: (r) =>
+        r.currentlySurfaced ? (
+          <span className="font-medium text-success">{r.searchActionGrade} — surfaced</span>
+        ) : (
+          <span className="text-muted-foreground">{r.searchActionGrade ?? 'Not graded'} — locked</span>
+        ),
+    },
+    { header: 'Requested', className: 'px-3 py-2 font-medium tabular-nums', render: (r) => r.requestedAt },
+  ]
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
@@ -63,49 +94,12 @@ export default async function RecruiterDatabaseAdminPage() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-muted/50 text-left">
-            <tr>
-              <th className="px-3 py-2 font-medium">Name</th>
-              <th className="px-3 py-2 font-medium">Email</th>
-              <th className="px-3 py-2 font-medium">Function</th>
-              <th className="px-3 py-2 font-medium">Level</th>
-              <th className="px-3 py-2 font-medium">Target role</th>
-              <th className="px-3 py-2 font-medium">Privacy tier</th>
-              <th className="px-3 py-2 font-medium">Market Reality Grade</th>
-              <th className="px-3 py-2 font-medium">Requested</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b border-border last:border-0">
-                <td className="px-3 py-2">{r.name}</td>
-                <td className="px-3 py-2">{r.email}</td>
-                <td className="px-3 py-2">{r.primaryFunction}</td>
-                <td className="px-3 py-2">{r.level}</td>
-                <td className="px-3 py-2">{r.targetRoleType}</td>
-                <td className="px-3 py-2">{r.privacyTier}</td>
-                <td className="px-3 py-2">
-                  {r.currentlySurfaced ? (
-                    <span className="font-medium text-success">{r.searchActionGrade} — surfaced</span>
-                  ) : (
-                    <span className="text-muted-foreground">{r.searchActionGrade ?? 'Not graded'} — locked</span>
-                  )}
-                </td>
-                <td className="px-3 py-2 tabular-nums">{r.requestedAt}</td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
-                  No candidates have opted in yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AdminDataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.id}
+        emptyMessage="No candidates have opted in yet."
+      />
     </div>
   )
 }

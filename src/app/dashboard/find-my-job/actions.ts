@@ -536,6 +536,13 @@ export async function requestJobBoardIntro(postingId: string) {
   })
   if (!posting) return
 
+  // Previously this only fired the analytics event below — nothing was
+  // persisted, so the request never actually reached anyone. Now it's a
+  // real row the admin Requests inbox surfaces.
+  await prisma.jobBoardIntroRequest.create({
+    data: { candidateId: profile.id, postingId, contactEmail: posting.contactEmail },
+  })
+
   captureServerEvent(profile.id, 'job_board_intro_requested', { postingId, contactEmail: posting.contactEmail })
 
   revalidatePath('/dashboard/find-my-job')

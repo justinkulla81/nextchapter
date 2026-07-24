@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 
 const ADMIN_PAGES = [
+  { href: '/support/admin/candidates', label: 'Candidates', description: 'Browse and drill into any candidate.' },
+  { href: '/support/admin/requests', label: 'Requests', description: 'Coaching, recruiter opt-ins, disputes, claims, intros.' },
+  { href: '/support/admin/jobs', label: 'Jobs', description: 'Aggregate activity across tracked, surfaced, and board jobs.' },
+  { href: '/support/admin/action-counts', label: 'Action Counts', description: 'Server-tracked event counts, filterable by segment and date.' },
   { href: '/support/admin/exclusive-jobs', label: 'Job Board', description: 'Review and approve pending listings.' },
   { href: '/support/admin/metrics', label: 'Pre-Seed Metrics', description: 'Live investor data-room metrics.' },
   { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', description: 'Review candidate offer-bonus claims.' },
@@ -9,6 +13,9 @@ const ADMIN_PAGES = [
   { href: '/support/admin/messages', label: 'Dashboard Messages', description: 'Edit the rotating candidate message set.' },
   { href: '/support/admin/recruiter-database', label: 'Recruiter Database', description: 'Candidates opted into recruiter visibility.' },
   { href: '/support/admin/reference-disputes', label: 'Reference Disputes', description: 'Resolve candidate-disputed references.' },
+  { href: '/support/admin/employers', label: 'Hiring Managers', description: 'Employer accounts, roles posted, submissions.' },
+  { href: '/support/admin/recruiters', label: 'Recruiters', description: 'Recruiter accounts and their job-board activity.' },
+  { href: '/support/admin/coaches', label: 'Coaches', description: 'Coach accounts, clients, and session activity.' },
 ]
 
 export default async function AdminHomePage() {

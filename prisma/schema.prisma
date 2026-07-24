@@ -519,6 +519,7 @@ model CandidateProfile {
   supportNetworkContacts     SupportNetworkContact[]
   outreachLogs               OutreachLog[]
   surfacedJobs               SurfacedJob[]
+  jobBoardIntroRequests      JobBoardIntroRequest[]
   pivotIdeas                 PivotIdea[]
   marketResponseLogs         MarketResponseLog[]
   profileShares              ProfileShare[]
@@ -1722,9 +1723,46 @@ model ExclusiveJobPosting {
   targetLocation     String?
   targetRemotePolicy String?
 
+  introRequests JobBoardIntroRequest[]
+
   @@index([archivedAt, createdAt])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
+}
+
+// The "Request intro" action on a confidential recruiter listing (Discover
+// feed) used to only fire a PostHog event — nothing was persisted, so the
+// recruiter never actually heard about it. This is that fix: a real,
+// admin-visible row so the request lands in the Requests inbox instead of
+// going nowhere.
+model JobBoardIntroRequest {
+  id           String              @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  postingId    String
+  posting      ExclusiveJobPosting @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  contactEmail String?
+  status       String              @default("pending") // 'pending' | 'contacted' | 'closed'
+  createdAt    DateTime            @default(now())
+
+  @@index([candidateId, createdAt])
+  @@index([status])
+}
+
+// Postgres mirror of every captureServerEvent() call, written from inside
+// that single choke point (src/lib/posthog/server.ts) — lets admin query
+// and segment server-side events without hitting PostHog's API. Client-side
+// posthog.capture() call sites are not mirrored here (no single choke point
+// for those yet); the admin action-counts view is labeled accordingly.
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  distinctId String
+  event      String
+  properties Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([event, createdAt])
+  @@index([distinctId, createdAt])
 }
 
 model PivotIdea {
