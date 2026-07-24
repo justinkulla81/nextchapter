@@ -13,6 +13,7 @@ import {
 } from '@/lib/weekly/sprint'
 import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -66,6 +67,11 @@ export async function submitWeeklySprint(
   }
 
   await commitWeeklySprint(profile.id, actions)
+  captureServerEvent(profile.id, 'weekly_sprint_submitted', {
+    weekNumber,
+    actionCount: actions.length,
+    committedPoints,
+  })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/sprint')
   redirect('/dashboard')
@@ -76,6 +82,7 @@ export async function toggleSprintAction(actionIndex: number) {
   if (!profile) return
 
   await toggleSprintActionCompletion(profile.id, actionIndex)
+  captureServerEvent(profile.id, 'sprint_action_toggled', { actionIndex })
   revalidatePath('/dashboard')
 }
 
@@ -98,5 +105,6 @@ export async function completeCatalogAction(formData: FormData) {
     estimatedMinutes: effort.minutes,
     recurring: isRecurringActionType(actionType),
   })
+  captureServerEvent(profile.id, 'catalog_action_completed', { actionType })
   revalidatePath('/dashboard')
 }

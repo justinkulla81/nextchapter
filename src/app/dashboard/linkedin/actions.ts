@@ -56,6 +56,8 @@ export async function submitLinkedInUnlock(
     },
   })
 
+  captureServerEvent(profile.id, 'linkedin_tool_unlocked', { usageFrequency })
+
   revalidatePath('/dashboard/linkedin')
 }
 

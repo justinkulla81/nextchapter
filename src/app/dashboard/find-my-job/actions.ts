@@ -206,6 +206,8 @@ export async function markInterviewLanded(jobPostingId: string) {
   await applyInterviewPatternConfirmedRewrite(profile.id)
   await generateInterviewPrep(jobPostingId, profile.id)
 
+  captureServerEvent(profile.id, 'interview_landed', { jobId: jobPostingId })
+
   revalidatePath('/dashboard/find-my-job')
 }
 
@@ -254,6 +256,8 @@ export async function markInterviewComplete(jobPostingId: string) {
     where: { id: jobPostingId },
     data: { interviewCompleteAt: new Date() },
   })
+
+  captureServerEvent(profile.id, 'interview_completed', { jobId: jobPostingId })
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -341,6 +345,8 @@ export async function markOfferReceived(jobPostingId: string) {
   await applyOfferReceivedRewrite(profile.id)
   await generateNegotiationAdvice(jobPostingId, profile.id)
 
+  captureServerEvent(profile.id, 'offer_received', { jobId: jobPostingId })
+
   revalidatePath('/dashboard/find-my-job')
 }
 
@@ -356,6 +362,8 @@ export async function deleteJobPosting(jobPostingId: string) {
   await prisma.jobPosting.deleteMany({
     where: { id: jobPostingId, candidateId: profile.id },
   })
+
+  captureServerEvent(profile.id, 'job_posting_deleted', { jobId: jobPostingId })
 
   revalidatePath('/dashboard/find-my-job')
 }

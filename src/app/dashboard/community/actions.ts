@@ -8,6 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { sendPostInterestNotification } from '@/lib/email/send-post-interest-notification'
 import { sendEncouragementNote, markEncouragementNoteRead } from '@/lib/community/encouragement'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string } | undefined
 
@@ -48,7 +49,7 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
     return { error: 'Write something first.' }
   }
 
-  await prisma.communityPost.create({
+  const post = await prisma.communityPost.create({
     data: {
       candidateId: profile.id,
       postType: postType as (typeof SUBMITTABLE_POST_TYPES)[number],
@@ -61,6 +62,7 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
     },
   })
 
+  captureServerEvent(profile.id, 'community_post_created', { postId: post.id, postType })
 
   revalidatePath('/dashboard/community')
   revalidatePath('/dashboard')
@@ -110,6 +112,7 @@ export async function submitEncouragementNote(
   if (!result.sent) {
     return { error: 'No one needs a note right now — check back later.' }
   }
+  captureServerEvent(profile.id, 'encouragement_note_sent', { revealSender })
   return { sent: true }
 }
 
@@ -137,6 +140,7 @@ export async function toggleEncouragementGiving(current: boolean) {
     where: { id: profile.id },
     data: { encouragementGivingOptIn: !current },
   })
+  captureServerEvent(profile.id, 'encouragement_giving_toggled', { enabled: !current })
   revalidatePath('/dashboard/community')
   revalidatePath('/dashboard/privacy')
 }
@@ -150,6 +154,7 @@ export async function toggleAListOptOut(current: boolean) {
 
   const profile = await getOrCreateCandidateProfile(user.id)
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { aListOptOut: !current } })
+  captureServerEvent(profile.id, 'a_list_opt_out_toggled', { optedOut: !current })
   revalidatePath('/dashboard/privacy')
 }
 
@@ -196,6 +201,8 @@ export async function expressInterest(postId: string) {
       interestedCandidateEmail: user.email!,
     })
   }
+
+  captureServerEvent(profile.id, 'community_interest_expressed', { postId })
 
   revalidatePath('/dashboard/community')
 }

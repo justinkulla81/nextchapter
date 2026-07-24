@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { applyWorkSampleUploadedRewrite } from '@/lib/scoring/rewrite-actions'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string } | undefined
 
@@ -78,7 +79,7 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
     fileUrl = admin.storage.from('work-samples').getPublicUrl(path).data.publicUrl
   }
 
-  await prisma.workSample.create({
+  const sample = await prisma.workSample.create({
     data: {
       candidateId: profile.id,
       title,
@@ -91,6 +92,8 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
       externalUrl,
     },
   })
+
+  captureServerEvent(profile.id, 'work_sample_added', { sampleId: sample.id, sampleType })
 
   try {
     await applyWorkSampleUploadedRewrite(profile.id)
@@ -116,6 +119,7 @@ export async function deleteWorkSample(sampleId: string) {
     where: { id: sampleId, candidateId: profile.id },
   })
 
+  captureServerEvent(profile.id, 'work_sample_deleted', { sampleId })
 
   revalidatePath('/dashboard/work-samples')
   revalidatePath('/dashboard')

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { sendReferenceRequestEmail } from '@/lib/email/send-reference-request'
+import { captureServerEvent } from '@/lib/posthog/server'
 import type { ReferenceType } from '@prisma/client'
 
 export type FormState = { error?: string; sent?: boolean } | undefined
@@ -99,6 +100,8 @@ export async function requestReference(
     token: reference.token,
   })
 
+  captureServerEvent(profile.id, 'reference_requested', { referenceId: reference.id, relationshipType })
+
   revalidatePath('/dashboard/references')
 }
 
@@ -134,6 +137,8 @@ export async function disputeReference(
     data: { candidateDisputeNote: note, candidateDisputedAt: new Date(), disputeResolvedAt: null },
   })
 
+  captureServerEvent(profile.id, 'reference_disputed', { referenceId })
+
   revalidatePath('/dashboard/references')
 }
 
@@ -158,6 +163,8 @@ export async function reviewReferenceQuote(quoteId: string, approve: boolean): P
       ? { approvedByCandidateAt: new Date() }
       : { rejectedAt: new Date() },
   })
+
+  captureServerEvent(profile.id, 'reference_quote_reviewed', { quoteId, approved: approve })
 
   revalidatePath('/dashboard/references')
 }
