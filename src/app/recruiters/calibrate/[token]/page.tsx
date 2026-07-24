@@ -33,6 +33,9 @@ export default async function RecruiterCalibratePage({
         >
           My Job Board postings
         </Link>
+        <Link href={`/recruiters/calibrate/${token}/history`} className="text-primary underline underline-offset-4">
+          Past calibration memos
+        </Link>
       </div>
     </div>
   )

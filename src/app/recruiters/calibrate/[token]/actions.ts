@@ -47,6 +47,10 @@ export async function generateCalibrationMemo(
 
     if (!memo) return { error: 'Something went wrong generating the memo. Please try again.' }
 
+    await prisma.calibrationMemo.create({
+      data: { recruiterId: recruiter.id, briefText, memoText: memo },
+    })
+
     captureServerEvent(recruiter.id, 'calibration_memo_generated')
 
     return { memo }

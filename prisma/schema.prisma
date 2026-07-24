@@ -1922,6 +1922,22 @@ model Recruiter {
   marketDigestOptedOut Boolean @default(false)
 
   jobBoardSubmissions ExclusiveJobPosting[]
+  calibrationMemos    CalibrationMemo[]
+}
+
+// Persists what used to be a stateless one-shot Calibration Memo generation
+// (src/app/recruiters/calibrate/[token]/actions.ts) so a recruiter can look
+// back at past briefs/memos instead of losing them the moment they navigate
+// away.
+model CalibrationMemo {
+  id          String    @id @default(cuid())
+  recruiterId String
+  recruiter   Recruiter @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  briefText   String
+  memoText    String
+  createdAt   DateTime  @default(now())
+
+  @@index([recruiterId])
 }
 
 // Admin-authored dashboard message rotation. One message is always pinned

@@ -29,6 +29,10 @@ export default async function RecruiterDashboardPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        <Link href="/recruiters/search" className="rounded-lg border border-border p-4 hover:border-primary">
+          <p className="font-medium text-foreground">Candidate search</p>
+          <p className="mt-1 text-sm text-muted-foreground">Search the opted-in candidate pool and view briefs.</p>
+        </Link>
         <Link
           href={`/recruiters/job-board/submit/${recruiter.accessToken}`}
           className="rounded-lg border border-border p-4 hover:border-primary"
