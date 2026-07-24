@@ -13,12 +13,19 @@ export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
           <Link href="/" className="shrink-0">
             <Logo className="text-2xl" />
           </Link>
-          <Link
-            href="/"
-            className="order-2 shrink-0 text-sm text-muted-foreground hover:text-foreground sm:order-3"
-          >
-            For candidates
-          </Link>
+          <div className="order-2 flex shrink-0 items-center gap-4 sm:order-3">
+            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+              For candidates
+            </Link>
+            {tab.directSignupHref && (
+              <Link
+                href="/auth/login"
+                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-brand hover:text-brand"
+              >
+                Log in
+              </Link>
+            )}
+          </div>
           <nav className="order-3 flex min-w-0 basis-full items-center gap-1.5 text-sm sm:order-2 sm:basis-auto">
             <Link
               href="/for-organizations"

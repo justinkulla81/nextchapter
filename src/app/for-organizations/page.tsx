@@ -81,6 +81,12 @@ export default function ForOrganizationsPage() {
             <Link href="/" className="text-muted-foreground hover:text-foreground">
               For candidates
             </Link>
+            <Link
+              href="/auth/login"
+              className="rounded-md border border-border px-3 py-1.5 font-medium text-foreground hover:border-brand hover:text-brand"
+            >
+              Log in
+            </Link>
           </nav>
         </div>
       </header>
