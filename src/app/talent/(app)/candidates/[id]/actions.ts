@@ -1,10 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
+import { getOrCreateThread } from '@/lib/messaging/threads'
 import type { OutcomeWindow } from '@/lib/talent/outcome-ratings'
 
 async function getEmployer() {
@@ -64,4 +66,12 @@ export async function submitOutcomeRating(candidateId: string, window: OutcomeWi
 
   revalidatePath(`/talent/candidates/${candidateId}`)
   revalidatePath('/talent/analytics')
+}
+
+export async function startMessagingCandidate(candidateId: string) {
+  const employer = await getEmployer()
+  if (!employer) return
+
+  const thread = await getOrCreateThread(candidateId, 'EMPLOYER', employer.id)
+  redirect(`/talent/messages/${thread.id}`)
 }

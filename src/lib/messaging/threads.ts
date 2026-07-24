@@ -1,5 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { sendNewMessageNotification } from '@/lib/email/send-new-message-notification'
 import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
 
 // This module is the ONLY place allowed to query CandidateProfile for
@@ -82,6 +84,68 @@ export async function getOrCreateThread(candidateId: string, partnerType: Thread
   })
 }
 
+// Notifies the recipient that a message arrived — never the body content,
+// never a reply-to shortcut around the app (see module header). Failures
+// here must never break message sending itself.
+async function notifyNewMessage(threadId: string, senderRole: MessageSenderRole) {
+  try {
+    const thread = await prisma.messageThread.findUnique({
+      where: { id: threadId },
+      include: {
+        candidate: { select: { userId: true, firstName: true, lastName: true } },
+        coach: { select: { userId: true, fullName: true } },
+        recruiter: { select: { userId: true, fullName: true } },
+        employer: { select: { userId: true, contactName: true, companyName: true } },
+      },
+    })
+    if (!thread) return
+
+    const senderName =
+      senderRole === 'CANDIDATE'
+        ? candidateDisplayName(thread.candidate)
+        : senderRole === 'COACH'
+          ? (thread.coach?.fullName ?? 'Your coach')
+          : senderRole === 'RECRUITER'
+            ? (thread.recruiter?.fullName ?? 'Your recruiter')
+            : (thread.employer?.contactName ?? thread.employer?.companyName ?? 'An employer')
+
+    let recipientUserId: string | null
+    let recipientFirstName: string | null
+    let threadPath: string
+
+    if (senderRole === 'CANDIDATE') {
+      if (thread.partnerType === 'COACH') {
+        recipientUserId = thread.coach?.userId ?? null
+        recipientFirstName = thread.coach?.fullName?.split(' ')[0] ?? null
+        threadPath = `/support/coach/messages/${threadId}`
+      } else if (thread.partnerType === 'RECRUITER') {
+        recipientUserId = thread.recruiter?.userId ?? null
+        recipientFirstName = thread.recruiter?.fullName?.split(' ')[0] ?? null
+        threadPath = `/recruiters/messages/${threadId}`
+      } else {
+        recipientUserId = thread.employer?.userId ?? null
+        recipientFirstName = thread.employer?.contactName?.split(' ')[0] ?? null
+        threadPath = `/talent/messages/${threadId}`
+      }
+    } else {
+      recipientUserId = thread.candidate.userId
+      recipientFirstName = thread.candidate.firstName
+      threadPath = `/dashboard/messages/${threadId}`
+    }
+
+    if (!recipientUserId) return
+
+    const admin = createAdminClient()
+    const { data } = await admin.auth.admin.getUserById(recipientUserId)
+    const recipientEmail = data.user?.email
+    if (!recipientEmail) return
+
+    await sendNewMessageNotification({ toEmail: recipientEmail, recipientFirstName, senderName, threadPath })
+  } catch (error) {
+    console.error('Failed to send new message notification:', error)
+  }
+}
+
 export async function sendMessage(threadId: string, senderRole: MessageSenderRole, body: string) {
   const trimmed = body.trim()
   if (!trimmed) throw new Error('Message cannot be empty.')
@@ -96,6 +160,9 @@ export async function sendMessage(threadId: string, senderRole: MessageSenderRol
           : { lastMessageAt: new Date(), partnerLastReadAt: new Date() },
     }),
   ])
+
+  await notifyNewMessage(threadId, senderRole)
+
   return message
 }
 

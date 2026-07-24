@@ -28,27 +28,43 @@ interface NavLink {
   href: string
   label: string
   primary?: boolean
+  badge?: string
 }
 
-const LINKS: NavLink[] = [
-  { href: '/talent/roles/new', label: 'Post a Role', primary: true },
-  { href: '/talent/roles', label: 'My Roles' },
-  { href: '/talent/candidates', label: 'Candidate Inbox' },
-  { href: '/talent/saved', label: 'Saved Candidates' },
-  { href: '/talent/analytics', label: 'Hiring Analytics' },
-  { href: '/talent/job-board/submissions', label: 'Job Board' },
-  { href: '/talent/team', label: 'Team' },
-  { href: '/talent/settings', label: 'Settings' },
-]
+function buildLinks(messagesUnreadCount: number): NavLink[] {
+  return [
+    { href: '/talent/roles/new', label: 'Post a Role', primary: true },
+    { href: '/talent/roles', label: 'My Roles' },
+    { href: '/talent/candidates', label: 'Candidate Inbox' },
+    { href: '/talent/saved', label: 'Saved Candidates' },
+    {
+      href: '/talent/messages',
+      label: 'Messages',
+      badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
+    },
+    { href: '/talent/analytics', label: 'Hiring Analytics' },
+    { href: '/talent/job-board/submissions', label: 'Job Board' },
+    { href: '/talent/team', label: 'Team' },
+    { href: '/talent/settings', label: 'Settings' },
+  ]
+}
 
-function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function NavContent({
+  pathname,
+  links,
+  onNavigate,
+}: {
+  pathname: string
+  links: NavLink[]
+  onNavigate?: () => void
+}) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <nav className="flex h-full flex-col gap-2 overflow-y-auto px-4 py-6">
       <Logo className="px-2 text-xl text-white" />
       <div className="mt-4 space-y-0.5">
-        {LINKS.map((link) => (
+        {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
@@ -63,6 +79,11 @@ function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: (
             )}
           >
             <span>{link.label}</span>
+            {link.badge && (
+              <span className="rounded-full bg-orange/80 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                {link.badge}
+              </span>
+            )}
           </Link>
         ))}
       </div>
@@ -73,15 +94,16 @@ function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: (
   )
 }
 
-export function TalentNav() {
+export function TalentNav({ messagesUnreadCount = 0 }: { messagesUnreadCount?: number }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const current = LINKS.find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`))
+  const links = buildLinks(messagesUnreadCount)
+  const current = links.find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`))
 
   return (
     <>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <NavContent pathname={pathname} />
+        <NavContent pathname={pathname} links={links} />
       </aside>
 
       <div className="border-b border-border bg-background lg:hidden">
@@ -106,7 +128,7 @@ export function TalentNav() {
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <NavContent pathname={pathname} onNavigate={() => setOpen(false)} />
+            <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>
         </div>
       )}

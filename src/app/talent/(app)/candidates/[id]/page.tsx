@@ -6,7 +6,7 @@ import { getDueOutcomeWindow, OUTCOME_WINDOW_LABEL } from '@/lib/talent/outcome-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { markCandidateHired, submitOutcomeRating } from './actions'
+import { markCandidateHired, submitOutcomeRating, startMessagingCandidate } from './actions'
 
 export default async function CandidateEvidenceBriefPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -139,6 +139,13 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
               ? 'Waiting on the candidate to approve revealing their full identity before you can reach out directly.'
               : 'This candidate has approved sharing their full identity with you — reach out directly when ready.'}
           </p>
+          {!brief.approvalPending && (
+            <form action={startMessagingCandidate.bind(null, id)} className="mt-3">
+              <SubmitButton pendingLabel="Opening…" size="sm">
+                Message candidate
+              </SubmitButton>
+            </form>
+          )}
         </CardContent>
       </Card>
 
