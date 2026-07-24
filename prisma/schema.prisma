@@ -468,6 +468,16 @@ model CandidateProfile {
   displayName    String? // Set based on privacy tier
   displayCompany String?
 
+  // Profile picture — candidate-controlled, shown only in person-to-person
+  // surfaces (messaging, A-List/badge recognition). Deliberately never
+  // selected into hireability-report.ts, dossier-sections.ts,
+  // hiring-manager-report.ts, or recruiter-report.ts: showing a photo to a
+  // hiring manager alongside a candidate's grade/report would invite bias
+  // accusations, so those generators must keep sourcing name-only display
+  // fields, never this one.
+  profilePictureUrl     String?
+  profilePictureVisible Boolean @default(true)
+
   // Onboarding completion tracking
   part1Complete         Boolean   @default(false)
   part2Complete         Boolean   @default(false)
@@ -514,6 +524,7 @@ model CandidateProfile {
   dailyCheckIns              DailyCheckIn[]
   weeklySprints              WeeklySprint[]
   sundayNightReports         SundayNightReport[]
+  weeklyBadgesEarned         WeeklyBadgeEarned[]
   marketRealitySnapshots     MarketRealitySnapshot[]
   encouragementNotesSent     EncouragementNote[]           @relation("EncouragementSent")
   encouragementNotesReceived EncouragementNote[]           @relation("EncouragementReceived")
@@ -946,6 +957,12 @@ model EmployerProfile {
   contactName     String?
   isSampleData    Boolean @default(false)
 
+  // Personal profile picture for the hiring-manager user (distinct from the
+  // company logoUrl above) — shown in messaging only, subject to
+  // profilePictureVisible. Never surfaced to candidates elsewhere.
+  profilePictureUrl     String?
+  profilePictureVisible Boolean @default(true)
+
   // No-Ghosting Commitment — signup-time acknowledgment only (P0). The
   // response-rate/badge tracking system this later feeds is P1/P2, not built.
   noGhostingCommitmentAccepted   Boolean   @default(false)
@@ -1376,6 +1393,27 @@ model SundayNightReport {
   generatedAt DateTime  @default(now())
 
   @@index([candidateId, generatedAt])
+}
+
+// Append-only historical record of weekly badge earnings (see
+// src/lib/badges/weekly-badges.ts for the WeeklyBadgeKey union, computed
+// live and NOT otherwise persisted). Upserted from computeWeeklyBadges
+// whenever it runs for the current week, so this fills in as candidates use
+// the app rather than needing a dedicated cron. WEEKLY_SCORE_A_LIST rows
+// here ARE the weekly A-List membership record — this is the real,
+// currently-written source of truth for "who made the A-List each week"
+// admin needs, unlike the legacy SundayNightReport.onAList field above,
+// which nothing in the codebase writes to anymore.
+model WeeklyBadgeEarned {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime
+  badgeKey      String // WeeklyBadgeKey, kept as String so this table doesn't churn on badge additions
+  earnedAt      DateTime         @default(now())
+
+  @@unique([candidateId, weekStartDate, badgeKey])
+  @@index([weekStartDate])
 }
 
 // Weekly, append-only Market Reality Grade + named-reasons snapshot.
@@ -1854,6 +1892,12 @@ model Coach {
   // completeCoachSignupFromSession).
   userId String? @unique
 
+  // Personal profile picture (distinct from the branding logoUrl below) —
+  // shown in messaging and candidate-facing recognition surfaces, subject
+  // to profilePictureVisible.
+  profilePictureUrl     String?
+  profilePictureVisible Boolean @default(true)
+
   // Branding-only white-label (Batch 13) — same domain, no custom domains.
   // Applied to the coach's own settings/tools chrome and, when set, to a
   // client-facing surface later; Calendar/Meet booking and billing are
@@ -1978,6 +2022,9 @@ model Recruiter {
   // Real Supabase-auth login, added on top of the original P0-lite
   // accessToken model — nullable for the same reason as Coach.userId above.
   userId String? @unique
+
+  profilePictureUrl     String?
+  profilePictureVisible Boolean @default(true)
 
   marketDigestOptedOut Boolean @default(false)
 

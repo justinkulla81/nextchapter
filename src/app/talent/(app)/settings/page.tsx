@@ -1,5 +1,6 @@
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
-import { updateCompanyInfo } from './actions'
+import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from './actions'
+import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -69,6 +70,23 @@ export default async function TalentSettingsPage() {
         </div>
         <SubmitButton>Save changes</SubmitButton>
       </form>
+
+      <div className="max-w-md space-y-3 rounded-lg border border-border p-4">
+        <div>
+          <p className="text-sm font-medium text-foreground">Your photo</p>
+          <p className="text-sm text-muted-foreground">
+            Shown to candidates in messaging only, once they&apos;ve been revealed to you.
+          </p>
+        </div>
+        <AvatarUploadForm
+          displayName={employer.contactName || employer.companyName}
+          currentUrl={employer.profilePictureUrl}
+          visible={employer.profilePictureVisible}
+          uploadAction={uploadMyProfilePicture}
+          removeAction={removeMyProfilePicture}
+          toggleVisibilityAction={toggleMyProfilePictureVisible}
+        />
+      </div>
 
       <div className="max-w-md space-y-1 rounded-lg border border-border p-4">
         <p className="text-sm font-medium text-foreground">No-Ghosting Commitment</p>

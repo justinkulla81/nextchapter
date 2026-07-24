@@ -5,6 +5,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { getThreadWithMessages, markThreadRead } from '@/lib/messaging/threads'
 import { MessageBubbles } from '@/components/messaging/MessageBubbles'
 import { MessageComposer } from '@/components/messaging/MessageComposer'
+import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { sendCandidateMessage } from '../actions'
 
 export default async function CandidateThreadPage({ params }: { params: Promise<{ threadId: string }> }) {
@@ -31,11 +32,19 @@ export default async function CandidateThreadPage({ params }: { params: Promise<
         <Link href="/dashboard/messages" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Back to messages
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{partnerName}</h1>
+        <div className="mt-2 flex items-center gap-2">
+          <AvatarDisplay name={partnerName} url={thread.partnerAvatarUrl} size={32} />
+          <h1 className="text-2xl font-semibold tracking-tight">{partnerName}</h1>
+        </div>
       </div>
 
       <div className="rounded-lg border border-border">
-        <MessageBubbles messages={thread.messages} selfRole="CANDIDATE" />
+        <MessageBubbles
+          messages={thread.messages}
+          selfRole="CANDIDATE"
+          partnerName={partnerName}
+          partnerAvatarUrl={thread.partnerAvatarUrl}
+        />
       </div>
 
       <MessageComposer threadId={thread.id} action={sendCandidateMessage} />

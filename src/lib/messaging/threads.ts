@@ -3,17 +3,32 @@ import { prisma } from '@/lib/prisma'
 import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
 
 // This module is the ONLY place allowed to query CandidateProfile for
-// thread/inbox display — select only minimal display fields (name), never
-// hireabilityReports, assessmentResponses, email, or phone. Applies even
-// inside the coach portal, where dossier access is a separate,
+// thread/inbox display — select only minimal display fields (name, avatar),
+// never hireabilityReports, assessmentResponses, email, or phone. Applies
+// even inside the coach portal, where dossier access is a separate,
 // already-consent-gated surface (coachDossierConsentedAt) that messaging
-// must not bypass.
-const CANDIDATE_DISPLAY_SELECT = { id: true, firstName: true, lastName: true } as const
+// must not bypass. profilePictureUrl is likewise never selected anywhere
+// else in this app's report/dossier generators — see the schema comment.
+const CANDIDATE_DISPLAY_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  profilePictureUrl: true,
+  profilePictureVisible: true,
+} as const
+
+const PARTNER_AVATAR_SELECT = { profilePictureUrl: true, profilePictureVisible: true } as const
 
 function candidateDisplayName(candidate: { firstName: string | null; lastName: string | null } | null): string {
   if (!candidate) return 'Candidate'
   const name = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ')
   return name || 'Candidate'
+}
+
+// Respects the owner's own visibility toggle — never surface a picture they've hidden.
+function visibleAvatarUrl(person: { profilePictureUrl: string | null; profilePictureVisible: boolean } | null | undefined): string | null {
+  if (!person || !person.profilePictureVisible) return null
+  return person.profilePictureUrl
 }
 
 type PartnerKey = { coachId?: string; recruiterId?: string; employerId?: string }
@@ -114,9 +129,9 @@ export async function getCandidateThreads(candidateId: string) {
     where: { candidateId },
     orderBy: { lastMessageAt: 'desc' },
     include: {
-      coach: { select: { id: true, fullName: true } },
-      recruiter: { select: { id: true, fullName: true } },
-      employer: { select: { id: true, companyName: true } },
+      coach: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } },
+      recruiter: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } },
+      employer: { select: { id: true, companyName: true, ...PARTNER_AVATAR_SELECT } },
     },
   })
   return threads.map((thread) => ({
@@ -124,6 +139,7 @@ export async function getCandidateThreads(candidateId: string) {
     partnerType: thread.partnerType,
     partnerName:
       thread.coach?.fullName ?? thread.recruiter?.fullName ?? thread.employer?.companyName ?? 'NextChapter contact',
+    partnerAvatarUrl: visibleAvatarUrl(thread.coach) ?? visibleAvatarUrl(thread.recruiter) ?? visibleAvatarUrl(thread.employer),
     lastMessageAt: thread.lastMessageAt,
     unread: isUnread(thread, 'candidate'),
   }))
@@ -149,6 +165,7 @@ export async function getCoachThreads(coachId: string) {
     id: thread.id,
     candidateId: thread.candidateId,
     candidateName: candidateDisplayName(thread.candidate),
+    candidateAvatarUrl: visibleAvatarUrl(thread.candidate),
     lastMessageAt: thread.lastMessageAt,
     unread: isUnread(thread, 'partner'),
   }))
@@ -170,6 +187,7 @@ export async function getRecruiterThreads(recruiterId: string) {
     id: thread.id,
     candidateId: thread.candidateId,
     candidateName: candidateDisplayName(thread.candidate),
+    candidateAvatarUrl: visibleAvatarUrl(thread.candidate),
     lastMessageAt: thread.lastMessageAt,
     unread: isUnread(thread, 'partner'),
   }))
@@ -191,6 +209,7 @@ export async function getEmployerThreads(employerId: string) {
     id: thread.id,
     candidateId: thread.candidateId,
     candidateName: candidateDisplayName(thread.candidate),
+    candidateAvatarUrl: visibleAvatarUrl(thread.candidate),
     lastMessageAt: thread.lastMessageAt,
     unread: isUnread(thread, 'partner'),
   }))
@@ -204,14 +223,21 @@ export async function getEmployerUnreadCount(employerId: string): Promise<number
 // ownership check on candidateId/coachId/recruiterId/employerId) ───────────
 
 export async function getThreadWithMessages(threadId: string) {
-  return prisma.messageThread.findUnique({
+  const thread = await prisma.messageThread.findUnique({
     where: { id: threadId },
     include: {
       messages: { orderBy: { createdAt: 'asc' } },
       candidate: { select: CANDIDATE_DISPLAY_SELECT },
-      coach: { select: { id: true, fullName: true } },
-      recruiter: { select: { id: true, fullName: true } },
-      employer: { select: { id: true, companyName: true } },
+      coach: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } },
+      recruiter: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } },
+      employer: { select: { id: true, companyName: true, ...PARTNER_AVATAR_SELECT } },
     },
   })
+  if (!thread) return null
+
+  return {
+    ...thread,
+    candidateAvatarUrl: visibleAvatarUrl(thread.candidate),
+    partnerAvatarUrl: visibleAvatarUrl(thread.coach) ?? visibleAvatarUrl(thread.recruiter) ?? visibleAvatarUrl(thread.employer),
+  }
 }

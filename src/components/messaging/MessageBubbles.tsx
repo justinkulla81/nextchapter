@@ -1,12 +1,15 @@
 import { cn } from '@/lib/utils'
+import { AvatarDisplay } from '@/components/ui/avatar-display'
 import type { MessageSenderRole } from '@prisma/client'
 
 interface MessageBubblesProps {
   messages: { id: string; senderRole: MessageSenderRole; body: string; createdAt: Date }[]
   selfRole: MessageSenderRole
+  partnerName: string
+  partnerAvatarUrl?: string | null
 }
 
-export function MessageBubbles({ messages, selfRole }: MessageBubblesProps) {
+export function MessageBubbles({ messages, selfRole, partnerName, partnerAvatarUrl }: MessageBubblesProps) {
   if (messages.length === 0) {
     return <p className="p-4 text-sm text-muted-foreground">No messages yet — say hello.</p>
   }
@@ -16,7 +19,8 @@ export function MessageBubbles({ messages, selfRole }: MessageBubblesProps) {
       {messages.map((message) => {
         const isSelf = message.senderRole === selfRole
         return (
-          <div key={message.id} className={cn('flex', isSelf ? 'justify-end' : 'justify-start')}>
+          <div key={message.id} className={cn('flex items-end gap-2', isSelf ? 'justify-end' : 'justify-start')}>
+            {!isSelf && <AvatarDisplay name={partnerName} url={partnerAvatarUrl} size={24} />}
             <div
               className={cn(
                 'max-w-[75%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',

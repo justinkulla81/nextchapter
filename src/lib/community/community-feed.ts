@@ -7,6 +7,7 @@ export interface CommunityFeedItem {
   id: string
   type: CommunityFeedItemType
   displayName: string | null // null for victoria_insight — platform-wide, not tied to a candidate
+  avatarUrl: string | null
   detail: string
   occurredAt: Date
 }
@@ -14,6 +15,11 @@ export interface CommunityFeedItem {
 export function anonymize(firstName: string | null, lastName: string | null): string | null {
   if (!firstName) return null
   return `${firstName} ${lastName ? `${lastName[0]}.` : ''}`.trim()
+}
+
+// Respects the candidate's own visibility toggle — same rule as messaging.
+function visibleAvatarUrl(candidate: { profilePictureUrl: string | null; profilePictureVisible: boolean }): string | null {
+  return candidate.profilePictureVisible ? candidate.profilePictureUrl : null
 }
 
 const FEED_WINDOW_DAYS = 14
@@ -35,6 +41,7 @@ function getVictoriaInsight(): CommunityFeedItem {
     id: `victoria-insight-${dayIndex}`,
     type: 'victoria_insight',
     displayName: null,
+    avatarUrl: null,
     detail,
     occurredAt: new Date(),
   }
@@ -61,6 +68,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       id: `alist-${report.id}`,
       type: 'alist',
       displayName: name,
+      avatarUrl: visibleAvatarUrl(report.candidate),
       detail: 'made this week’s A-List',
       occurredAt: report.generatedAt,
     })
@@ -79,6 +87,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       id: `ref-${ref.id}`,
       type: 'activity',
       displayName: name,
+      avatarUrl: visibleAvatarUrl(ref.candidate),
       detail: 'had a reference come through',
       occurredAt: ref.completedAt,
     })
@@ -97,6 +106,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       id: `sample-${sample.id}`,
       type: 'activity',
       displayName: name,
+      avatarUrl: visibleAvatarUrl(sample.candidate),
       detail: 'uploaded a work sample',
       occurredAt: sample.createdAt,
     })
@@ -114,6 +124,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       id: `streak-${candidate.id}`,
       type: 'activity',
       displayName: name,
+      avatarUrl: visibleAvatarUrl(candidate),
       detail: `is on a ${candidate.currentStreak}-day check-in streak`,
       occurredAt: candidate.lastCheckInAt ?? new Date(),
     })
@@ -147,6 +158,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       id: `comeback-${jobPosting.id}`,
       type: 'comeback',
       displayName: name,
+      avatarUrl: visibleAvatarUrl(jobPosting.candidate),
       detail: 'landed their first interview after a slow start',
       occurredAt: jobPosting.interviewLandedAt,
     })

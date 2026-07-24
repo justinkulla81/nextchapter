@@ -14,6 +14,7 @@ import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
 import { SendEncouragementForm } from '@/components/dashboard/SendEncouragementForm'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { AvatarDisplay } from '@/components/ui/avatar-display'
 
 export default async function CommunityPage({
   searchParams,
@@ -115,11 +116,14 @@ export default async function CommunityPage({
                 return (
                   <div
                     key={item.id}
-                    className={`rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
+                    className={`flex items-start gap-2 rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
                   >
-                    <span className="mr-1">{style.icon}</span>
-                    {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
-                    {item.detail}
+                    {item.displayName && <AvatarDisplay name={item.displayName} url={item.avatarUrl} size={24} />}
+                    <p>
+                      <span className="mr-1">{style.icon}</span>
+                      {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
+                      {item.detail}
+                    </p>
                   </div>
                 )
               })}
@@ -250,14 +254,17 @@ export default async function CommunityPage({
               return (
                 <div
                   key={item.id}
-                  className={`rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
+                  className={`flex items-start gap-2 rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
                 >
-                  <span className="mr-1">{style.icon}</span>
-                  {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
-                  {item.detail}
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {item.occurredAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
+                  {item.displayName && <AvatarDisplay name={item.displayName} url={item.avatarUrl} size={24} />}
+                  <p>
+                    <span className="mr-1">{style.icon}</span>
+                    {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
+                    {item.detail}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {item.occurredAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </p>
                 </div>
               )
             })

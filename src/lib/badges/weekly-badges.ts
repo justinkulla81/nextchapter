@@ -104,6 +104,25 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
     HIGH_FIT_APPLICATIONS: highFitCount >= HIGH_FIT_MIN,
   }
 
+  const earnedKeys = (Object.keys(earned) as WeeklyBadgeKey[]).filter((key) => earned[key])
+  if (earnedKeys.length > 0) {
+    // Fire-and-forget persistence for admin's historical archive — this is
+    // the only place any weekly badge (including WEEKLY_SCORE_A_LIST, which
+    // IS the A-List membership record) gets written down. Upsert is
+    // idempotent, so re-computing the same week repeatedly is harmless.
+    await Promise.all(
+      earnedKeys.map((badgeKey) =>
+        prisma.weeklyBadgeEarned
+          .upsert({
+            where: { candidateId_weekStartDate_badgeKey: { candidateId, weekStartDate, badgeKey } },
+            update: {},
+            create: { candidateId, weekStartDate, badgeKey },
+          })
+          .catch((error) => console.error('Failed to persist weekly badge:', error))
+      )
+    )
+  }
+
   return (Object.keys(WEEKLY_BADGE_LABEL) as WeeklyBadgeKey[]).map((key) => ({
     key,
     label: WEEKLY_BADGE_LABEL[key],

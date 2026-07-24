@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getCoachThreads } from '@/lib/messaging/threads'
+import { AvatarDisplay } from '@/components/ui/avatar-display'
 
 export default async function CoachMessagesPage() {
   const supabase = await createClient()
@@ -35,7 +36,10 @@ export default async function CoachMessagesPage() {
               href={`/support/coach/messages/${thread.id}`}
               className="flex items-center justify-between gap-4 p-4 hover:bg-muted"
             >
-              <p className="font-medium text-foreground">{thread.candidateName}</p>
+              <div className="flex items-center gap-3">
+                <AvatarDisplay name={thread.candidateName} url={thread.candidateAvatarUrl} size={36} />
+                <p className="font-medium text-foreground">{thread.candidateName}</p>
+              </div>
               {thread.unread && (
                 <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
                   New

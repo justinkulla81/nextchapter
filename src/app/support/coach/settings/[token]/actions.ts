@@ -7,6 +7,8 @@ import { getCoachByToken } from '@/lib/coach/access'
 import { ACCENT_COLOR_OPTIONS } from '@/lib/constants/coach-branding'
 import { saveCoachTemplate, type EffectiveTemplateQuestion } from '@/lib/coach/onboarding-form'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { uploadAvatarFile } from '@/lib/avatar/avatar'
+import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 
 export type BrandingFormState = { error?: string } | undefined
 
@@ -79,5 +81,43 @@ export async function saveOnboardingTemplate(
 
   await saveCoachTemplate(coach.id, template)
   captureServerEvent(coach.id, 'coaching_onboarding_template_saved', { questionCount: template.length })
+  revalidatePath(`/support/coach/settings/${token}`)
+}
+
+export async function uploadMyProfilePicture(
+  token: string,
+  _prevState: AvatarUploadState,
+  formData: FormData
+): Promise<AvatarUploadState> {
+  const coach = await getCoachByToken(token)
+  if (!coach) return { error: 'This link isn’t valid.' }
+
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) return { error: 'Choose a photo first.' }
+
+  const result = await uploadAvatarFile(coach.id, file)
+  if (result.error) return { error: result.error }
+
+  await prisma.coach.update({ where: { id: coach.id }, data: { profilePictureUrl: result.url } })
+  captureServerEvent(coach.id, 'profile_picture_uploaded')
+  revalidatePath(`/support/coach/settings/${token}`)
+  return undefined
+}
+
+export async function removeMyProfilePicture(token: string): Promise<void> {
+  const coach = await getCoachByToken(token)
+  if (!coach) return
+
+  await prisma.coach.update({ where: { id: coach.id }, data: { profilePictureUrl: null } })
+  captureServerEvent(coach.id, 'profile_picture_removed')
+  revalidatePath(`/support/coach/settings/${token}`)
+}
+
+export async function toggleMyProfilePictureVisible(token: string, current: boolean): Promise<void> {
+  const coach = await getCoachByToken(token)
+  if (!coach) return
+
+  await prisma.coach.update({ where: { id: coach.id }, data: { profilePictureVisible: !current } })
+  captureServerEvent(coach.id, 'profile_picture_visibility_toggled', { visible: !current })
   revalidatePath(`/support/coach/settings/${token}`)
 }

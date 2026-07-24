@@ -3,6 +3,8 @@ import { getCoachByToken } from '@/lib/coach/access'
 import { CoachBrandingForm } from '@/components/coach/CoachBrandingForm'
 import { OnboardingTemplateEditor } from '@/components/coach/OnboardingTemplateEditor'
 import { getCoachTemplate } from '@/lib/coach/onboarding-form'
+import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
+import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from './actions'
 
 export default async function CoachSettingsPage({
   params,
@@ -41,6 +43,23 @@ export default async function CoachSettingsPage({
       </div>
 
       <CoachBrandingForm token={token} coach={coach} />
+
+      <div className="mt-8 space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold">Your photo</h2>
+          <p className="text-sm text-muted-foreground">
+            Shown to clients in messaging — separate from your firm logo above.
+          </p>
+        </div>
+        <AvatarUploadForm
+          displayName={coach.fullName}
+          currentUrl={coach.profilePictureUrl}
+          visible={coach.profilePictureVisible}
+          uploadAction={uploadMyProfilePicture.bind(null, token)}
+          removeAction={removeMyProfilePicture.bind(null, token)}
+          toggleVisibilityAction={toggleMyProfilePictureVisible.bind(null, token)}
+        />
+      </div>
 
       <div className="mt-10 mb-6 space-y-1 border-t border-border pt-8">
         <p className="text-sm font-medium text-muted-foreground">Client kickoff</p>

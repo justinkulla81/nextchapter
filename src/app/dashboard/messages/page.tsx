@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { getCandidateThreads } from '@/lib/messaging/threads'
+import { AvatarDisplay } from '@/components/ui/avatar-display'
 
 const PARTNER_TYPE_LABEL = {
   COACH: 'Coach',
@@ -42,9 +43,12 @@ export default async function CandidateMessagesPage() {
               href={`/dashboard/messages/${thread.id}`}
               className="flex items-center justify-between gap-4 p-4 hover:bg-muted"
             >
-              <div>
-                <p className="font-medium text-foreground">{thread.partnerName}</p>
-                <p className="text-sm text-muted-foreground">{PARTNER_TYPE_LABEL[thread.partnerType]}</p>
+              <div className="flex items-center gap-3">
+                <AvatarDisplay name={thread.partnerName} url={thread.partnerAvatarUrl} size={36} />
+                <div>
+                  <p className="font-medium text-foreground">{thread.partnerName}</p>
+                  <p className="text-sm text-muted-foreground">{PARTNER_TYPE_LABEL[thread.partnerType]}</p>
+                </div>
               </div>
               {thread.unread && (
                 <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">

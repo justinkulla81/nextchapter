@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { RecruiterSettingsForm } from '@/components/recruiter/RecruiterSettingsForm'
+import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
+import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from './actions'
 
 export default async function RecruiterSettingsPage() {
   const supabase = await createClient()
@@ -27,6 +29,21 @@ export default async function RecruiterSettingsPage() {
       </div>
 
       <RecruiterSettingsForm recruiter={recruiter} />
+
+      <div className="mt-8 space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold">Your photo</h2>
+          <p className="text-sm text-muted-foreground">Shown to candidates once they sign up through you.</p>
+        </div>
+        <AvatarUploadForm
+          displayName={recruiter.fullName}
+          currentUrl={recruiter.profilePictureUrl}
+          visible={recruiter.profilePictureVisible}
+          uploadAction={uploadMyProfilePicture}
+          removeAction={removeMyProfilePicture}
+          toggleVisibilityAction={toggleMyProfilePictureVisible}
+        />
+      </div>
     </div>
   )
 }
