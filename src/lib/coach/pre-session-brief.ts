@@ -32,6 +32,11 @@ export interface PreSessionBrief {
   // one-time reference buried in Coaching Notes.
   nonNegotiables: string | null
   biggestWorry: string | null
+  // Session Prep loop-close — the coach-editable "focus for next session"
+  // note from this candidate's most recent CoachSession, regardless of
+  // which coach logged it (a candidate's coach could change in principle;
+  // the note itself is about the candidate's context, not the coach).
+  lastFocusNote: string | null
 }
 
 // Reused by the Session Impact Report (src/lib/coach/session-impact.ts) to
@@ -131,21 +136,27 @@ async function generateOpeningQuestion(facts: string): Promise<string> {
 }
 
 export async function getPreSessionBrief(candidateId: string): Promise<PreSessionBrief> {
-  const [candidate, recentReports, currentSprint, avoidancePattern, moodInfo, keyOnboardingAnswers] = await Promise.all([
-    prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-    prisma.hireabilityReport.findMany({
-      where: { candidateId },
-      orderBy: { generatedAt: 'desc' },
-      take: 2,
-      select: { hireabilityGradeAtGeneration: true },
-    }),
-    prisma.weeklySprint.findUnique({
-      where: { candidateId_weekStartDate: { candidateId, weekStartDate: getMondayOfWeek(new Date()) } },
-    }),
-    detectAvoidancePattern(candidateId),
-    getMoodPatternNote(candidateId),
-    getKeyCoachingOnboardingAnswers(candidateId),
-  ])
+  const [candidate, recentReports, currentSprint, avoidancePattern, moodInfo, keyOnboardingAnswers, lastSessionWithFocusNote] =
+    await Promise.all([
+      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
+      prisma.hireabilityReport.findMany({
+        where: { candidateId },
+        orderBy: { generatedAt: 'desc' },
+        take: 2,
+        select: { hireabilityGradeAtGeneration: true },
+      }),
+      prisma.weeklySprint.findUnique({
+        where: { candidateId_weekStartDate: { candidateId, weekStartDate: getMondayOfWeek(new Date()) } },
+      }),
+      detectAvoidancePattern(candidateId),
+      getMoodPatternNote(candidateId),
+      getKeyCoachingOnboardingAnswers(candidateId),
+      prisma.coachSession.findFirst({
+        where: { candidateId, focusNote: { not: null } },
+        orderBy: { occurredAt: 'desc' },
+        select: { focusNote: true },
+      }),
+    ])
 
   const [latestReport, previousReport] = recentReports
   const executionGrade =
@@ -186,6 +197,7 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     moodInfo.lastMood ? `Last mood check-in: ${moodInfo.lastMood.label}.${moodInfo.note ? ` ${moodInfo.note}` : ''}` : '',
     keyOnboardingAnswers.nonNegotiables ? `Stated non-negotiables/constraints: ${keyOnboardingAnswers.nonNegotiables}` : '',
     keyOnboardingAnswers.biggestWorry ? `Stated biggest worry about the process: ${keyOnboardingAnswers.biggestWorry}` : '',
+    lastSessionWithFocusNote?.focusNote ? `Focus flagged for this session: ${lastSessionWithFocusNote.focusNote}` : '',
   ]
     .filter(Boolean)
     .join('\n')
@@ -204,5 +216,6 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     nonNegotiables: keyOnboardingAnswers.nonNegotiables,
     biggestWorry: keyOnboardingAnswers.biggestWorry,
     suggestedOpeningQuestion,
+    lastFocusNote: lastSessionWithFocusNote?.focusNote ?? null,
   }
 }

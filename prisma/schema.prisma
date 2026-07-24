@@ -532,6 +532,15 @@ model CandidateProfile {
   coach         Coach?         @relation(fields: [coachId], references: [id])
   coachSessions CoachSession[]
 
+  // Coach-Candidate Matching System, Phase 1 — captured once, when the
+  // candidate requests a match (see generateCoachShortlist in
+  // src/lib/coach/matching.ts). All optional; every one defaults to "no
+  // preference" rather than forcing a choice.
+  coachGenderPreference             String?
+  coachCommunicationStylePreference String? // 'direct' | 'context_first' — no reusable existing field for this despite what earlier design notes assumed
+  coachLanguagePreference           String?
+  coachTimezonePreference           String?
+
   // Mandatory, specific consent gate (Prompt 54) before a coach can see the
   // Executive Dossier or Coaching Notes — being assigned a coachId is NOT
   // sufficient on its own. Null = no coach-side access to either document,
@@ -1826,6 +1835,20 @@ model Coach {
   // marketDigestOptedOut, no other digest exists for coaches yet.
   marketDigestOptedOut Boolean @default(false)
 
+  // Coach-Candidate Matching System, Phase 1 — structured self-description
+  // used only for shortlist ranking (src/lib/coach/matching.ts), framed as
+  // positive descriptors, never as a screening/exclusion tool.
+  industries         String[] // industries this coach has actually coached in
+  seniorityFit       String[] // levels this coach has worked with, e.g. "IC", "Director", "C-Suite"
+  certifications     String[] // e.g. "ICF" — the standard credential across this industry
+  specializationTags String[] // includes "comfort_with_high_need_candidates" as one option among several, never a lesser category
+  // Hard-constraint fields for matching — gender is self-described, never
+  // used to exclude unless a candidate expresses a preference (default: no
+  // preference, never forced either direction).
+  gender    String?
+  languages String[]
+  timezone  String?
+
   clients                     CandidateProfile[]
   sessions                    CoachSession[]
   coachingOnboardingResponses CoachingOnboardingResponse[]
@@ -1846,6 +1869,11 @@ model CoachSession {
   durationMinutes     Int?
   notes               String?          @db.Text // coach-private, never shown to the candidate
   directives          String?          @db.Text // client-facing action items from this session
+  // Coach-editable "focus for next session" — closes the loop between
+  // sessions without needing calendar integration: surfaced at the top of
+  // this candidate's *next* Pre-Session Brief, regardless of which coach
+  // logs it (see getPreSessionBrief).
+  focusNote           String?          @db.Text
 
   // Set when a coach marks this session's directives as followed through on
   // by the candidate — a real, discrete event, not a self-report, so it

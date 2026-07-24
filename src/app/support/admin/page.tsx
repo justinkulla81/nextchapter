@@ -18,6 +18,7 @@ const ADMIN_PAGES = [
   { href: '/support/admin/coaches', label: 'Coaches', description: 'Coach accounts, clients, and session activity.' },
   { href: '/support/admin/research', label: 'Research Library', description: 'Ingested articles — triage, classify, and queue for the weekly digest.' },
   { href: '/support/admin/digest', label: 'Weekly Market Digest', description: 'Review the queue for the next send and see send history per audience.' },
+  { href: '/support/admin/coach-matches', label: 'Coach Matches', description: 'Caseload distribution across coaches — a manual imbalance check.' },
 ]
 
 export default async function AdminHomePage() {

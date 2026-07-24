@@ -28,6 +28,10 @@ export function LogSessionForm({ token, clientId }: { token: string; clientId: s
         <Label htmlFor="directives">Directives for the client (shown to them on their dashboard)</Label>
         <Textarea id="directives" name="directives" rows={3} />
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="focusNote">Focus for next session (shown to you at the top of your next brief)</Label>
+        <Textarea id="focusNote" name="focusNote" rows={2} />
+      </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <SubmitButton variant="outline" pendingLabel="Saving…">
         Log this session

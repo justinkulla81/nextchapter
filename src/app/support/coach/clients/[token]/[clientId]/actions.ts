@@ -25,6 +25,7 @@ export async function logCoachSession(
   const durationMinutes = durationRaw ? parseInt(durationRaw, 10) : null
   const notes = (formData.get('notes') as string | null)?.trim() || null
   const directives = (formData.get('directives') as string | null)?.trim() || null
+  const focusNote = (formData.get('focusNote') as string | null)?.trim() || null
 
   await prisma.coachSession.create({
     data: {
@@ -33,6 +34,7 @@ export async function logCoachSession(
       durationMinutes: durationMinutes && !Number.isNaN(durationMinutes) ? durationMinutes : null,
       notes,
       directives,
+      focusNote,
     },
   })
 
@@ -40,6 +42,7 @@ export async function logCoachSession(
     candidateId: candidate.id,
     hasNotes: !!notes,
     hasDirectives: !!directives,
+    hasFocusNote: !!focusNote,
   })
 
   revalidatePath(`/support/coach/clients/${token}/${clientId}`)

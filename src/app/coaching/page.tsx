@@ -57,13 +57,15 @@ export default async function CoachingPage() {
 
   let knownContact: { email: string; firstName: string | null; lastName: string | null } | undefined
   let liveConversation: Awaited<ReturnType<typeof getOrCreateCoachConversation>> | null = null
+  let canRequestMatch = false
 
   if (user?.email) {
     const profile = await prisma.candidateProfile.findUnique({
       where: { userId: user.id },
-      select: { id: true, firstName: true, lastName: true, registrationCompletedAt: true },
+      select: { id: true, firstName: true, lastName: true, registrationCompletedAt: true, coachId: true },
     })
     knownContact = { email: user.email, firstName: profile?.firstName ?? null, lastName: profile?.lastName ?? null }
+    canRequestMatch = !!(!user.is_anonymous && profile?.registrationCompletedAt && !profile.coachId)
 
     // Only a fully registered candidate has a durable conversation worth
     // showing here — a still-anonymous or mid-onboarding session has no
@@ -140,6 +142,25 @@ export default async function CoachingPage() {
           </div>
 
           <div className="space-y-8">
+            {canRequestMatch && (
+              <Card className="h-fit border-brand/20 bg-off-white">
+                <CardContent className="space-y-3 pt-6">
+                  <div>
+                    <h3 className="font-semibold text-foreground">Get matched with a coach</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Answer a couple of quick preference questions and see coaches suggested for your
+                      background.
+                    </p>
+                  </div>
+                  <Link
+                    href="/dashboard/coaching-match"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-navy"
+                  >
+                    Find my coach <ChevronRight className="size-4" />
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
             <Card className="h-fit border-brand/20 bg-off-white">
               <CardContent className="space-y-4 pt-6">
                 <div>

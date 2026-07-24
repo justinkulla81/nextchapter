@@ -102,6 +102,13 @@ export default async function PreSessionBriefPage({
           <p className="mt-1 text-sm text-foreground">&ldquo;{brief.suggestedOpeningQuestion}&rdquo;</p>
         </div>
 
+        {brief.lastFocusNote && (
+          <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
+            <p className="text-sm font-medium text-foreground">Focus for this session</p>
+            <p className="mt-1 text-sm text-foreground">{brief.lastFocusNote}</p>
+          </div>
+        )}
+
         {(brief.nonNegotiables || brief.biggestWorry) && (
           <div className="rounded-lg border border-border p-4">
             <p className="text-sm font-medium text-muted-foreground">From their Coaching Onboarding Form</p>
