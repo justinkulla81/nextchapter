@@ -1,0 +1,217 @@
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
+
+// This module is the ONLY place allowed to query CandidateProfile for
+// thread/inbox display — select only minimal display fields (name), never
+// hireabilityReports, assessmentResponses, email, or phone. Applies even
+// inside the coach portal, where dossier access is a separate,
+// already-consent-gated surface (coachDossierConsentedAt) that messaging
+// must not bypass.
+const CANDIDATE_DISPLAY_SELECT = { id: true, firstName: true, lastName: true } as const
+
+function candidateDisplayName(candidate: { firstName: string | null; lastName: string | null } | null): string {
+  if (!candidate) return 'Candidate'
+  const name = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ')
+  return name || 'Candidate'
+}
+
+type PartnerKey = { coachId?: string; recruiterId?: string; employerId?: string }
+
+function partnerWhere(partnerType: ThreadPartnerType, partnerId: string): PartnerKey {
+  if (partnerType === 'COACH') return { coachId: partnerId }
+  if (partnerType === 'RECRUITER') return { recruiterId: partnerId }
+  return { employerId: partnerId }
+}
+
+// Thread creation gates (privacy-critical — enforced here, not just at the
+// UI call sites, since this is the one place a thread can actually be
+// created):
+//   - COACH: any coach-candidate pair with coachId already set may message —
+//     matches the existing coach-client relationship, no extra gate needed.
+//   - RECRUITER: only once a SourcedCandidate for this pair has SIGNED_UP
+//     (has a candidateId) — never before signup.
+//   - EMPLOYER: only once an ApprovedEmployer row exists for this pair (the
+//     candidate-controlled reveal gate from approveEmployerInterest) —
+//     messaging must never become a side channel to reach an unrevealed
+//     candidate.
+async function assertThreadAllowed(candidateId: string, partnerType: ThreadPartnerType, partnerId: string) {
+  if (partnerType === 'COACH') {
+    const candidate = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { coachId: true } })
+    if (candidate?.coachId !== partnerId) throw new Error('This coach is not connected to this candidate.')
+    return
+  }
+  if (partnerType === 'RECRUITER') {
+    const match = await prisma.sourcedCandidate.findFirst({
+      where: { recruiterId: partnerId, candidateId, status: 'SIGNED_UP' },
+      select: { id: true },
+    })
+    if (!match) throw new Error('This candidate has not signed up through this recruiter yet.')
+    return
+  }
+  const approved = await prisma.approvedEmployer.findUnique({
+    where: { candidateId_employerId: { candidateId, employerId: partnerId } },
+  })
+  if (!approved) throw new Error('This candidate has not been revealed to this employer yet.')
+}
+
+export async function getOrCreateThread(candidateId: string, partnerType: ThreadPartnerType, partnerId: string) {
+  const where = partnerWhere(partnerType, partnerId)
+  const existing = await prisma.messageThread.findFirst({ where: { candidateId, ...where } })
+  if (existing) return existing
+
+  await assertThreadAllowed(candidateId, partnerType, partnerId)
+
+  return prisma.messageThread.create({
+    data: { candidateId, partnerType, ...where },
+  })
+}
+
+export async function sendMessage(threadId: string, senderRole: MessageSenderRole, body: string) {
+  const trimmed = body.trim()
+  if (!trimmed) throw new Error('Message cannot be empty.')
+
+  const [message] = await prisma.$transaction([
+    prisma.message.create({ data: { threadId, senderRole, body: trimmed } }),
+    prisma.messageThread.update({
+      where: { id: threadId },
+      data:
+        senderRole === 'CANDIDATE'
+          ? { lastMessageAt: new Date(), candidateLastReadAt: new Date() }
+          : { lastMessageAt: new Date(), partnerLastReadAt: new Date() },
+    }),
+  ])
+  return message
+}
+
+export async function markThreadRead(threadId: string, side: 'candidate' | 'partner') {
+  await prisma.messageThread.update({
+    where: { id: threadId },
+    data: side === 'candidate' ? { candidateLastReadAt: new Date() } : { partnerLastReadAt: new Date() },
+  })
+}
+
+function isUnread(thread: { lastMessageAt: Date; candidateLastReadAt: Date; partnerLastReadAt: Date }, side: 'candidate' | 'partner') {
+  const readAt = side === 'candidate' ? thread.candidateLastReadAt : thread.partnerLastReadAt
+  return thread.lastMessageAt > readAt
+}
+
+// Prisma's query builder can't compare two columns on the same row, so
+// unread counts are computed in JS over the (small, per-partner) set of
+// thread rows rather than pushed down as a single WHERE clause.
+async function countUnreadForPartner(where: PartnerKey): Promise<number> {
+  const threads = await prisma.messageThread.findMany({
+    where,
+    select: { lastMessageAt: true, partnerLastReadAt: true },
+  })
+  return threads.filter((t) => t.lastMessageAt > t.partnerLastReadAt).length
+}
+
+// ── Candidate side ──────────────────────────────────────────────────────────
+
+export async function getCandidateThreads(candidateId: string) {
+  const threads = await prisma.messageThread.findMany({
+    where: { candidateId },
+    orderBy: { lastMessageAt: 'desc' },
+    include: {
+      coach: { select: { id: true, fullName: true } },
+      recruiter: { select: { id: true, fullName: true } },
+      employer: { select: { id: true, companyName: true } },
+    },
+  })
+  return threads.map((thread) => ({
+    id: thread.id,
+    partnerType: thread.partnerType,
+    partnerName:
+      thread.coach?.fullName ?? thread.recruiter?.fullName ?? thread.employer?.companyName ?? 'NextChapter contact',
+    lastMessageAt: thread.lastMessageAt,
+    unread: isUnread(thread, 'candidate'),
+  }))
+}
+
+export async function getCandidateUnreadCount(candidateId: string): Promise<number> {
+  const threads = await prisma.messageThread.findMany({
+    where: { candidateId },
+    select: { lastMessageAt: true, candidateLastReadAt: true },
+  })
+  return threads.filter((t) => t.lastMessageAt > t.candidateLastReadAt).length
+}
+
+// ── Coach side ───────────────────────────────────────────────────────────────
+
+export async function getCoachThreads(coachId: string) {
+  const threads = await prisma.messageThread.findMany({
+    where: { coachId },
+    orderBy: { lastMessageAt: 'desc' },
+    include: { candidate: { select: CANDIDATE_DISPLAY_SELECT } },
+  })
+  return threads.map((thread) => ({
+    id: thread.id,
+    candidateId: thread.candidateId,
+    candidateName: candidateDisplayName(thread.candidate),
+    lastMessageAt: thread.lastMessageAt,
+    unread: isUnread(thread, 'partner'),
+  }))
+}
+
+export async function getCoachUnreadCount(coachId: string): Promise<number> {
+  return countUnreadForPartner({ coachId })
+}
+
+// ── Recruiter side ───────────────────────────────────────────────────────────
+
+export async function getRecruiterThreads(recruiterId: string) {
+  const threads = await prisma.messageThread.findMany({
+    where: { recruiterId },
+    orderBy: { lastMessageAt: 'desc' },
+    include: { candidate: { select: CANDIDATE_DISPLAY_SELECT } },
+  })
+  return threads.map((thread) => ({
+    id: thread.id,
+    candidateId: thread.candidateId,
+    candidateName: candidateDisplayName(thread.candidate),
+    lastMessageAt: thread.lastMessageAt,
+    unread: isUnread(thread, 'partner'),
+  }))
+}
+
+export async function getRecruiterUnreadCount(recruiterId: string): Promise<number> {
+  return countUnreadForPartner({ recruiterId })
+}
+
+// ── Employer side ────────────────────────────────────────────────────────────
+
+export async function getEmployerThreads(employerId: string) {
+  const threads = await prisma.messageThread.findMany({
+    where: { employerId },
+    orderBy: { lastMessageAt: 'desc' },
+    include: { candidate: { select: CANDIDATE_DISPLAY_SELECT } },
+  })
+  return threads.map((thread) => ({
+    id: thread.id,
+    candidateId: thread.candidateId,
+    candidateName: candidateDisplayName(thread.candidate),
+    lastMessageAt: thread.lastMessageAt,
+    unread: isUnread(thread, 'partner'),
+  }))
+}
+
+export async function getEmployerUnreadCount(employerId: string): Promise<number> {
+  return countUnreadForPartner({ employerId })
+}
+
+// ── Shared thread detail (both sides use this, guarded by caller's own
+// ownership check on candidateId/coachId/recruiterId/employerId) ───────────
+
+export async function getThreadWithMessages(threadId: string) {
+  return prisma.messageThread.findUnique({
+    where: { id: threadId },
+    include: {
+      messages: { orderBy: { createdAt: 'asc' } },
+      candidate: { select: CANDIDATE_DISPLAY_SELECT },
+      coach: { select: { id: true, fullName: true } },
+      recruiter: { select: { id: true, fullName: true } },
+      employer: { select: { id: true, companyName: true } },
+    },
+  })
+}

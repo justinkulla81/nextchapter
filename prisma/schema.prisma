@@ -540,6 +540,8 @@ model CandidateProfile {
   sourcingRecruiter   Recruiter?        @relation(fields: [sourcingRecruiterId], references: [id])
   sourcedCandidate    SourcedCandidate?
 
+  messageThreads MessageThread[]
+
   // Coach-Candidate Matching System, Phase 1 — captured once, when the
   // candidate requests a match (see generateCoachShortlist in
   // src/lib/coach/matching.ts). All optional; every one defaults to "no
@@ -984,6 +986,7 @@ model EmployerProfile {
   approvedCandidates    ApprovedEmployer[]
   jobBoardSubmissions   ExclusiveJobPosting[]
   seats                 EmployerSeat[]
+  messageThreads        MessageThread[]
 
   @@index([subscriptionTier, subscriptionStatus])
 }
@@ -1887,6 +1890,7 @@ model Coach {
   sessions                    CoachSession[]
   coachingOnboardingResponses CoachingOnboardingResponse[]
   clientInvites               CoachClientInvite[]
+  messageThreads              MessageThread[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -1981,6 +1985,7 @@ model Recruiter {
   calibrationMemos    CalibrationMemo[]
   sourcedCandidates   SourcedCandidate[]
   sourcedProfiles     CandidateProfile[]
+  messageThreads      MessageThread[]
 }
 
 enum SourcedCandidateStatus {
@@ -2162,4 +2167,60 @@ model DigestSend {
   itemIds        String[] // ResearchLibraryItem ids included in this send, for audit
 
   @@index([audience, sentAt])
+}
+
+enum ThreadPartnerType {
+  COACH
+  RECRUITER
+  EMPLOYER
+}
+
+enum MessageSenderRole {
+  CANDIDATE
+  COACH
+  RECRUITER
+  EMPLOYER
+}
+
+// One thread per (candidate, partner) relationship, not subject-based —
+// matches CoachConversation's existing "one durable channel per
+// relationship" precedent. A candidate can have up to one coach-thread, one
+// recruiter-thread, and one employer-thread simultaneously (Postgres treats
+// NULL as distinct per-row in unique constraints, so the three @@unique
+// clauses below don't collide on each other's null columns).
+model MessageThread {
+  id          String            @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  partnerType ThreadPartnerType
+
+  coachId    String?
+  coach      Coach?           @relation(fields: [coachId], references: [id])
+  recruiterId String?
+  recruiter  Recruiter?       @relation(fields: [recruiterId], references: [id])
+  employerId String?
+  employer   EmployerProfile? @relation(fields: [employerId], references: [id])
+
+  createdAt           DateTime @default(now())
+  lastMessageAt        DateTime @default(now())
+  candidateLastReadAt  DateTime @default(now())
+  partnerLastReadAt    DateTime @default(now())
+
+  messages Message[]
+
+  @@unique([candidateId, coachId])
+  @@unique([candidateId, recruiterId])
+  @@unique([candidateId, employerId])
+  @@index([candidateId])
+}
+
+model Message {
+  id         String            @id @default(cuid())
+  threadId   String
+  thread     MessageThread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderRole MessageSenderRole
+  body       String            @db.Text
+  createdAt  DateTime          @default(now())
+
+  @@index([threadId, createdAt])
 }

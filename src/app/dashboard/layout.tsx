@@ -3,6 +3,7 @@ import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
+import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 
 export const metadata: Metadata = {
@@ -18,10 +19,11 @@ export const maxDuration = 60
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getDashboardData()
 
-  const [narrativeCount, hasMarketReality, supportNetworkUnreadCount] = await Promise.all([
+  const [narrativeCount, hasMarketReality, supportNetworkUnreadCount, messagesUnreadCount] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profile.id } }),
     getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
+    getCandidateUnreadCount(profile.id),
   ])
 
   // Each category counts once toward "assets you have" regardless of how
@@ -42,6 +44,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         portfolioAssetCount={portfolioAssetCount}
         supportNetworkUnreadCount={supportNetworkUnreadCount}
         needsWorkStyleSurvey={profile.assessmentResponses.length === 0}
+        messagesUnreadCount={messagesUnreadCount}
       />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>

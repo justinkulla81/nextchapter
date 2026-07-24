@@ -40,7 +40,8 @@ interface NavSection {
 function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
-  needsWorkStyleSurvey: boolean
+  needsWorkStyleSurvey: boolean,
+  messagesUnreadCount: number
 ): NavSection[] {
   return [
     {
@@ -78,6 +79,11 @@ function buildSections(
       title: 'Connecting',
       links: [
         { href: '/dashboard/network', label: 'Your Network' },
+        {
+          href: '/dashboard/messages',
+          label: 'Messages',
+          badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
+        },
         {
           href: '/dashboard/community',
           label: 'Support Network',
@@ -122,15 +128,17 @@ function NavContent({
   portfolioAssetCount,
   supportNetworkUnreadCount,
   needsWorkStyleSurvey,
+  messagesUnreadCount,
 }: {
   pathname: string
   onNavigate?: () => void
   portfolioAssetCount: number
   supportNetworkUnreadCount: number
   needsWorkStyleSurvey: boolean
+  messagesUnreadCount: number
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, needsWorkStyleSurvey)
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, needsWorkStyleSurvey, messagesUnreadCount)
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -201,14 +209,16 @@ export function DashboardNav({
   portfolioAssetCount = 0,
   supportNetworkUnreadCount = 0,
   needsWorkStyleSurvey = false,
+  messagesUnreadCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   needsWorkStyleSurvey?: boolean
+  messagesUnreadCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, needsWorkStyleSurvey)
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, needsWorkStyleSurvey, messagesUnreadCount)
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
   )
@@ -222,6 +232,7 @@ export function DashboardNav({
           portfolioAssetCount={portfolioAssetCount}
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           needsWorkStyleSurvey={needsWorkStyleSurvey}
+          messagesUnreadCount={messagesUnreadCount}
         />
       </aside>
 
@@ -254,6 +265,7 @@ export function DashboardNav({
               portfolioAssetCount={portfolioAssetCount}
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               needsWorkStyleSurvey={needsWorkStyleSurvey}
+              messagesUnreadCount={messagesUnreadCount}
             />
           </div>
         </div>

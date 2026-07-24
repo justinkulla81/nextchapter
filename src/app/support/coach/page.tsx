@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { getCoachImpactReport } from '@/lib/coach/impact-report'
+import { getCoachUnreadCount } from '@/lib/messaging/threads'
 
 const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
 const SPECIALIST_MIN_CLIENTS = 2
@@ -23,6 +24,7 @@ export default async function CoachHomePage() {
 
   const isSpecialist = coach.specializationTags.includes(HIGH_NEED_TAG) && coach._count.clients >= SPECIALIST_MIN_CLIENTS
   const impact = await getCoachImpactReport(coach.id)
+  const unreadMessages = await getCoachUnreadCount(coach.id)
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-16">
@@ -60,6 +62,17 @@ export default async function CoachHomePage() {
         >
           <p className="font-medium text-foreground">Your clients</p>
           <p className="mt-1 text-sm text-muted-foreground">Pre-session briefs and full client views.</p>
+        </Link>
+        <Link href="/support/coach/messages" className="rounded-lg border border-border p-4 hover:border-primary">
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-foreground">Messages</p>
+            {unreadMessages > 0 && (
+              <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+                {unreadMessages}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">Direct messages with your clients.</p>
         </Link>
         <Link
           href={`/support/coach/caseload/${coach.accessToken}`}
