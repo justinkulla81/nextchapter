@@ -2061,6 +2061,12 @@ model SourcedCandidate {
   invitedAt   DateTime?
   candidateId String?                @unique
   candidate   CandidateProfile?      @relation(fields: [candidateId], references: [id])
+  // Recruiter's notes tied specifically to the candidate's resume (once
+  // signed up) — distinct from `notes` above, which is general free-text
+  // added when the candidate was first sourced.
+  resumeCommentary String?           @db.Text
+  // Curated into the recruiter's submittable "book" to present to employers.
+  inBook           Boolean           @default(false)
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @updatedAt
 

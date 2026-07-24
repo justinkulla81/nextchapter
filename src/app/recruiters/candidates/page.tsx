@@ -28,16 +28,24 @@ export default async function RecruiterCandidatesPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-16">
-      <div>
-        <Link href="/recruiters/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
-          ← Back home
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Link href="/recruiters/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
+            ← Back home
+          </Link>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">My candidates</h1>
+          <p className="mt-1 text-muted-foreground">
+            Add people from your own network who aren&apos;t on NextChapter yet. Once you invite them and they
+            sign up, they get the full onboarding experience and join the general candidate pool — you&apos;ll
+            just be recorded as who sourced them.
+          </p>
+        </div>
+        <Link
+          href="/recruiters/candidates/book"
+          className="shrink-0 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-brand hover:text-brand"
+        >
+          My book
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">My candidates</h1>
-        <p className="mt-1 text-muted-foreground">
-          Add people from your own network who aren&apos;t on NextChapter yet. Once you invite them and they
-          sign up, they get the full onboarding experience and join the general candidate pool — you&apos;ll
-          just be recorded as who sourced them.
-        </p>
       </div>
 
       <AddSourcedCandidateForm />

@@ -1,6 +1,8 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
@@ -136,4 +138,78 @@ export async function finishAcceptingRecruiterSource(inviteToken: string): Promi
   })
 
   return {}
+}
+
+// Resume access is only ever offered once a SourcedCandidate has actually
+// signed up (candidateId set) — never for a merely-ADDED/INVITED lead who
+// hasn't created a real account. Mirrors the signed-URL pattern in
+// src/app/dashboard/resume/actions.ts, scoped to the recruiter relationship
+// instead of self-ownership.
+export async function getSourcedCandidateResumeSignedUrl(sourcedCandidateId: string): Promise<string | null> {
+  const recruiter = await requireRecruiter()
+  if (!recruiter) return null
+
+  const sourced = await prisma.sourcedCandidate.findFirst({
+    where: { id: sourcedCandidateId, recruiterId: recruiter.id },
+  })
+  if (!sourced || !sourced.candidateId) return null
+
+  const resume = await prisma.resume.findFirst({
+    where: { candidateId: sourced.candidateId },
+    orderBy: { uploadedAt: 'desc' },
+  })
+  if (!resume) return null
+
+  const admin = createAdminClient()
+  const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
+  return data?.signedUrl ?? null
+}
+
+export type CommentaryFormState = { error?: string; saved?: boolean } | undefined
+
+export async function updateResumeCommentary(
+  sourcedCandidateId: string,
+  _prevState: CommentaryFormState,
+  formData: FormData
+): Promise<CommentaryFormState> {
+  const recruiter = await requireRecruiter()
+  if (!recruiter) return { error: 'You need to be logged in to do this.' }
+
+  const sourced = await prisma.sourcedCandidate.findFirst({
+    where: { id: sourcedCandidateId, recruiterId: recruiter.id },
+  })
+  if (!sourced) return { error: 'Candidate not found.' }
+
+  const resumeCommentary = (formData.get('resumeCommentary') as string | null)?.trim() || null
+
+  await prisma.sourcedCandidate.update({
+    where: { id: sourced.id },
+    data: { resumeCommentary },
+  })
+
+  revalidatePath(`/recruiters/candidates/${sourced.id}`)
+  return { saved: true }
+}
+
+export async function toggleInBook(sourcedCandidateId: string, current: boolean) {
+  const recruiter = await requireRecruiter()
+  if (!recruiter) return
+
+  const sourced = await prisma.sourcedCandidate.findFirst({
+    where: { id: sourcedCandidateId, recruiterId: recruiter.id },
+  })
+  if (!sourced) return
+
+  await prisma.sourcedCandidate.update({
+    where: { id: sourced.id },
+    data: { inBook: !current },
+  })
+
+  captureServerEvent(recruiter.id, 'candidate_added_to_book', {
+    sourcedCandidateId: sourced.id,
+    inBook: !current,
+  })
+
+  revalidatePath(`/recruiters/candidates/${sourced.id}`)
+  revalidatePath('/recruiters/candidates/book')
 }
