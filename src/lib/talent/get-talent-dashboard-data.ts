@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
+import { resolveEmployerForUserId } from './get-employer-for-user'
 
 export async function getTalentDashboardData() {
   const supabase = await createClient()
@@ -12,7 +12,7 @@ export async function getTalentDashboardData() {
     redirect('/auth/login?next=/talent')
   }
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  const employer = await resolveEmployerForUserId(user.id)
 
   if (!employer) {
     redirect('/talent/signup')

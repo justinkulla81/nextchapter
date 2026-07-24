@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { reconfirmJobBoardPosting } from '@/lib/jobs/job-board-submission'
 
 export async function reconfirmMyJobBoardPosting(postingId: string) {
@@ -12,7 +13,7 @@ export async function reconfirmMyJobBoardPosting(postingId: string) {
   } = await supabase.auth.getUser()
   if (!user) return
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  const employer = await resolveEmployerForUserId(user.id)
   if (!employer) return
 
   // Only the original submitter can reconfirm their own posting.

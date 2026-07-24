@@ -975,8 +975,34 @@ model EmployerProfile {
   candidateInteractions CandidateInteraction[]
   approvedCandidates    ApprovedEmployer[]
   jobBoardSubmissions   ExclusiveJobPosting[]
+  seats                 EmployerSeat[]
 
   @@index([subscriptionTier, subscriptionStatus])
+}
+
+// Team seats, additive to the original single-owner EmployerProfile.userId
+// (which stays the account owner and keeps working through its existing
+// direct lookup, unaffected by whether any seats exist). userId is null
+// until the invited person accepts and links their own Supabase account.
+model EmployerSeat {
+  id         String          @id @default(cuid())
+  employerId String
+  employer   EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  role       EmployerSeatRole @default(MEMBER)
+
+  invitedEmail String
+  inviteToken  String    @unique @default(cuid())
+  invitedAt    DateTime  @default(now())
+  acceptedAt   DateTime?
+  userId       String?   @unique
+
+  @@unique([employerId, invitedEmail])
+  @@index([userId])
+}
+
+enum EmployerSeatRole {
+  OWNER
+  MEMBER
 }
 
 model RoleProfile {

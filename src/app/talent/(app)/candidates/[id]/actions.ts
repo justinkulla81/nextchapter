@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import type { OutcomeWindow } from '@/lib/talent/outcome-ratings'
 
 async function getEmployer() {
@@ -12,7 +13,7 @@ async function getEmployer() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
-  return prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  return resolveEmployerForUserId(user.id)
 }
 
 export async function markCandidateHired(candidateId: string) {

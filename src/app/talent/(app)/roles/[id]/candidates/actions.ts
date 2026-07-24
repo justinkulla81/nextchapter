@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendEmployerInterestEmail } from '@/lib/email/send-employer-interest'
+import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 
 // Statuses that represent progress already made — never downgrade past
 // these back to a lighter-touch status like SAVED.
@@ -30,7 +31,7 @@ async function getEmployer() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return null
-  return prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  return resolveEmployerForUserId(user.id)
 }
 
 export async function expressInterest(candidateId: string, roleId: string) {

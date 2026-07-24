@@ -37,6 +37,7 @@ const LINKS: NavLink[] = [
   { href: '/talent/saved', label: 'Saved Candidates' },
   { href: '/talent/analytics', label: 'Hiring Analytics' },
   { href: '/talent/job-board/submissions', label: 'Job Board' },
+  { href: '/talent/team', label: 'Team' },
   { href: '/talent/settings', label: 'Settings' },
 ]
 

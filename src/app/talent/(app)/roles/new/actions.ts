@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { extractRoleFromJD, type ExtractedRoleFields } from '@/lib/roles/extract-role-from-jd'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -15,7 +16,7 @@ export async function createRole(_prevState: RoleFormState, formData: FormData):
   } = await supabase.auth.getUser()
   if (!user) return { error: 'You need to be logged in to do this.' }
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  const employer = await resolveEmployerForUserId(user.id)
   if (!employer) return { error: 'You need to be logged in to do this.' }
 
   const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
@@ -56,7 +57,7 @@ export async function extractRoleFromJDAction(text: string): Promise<ExtractedRo
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId: user.id }, select: { id: true } })
+  const employer = await resolveEmployerForUserId(user.id)
   if (!employer) return null
 
   if (!text.trim()) return null

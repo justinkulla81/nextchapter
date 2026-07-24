@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
+import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import {
   validateJobBoardSubmission,
   createPendingJobBoardPosting,
@@ -20,7 +20,7 @@ export async function submitEmployerJobBoardPosting(
   } = await supabase.auth.getUser()
   if (!user) return { error: 'You need to be logged in to do this.' }
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  const employer = await resolveEmployerForUserId(user.id)
   if (!employer) return { error: 'You need to be logged in to do this.' }
 
   const input: JobBoardSubmissionInput = {

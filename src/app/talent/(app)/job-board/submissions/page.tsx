@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { MyJobBoardSubmissions } from '@/components/jobs/MyJobBoardSubmissions'
 import { Button } from '@/components/ui/button'
 import { reconfirmMyJobBoardPosting } from './actions'
@@ -13,7 +14,7 @@ export default async function TalentJobBoardSubmissionsPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/talent/signup')
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId: user.id } })
+  const employer = await resolveEmployerForUserId(user.id)
   if (!employer) redirect('/talent/signup')
 
   const postings = await prisma.exclusiveJobPosting.findMany({

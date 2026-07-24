@@ -9,6 +9,7 @@ import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
+import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -21,6 +22,8 @@ export function CallbackHandler() {
   const nextIsEmployer = searchParams.get('next') === 'employer'
   const nextIsRecruiter = searchParams.get('next') === 'recruiter'
   const nextIsCoach = searchParams.get('next') === 'coach'
+  const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
+  const seatToken = searchParams.get('seatToken')
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -75,6 +78,21 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/support/coach')
+      return
+    }
+    if (nextIsEmployerSeat) {
+      if (!seatToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishAcceptingEmployerSeat(seatToken)
+      if (result.error) {
+        console.error('finishAcceptingEmployerSeat error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/talent')
       return
     }
     setStatus('redirecting')
