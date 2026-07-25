@@ -1,19 +1,34 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { checkEmailAvailableForSignup } from '@/app/auth/actions'
+import { setCandidateEmail } from '@/app/onboarding/create-account/actions'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
-// The email is already known (resume-derived / confirmed earlier in
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// The email is normally already known (resume-derived / confirmed earlier in
 // onboarding) — this step is just finishing account creation, so the
 // confirmation email fires automatically on mount instead of waiting on a
 // "Send me the link" click the candidate has no real reason to make. It
 // still has to go out as a real Supabase email-confirmation send
 // (mailer_autoconfirm=false); this just removes the unnecessary click in
 // front of it.
-export function CreateAccountForm({ email }: { email: string | null }) {
-  const [loading, setLoading] = useState(true)
+//
+// Resume extraction sometimes finds no email at all (no plain-text email on
+// the resume, empty extracted text, or the model just misses it) — in that
+// case `email` arrives null and there's no address to send anything to, so
+// this falls back to asking the candidate for one directly instead of
+// silently hanging.
+export function CreateAccountForm({ email: initialEmail }: { email: string | null }) {
+  const [email, setEmail] = useState(initialEmail ?? '')
+  const [emailInput, setEmailInput] = useState('')
+  const [emailInputError, setEmailInputError] = useState<string | null>(null)
+  const [submittingManualEmail, setSubmittingManualEmail] = useState(false)
+  const [needsEmailInput, setNeedsEmailInput] = useState(!initialEmail)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
   const [resent, setResent] = useState(false)
@@ -21,48 +36,61 @@ export function CreateAccountForm({ email }: { email: string | null }) {
   const [blocked, setBlocked] = useState<{ needsPassword: boolean } | null>(null)
   const firedRef = useRef(false)
 
-  async function sendConfirmation() {
+  async function sendConfirmation(targetEmail: string) {
     const supabase = createClient()
     // Converts the candidate's anonymous session into a permanent one —
     // same userId, same profile, no password. Sends a confirmation link to
     // this address; clicking it finishes registration.
     return supabase.auth.updateUser(
-      { email: email ?? '' },
+      { email: targetEmail },
       { emailRedirectTo: `${window.location.origin}/auth/callback?next=secure-account` }
     )
   }
 
-  useEffect(() => {
-    if (firedRef.current || !email) return
-    firedRef.current = true
-
-    async function run() {
-      const availability = await checkEmailAvailableForSignup(email as string)
-      if (availability.blocked) {
-        setLoading(false)
-        setBlocked({ needsPassword: availability.needsPassword })
-        return
-      }
-
-      const { error } = await sendConfirmation()
-      setLoading(false)
-
-      if (error) {
-        setError(error.message)
-        return
-      }
-
-      setSent(true)
+  async function attemptSend(targetEmail: string) {
+    const availability = await checkEmailAvailableForSignup(targetEmail)
+    if (availability.blocked) {
+      setBlocked({ needsPassword: availability.needsPassword })
+      return
     }
 
-    run()
+    const { error } = await sendConfirmation(targetEmail)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    setSent(true)
+  }
+
+  useEffect(() => {
+    if (firedRef.current || !initialEmail) return
+    firedRef.current = true
+    attemptSend(initialEmail)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [email])
+  }, [initialEmail])
+
+  async function handleManualEmailSubmit(e: FormEvent) {
+    e.preventDefault()
+    const trimmed = emailInput.trim()
+    if (!EMAIL_PATTERN.test(trimmed)) {
+      setEmailInputError('Enter a valid email address.')
+      return
+    }
+    setEmailInputError(null)
+    setSubmittingManualEmail(true)
+    setEmail(trimmed)
+    await setCandidateEmail(trimmed)
+    setNeedsEmailInput(false)
+    await attemptSend(trimmed)
+    setSubmittingManualEmail(false)
+  }
 
   async function handleResend() {
     setResent(false)
     setResendError(null)
-    const { error } = await sendConfirmation()
+    const { error } = await sendConfirmation(email)
     if (error) {
       setResendError(error.message)
       return
@@ -71,7 +99,7 @@ export function CreateAccountForm({ email }: { email: string | null }) {
   }
 
   if (blocked) {
-    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email ?? ''} />
+    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email} />
   }
 
   if (sent) {
@@ -103,6 +131,42 @@ export function CreateAccountForm({ email }: { email: string | null }) {
           We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.
         </p>
       </div>
+    )
+  }
+
+  // No email came off the resume (extraction found nothing to parse) — ask
+  // for one directly rather than leaving the candidate on an endless
+  // "Sending a confirmation link to …" spinner with nowhere to go.
+  if (needsEmailInput) {
+    return (
+      <form onSubmit={handleManualEmailSubmit} className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          We couldn&apos;t find an email on your resume — enter the one you&apos;d like your
+          report and account confirmation sent to.
+        </p>
+        <div className="space-y-1">
+          <label htmlFor="create-account-email" className="text-sm font-medium text-foreground">
+            Email address
+          </label>
+          <Input
+            id="create-account-email"
+            type="email"
+            autoComplete="email"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
+            placeholder="you@example.com"
+            aria-invalid={!!emailInputError}
+          />
+          {emailInputError && <p className="text-sm text-destructive">{emailInputError}</p>}
+        </div>
+        <Button
+          type="submit"
+          disabled={submittingManualEmail}
+          className={submittingManualEmail ? 'cursor-progress' : undefined}
+        >
+          {submittingManualEmail ? 'Sending…' : 'Send confirmation link'}
+        </Button>
+      </form>
     )
   }
 
