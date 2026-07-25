@@ -82,10 +82,32 @@ export default async function OnboardingResumePage() {
       </div>
 
       <ul className="space-y-1.5 text-sm text-muted-foreground">
-        <li>• A free account, no credit card required.</li>
-        <li>• A free, honest review of your resume — see exactly what&apos;s holding it back.</li>
-        <li>• Your Market Reality Grade and a personalized action plan, not vague advice.</li>
-        <li>• Access to a community of people who get exactly what you&apos;re going through.</li>
+        <li>
+          • <span className="font-semibold text-foreground">A free account to start</span> — no
+          credit card, no catch.
+        </li>
+        <li>
+          •{' '}
+          <span className="font-semibold text-foreground">
+            An honest resume review with your Market Reality Grade
+          </span>{' '}
+          — see exactly what&apos;s holding you back.
+        </li>
+        <li>
+          • <span className="font-semibold text-foreground">A personalized action plan built for you</span>{' '}
+          — real steps, not vague advice.
+        </li>
+        <li>
+          •{' '}
+          <span className="font-semibold text-foreground">
+            A community that truly gets what you&apos;re going through
+          </span>{' '}
+          — you&apos;re not alone in this.
+        </li>
+        <li>
+          • <span className="font-semibold text-foreground">Resources to bridge the gap</span> —
+          interim work, new skills, and a path to your next great job.
+        </li>
       </ul>
 
       <p className="text-sm text-muted-foreground">

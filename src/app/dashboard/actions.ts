@@ -158,6 +158,26 @@ export async function confirmIndustry(
   revalidatePath('/dashboard/hireability-report')
 }
 
+export async function updateResumeKeywords(
+  _prevState: ConfirmFormState,
+  formData: FormData
+): Promise<ConfirmFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const resumeKeywords = formData
+    .getAll('resumeKeywords')
+    .map((v) => v.toString().trim())
+    .filter(Boolean)
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { resumeKeywords },
+  })
+  captureServerEvent(profile.id, 'resume_keywords_updated', { count: resumeKeywords.length })
+  revalidatePath('/dashboard/profile')
+}
+
 export async function confirmFunctionAndExperience(
   _prevState: ConfirmFormState,
   formData: FormData

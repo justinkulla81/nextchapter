@@ -4,6 +4,7 @@ import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryAuthorizationConfirmForm } from '@/components/dashboard/SalaryAuthorizationConfirmForm'
+import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -92,31 +93,16 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        {profile.resumeKeywords.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Resume keywords
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Pulled automatically from your resume — we use these to find better-matched jobs.
-                Upload a new resume to refresh this list.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {profile.resumeKeywords.map((keyword) => (
-                  <span
-                    key={keyword}
-                    className="rounded-full border border-border bg-off-white px-2.5 py-0.5 text-xs font-medium text-foreground"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Resume keywords
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} />
+          </CardContent>
+        </Card>
 
       </div>
 
