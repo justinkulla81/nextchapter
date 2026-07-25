@@ -53,7 +53,10 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 3000,
       thinking: { type: 'disabled' },
-      output_config: { format: zodOutputFormat(profileFieldsSchema), effort: 'medium' },
+      // No `effort` here — unlike Sonnet/Opus, Haiku 4.5 rejects the effort
+      // parameter on structured outputs with a 400, which the bare catch
+      // below was silently swallowing on every single call.
+      output_config: { format: zodOutputFormat(profileFieldsSchema) },
       messages: [{ role: 'user', content: PROMPT_PREFIX + resume.extractedText }],
     })
     const message = await stream.finalMessage()
@@ -87,7 +90,8 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
         resumeKeywords: data.resumeKeywords,
       },
     })
-  } catch {
+  } catch (error) {
+    console.error('Failed to auto-fill profile fields from resume:', error)
     // Best-effort auto-fill — failure here must never block the resume
     // upload or its ATS/results/experience analysis.
   }
