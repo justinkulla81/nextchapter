@@ -1,4 +1,5 @@
 import type { HireabilityReport } from '@prisma/client'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -64,6 +65,19 @@ async function resolveLatestReport(
 export default async function DashboardPage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
+
+  // The registration-time after() callback in getDashboardData that
+  // normally generates AND emails the first report can get cut off by the
+  // platform's function duration before the email step ever runs, leaving
+  // a real, generated report permanently unsent. This closes that gap on
+  // every load, not just the first, and also covers the case where that
+  // background job never even finished generating the report at all.
+  // Deferred via after() rather than awaited inline — report generation
+  // (an LLM call plus external market-data lookups) is unbounded and must
+  // never be able to time out the page itself; nothing on this page reads
+  // its result.
+  after(() => resolveLatestReport(profile.id, profile.hireabilityReports[0]))
+
   const weekNumber = profile._count.weeklySprints + 1
   const weekStartDate = getMondayOfWeek(new Date())
   // Deliberately NOT weekStartDate above — the edit window always concerns
@@ -87,7 +101,6 @@ export default async function DashboardPage() {
     currentSprint,
     suggestedActions,
     searchExecutionAvailable,
-    ,
     existingBountyClaimCount,
     sessionImpact,
     dashboardMessage,
@@ -102,13 +115,6 @@ export default async function DashboardPage() {
     getCurrentWeekSprint(profile.id),
     getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
-    // The registration-time after() callback that normally generates AND
-    // emails the first report can get cut off by the platform's function
-    // duration before the email step ever runs, leaving a real, generated
-    // report permanently unsent. This closes that gap on every load, not
-    // just the first, and also covers the case where that background job
-    // never even finished generating the report at all.
-    resolveLatestReport(profile.id, profile.hireabilityReports[0]),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
     getNextDashboardMessage(profile.id),
