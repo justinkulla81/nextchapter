@@ -11,10 +11,13 @@ export const metadata: Metadata = {
 }
 
 // The first-registration report generation + email (see get-dashboard-data.ts's
-// `after()` block) runs an LLM call plus an email send in the background after
-// the response is sent — comfortably past the platform's default function
-// duration, which was silently truncating it before the email ever went out.
-export const maxDuration = 60
+// after() block) and the on-demand resolveLatestReport() in page.tsx both run
+// an Opus call plus market-data lookups in the background after the response
+// is sent. after() callbacks share the SAME invocation's maxDuration as the
+// initial render, not a separate budget, so this needs to be long enough for
+// that background work to finish — not just long enough for the page itself.
+// 300 is the actual ceiling on this project's plan (Hobby + Fluid Compute).
+export const maxDuration = 300
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getDashboardData()
