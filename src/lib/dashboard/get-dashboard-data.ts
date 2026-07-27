@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 
 export async function getDashboardData() {
@@ -80,7 +81,11 @@ export async function getDashboardData() {
   if (justRegistered) {
     const candidateId = profile.id
     after(async () => {
-      await generateHireabilityReport(candidateId)
+      // Two near-simultaneous loads (e.g. two tabs) can both see
+      // justRegistered — only the one that wins the claim generates.
+      if (await claimReportGeneration(candidateId)) {
+        await generateHireabilityReport(candidateId)
+      }
       await sendHireabilityReportEmail(candidateId)
     })
   }

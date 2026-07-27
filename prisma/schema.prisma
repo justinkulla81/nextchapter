@@ -494,6 +494,11 @@ model CandidateProfile {
   registrationCompletedAt DateTime? // set once the anonymous->permanent auth conversion completes
   passwordSetAt           DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
   duplicateEmailBlockedAt DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
+  // Claims the "no report exists yet, go generate one" window in resolveLatestReport()
+  // so two near-simultaneous /dashboard loads (or a registration load racing a later
+  // load) can't both pass the check and each generate + email a duplicate report.
+  // Treated as stale after REPORT_GENERATION_CLAIM_STALE_MS — see report-generation-lock.ts.
+  reportGenerationClaimedAt DateTime?
   lastReminderSentAt      DateTime?
   reminderEmailCount      Int       @default(0)
   reminderEmailsOptedOut  Boolean   @default(false)

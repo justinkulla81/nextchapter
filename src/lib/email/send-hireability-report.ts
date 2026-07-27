@@ -26,6 +26,16 @@ export async function sendHireabilityReportEmail(candidateId: string) {
 
     if (!report) return { sent: false as const }
 
+    // Atomically claim the send so two concurrent callers (e.g. two
+    // near-simultaneous /dashboard loads both resolving the same unsent
+    // report) can't both pass the "not yet sent" check and each send an
+    // email — the WHERE clause below is evaluated atomically by Postgres.
+    const claimed = await prisma.hireabilityReport.updateMany({
+      where: { id: report.id, emailSentAt: null },
+      data: { emailSentAt: new Date() },
+    })
+    if (claimed.count === 0) return { sent: false as const }
+
     const admin = createAdminClient()
     const { data: userData } = await admin.auth.admin.getUserById(candidate.userId)
     const email = userData.user?.email
@@ -54,13 +64,13 @@ export async function sendHireabilityReportEmail(candidateId: string) {
 
     if (error) {
       console.error('Failed to send hireability report email:', error)
+      // Release the claim so a later attempt can retry the send.
+      await prisma.hireabilityReport.update({
+        where: { id: report.id },
+        data: { emailSentAt: null },
+      })
       return { sent: false as const }
     }
-
-    await prisma.hireabilityReport.update({
-      where: { id: report.id },
-      data: { emailSentAt: new Date() },
-    })
 
     return { sent: true as const }
   } catch (error) {

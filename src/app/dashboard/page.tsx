@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
@@ -45,16 +46,21 @@ async function resolveLatestReport(
 ): Promise<HireabilityReport | undefined> {
   let latestReport = existingReport
   if (!latestReport) {
-    try {
-      await generateHireabilityReport(candidateId)
-      latestReport =
-        (await prisma.hireabilityReport.findFirst({
-          where: { candidateId },
-          orderBy: { generatedAt: 'desc' },
-        })) ?? undefined
-    } catch (error) {
-      console.error('Failed to generate hireability report on demand:', error)
+    // Only proceed if we win the claim — otherwise another invocation is
+    // already generating (or just generated) this candidate's report, so
+    // re-fetch instead of generating a duplicate.
+    if (await claimReportGeneration(candidateId)) {
+      try {
+        await generateHireabilityReport(candidateId)
+      } catch (error) {
+        console.error('Failed to generate hireability report on demand:', error)
+      }
     }
+    latestReport =
+      (await prisma.hireabilityReport.findFirst({
+        where: { candidateId },
+        orderBy: { generatedAt: 'desc' },
+      })) ?? undefined
   }
   if (latestReport && !latestReport.emailSentAt) {
     await sendHireabilityReportEmail(candidateId)
