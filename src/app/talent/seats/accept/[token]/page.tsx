@@ -61,7 +61,7 @@ export default async function AcceptSeatInvitePage({ params }: { params: Promise
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <a
-              href={`/auth/login?next=${encodeURIComponent(`/talent/seats/accept/${token}`)}`}
+              href={`/talent/login?next=${encodeURIComponent(`/talent/seats/accept/${token}`)}`}
               className="underline underline-offset-4"
             >
               Log in

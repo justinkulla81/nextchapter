@@ -14,7 +14,7 @@ export default function RecruiterSignupPage() {
       <RecruiterSignupForm />
       <p className="mt-4 text-center text-sm text-muted-foreground">
         Already set up?{' '}
-        <a href="/auth/login" className="underline underline-offset-4">
+        <a href="/recruiters/login" className="underline underline-offset-4">
           Log in
         </a>
       </p>

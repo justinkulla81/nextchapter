@@ -11,7 +11,7 @@ export default async function CoachSettingsEntryPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  if (!user) redirect('/support/coach/login')
 
   const coach = await prisma.coach.findUnique({ where: { userId: user.id } })
   if (!coach) redirect('/support/coach/signup')

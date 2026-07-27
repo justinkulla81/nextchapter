@@ -96,7 +96,8 @@ export function ResetPasswordForm() {
 
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
-    router.push('/dashboard')
+    const next = searchParams.get('next')
+    router.push(next && next.startsWith('/') ? next : '/dashboard')
   }
 
   if (status === 'waiting') {

@@ -11,7 +11,7 @@ export default async function RecruiterDashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  if (!user) redirect('/recruiters/login')
 
   const recruiter = await prisma.recruiter.findUnique({ where: { userId: user.id } })
   if (!recruiter) redirect('/recruiters/signup')

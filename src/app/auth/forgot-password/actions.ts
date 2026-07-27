@@ -22,10 +22,17 @@ export async function requestPasswordReset(
   // resetPasswordForEmail already no-ops safely for an email with no
   // matching user (no error, nothing sent) — checking against the wrong
   // table only made this worse for anyone outside the candidate table.
+  // Carries the portal-appropriate post-reset destination through Supabase's
+  // redirect so ResetPasswordForm knows where to send a recruiter/coach/
+  // employer/admin after they set a new password, instead of always landing
+  // on the candidate dashboard. Only a same-origin relative path is trusted.
+  const next = (formData.get('next') as string | null) ?? ''
+  const safeNext = next.startsWith('/') ? next : '/dashboard'
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const admin = createAdminClient()
   const { error } = await admin.auth.resetPasswordForEmail(email, {
-    redirectTo: `${appUrl}/auth/reset-password`,
+    redirectTo: `${appUrl}/auth/reset-password?next=${encodeURIComponent(safeNext)}`,
   })
 
   if (error) {

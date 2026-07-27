@@ -9,7 +9,17 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { GoogleButton } from './GoogleButton'
 
-export function LoginForm() {
+export function LoginForm({
+  defaultNext = '/dashboard',
+  forgotPasswordHref = '/auth/forgot-password',
+  signupHref = '/onboarding/resume',
+  showGoogle = true,
+}: {
+  defaultNext?: string
+  forgotPasswordHref?: string
+  signupHref?: string | null
+  showGoogle?: boolean
+}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
@@ -39,7 +49,7 @@ export function LoginForm() {
 
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
-    router.push(searchParams.get('next') ?? '/dashboard')
+    router.push(searchParams.get('next') ?? defaultNext)
   }
 
   async function handleResend() {
@@ -71,7 +81,7 @@ export function LoginForm() {
             <button
               type="button"
               className="text-xs text-muted-foreground underline underline-offset-4"
-              onClick={() => router.push('/auth/forgot-password')}
+              onClick={() => router.push(forgotPasswordHref)}
             >
               Forgot password?
             </button>
@@ -103,25 +113,31 @@ export function LoginForm() {
           {loading ? 'Logging in…' : 'Log in'}
         </Button>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or</span>
-        </div>
-      </div>
-      <GoogleButton />
-      <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{' '}
-        <button
-          type="button"
-          className="underline underline-offset-4"
-          onClick={() => router.push('/onboarding/resume')}
-        >
-          Sign up
-        </button>
-      </p>
+      {showGoogle && (
+        <>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
+          <GoogleButton />
+        </>
+      )}
+      {signupHref && (
+        <p className="text-center text-sm text-muted-foreground">
+          Don&apos;t have an account?{' '}
+          <button
+            type="button"
+            className="underline underline-offset-4"
+            onClick={() => router.push(signupHref)}
+          >
+            Sign up
+          </button>
+        </p>
+      )}
     </div>
   )
 }

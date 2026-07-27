@@ -19,7 +19,7 @@ export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
             </Link>
             {tab.directSignupHref && (
               <Link
-                href="/auth/login"
+                href={tab.directSignupHref.replace('/signup', '/login')}
                 className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-brand hover:text-brand"
               >
                 Log in

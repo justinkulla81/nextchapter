@@ -9,7 +9,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({
+  loginHref = '/auth/login',
+  postResetHref = '/dashboard',
+  signupHref = '/onboarding/resume',
+}: {
+  loginHref?: string
+  postResetHref?: string
+  signupHref?: string | null
+}) {
   const searchParams = useSearchParams()
   const [state, formAction, pending] = useActionState(requestPasswordReset, undefined)
   const [email, setEmail] = useState(searchParams.get('email') ?? '')
@@ -21,15 +29,14 @@ export function ForgotPasswordForm() {
           If an account exists for <span className="font-medium">{email}</span>, we&apos;ve sent a
           link to reset your password.
         </p>
-        <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account yet?{' '}
-          <Link
-            href="/onboarding/resume"
-            className="font-medium text-primary underline underline-offset-4"
-          >
-            Create one
-          </Link>
-        </p>
+        {signupHref && (
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account yet?{' '}
+            <Link href={signupHref} className="font-medium text-primary underline underline-offset-4">
+              Create one
+            </Link>
+          </p>
+        )}
       </div>
     )
   }
@@ -50,10 +57,16 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
+      <input type="hidden" name="next" value={postResetHref} />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? 'Sending…' : 'Send reset link'}
       </Button>
+      <p className="text-center text-sm text-muted-foreground">
+        <Link href={loginHref} className="underline underline-offset-4">
+          Back to log in
+        </Link>
+      </p>
     </form>
   )
 }

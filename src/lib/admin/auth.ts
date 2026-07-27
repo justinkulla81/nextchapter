@@ -18,7 +18,14 @@ export async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const email = user?.email?.toLowerCase()
+  // Distinguish "not logged in at all" (send to the admin-specific login,
+  // not the candidate one) from "logged in but not an admin" (send them to
+  // wherever their own account actually belongs).
+  if (!user) {
+    redirect('/support/admin/login')
+  }
+
+  const email = user.email?.toLowerCase()
   if (!email || !adminEmails().includes(email)) {
     redirect('/dashboard')
   }

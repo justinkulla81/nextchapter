@@ -81,12 +81,31 @@ export default function ForOrganizationsPage() {
             <Link href="/" className="text-muted-foreground hover:text-foreground">
               For candidates
             </Link>
-            <Link
-              href="/auth/login"
-              className="rounded-md border border-border px-3 py-1.5 font-medium text-foreground hover:border-brand hover:text-brand"
-            >
-              Log in
-            </Link>
+            <details className="group relative">
+              <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 font-medium text-foreground marker:content-none hover:border-brand hover:text-brand">
+                Log in
+              </summary>
+              <div className="absolute right-0 z-10 mt-2 w-44 rounded-md border border-border bg-white py-1 shadow-md">
+                <Link
+                  href="/talent/login"
+                  className="block px-3 py-2 text-sm text-foreground hover:bg-off-white"
+                >
+                  Employers
+                </Link>
+                <Link
+                  href="/recruiters/login"
+                  className="block px-3 py-2 text-sm text-foreground hover:bg-off-white"
+                >
+                  Recruiters &amp; Agencies
+                </Link>
+                <Link
+                  href="/support/coach/login"
+                  className="block px-3 py-2 text-sm text-foreground hover:bg-off-white"
+                >
+                  Coaches
+                </Link>
+              </div>
+            </details>
           </nav>
         </div>
       </header>

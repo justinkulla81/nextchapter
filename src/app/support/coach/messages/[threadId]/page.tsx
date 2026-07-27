@@ -20,10 +20,10 @@ export default async function CoachThreadPage({ params }: { params: Promise<{ th
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login')
+  if (!user) redirect('/support/coach/login')
 
   const coach = await prisma.coach.findUnique({ where: { userId: user.id } })
-  if (!coach) redirect('/auth/login')
+  if (!coach) redirect('/support/coach/login')
 
   const thread = await getThreadWithMessages(threadId)
   if (!thread || thread.coachId !== coach.id) notFound()

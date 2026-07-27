@@ -9,7 +9,7 @@ export async function getTalentDashboardData() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login?next=/talent')
+    redirect('/talent/login')
   }
 
   const employer = await resolveEmployerForUserId(user.id)
