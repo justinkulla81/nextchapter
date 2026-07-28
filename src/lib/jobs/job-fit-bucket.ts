@@ -64,13 +64,16 @@ function keywordMatchBonus(resumeKeywords: string[], postingText: string): numbe
 // data rather than penalizing anything).
 export function computeBoardListingFitBucket(
   candidate: FitCandidate,
-  posting: Pick<ExclusiveJobPosting, 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'salaryMin' | 'salaryMax'>
+  posting: Pick<
+    ExclusiveJobPosting,
+    'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
+  >
 ): FitBucket {
   const { score } = computeMatchScore(candidate, {
     primaryFunction: posting.targetFunction,
     roleLevel: posting.targetLevel,
-    remotePolicy: posting.targetRemotePolicy,
-    locationRequirement: posting.targetLocation,
+    remotePolicy: posting.targetRemotePolicy ?? (inferRemoteFromLocation(posting.location) ? 'remote' : null),
+    locationRequirement: posting.targetLocation ?? posting.location,
     compMin: posting.salaryMin,
     compMax: posting.salaryMax,
   })
@@ -121,8 +124,17 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       compFlexible: true,
       targetRoleType: true,
       resumeKeywords: true,
+      isPeopleManager: true,
     },
   })
+}
+
+// ATS-fed OPEN postings never have targetRemotePolicy set (that field only
+// exists for recruiter TARGETED listings) — without this, a posting whose
+// own location literally says "Remote" never gets read as remote-friendly,
+// under-crediting fit for candidates who'd be a good match for it.
+function inferRemoteFromLocation(location: string | null): boolean {
+  return location != null && /\bremote\b/i.test(location)
 }
 
 export function countPendingJobMatches(
@@ -143,7 +155,7 @@ export function countPendingJobMatches(
   const role = {
     primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
     roleLevel: posting.targetLevel ?? inferLevelFromTitle(posting.title),
-    remotePolicy: posting.targetRemotePolicy,
+    remotePolicy: posting.targetRemotePolicy ?? (inferRemoteFromLocation(posting.location) ? 'remote' : null),
     locationRequirement: posting.targetLocation ?? posting.location,
     compMin: posting.salaryMin,
     compMax: posting.salaryMax,

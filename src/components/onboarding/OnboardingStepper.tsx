@@ -14,6 +14,14 @@ const STEPS = [
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
 
+  // The shared onboarding layout renders this on every /onboarding/** page,
+  // but these 5 steps are only the pre-account assessment — welcome,
+  // contract, create-account, score, working-style, and the coach forms
+  // all happen after that's already done. Showing "step 3 of 5" progress
+  // dots on a page that isn't part of that sequence at all just reads as
+  // stale/wrong, so render nothing outside the actual 5 step routes.
+  if (!STEPS.some((step) => step.href === pathname)) return null
+
   return (
     <ol className="mx-auto flex w-full max-w-2xl items-center gap-2 px-6 py-6">
       {STEPS.map((step, i) => {

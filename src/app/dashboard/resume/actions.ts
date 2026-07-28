@@ -82,8 +82,12 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
     },
   })
 
-  await analyzeResume(resume.id)
-  await extractProfileFieldsFromResume(resume.id)
+  // Independent calls (analyzeResume writes Resume score/feedback fields,
+  // extractProfileFieldsFromResume writes CandidateProfile fields — neither
+  // reads the other's output) that used to run back-to-back, meaning
+  // extractProfileFieldsFromResume's full latency was pure added wait on
+  // top of analyzeResume's slower Sonnet call for no reason.
+  await Promise.all([analyzeResume(resume.id), extractProfileFieldsFromResume(resume.id)])
   captureServerEvent(profile.id, 'resume_analyzed')
 
   try {

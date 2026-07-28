@@ -22,11 +22,22 @@ function levelDistance(a: string | null, b: string | null): number {
   return Math.abs(ia - ib)
 }
 
+// Levels a role posting at this seniority genuinely requires having managed
+// people, as opposed to an IC track that just carries a senior-sounding
+// title. Kept here (not in onboarding constants) since it's a matching-only
+// judgment call, not a real taxonomy fact.
+const MANAGEMENT_LEVELS = new Set(['Manager', 'Director', 'VP', 'C-Suite'])
+
 export function computeMatchScore(
   candidate: Pick<
     CandidateProfile,
     'primaryFunction' | 'highestLevelReached' | 'remotePreference' | 'currentCity' | 'openToRelocation' | 'targetCompMin' | 'compFlexible'
-  >,
+  > & {
+    // Optional so existing narrower selects elsewhere keep compiling —
+    // absent/null simply means the bonus below doesn't apply, never a
+    // penalty.
+    isPeopleManager?: boolean | null
+  },
   role: Pick<RoleProfile, 'primaryFunction' | 'roleLevel' | 'remotePolicy' | 'locationRequirement' | 'compMin' | 'compMax'>
 ): MatchResult {
   let score = 0
@@ -55,6 +66,14 @@ export function computeMatchScore(
     score += 20
   } else {
     score += 5
+  }
+
+  // Real people-management experience, when the role's level actually calls
+  // for it (bonus, not its own weighted category — a refinement of the
+  // level match above, not an independent signal). Never penalizes a
+  // candidate with no management history; it just doesn't add the bonus.
+  if (role.roleLevel && MANAGEMENT_LEVELS.has(role.roleLevel) && candidate.isPeopleManager) {
+    score += 10
   }
 
   // Comp overlap (15 pts) — loosened if candidate is comp-flexible
