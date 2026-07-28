@@ -45,6 +45,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       title: 'Candidates',
       links: [
         { href: '/support/admin/candidates', label: 'Candidates' },
+        { href: '/support/admin/candidates/declined-commitment', label: 'Declined Commitment' },
         { href: '/support/admin/sentiment', label: 'Sentiment' },
         { href: '/support/admin/layoff-cohorts', label: 'Layoff Cohorts (Coming soon)', muted: true, disabled: true },
         { href: '/support/admin/weekly-recognition', label: 'Weekly Recognition Archive' },
@@ -97,7 +98,11 @@ function NavContent({
   onNavigate?: () => void
   badges: Record<string, number>
 }) {
-  const isActive = (href: string) => (href === '/support/admin' ? pathname === href : pathname.startsWith(href))
+  // Exact-match roots that also have a nested nav link of their own
+  // (declined-commitment lives under /candidates) — without this, visiting
+  // the child route highlights both entries at once.
+  const EXACT_MATCH_ROOTS = new Set(['/support/admin', '/support/admin/candidates'])
+  const isActive = (href: string) => (EXACT_MATCH_ROOTS.has(href) ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(badges)
 
   return (
