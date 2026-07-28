@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { updateResumeCommentary, type CommentaryFormState } from '@/app/recruiters/candidates/actions'
+import { updateResumeCommentary, type CommentaryFormState } from '@/app/recruiters/(app)/candidates/actions'
 
 export function ResumeCommentaryForm({
   sourcedCandidateId,

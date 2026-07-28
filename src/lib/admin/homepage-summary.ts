@@ -32,18 +32,19 @@ export interface AdminHomepageSummary {
   stats: AdminHighLevelStats
 }
 
-// This week's A-List count reuses the same "latest weekStartDate on record"
-// convention as the Pre-Seed Metrics module (src/lib/admin/metrics.ts) —
-// there's no separate "current week" concept stored anywhere, so the most
-// recent report batch stands in for it.
+// This week's A-List count — sourced from WeeklyBadgeEarned, the real,
+// currently-written record (SundayNightReport.onAList is legacy and nothing
+// writes to it anymore, see weekly-badge-archive.ts). "This week" is the
+// most recent weekStartDate on record, same convention used there.
 async function thisWeekAListCount(): Promise<number> {
-  const latest = await prisma.sundayNightReport.findFirst({
+  const latest = await prisma.weeklyBadgeEarned.findFirst({
+    where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
     orderBy: { weekStartDate: 'desc' },
     select: { weekStartDate: true },
   })
   if (!latest) return 0
-  return prisma.sundayNightReport.count({
-    where: { weekStartDate: latest.weekStartDate, onAList: true },
+  return prisma.weeklyBadgeEarned.count({
+    where: { weekStartDate: latest.weekStartDate, badgeKey: 'WEEKLY_SCORE_A_LIST' },
   })
 }
 

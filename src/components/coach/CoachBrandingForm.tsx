@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { updateCoachBranding } from '@/app/support/coach/settings/[token]/actions'
+import { updateCoachBranding } from '@/app/support/coach/(app)/settings/[token]/actions'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'

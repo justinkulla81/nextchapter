@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { logCoachSession } from '@/app/support/coach/clients/[token]/[clientId]/actions'
+import { logCoachSession } from '@/app/support/coach/(app)/clients/[token]/[clientId]/actions'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'

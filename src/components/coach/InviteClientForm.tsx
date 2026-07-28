@@ -4,7 +4,7 @@ import { useActionState, useRef, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { sendCoachClientInvite } from '@/app/support/coach/invite-client/actions'
+import { sendCoachClientInvite } from '@/app/support/coach/(app)/invite-client/actions'
 
 export function InviteClientForm() {
   const [state, formAction] = useActionState(sendCoachClientInvite, undefined)

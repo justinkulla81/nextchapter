@@ -10,6 +10,8 @@ interface NavLink {
   href: string
   label: string
   badge?: string
+  muted?: boolean
+  disabled?: boolean
 }
 
 interface NavSection {
@@ -25,7 +27,8 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       title: 'Candidates',
       links: [
         { href: '/support/admin/candidates', label: 'Candidates' },
-        { href: '/support/admin/layoff-cohorts', label: 'Layoff Cohorts' },
+        { href: '/support/admin/sentiment', label: 'Sentiment' },
+        { href: '/support/admin/layoff-cohorts', label: 'Layoff Cohorts (Coming soon)', muted: true, disabled: true },
         { href: '/support/admin/weekly-recognition', label: 'Weekly Recognition Archive' },
         { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },
         { href: '/support/admin/reference-disputes', label: 'Reference Disputes', badge: badgeFor('referenceDisputes') },
@@ -61,7 +64,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/metrics', label: 'Site Metrics' },
         { href: '/support/admin/messages', label: 'Dashboard Messages' },
         { href: '/support/admin/research', label: 'Research Library' },
-        { href: '/support/admin/digest', label: 'Weekly Market Digest' },
+        { href: '/support/admin/digest', label: 'Weekly Market Digest (Coming soon)', muted: true, disabled: true },
       ],
     },
   ]
@@ -105,6 +108,20 @@ function NavContent({
                 {link.badge}
               </span>
             )
+
+            if (link.disabled) {
+              return (
+                <div
+                  key={link.href}
+                  aria-disabled="true"
+                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium text-white/40"
+                >
+                  <span>{link.label}</span>
+                  {badgeEl}
+                </div>
+              )
+            }
+
             return (
               <Link
                 key={link.href}
@@ -114,7 +131,9 @@ function NavContent({
                   'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium transition-colors',
                   isActive(link.href)
                     ? 'bg-white/15 text-white'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    : link.muted
+                      ? 'text-white/40 hover:bg-white/10 hover:text-white/60'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                 )}
               >
                 <span>{link.label}</span>

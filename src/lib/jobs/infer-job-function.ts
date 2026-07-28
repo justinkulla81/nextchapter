@@ -1,4 +1,4 @@
-import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import { PRIMARY_FUNCTION_OPTIONS, HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
 
 // Best-effort mapping from a free-text job title (all we get from an ATS
 // feed before a human ever looks at it) to the same function vocabulary
@@ -34,4 +34,28 @@ export function inferFunctionFromTitle(title: string): string | null {
     }
   }
   return null
+}
+
+// Same best-effort keyword approach, for seniority instead of function.
+// Checked most-senior-first so "VP of Engineering" doesn't fall through to
+// a lower band via some coincidental substring. Titles with no management
+// keyword default to 'IC' rather than null — the overwhelming majority of
+// unlabeled titles (engineer, analyst, specialist, representative) really
+// are individual-contributor roles, and this is only ever used as a soft
+// match signal, never a hard gate.
+const LEVEL_KEYWORDS: { level: (typeof HIGHEST_LEVEL_OPTIONS)[number]; keywords: string[] }[] = [
+  { level: 'C-Suite', keywords: ['chief executive', 'chief operating', 'chief financial', 'chief technology', 'chief marketing', 'chief product', 'chief people', 'chief revenue', 'chief legal', 'ceo', 'coo', 'cfo', 'cto', 'cmo', 'cpo', 'president', 'partner'] },
+  { level: 'VP', keywords: ['vice president', ' vp ', 'vp,', 'vp of', 'svp', 'evp'] },
+  { level: 'Director', keywords: ['director'] },
+  { level: 'Manager', keywords: ['manager', 'team lead', 'head of'] },
+]
+
+export function inferLevelFromTitle(title: string): string {
+  const lower = ` ${title.toLowerCase()} `
+  for (const entry of LEVEL_KEYWORDS) {
+    if (entry.keywords.some((kw) => lower.includes(kw))) {
+      return entry.level
+    }
+  }
+  return 'IC'
 }

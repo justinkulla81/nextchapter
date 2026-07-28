@@ -10,8 +10,8 @@ import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
-import { finishAcceptingCoachInvite } from '@/app/support/coach/invite-client/actions'
-import { finishAcceptingRecruiterSource } from '@/app/recruiters/candidates/actions'
+import { finishAcceptingCoachInvite } from '@/app/support/coach/(app)/invite-client/actions'
+import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidates/actions'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 

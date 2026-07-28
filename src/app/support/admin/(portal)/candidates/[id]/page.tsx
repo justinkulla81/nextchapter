@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { listAllAuthUsers } from '@/lib/admin/auth-users'
 import { getAdminCandidateDetail } from '@/lib/admin/candidate-detail'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { MotivationChart } from '@/components/dashboard/MotivationChart'
 
 export const maxDuration = 30
 
@@ -232,14 +233,10 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent moods</CardTitle>
+          <CardTitle>Sentiment over time</CardTitle>
         </CardHeader>
         <CardContent>
-          {view.recentMoods.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No check-ins logged yet.</p>
-          ) : (
-            <p className="text-sm text-foreground">{view.recentMoods.map((m) => m.label).join(' · ')}</p>
-          )}
+          <MotivationChart baseline={null} history={detail.moodHistory} />
         </CardContent>
       </Card>
     </div>

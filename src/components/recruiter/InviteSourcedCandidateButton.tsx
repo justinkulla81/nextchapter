@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
-import { inviteSourcedCandidate } from '@/app/recruiters/candidates/actions'
+import { inviteSourcedCandidate } from '@/app/recruiters/(app)/candidates/actions'
 
 export function InviteSourcedCandidateButton({
   candidateId,

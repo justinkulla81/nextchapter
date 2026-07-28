@@ -1,8 +1,9 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getFullClientView, type FullClientView } from '@/lib/coach/full-client-view'
-import { getSentimentAlert, type SentimentAlert } from '@/lib/daily/mood'
+import { getSentimentAlert, getMoodHistory, type SentimentAlert } from '@/lib/daily/mood'
 import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
+import type { Mood } from '@prisma/client'
 
 export interface AdminCandidateDetail {
   id: string
@@ -22,6 +23,7 @@ export interface AdminCandidateDetail {
     surfaced: { id: string; title: string; companyName: string | null; reaction: string | null; surfacedAt: Date }[]
   }
   sentimentAlert: SentimentAlert
+  moodHistory: { date: Date; mood: Mood }[]
 }
 
 // The candidate admin drill-down — the "anchor" page every other admin list
@@ -35,7 +37,7 @@ export async function getAdminCandidateDetail(
   candidateId: string,
   authUsers: Map<string, AuthUserSummary>
 ): Promise<AdminCandidateDetail> {
-  const [candidate, view, workSamples, tracked, surfaced, sentimentAlert] = await Promise.all([
+  const [candidate, view, workSamples, tracked, surfaced, sentimentAlert, moodHistory] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -62,6 +64,7 @@ export async function getAdminCandidateDetail(
       select: { id: true, title: true, companyName: true, reaction: true, surfacedAt: true },
     }),
     getSentimentAlert(candidateId),
+    getMoodHistory(candidateId),
   ])
 
   return {
@@ -75,5 +78,6 @@ export async function getAdminCandidateDetail(
     workSamples,
     jobActivity: { tracked, surfaced },
     sentimentAlert,
+    moodHistory,
   }
 }

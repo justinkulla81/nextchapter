@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getWeeklyBadgeArchive } from '@/lib/badges/weekly-badge-archive'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
@@ -32,8 +33,17 @@ export default async function WeeklyRecognitionAdminPage() {
                   <div key={c.candidateId} className="flex items-center gap-3 py-2">
                     <AvatarDisplay name={c.name} url={c.avatarUrl} size={32} />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.badgeLabels.join(', ')}</p>
+                      <Link
+                        href={`/support/admin/candidates/${c.candidateId}`}
+                        className="text-sm font-medium text-primary underline underline-offset-4"
+                      >
+                        {c.name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {c.badgeLabels.join(', ')}
+                        {c.weeksInSystem !== null && ` · Week ${c.weeksInSystem} in system`}
+                        {` · ${c.totalAListWeeks} A-List week${c.totalAListWeeks === 1 ? '' : 's'} total`}
+                      </p>
                     </div>
                     {c.onAList && (
                       <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">

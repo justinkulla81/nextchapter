@@ -11,6 +11,7 @@ import { ExclusiveJobPostingForm } from '@/components/admin/ExclusiveJobPostingF
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
+import { countPendingJobMatches } from '@/lib/jobs/job-fit-bucket'
 
 export const maxDuration = 30
 
@@ -44,12 +45,36 @@ function visibilitySummary(posting: { audienceTier: string; distribution: string
 export default async function ExclusiveJobsAdminPage() {
   await requireAdmin()
 
-  const postings = await prisma.exclusiveJobPosting.findMany({
-    orderBy: { createdAt: 'desc' },
-  })
+  const [postings, candidates] = await Promise.all([
+    prisma.exclusiveJobPosting.findMany({
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.candidateProfile.findMany({
+      select: {
+        primaryFunction: true,
+        highestLevelReached: true,
+        remotePreference: true,
+        currentCity: true,
+        openToRelocation: true,
+        targetCompMin: true,
+        compFlexible: true,
+      },
+    }),
+  ])
   const pending = postings.filter((p) => p.status === 'pending' && !p.archivedAt)
   const active = postings.filter((p) => p.status === 'approved' && !p.archivedAt)
   const archived = postings.filter((p) => p.archivedAt || p.status === 'rejected')
+
+  // Grouped by company so a company with many pending listings (common from
+  // the ATS feed) doesn't force scrolling past all of them to reach the
+  // next company — collapsed by default, expand whichever's worth a look.
+  const pendingByCompany = new Map<string, typeof pending>()
+  for (const posting of pending) {
+    const group = pendingByCompany.get(posting.companyName) ?? []
+    group.push(posting)
+    pendingByCompany.set(posting.companyName, group)
+  }
+  const pendingCompanies = Array.from(pendingByCompany.entries()).sort((a, b) => b[1].length - a[1].length)
 
   return (
     <div className="mx-auto max-w-3xl space-y-10 p-6">
@@ -70,12 +95,22 @@ export default async function ExclusiveJobsAdminPage() {
         {pending.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nothing waiting on review.</p>
         ) : (
-          pending.map((posting) => {
-            const missing: string[] = []
-            if (!posting.contactName) missing.push('named contact')
-            if (!posting.salaryMin || !posting.salaryMax) missing.push('salary band')
-            return (
-              <Card key={posting.id}>
+          pendingCompanies.map(([companyName, companyPostings]) => (
+            <details key={companyName} className="rounded-lg border border-border">
+              <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+                {companyName}{' '}
+                <span className="font-normal text-muted-foreground">
+                  ({companyPostings.length} pending)
+                </span>
+              </summary>
+              <div className="space-y-3 border-t border-border p-3">
+                {companyPostings.map((posting) => {
+                  const missing: string[] = []
+                  if (!posting.contactName) missing.push('named contact')
+                  if (!posting.salaryMin || !posting.salaryMax) missing.push('salary band')
+                  const { matched, total } = countPendingJobMatches(posting, candidates)
+                  return (
+                    <Card key={posting.id}>
                 <CardContent className="space-y-3 pt-6">
                   <div>
                     <p className="font-medium">
@@ -104,6 +139,9 @@ export default async function ExclusiveJobsAdminPage() {
                         : 'No salary band'}
                     </p>
                     <p className="text-xs text-muted-foreground">{visibilitySummary(posting)}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      Matches {matched} of {total} candidates
+                    </p>
                     {posting.disclosure === 'CONFIDENTIAL' && (
                       <p className="text-xs font-medium text-warning">
                         Confidential — double-check {posting.companyName} is a real client before approving.
@@ -129,9 +167,12 @@ export default async function ExclusiveJobsAdminPage() {
                     </form>
                   </div>
                 </CardContent>
-              </Card>
-            )
-          })
+                    </Card>
+                  )
+                })}
+              </div>
+            </details>
+          ))
         )}
       </div>
 

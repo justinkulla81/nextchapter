@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { resolveSessionDirective } from '@/app/support/coach/clients/[token]/[clientId]/actions'
+import { resolveSessionDirective } from '@/app/support/coach/(app)/clients/[token]/[clientId]/actions'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CATEGORY_ORDER, CATEGORY_LABEL } from '@/lib/scoring/grade'

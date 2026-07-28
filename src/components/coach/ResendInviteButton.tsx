@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
-import { resendCoachClientInvite } from '@/app/support/coach/invite-client/actions'
+import { resendCoachClientInvite } from '@/app/support/coach/(app)/invite-client/actions'
 
 export function ResendInviteButton({ inviteId }: { inviteId: string }) {
   const [isPending, startTransition] = useTransition()

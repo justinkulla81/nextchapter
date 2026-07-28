@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { saveOnboardingTemplate } from '@/app/support/coach/settings/[token]/actions'
+import { saveOnboardingTemplate } from '@/app/support/coach/(app)/settings/[token]/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'

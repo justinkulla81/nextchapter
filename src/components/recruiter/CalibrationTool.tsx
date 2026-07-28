@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { generateCalibrationMemo } from '@/app/recruiters/calibrate/[token]/actions'
+import { generateCalibrationMemo } from '@/app/recruiters/(app)/calibrate/[token]/actions'
 
 export function CalibrationTool({ token }: { token: string }) {
   const [state, formAction, pending] = useActionState(generateCalibrationMemo.bind(null, token), undefined)

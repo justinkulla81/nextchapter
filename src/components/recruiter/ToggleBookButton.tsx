@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
-import { toggleInBook } from '@/app/recruiters/candidates/actions'
+import { toggleInBook } from '@/app/recruiters/(app)/candidates/actions'
 
 export function ToggleBookButton({
   sourcedCandidateId,

@@ -29,7 +29,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
     <div className="min-h-screen">
       <AdminNav badges={badges} />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
-        <div className="mx-auto max-w-4xl">{children}</div>
+        <div className="mx-auto max-w-7xl">{children}</div>
       </main>
     </div>
   )

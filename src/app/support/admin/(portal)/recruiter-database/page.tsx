@@ -112,10 +112,14 @@ export default async function RecruiterDatabaseAdminPage({
           take: 1,
           select: { atsScore: true },
         },
-        sundayNightReports: {
+        // Sourced from WeeklyBadgeEarned, the real currently-written record —
+        // SundayNightReport.onAList is legacy and nothing writes to it
+        // anymore (see src/lib/badges/weekly-badge-archive.ts).
+        weeklyBadgesEarned: {
+          where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
           orderBy: { weekStartDate: 'desc' },
           take: 1,
-          select: { onAList: true },
+          select: { id: true },
         },
       },
     }),
@@ -145,7 +149,7 @@ export default async function RecruiterDatabaseAdminPage({
       requestedAt: c.recruiterDatabaseRequestedAt,
       execDossierGrade,
       currentlySurfaced: execDossierGrade === 'A',
-      onAList: c.sundayNightReports[0]?.onAList ?? false,
+      onAList: c.weeklyBadgesEarned.length > 0,
       resumeScore: c.resumes[0]?.atsScore ?? null,
     }
   })

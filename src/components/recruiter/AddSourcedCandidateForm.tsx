@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { addSourcedCandidate } from '@/app/recruiters/candidates/actions'
+import { addSourcedCandidate } from '@/app/recruiters/(app)/candidates/actions'
 
 export function AddSourcedCandidateForm() {
   const [state, formAction] = useActionState(addSourcedCandidate, undefined)

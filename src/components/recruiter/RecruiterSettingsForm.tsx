@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import type { Recruiter } from '@prisma/client'
-import { updateRecruiterSettings } from '@/app/recruiters/settings/actions'
+import { updateRecruiterSettings } from '@/app/recruiters/(app)/settings/actions'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'
