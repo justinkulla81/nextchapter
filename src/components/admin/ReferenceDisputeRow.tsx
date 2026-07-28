@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
-import { resolveReferenceDispute } from '@/app/support/admin/reference-disputes/actions'
+import { resolveReferenceDispute } from '@/app/support/admin/(portal)/reference-disputes/actions'
 import { cn } from '@/lib/utils'
 
 interface ReferenceDisputeRowProps {

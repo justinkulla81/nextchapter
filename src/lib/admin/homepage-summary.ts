@@ -1,0 +1,107 @@
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+
+export interface AdminApprovalsNeeded {
+  pendingJobBoardListings: number
+  pendingBountyClaims: number
+  unresolvedReferenceDisputes: number
+  pendingIntroRequests: number
+}
+
+export interface AdminRecentActivity {
+  newCandidateSignups: number
+  newJobBoardListings: number
+  newRecruiterOptIns: number
+}
+
+export interface AdminHighLevelStats {
+  totalCandidates: number
+  registeredCandidates: number
+  totalCoaches: number
+  totalRecruiters: number
+  totalHiringManagers: number
+  liveJobBoardListings: number
+  thisWeekAListCount: number
+}
+
+export interface AdminHomepageSummary {
+  approvalsNeeded: AdminApprovalsNeeded
+  recentActivity: AdminRecentActivity
+  stats: AdminHighLevelStats
+}
+
+// This week's A-List count reuses the same "latest weekStartDate on record"
+// convention as the Pre-Seed Metrics module (src/lib/admin/metrics.ts) —
+// there's no separate "current week" concept stored anywhere, so the most
+// recent report batch stands in for it.
+async function thisWeekAListCount(): Promise<number> {
+  const latest = await prisma.sundayNightReport.findFirst({
+    orderBy: { weekStartDate: 'desc' },
+    select: { weekStartDate: true },
+  })
+  if (!latest) return 0
+  return prisma.sundayNightReport.count({
+    where: { weekStartDate: latest.weekStartDate, onAList: true },
+  })
+}
+
+export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
+  const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
+
+  const [
+    pendingJobBoardListings,
+    pendingBountyClaims,
+    unresolvedReferenceDisputes,
+    pendingIntroRequests,
+    newCandidateSignups,
+    newJobBoardListings,
+    newRecruiterOptIns,
+    totalCandidates,
+    registeredCandidates,
+    totalCoaches,
+    totalRecruiters,
+    totalHiringManagers,
+    liveJobBoardListings,
+    aListCount,
+  ] = await Promise.all([
+    prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
+    prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
+    prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
+    prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
+    prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
+    prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
+    prisma.candidateProfile.count(),
+    prisma.candidateProfile.count({ where: { registrationCompletedAt: { not: null } } }),
+    prisma.coach.count(),
+    prisma.recruiter.count(),
+    prisma.employerProfile.count(),
+    prisma.exclusiveJobPosting.count({ where: { status: 'approved', archivedAt: null } }),
+    thisWeekAListCount(),
+  ])
+
+  return {
+    approvalsNeeded: {
+      pendingJobBoardListings,
+      pendingBountyClaims,
+      unresolvedReferenceDisputes,
+      pendingIntroRequests,
+    },
+    recentActivity: {
+      newCandidateSignups,
+      newJobBoardListings,
+      newRecruiterOptIns,
+    },
+    stats: {
+      totalCandidates,
+      registeredCandidates,
+      totalCoaches,
+      totalRecruiters,
+      totalHiringManagers,
+      liveJobBoardListings,
+      thisWeekAListCount: aListCount,
+    },
+  }
+}

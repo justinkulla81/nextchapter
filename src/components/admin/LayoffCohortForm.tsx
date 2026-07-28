@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import type { FormState } from '@/app/support/admin/layoff-cohorts/actions'
+import type { FormState } from '@/app/support/admin/(portal)/layoff-cohorts/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'

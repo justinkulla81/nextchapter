@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { approveBountyClaim, rejectBountyClaim, markBountyClaimPaid } from '@/app/support/admin/bounty-claims/actions'
+import { approveBountyClaim, rejectBountyClaim, markBountyClaimPaid } from '@/app/support/admin/(portal)/bounty-claims/actions'
 import { cn } from '@/lib/utils'
 
 interface BountyClaimRowProps {

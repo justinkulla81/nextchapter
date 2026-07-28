@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import type { FormState } from '@/app/support/admin/exclusive-jobs/actions'
+import type { FormState } from '@/app/support/admin/(portal)/exclusive-jobs/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'

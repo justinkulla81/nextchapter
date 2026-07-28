@@ -1,4 +1,4 @@
-import { assignCandidateToCohort, unassignCandidateFromCohort } from '@/app/support/admin/layoff-cohorts/actions'
+import { assignCandidateToCohort, unassignCandidateFromCohort } from '@/app/support/admin/(portal)/layoff-cohorts/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
 export function LayoffCohortMatchRow({

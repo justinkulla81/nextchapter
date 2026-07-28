@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { getQueuedDigestItems, getDigestSendHistory } from '@/lib/admin/digest-composer'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
-import { toggleQueuedForDigest } from '@/app/support/admin/research/actions'
+import { toggleQueuedForDigest } from '@/app/support/admin/(portal)/research/actions'
 import type { ResearchLibraryItem, DigestSend } from '@prisma/client'
 
 export const maxDuration = 30
