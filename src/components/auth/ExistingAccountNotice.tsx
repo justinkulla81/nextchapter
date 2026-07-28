@@ -36,7 +36,7 @@ export function ExistingAccountNotice({
         new one.
       </p>
       <Link
-        href="/auth/login"
+        href={`/auth/login${email ? `?email=${encodeURIComponent(email)}` : ''}`}
         className="inline-block text-sm font-medium text-primary underline underline-offset-4"
       >
         Log in

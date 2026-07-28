@@ -57,6 +57,16 @@ export function CreateAccountForm({ email: initialEmail }: { email: string | nul
     const { error } = await sendConfirmation(targetEmail)
 
     if (error) {
+      // The pre-check above only catches a duplicate that has a
+      // CandidateProfile of its own to find — an auth.users row created
+      // some other way (e.g. directly through Supabase, with no matching
+      // profile) slips through it and only surfaces here, straight from
+      // Supabase's own signup validation. Route it to the same recovery UI
+      // rather than a bare, dead-end error string.
+      if (/already.*registered/i.test(error.message)) {
+        setBlocked({ needsPassword: false })
+        return
+      }
       setError(error.message)
       return
     }
