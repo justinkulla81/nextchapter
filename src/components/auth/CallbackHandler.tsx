@@ -12,6 +12,7 @@ import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actio
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 import { finishAcceptingCoachInvite } from '@/app/support/coach/(app)/invite-client/actions'
 import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidates/actions'
+import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -21,9 +22,16 @@ export function CallbackHandler() {
   const tokenHash = searchParams.get('token_hash')
   const otpType = searchParams.get('type') as EmailOtpType | null
   const nextIsSecureAccount = searchParams.get('next') === 'secure-account'
-  const nextIsEmployer = searchParams.get('next') === 'employer'
-  const nextIsRecruiter = searchParams.get('next') === 'recruiter'
-  const nextIsCoach = searchParams.get('next') === 'coach'
+  // Falls back to a same-browser cookie set at signUp() time when the
+  // `?next=` query param didn't survive the round trip through the user's
+  // inbox (some corporate email security scanners rewrite or truncate
+  // outbound links) — without it, a recruiter/employer/coach whose `next`
+  // param got dropped falls through to candidate onboarding instead of
+  // their own portal. See pending-signup-role.ts.
+  const pendingRole = typeof document !== 'undefined' ? readPendingSignupRoleCookie() : null
+  const nextIsEmployer = searchParams.get('next') === 'employer' || pendingRole === 'employer'
+  const nextIsRecruiter = searchParams.get('next') === 'recruiter' || pendingRole === 'recruiter'
+  const nextIsCoach = searchParams.get('next') === 'coach' || pendingRole === 'coach'
   const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
@@ -40,6 +48,10 @@ export function CallbackHandler() {
   })
 
   async function finish() {
+    // Single-use — clear it now so a later, unrelated /auth/callback visit
+    // (e.g. a plain login magic link) never inherits a stale role.
+    clearPendingSignupRoleCookie()
+
     // Set explicitly by the anonymous-to-registered email confirmation
     // link (see CreateAccountForm) — that flow only ever confirms an
     // email address, it never sets a password, so the account otherwise

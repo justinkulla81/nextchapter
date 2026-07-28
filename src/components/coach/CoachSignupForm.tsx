@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { setPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 const FOCUS_OPTIONS = [
   { value: 'CAREER', label: 'Career' },
@@ -38,6 +39,7 @@ export function CoachSignupForm() {
     setError(null)
     setLoading(true)
 
+    setPendingSignupRoleCookie('coach')
     const supabase = createClient()
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
+import { setPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 export function TalentSignupForm() {
   const [contactName, setContactName] = useState('')
@@ -30,6 +31,7 @@ export function TalentSignupForm() {
 
     setLoading(true)
 
+    setPendingSignupRoleCookie('employer')
     const supabase = createClient()
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,

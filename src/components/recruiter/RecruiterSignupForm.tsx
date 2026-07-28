@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { setPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 export function RecruiterSignupForm() {
   const [fullName, setFullName] = useState('')
@@ -23,6 +24,7 @@ export function RecruiterSignupForm() {
     setError(null)
     setLoading(true)
 
+    setPendingSignupRoleCookie('recruiter')
     const supabase = createClient()
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
