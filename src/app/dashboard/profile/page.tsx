@@ -55,7 +55,7 @@ export default async function ProfilePage() {
             reviewing your report.
           </p>
           <AvatarUploadForm
-            displayName={profile.displayName || 'You'}
+            displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
             currentUrl={profile.profilePictureUrl}
             visible={profile.profilePictureVisible}
             uploadAction={uploadMyProfilePicture}
