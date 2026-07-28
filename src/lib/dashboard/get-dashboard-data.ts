@@ -74,6 +74,10 @@ export async function getDashboardData() {
     redirect('/onboarding/create-account')
   }
 
+  if (!profile.introCommittedAt) {
+    redirect('/onboarding/welcome')
+  }
+
   // First dashboard load after finishing registration — generate and email
   // the candidate's first Hireability Report now that we have a real,
   // confirmed address to send it to (moved here from the score-reveal page,

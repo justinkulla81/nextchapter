@@ -487,6 +487,7 @@ model CandidateProfile {
   assessmentCompletedAt DateTime? // set alongside assessmentComplete — used for reminder cadence math
   contractAccepted      Boolean   @default(false)
   contractAcceptedAt    DateTime?
+  introCommittedAt      DateTime? // set once the candidate finishes the post-signup welcome/payoff page and clicks "I'm committed" — gates dashboard access, backs its 5-point Search Sprint bonus
 
   // Deferred signup (resume-first onboarding, account creation last)
   email                   String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes

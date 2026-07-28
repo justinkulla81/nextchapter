@@ -23,5 +23,6 @@ export default async function OnboardingIndexPage() {
     redirect('/onboarding/coaching-form')
   }
   if (!profile.registrationCompletedAt) redirect('/onboarding/score')
+  if (!profile.introCommittedAt) redirect('/onboarding/welcome')
   redirect('/dashboard')
 }

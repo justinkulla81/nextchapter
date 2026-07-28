@@ -204,6 +204,27 @@ export async function submitContract(_prevState: FormState, formData: FormData):
   redirect('/onboarding/score')
 }
 
+// The last onboarding gate, shown once registration is complete (see
+// getDashboardData) — explains how NextChapter works, the payoff, and what
+// it expects in return, then locks in with a real timestamp. Backs the
+// 5-point welcome bonus folded into the candidate's first Search Sprint
+// (see INTRO_WELCOME_BONUS_POINTS in lib/weekly/sprint.ts) — real and
+// one-time, not a self-report toggle.
+export async function submitIntroCommitment(): Promise<void> {
+  const candidateId = await requireCandidateId()
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { introCommittedAt: new Date() },
+  })
+
+  captureServerEvent(candidateId, 'onboarding_intro_committed')
+
+  revalidatePath('/onboarding', 'layout')
+  revalidatePath('/dashboard')
+  redirect('/dashboard')
+}
+
 export async function updateAssessment(
   _prevState: FormState,
   formData: FormData

@@ -16,9 +16,11 @@ export interface CommittedAction {
   // recurring actions are an ongoing habit and only ever move from
   // not-started to Started (see isRecurringActionType).
   recurring: boolean
-  // True only for the auto-injected "Defined this week's goal" line —
-  // undoing it isn't a real action to revise, so it's only ever editable
-  // while the goal-setting window is still open (see SuccessSprintCard).
+  // True only for auto-injected bonus lines ("Defined this week's goal",
+  // and — first sprint only — "Completed your welcome & commitment") —
+  // undoing them isn't a real action to revise, so they're only ever
+  // editable while the goal-setting window is still open (see
+  // SuccessSprintCard).
   isGoalBonus?: boolean
   // True only for actions logged mid-week from the "More Actions Available"
   // catalog rather than picked at goal-setting time — kept separate so the
@@ -220,12 +222,28 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
 // plan is itself a good sign, independent of what's in the plan.
 export const GOAL_DEFINED_BONUS_POINTS = 5
 
+// The 5 points promised on the post-signup welcome/payoff page (see
+// /onboarding/welcome) — awarded once, folded into whichever sprint turns
+// out to be the candidate's first, never repeated in later weeks.
+export const INTRO_WELCOME_BONUS_POINTS = 5
+
 export async function commitWeeklySprint(
   candidateId: string,
   actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[],
   autoAssigned = false
 ) {
   const weekStartDate = getGoalSettingWeekStart()
+
+  // Only ever true for the candidate's first sprint — checked against every
+  // OTHER week so re-submitting goals within the same week's edit window
+  // (an update, not a create) still counts as "first" and doesn't lose the
+  // bonus.
+  const [priorWeeksCount, profile] = await Promise.all([
+    prisma.weeklySprint.count({ where: { candidateId, weekStartDate: { not: weekStartDate } } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { introCommittedAt: true } }),
+  ])
+  const includeWelcomeBonus = priorWeeksCount === 0 && !!profile?.introCommittedAt
+
   const committedActions: CommittedAction[] = [
     {
       text: "Defined this week's goal",
@@ -236,6 +254,19 @@ export async function commitWeeklySprint(
       recurring: false,
       isGoalBonus: true,
     },
+    ...(includeWelcomeBonus
+      ? [
+          {
+            text: 'Completed your welcome & commitment',
+            points: INTRO_WELCOME_BONUS_POINTS,
+            estimatedMinutes: 0,
+            completed: true,
+            completedAt: new Date().toISOString(),
+            recurring: false,
+            isGoalBonus: true,
+          },
+        ]
+      : []),
     ...actions.map((a) => ({
       text: a.text,
       actionType: a.actionType,
