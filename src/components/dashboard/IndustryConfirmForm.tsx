@@ -1,25 +1,42 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { confirmIndustry } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
 
-export function IndustryConfirmForm({ industryContext }: { industryContext: string | null }) {
+const POINTS = estimateActionEffort({ actionType: 'INDUSTRY_CONFIRM' }).points
+
+export function IndustryConfirmForm({
+  industryContext,
+  confirmedAt,
+}: {
+  industryContext: string | null
+  confirmedAt: Date | null
+}) {
   const [state, formAction, pending] = useActionState(confirmIndustry, undefined)
+  const [value, setValue] = useState(industryContext ?? '')
+
+  const isConfirmed = !!confirmedAt
+  const isDirty = value !== (industryContext ?? '')
+  const canConfirm = !isConfirmed || isDirty
 
   return (
     <form
       action={formAction}
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <Input name="industryContext" placeholder="Industry" defaultValue={industryContext ?? ''} />
+      <Input name="industryContext" placeholder="Industry" value={value} onChange={(e) => setValue(e.target.value)} />
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
-      <Button type="submit" size="sm" variant="outline" disabled={pending}>
-        {pending ? 'Saving…' : 'Confirm'}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button type="submit" size="sm" variant={canConfirm ? 'outline' : 'ghost'} disabled={pending || !canConfirm}>
+          {pending ? 'Saving…' : isConfirmed ? (isDirty ? 'Reconfirm' : 'Confirmed') : 'Confirm'}
+        </Button>
+        {!isConfirmed && <span className="text-xs font-medium text-muted-foreground tabular-nums">+{POINTS} pts</span>}
+      </div>
       <Label className="block text-xs font-normal text-muted-foreground">
         Pre-filled from your resume — correct anything that&apos;s off.
       </Label>

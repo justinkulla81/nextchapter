@@ -122,6 +122,14 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
       const item = typeof raw === 'string' ? { text: raw } : raw
       if (seen.has(item.text)) continue
       seen.add(item.text)
+      // The LLM occasionally wrote a meta/instructional line about
+      // committing to a Search Sprint as if it were a discrete task — that's
+      // this platform's own goal-setting mechanic (already rewarded via
+      // GOAL_DEFINED_BONUS_POINTS), not a real action with a link or a way
+      // to verify it. The prompt now forbids generating new instances of
+      // this (see the HARD REQUIREMENT in hireability-report.ts), but this
+      // also filters out any already-generated report from before that fix.
+      if (!item.actionType && /\bsearch sprint\b/i.test(item.text)) continue
       suggestions.push({ text: item.text, actionType: item.actionType, isAStandard: suggestions.length < 3 })
       if (suggestions.length >= 5) return suggestions
     }
@@ -135,13 +143,8 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 // Actions (skipping any actionType already suggested) until the
 // available point total comfortably clears this week's target.
 export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
-  const personalized = await getPersonalizedSuggestions(candidateId)
   const target = pointsNeededForA(weekNumber)
   const buffer = Math.ceil(target * 1.5)
-
-  const usedTypes = new Set(personalized.map((a) => a.actionType).filter(Boolean))
-  const suggestions = [...personalized]
-  let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
 
   // The two work-status confirmations are real, unfinished one-time setup
   // steps (see SalaryAuthorizationConfirmForm) — surface them until
@@ -151,6 +154,9 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const profile = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
     select: {
+      profileConfirmedAt: true,
+      industryConfirmedAt: true,
+      functionConfirmedAt: true,
       salaryConfirmedAt: true,
       workAuthConfirmedAt: true,
       jobsAppliedBucket: true,
@@ -162,6 +168,36 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
       connectedWithRecruiters: true,
     },
   })
+
+  // getPersonalizedSuggestions flattens a frozen, point-in-time snapshot
+  // (the Hireability Report's 7-day plan, or the last Sunday Night Report) —
+  // it has no idea the candidate has since confirmed something it suggested.
+  // Only SALARY_CONFIRM/WORK_AUTHORIZATION got a live re-check below when
+  // they were added; PROFILE_CONFIRM/INDUSTRY_CONFIRM/FUNCTION_CONFIRM never
+  // did, so a candidate who confirmed their industry after the report
+  // generated it would see "Confirm your industry" stuck in their suggested
+  // actions forever. Strip out anything the live profile already confirms,
+  // regardless of which snapshot it came from.
+  const verifiedDoneTypes: Set<string> = new Set(
+    (
+      [
+        [profile?.profileConfirmedAt, 'PROFILE_CONFIRM'],
+        [profile?.industryConfirmedAt, 'INDUSTRY_CONFIRM'],
+        [profile?.functionConfirmedAt, 'FUNCTION_CONFIRM'],
+        [profile?.salaryConfirmedAt, 'SALARY_CONFIRM'],
+        [profile?.workAuthConfirmedAt, 'WORK_AUTHORIZATION'],
+      ] as const
+    )
+      .filter(([confirmedAt]) => !!confirmedAt)
+      .map(([, actionType]) => actionType)
+  )
+  const personalizedRaw = await getPersonalizedSuggestions(candidateId)
+  const personalized = personalizedRaw.filter((a) => !a.actionType || !verifiedDoneTypes.has(a.actionType))
+
+  const usedTypes = new Set(personalized.map((a) => a.actionType).filter(Boolean))
+  const suggestions = [...personalized]
+  let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
+
   if (profile && !profile.salaryConfirmedAt && !usedTypes.has('SALARY_CONFIRM')) {
     suggestions.push({ text: 'Confirm your last salary', actionType: 'SALARY_CONFIRM' })
     usedTypes.add('SALARY_CONFIRM')

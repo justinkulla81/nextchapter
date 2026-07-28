@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
-import { SmsConsentForm } from '@/components/candidates/SmsConsentForm'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
@@ -49,13 +48,6 @@ export default async function PrivacyPage() {
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
         <ActionWindowSelector current={profile.actionWindow} />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Text messages</h2>
-        </div>
-        <SmsConsentForm smsPhone={profile.smsPhone} smsConsented={!!profile.smsConsentedAt} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

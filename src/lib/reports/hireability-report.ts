@@ -108,6 +108,8 @@ HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e
 
 HARD REQUIREMENT — if "Started Search Sprint" below is "no", this week's effort has no real history yet. Do not invent a narrative about their execution so far — instead, in the hill-to-climb narrative, explain that weekly effort starts as a blank page and becomes real once they commit to their first Search Sprint.
 
+HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," or any equivalent framing as one of the 7 action-plan day items. That's not a discrete task with a real link or a way to verify it — it's the platform's own weekly goal-setting mechanic, which already runs separately and already rewards itself. Mentioning it belongs only in the hill-to-climb narrative or the action-plan intro (see above), never as a checklist item a candidate would "mark done."
+
 Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in the hill-to-climb narrative or the action plan intro): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work meaningfully improves their odds, and weekly effort is the lever entirely in their hands. When you introduce the action plan, briefly explain that following through on it is how they raise their Market Reality Grade toward an A, and name what an A unlocks: we're ready to unabashedly support and market them as an excellent candidate, plus real perks as they build it up over time: ${TIER_UNLOCKS[5]} at Tier 5.
 
 Write:

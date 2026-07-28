@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { confirmSalaryAndAuthorization } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
 
 const WORK_AUTHORIZATION_OPTIONS = [
@@ -38,16 +39,45 @@ const VISA_STATUS_LABELS: Record<string, string> = Object.fromEntries(
   VISA_STATUS_OPTIONS.map((opt) => [opt.value, opt.label])
 )
 
+// Confirms two separate one-time actions (SALARY_CONFIRM, WORK_AUTHORIZATION)
+// with a single button — the server action always sets both timestamps
+// together, so they're always in sync.
+const POINTS =
+  estimateActionEffort({ actionType: 'SALARY_CONFIRM' }).points +
+  estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
+
 export function SalaryAuthorizationConfirmForm({
   lastSalary,
   workAuthorization,
   visaStatus,
+  confirmedAt,
 }: {
   lastSalary: number | null
   workAuthorization: string | null
   visaStatus: string | null
+  confirmedAt: Date | null
 }) {
   const [state, formAction, pending] = useActionState(confirmSalaryAndAuthorization, undefined)
+
+  const initialSalaryThousands = lastSalary ? String(Math.round(lastSalary / 1000)) : ''
+  // Base UI's Select silently highlights the first item as its uncontrolled
+  // default when no value is given at all — it doesn't stay in a genuine
+  // "nothing chosen" state the way the placeholder text implied. Left
+  // implicit, that meant every never-answered candidate silently defaulted
+  // to "U.S. citizen," a presumptuous guess for a platform with
+  // international candidates. These intentional, broadly-safe defaults
+  // replace that accident — most candidates here don't need sponsorship.
+  const initialWorkAuthorization = workAuthorization ?? 'work_authorized_no_sponsorship'
+  const initialVisaStatus = visaStatus ?? 'not_applicable'
+
+  const [salaryThousands, setSalaryThousands] = useState(initialSalaryThousands)
+  const [workAuth, setWorkAuth] = useState(initialWorkAuthorization)
+  const [visa, setVisa] = useState(initialVisaStatus)
+
+  const isConfirmed = !!confirmedAt
+  const isDirty =
+    salaryThousands !== initialSalaryThousands || workAuth !== initialWorkAuthorization || visa !== initialVisaStatus
+  const canConfirm = !isConfirmed || isDirty
 
   return (
     <form
@@ -68,7 +98,8 @@ export function SalaryAuthorizationConfirmForm({
               min={0}
               placeholder="120"
               className="pl-7"
-              defaultValue={lastSalary ? Math.round(lastSalary / 1000) : undefined}
+              value={salaryThousands}
+              onChange={(e) => setSalaryThousands(e.target.value)}
             />
           </div>
           <span className="text-sm text-muted-foreground">
@@ -81,7 +112,11 @@ export function SalaryAuthorizationConfirmForm({
         </p>
       </div>
 
-      <Select name="workAuthorization" defaultValue={workAuthorization ?? undefined}>
+      <Select
+        name="workAuthorization"
+        value={workAuth}
+        onValueChange={(v) => setWorkAuth((v as string) ?? initialWorkAuthorization)}
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Work authorization">
             {(value: string | null) => (value ? WORK_AUTHORIZATION_LABELS[value] : 'Work authorization')}
@@ -96,7 +131,7 @@ export function SalaryAuthorizationConfirmForm({
         </SelectContent>
       </Select>
 
-      <Select name="visaStatus" defaultValue={visaStatus ?? undefined}>
+      <Select name="visaStatus" value={visa} onValueChange={(v) => setVisa((v as string) ?? initialVisaStatus)}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Visa status (if applicable)">
             {(value: string | null) =>
@@ -114,9 +149,12 @@ export function SalaryAuthorizationConfirmForm({
       </Select>
 
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
-      <Button type="submit" size="sm" variant="outline" disabled={pending}>
-        {pending ? 'Saving…' : 'Confirm'}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button type="submit" size="sm" variant={canConfirm ? 'outline' : 'ghost'} disabled={pending || !canConfirm}>
+          {pending ? 'Saving…' : isConfirmed ? (isDirty ? 'Reconfirm' : 'Confirmed') : 'Confirm'}
+        </Button>
+        {!isConfirmed && <span className="text-xs font-medium text-muted-foreground tabular-nums">+{POINTS} pts</span>}
+      </div>
     </form>
   )
 }

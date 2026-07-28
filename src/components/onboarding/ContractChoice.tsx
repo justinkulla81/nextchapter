@@ -5,9 +5,6 @@ import type { NotificationTier } from '@prisma/client'
 import { submitContract } from '@/app/onboarding/actions'
 import { ACCOUNTABILITY_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
@@ -16,7 +13,6 @@ export function ContractChoice() {
   const [state, formAction, pending] = useActionState(submitContract, undefined)
   const [showExplanation, setShowExplanation] = useState(false)
   const [tier, setTier] = useState<NotificationTier | null>(null)
-  const [smsConsent, setSmsConsent] = useState(false)
 
   return (
     <form
@@ -36,36 +32,6 @@ export function ContractChoice() {
           responsive
         />
       </div>
-
-      {tier === 'FULL' && (
-        <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4 text-left">
-          <p className="text-sm font-medium text-foreground">Want text nudges too? (optional)</p>
-          <div className="space-y-2">
-            <Label htmlFor="smsPhone">Mobile number</Label>
-            <Input
-              id="smsPhone"
-              name="smsPhone"
-              type="tel"
-              placeholder="(555) 123-4567"
-              className="max-w-xs"
-            />
-          </div>
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="smsConsent"
-              name="smsConsent"
-              checked={smsConsent}
-              onCheckedChange={(checked) => setSmsConsent(checked === true)}
-            />
-            <Label htmlFor="smsConsent" className="text-sm font-normal text-muted-foreground">
-              I agree to receive automated text messages from NextChapter at the number above.
-              Message and data rates may apply. Message frequency varies. Reply STOP to opt out at
-              any time. This consent isn&apos;t required to use NextChapter and is separate from
-              your email preferences.
-            </Label>
-          </div>
-        </div>
-      )}
 
       <div className="flex flex-wrap justify-center gap-3">
         <SubmitButton name="intent" value="accept" pendingLabel="Continuing…">

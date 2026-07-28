@@ -30,6 +30,10 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 - Bring back a candidate-facing "answer interview questions" feature (previously `/dashboard/interview`, the `InterviewResponse` model), but only once there's a real recruiter/coach on the other end of it — without an audience, candidates have no reason to volunteer written answers to a static question bank on their own. Re-introduce it as part of the recruiter/coach experience instead: let a recruiter or coach pick which questions they actually want answered (an "option bank" selection, not a fixed list), so the exercise has a concrete purpose and a real reader. Removed from nav/routing for now; the `InterviewResponse` and `InterviewQuestionBank` Prisma models were left in schema untouched so any historical responses aren't lost and the redesigned version doesn't have to start from scratch.
 
+## Notifications
+
+- SMS accountability nudges — let a candidate opt in to text reminders (in addition to email) for extra accountability, with a 5-point one-time bonus for opting in (mirroring the existing salary/work-auth confirmation bonuses) and copy communicating that at the decision point. The `smsPhone`/`smsConsentedAt` fields and `updateSmsConsent` action already exist from an earlier pass, but the opt-in UI (onboarding contract page, Communication Preferences settings) has been deactivated for now — no actual send integration exists, and Twilio itself costs real money (~$0.0079/segment for US SMS plus ~$1-2/month per phone number), so this is deferred until that cost is worth taking on. `SmsConsentForm.tsx` was left in place, just unreferenced, so re-activating is mostly wiring the UI back in once Twilio is set up and the point-bonus mechanism is built.
+
 ## Dashboard
 
 - Build a dedicated "My Stats" page for the reference/job-fit/work-sample/community-post counts that used to sit on the main dashboard as 4 stat tiles — removed from the homepage to keep it focused on today's actions and this week's grade, but the raw counts are still useful and shouldn't just disappear.

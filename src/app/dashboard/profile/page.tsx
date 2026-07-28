@@ -78,6 +78,7 @@ export default async function ProfilePage() {
               streetAddress={profile.streetAddress}
               currentCity={profile.currentCity}
               currentState={profile.currentState}
+              confirmedAt={profile.profileConfirmedAt}
             />
           </CardContent>
         </Card>
@@ -87,7 +88,7 @@ export default async function ProfilePage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Industry</CardTitle>
           </CardHeader>
           <CardContent>
-            <IndustryConfirmForm industryContext={profile.industryContext} />
+            <IndustryConfirmForm industryContext={profile.industryContext} confirmedAt={profile.industryConfirmedAt} />
           </CardContent>
         </Card>
 
@@ -103,6 +104,7 @@ export default async function ProfilePage() {
               resumeLatestJobTitle={profile.resumeLatestJobTitle}
               yearsExperience={profile.yearsExperience}
               highestLevelReached={profile.highestLevelReached}
+              confirmedAt={profile.functionConfirmedAt}
             />
           </CardContent>
         </Card>
@@ -118,6 +120,7 @@ export default async function ProfilePage() {
               lastSalary={profile.lastSalary}
               workAuthorization={profile.workAuthorization}
               visaStatus={profile.visaStatus}
+              confirmedAt={profile.salaryConfirmedAt}
             />
           </CardContent>
         </Card>
