@@ -58,7 +58,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/requests', label: 'Requests', badge: badgeFor('requests') },
         { href: '/support/admin/jobs', label: 'Jobs' },
         { href: '/support/admin/action-counts', label: 'Action Counts' },
-        { href: '/support/admin/metrics', label: 'Pre-Seed Metrics' },
+        { href: '/support/admin/metrics', label: 'Site Metrics' },
         { href: '/support/admin/messages', label: 'Dashboard Messages' },
         { href: '/support/admin/research', label: 'Research Library' },
         { href: '/support/admin/digest', label: 'Weekly Market Digest' },

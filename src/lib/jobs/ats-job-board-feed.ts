@@ -158,14 +158,14 @@ export interface AtsFeedResult {
 // This is the one job-board entry point with no real recruiter behind
 // it — an algorithm is deciding what's worth putting in front of an admin,
 // so it should only suggest roles that at least one real candidate could
-// actually fill. A title we can confidently map to a function (e.g.
-// "Senior Software Engineer" -> Engineering) that no current candidate has
-// is skipped outright rather than added to the pending queue. Titles we
-// can't map confidently fall through unfiltered — this is a coarse
-// title-keyword heuristic, not the real match score, so it should never be
-// the reason a legitimate posting silently disappears. Employer/recruiter
-// self-submissions are untouched by this — those represent a real hiring
-// need from a real party and already get a human review either way.
+// actually fill. Quality over quantity: a title has to confidently map to a
+// function (e.g. "Senior Software Engineer" -> Engineering) that a current
+// candidate actually has, or it's skipped outright rather than added to the
+// pending queue — an ambiguous title that can't be confidently classified
+// is treated the same as a no-fit title, not given the benefit of the
+// doubt. Employer/recruiter self-submissions are untouched by this — those
+// represent a real hiring need from a real party and already get a human
+// review either way.
 export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   let fetched = 0
   let created = 0
@@ -204,7 +204,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
       }
 
       const inferredFunction = inferFunctionFromTitle(listing.title)
-      if (inferredFunction && !candidateFunctionSet.has(inferredFunction.toLowerCase())) {
+      if (!inferredFunction || !candidateFunctionSet.has(inferredFunction.toLowerCase())) {
         skippedNoFit += 1
         continue
       }

@@ -73,6 +73,8 @@ export default async function AdminRequestsPage({
               </button>
             </form>
           </div>
+        ) : r.detailHref === '#' ? (
+          <span className="text-sm text-muted-foreground">No linked profile</span>
         ) : (
           <Link href={r.detailHref} className="text-sm text-muted-foreground underline underline-offset-4">
             {r.detailHref.startsWith('/support/admin/candidates') ? 'View candidate' : 'Go to source page'}

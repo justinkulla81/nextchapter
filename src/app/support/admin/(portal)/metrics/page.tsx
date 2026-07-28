@@ -14,7 +14,7 @@ export default async function AdminMetricsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-10 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Pre-Seed Metrics</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Site Metrics</h1>
         <p className="mt-1 text-muted-foreground">
           Investor data-room metrics, computed live from real candidate data. Trend compares
           against this same calculation run 7 days ago.

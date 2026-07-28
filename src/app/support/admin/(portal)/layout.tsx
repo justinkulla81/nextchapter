@@ -15,8 +15,11 @@ export default async function AdminPortalLayout({ children }: { children: React.
     jobBoard: approvalsNeeded.pendingJobBoardListings,
     bountyClaims: approvalsNeeded.pendingBountyClaims,
     referenceDisputes: approvalsNeeded.unresolvedReferenceDisputes,
+    // Job Board listings are their own review queue (shown on the Job Board
+    // nav item above) and never appear as rows on the Requests page itself —
+    // counting them here would double them into a badge for a list they
+    // don't belong to.
     requests:
-      approvalsNeeded.pendingJobBoardListings +
       approvalsNeeded.pendingBountyClaims +
       approvalsNeeded.unresolvedReferenceDisputes +
       approvalsNeeded.pendingIntroRequests,
