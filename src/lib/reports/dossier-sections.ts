@@ -264,13 +264,17 @@ export async function getWhatDrivesMe(
   candidateId: string,
   knownFor: string | null
 ): Promise<{ motivationNarrative: string | null; effortStatText: string | null }> {
-  const weeklyReports = await prisma.sundayNightReport.findMany({
-    where: { candidateId },
-    select: { onAList: true },
-  })
+  // Denominator (weeks tracked) still comes from SundayNightReport — the
+  // numerator (A weeks) is sourced from WeeklyBadgeEarned, the real
+  // currently-written record; SundayNightReport.onAList is legacy and
+  // nothing writes to it anymore (see src/lib/badges/weekly-badge-archive.ts).
+  const [totalWeeks, aListWeekCount] = await Promise.all([
+    prisma.sundayNightReport.count({ where: { candidateId } }),
+    prisma.weeklyBadgeEarned.count({ where: { candidateId, badgeKey: 'WEEKLY_SCORE_A_LIST' } }),
+  ])
   const effortStatText =
-    weeklyReports.length > 0
-      ? `${weeklyReports.filter((r) => r.onAList).length} of ${weeklyReports.length} weeks at an A. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
+    totalWeeks > 0
+      ? `${aListWeekCount} of ${totalWeeks} weeks at an A. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
       : null
 
   // No dedicated Victoria-guided "cost me something" elicitation exists yet

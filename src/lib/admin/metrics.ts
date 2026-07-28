@@ -45,7 +45,8 @@ interface CandidateSnapshot {
   gapDuration: GapDurationBucket | null
   checkIns: Date[]
   sprints: { createdAt: Date; committedActions: CommittedAction[] }[]
-  reports: { generatedAt: Date; weekStartDate: Date; onAList: boolean; gradeSnapshot: HireabilityGrade }[]
+  reports: { generatedAt: Date; weekStartDate: Date; gradeSnapshot: HireabilityGrade }[]
+  aListWeeks: Date[]
   marketResponseLogs: { type: MarketResponseType; loggedAt: Date }[]
   outreachLogs: Date[]
   interviewDates: Date[]
@@ -68,7 +69,14 @@ async function loadAllCandidateRows() {
       dailyCheckIns: { select: { checkedInAt: true } },
       weeklySprints: { select: { createdAt: true, committedActions: true } },
       sundayNightReports: {
-        select: { generatedAt: true, weekStartDate: true, onAList: true, gradeSnapshot: true },
+        select: { generatedAt: true, weekStartDate: true, gradeSnapshot: true },
+      },
+      // Sourced from WeeklyBadgeEarned, the real currently-written record —
+      // SundayNightReport.onAList is legacy and nothing writes to it anymore
+      // (see src/lib/badges/weekly-badge-archive.ts).
+      weeklyBadgesEarned: {
+        where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
+        select: { weekStartDate: true, earnedAt: true },
       },
       marketResponseLogs: { select: { type: true, loggedAt: true } },
       outreachLogs: { select: { loggedAt: true } },
@@ -100,9 +108,9 @@ function snapshotAsOf(rows: CandidateRow[], asOf: Date): CandidateSnapshot[] {
         .map((rep) => ({
           generatedAt: rep.generatedAt,
           weekStartDate: rep.weekStartDate,
-          onAList: rep.onAList,
           gradeSnapshot: normalizeGradeSnapshot(rep.gradeSnapshot)!,
         })),
+      aListWeeks: r.weeklyBadgesEarned.filter((b) => b.earnedAt <= asOf).map((b) => b.weekStartDate),
       marketResponseLogs: r.marketResponseLogs.filter((l) => l.loggedAt <= asOf),
       outreachLogs: r.outreachLogs.map((o) => o.loggedAt).filter((d) => d <= asOf),
       interviewDates: r.jobPostings
@@ -249,9 +257,7 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
     .reduce((max, t) => Math.max(max, t), 0)
   const weeklyAListEarners =
     latestWeekStart > 0
-      ? candidates.filter((c) =>
-          c.reports.some((r) => r.weekStartDate.getTime() === latestWeekStart && r.onAList)
-        ).length
+      ? candidates.filter((c) => c.aListWeeks.some((d) => d.getTime() === latestWeekStart)).length
       : 0
 
   const latestSnapshots = candidates

@@ -55,22 +55,25 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   const windowStart = new Date(Date.now() - FEED_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   const items: CommunityFeedItem[] = [getVictoriaInsight()]
 
-  const aListReports = await prisma.sundayNightReport.findMany({
-    where: { onAList: true, generatedAt: { gte: windowStart } },
+  // Sourced from WeeklyBadgeEarned, the real currently-written record —
+  // SundayNightReport.onAList is legacy and nothing writes to it anymore
+  // (see src/lib/badges/weekly-badge-archive.ts).
+  const aListBadges = await prisma.weeklyBadgeEarned.findMany({
+    where: { badgeKey: 'WEEKLY_SCORE_A_LIST', earnedAt: { gte: windowStart } },
     include: { candidate: true },
-    orderBy: { generatedAt: 'desc' },
+    orderBy: { earnedAt: 'desc' },
   })
-  for (const report of aListReports) {
-    if (report.candidate.aListOptOut || report.candidate.privacyTier === 'LOCKED') continue
-    const name = anonymize(report.candidate.firstName, report.candidate.lastName)
+  for (const badge of aListBadges) {
+    if (badge.candidate.aListOptOut || badge.candidate.privacyTier === 'LOCKED') continue
+    const name = anonymize(badge.candidate.firstName, badge.candidate.lastName)
     if (!name) continue
     items.push({
-      id: `alist-${report.id}`,
+      id: `alist-${badge.id}`,
       type: 'alist',
       displayName: name,
-      avatarUrl: visibleAvatarUrl(report.candidate),
+      avatarUrl: visibleAvatarUrl(badge.candidate),
       detail: 'made this week’s A-List',
-      occurredAt: report.generatedAt,
+      occurredAt: badge.earnedAt,
     })
   }
 

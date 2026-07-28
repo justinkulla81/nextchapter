@@ -50,13 +50,14 @@ export default async function YourStatsPage() {
     lastWeekActions,
     weeklyBadges,
     milestoneBadges,
+    aListWeeks,
   ] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.sundayNightReport.findMany({
       where: { candidateId: profile.id },
       orderBy: { weekStartDate: 'desc' },
       take: 12,
-      select: { weekStartDate: true, gradeSnapshot: true, onAList: true },
+      select: { weekStartDate: true, gradeSnapshot: true },
     }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     getCurrentWeekSprint(profile.id),
@@ -69,9 +70,17 @@ export default async function YourStatsPage() {
     getLastWeekActions(profile.id),
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
+    // Sourced from WeeklyBadgeEarned, the real currently-written record —
+    // SundayNightReport.onAList is legacy and nothing writes to it anymore
+    // (see src/lib/badges/weekly-badge-archive.ts).
+    prisma.weeklyBadgeEarned.findMany({
+      where: { candidateId: profile.id, badgeKey: 'WEEKLY_SCORE_A_LIST' },
+      orderBy: { weekStartDate: 'desc' },
+      take: 12,
+      select: { weekStartDate: true },
+    }),
   ])
 
-  const aListWeeks = recentReports.filter((r) => r.onAList)
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
   const completedByEngine = new Map<EngineKey, CommittedAction[]>()
   for (const action of committedActions) {

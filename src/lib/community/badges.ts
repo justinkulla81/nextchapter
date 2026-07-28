@@ -28,7 +28,10 @@ export async function computeEarnedBadges(candidateId: string): Promise<BadgeKey
       references: { where: { status: 'COMPLETED' }, take: 1 },
       workSamples: { take: 1 },
       communityPosts: { take: 1 },
-      sundayNightReports: { where: { onAList: true }, take: 1 },
+      // Sourced from WeeklyBadgeEarned, the real currently-written record —
+      // SundayNightReport.onAList is legacy and nothing writes to it anymore
+      // (see src/lib/badges/weekly-badge-archive.ts).
+      weeklyBadgesEarned: { where: { badgeKey: 'WEEKLY_SCORE_A_LIST' }, take: 1 },
     },
   })
 
@@ -38,7 +41,7 @@ export async function computeEarnedBadges(candidateId: string): Promise<BadgeKey
   if (candidate.communityPosts.length > 0) badges.push('FIRST_COMMUNITY_POST')
   if (candidate.longestStreak >= 7) badges.push('SEVEN_DAY_STREAK')
   if (candidate.longestStreak >= 30) badges.push('THIRTY_DAY_STREAK')
-  if (candidate.sundayNightReports.length > 0) badges.push('MADE_A_LIST')
+  if (candidate.weeklyBadgesEarned.length > 0) badges.push('MADE_A_LIST')
 
   return badges
 }
