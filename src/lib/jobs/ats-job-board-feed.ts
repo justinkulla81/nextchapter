@@ -167,11 +167,6 @@ export interface AtsFeedResult {
 // represent a real hiring need from a real party and already get a human
 // review either way.
 export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
-  let fetched = 0
-  let created = 0
-  let reconfirmed = 0
-  let skippedNoFit = 0
-
   const candidateFunctions = await prisma.candidateProfile.findMany({
     where: { primaryFunction: { not: null } },
     select: { primaryFunction: true },
@@ -181,55 +176,87 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
     candidateFunctions.map((c) => c.primaryFunction!.trim().toLowerCase())
   )
 
-  for (const company of ATS_COMPANIES) {
-    const listings = await fetchCompanyListings(company)
-    fetched += listings.length
+  // Every company's board is fetched concurrently rather than one at a time —
+  // awaiting each of the 45 companies in sequence (up to FETCH_TIMEOUT_MS
+  // apiece) could exceed this route's maxDuration well before reaching the
+  // later companies in ATS_COMPANIES, silently truncating the run to
+  // whichever handful happened to be first in the array.
+  const perCompanyListings = await Promise.all(ATS_COMPANIES.map((company) => fetchCompanyListings(company)))
+  const allListings = perCompanyListings.flat()
 
-    for (const listing of listings) {
-      const existing = await prisma.exclusiveJobPosting.findFirst({ where: { url: listing.url } })
-
-      if (existing) {
-        // Still live in the source feed — a genuine independent
-        // re-verification against the origin, not a bare "bump," so it's
-        // allowed to push the freshness clock forward the same way an
-        // explicit reconfirm would.
-        if (!existing.archivedAt) {
-          await prisma.exclusiveJobPosting.update({
-            where: { id: existing.id },
-            data: { expiresAt: new Date(Date.now() + THIRTY_DAYS_MS), lastConfirmedAt: new Date() },
-          })
-          reconfirmed += 1
-        }
-        continue
-      }
-
-      const inferredFunction = inferFunctionFromTitle(listing.title)
-      if (!inferredFunction || !candidateFunctionSet.has(inferredFunction.toLowerCase())) {
-        skippedNoFit += 1
-        continue
-      }
-
-      await prisma.exclusiveJobPosting.create({
-        data: {
-          title: listing.title,
-          companyName: listing.companyName,
-          location: listing.location,
-          url: listing.url,
-          description: listing.description,
-          postingType: 'direct',
-          source: 'ats_feed',
-          status: 'pending',
-          contactName: null,
-          salaryMin: listing.salaryMin,
-          salaryMax: listing.salaryMax,
-          salaryCurrency: listing.salaryCurrency,
-          addedBy: 'ats_feed',
-          expiresAt: new Date(Date.now() + THIRTY_DAYS_MS),
-        },
+  // One existence check for every URL fetched this run, instead of a
+  // per-listing findFirst — the same N+1 pattern that made the DB side of
+  // this job as slow as the network side once a company's board has
+  // hundreds of postings.
+  const existingByUrl = new Map(
+    (
+      await prisma.exclusiveJobPosting.findMany({
+        where: { url: { in: allListings.map((l) => l.url) } },
+        select: { id: true, url: true, archivedAt: true },
       })
-      created += 1
+    ).map((row) => [row.url, row])
+  )
+
+  const toReconfirmIds: string[] = []
+  const toCreate: FeedListing[] = []
+  const seenUrls = new Set<string>()
+  let skippedNoFit = 0
+
+  for (const listing of allListings) {
+    if (seenUrls.has(listing.url)) continue // defensive de-dupe within one run
+    seenUrls.add(listing.url)
+
+    const existing = existingByUrl.get(listing.url)
+    if (existing) {
+      // Still live in the source feed — a genuine independent
+      // re-verification against the origin, not a bare "bump," so it's
+      // allowed to push the freshness clock forward the same way an
+      // explicit reconfirm would.
+      if (!existing.archivedAt) toReconfirmIds.push(existing.id)
+      continue
     }
+
+    const inferredFunction = inferFunctionFromTitle(listing.title)
+    if (!inferredFunction || !candidateFunctionSet.has(inferredFunction.toLowerCase())) {
+      skippedNoFit += 1
+      continue
+    }
+
+    toCreate.push(listing)
   }
 
-  return { fetched, created, reconfirmed, skippedNoFit }
+  if (toReconfirmIds.length > 0) {
+    await prisma.exclusiveJobPosting.updateMany({
+      where: { id: { in: toReconfirmIds } },
+      data: { expiresAt: new Date(Date.now() + THIRTY_DAYS_MS), lastConfirmedAt: new Date() },
+    })
+  }
+
+  if (toCreate.length > 0) {
+    await prisma.exclusiveJobPosting.createMany({
+      data: toCreate.map((listing) => ({
+        title: listing.title,
+        companyName: listing.companyName,
+        location: listing.location,
+        url: listing.url,
+        description: listing.description,
+        postingType: 'direct',
+        source: 'ats_feed',
+        status: 'pending',
+        contactName: null,
+        salaryMin: listing.salaryMin,
+        salaryMax: listing.salaryMax,
+        salaryCurrency: listing.salaryCurrency,
+        addedBy: 'ats_feed',
+        expiresAt: new Date(Date.now() + THIRTY_DAYS_MS),
+      })),
+    })
+  }
+
+  return {
+    fetched: allListings.length,
+    created: toCreate.length,
+    reconfirmed: toReconfirmIds.length,
+    skippedNoFit,
+  }
 }

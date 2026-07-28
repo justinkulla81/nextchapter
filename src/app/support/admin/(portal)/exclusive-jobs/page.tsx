@@ -76,6 +76,14 @@ export default async function ExclusiveJobsAdminPage() {
   }
   const pendingCompanies = Array.from(pendingByCompany.entries()).sort((a, b) => b[1].length - a[1].length)
 
+  const archivedByCompany = new Map<string, typeof archived>()
+  for (const posting of archived) {
+    const group = archivedByCompany.get(posting.companyName) ?? []
+    group.push(posting)
+    archivedByCompany.set(posting.companyName, group)
+  }
+  const archivedCompanies = Array.from(archivedByCompany.entries()).sort((a, b) => b[1].length - a[1].length)
+
   return (
     <div className="mx-auto max-w-3xl space-y-10 p-6">
       <div>
@@ -225,17 +233,27 @@ export default async function ExclusiveJobsAdminPage() {
       </div>
 
       {archived.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">Archived / rejected ({archived.length})</h2>
-          <div className="space-y-1">
-            {archived.map((posting) => (
-              <p key={posting.id} className="text-sm text-muted-foreground">
-                {posting.title} at {posting.companyName}
-                {posting.status === 'rejected' && ' — rejected'}
-                {posting.rejectionReason && `: ${posting.rejectionReason}`}
-              </p>
-            ))}
-          </div>
+          {archivedCompanies.map(([companyName, companyPostings]) => (
+            <details key={companyName} className="rounded-lg border border-border">
+              <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+                {companyName}{' '}
+                <span className="font-normal text-muted-foreground">
+                  ({companyPostings.length} archived/rejected)
+                </span>
+              </summary>
+              <div className="space-y-1 border-t border-border p-3">
+                {companyPostings.map((posting) => (
+                  <p key={posting.id} className="text-sm text-muted-foreground">
+                    {posting.title}
+                    {posting.status === 'rejected' && ' — rejected'}
+                    {posting.rejectionReason && `: ${posting.rejectionReason}`}
+                  </p>
+                ))}
+              </div>
+            </details>
+          ))}
         </div>
       )}
     </div>
