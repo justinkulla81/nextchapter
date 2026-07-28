@@ -5,9 +5,16 @@ import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { checkAndFlagDuplicateEmail, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { isAdminEmail } from '@/lib/admin/auth'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
+
+  // An admin landing here (e.g. a password-reset fallback redirect) should
+  // never silently get a stray CandidateProfile created.
+  if (user && isAdminEmail(user.email)) {
+    redirect('/support/admin')
+  }
 
   // No session yet at all — nothing to show a prior state for. The upload
   // form's action (uploadResume) lazily starts an anonymous session on

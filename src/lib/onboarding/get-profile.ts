@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
 import { prisma } from '@/lib/prisma'
+import { isAdminEmail } from '@/lib/admin/auth'
 
 export async function getCandidateProfileForUser() {
   const user = await getCurrentUser()
@@ -12,6 +13,12 @@ export async function getCandidateProfileForUser() {
     // first step, which lazily starts an anonymous session on upload,
     // rather than a login page that implies a password is required.
     redirect('/onboarding/resume')
+  }
+
+  // An admin landing here by mistake (e.g. a password-reset fallback
+  // redirect) should never silently get a stray CandidateProfile created.
+  if (isAdminEmail(user.email)) {
+    redirect('/support/admin')
   }
 
   // A hiring manager, recruiter, or coach who ends up here by mistake

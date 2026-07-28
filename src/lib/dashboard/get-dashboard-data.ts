@@ -6,6 +6,7 @@ import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
+import { isAdminEmail } from '@/lib/admin/auth'
 
 export async function getDashboardData() {
   const supabase = await createClient()
@@ -15,6 +16,14 @@ export async function getDashboardData() {
 
   if (!user) {
     redirect('/auth/login')
+  }
+
+  // An admin has no Employer/Recruiter/Coach row either, so without this
+  // check they'd fall through to "no CandidateProfile -> /onboarding" below
+  // exactly like a brand-new signup — e.g. after a password reset that
+  // lands them on /dashboard as the generic fallback destination.
+  if (isAdminEmail(user.email)) {
+    redirect('/support/admin')
   }
 
   // A hiring manager, recruiter, or coach landing here by mistake (stale

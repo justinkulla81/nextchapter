@@ -9,6 +9,14 @@ function adminEmails(): string[] {
     .filter(Boolean)
 }
 
+// Used by candidate-flow entry points (dashboard, onboarding) to bail out
+// before creating a stray CandidateProfile for an admin-only account — an
+// admin has no Employer/Recruiter/Coach row either, so without this check
+// they'd fall through candidate-flow logic exactly like a brand-new signup.
+export function isAdminEmail(email?: string | null): boolean {
+  return !!email && adminEmails().includes(email.toLowerCase())
+}
+
 // Pre-seed admin gate — a plain env-var allowlist checked against the
 // logged-in Supabase user's email. No roles table yet; this is the whole
 // admin surface today, so a full RBAC system would be premature.
