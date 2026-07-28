@@ -27,6 +27,7 @@ import {
 } from '@/lib/scoring/assessment-vectors'
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { autoPopulateFirstSprint } from '@/lib/weekly/sprint'
 import {
   getCoachTemplate,
   hasSubmittedCoachingOnboardingForm,
@@ -218,7 +219,17 @@ export async function submitIntroCommitment(): Promise<void> {
     data: { introCommittedAt: new Date() },
   })
 
-  captureServerEvent(candidateId, 'onboarding_intro_committed')
+  // Best-effort — a failure here should never block the redirect to
+  // dashboard; worst case they land on the pre-existing empty-sprint state
+  // and can still set goals manually.
+  let firstSprintPopulated = false
+  try {
+    firstSprintPopulated = !!(await autoPopulateFirstSprint(candidateId))
+  } catch (error) {
+    console.error('Failed to auto-populate first Weekly Search Sprint:', error)
+  }
+
+  captureServerEvent(candidateId, 'onboarding_intro_committed', { firstSprintPopulated })
 
   revalidatePath('/onboarding', 'layout')
   revalidatePath('/dashboard')

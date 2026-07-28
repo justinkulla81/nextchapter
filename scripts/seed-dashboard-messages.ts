@@ -19,10 +19,10 @@ const MESSAGES: {
     title: 'How NextChapter works',
     isPinned: true,
     bullets: [
-      'Market Reality Grade — an honest read on where you stand today. It moves only when you re-assess, not from weekly activity.',
+      'Market Reality Grade — an honest read on where you stand today. This gets updated every week based on your Search Score, Learning, Working and Networking.',
       'Weekly Search Score — your grade for this week’s effort, earned one point at a time from real Search Actions.',
       'Weekly Search Sprint — the actions you commit to each week, shown right on this dashboard.',
-      'Dossier — a verified profile built from your references and work, that shows hiring managers what your resume can’t.',
+      'Executive Dossier — a verified profile built from your references and work, that shows hiring managers what your resume can’t.',
     ],
     footer: "Start with this week's Sprint below — Victoria's here if you want to talk through it.",
   },
@@ -30,14 +30,13 @@ const MESSAGES: {
   // order right after the pinned message above, before the general
   // motivational rotation below. See getNextDashboardMessage.
   {
-    title: 'Two grades, two different clocks',
+    title: 'One grade, updated every week',
     sequenceOrder: 1,
     bullets: [
-      'Market Reality Grade moves only when you reassess — not week to week.',
-      'Search Action Grade is earned fresh every week, from the real Search Actions you complete.',
+      'Your Market Reality Grade is one number — not a snapshot frozen at signup.',
+      'It updates weekly based on your Search Score, Learning, Working and Networking.',
     ],
-    footer:
-      "They're independent on purpose — a strong week doesn't change Market Reality, and a slow week doesn't erase progress there either.",
+    footer: 'Put in real work in any of those areas and the grade moves to reflect it.',
   },
   {
     title: 'Your Weekly Search Sprint, in plain terms',

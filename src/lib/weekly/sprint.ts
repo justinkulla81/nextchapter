@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export interface CommittedAction {
   text: string
@@ -287,6 +288,58 @@ export async function commitWeeklySprint(
     },
     update: { committedActions: committedActions as unknown as Prisma.InputJsonValue, autoAssigned },
   })
+}
+
+// Called once, right when a brand-new candidate commits on the Welcome page
+// (see submitIntroCommitment) — without this, their first Weekly Search
+// Sprint stays genuinely empty ("you haven't set goals yet", 0 of 60 points)
+// until they either visit goal-setting themselves or the Monday auto-assign
+// cron runs, which could be days away. Reuses the same suggestion engine and
+// commit path as both of those flows, just triggered immediately. No-ops if
+// a sprint already exists (idempotent — safe even if called twice).
+export async function autoPopulateFirstSprint(candidateId: string) {
+  if (await hasStartedSprint(candidateId)) return null
+
+  const target = pointsNeededForA(1)
+  const bonusPoints = GOAL_DEFINED_BONUS_POINTS + INTRO_WELCOME_BONUS_POINTS
+  const remainingBudget = Math.max(0, target - bonusPoints)
+
+  const suggestions = await getSuggestedActions(candidateId, 1)
+  const withEffort = suggestions.map((s) => ({
+    text: s.text,
+    actionType: s.actionType,
+    recurring: isRecurringActionType(s.actionType),
+    ...estimateActionEffort(s),
+  }))
+
+  // A first-ever sprint should mostly be discrete, finishable setup tasks —
+  // a candidate with no history yet hasn't built any ongoing habits, so
+  // one-time actions (a real finish line, a Mark done toggle) go first;
+  // recurring ones only fill in if there's budget left over.
+  const oneTime = withEffort.filter((a) => !a.recurring)
+  const recurring = withEffort.filter((a) => a.recurring)
+
+  const actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[] = []
+  let total = 0
+  for (const candidate of [...oneTime, ...recurring]) {
+    if (total >= remainingBudget) break
+    actions.push({
+      text: candidate.text,
+      actionType: candidate.actionType,
+      points: candidate.points,
+      estimatedMinutes: candidate.minutes,
+    })
+    total += candidate.points
+  }
+
+  const sprint = await commitWeeklySprint(candidateId, actions, true)
+  captureServerEvent(candidateId, 'weekly_sprint_submitted', {
+    weekNumber: 1,
+    actionCount: actions.length,
+    committedPoints: total + bonusPoints,
+    autoPopulated: true,
+  })
+  return sprint
 }
 
 // Auto-verifies a recurring "Engage" action the moment the real behavior
