@@ -41,10 +41,16 @@ export function validateJobBoardSubmission(
   if (input.postingType !== 'direct' && input.postingType !== 'recruiter_search') {
     return 'Please specify whether this is a direct employer posting or a recruiter-led search.'
   }
-  if (!input.contactName) {
-    return 'A named recruiter or hiring manager contact is required — a generic team name or inbox is not enough.'
+  // Employer/recruiter self-submissions have no domain verification elsewhere
+  // in the app, so a named contact is the trust gate — required there. An
+  // admin adding a posting by hand has already vetted it personally, so this
+  // is optional for that source only.
+  if (source !== 'admin') {
+    if (!input.contactName) {
+      return 'A named recruiter or hiring manager contact is required — a generic team name or inbox is not enough.'
+    }
+    if (!input.contactEmail) return 'A contact email is required.'
   }
-  if (!input.contactEmail) return 'A contact email is required.'
   if (!input.salaryMin || !input.salaryMax) return 'A salary band (minimum and maximum) is required.'
   if (input.salaryMin > input.salaryMax) return 'Salary minimum cannot be higher than the maximum.'
 

@@ -44,6 +44,55 @@ async function markNetworkingListSubmittedIfThresholdMet(candidateId: string) {
 
 export type NetworkFormState = { error?: string; imported?: number } | undefined
 
+export type NetworkJobLeadFormState = { error?: string; success?: boolean } | undefined
+
+// A lead a candidate heard about through their own network — distinct from
+// the private "check my fit" flow on Find My Job (analyzeJobFit's
+// mirrorJobPostingToBoard, which never leaves that one candidate's view).
+// This one goes into the normal admin review queue, same trust gate as any
+// employer/recruiter self-submission, since a real human tip is worth
+// surfacing to everyone once verified — just without demanding the
+// employer-submission form's full contact/salary-band rigor upfront, which
+// would be too much friction for a candidate quickly logging a tip.
+export async function submitNetworkJobLead(
+  _prevState: NetworkJobLeadFormState,
+  formData: FormData
+): Promise<NetworkJobLeadFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const url = (formData.get('url') as string | null)?.trim()
+  if (!url) return { error: 'Please enter the job posting URL.' }
+  try {
+    new URL(url)
+  } catch {
+    return { error: 'Please enter a valid URL.' }
+  }
+
+  const title = (formData.get('title') as string | null)?.trim() || 'Untitled posting (needs review)'
+  const companyName = (formData.get('companyName') as string | null)?.trim() || 'Unknown (needs review)'
+  const note = (formData.get('note') as string | null)?.trim() || null
+
+  await prisma.exclusiveJobPosting.create({
+    data: {
+      title,
+      companyName,
+      url,
+      description: note,
+      addedBy: profile.email ?? 'candidate',
+      status: 'pending',
+      source: 'candidate_referral',
+      submittedByCandidateId: profile.id,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  })
+
+  captureServerEvent(profile.id, 'network_job_lead_submitted', { companyName })
+
+  revalidatePath('/dashboard/network')
+  return { success: true }
+}
+
 export async function importConnectionsCsv(
   _prevState: NetworkFormState,
   formData: FormData

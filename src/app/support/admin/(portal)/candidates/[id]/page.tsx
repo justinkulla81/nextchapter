@@ -3,16 +3,48 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { listAllAuthUsers } from '@/lib/admin/auth-users'
 import { getAdminCandidateDetail } from '@/lib/admin/candidate-detail'
+import { prisma } from '@/lib/prisma'
+import { rankPendingPostingsForCandidate, type AdminFitCandidate } from '@/lib/jobs/job-fit-bucket'
+import { displayJobLocation } from '@/lib/jobs/us-location'
+import { approveJobPosting } from '@/app/support/admin/(portal)/exclusive-jobs/actions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 
 export const maxDuration = 30
+
+async function loadJobRecommendations(candidateId: string) {
+  const [candidate, pendingPostings] = await Promise.all([
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        primaryFunction: true,
+        highestLevelReached: true,
+        remotePreference: true,
+        currentCity: true,
+        openToRelocation: true,
+        targetCompMin: true,
+        compFlexible: true,
+        targetRoleType: true,
+        resumeKeywords: true,
+        isPeopleManager: true,
+      },
+    }),
+    prisma.exclusiveJobPosting.findMany({ where: { status: 'pending', archivedAt: null } }),
+  ])
+  if (!candidate) return []
+  return rankPendingPostingsForCandidate(candidate as AdminFitCandidate, pendingPostings).slice(0, 10)
+}
 
 export default async function AdminCandidateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
   const { id } = await params
 
-  const authUsers = await listAllAuthUsers()
+  const [authUsers, jobRecommendations] = await Promise.all([listAllAuthUsers(), loadJobRecommendations(id)])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
 
@@ -169,6 +201,43 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
               </ul>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Job recommendations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Pending Job Board listings ranked by fit for this candidate specifically — highest first.
+            Approving here makes the listing visible to every eligible candidate, not just this one.
+          </p>
+          {jobRecommendations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing pending right now.</p>
+          ) : (
+            <ul className="space-y-3">
+              {jobRecommendations.map(({ posting, score }) => {
+                const location = displayJobLocation(posting.location)
+                return (
+                  <li key={posting.id} className="flex items-start justify-between gap-3 text-sm">
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {posting.title} <span className="text-muted-foreground">at {posting.companyName}</span>
+                      </p>
+                      {location && <p className="text-xs text-muted-foreground">{location}</p>}
+                      <p className="text-xs font-medium text-foreground tabular-nums">{score}% fit</p>
+                    </div>
+                    <form action={approveJobPosting.bind(null, posting.id)}>
+                      <SubmitButton size="sm" pendingLabel="Approving…">
+                        Approve
+                      </SubmitButton>
+                    </form>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </CardContent>
       </Card>
 

@@ -11,6 +11,7 @@ import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { OutreachCheatSheetCard } from '@/components/dashboard/OutreachCheatSheetCard'
 import { EmailTrackingCard } from '@/components/dashboard/EmailTrackingCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
+import { NetworkJobLeadForm } from '@/components/dashboard/NetworkJobLeadForm'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
 import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
 import { GUIDES } from '@/lib/constants/guides'
@@ -192,6 +193,17 @@ export default async function NetworkPage() {
       </div>
 
       <EmailTrackingCard />
+
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <div>
+          <h2 className="text-lg font-semibold">Heard about an opening through your network?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Send us the link and we&apos;ll add it to the shared Job Board once we&apos;ve confirmed
+            it&apos;s real — other candidates get the benefit of your lead too.
+          </p>
+        </div>
+        <NetworkJobLeadForm />
+      </div>
 
       {contacts.length === 0 ? (
         <p className="text-sm text-muted-foreground">

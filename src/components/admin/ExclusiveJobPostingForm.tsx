@@ -10,8 +10,8 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { AUDIENCE_TIER_OPTIONS, DISTRIBUTION_OPTIONS } from '@/lib/jobs/job-board-visibility'
 import { getBlockedJobHost } from '@/lib/jobs/blocked-job-hosts'
-import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
 import { cn } from '@/lib/utils'
+import type { PendingJobMatchCount } from '@/lib/jobs/job-fit-bucket'
 
 const POSTING_TYPE_OPTIONS = [
   { value: 'direct' as const, label: 'Direct employer posting' },
@@ -41,7 +41,7 @@ export function ExclusiveJobPostingForm({
   const [isAutofilling, startAutofill] = useTransition()
   const [autofillError, setAutofillError] = useState<string | null>(null)
   const [isCheckingFit, startFitCheck] = useTransition()
-  const [fit, setFit] = useState<{ matched: number; total: number; grade: Grade } | null>(null)
+  const [fit, setFit] = useState<PendingJobMatchCount | null>(null)
 
   const blocked = getBlockedJobHost(url)
 
@@ -129,7 +129,7 @@ export function ExclusiveJobPostingForm({
             ) : (
               fit && (
                 <>
-                  <span className={`text-lg font-bold ${GRADE_TEXT_COLOR[fit.grade]}`}>{fit.grade}</span>
+                  <span className="text-lg font-bold text-foreground tabular-nums">{fit.scorePercent}%</span>
                   <p className="text-sm font-medium text-foreground">
                     Matches {fit.matched} of {fit.total} candidates
                   </p>
@@ -176,12 +176,12 @@ export function ExclusiveJobPostingForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="contactName">Named contact</Label>
-          <Input id="contactName" name="contactName" required />
+          <Label htmlFor="contactName">Named contact (optional)</Label>
+          <Input id="contactName" name="contactName" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contactEmail">Contact email</Label>
-          <Input id="contactEmail" name="contactEmail" type="email" required />
+          <Label htmlFor="contactEmail">Contact email (optional)</Label>
+          <Input id="contactEmail" name="contactEmail" type="email" />
         </div>
       </div>
 

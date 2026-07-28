@@ -5,6 +5,13 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 
 const jobFitSchema = z.object({
+  // Pulled from the posting text itself (not the candidate's data) — reuses
+  // this same call instead of a second extraction pass so mirroring the
+  // posting into the shared job database (see mirrorJobPostingToBoard below)
+  // never needs its own LLM call. Null when the posting text doesn't clearly
+  // state one.
+  title: z.string().nullable(),
+  companyName: z.string().nullable(),
   fitScore: z.number().int().min(0).max(100),
   fitFeedback: z.array(z.string()).min(1).max(5),
   keywords: z.array(z.string()).min(3).max(10),
@@ -15,6 +22,8 @@ const jobFitSchema = z.object({
 })
 
 const PROMPT_PREFIX = `You are giving a candidate honest, specific feedback about how well they fit a job posting. Do not be generically encouraging — if the fit is weak, say so plainly and explain why. Consider their stated experience level, function, industry background, and target role against what the posting actually asks for.
+
+First, extract the job title and hiring company name stated in the posting text itself (title/companyName — null if genuinely not stated, never guessed).
 
 Return fitFeedback as no more than 5 short, scannable bullets (each one sentence, plain language) — not a paragraph. Lead with the most decision-relevant point (the biggest strength or the biggest gap).
 
@@ -74,6 +83,8 @@ ${
     await prisma.jobPosting.update({
       where: { id: jobPostingId },
       data: {
+        title: data.title,
+        companyName: data.companyName,
         fitScore: data.fitScore,
         fitFeedback: data.fitFeedback,
         keywords: data.keywords,
@@ -81,8 +92,49 @@ ${
         analyzedAt: new Date(),
       },
     })
+
+    if (data.title) {
+      await mirrorJobPostingToBoard({
+        candidateId,
+        url: jobPosting.url,
+        title: data.title,
+        companyName: data.companyName,
+      })
+    }
   } catch {
     // Analysis failure is non-fatal — the posting stays without a fit score
     // rather than blocking the candidate's submission.
   }
+}
+
+// A candidate's own private job-fit check is never shown to anyone else —
+// but it's still a real, verified-to-exist job opening, so it's worth
+// counting toward the admin-side job database rather than staying invisible
+// outside this one candidate's tracker. distribution: 'EXCLUDED' is the
+// existing "never shown in the browse feed at all" flag (previously only
+// used for recruiter private-pipeline listings), which is exactly the
+// semantics needed here — collected, never surfaced to any candidate.
+// Deduped by url so the same posting checked by several candidates only
+// ever creates one row.
+async function mirrorJobPostingToBoard(input: {
+  candidateId: string
+  url: string
+  title: string
+  companyName: string | null
+}): Promise<void> {
+  const existing = await prisma.exclusiveJobPosting.findFirst({ where: { url: input.url } })
+  if (existing) return
+
+  await prisma.exclusiveJobPosting.create({
+    data: {
+      title: input.title,
+      companyName: input.companyName ?? 'Unknown (candidate-submitted)',
+      url: input.url,
+      addedBy: 'candidate_check',
+      status: 'approved',
+      source: 'candidate_check',
+      distribution: 'EXCLUDED',
+      submittedByCandidateId: input.candidateId,
+    },
+  })
 }

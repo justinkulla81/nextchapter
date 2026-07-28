@@ -74,6 +74,9 @@ export async function approveJobPosting(postingId: string) {
     companyName: posting.companyName,
   })
   revalidatePath('/support/admin/exclusive-jobs')
+  // Also refreshes the "Job recommendations" section on every candidate
+  // detail page — approving there is a common path into this action too.
+  revalidatePath('/support/admin/candidates/[id]', 'page')
 }
 
 export async function rejectJobPosting(postingId: string, formData: FormData) {
@@ -136,7 +139,9 @@ export async function previewJobPostingFit(input: {
   const candidates = await loadAdminFitCandidates()
   return countPendingJobMatches(
     {
+      id: '',
       title: input.title,
+      companyName: '',
       description: null,
       location: input.location,
       salaryMin: input.salaryMin,
@@ -189,6 +194,54 @@ export async function approveAllPendingForCompany(companyName: string) {
   })
   for (const posting of pending) {
     captureServerEvent(posting.id, 'job_board_posting_approved', {
+      postingId: posting.id,
+      source: posting.source,
+      companyName,
+      bulk: true,
+    })
+  }
+  revalidatePath('/support/admin/exclusive-jobs')
+}
+
+export async function rejectAllPendingJobPostings() {
+  await requireAdmin()
+
+  const pending = await prisma.exclusiveJobPosting.findMany({
+    where: { status: 'pending', archivedAt: null },
+    select: { id: true, source: true, companyName: true },
+  })
+  if (pending.length === 0) return
+
+  await prisma.exclusiveJobPosting.updateMany({
+    where: { id: { in: pending.map((p) => p.id) } },
+    data: { status: 'rejected' },
+  })
+  for (const posting of pending) {
+    captureServerEvent(posting.id, 'job_board_posting_rejected', {
+      postingId: posting.id,
+      source: posting.source,
+      companyName: posting.companyName,
+      bulk: true,
+    })
+  }
+  revalidatePath('/support/admin/exclusive-jobs')
+}
+
+export async function rejectAllPendingForCompany(companyName: string) {
+  await requireAdmin()
+
+  const pending = await prisma.exclusiveJobPosting.findMany({
+    where: { status: 'pending', archivedAt: null, companyName },
+    select: { id: true, source: true },
+  })
+  if (pending.length === 0) return
+
+  await prisma.exclusiveJobPosting.updateMany({
+    where: { id: { in: pending.map((p) => p.id) } },
+    data: { status: 'rejected' },
+  })
+  for (const posting of pending) {
+    captureServerEvent(posting.id, 'job_board_posting_rejected', {
       postingId: posting.id,
       source: posting.source,
       companyName,

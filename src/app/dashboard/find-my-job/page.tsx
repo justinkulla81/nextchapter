@@ -143,6 +143,10 @@ export default async function JobFitPage() {
             Real openings from our job board, plus roles our automated search partners
             found for you — no grade required to see these.
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            The search-partner roles update automatically based on your target role, location, and
+            resume — refreshed each time your list runs low, no action needed from you.
+          </p>
         </div>
 
         {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (

@@ -490,57 +490,58 @@ model CandidateProfile {
   introCommittedAt      DateTime? // set once the candidate finishes the post-signup welcome/payoff page and clicks "I'm committed" — gates dashboard access, backs its 5-point Search Sprint bonus
 
   // Deferred signup (resume-first onboarding, account creation last)
-  email                   String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
-  resumeStepComplete      Boolean   @default(false)
-  registrationCompletedAt DateTime? // set once the anonymous->permanent auth conversion completes
-  passwordSetAt           DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
-  duplicateEmailBlockedAt DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
+  email                     String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
+  resumeStepComplete        Boolean   @default(false)
+  registrationCompletedAt   DateTime? // set once the anonymous->permanent auth conversion completes
+  passwordSetAt             DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
+  duplicateEmailBlockedAt   DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
   // Claims the "no report exists yet, go generate one" window in resolveLatestReport()
   // so two near-simultaneous /dashboard loads (or a registration load racing a later
   // load) can't both pass the check and each generate + email a duplicate report.
   // Treated as stale after REPORT_GENERATION_CLAIM_STALE_MS — see report-generation-lock.ts.
   reportGenerationClaimedAt DateTime?
-  lastReminderSentAt      DateTime?
-  reminderEmailCount      Int       @default(0)
-  reminderEmailsOptedOut  Boolean   @default(false)
+  lastReminderSentAt        DateTime?
+  reminderEmailCount        Int       @default(0)
+  reminderEmailsOptedOut    Boolean   @default(false)
 
   // Relations
-  workHistory                WorkHistoryEntry[]
-  references                 Reference[]
-  referenceQuotes            ReferenceQuote[]
-  workSamples                WorkSample[]
-  interviewResponses         InterviewResponse[]
-  peerNominations            PeerNomination[]
-  learningBadges             LearningBadge[]
-  employerInteractions       CandidateInteraction[]
-  approvedEmployers          ApprovedEmployer[]
-  assessmentResults          AssessmentResult[]
-  assessmentResponses        CandidateAssessmentResponse[]
-  resumes                    Resume[]
-  jobPostings                JobPosting[]
-  communityPosts             CommunityPost[]
-  expressedInterests         CommunityPostInterest[]
-  hireabilityReports         HireabilityReport[]
-  linkedInActivityLogs       LinkedInActivityLog[]
-  coachConversation          CoachConversation?
-  narratives                 CandidateNarrative[]
-  coachingWaitlistEntries    CoachingWaitlist[]
-  guideLeadEntries           GuideLead[]
-  bountyClaims               BountyClaim[]
-  dailyCheckIns              DailyCheckIn[]
-  weeklySprints              WeeklySprint[]
-  sundayNightReports         SundayNightReport[]
-  weeklyBadgesEarned         WeeklyBadgeEarned[]
-  marketRealitySnapshots     MarketRealitySnapshot[]
-  encouragementNotesSent     EncouragementNote[]           @relation("EncouragementSent")
-  encouragementNotesReceived EncouragementNote[]           @relation("EncouragementReceived")
-  supportNetworkContacts     SupportNetworkContact[]
-  outreachLogs               OutreachLog[]
-  surfacedJobs               SurfacedJob[]
-  jobBoardIntroRequests      JobBoardIntroRequest[]
-  pivotIdeas                 PivotIdea[]
-  marketResponseLogs         MarketResponseLog[]
-  profileShares              ProfileShare[]
+  workHistory                  WorkHistoryEntry[]
+  references                   Reference[]
+  referenceQuotes              ReferenceQuote[]
+  workSamples                  WorkSample[]
+  interviewResponses           InterviewResponse[]
+  peerNominations              PeerNomination[]
+  learningBadges               LearningBadge[]
+  employerInteractions         CandidateInteraction[]
+  approvedEmployers            ApprovedEmployer[]
+  assessmentResults            AssessmentResult[]
+  assessmentResponses          CandidateAssessmentResponse[]
+  resumes                      Resume[]
+  jobPostings                  JobPosting[]
+  communityPosts               CommunityPost[]
+  expressedInterests           CommunityPostInterest[]
+  hireabilityReports           HireabilityReport[]
+  linkedInActivityLogs         LinkedInActivityLog[]
+  coachConversation            CoachConversation?
+  narratives                   CandidateNarrative[]
+  coachingWaitlistEntries      CoachingWaitlist[]
+  guideLeadEntries             GuideLead[]
+  bountyClaims                 BountyClaim[]
+  dailyCheckIns                DailyCheckIn[]
+  weeklySprints                WeeklySprint[]
+  sundayNightReports           SundayNightReport[]
+  weeklyBadgesEarned           WeeklyBadgeEarned[]
+  marketRealitySnapshots       MarketRealitySnapshot[]
+  encouragementNotesSent       EncouragementNote[]           @relation("EncouragementSent")
+  encouragementNotesReceived   EncouragementNote[]           @relation("EncouragementReceived")
+  supportNetworkContacts       SupportNetworkContact[]
+  outreachLogs                 OutreachLog[]
+  surfacedJobs                 SurfacedJob[]
+  jobBoardIntroRequests        JobBoardIntroRequest[]
+  candidateJobBoardSubmissions ExclusiveJobPosting[]
+  pivotIdeas                   PivotIdea[]
+  marketResponseLogs           MarketResponseLog[]
+  profileShares                ProfileShare[]
 
   // Coach P0-lite — set once, at profile creation, when the candidate came in
   // through a coach's personal invite link. Never re-assigned afterward (an
@@ -1019,9 +1020,9 @@ model EmployerProfile {
 // direct lookup, unaffected by whether any seats exist). userId is null
 // until the invited person accepts and links their own Supabase account.
 model EmployerSeat {
-  id         String          @id @default(cuid())
+  id         String           @id @default(cuid())
   employerId String
-  employer   EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  employer   EmployerProfile  @relation(fields: [employerId], references: [id], onDelete: Cascade)
   role       EmployerSeatRole @default(MEMBER)
 
   invitedEmail String
@@ -1215,6 +1216,14 @@ model JobPosting {
   fetchStatus   String // "pending" | "success" | "fetch_failed" | "parse_failed"
   fetchError    String?
   extractedText String?
+
+  // Pulled from the same analyzeJobFit LLM pass that produces fitScore below
+  // — no separate extraction call. Used to mirror this posting into the
+  // shared ExclusiveJobPosting table (source: 'candidate_check') so it
+  // counts toward the admin-side job database without ever being shown to
+  // any other candidate.
+  title       String?
+  companyName String?
 
   fitScore        Int? // 0-100
   fitFeedback     String[]  @default([]) // short, scannable bullets — no more than 5
@@ -1773,13 +1782,21 @@ model ExclusiveJobPosting {
   // to 'approved' — they were already trusted before this field existed.
   status String @default("approved")
 
-  // 'admin' | 'employer' | 'recruiter' | 'ats_feed'
+  // 'admin' | 'employer' | 'recruiter' | 'ats_feed' | 'candidate_check' |
+  // 'candidate_referral'
   source String @default("admin")
 
   submittedByEmployerId  String?
-  submittedByEmployer    EmployerProfile? @relation(fields: [submittedByEmployerId], references: [id], onDelete: SetNull)
+  submittedByEmployer    EmployerProfile?  @relation(fields: [submittedByEmployerId], references: [id], onDelete: SetNull)
   submittedByRecruiterId String?
-  submittedByRecruiter   Recruiter?       @relation(fields: [submittedByRecruiterId], references: [id], onDelete: SetNull)
+  submittedByRecruiter   Recruiter?        @relation(fields: [submittedByRecruiterId], references: [id], onDelete: SetNull)
+  // Set for the two candidate-originated sources below — 'candidate_check'
+  // (a private job-fit check, mirrored here only for admin-side market
+  // visibility — see distribution note) or 'candidate_referral' (a lead a
+  // candidate heard about through their own network, submitted for the
+  // normal admin review queue like any other non-admin source).
+  submittedByCandidateId String?
+  submittedByCandidate   CandidateProfile? @relation(fields: [submittedByCandidateId], references: [id], onDelete: SetNull)
 
   rejectionReason String?
 
@@ -1805,7 +1822,7 @@ model ExclusiveJobPosting {
   // 'OPEN' | 'CONFIDENTIAL' — is companyName shown to candidates. Only
   // ever set to 'CONFIDENTIAL' via the recruiter submission form; enforced
   // in the action layer, not the DB.
-  disclosure String @default("OPEN")
+  disclosure   String @default("OPEN")
 
   // Targeting criteria, populated only when distribution = 'TARGETED'.
   // Denormalized rather than a RoleProfile FK — Recruiters and NC don't
@@ -1932,9 +1949,9 @@ model Coach {
   // Hard-constraint fields for matching — gender is self-described, never
   // used to exclude unless a candidate expresses a preference (default: no
   // preference, never forced either direction).
-  gender    String?
-  languages String[]
-  timezone  String?
+  gender             String?
+  languages          String[]
+  timezone           String?
 
   clients                     CandidateProfile[]
   sessions                    CoachSession[]
@@ -2056,25 +2073,25 @@ enum SourcedCandidateStatus {
 // own tracking + records the sourcing relationship via
 // CandidateProfile.sourcingRecruiterId.
 model SourcedCandidate {
-  id          String                 @id @default(cuid())
-  recruiterId String
-  recruiter   Recruiter              @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
-  name        String
-  email       String
-  notes       String?                @db.Text
-  status      SourcedCandidateStatus @default(ADDED)
-  inviteToken String?                @unique
-  invitedAt   DateTime?
-  candidateId String?                @unique
-  candidate   CandidateProfile?      @relation(fields: [candidateId], references: [id])
+  id               String                 @id @default(cuid())
+  recruiterId      String
+  recruiter        Recruiter              @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  name             String
+  email            String
+  notes            String?                @db.Text
+  status           SourcedCandidateStatus @default(ADDED)
+  inviteToken      String?                @unique
+  invitedAt        DateTime?
+  candidateId      String?                @unique
+  candidate        CandidateProfile?      @relation(fields: [candidateId], references: [id])
   // Recruiter's notes tied specifically to the candidate's resume (once
   // signed up) — distinct from `notes` above, which is general free-text
   // added when the candidate was first sourced.
-  resumeCommentary String?           @db.Text
+  resumeCommentary String?                @db.Text
   // Curated into the recruiter's submittable "book" to present to employers.
-  inBook           Boolean           @default(false)
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
+  inBook           Boolean                @default(false)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
 
   @@unique([recruiterId, email])
   @@index([recruiterId, status])
@@ -2157,9 +2174,9 @@ enum ResearchBucket {
 // classified. Permanent, growing — rows are never deleted, only moved
 // through `status`.
 model ResearchLibraryItem {
-  id        String   @id @default(cuid())
-  url       String
-  dateFound DateTime @default(now())
+  id              String   @id @default(cuid())
+  url             String
+  dateFound       DateTime @default(now())
   // 'inbox' | 'manual'
   ingestionSource String
 
@@ -2173,18 +2190,18 @@ model ResearchLibraryItem {
   // Low-confidence classifications land here instead of being auto-filed —
   // surfaced separately in the admin triage view rather than silently
   // buried in their guessed bucket.
-  needsReview Boolean @default(false)
+  needsReview     Boolean         @default(false)
   // 'recognized' | 'unknown' — source credibility, always surfaced, never hidden.
   credibilityTier String?
 
-  suggestedAction String? @db.Text
+  suggestedAction           String? @db.Text
   // PERSONA_RESEARCH items that appear to contradict an existing locked
   // product decision get flagged prominently and separately, never folded
   // quietly into a routine digest entry.
   contradictsLockedDecision Boolean @default(false)
   // EmploymentSituation enum value, set only when bucket = PERSONA_RESEARCH —
   // reuses the existing persona-adjacent taxonomy rather than a new one.
-  personaTag String?
+  personaTag                String?
 
   // MARKET_BRIEF items an admin has queued into the next Weekly Market
   // Digest send (see the Digest Composer).
@@ -2253,17 +2270,17 @@ model MessageThread {
   candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   partnerType ThreadPartnerType
 
-  coachId    String?
-  coach      Coach?           @relation(fields: [coachId], references: [id])
+  coachId     String?
+  coach       Coach?           @relation(fields: [coachId], references: [id])
   recruiterId String?
-  recruiter  Recruiter?       @relation(fields: [recruiterId], references: [id])
-  employerId String?
-  employer   EmployerProfile? @relation(fields: [employerId], references: [id])
+  recruiter   Recruiter?       @relation(fields: [recruiterId], references: [id])
+  employerId  String?
+  employer    EmployerProfile? @relation(fields: [employerId], references: [id])
 
   createdAt           DateTime @default(now())
-  lastMessageAt        DateTime @default(now())
-  candidateLastReadAt  DateTime @default(now())
-  partnerLastReadAt    DateTime @default(now())
+  lastMessageAt       DateTime @default(now())
+  candidateLastReadAt DateTime @default(now())
+  partnerLastReadAt   DateTime @default(now())
 
   messages Message[]
 

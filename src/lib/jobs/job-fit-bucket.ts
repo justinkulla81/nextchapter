@@ -33,7 +33,11 @@ type FitCandidate = Pick<
 // skills/tools/certs pulled from their resume. Neither is precise enough to
 // fold into the shared P0 heuristic (candidate-facing everywhere else) —
 // this is admin curation aid only, so a looser bonus-on-top is fine.
-type AdminFitCandidate = FitCandidate & Pick<CandidateProfile, 'targetRoleType' | 'resumeKeywords'>
+// id/firstName/lastName/email are only needed by the two candidate-centric
+// ranking helpers below (rankPendingPostingsForCandidate,
+// rankCandidatesByFitCoverage) — harmless to carry on every caller.
+export type AdminFitCandidate = FitCandidate &
+  Pick<CandidateProfile, 'id' | 'firstName' | 'lastName' | 'email' | 'targetRoleType' | 'resumeKeywords'>
 
 function titleSimilarityBonus(targetRoleType: string | null, postingTitle: string): number {
   if (!targetRoleType || isVagueTargetRole(targetRoleType)) return 0
@@ -91,6 +95,10 @@ export interface PendingJobMatchCount {
   matched: number
   total: number
   grade: Grade
+  // Raw matched/total expressed as 0-100 — the admin-facing display now
+  // leads with this instead of the letter grade (still computed above for
+  // any caller that wants a coarser bucket; nothing currently reads it).
+  scorePercent: number
 }
 
 // Provisional thresholds on % of the whole candidate pool that's a plausible
@@ -109,12 +117,20 @@ function fitRatioToGrade(matched: number, total: number): Grade {
   return 'F'
 }
 
+function scorePercent(matched: number, total: number): number {
+  return total === 0 ? 0 : Math.round((matched / total) * 100)
+}
+
 // Shared select shape for the admin fit-matching candidate pool — used by
 // both the Job Board review queue (page.tsx) and the manual-add form's
 // live fit preview, so the two never drift out of sync with each other.
 export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
   return prisma.candidateProfile.findMany({
     select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
       primaryFunction: true,
       highestLevelReached: true,
       remotePreference: true,
@@ -137,22 +153,23 @@ function inferRemoteFromLocation(location: string | null): boolean {
   return location != null && /\bremote\b/i.test(location)
 }
 
-export function countPendingJobMatches(
-  posting: Pick<
-    ExclusiveJobPosting,
-    | 'title'
-    | 'description'
-    | 'location'
-    | 'salaryMin'
-    | 'salaryMax'
-    | 'targetFunction'
-    | 'targetLevel'
-    | 'targetRemotePolicy'
-    | 'targetLocation'
-  >,
-  candidates: AdminFitCandidate[]
-): PendingJobMatchCount {
-  const role = {
+export type FitRankablePosting = Pick<
+  ExclusiveJobPosting,
+  | 'id'
+  | 'title'
+  | 'companyName'
+  | 'description'
+  | 'location'
+  | 'salaryMin'
+  | 'salaryMax'
+  | 'targetFunction'
+  | 'targetLevel'
+  | 'targetRemotePolicy'
+  | 'targetLocation'
+>
+
+function postingToRole(posting: FitRankablePosting) {
+  return {
     primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
     roleLevel: posting.targetLevel ?? inferLevelFromTitle(posting.title),
     remotePolicy: posting.targetRemotePolicy ?? (inferRemoteFromLocation(posting.location) ? 'remote' : null),
@@ -160,14 +177,70 @@ export function countPendingJobMatches(
     compMin: posting.salaryMin,
     compMax: posting.salaryMax,
   }
+}
+
+// The same boosted (base match + title-similarity + keyword-match) score
+// used everywhere admin-side fit is computed — factored out so the
+// posting-centric (countPendingJobMatches) and candidate-centric
+// (rankPendingPostingsForCandidate, rankCandidatesByFitCoverage) views never
+// drift apart on what "a good fit" means.
+function boostedMatchScore(candidate: AdminFitCandidate, posting: FitRankablePosting): number {
+  const base = computeMatchScore(candidate, postingToRole(posting)).score
   const postingText = `${posting.title} ${posting.description ?? ''}`
-  const matched = candidates.filter((c) => {
-    const base = computeMatchScore(c, role).score
-    const boosted =
-      base + titleSimilarityBonus(c.targetRoleType, posting.title) + keywordMatchBonus(c.resumeKeywords, postingText)
-    return Math.min(100, boosted) >= 45
-  }).length
-  return { matched, total: candidates.length, grade: fitRatioToGrade(matched, candidates.length) }
+  const boosted =
+    base + titleSimilarityBonus(candidate.targetRoleType, posting.title) + keywordMatchBonus(candidate.resumeKeywords, postingText)
+  return Math.min(100, boosted)
+}
+
+// The threshold a boosted score has to clear to count as a real, plausible
+// fit — shared by every consumer below so "good fit" means the same thing
+// everywhere on the admin side.
+const GOOD_FIT_THRESHOLD = 45
+
+export function countPendingJobMatches(posting: FitRankablePosting, candidates: AdminFitCandidate[]): PendingJobMatchCount {
+  const matched = candidates.filter((c) => boostedMatchScore(c, posting) >= GOOD_FIT_THRESHOLD).length
+  return {
+    matched,
+    total: candidates.length,
+    grade: fitRatioToGrade(matched, candidates.length),
+    scorePercent: scorePercent(matched, candidates.length),
+  }
+}
+
+// The reverse of countPendingJobMatches — for one candidate, how well does
+// each pending posting fit them, highest first. Powers the "Job
+// recommendations" section on the admin candidate detail page.
+export function rankPendingPostingsForCandidate<T extends FitRankablePosting>(
+  candidate: AdminFitCandidate,
+  postings: T[]
+): Array<{ posting: T; score: number }> {
+  return postings
+    .map((posting) => ({ posting, score: boostedMatchScore(candidate, posting) }))
+    .sort((a, b) => b.score - a.score)
+}
+
+export interface CandidateFitCoverage {
+  candidate: AdminFitCandidate
+  goodFitCount: number
+  totalPostings: number
+}
+
+// For every candidate, how many of the given (active) postings are a
+// plausible fit — sorted ascending, so candidates with the fewest real
+// options surface first. Powers the admin "Candidates with the fewest
+// options" section, which flags who most needs manual sourcing attention
+// rather than just showing which postings are popular.
+export function rankCandidatesByFitCoverage<T extends FitRankablePosting>(
+  candidates: AdminFitCandidate[],
+  postings: T[]
+): CandidateFitCoverage[] {
+  return candidates
+    .map((candidate) => ({
+      candidate,
+      goodFitCount: postings.filter((posting) => boostedMatchScore(candidate, posting) >= GOOD_FIT_THRESHOLD).length,
+      totalPostings: postings.length,
+    }))
+    .sort((a, b) => a.goodFitCount - b.goodFitCount)
 }
 
 // SurfacedJob rows have no structured function/level/comp fields — only

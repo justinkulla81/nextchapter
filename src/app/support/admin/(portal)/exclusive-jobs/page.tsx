@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -9,15 +10,16 @@ import {
   reconfirmJobPostingAdmin,
   approveAllPendingJobPostings,
   approveAllPendingForCompany,
+  rejectAllPendingJobPostings,
+  rejectAllPendingForCompany,
 } from './actions'
 import { ExclusiveJobPostingForm } from '@/components/admin/ExclusiveJobPostingForm'
 import { ConfirmForm } from '@/components/admin/ConfirmForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
-import { countPendingJobMatches, loadAdminFitCandidates } from '@/lib/jobs/job-fit-bucket'
+import { countPendingJobMatches, loadAdminFitCandidates, rankCandidatesByFitCoverage } from '@/lib/jobs/job-fit-bucket'
 import { displayJobLocation } from '@/lib/jobs/us-location'
-import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
 
 export const maxDuration = 30
 
@@ -26,6 +28,8 @@ const SOURCE_LABEL: Record<string, string> = {
   employer: 'Employer submission',
   recruiter: 'Recruiter submission',
   ats_feed: 'ATS feed',
+  candidate_check: 'Private candidate job-fit check',
+  candidate_referral: 'Candidate network lead',
 }
 
 const AUDIENCE_TIER_LABEL: Record<string, string> = {
@@ -62,20 +66,20 @@ function completenessSignals(posting: Pick<ExclusiveJobPosting, 'contactName' | 
   return { present, missing }
 }
 
-function GradePill({ grade }: { grade: Grade }) {
-  return <span className={`text-lg font-bold ${GRADE_TEXT_COLOR[grade]}`}>{grade}</span>
+function ScorePill({ scorePercent }: { scorePercent: number }) {
+  return <span className="text-lg font-bold text-foreground tabular-nums">{scorePercent}%</span>
 }
 
 function PostingCard({
   posting,
   matched,
   total,
-  grade,
+  scorePercent,
 }: {
   posting: ExclusiveJobPosting
   matched: number
   total: number
-  grade: Grade
+  scorePercent: number
 }) {
   const { present, missing } = completenessSignals(posting)
   const location = displayJobLocation(posting.location)
@@ -88,7 +92,7 @@ function PostingCard({
             <p className="font-medium">
               {posting.title} <span className="text-muted-foreground">at {posting.companyName}</span>
             </p>
-            <GradePill grade={grade} />
+            <ScorePill scorePercent={scorePercent} />
           </div>
           <p className="text-xs text-muted-foreground">
             {SOURCE_LABEL[posting.source]} · {posting.createdAt.toLocaleDateString()}
@@ -193,6 +197,18 @@ export default async function ExclusiveJobsAdminPage() {
     return b.posting.createdAt.getTime() - a.posting.createdAt.getTime()
   })
 
+  // Which candidates the current ACTIVE board is serving worst — sorted
+  // ascending, so whoever has the fewest plausible-fit live listings surfaces
+  // first. This is the inverse lens from "By fit" above: that view asks
+  // "which posting has the widest pool," this asks "who most needs more
+  // sourcing attention." Capped to the 10 worst-served so the section stays
+  // scannable — it's a sourcing prompt, not a full roster.
+  // Excludes EXCLUDED-distribution rows (private candidate job-fit-check
+  // mirrors) — those were never a real option available to anyone, so
+  // counting them here would understate how underserved a candidate is.
+  const activeAvailablePostings = active.filter((p) => p.distribution !== 'EXCLUDED')
+  const candidatesNeedingOptions = rankCandidatesByFitCoverage(candidates, activeAvailablePostings).slice(0, 10)
+
   const archivedByCompany = new Map<string, typeof archived>()
   for (const posting of archived) {
     const group = archivedByCompany.get(posting.companyName) ?? []
@@ -226,14 +242,24 @@ export default async function ExclusiveJobsAdminPage() {
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-sm font-medium text-muted-foreground">Pending review ({pending.length})</h2>
           {pending.length > 0 && (
-            <ConfirmForm
-              action={approveAllPendingJobPostings}
-              confirmMessage={`Approve all ${pending.length} pending postings? They'll become visible to eligible candidates immediately.`}
-            >
-              <SubmitButton size="sm" variant="outline" pendingLabel="Approving all…">
-                Approve all ({pending.length})
-              </SubmitButton>
-            </ConfirmForm>
+            <div className="flex items-center gap-2">
+              <ConfirmForm
+                action={approveAllPendingJobPostings}
+                confirmMessage={`Approve all ${pending.length} pending postings? They'll become visible to eligible candidates immediately.`}
+              >
+                <SubmitButton size="sm" variant="outline" pendingLabel="Approving all…">
+                  Approve all ({pending.length})
+                </SubmitButton>
+              </ConfirmForm>
+              <ConfirmForm
+                action={rejectAllPendingJobPostings}
+                confirmMessage={`Reject all ${pending.length} pending postings? This cannot be undone from here.`}
+              >
+                <SubmitButton size="sm" variant="destructive" pendingLabel="Rejecting all…">
+                  Reject all ({pending.length})
+                </SubmitButton>
+              </ConfirmForm>
+            </div>
           )}
         </div>
 
@@ -251,16 +277,32 @@ export default async function ExclusiveJobsAdminPage() {
                     </span>
                   </summary>
                   <div className="space-y-3 border-t border-border p-3">
-                    <ConfirmForm
-                      action={approveAllPendingForCompany.bind(null, companyName)}
-                      confirmMessage={`Approve all ${rows.length} pending ${companyName} postings? They'll become visible to eligible candidates immediately.`}
-                    >
-                      <SubmitButton size="sm" variant="outline" pendingLabel="Approving…">
-                        Approve all for {companyName} ({rows.length})
-                      </SubmitButton>
-                    </ConfirmForm>
-                    {rows.map(({ posting, matched, total, grade }) => (
-                      <PostingCard key={posting.id} posting={posting} matched={matched} total={total} grade={grade} />
+                    <div className="flex items-center gap-2">
+                      <ConfirmForm
+                        action={approveAllPendingForCompany.bind(null, companyName)}
+                        confirmMessage={`Approve all ${rows.length} pending ${companyName} postings? They'll become visible to eligible candidates immediately.`}
+                      >
+                        <SubmitButton size="sm" variant="outline" pendingLabel="Approving…">
+                          Approve all for {companyName} ({rows.length})
+                        </SubmitButton>
+                      </ConfirmForm>
+                      <ConfirmForm
+                        action={rejectAllPendingForCompany.bind(null, companyName)}
+                        confirmMessage={`Reject all ${rows.length} pending ${companyName} postings?`}
+                      >
+                        <SubmitButton size="sm" variant="destructive" pendingLabel="Rejecting…">
+                          Reject all for {companyName} ({rows.length})
+                        </SubmitButton>
+                      </ConfirmForm>
+                    </div>
+                    {rows.map(({ posting, matched, total, scorePercent }) => (
+                      <PostingCard
+                        key={posting.id}
+                        posting={posting}
+                        matched={matched}
+                        total={total}
+                        scorePercent={scorePercent}
+                      />
                     ))}
                   </div>
                 </details>
@@ -276,7 +318,7 @@ export default async function ExclusiveJobsAdminPage() {
                 <table className="w-full min-w-[920px] text-sm">
                   <thead className="bg-muted/50 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     <tr>
-                      <th className="px-3 py-2">Grade</th>
+                      <th className="px-3 py-2">Fit score</th>
                       <th className="px-3 py-2">Matches</th>
                       <th className="px-3 py-2">Role</th>
                       <th className="px-3 py-2">Location</th>
@@ -287,13 +329,13 @@ export default async function ExclusiveJobsAdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingByFit.map(({ posting, matched, total, grade }) => {
+                    {pendingByFit.map(({ posting, matched, total, scorePercent }) => {
                       const location = displayJobLocation(posting.location)
                       const { present, missing } = completenessSignals(posting)
                       return (
                         <tr key={posting.id} className="border-t border-border align-top">
                           <td className="px-3 py-3 whitespace-nowrap">
-                            <GradePill grade={grade} />
+                            <ScorePill scorePercent={scorePercent} />
                           </td>
                           <td className="px-3 py-3 font-medium whitespace-nowrap text-foreground">
                             {matched} of {total}
@@ -399,6 +441,47 @@ export default async function ExclusiveJobsAdminPage() {
               </Card>
             )
           })
+        )}
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-sm font-medium text-muted-foreground">Candidates with the fewest options</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Ranked ascending by plausible-fit listings on the active board right now — worst-served first, so
+            it&apos;s clear who most needs manual sourcing attention.
+          </p>
+        </div>
+        {candidatesNeedingOptions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No candidates yet.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <tr>
+                  <th className="px-3 py-2">Candidate</th>
+                  <th className="px-3 py-2">Good-fit active listings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {candidatesNeedingOptions.map(({ candidate, goodFitCount, totalPostings }) => (
+                  <tr key={candidate.id} className="border-t border-border">
+                    <td className="px-3 py-2">
+                      <Link
+                        href={`/support/admin/candidates/${candidate.id}`}
+                        className="text-primary underline underline-offset-4"
+                      >
+                        {[candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || candidate.email || candidate.id}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2 font-medium text-foreground tabular-nums">
+                      {goodFitCount} of {totalPostings}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
