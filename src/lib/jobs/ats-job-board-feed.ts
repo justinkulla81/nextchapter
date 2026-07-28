@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { ATS_COMPANIES, type AtsCompany } from '@/lib/market/ats-companies'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -143,6 +144,7 @@ export interface AtsFeedResult {
   fetched: number
   created: number
   reconfirmed: number
+  skippedNoFit: number
 }
 
 // Prompt 63 — seeds NC Job Board with listings pulled directly from each
@@ -152,10 +154,32 @@ export interface AtsFeedResult {
 // Greenhouse, Lever, and Ashby docs), so these always need a human to add
 // one or reject before going live, same review queue as employer/recruiter
 // self-submissions.
+//
+// This is the one job-board entry point with no real recruiter behind
+// it — an algorithm is deciding what's worth putting in front of an admin,
+// so it should only suggest roles that at least one real candidate could
+// actually fill. A title we can confidently map to a function (e.g.
+// "Senior Software Engineer" -> Engineering) that no current candidate has
+// is skipped outright rather than added to the pending queue. Titles we
+// can't map confidently fall through unfiltered — this is a coarse
+// title-keyword heuristic, not the real match score, so it should never be
+// the reason a legitimate posting silently disappears. Employer/recruiter
+// self-submissions are untouched by this — those represent a real hiring
+// need from a real party and already get a human review either way.
 export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   let fetched = 0
   let created = 0
   let reconfirmed = 0
+  let skippedNoFit = 0
+
+  const candidateFunctions = await prisma.candidateProfile.findMany({
+    where: { primaryFunction: { not: null } },
+    select: { primaryFunction: true },
+    distinct: ['primaryFunction'],
+  })
+  const candidateFunctionSet = new Set(
+    candidateFunctions.map((c) => c.primaryFunction!.trim().toLowerCase())
+  )
 
   for (const company of ATS_COMPANIES) {
     const listings = await fetchCompanyListings(company)
@@ -176,6 +200,12 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
           })
           reconfirmed += 1
         }
+        continue
+      }
+
+      const inferredFunction = inferFunctionFromTitle(listing.title)
+      if (inferredFunction && !candidateFunctionSet.has(inferredFunction.toLowerCase())) {
+        skippedNoFit += 1
         continue
       }
 
@@ -201,5 +231,5 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
     }
   }
 
-  return { fetched, created, reconfirmed }
+  return { fetched, created, reconfirmed, skippedNoFit }
 }
