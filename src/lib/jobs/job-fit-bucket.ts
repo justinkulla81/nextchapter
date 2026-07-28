@@ -2,6 +2,7 @@ import 'server-only'
 import type { CandidateProfile, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 
 // The "Quick-read" fit signal shown on every Discover card — free, no LLM
@@ -23,6 +24,35 @@ type FitCandidate = Pick<
   CandidateProfile,
   'primaryFunction' | 'highestLevelReached' | 'remotePreference' | 'currentCity' | 'openToRelocation' | 'targetCompMin' | 'compFlexible'
 >
+
+// Admin review additionally weighs two signals computeMatchScore doesn't
+// see at all: how closely the posting's title matches what the candidate
+// themselves said they're after, and whether the posting's text mentions
+// skills/tools/certs pulled from their resume. Neither is precise enough to
+// fold into the shared P0 heuristic (candidate-facing everywhere else) —
+// this is admin curation aid only, so a looser bonus-on-top is fine.
+type AdminFitCandidate = FitCandidate & Pick<CandidateProfile, 'targetRoleType' | 'resumeKeywords'>
+
+function titleSimilarityBonus(targetRoleType: string | null, postingTitle: string): number {
+  if (!targetRoleType || isVagueTargetRole(targetRoleType)) return 0
+  const target = targetRoleType.trim().toLowerCase()
+  if (!target) return 0
+  const title = postingTitle.toLowerCase()
+  if (title === target) return 20
+  if (title.includes(target) || target.includes(title)) return 16
+  const targetWords = target.split(/\s+/).filter((w) => w.length > 2)
+  if (targetWords.length === 0) return 0
+  const titleWords = new Set(title.split(/\s+/).filter((w) => w.length > 2))
+  const overlap = targetWords.filter((w) => titleWords.has(w)).length
+  return Math.round((overlap / targetWords.length) * 16)
+}
+
+function keywordMatchBonus(resumeKeywords: string[], postingText: string): number {
+  if (resumeKeywords.length === 0) return 0
+  const lower = postingText.toLowerCase()
+  const hits = resumeKeywords.filter((kw) => kw && lower.includes(kw.toLowerCase())).length
+  return Math.round((hits / resumeKeywords.length) * 10)
+}
 
 // Reuses computeMatchScore's function/level/location/comp heuristic as-is —
 // same P0 scoring the Match Inbox already relies on, just fed the board
@@ -60,9 +90,17 @@ export interface PendingJobMatchCount {
 export function countPendingJobMatches(
   posting: Pick<
     ExclusiveJobPosting,
-    'title' | 'location' | 'salaryMin' | 'salaryMax' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation'
+    | 'title'
+    | 'description'
+    | 'location'
+    | 'salaryMin'
+    | 'salaryMax'
+    | 'targetFunction'
+    | 'targetLevel'
+    | 'targetRemotePolicy'
+    | 'targetLocation'
   >,
-  candidates: FitCandidate[]
+  candidates: AdminFitCandidate[]
 ): PendingJobMatchCount {
   const role = {
     primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
@@ -72,7 +110,13 @@ export function countPendingJobMatches(
     compMin: posting.salaryMin,
     compMax: posting.salaryMax,
   }
-  const matched = candidates.filter((c) => computeMatchScore(c, role).score >= 45).length
+  const postingText = `${posting.title} ${posting.description ?? ''}`
+  const matched = candidates.filter((c) => {
+    const base = computeMatchScore(c, role).score
+    const boosted =
+      base + titleSimilarityBonus(c.targetRoleType, posting.title) + keywordMatchBonus(c.resumeKeywords, postingText)
+    return Math.min(100, boosted) >= 45
+  }).length
   return { matched, total: candidates.length }
 }
 

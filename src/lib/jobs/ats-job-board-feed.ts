@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { ATS_COMPANIES, type AtsCompany } from '@/lib/market/ats-companies'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { isUsLocation } from '@/lib/jobs/us-location'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -145,6 +146,7 @@ export interface AtsFeedResult {
   created: number
   reconfirmed: number
   skippedNoFit: number
+  skippedNonUs: number
 }
 
 // Prompt 63 — seeds NC Job Board with listings pulled directly from each
@@ -201,6 +203,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   const toCreate: FeedListing[] = []
   const seenUrls = new Set<string>()
   let skippedNoFit = 0
+  let skippedNonUs = 0
 
   for (const listing of allListings) {
     if (seenUrls.has(listing.url)) continue // defensive de-dupe within one run
@@ -213,6 +216,14 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
       // allowed to push the freshness clock forward the same way an
       // explicit reconfirm would.
       if (!existing.archivedAt) toReconfirmIds.push(existing.id)
+      continue
+    }
+
+    // US-only — the Job Board is scoped to candidates working in the US, so
+    // a listing naming a foreign country/city outright isn't a fit for
+    // anyone in the pool regardless of function match.
+    if (!isUsLocation(listing.location)) {
+      skippedNonUs += 1
       continue
     }
 
@@ -258,5 +269,6 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
     created: toCreate.length,
     reconfirmed: toReconfirmIds.length,
     skippedNoFit,
+    skippedNonUs,
   }
 }

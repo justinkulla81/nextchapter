@@ -96,3 +96,51 @@ export async function reconfirmJobPostingAdmin(postingId: string) {
   await reconfirmJobBoardPosting(postingId)
   revalidatePath('/support/admin/exclusive-jobs')
 }
+
+export async function approveAllPendingJobPostings() {
+  await requireAdmin()
+
+  const pending = await prisma.exclusiveJobPosting.findMany({
+    where: { status: 'pending', archivedAt: null },
+    select: { id: true, source: true, companyName: true },
+  })
+  if (pending.length === 0) return
+
+  await prisma.exclusiveJobPosting.updateMany({
+    where: { id: { in: pending.map((p) => p.id) } },
+    data: { status: 'approved' },
+  })
+  for (const posting of pending) {
+    captureServerEvent(posting.id, 'job_board_posting_approved', {
+      postingId: posting.id,
+      source: posting.source,
+      companyName: posting.companyName,
+      bulk: true,
+    })
+  }
+  revalidatePath('/support/admin/exclusive-jobs')
+}
+
+export async function approveAllPendingForCompany(companyName: string) {
+  await requireAdmin()
+
+  const pending = await prisma.exclusiveJobPosting.findMany({
+    where: { status: 'pending', archivedAt: null, companyName },
+    select: { id: true, source: true },
+  })
+  if (pending.length === 0) return
+
+  await prisma.exclusiveJobPosting.updateMany({
+    where: { id: { in: pending.map((p) => p.id) } },
+    data: { status: 'approved' },
+  })
+  for (const posting of pending) {
+    captureServerEvent(posting.id, 'job_board_posting_approved', {
+      postingId: posting.id,
+      source: posting.source,
+      companyName,
+      bulk: true,
+    })
+  }
+  revalidatePath('/support/admin/exclusive-jobs')
+}
