@@ -36,7 +36,16 @@ export async function requestPasswordReset(
   })
 
   if (error) {
-    return { error: error.message }
+    // Supabase's client collapses any 5xx from GoTrue (SMTP outage, unverified
+    // sending domain, etc.) into an unhelpful message — often literally "{}"
+    // — since those failures aren't meant to be shown to users verbatim.
+    // Only surface .message for expected 4xx cases (rate limiting, etc.).
+    const isServerError = error.status !== undefined && error.status >= 500
+    return {
+      error: isServerError
+        ? "We couldn't send the reset email right now. Please try again in a few minutes."
+        : error.message,
+    }
   }
 
   return { sent: true }
