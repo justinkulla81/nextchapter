@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { validateJobBoardSubmission, reconfirmJobBoardPosting } from '@/lib/jobs/job-board-submission'
+import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
+import { extractPostingFields, type ExtractedPostingFields } from '@/lib/jobs/extract-posting-fields'
+import { countPendingJobMatches, loadAdminFitCandidates, type PendingJobMatchCount } from '@/lib/jobs/job-fit-bucket'
 
 export type FormState = { error?: string } | undefined
 
@@ -95,6 +98,56 @@ export async function reconfirmJobPostingAdmin(postingId: string) {
 
   await reconfirmJobBoardPosting(postingId)
   revalidatePath('/support/admin/exclusive-jobs')
+}
+
+export type AutofillResult = { status: 'success'; fields: ExtractedPostingFields } | { status: 'error'; error: string }
+
+// Powers the "Autofill from URL" step on the manual-add form — fetches the
+// real posting page (same fetch/blocked-domain handling the candidate-facing
+// Job Fit tool uses) and runs it through an LLM extraction pass so the admin
+// isn't retyping title/company/location/salary by hand. Every field stays
+// editable afterward; this only pre-fills a starting point.
+export async function autofillJobPosting(url: string): Promise<AutofillResult> {
+  await requireAdmin()
+
+  const fetchResult = await fetchJobPosting(url)
+  if (fetchResult.status !== 'success' || !fetchResult.text) {
+    return { status: 'error', error: fetchResult.error ?? 'Could not fetch that URL.' }
+  }
+
+  const fields = await extractPostingFields(fetchResult.text)
+  return { status: 'success', fields }
+}
+
+// Live fit preview for the manual-add form — the same matched/total/grade
+// signal the ATS-sourced pending queue shows, computed on demand from
+// whatever the admin has typed so far (title/location/salary), before the
+// posting is even created. Manual postings save straight to 'approved' and
+// skip the pending queue entirely, so this is the only point they'd ever get
+// this signal.
+export async function previewJobPostingFit(input: {
+  title: string
+  location: string | null
+  salaryMin: number | null
+  salaryMax: number | null
+}): Promise<PendingJobMatchCount> {
+  await requireAdmin()
+
+  const candidates = await loadAdminFitCandidates()
+  return countPendingJobMatches(
+    {
+      title: input.title,
+      description: null,
+      location: input.location,
+      salaryMin: input.salaryMin,
+      salaryMax: input.salaryMax,
+      targetFunction: null,
+      targetLevel: null,
+      targetRemotePolicy: null,
+      targetLocation: null,
+    },
+    candidates
+  )
 }
 
 export async function approveAllPendingJobPostings() {

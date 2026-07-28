@@ -72,7 +72,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
     prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
-    prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo }, status: { not: 'rejected' } } }),
     prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
     prisma.candidateProfile.count(),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { not: null } } }),

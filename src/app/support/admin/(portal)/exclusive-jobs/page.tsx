@@ -15,8 +15,9 @@ import { ConfirmForm } from '@/components/admin/ConfirmForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
-import { countPendingJobMatches } from '@/lib/jobs/job-fit-bucket'
+import { countPendingJobMatches, loadAdminFitCandidates } from '@/lib/jobs/job-fit-bucket'
 import { displayJobLocation } from '@/lib/jobs/us-location'
+import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
 
 export const maxDuration = 30
 
@@ -47,27 +48,48 @@ function visibilitySummary(posting: { audienceTier: string; distribution: string
   return parts.join(' · ')
 }
 
+// Split into what's actually there vs. what's not, so the review queue
+// shows both a positive "this is ready to go" signal and a negative
+// "needs follow-up" one — reading only the gaps hides postings that are
+// already fully filled in.
+function completenessSignals(posting: Pick<ExclusiveJobPosting, 'contactName' | 'salaryMin' | 'salaryMax'>) {
+  const present: string[] = []
+  const missing: string[] = []
+  if (posting.contactName) present.push('named contact')
+  else missing.push('named contact')
+  if (posting.salaryMin && posting.salaryMax) present.push('salary band')
+  else missing.push('salary band')
+  return { present, missing }
+}
+
+function GradePill({ grade }: { grade: Grade }) {
+  return <span className={`text-lg font-bold ${GRADE_TEXT_COLOR[grade]}`}>{grade}</span>
+}
+
 function PostingCard({
   posting,
   matched,
   total,
+  grade,
 }: {
   posting: ExclusiveJobPosting
   matched: number
   total: number
+  grade: Grade
 }) {
-  const missing: string[] = []
-  if (!posting.contactName) missing.push('named contact')
-  if (!posting.salaryMin || !posting.salaryMax) missing.push('salary band')
+  const { present, missing } = completenessSignals(posting)
   const location = displayJobLocation(posting.location)
 
   return (
     <Card key={posting.id}>
       <CardContent className="space-y-3 pt-6">
         <div>
-          <p className="font-medium">
-            {posting.title} <span className="text-muted-foreground">at {posting.companyName}</span>
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-medium">
+              {posting.title} <span className="text-muted-foreground">at {posting.companyName}</span>
+            </p>
+            <GradePill grade={grade} />
+          </div>
           <p className="text-xs text-muted-foreground">
             {SOURCE_LABEL[posting.source]} · {posting.createdAt.toLocaleDateString()}
           </p>
@@ -99,6 +121,9 @@ function PostingCard({
               Confidential — double-check {posting.companyName} is a real client before approving.
             </p>
           )}
+          {present.length > 0 && (
+            <p className="mt-1 text-sm font-medium text-success">Includes: {present.join(', ')}</p>
+          )}
           {missing.length > 0 && (
             <p className="mt-1 text-sm font-medium text-destructive">
               Missing: {missing.join(', ')} — needs manual follow-up before approving
@@ -128,19 +153,7 @@ async function loadPageData() {
     prisma.exclusiveJobPosting.findMany({
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.candidateProfile.findMany({
-      select: {
-        primaryFunction: true,
-        highestLevelReached: true,
-        remotePreference: true,
-        currentCity: true,
-        openToRelocation: true,
-        targetCompMin: true,
-        compFlexible: true,
-        targetRoleType: true,
-        resumeKeywords: true,
-      },
-    }),
+    loadAdminFitCandidates(),
   ])
   const pending = postings.filter((p) => p.status === 'pending' && !p.archivedAt)
   const active = postings.filter((p) => p.status === 'approved' && !p.archivedAt)
@@ -246,8 +259,8 @@ export default async function ExclusiveJobsAdminPage() {
                         Approve all for {companyName} ({rows.length})
                       </SubmitButton>
                     </ConfirmForm>
-                    {rows.map(({ posting, matched, total }) => (
-                      <PostingCard key={posting.id} posting={posting} matched={matched} total={total} />
+                    {rows.map(({ posting, matched, total, grade }) => (
+                      <PostingCard key={posting.id} posting={posting} matched={matched} total={total} grade={grade} />
                     ))}
                   </div>
                 </details>
@@ -260,22 +273,28 @@ export default async function ExclusiveJobsAdminPage() {
                 Sorted by how many candidates in the pool are a plausible match — highest first.
               </p>
               <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full min-w-[720px] text-sm">
+                <table className="w-full min-w-[920px] text-sm">
                   <thead className="bg-muted/50 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     <tr>
+                      <th className="px-3 py-2">Grade</th>
                       <th className="px-3 py-2">Matches</th>
                       <th className="px-3 py-2">Role</th>
                       <th className="px-3 py-2">Location</th>
                       <th className="px-3 py-2">Salary</th>
+                      <th className="px-3 py-2">Quality</th>
                       <th className="px-3 py-2">Posted</th>
-                      <th className="px-3 py-2">Actions</th>
+                      <th className="sticky right-0 border-l border-border bg-muted/50 px-3 py-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingByFit.map(({ posting, matched, total }) => {
+                    {pendingByFit.map(({ posting, matched, total, grade }) => {
                       const location = displayJobLocation(posting.location)
+                      const { present, missing } = completenessSignals(posting)
                       return (
                         <tr key={posting.id} className="border-t border-border align-top">
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <GradePill grade={grade} />
+                          </td>
                           <td className="px-3 py-3 font-medium whitespace-nowrap text-foreground">
                             {matched} of {total}
                           </td>
@@ -296,10 +315,18 @@ export default async function ExclusiveJobsAdminPage() {
                               ? `${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`
                               : 'No band'}
                           </td>
+                          <td className="px-3 py-3 text-xs">
+                            {present.length > 0 && (
+                              <p className="font-medium text-success">Includes: {present.join(', ')}</p>
+                            )}
+                            {missing.length > 0 && (
+                              <p className="font-medium text-destructive">Missing: {missing.join(', ')}</p>
+                            )}
+                          </td>
                           <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">
                             {posting.createdAt.toLocaleDateString()}
                           </td>
-                          <td className="px-3 py-3">
+                          <td className="sticky right-0 border-l border-border bg-background px-3 py-3">
                             <div className="flex items-center gap-2">
                               <form action={approveJobPosting.bind(null, posting.id)}>
                                 <SubmitButton size="sm" pendingLabel="Approving…">

@@ -1,9 +1,11 @@
 import 'server-only'
 import type { CandidateProfile, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
+import type { Grade } from '@/lib/scoring/grade'
 
 // The "Quick-read" fit signal shown on every Discover card — free, no LLM
 // call, computed for every candidate x listing pair. Deliberately a bucket,
@@ -85,6 +87,42 @@ export function computeBoardListingFitBucket(
 export interface PendingJobMatchCount {
   matched: number
   total: number
+  grade: Grade
+}
+
+// Provisional thresholds on % of the whole candidate pool that's a plausible
+// fit — this is an admin-only comparative signal (not the candidate-facing
+// Grade scale in lib/scoring/grade.ts, which is calibrated against a single
+// candidate's own hireability). Reuses the same A-F type and color tokens
+// purely for visual consistency; revisit these cutoffs once there's a real
+// posting volume to calibrate against.
+function fitRatioToGrade(matched: number, total: number): Grade {
+  if (total === 0) return 'F'
+  const ratio = matched / total
+  if (ratio >= 0.5) return 'A'
+  if (ratio >= 0.3) return 'B'
+  if (ratio >= 0.15) return 'C'
+  if (ratio >= 0.05) return 'D'
+  return 'F'
+}
+
+// Shared select shape for the admin fit-matching candidate pool — used by
+// both the Job Board review queue (page.tsx) and the manual-add form's
+// live fit preview, so the two never drift out of sync with each other.
+export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
+  return prisma.candidateProfile.findMany({
+    select: {
+      primaryFunction: true,
+      highestLevelReached: true,
+      remotePreference: true,
+      currentCity: true,
+      openToRelocation: true,
+      targetCompMin: true,
+      compFlexible: true,
+      targetRoleType: true,
+      resumeKeywords: true,
+    },
+  })
 }
 
 export function countPendingJobMatches(
@@ -117,7 +155,7 @@ export function countPendingJobMatches(
       base + titleSimilarityBonus(c.targetRoleType, posting.title) + keywordMatchBonus(c.resumeKeywords, postingText)
     return Math.min(100, boosted) >= 45
   }).length
-  return { matched, total: candidates.length }
+  return { matched, total: candidates.length, grade: fitRatioToGrade(matched, candidates.length) }
 }
 
 // SurfacedJob rows have no structured function/level/comp fields — only

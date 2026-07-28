@@ -38,7 +38,6 @@ export function GoalsForm({
   inferredFunction: string | null
 }) {
   const [state, formAction, pending] = useActionState(updateGoals, undefined)
-  const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
   const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
   const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
   const [publicDisclosureComfort, setPublicDisclosureComfort] = useState<PublicDisclosureComfort | null>(
@@ -279,20 +278,11 @@ export function GoalsForm({
             name="willingToStartLower"
             value="on"
             defaultChecked={profile.willingToStartLower}
-            onCheckedChange={setWillingToStartLower}
           />
           <Label htmlFor="willingToStartLower" className="font-normal">
             I&apos;m willing to start at a lower level or title
           </Label>
         </div>
-        {willingToStartLower && (
-          <Textarea
-            name="startLowerRationale"
-            placeholder="Why? (optional, but helps employers understand the offer)"
-            rows={2}
-            defaultValue={profile.startLowerRationale ?? ''}
-          />
-        )}
         <div className="flex items-center gap-2">
           <Checkbox
             id="openToRelocation"
