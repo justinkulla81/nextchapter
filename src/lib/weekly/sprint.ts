@@ -289,6 +289,47 @@ export async function commitWeeklySprint(
   })
 }
 
+// Auto-verifies a recurring "Engage" action the moment the real behavior
+// happens (e.g. actually posting to Community) instead of waiting for a
+// self-report click — same philosophy as reconcileVerifiedActions, but for
+// recurring catalog actions that don't fit that helper's one-time
+// confirmation shape. No-ops if the candidate hasn't set this week's goals
+// yet (no sprint to log against). If the action type is already completed
+// this week, also no-ops — recurring actions award points once per week,
+// so posting twice never doubles them.
+export async function autoCompleteEngagementAction(
+  candidateId: string,
+  action: { actionType: string; text: string; points: number; estimatedMinutes: number }
+) {
+  const sprint = await getCurrentWeekSprint(candidateId)
+  if (!sprint) return
+
+  const actions = sprint.committedActions as unknown as CommittedAction[]
+  const existing = actions.find((a) => a.actionType === action.actionType)
+
+  if (existing) {
+    if (existing.completed) return
+    existing.completed = true
+    existing.completedAt = new Date().toISOString()
+  } else {
+    actions.push({
+      text: action.text,
+      actionType: action.actionType,
+      points: action.points,
+      estimatedMinutes: action.estimatedMinutes,
+      completed: true,
+      completedAt: new Date().toISOString(),
+      recurring: true,
+      addedFromCatalog: true,
+    })
+  }
+
+  await prisma.weeklySprint.update({
+    where: { id: sprint.id },
+    data: { committedActions: actions as unknown as Prisma.InputJsonValue },
+  })
+}
+
 export async function toggleSprintActionCompletion(candidateId: string, actionIndex: number) {
   const sprint = await getCurrentWeekSprint(candidateId)
   if (!sprint) return

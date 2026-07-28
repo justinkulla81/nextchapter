@@ -78,16 +78,14 @@ function buildSections(
     {
       title: 'Connecting',
       links: [
-        { href: '/dashboard/network', label: 'Your Network' },
-        {
-          href: '/dashboard/messages',
-          label: 'Messages',
-          badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
-        },
+        { href: '/dashboard/network', label: 'Outreach Contacts' },
         {
           href: '/dashboard/community',
           label: 'Support Network',
-          badge: supportNetworkUnreadCount > 0 ? String(supportNetworkUnreadCount) : undefined,
+          badge:
+            supportNetworkUnreadCount + messagesUnreadCount > 0
+              ? String(supportNetworkUnreadCount + messagesUnreadCount)
+              : undefined,
         },
         { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
         {

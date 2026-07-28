@@ -39,7 +39,7 @@ export async function sendCandidateMessage(
   }
 
   captureServerEvent(profile.id, 'message_sent', { threadId, senderRole: 'CANDIDATE' })
-  revalidatePath(`/dashboard/messages/${threadId}`)
+  revalidatePath('/dashboard/community')
   return undefined
 }
 

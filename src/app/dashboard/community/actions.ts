@@ -9,6 +9,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { sendPostInterestNotification } from '@/lib/email/send-post-interest-notification'
 import { sendEncouragementNote, markEncouragementNoteRead } from '@/lib/community/encouragement'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 
 export type FormState = { error?: string } | undefined
 
@@ -63,6 +64,20 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
   })
 
   captureServerEvent(profile.id, 'community_post_created', { postId: post.id, postType })
+
+  // Sharing an update is real, verifiable effort — award the points
+  // automatically instead of requiring a separate self-report toggle in the
+  // Weekly Search Sprint. Scoped to UPDATE only (not SELF_INTRO, a one-time
+  // onboarding milestone rather than the ongoing "share" behavior this
+  // rewards).
+  if (postType === 'UPDATE') {
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'ENGAGE_POST_UPDATE',
+      text: 'Post an update on your own progress',
+      points: 10,
+      estimatedMinutes: 10,
+    })
+  }
 
   revalidatePath('/dashboard/community')
   revalidatePath('/dashboard')

@@ -130,7 +130,7 @@ async function notifyNewMessage(threadId: string, senderRole: MessageSenderRole)
     } else {
       recipientUserId = thread.candidate.userId
       recipientFirstName = thread.candidate.firstName
-      threadPath = `/dashboard/messages/${threadId}`
+      threadPath = `/dashboard/community?tab=messages&thread=${threadId}`
     }
 
     if (!recipientUserId) return
