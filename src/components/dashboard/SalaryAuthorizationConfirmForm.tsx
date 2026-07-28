@@ -30,6 +30,14 @@ const VISA_STATUS_OPTIONS = [
   { value: 'other', label: 'Other visa' },
 ] as const
 
+const WORK_AUTHORIZATION_LABELS: Record<string, string> = Object.fromEntries(
+  WORK_AUTHORIZATION_OPTIONS.map((opt) => [opt.value, opt.label])
+)
+
+const VISA_STATUS_LABELS: Record<string, string> = Object.fromEntries(
+  VISA_STATUS_OPTIONS.map((opt) => [opt.value, opt.label])
+)
+
 export function SalaryAuthorizationConfirmForm({
   lastSalary,
   workAuthorization,
@@ -75,7 +83,9 @@ export function SalaryAuthorizationConfirmForm({
 
       <Select name="workAuthorization" defaultValue={workAuthorization ?? undefined}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Work authorization" />
+          <SelectValue placeholder="Work authorization">
+            {(value: string | null) => (value ? WORK_AUTHORIZATION_LABELS[value] : 'Work authorization')}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {WORK_AUTHORIZATION_OPTIONS.map((opt) => (
@@ -88,7 +98,11 @@ export function SalaryAuthorizationConfirmForm({
 
       <Select name="visaStatus" defaultValue={visaStatus ?? undefined}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Visa status (if applicable)" />
+          <SelectValue placeholder="Visa status (if applicable)">
+            {(value: string | null) =>
+              value ? VISA_STATUS_LABELS[value] : 'Visa status (if applicable)'
+            }
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {VISA_STATUS_OPTIONS.map((opt) => (

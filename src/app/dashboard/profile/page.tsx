@@ -9,6 +9,12 @@ import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButto
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
+import {
+  uploadMyProfilePicture,
+  removeMyProfilePicture,
+  toggleMyProfilePictureVisible,
+} from '@/app/dashboard/actions'
 
 export default async function ProfilePage() {
   const profile = await getDashboardData()
@@ -33,6 +39,29 @@ export default async function ProfilePage() {
         <CardContent className="space-y-1">
           <Label htmlFor="email">Email</Label>
           <Input id="email" value={user?.email ?? ''} readOnly disabled className="bg-muted" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Profile picture (optional)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Shown to your coach and recruiter/employer contacts in messaging, and in weekly
+            recognition (A-List, badges). Never shown on your resume, dossier, or to hiring managers
+            reviewing your report.
+          </p>
+          <AvatarUploadForm
+            displayName={profile.displayName || 'You'}
+            currentUrl={profile.profilePictureUrl}
+            visible={profile.profilePictureVisible}
+            uploadAction={uploadMyProfilePicture}
+            removeAction={removeMyProfilePicture}
+            toggleVisibilityAction={toggleMyProfilePictureVisible}
+          />
         </CardContent>
       </Card>
 

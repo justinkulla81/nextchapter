@@ -8,8 +8,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
-import { uploadAvatarFile } from '@/lib/avatar/avatar'
-import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import type { PrivacyTier, NotificationTier } from '@prisma/client'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
@@ -215,60 +213,6 @@ export async function grantCoachDossierConsent(): Promise<void> {
   }
 }
 
-export async function uploadMyProfilePicture(
-  _prevState: AvatarUploadState,
-  formData: FormData
-): Promise<AvatarUploadState> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'You need to be logged in to do this.' }
-
-  const file = formData.get('file') as File | null
-  if (!file || file.size === 0) return { error: 'Choose a photo first.' }
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-  const result = await uploadAvatarFile(profile.id, file)
-  if (result.error) return { error: result.error }
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { profilePictureUrl: result.url },
-  })
-
-  captureServerEvent(profile.id, 'profile_picture_uploaded')
-  revalidatePath('/dashboard/privacy')
-  return undefined
-}
-
-export async function removeMyProfilePicture(): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { profilePictureUrl: null } })
-
-  captureServerEvent(profile.id, 'profile_picture_removed')
-  revalidatePath('/dashboard/privacy')
-}
-
-export async function toggleMyProfilePictureVisible(current: boolean): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { profilePictureVisible: !current },
-  })
-
-  captureServerEvent(profile.id, 'profile_picture_visibility_toggled', { visible: !current })
-  revalidatePath('/dashboard/privacy')
-}
+// Profile picture upload/remove/visibility-toggle actions live in
+// ../actions.ts (uploadMyProfilePicture etc.) — the UI moved to the Profile
+// page, so the actions did too.

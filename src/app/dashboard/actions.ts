@@ -8,6 +8,8 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { uploadAvatarFile } from '@/lib/avatar/avatar'
+import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -264,4 +266,53 @@ export async function confirmSalaryAndAuthorization(
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
+}
+
+export async function uploadMyProfilePicture(
+  _prevState: AvatarUploadState,
+  formData: FormData
+): Promise<AvatarUploadState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) return { error: 'Choose a photo first.' }
+
+  const result = await uploadAvatarFile(profile.id, file)
+  if (result.error) return { error: result.error }
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { profilePictureUrl: result.url },
+  })
+
+  captureServerEvent(profile.id, 'profile_picture_uploaded')
+  revalidatePath('/dashboard/profile')
+  return undefined
+}
+
+export async function removeMyProfilePicture(): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { profilePictureUrl: null },
+  })
+
+  captureServerEvent(profile.id, 'profile_picture_removed')
+  revalidatePath('/dashboard/profile')
+}
+
+export async function toggleMyProfilePictureVisible(current: boolean): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { profilePictureVisible: !current },
+  })
+
+  captureServerEvent(profile.id, 'profile_picture_visibility_toggled', { visible: !current })
+  revalidatePath('/dashboard/profile')
 }

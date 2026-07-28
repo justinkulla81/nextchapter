@@ -10,8 +10,6 @@ import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
-import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
-import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from './actions'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -30,25 +28,6 @@ export default async function PrivacyPage() {
           Control exactly what employers can see about you, and when.
         </p>
       </div>
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">Profile picture</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Shown to your coach and recruiter/employer contacts in messaging, and in weekly
-            recognition (A-List, badges). Never shown on your resume, dossier, or to hiring managers
-            reviewing your report.
-          </p>
-        </div>
-        <AvatarUploadForm
-          displayName={profile.displayName || 'You'}
-          currentUrl={profile.profilePictureUrl}
-          visible={profile.profilePictureVisible}
-          uploadAction={uploadMyProfilePicture}
-          removeAction={removeMyProfilePicture}
-          toggleVisibilityAction={toggleMyProfilePictureVisible}
-        />
-      </div>
-
       <PrivacyTierSelector currentTier={profile.privacyTier} />
 
       <div className="space-y-3 border-t border-border pt-8">
