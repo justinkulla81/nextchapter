@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
+import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
 
 export interface CommittedAction {
   text: string
@@ -59,9 +60,22 @@ export function getGoalSettingWeekStart(reference: Date = new Date()): Date {
   return getMondayOfWeek(adjusted)
 }
 
+// Reconciles verified-action-type completion against real backing data
+// before returning, so every consumer of the current week's sprint (grading,
+// the dashboard card, the stats page) sees the same ungameable truth without
+// each needing its own fix — see reconcileVerifiedActions.
 export async function getCurrentWeekSprint(candidateId: string) {
   const weekStartDate = getMondayOfWeek(new Date())
-  return prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } })
+  const sprint = await prisma.weeklySprint.findUnique({
+    where: { candidateId_weekStartDate: { candidateId, weekStartDate } },
+  })
+  if (!sprint) return sprint
+
+  const committedActions = await reconcileVerifiedActions(
+    candidateId,
+    sprint.committedActions as unknown as CommittedAction[]
+  )
+  return { ...sprint, committedActions: committedActions as unknown as Prisma.JsonValue }
 }
 
 // Market Reality Grade is graded from real weekly follow-through — until a

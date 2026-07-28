@@ -8,6 +8,7 @@ import {
   estimateActionEffort,
   formatMinutes,
   isRecurringActionType,
+  isVerifiedActionType,
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
@@ -203,6 +204,7 @@ export function SuccessSprintCard({
                   // only offer to edit it while the window that created it is
                   // still open; otherwise show it with no control at all.
                   const canEdit = !action.isGoalBonus || editWindowOpen
+                  const verified = isVerifiedActionType(action.actionType)
                   return (
                     <ActionRow
                       key={i}
@@ -213,7 +215,7 @@ export function SuccessSprintCard({
                       completed={action.completed}
                       recurring={action.recurring}
                       committed
-                      onToggle={canEdit ? toggleSprintAction.bind(null, realIndex) : undefined}
+                      onToggle={canEdit && !verified ? toggleSprintAction.bind(null, realIndex) : undefined}
                     />
                   )
                 })}
@@ -253,7 +255,11 @@ export function SuccessSprintCard({
                           completed={false}
                           recurring={isRecurringActionType(action.actionType)}
                           committed={false}
-                          onLog={{ text: action.text, actionType: action.actionType }}
+                          onLog={
+                            isVerifiedActionType(action.actionType)
+                              ? undefined
+                              : { text: action.text, actionType: action.actionType }
+                          }
                         />
                       )
                     })}

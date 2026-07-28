@@ -153,6 +153,26 @@ export function isRecurringActionType(actionType: string | undefined): boolean {
   return !!actionType && RECURRING_ACTION_TYPES.has(actionType)
 }
 
+// Action types whose "done" state is derived from real backing data instead
+// of the self-reported completed flag in the committed-actions JSON blob —
+// see reconcileVerifiedActions in action-verification.ts, which does the
+// actual DB-backed reconciliation. This Set lives here (not there) because
+// it's also needed client-side, to hide the Mark done/started button for
+// these types — action-verification.ts is server-only.
+export const VERIFIED_ACTION_TYPES = new Set<string>([
+  'PROFILE_CONFIRM',
+  'INDUSTRY_CONFIRM',
+  'FUNCTION_CONFIRM',
+  'SALARY_CONFIRM',
+  'WORK_AUTHORIZATION',
+  'WORKING_STYLE_QUIZ',
+  'ANSWER_OPTIONAL_QUESTIONS',
+])
+
+export function isVerifiedActionType(actionType: string | undefined): boolean {
+  return !!actionType && VERIFIED_ACTION_TYPES.has(actionType)
+}
+
 // Where each action type's real work actually happens — used to make
 // committed Sprint items click through to the page where you do the work,
 // instead of just toggling a checkbox in place.
