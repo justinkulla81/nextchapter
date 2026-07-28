@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { isAdminEmail } from '@/lib/admin/auth'
+import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { OnboardingStepper } from '@/components/onboarding/OnboardingStepper'
 import { Logo } from '@/components/Logo'
 
@@ -18,12 +17,13 @@ export default async function OnboardingLayout({ children }: { children: React.R
   // nothing marked done rather than redirecting.
   const user = await getCurrentUser()
 
-  // An admin landing anywhere under /onboarding (e.g. a password-reset
-  // fallback redirect) should never silently get a stray CandidateProfile
-  // created — this layout wraps every page below it, so the check has to
-  // live here too, not just in the individual pages.
-  if (user && isAdminEmail(user.email)) {
-    redirect('/support/admin')
+  // An admin, hiring manager, recruiter, or coach landing anywhere under
+  // /onboarding (e.g. a password-reset fallback redirect) should never
+  // silently get a stray CandidateProfile created — this layout wraps
+  // every page below it, so the check has to live here too, not just in
+  // the individual pages.
+  if (user) {
+    await redirectIfNotCandidate(user.id, user.email)
   }
 
   const profile = user ? await getOrCreateCandidateProfile(user.id) : null

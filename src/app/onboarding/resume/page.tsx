@@ -5,15 +5,16 @@ import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { checkAndFlagDuplicateEmail, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
-import { isAdminEmail } from '@/lib/admin/auth'
+import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
 
-  // An admin landing here (e.g. a password-reset fallback redirect) should
-  // never silently get a stray CandidateProfile created.
-  if (user && isAdminEmail(user.email)) {
-    redirect('/support/admin')
+  // An admin, hiring manager, recruiter, or coach landing here (e.g. a
+  // password-reset fallback redirect) should never silently get a stray
+  // CandidateProfile created.
+  if (user) {
+    await redirectIfNotCandidate(user.id, user.email)
   }
 
   // No session yet at all — nothing to show a prior state for. The upload
