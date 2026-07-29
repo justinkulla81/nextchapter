@@ -19,3 +19,14 @@ export function matchByFunction<T>(
 // Learning page's sales-section gating predicate (Phase 8), so the two
 // checks can never drift apart.
 export const SALES_KEYWORDS = ['sales', 'account executive', 'business development', 'revenue']
+
+// Shared keyword groups for the five functions ai-tools-by-function.ts
+// didn't originally cover — used byte-identical in both that file's
+// AI_TOOLS_BY_KEYWORD and function-training.ts's FUNCTION_TRAINING, so the
+// two halves of the Learning page's function section can never disagree
+// about which candidates see which content.
+export const DESIGN_KEYWORDS = ['designer', 'ux', 'ui/ux', 'product design', 'creative director', 'design']
+export const CUSTOMER_SUCCESS_KEYWORDS = ['customer success', 'customer support', 'client success', 'implementation manager']
+export const DATA_ANALYTICS_KEYWORDS = ['data scientist', 'data analyst', 'analytics', 'business intelligence', 'bi analyst', 'machine learning engineer', 'ml engineer', 'data & analytics']
+export const EXECUTIVE_LEADERSHIP_KEYWORDS = ['chief executive', 'chief operating', 'chief financial', 'ceo', 'coo', 'cfo', 'cto', 'cmo', 'cpo', 'president', 'general manager', 'executive leadership']
+export const ADMINISTRATION_KEYWORDS = ['administrative assistant', 'office manager', 'executive assistant', 'administration']

@@ -1,4 +1,12 @@
-import { matchByFunction, SALES_KEYWORDS } from '@/lib/constants/match-by-function'
+import {
+  matchByFunction,
+  SALES_KEYWORDS,
+  DESIGN_KEYWORDS,
+  CUSTOMER_SUCCESS_KEYWORDS,
+  DATA_ANALYTICS_KEYWORDS,
+  EXECUTIVE_LEADERSHIP_KEYWORDS,
+  ADMINISTRATION_KEYWORDS,
+} from '@/lib/constants/match-by-function'
 
 export interface AiToolRecommendation {
   name: string
@@ -66,6 +74,41 @@ const AI_TOOLS_BY_KEYWORD: { keywords: string[]; tools: AiToolRecommendation[] }
     tools: [
       { name: 'Harvey', description: 'AI built specifically for legal research and drafting workflows.', url: 'https://www.harvey.ai' },
       { name: 'Spellbook', description: 'AI contract review and drafting inside Word.', url: 'https://www.spellbook.legal' },
+    ],
+  },
+  {
+    keywords: DESIGN_KEYWORDS,
+    tools: [
+      { name: 'Figma AI', description: 'AI features built directly into the design tool most teams already use.', url: 'https://www.figma.com/ai/' },
+      { name: 'Midjourney', description: 'AI image generation for concepting and visual exploration.', url: 'https://www.midjourney.com' },
+    ],
+  },
+  {
+    keywords: CUSTOMER_SUCCESS_KEYWORDS,
+    tools: [
+      { name: 'Intercom Fin', description: 'AI customer-support agent built into a platform CS teams already run on.', url: 'https://www.intercom.com/fin' },
+      { name: 'Gainsight AI', description: 'AI-driven health scoring and renewal-risk detection for customer success teams.', url: 'https://www.gainsight.com' },
+    ],
+  },
+  {
+    keywords: DATA_ANALYTICS_KEYWORDS,
+    tools: [
+      { name: 'Julius AI', description: 'AI data-analysis assistant that answers questions directly against your own datasets.', url: 'https://julius.ai' },
+      { name: 'Microsoft Copilot for Power BI', description: 'AI assistance layered into a BI tool many analysts already use.', url: 'https://www.microsoft.com/en-us/microsoft-365/copilot' },
+    ],
+  },
+  {
+    keywords: EXECUTIVE_LEADERSHIP_KEYWORDS,
+    tools: [
+      { name: 'Claude', description: "Anthropic's assistant, strong for synthesizing board materials and strategic memos.", url: 'https://claude.ai' },
+      { name: 'Glean', description: 'AI search across a company\'s own internal knowledge — useful for getting oriented fast.', url: 'https://www.glean.com' },
+    ],
+  },
+  {
+    keywords: ADMINISTRATION_KEYWORDS,
+    tools: [
+      { name: 'Motion', description: 'AI-driven calendar and task scheduling for busy executive-support roles.', url: 'https://www.usemotion.com' },
+      { name: 'Otter.ai', description: 'AI meeting transcription and summarization.', url: 'https://otter.ai' },
     ],
   },
 ]
