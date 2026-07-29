@@ -546,6 +546,20 @@ model CandidateProfile {
   profileShares                ProfileShare[]
   interimMarketplaceSignups    InterimMarketplaceSignup[]
 
+  // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
+  // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
+  // same as never having visited the section. HARD GUARDRAIL: these four
+  // fields must never be read by any candidate-facing feature (job board,
+  // Job Fit, Interim Work, Victoria, anything) — read only by the
+  // admin-only bias-detection dashboard (src/lib/admin/bias-detection.ts),
+  // which enforces a server-side minimum-cohort-size suppression before
+  // returning any aggregate built from these fields.
+  eeocGenderIdentity   EeocGenderIdentity?
+  eeocRaceEthnicity    EeocRaceEthnicity?
+  eeocDisabilityStatus EeocYesNoDecline?
+  eeocVeteranStatus    EeocYesNoDecline?
+  eeocRespondedAt      DateTime?
+
   // Coach P0-lite — set once, at profile creation, when the candidate came in
   // through a coach's personal invite link. Never re-assigned afterward (an
   // existing candidate clicking a coach link doesn't get silently re-tagged).
@@ -2495,4 +2509,32 @@ model InterimMarketplaceSignup {
   createdAt   DateTime         @default(now())
 
   @@unique([candidateId, listingId])
+}
+
+// Prompt 69 — optional EEOC self-ID enums. Kept separate per question
+// rather than one shared enum, since the option sets don't overlap.
+enum EeocGenderIdentity {
+  WOMAN
+  MAN
+  NON_BINARY
+  SELF_DESCRIBE
+  PREFER_NOT_TO_ANSWER
+}
+
+enum EeocRaceEthnicity {
+  AMERICAN_INDIAN_ALASKA_NATIVE
+  ASIAN
+  BLACK_AFRICAN_AMERICAN
+  HISPANIC_LATINO
+  MIDDLE_EASTERN_NORTH_AFRICAN
+  NATIVE_HAWAIIAN_PACIFIC_ISLANDER
+  WHITE
+  TWO_OR_MORE_RACES
+  PREFER_NOT_TO_ANSWER
+}
+
+enum EeocYesNoDecline {
+  YES
+  NO
+  PREFER_NOT_TO_ANSWER
 }

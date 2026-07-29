@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import type { ActionWindow, Mood } from '@prisma/client'
+import type { ActionWindow, Mood, EeocGenderIdentity, EeocRaceEthnicity, EeocYesNoDecline } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -314,5 +314,35 @@ export async function toggleMyProfilePictureVisible(current: boolean): Promise<v
   })
 
   captureServerEvent(profile.id, 'profile_picture_visibility_toggled', { visible: !current })
+  revalidatePath('/dashboard/profile')
+}
+
+// Prompt 69 — optional EEOC self-ID. Every field is independently optional;
+// an empty string from the form means "leave unanswered," not "clear a
+// previous answer to null" — a candidate can answer some questions and
+// skip others in the same submit. HARD GUARDRAIL: nothing downstream of
+// this write may read these fields except the admin-only bias-detection
+// dashboard (src/lib/admin/bias-detection.ts).
+export async function updateEeocSelfId(formData: FormData): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const gender = (formData.get('eeocGenderIdentity') as EeocGenderIdentity | '') || undefined
+  const race = (formData.get('eeocRaceEthnicity') as EeocRaceEthnicity | '') || undefined
+  const disability = (formData.get('eeocDisabilityStatus') as EeocYesNoDecline | '') || undefined
+  const veteran = (formData.get('eeocVeteranStatus') as EeocYesNoDecline | '') || undefined
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: {
+      ...(gender && { eeocGenderIdentity: gender }),
+      ...(race && { eeocRaceEthnicity: race }),
+      ...(disability && { eeocDisabilityStatus: disability }),
+      ...(veteran && { eeocVeteranStatus: veteran }),
+      eeocRespondedAt: new Date(),
+    },
+  })
+
+  captureServerEvent(profile.id, 'eeoc_self_id_updated')
   revalidatePath('/dashboard/profile')
 }

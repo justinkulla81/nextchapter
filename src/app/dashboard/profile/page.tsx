@@ -6,6 +6,7 @@ import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryAuthorizationConfirmForm } from '@/components/dashboard/SalaryAuthorizationConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
+import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -139,6 +140,22 @@ export default async function ProfilePage() {
       </div>
 
       <ProfileSaveAllButton containerId="profile-cards" />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Optional demographic self-ID
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EeocSelfIdForm
+            eeocGenderIdentity={profile.eeocGenderIdentity}
+            eeocRaceEthnicity={profile.eeocRaceEthnicity}
+            eeocDisabilityStatus={profile.eeocDisabilityStatus}
+            eeocVeteranStatus={profile.eeocVeteranStatus}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
