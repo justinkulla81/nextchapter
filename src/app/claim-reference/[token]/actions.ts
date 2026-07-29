@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { generateReferenceQuotes } from '@/lib/references/testimony-processing'
 import { applyReferenceCompletedRewrite } from '@/lib/scoring/rewrite-actions'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 // The one moment an EmployerReferenceSubmission becomes a real Reference
 // row — before this, nothing here is reachable by Dossier, Coaching Notes,
@@ -90,10 +91,12 @@ export async function acceptEmployerReference(submissionId: string, candidateId:
     console.error('Failed to apply reference-completed baseline rewrite after employer reference claim:', error)
   }
 
+  captureServerEvent(candidateId, 'employer_reference_accepted', { submissionId, referenceId: reference.id })
+
   redirect('/dashboard/references')
 }
 
-export async function declineEmployerReference(submissionId: string): Promise<void> {
+export async function declineEmployerReference(submissionId: string, candidateId: string): Promise<void> {
   const submission = await prisma.employerReferenceSubmission.findUnique({ where: { id: submissionId } })
   if (!submission || submission.status !== 'pending') {
     redirect('/dashboard')
@@ -103,6 +106,8 @@ export async function declineEmployerReference(submissionId: string): Promise<vo
     where: { id: submissionId },
     data: { status: 'declined', declinedAt: new Date() },
   })
+
+  captureServerEvent(candidateId, 'employer_reference_declined', { submissionId })
 
   redirect('/dashboard')
 }

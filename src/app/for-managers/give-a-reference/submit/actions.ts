@@ -6,6 +6,7 @@ import { validateEmployerRegistration } from '@/lib/employer-references/submissi
 import { parseReferenceFormData } from '@/lib/references/parse-reference-form'
 import { sendLayoffContextAlertEmail } from '@/lib/email/send-layoff-context-alert'
 import EmployerReferenceInviteEmail from '@/emails/employer-reference-invite'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { Resend } from 'resend'
 import type { ReferenceFormState } from '@/components/references/ReferenceSubmissionForm'
 
@@ -105,6 +106,14 @@ export async function submitEmployerReference(
     },
   })
 
+  // No candidate account exists yet at this point, so the submitting
+  // manager's own email is the distinct ID — same pattern used for
+  // pre-account events like guide_email_captured.
+  captureServerEvent(submitterEmail, 'employer_reference_submitted', {
+    submissionId: submission.id,
+    isLayoffContext,
+  })
+
   // Must never block the employer's submission from succeeding.
   await sendInviteEmail({
     managerName: submitterName,
@@ -134,6 +143,7 @@ export async function submitEmployerReference(
         attioSyncRequestedAt: new Date(),
       },
     })
+    captureServerEvent(submitterEmail, 'layoff_context_flagged', { submissionId: submission.id })
   }
 
   redirect('/for-managers/give-a-reference/thank-you')

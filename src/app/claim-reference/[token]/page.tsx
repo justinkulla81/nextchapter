@@ -82,7 +82,7 @@ export default async function ClaimReferencePage({ params }: { params: Promise<{
         <form action={acceptEmployerReference.bind(null, submission.id, profile.id)}>
           <SubmitButton pendingLabel="Adding…">Accept this reference</SubmitButton>
         </form>
-        <form action={declineEmployerReference.bind(null, submission.id)}>
+        <form action={declineEmployerReference.bind(null, submission.id, profile.id)}>
           <SubmitButton variant="outline" pendingLabel="Declining…">
             Decline
           </SubmitButton>
