@@ -1,10 +1,14 @@
 import Link from 'next/link'
+import { FileText } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getRecruiterReportData } from '@/lib/reports/recruiter-report'
-import { getDossierSections } from '@/lib/reports/dossier-sections'
+import { getDossierSections, getDossierSectionCompleteness } from '@/lib/reports/dossier-sections'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
+import { DossierCompletenessRing } from '@/components/dashboard/DossierCompletenessRing'
 import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
+import { StatusRow } from '@/components/ui/status-icon'
+import { EmptyState } from '@/components/ui/empty-state'
 import { CHARACTER_SIGNAL_MIN_REFERENCES } from '@/lib/reports/evidence-type'
 import { Logo } from '@/components/Logo'
 
@@ -16,6 +20,8 @@ export default async function RecruiterReportPage() {
   ])
 
   const hasEffort = data.effortSummaryLines.length > 0
+  const sectionCompleteness = getDossierSectionCompleteness(dossier)
+  const completedCount = sectionCompleteness.filter((s) => s.hasContent).length
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -32,6 +38,25 @@ export default async function RecruiterReportPage() {
         <div className="flex shrink-0 gap-2">
           <PrintReportButton />
         </div>
+      </div>
+
+      <div className="print:hidden">
+        {completedCount === 0 ? (
+          <EmptyState
+            icon={FileText}
+            title="Your Dossier doesn't have much yet"
+            description="Add references, log a work sample, or complete How I Work Best — each one fills in a section below. Nothing here is fabricated; sections stay blank until there's something real to show."
+          />
+        ) : (
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <DossierCompletenessRing completed={completedCount} total={sectionCompleteness.length} />
+            <div className="grid gap-x-6 gap-y-1.5 border-t border-border pt-3 sm:grid-cols-2">
+              {sectionCompleteness.map((s) => (
+                <StatusRow key={s.id} status={s.hasContent ? 'success' : 'locked'} label={s.title} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-8 rounded-xl border border-border p-8 print:border-0 print:p-0">

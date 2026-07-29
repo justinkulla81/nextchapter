@@ -422,6 +422,51 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
   }
 }
 
+// Prompt 67 — the Dossier completeness ring's per-section read, mirroring
+// the exact same null-check each case in DossierSectionBlock (components/
+// dashboard/DossierSections.tsx) uses to decide whether to render at all.
+// Takes the DossierData already fetched by the page that renders the ring
+// (getDossierSections is the expensive, LLM-generating call — this must
+// never trigger a second one, only read fields off data that's already in
+// memory).
+export function getDossierSectionCompleteness(
+  dossier: DossierData
+): { id: DossierSectionId; title: string; hasContent: boolean }[] {
+  return dossier.sections.map(({ id, title }) => {
+    let hasContent: boolean
+    switch (id) {
+      case 'positioning':
+        hasContent = !!dossier.positioning.draftText || !!dossier.positioning.approvedText
+        break
+      case 'howIOperate':
+        hasContent = dossier.howIOperate.dimensionSummaries.length > 0 || dossier.howIOperate.superpowers.length > 0
+        break
+      case 'whatDrivesMe':
+        hasContent = !!dossier.whatDrivesMe.effortStatText || !!dossier.whatDrivesMe.motivationNarrative
+        break
+      case 'aiFluency':
+        hasContent = !!dossier.aiFluencyExample
+        break
+      case 'impactOnPeople':
+        hasContent = dossier.impactOnPeople.quotes.length > 0 || !!dossier.impactOnPeople.communityNarrative
+        break
+      case 'selfAwareness':
+        hasContent = dossier.selfAwareness.growthEdges.length > 0
+        break
+      case 'learningGrowth':
+        hasContent = dossier.learningGrowth.items.length > 0
+        break
+      case 'fit':
+        hasContent = !!dossier.fit.patternSummary
+        break
+      case 'proofPoints':
+        hasContent = dossier.proofPoints.length > 0
+        break
+    }
+    return { id, title, hasContent }
+  })
+}
+
 // A cheap, LLM-free equivalent of "would getDossierSections consider this
 // dossier complete" — for the Dossier Complete badge (Prompt 51), which
 // re-checks on every Stats page load. Calling the real getDossierSections

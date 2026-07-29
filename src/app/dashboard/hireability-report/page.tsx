@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { InlineLoadingState } from '@/components/ui/spinner'
+import { StatusIcon } from '@/components/ui/status-icon'
 import { Button } from '@/components/ui/button'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
@@ -246,12 +247,23 @@ export default async function HireabilityReportPage() {
                         ? "This is your first report — there's not enough real signal yet for a fair grade here. It'll sharpen as you add more."
                         : "A stable baseline, plus how this week's effort is going — some of this you control, some you don't."}
                     </p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
                       {grade.categories.map((c) => {
                         const categoryDisplay = displayGrade(c.grade, isFirstReport)
+                        // Categories are graded A-F on a genuine curve — C is
+                        // the expected, honest outcome, not a failure (see
+                        // GRADE_BAND_DESCRIPTION). Forcing a ✓/✗ read onto
+                        // that would misrepresent a graded scale as binary
+                        // pass/fail, so only the 🔒 locked icon applies here
+                        // (the real "not enough signal yet" state) — the
+                        // letter grade itself, already color-coded, carries
+                        // the graded read.
                         return (
                           <div key={c.key} className="flex items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm">
-                            <span className="text-foreground">{c.label}</span>
+                            <span className="flex items-center gap-2 text-foreground">
+                              {categoryDisplay === 'N/A' && <StatusIcon status="locked" size={14} />}
+                              {c.label}
+                            </span>
                             <span
                               className={cn(
                                 'font-semibold tabular-nums',

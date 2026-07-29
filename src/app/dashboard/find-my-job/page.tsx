@@ -180,7 +180,13 @@ export default async function JobFitPage() {
       </div>
 
       <div className="space-y-4 border-t border-border pt-8">
-        <h2 className="text-lg font-semibold tracking-tight">My Applications</h2>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">My Applications</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            This list is entirely yours — nothing gets added here automatically. A job only shows up
+            after you paste in its link or text below.
+          </p>
+        </div>
         {atCap ? (
           <p className="text-sm text-muted-foreground">
             You have 5 job postings tracked — remove one below to add another.

@@ -3,7 +3,17 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { StatCallouts } from '@/components/StatCallouts'
 import { PERSONAS } from '@/lib/constants/personas'
+
+// Exactly the three facts that are true of the product today, no usage/
+// traction numbers — see the roadmap note on this component for why those
+// are deferred until there's real volume worth showing honestly.
+const HOMEPAGE_STATS = [
+  { value: '15', label: 'Free expert guides' },
+  { value: 'Free', label: 'For candidates, always' },
+  { value: '4', label: 'Step verified process' },
+]
 
 const heroStats = [
   { value: '25%', label: 'Lifetime earnings cut after 27+ weeks unemployed' },
@@ -240,6 +250,13 @@ export default function Home() {
               Refer someone
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Section 5b — product-fact stat callouts */}
+      <section className="bg-off-white py-16">
+        <div className="mx-auto max-w-3xl px-6">
+          <StatCallouts stats={HOMEPAGE_STATS} />
         </div>
       </section>
 
