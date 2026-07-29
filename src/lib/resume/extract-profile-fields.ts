@@ -7,6 +7,7 @@ import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { computeYearsExperienceFromResume } from '@/lib/resume/work-history-facts'
 import { syncResumeEducation } from '@/lib/resume/sync-resume-education'
 import { syncResumeWorkHistory } from '@/lib/resume/sync-resume-work-history'
+import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -171,6 +172,12 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
       insertedCount: employersInserted,
       dedupedCount: data.employers.length - employersInserted,
     })
+
+    if (educationInserted > 0 || employersInserted > 0) {
+      await computeStructuralFlags(resume.candidateId).catch((error) => {
+        console.error('Failed to compute structural flags after resume upload:', error)
+      })
+    }
   } catch (error) {
     console.error('Failed to auto-fill profile fields from resume:', error)
     // Best-effort auto-fill — failure here must never block the resume

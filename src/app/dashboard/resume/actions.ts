@@ -14,6 +14,7 @@ import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fie
 import { captureServerEvent } from '@/lib/posthog/server'
 import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
 import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/lib/scoring/rewrite-actions'
+import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -237,6 +238,12 @@ export async function addWorkHistoryEntry(
     console.error('Failed to apply work-history baseline rewrite:', error)
   }
 
+  try {
+    await computeStructuralFlags(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute structural flags after work-history add:', error)
+  }
+
   if (engagementType !== 'FULL_TIME') {
     return {
       victoriaNudge:
@@ -259,6 +266,12 @@ export async function deleteWorkHistoryEntry(entryId: string): Promise<void> {
   })
 
   revalidatePath('/dashboard/resume')
+
+  try {
+    await computeStructuralFlags(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute structural flags after work-history delete:', error)
+  }
 }
 
 // When a candidate has more than one concurrent fractional/interim/consulting
