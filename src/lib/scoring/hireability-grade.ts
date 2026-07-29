@@ -291,7 +291,19 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   // supervision," so this leans on the reference reliability rating far
   // more than the others, with a neutral default until one exists.
   const ownershipRefRating = averageReferenceRating(refs, 'traitFollowThroughRating')
-  const ownershipScore = ownershipRefRating ?? 55
+
+  // Structural facts layered onto the reference-based baseline, not a
+  // replacement for it — job-hopping and career-trajectory are real
+  // patterns a hiring manager notices, and this category has no other home
+  // for them (it's the only one of the six with a genuine self-report
+  // vacuum today). First-pass magnitudes — tune after seeing this against
+  // real seeded candidates.
+  let ownershipStructuralAdjustment = 0
+  if (candidate.jobHoppingFlag) ownershipStructuralAdjustment -= 15
+  if (candidate.careerTrajectory === 'PROMOTED') ownershipStructuralAdjustment += 10
+  if (candidate.careerTrajectory === 'DEMOTED') ownershipStructuralAdjustment -= 10
+
+  const ownershipScore = clamp((ownershipRefRating ?? 55) + ownershipStructuralAdjustment)
 
   const scores: Record<CategoryKey, number> = {
     targetFit: targetFitScore,

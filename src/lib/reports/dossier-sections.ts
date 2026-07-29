@@ -383,7 +383,10 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
   })
 
   const categories = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
-  const namedReasons = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null)
+  const namedReasons = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null, {
+    jobHoppingFlag: candidate.jobHoppingFlag,
+    careerTrajectory: candidate.careerTrajectory,
+  })
 
   const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, patternSummary, proofPoints] =
     await Promise.all([

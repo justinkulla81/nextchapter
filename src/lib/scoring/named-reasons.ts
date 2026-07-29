@@ -1,6 +1,12 @@
 import 'server-only'
+import type { CareerTrajectory } from '@prisma/client'
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
-import { AI_FLUENCY_GAP_ID } from '@/lib/scoring/named-reason-ids'
+import {
+  AI_FLUENCY_GAP_ID,
+  JOB_HOPPING_GAP_ID,
+  CAREER_TRAJECTORY_STRENGTH_ID,
+  CAREER_TRAJECTORY_GAP_ID,
+} from '@/lib/scoring/named-reason-ids'
 
 export { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
 
@@ -51,7 +57,16 @@ const CATEGORY_REASONS: Record<CategoryKey, { gap: string; strength: string }> =
 
 const AI_FLUENCY_STRENGTH_ID = 'ai_fluency_strength'
 
-export function computeNamedReasons(categories: CategoryGrade[], aiFluencyExample: string | null): NamedReason[] {
+export interface StructuralFlags {
+  jobHoppingFlag: boolean
+  careerTrajectory: CareerTrajectory | null
+}
+
+export function computeNamedReasons(
+  categories: CategoryGrade[],
+  aiFluencyExample: string | null,
+  structuralFlags?: StructuralFlags
+): NamedReason[] {
   const reasons: NamedReason[] = []
 
   for (const cat of categories) {
@@ -81,6 +96,35 @@ export function computeNamedReasons(categories: CategoryGrade[], aiFluencyExampl
       kind: 'gap',
       text: 'No visible signal of AI fluency in a function being reshaped by it.',
       category: 'skillsExecution',
+    })
+  }
+
+  // Structural, resume-derived facts — not part of the six-category grade
+  // loop above (they're folded into ownership's score there), but named
+  // separately since they're specific, evidence-based patterns a hiring
+  // manager notices on their own, distinct from the reference-based
+  // "can you be trusted" signal the rest of ownership carries.
+  if (structuralFlags?.jobHoppingFlag) {
+    reasons.push({
+      id: JOB_HOPPING_GAP_ID,
+      kind: 'gap',
+      text: 'Several roles under a year each read as a job-hopping pattern to a hiring manager — worth having a clear, specific reason ready (market conditions, layoffs, a wrong-fit sequence) rather than letting each one stand alone.',
+      category: 'ownership',
+    })
+  }
+  if (structuralFlags?.careerTrajectory === 'PROMOTED') {
+    reasons.push({
+      id: CAREER_TRAJECTORY_STRENGTH_ID,
+      kind: 'strength',
+      text: 'Your work history shows real upward movement — more scope, responsibility, or seniority over time. That reads as a strong, structural positive to a hiring manager.',
+      category: 'ownership',
+    })
+  } else if (structuralFlags?.careerTrajectory === 'DEMOTED') {
+    reasons.push({
+      id: CAREER_TRAJECTORY_GAP_ID,
+      kind: 'gap',
+      text: 'Your most recent move reads as a step down in scope or seniority — have a clear, honest one-liner ready for why (relocation, industry pivot, deliberately choosing IC work) before it comes up.',
+      category: 'ownership',
     })
   }
 

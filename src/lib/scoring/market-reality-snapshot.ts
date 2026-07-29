@@ -36,7 +36,10 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
   const categories: CategoryGrade[] = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
   const marketRealityScore = clamp(categories.reduce((sum, c) => sum + c.score, 0) / categories.length)
   const grade = scoreToGrade(marketRealityScore)
-  const namedReasons: NamedReason[] = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null)
+  const namedReasons: NamedReason[] = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null, {
+    jobHoppingFlag: candidate.jobHoppingFlag,
+    careerTrajectory: candidate.careerTrajectory,
+  })
 
   await prisma.marketRealitySnapshot.create({
     data: {
