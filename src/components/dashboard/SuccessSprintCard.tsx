@@ -11,9 +11,10 @@ import {
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
-import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
+import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
+import { WeeklyEngineChecklist } from '@/components/dashboard/WeeklyEngineChecklist'
 import { cn } from '@/lib/utils'
 
 interface SuggestedAction extends SuggestedActionLike {
@@ -254,17 +255,9 @@ export function SuccessSprintCard({
               From here on, an A requires real work across all four areas — not just one
               you&apos;re comfortable with.
             </p>
-            <ul className="mt-3 space-y-1.5 text-sm">
-              {engines.map((e) => (
-                <li key={e.key} className="flex items-center gap-2">
-                  <span>{laggingEngines.includes(e.key) ? '☐' : '☑'}</span>
-                  <span className="text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
-                  {laggingEngines.includes(e.key) && (
-                    <span className="text-xs text-muted-foreground">needs real work this week</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <div className="mt-3">
+              <WeeklyEngineChecklist engines={engines} laggingEngines={laggingEngines} />
+            </div>
             {!categoryMinimumsMet && (
               <p className="mt-3 text-sm font-medium text-foreground">
                 Your grade is capped at B until every engine clears the bar — real effort spread

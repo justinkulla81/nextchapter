@@ -8,6 +8,7 @@ import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { JobReactionSummary } from '@/components/dashboard/JobReactionSummary'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
+import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -33,6 +34,11 @@ import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 const SURFACED_JOB_LIST_SIZE = 5
+// The locked A-List teaser board can have dozens of approved postings once
+// a candidate isn't A-List — showing all of them as individual dashed cards
+// is noise, not information. A few examples plus a summary line makes the
+// same point without the wall.
+const LOCKED_PREVIEW_COUNT = 3
 
 interface InterviewPrep {
   likelyQuestions: string[]
@@ -76,12 +82,17 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [surfacedJobs, interestedJobs, reactedCount, grade, boardPostings] = await Promise.all([
+  const [surfacedJobs, totalUnreactedCount, interestedJobs, reactedCount, grade, boardPostings] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
       take: SURFACED_JOB_LIST_SIZE,
     }),
+    // The real total waiting for a reaction — same query the nav badge
+    // uses — so the count shown here always matches what "Jobs" says in
+    // the hamburger nav, even though the list below only renders the
+    // latest SURFACED_JOB_LIST_SIZE.
+    prisma.surfacedJob.count({ where: { candidateId: profile.id, reaction: null } }),
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: 'INTERESTED' },
       orderBy: { reactedAt: 'desc' },
@@ -159,16 +170,49 @@ export default async function JobFitPage() {
             No jobs surfaced yet — set a target role in your Goals to get started.
           </p>
         ) : (
-          <div className="space-y-3">
-            {visibleBoardPostings.map((posting) => (
-              <DiscoverJobCard key={posting.id} posting={posting} fitBucket={computeBoardListingFitBucket(profile, posting)} />
-            ))}
-            {lockedBoardPostings.map((posting) => (
-              <LockedDiscoverJobCard key={posting.id} posting={posting} />
-            ))}
-            {surfacedJobs.map((job) => (
-              <NextSurfacedJobCard key={job.id} job={job} fitBucket={computeSurfacedJobFitBucket(profile, job)} />
-            ))}
+          <div className="space-y-5">
+            {visibleBoardPostings.length > 0 && (
+              <div className="space-y-3">
+                {visibleBoardPostings.map((posting) => (
+                  <DiscoverJobCard key={posting.id} posting={posting} fitBucket={computeBoardListingFitBucket(profile, posting)} />
+                ))}
+              </div>
+            )}
+
+            {surfacedJobs.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {totalUnreactedCount} new match{totalUnreactedCount === 1 ? '' : 'es'} from your
+                  automated search partners
+                  {totalUnreactedCount > surfacedJobs.length && ` — showing the latest ${surfacedJobs.length}`}
+                </p>
+                {surfacedJobs.map((job) => (
+                  <NextSurfacedJobCard key={job.id} job={job} fitBucket={computeSurfacedJobFitBucket(profile, job)} />
+                ))}
+              </div>
+            )}
+
+            {lockedBoardPostings.length > 0 && (
+              <div className="space-y-3">
+                <UnlockAListCallout
+                  grade={grade.grade}
+                  lockedCount={lockedBoardPostings.length}
+                  weeklySprintsCount={profile._count.weeklySprints}
+                  engines={grade.weeklyEngines}
+                  laggingEngines={grade.laggingEngines}
+                />
+                {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
+                  <LockedDiscoverJobCard key={posting.id} posting={posting} />
+                ))}
+                {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT && (
+                  <p className="text-sm text-muted-foreground">
+                    +{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT} more A-List-exclusive
+                    opportunit{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT === 1 ? 'y' : 'ies'} unlock
+                    at an A grade.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
