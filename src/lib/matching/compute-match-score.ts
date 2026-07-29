@@ -37,6 +37,7 @@ export function computeMatchScore(
     // absent/null simply means the bonus below doesn't apply, never a
     // penalty.
     isPeopleManager?: boolean | null
+    currentState?: string | null
   },
   role: Pick<RoleProfile, 'primaryFunction' | 'roleLevel' | 'remotePolicy' | 'locationRequirement' | 'compMin' | 'compMax'>
 ): MatchResult {
@@ -64,6 +65,16 @@ export function computeMatchScore(
     role.locationRequirement.toLowerCase().includes(candidate.currentCity.toLowerCase())
   ) {
     score += 20
+  } else if (
+    role.locationRequirement &&
+    candidate.currentState &&
+    role.locationRequirement.toLowerCase().includes(candidate.currentState.toLowerCase())
+  ) {
+    // A state/region match without an exact city hit (e.g. posting says
+    // "Austin, TX" and the candidate is in Dallas) is still meaningfully
+    // closer than no location signal at all — worth more than the bare
+    // insufficient-data floor, less than an exact city match.
+    score += 12
   } else {
     score += 5
   }

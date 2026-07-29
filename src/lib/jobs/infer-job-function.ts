@@ -73,8 +73,11 @@ export function inferFunctionFromTitle(title: string): string | null {
 const LEVEL_KEYWORDS: { level: (typeof HIGHEST_LEVEL_OPTIONS)[number]; keywords: string[] }[] = [
   { level: 'C-Suite', keywords: ['chief executive', 'chief operating', 'chief financial', 'chief technology', 'chief marketing', 'chief product', 'chief people', 'chief revenue', 'chief legal', 'ceo', 'coo', 'cfo', 'cto', 'cmo', 'cpo', 'president', 'partner'] },
   { level: 'VP', keywords: ['vice president', ' vp ', 'vp,', 'vp of', 'svp', 'evp'] },
-  { level: 'Director', keywords: ['director'] },
-  { level: 'Manager', keywords: ['manager', 'team lead', 'head of'] },
+  // "Head of X" is a director-equivalent title at most companies (it names
+  // ownership of a whole function, not a single team) — checked before
+  // Manager below so it doesn't fall through to that lower band.
+  { level: 'Director', keywords: ['director', 'head of'] },
+  { level: 'Manager', keywords: ['manager', 'team lead'] },
 ]
 
 export function inferLevelFromTitle(title: string): string {
