@@ -11,6 +11,7 @@
     "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts",
     "seed:dashboard-messages": "tsx --env-file=.env.local scripts/seed-dashboard-messages.ts",
     "seed:test-candidates": "tsx --env-file=.env.local scripts/seed-test-candidates.ts",
+    "seed:portal-connections": "tsx --env-file=.env.local scripts/seed-portal-connections.ts",
     "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts"
   },
   "dependencies": {
