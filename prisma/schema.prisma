@@ -509,6 +509,7 @@ model CandidateProfile {
   references                   Reference[]
   referenceQuotes              ReferenceQuote[]
   claimedEmployerReferences    EmployerReferenceSubmission[]
+  jobClickEvents               JobClickEvent[]
   workSamples                  WorkSample[]
   interviewResponses           InterviewResponse[]
   peerNominations              PeerNomination[]
@@ -1858,6 +1859,34 @@ model JobBoardIntroRequest {
 
   @@index([candidateId, createdAt])
   @@index([status])
+}
+
+// Click-through log for candidate-facing job links (SurfacedJob and
+// ExclusiveJobPosting — the two algorithmic/curated discovery surfaces; the
+// candidate's own JobPosting tracker is excluded since those URLs are
+// candidate-pasted, not "clicked into" from a NextChapter listing). Rows are
+// denormalized copies of title/company/location/fit at click time rather
+// than FKs into three differently-shaped job models — this is what lets
+// admin group by company/title with a plain Prisma groupBy instead of
+// reconciling three tables. Written by recordJobClick() alongside the
+// job_link_clicked PostHog event.
+model JobClickEvent {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  source      String // 'surfaced' | 'job_board' — which discovery surface this click came from
+  sourceId    String // SurfacedJob.id or ExclusiveJobPosting.id
+  jobTitle    String
+  companyName String?
+  location    String?
+  url         String
+  fitBucket   String? // 'strong' | 'good' | 'stretch' at click time, see job-fit-bucket.ts
+
+  @@index([candidateId, createdAt])
+  @@index([companyName])
+  @@index([jobTitle])
 }
 
 // Postgres mirror of every captureServerEvent() call, written from inside

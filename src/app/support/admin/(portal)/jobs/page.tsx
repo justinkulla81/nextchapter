@@ -114,6 +114,87 @@ export default async function AdminJobsPage() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Job clicks — by company (top 25)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {rollup.clicks.byCompany.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No clicks recorded yet.</p>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {rollup.clicks.byCompany.map((c) => (
+                <li key={c.companyName} className="flex justify-between">
+                  <span className="text-foreground">{c.companyName}</span>
+                  <span className="tabular-nums text-muted-foreground">{c.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Job clicks — by title (top 25)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {rollup.clicks.byTitle.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No clicks recorded yet.</p>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {rollup.clicks.byTitle.map((t) => (
+                <li key={t.jobTitle} className="flex justify-between">
+                  <span className="text-foreground">{t.jobTitle}</span>
+                  <span className="tabular-nums text-muted-foreground">{t.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent job clicks (last 50)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {rollup.clicks.recent.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No clicks recorded yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground uppercase">
+                    <th className="py-1.5 pr-3">Date</th>
+                    <th className="py-1.5 pr-3">Candidate</th>
+                    <th className="py-1.5 pr-3">Job</th>
+                    <th className="py-1.5 pr-3">Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rollup.clicks.recent.map((c) => (
+                    <tr key={c.id} className="border-b border-border last:border-0">
+                      <td className="py-1.5 pr-3 whitespace-nowrap text-muted-foreground">
+                        {c.createdAt.toLocaleDateString()}
+                      </td>
+                      <td className="py-1.5 pr-3 text-foreground">{c.candidateName}</td>
+                      <td className="py-1.5 pr-3">
+                        <a href={c.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          {c.jobTitle}
+                        </a>
+                        {c.companyName && <span className="text-muted-foreground"> at {c.companyName}</span>}
+                      </td>
+                      <td className="py-1.5 pr-3 text-muted-foreground">{c.source}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -387,6 +387,41 @@ export async function refreshSurfacedJobs() {
   revalidatePath('/dashboard/find-my-job')
 }
 
+// Fired from a plain onClick on the SurfacedJob/DiscoverJobCard anchors —
+// never blocks or preventDefaults the navigation, just logs it. Denormalized
+// into JobClickEvent (not just the PostHog event) so admin can group by
+// company/title with a real Prisma groupBy — see the schema comment.
+export async function recordJobClick(input: {
+  source: 'surfaced' | 'job_board'
+  sourceId: string
+  jobTitle: string
+  companyName: string | null
+  location: string | null
+  url: string
+  fitBucket: string | null
+}) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.jobClickEvent.create({
+    data: {
+      candidateId: profile.id,
+      source: input.source,
+      sourceId: input.sourceId,
+      jobTitle: input.jobTitle,
+      companyName: input.companyName,
+      location: input.location,
+      url: input.url,
+      fitBucket: input.fitBucket,
+    },
+  })
+  captureServerEvent(profile.id, 'job_link_clicked', {
+    source: input.source,
+    sourceId: input.sourceId,
+    companyName: input.companyName,
+  })
+}
+
 export async function reactToSurfacedJob(
   jobId: string,
   reaction: JobReactionType,

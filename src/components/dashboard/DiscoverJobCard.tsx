@@ -5,7 +5,7 @@ import { Lock } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { promoteJobBoardListing, requestJobBoardIntro } from '@/app/dashboard/find-my-job/actions'
+import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
 
@@ -63,6 +63,18 @@ export function DiscoverJobCard({
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
 
+  function handleClick() {
+    void recordJobClick({
+      source: 'job_board',
+      sourceId: posting.id,
+      jobTitle: posting.title,
+      companyName: posting.companyName,
+      location: posting.location,
+      url: posting.url,
+      fitBucket,
+    })
+  }
+
   return (
     <div className="space-y-3 rounded-lg border border-border p-4">
       <div className="flex items-start justify-between gap-3">
@@ -77,6 +89,7 @@ export function DiscoverJobCard({
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-primary hover:underline"
+              onClick={handleClick}
             >
               {posting.title} at {posting.companyName}
             </a>
@@ -102,7 +115,7 @@ export function DiscoverJobCard({
         ) : (
           <Button
             nativeButton={false}
-            render={<a href={posting.url} target="_blank" rel="noopener noreferrer" />}
+            render={<a href={posting.url} target="_blank" rel="noopener noreferrer" onClick={handleClick} />}
             variant="outline"
             size="sm"
           >

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
-import { reactToSurfacedJob } from '@/app/dashboard/find-my-job/actions'
+import { reactToSurfacedJob, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
 
@@ -41,6 +41,17 @@ export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitB
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-primary hover:underline"
+            onClick={() => {
+              void recordJobClick({
+                source: 'surfaced',
+                sourceId: job.id,
+                jobTitle: job.title,
+                companyName: job.companyName,
+                location: job.location,
+                url: job.url,
+                fitBucket: fitBucket ?? null,
+              })
+            }}
           >
             {job.title}
           </a>

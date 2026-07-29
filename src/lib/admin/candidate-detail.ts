@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getFullClientView, type FullClientView } from '@/lib/coach/full-client-view'
 import { getSentimentAlert, getMoodHistory, type SentimentAlert } from '@/lib/daily/mood'
 import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
+import { computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import type { Mood } from '@prisma/client'
 
 export interface AdminCandidateDetail {
@@ -21,9 +22,35 @@ export interface AdminCandidateDetail {
       offerReceivedAt: Date | null
     }[]
     surfaced: { id: string; title: string; companyName: string | null; reaction: string | null; surfacedAt: Date }[]
+    totalSurfaced: number
+    goodFitOrBetter: number
+    inGeo: number
   }
+  jobClicks: {
+    id: string
+    createdAt: Date
+    jobTitle: string
+    companyName: string | null
+    source: string
+    url: string
+  }[]
   sentimentAlert: SentimentAlert
   moodHistory: { date: Date; mood: Mood }[]
+}
+
+// Same free-text substring approach as compute-match-score.ts's location
+// branch — a job's location field is unstructured ("Austin, TX" /
+// "Remote — US"), so this is a best-effort match against the candidate's
+// own city/state, not a real geocode comparison.
+function isInCandidateGeo(
+  candidate: { currentCity: string | null; currentState: string | null },
+  jobLocation: string | null
+): boolean {
+  if (!jobLocation) return false
+  const loc = jobLocation.toLowerCase()
+  if (candidate.currentCity && loc.includes(candidate.currentCity.toLowerCase())) return true
+  if (candidate.currentState && loc.includes(candidate.currentState.toLowerCase())) return true
+  return false
 }
 
 // The candidate admin drill-down — the "anchor" page every other admin list
@@ -37,7 +64,7 @@ export async function getAdminCandidateDetail(
   candidateId: string,
   authUsers: Map<string, AuthUserSummary>
 ): Promise<AdminCandidateDetail> {
-  const [candidate, view, workSamples, tracked, surfaced, sentimentAlert, moodHistory] = await Promise.all([
+  const [candidate, view, workSamples, tracked, surfacedForFit, jobClicks, sentimentAlert, moodHistory] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -45,6 +72,19 @@ export async function getAdminCandidateDetail(
         coachId: true,
         coachDossierConsentedAt: true,
         coach: { select: { id: true, fullName: true } },
+        primaryFunction: true,
+        highestLevelReached: true,
+        remotePreference: true,
+        currentCity: true,
+        currentState: true,
+        openToRelocation: true,
+        targetCompMin: true,
+        compFlexible: true,
+        targetRoleType: true,
+        resumeKeywords: true,
+        yearsExperience: true,
+        industryContext: true,
+        targetIndustries: true,
       },
     }),
     getFullClientView(candidateId),
@@ -61,11 +101,30 @@ export async function getAdminCandidateDetail(
     prisma.surfacedJob.findMany({
       where: { candidateId },
       orderBy: { surfacedAt: 'desc' },
-      select: { id: true, title: true, companyName: true, reaction: true, surfacedAt: true },
+      select: {
+        id: true,
+        title: true,
+        companyName: true,
+        location: true,
+        description: true,
+        reaction: true,
+        surfacedAt: true,
+      },
+    }),
+    prisma.jobClickEvent.findMany({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, createdAt: true, jobTitle: true, companyName: true, source: true, url: true },
     }),
     getSentimentAlert(candidateId),
     getMoodHistory(candidateId),
   ])
+
+  const surfaced = surfacedForFit.map(({ location: _location, description: _description, ...rest }) => rest)
+  const goodFitOrBetter = surfacedForFit.filter(
+    (job) => computeSurfacedJobFitBucket(candidate, job) !== 'stretch'
+  ).length
+  const inGeo = surfacedForFit.filter((job) => isInCandidateGeo(candidate, job.location)).length
 
   return {
     id: candidateId,
@@ -76,7 +135,8 @@ export async function getAdminCandidateDetail(
       ? { id: candidate.coach.id, name: candidate.coach.fullName, hasConsent: candidate.coachDossierConsentedAt !== null }
       : null,
     workSamples,
-    jobActivity: { tracked, surfaced },
+    jobActivity: { tracked, surfaced, totalSurfaced: surfacedForFit.length, goodFitOrBetter, inGeo },
+    jobClicks,
     sentimentAlert,
     moodHistory,
   }

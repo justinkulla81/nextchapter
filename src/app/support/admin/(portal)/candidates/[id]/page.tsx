@@ -170,6 +170,20 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
           <CardTitle>Job activity</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <dl className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <dt className="text-muted-foreground">Jobs surfaced</dt>
+              <dd className="text-lg font-medium tabular-nums text-foreground">{detail.jobActivity.totalSurfaced}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Good fit or better</dt>
+              <dd className="text-lg font-medium tabular-nums text-foreground">{detail.jobActivity.goodFitOrBetter}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">In their geo</dt>
+              <dd className="text-lg font-medium tabular-nums text-foreground">{detail.jobActivity.inGeo}</dd>
+            </div>
+          </dl>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Tracked applications ({detail.jobActivity.tracked.length})
@@ -200,6 +214,27 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                     {j.title}
                     {j.companyName && ` at ${j.companyName}`}
                     {j.reaction && ` — ${j.reaction.toLowerCase()}`}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Jobs clicked ({detail.jobClicks.length})
+            </p>
+            {detail.jobClicks.length === 0 ? (
+              <p className="mt-1 text-sm text-muted-foreground">No job links clicked yet.</p>
+            ) : (
+              <ul className="mt-1 space-y-1 text-sm">
+                {detail.jobClicks.map((c) => (
+                  <li key={c.id} className="text-foreground">
+                    {c.createdAt.toLocaleDateString()} —{' '}
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {c.jobTitle}
+                    </a>
+                    {c.companyName && ` at ${c.companyName}`}
+                    <span className="text-muted-foreground"> ({c.source === 'job_board' ? 'Job Board' : 'Surfaced'})</span>
                   </li>
                 ))}
               </ul>

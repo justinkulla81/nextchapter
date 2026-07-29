@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from 'react'
 import type { SurfacedJob } from '@prisma/client'
-import { createCoverLetterFromSurfacedJob, reactToSurfacedJob } from '@/app/dashboard/find-my-job/actions'
+import { createCoverLetterFromSurfacedJob, reactToSurfacedJob, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { Button } from '@/components/ui/button'
 
 function InterestedJobRow({ job }: { job: SurfacedJob }) {
@@ -22,7 +22,23 @@ function InterestedJobRow({ job }: { job: SurfacedJob }) {
   return (
     <div className="space-y-2 rounded-lg border border-border p-4">
       <div>
-        <a href={job.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+        <a
+          href={job.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-primary hover:underline"
+          onClick={() => {
+            void recordJobClick({
+              source: 'surfaced',
+              sourceId: job.id,
+              jobTitle: job.title,
+              companyName: job.companyName,
+              location: job.location,
+              url: job.url,
+              fitBucket: null,
+            })
+          }}
+        >
           {job.title}
         </a>
         {(job.companyName || job.location) && (

@@ -21,13 +21,26 @@ export interface JobsRollup {
     approved: number
     bySource: { source: string; count: number }[]
   }
+  clicks: {
+    recent: {
+      id: string
+      createdAt: Date
+      candidateName: string
+      jobTitle: string
+      companyName: string | null
+      source: string
+      url: string
+    }[]
+    byCompany: { companyName: string; count: number }[]
+    byTitle: { jobTitle: string; count: number }[]
+  }
 }
 
 // One broad fetch per model + in-memory reduction, following the same
 // pattern as src/lib/admin/metrics.ts rather than raw SQL/groupBy — keeps
 // this consistent with the only other computed-aggregate admin view.
 export async function getJobsRollup(): Promise<JobsRollup> {
-  const [tracked, surfaced, board] = await Promise.all([
+  const [tracked, surfaced, board, recentClicks, byCompany, byTitle] = await Promise.all([
     prisma.jobPosting.findMany({
       select: { appliedAt: true, interviewLandedAt: true, offerReceivedAt: true },
     }),
@@ -36,6 +49,32 @@ export async function getJobsRollup(): Promise<JobsRollup> {
     }),
     prisma.exclusiveJobPosting.findMany({
       select: { status: true, source: true, archivedAt: true },
+    }),
+    prisma.jobClickEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: {
+        id: true,
+        createdAt: true,
+        jobTitle: true,
+        companyName: true,
+        source: true,
+        url: true,
+        candidate: { select: { firstName: true, lastName: true } },
+      },
+    }),
+    prisma.jobClickEvent.groupBy({
+      by: ['companyName'],
+      where: { companyName: { not: null } },
+      _count: true,
+      orderBy: { _count: { companyName: 'desc' } },
+      take: 25,
+    }),
+    prisma.jobClickEvent.groupBy({
+      by: ['jobTitle'],
+      _count: true,
+      orderBy: { _count: { jobTitle: 'desc' } },
+      take: 25,
     }),
   ])
 
@@ -73,6 +112,21 @@ export async function getJobsRollup(): Promise<JobsRollup> {
       bySource: Array.from(sourceCounts.entries())
         .map(([source, count]) => ({ source, count }))
         .sort((a, b) => b.count - a.count),
+    },
+    clicks: {
+      recent: recentClicks.map((c) => ({
+        id: c.id,
+        createdAt: c.createdAt,
+        candidateName: `${c.candidate.firstName} ${c.candidate.lastName}`,
+        jobTitle: c.jobTitle,
+        companyName: c.companyName,
+        source: c.source,
+        url: c.url,
+      })),
+      byCompany: byCompany
+        .filter((c): c is typeof c & { companyName: string } => c.companyName !== null)
+        .map((c) => ({ companyName: c.companyName, count: c._count })),
+      byTitle: byTitle.map((t) => ({ jobTitle: t.jobTitle, count: t._count })),
     },
   }
 }
