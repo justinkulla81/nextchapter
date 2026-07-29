@@ -14,8 +14,14 @@ const LEVEL_LABELS: Record<HighestEducationLevel, string> = {
   BACHELORS: "Bachelor's degree",
   MASTERS: "Master's degree",
   MBA: 'MBA',
+  MPH: 'MPH',
   JD: 'JD',
   MD: 'MD',
+  DO: 'DO',
+  PHARMD: 'PharmD',
+  DDS: 'DDS/DMD',
+  DVM: 'DVM',
+  PSYD: 'PsyD',
   PHD: 'PhD',
   OTHER: 'Other',
 }
@@ -23,9 +29,15 @@ const LEVEL_LABELS: Record<HighestEducationLevel, string> = {
 export function EducationConfirmForm({
   highestEducationLevel,
   hasMBA,
+  hasJD,
+  hasMD,
+  hasDO,
 }: {
   highestEducationLevel: HighestEducationLevel | null
   hasMBA: boolean
+  hasJD: boolean
+  hasMD: boolean
+  hasDO: boolean
 }) {
   const [state, formAction, pending] = useActionState(confirmEducation, undefined)
   const [level, setLevel] = useState<HighestEducationLevel | ''>(highestEducationLevel ?? '')
@@ -53,11 +65,31 @@ export function EducationConfirmForm({
         </select>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Checkbox id="hasMBA" name="hasMBA" value="on" defaultChecked={hasMBA} />
-        <Label htmlFor="hasMBA" className="font-normal">
-          I have an MBA
-        </Label>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Checkbox id="hasMBA" name="hasMBA" value="on" defaultChecked={hasMBA} />
+          <Label htmlFor="hasMBA" className="font-normal">
+            I have an MBA
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="hasJD" name="hasJD" value="on" defaultChecked={hasJD} />
+          <Label htmlFor="hasJD" className="font-normal">
+            I have a JD (law degree)
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="hasMD" name="hasMD" value="on" defaultChecked={hasMD} />
+          <Label htmlFor="hasMD" className="font-normal">
+            I have an MD
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="hasDO" name="hasDO" value="on" defaultChecked={hasDO} />
+          <Label htmlFor="hasDO" className="font-normal">
+            I have a DO
+          </Label>
+        </div>
       </div>
 
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}

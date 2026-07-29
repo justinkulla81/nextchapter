@@ -13,7 +13,8 @@ import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 const HIGHEST_EDUCATION_LEVELS = [
-  'SOME_COLLEGE', 'ASSOCIATE', 'BACHELORS', 'MASTERS', 'MBA', 'JD', 'MD', 'PHD', 'OTHER',
+  'SOME_COLLEGE', 'ASSOCIATE', 'BACHELORS', 'MASTERS', 'MBA', 'MPH',
+  'JD', 'MD', 'DO', 'PHARMD', 'DDS', 'DVM', 'PSYD', 'PHD', 'OTHER',
 ] as const
 
 const profileFieldsSchema = z.object({
@@ -76,8 +77,23 @@ const PROMPT_PREFIX = `Extract the following fields from this resume. Only extra
 Resume text:
 `
 
-function inferHasMBA(education: { degree: string | null }[]): boolean {
-  return education.some((entry) => entry.degree && /\bmba\b/i.test(entry.degree))
+// Distinct from highestEducationLevel (which only ever holds one value) —
+// a candidate can hold multiple professional credentials at once (e.g. a
+// JD/MBA dual degree), so each is its own independent flag rather than
+// competing for the single "highest" slot. hasJD/hasMD in particular feed
+// job-fit gating (see job-fit-bucket.ts) — a law-firm "Partner"/attorney
+// posting should never surface to a candidate without hasJD, while that
+// same firm's non-lawyer roles stay open to everyone.
+function inferCredentials(
+  education: { degree: string | null }[]
+): { hasMBA: boolean; hasJD: boolean; hasMD: boolean; hasDO: boolean } {
+  const degrees = education.map((entry) => entry.degree).filter((d): d is string => !!d)
+  return {
+    hasMBA: degrees.some((d) => /\bmba\b/i.test(d)),
+    hasJD: degrees.some((d) => /\bj\.?d\.?\b/i.test(d) || /\bjuris doctor/i.test(d)),
+    hasMD: degrees.some((d) => /\bm\.?d\.?\b/i.test(d) || /\bdoctor of medicine/i.test(d)),
+    hasDO: degrees.some((d) => /\bd\.?o\.?\b/i.test(d) || /\bosteopathic/i.test(d)),
+  }
 }
 
 export async function extractProfileFieldsFromResume(resumeId: string): Promise<void> {
@@ -105,7 +121,7 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     const graduationDate = data.graduationDate ? new Date(data.graduationDate) : null
     const firstJobStartDate = data.firstJobStartDate ? new Date(data.firstJobStartDate) : null
     const yearsExperience = computeYearsExperienceFromResume(graduationDate, firstJobStartDate)
-    const hasMBA = inferHasMBA(data.education)
+    const credentials = inferCredentials(data.education)
 
     await prisma.candidateProfile.update({
       where: { id: resume.candidateId },
@@ -127,7 +143,13 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
         primaryFunction: data.primaryFunction,
         yearsExperience,
         highestEducationLevel: data.highestEducationLevel,
-        hasMBA: hasMBA || undefined, // only ever flips true, never overwrites a previously-detected true with false
+        // Each credential flag only ever flips true, never overwrites a
+        // previously-detected true with false (a later resume version that
+        // omits the JD line shouldn't un-flag a real lawyer).
+        hasMBA: credentials.hasMBA || undefined,
+        hasJD: credentials.hasJD || undefined,
+        hasMD: credentials.hasMD || undefined,
+        hasDO: credentials.hasDO || undefined,
         resumeAiReadinessScore: data.aiReadinessScore,
         resumeAiReadinessNotes: data.aiReadinessNotes,
         resumeKeywords: data.resumeKeywords,

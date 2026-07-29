@@ -19,8 +19,11 @@ function degreeRank(degree: string | null): number {
   const d = degree.toLowerCase()
   if (/\b(ph\.?d|doctorate|dphil)\b/.test(d)) return 5
   if (/\bm\.?d\b/.test(d)) return 5
+  if (/\bd\.?o\b/.test(d)) return 5
   if (/\bj\.?d\b/.test(d)) return 5
+  if (/\b(pharm\.?d|dds|dmd|dvm|psy\.?d)\b/.test(d)) return 5
   if (/\bmba\b/.test(d)) return 4
+  if (/\bmph\b/.test(d)) return 4
   if (/\b(m\.?s|m\.?a|master'?s?)\b/.test(d)) return 4
   if (/\b(b\.?s|b\.?a|bachelor'?s?)\b/.test(d)) return 3
   if (/\b(a\.?s|a\.?a|associate'?s?)\b/.test(d)) return 2

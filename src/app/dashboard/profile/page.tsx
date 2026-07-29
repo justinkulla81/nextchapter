@@ -102,6 +102,9 @@ export default async function ProfilePage() {
             <EducationConfirmForm
               highestEducationLevel={profile.highestEducationLevel}
               hasMBA={profile.hasMBA}
+              hasJD={profile.hasJD}
+              hasMD={profile.hasMD}
+              hasDO={profile.hasDO}
             />
           </CardContent>
         </Card>

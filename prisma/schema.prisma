@@ -36,8 +36,14 @@ enum HighestEducationLevel {
   BACHELORS
   MASTERS
   MBA
+  MPH
   JD
   MD
+  DO // Doctor of Osteopathic Medicine — same licensure track as MD
+  PHARMD // Doctor of Pharmacy
+  DDS // Doctor of Dental Surgery (DMD is the equivalent degree, same bucket)
+  DVM // Doctor of Veterinary Medicine
+  PSYD // Doctor of Psychology (licensed clinical psychologist track)
   PHD
   OTHER
 }
@@ -431,7 +437,24 @@ model CandidateProfile {
   // convention as primaryFunction/industryContext above). Feeds the
   // education/outcome correlation on the admin metrics page.
   highestEducationLevel   HighestEducationLevel?
+  // Individual credential flags — distinct from highestEducationLevel
+  // (which only ever holds ONE value) because a candidate can legitimately
+  // hold multiple professional credentials (e.g. a JD/MBA dual degree).
+  // Resume-derived (inferred from EducationEntry.degree text), candidate-
+  // confirmable. hasJD/hasMD in particular are load-bearing for job-fit
+  // gating — e.g. never surfacing a law-firm "Partner"/attorney posting to
+  // a candidate without hasJD, while still surfacing that firm's
+  // non-lawyer roles to everyone (see job-fit-bucket.ts credential gate).
   hasMBA                  Boolean                @default(false)
+  hasJD                   Boolean                @default(false)
+  hasMD                   Boolean                @default(false)
+  // Same licensure track as MD (job postings routinely phrase the
+  // requirement as "MD or DO") — job-fit gating treats hasMD || hasDO as
+  // "licensed physician." PharmD/DDS/DVM/PsyD don't get their own gating
+  // flags yet — no pharmacist/dentist/vet/psychologist posting volume on
+  // this platform today — but are captured via highestEducationLevel for
+  // accurate education data and the admin correlation view.
+  hasDO                   Boolean                @default(false)
 
   // Structural Market Reality signals, computed from WorkHistoryEntry (see
   // computeStructuralFlags in src/lib/resume/compute-structural-flags.ts) —

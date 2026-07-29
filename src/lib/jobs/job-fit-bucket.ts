@@ -6,6 +6,7 @@ import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-jo
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
+import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
 
 // The "Quick-read" fit signal shown on every Discover card — free, no LLM
 // call, computed for every candidate x listing pair. Deliberately a bucket,
@@ -50,6 +51,9 @@ type FitCandidate = Pick<
   | 'yearsExperience'
   | 'industryContext'
   | 'targetIndustries'
+  | 'hasJD'
+  | 'hasMD'
+  | 'hasDO'
 >
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -172,8 +176,16 @@ function postingToRole(posting: FitPostingLike) {
 // signals: industry (binary — does the posting mention a target industry)
 // and years-of-experience (parsed from posting text when stated).
 function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLike): number {
-  const base = computeMatchScore(candidate, postingToRole(posting)).score
   const postingText = `${posting.title} ${posting.description ?? ''}`
+
+  // Hard, categorical gate — a law-firm attorney posting or a hospital
+  // physician posting is simply not a fit for a candidate without the
+  // license, no matter how well function/level/location/comp line up.
+  // Short-circuits before any of the softer scoring below.
+  const requiredCredential = detectRequiredCredential(postingText)
+  if (!candidateMeetsCredentialGate(candidate, requiredCredential)) return 0
+
+  const base = computeMatchScore(candidate, postingToRole(posting)).score
   const { bonus: keywordBonus, failsGate } = keywordMatchInfo(candidate.resumeKeywords, postingText)
 
   let score =
@@ -276,6 +288,9 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       industryContext: true,
       targetIndustries: true,
       isPeopleManager: true,
+      hasJD: true,
+      hasMD: true,
+      hasDO: true,
     },
   })
 }

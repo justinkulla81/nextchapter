@@ -185,10 +185,13 @@ export async function confirmEducation(
 
   const highestEducationLevel = (formData.get('highestEducationLevel') as HighestEducationLevel | null) || null
   const hasMBA = formData.get('hasMBA') === 'on'
+  const hasJD = formData.get('hasJD') === 'on'
+  const hasMD = formData.get('hasMD') === 'on'
+  const hasDO = formData.get('hasDO') === 'on'
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { highestEducationLevel, hasMBA },
+    data: { highestEducationLevel, hasMBA, hasJD, hasMD, hasDO },
   })
   revalidatePath('/dashboard/profile')
 }
