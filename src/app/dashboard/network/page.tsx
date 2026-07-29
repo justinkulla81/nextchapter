@@ -12,6 +12,7 @@ import { OutreachCheatSheetCard } from '@/components/dashboard/OutreachCheatShee
 import { EmailTrackingCard } from '@/components/dashboard/EmailTrackingCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
 import { NetworkJobLeadForm } from '@/components/dashboard/NetworkJobLeadForm'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
 import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
 import { GUIDES } from '@/lib/constants/guides'
@@ -85,6 +86,10 @@ export default async function NetworkPage() {
           Every contact you add and outreach you log counts toward the connecting signal in your
           Market Reality Grade.
         </p>
+        <SprintActionCompletion
+          candidateId={profile.id}
+          actionTypes={['HELP_SCRIPT', 'NETWORKING_LIST', 'OUTREACH_MESSAGE', 'OUTREACH_CALL', 'OUTREACH_FOLLOW_UP']}
+        />
       </div>
 
       <NetworkEncouragement comfortLevel={profile.networkComfortLevel} />

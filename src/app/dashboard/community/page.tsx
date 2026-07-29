@@ -20,6 +20,7 @@ import { MessageComposer } from '@/components/messaging/MessageComposer'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { cn } from '@/lib/utils'
 
 const PARTNER_TYPE_LABEL = {
@@ -52,6 +53,10 @@ export default async function SupportNetworkPage({
         <p className="mt-1 text-muted-foreground">
           Peers going through it with you, and the people helping you land the job.
         </p>
+        <SprintActionCompletion
+          candidateId={profile.id}
+          actionTypes={['ENGAGE_COMMENT', 'ENGAGE_EVENT', 'ENGAGE_POST_UPDATE', 'ENGAGE_PEER_SUPPORT']}
+        />
       </div>
 
       <div className="flex gap-6 border-b border-border">

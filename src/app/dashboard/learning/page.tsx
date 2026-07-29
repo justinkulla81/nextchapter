@@ -7,6 +7,7 @@ import { RecommendedLearningCard } from '@/components/dashboard/RecommendedLearn
 import { LogAiProjectForm } from '@/components/dashboard/LogAiProjectForm'
 import { getAiToolsForFunction } from '@/lib/constants/ai-tools-by-function'
 import { getAiWorkflowForFunction } from '@/lib/constants/ai-fluency-workflows'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 interface Resource {
   name: string
@@ -195,6 +196,10 @@ export default async function LearningPage() {
           </Link>{' '}
           to pick what actually matters for your target role.
         </p>
+        <SprintActionCompletion
+          candidateId={profile.id}
+          actionTypes={['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL']}
+        />
       </div>
 
       <div className="space-y-4">

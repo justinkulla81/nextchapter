@@ -208,7 +208,6 @@ export default async function DashboardPage() {
           laggingEngines={grade.laggingEngines}
           categoryMinimumsMet={grade.categoryMinimumsMet}
           weeklyPoints={grade.weeklyPoints}
-          weeklyPointsTarget={grade.weeklyPointsTarget}
           onTrack={onTrack}
         />
       </div>

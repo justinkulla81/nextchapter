@@ -2,20 +2,17 @@
 
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
   formatMinutes,
   isRecurringActionType,
-  isVerifiedActionType,
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
-import { toggleSprintAction, completeCatalogAction } from '@/app/dashboard/sprint/actions'
 import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +27,10 @@ function actionKey(a: { actionType?: string; text: string }): string {
   return a.actionType ?? a.text
 }
 
+// Read-only summary row — marking an action done/started happens on the
+// real feature page it links to (see SprintActionCompletion), not here.
+// This card's job is to show status and route you to where the work
+// actually happens.
 function ActionRow({
   text,
   points,
@@ -38,8 +39,6 @@ function ActionRow({
   completed,
   recurring,
   committed,
-  onToggle,
-  onLog,
 }: {
   text: string
   points: number
@@ -48,11 +47,6 @@ function ActionRow({
   completed: boolean
   recurring: boolean
   committed: boolean
-  // Omitted entirely for actions that can't be revised right now (e.g. the
-  // "Defined this week's goal" line outside the edit window) — no button
-  // renders rather than a disabled one, since there's nothing to explain.
-  onToggle?: () => void
-  onLog?: { text: string; actionType?: string }
 }) {
   const link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
   return (
@@ -85,42 +79,8 @@ function ActionRow({
         <span className="text-xs text-muted-foreground tabular-nums">
           {formatMinutes(estimatedMinutes)} · {points} pts
         </span>
-        {recurring ? (
-          completed ? (
-            <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">Started</span>
-          ) : onToggle ? (
-            <form action={onToggle}>
-              <SubmitButton variant="outline" size="sm">
-                Mark started
-              </SubmitButton>
-            </form>
-          ) : (
-            onLog && (
-              <form action={completeCatalogAction}>
-                <input type="hidden" name="text" value={onLog.text} />
-                {onLog.actionType && <input type="hidden" name="actionType" value={onLog.actionType} />}
-                <SubmitButton variant="outline" size="sm">
-                  Mark started
-                </SubmitButton>
-              </form>
-            )
-          )
-        ) : onToggle ? (
-          <form action={onToggle}>
-            <SubmitButton variant={completed ? 'ghost' : 'outline'} size="sm">
-              {completed ? 'Edit' : 'Mark done'}
-            </SubmitButton>
-          </form>
-        ) : (
-          onLog && (
-            <form action={completeCatalogAction}>
-              <input type="hidden" name="text" value={onLog.text} />
-              {onLog.actionType && <input type="hidden" name="actionType" value={onLog.actionType} />}
-              <SubmitButton variant="outline" size="sm">
-                Mark done
-              </SubmitButton>
-            </form>
-          )
+        {recurring && completed && (
+          <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">Started</span>
         )}
       </div>
     </div>
@@ -138,7 +98,6 @@ export function SuccessSprintCard({
   laggingEngines,
   categoryMinimumsMet,
   weeklyPoints,
-  weeklyPointsTarget,
   onTrack,
 }: {
   actions: CommittedAction[] | null
@@ -151,7 +110,6 @@ export function SuccessSprintCard({
   laggingEngines: WeeklyEngine['key'][]
   categoryMinimumsMet: boolean
   weeklyPoints: number
-  weeklyPointsTarget: number
   onTrack: boolean
 }) {
   const committedTier = actions?.filter((a) => !a.addedFromCatalog) ?? []
@@ -163,6 +121,14 @@ export function SuccessSprintCard({
   const oneTimeTotal = (actions ?? []).filter((a) => !a.recurring).length
   const oneTimeDone = (actions ?? []).filter((a) => !a.recurring && a.completed).length
   const recurringStarted = (actions ?? []).filter((a) => a.recurring && a.completed).length
+
+  // The header's denominator must equal the sum of what's actually listed
+  // below it (committedTier's points) — using the system's ramp target here
+  // instead would show an unreachable number whenever a candidate committed
+  // to less than the full ramp (a fully supported, common case: goal-setting
+  // only requires clearing the B bar, not the A bar). weeklyPointsTarget
+  // still drives the separate On track/Behind pace pacing pill below.
+  const committedPointsTotal = committedTier.reduce((sum, a) => sum + a.points, 0)
 
   return (
     <Card>
@@ -181,7 +147,7 @@ export function SuccessSprintCard({
           >
             <p className="text-lg font-semibold text-foreground">
               <span className="tabular-nums">{weeklyPoints}</span> of{' '}
-              <span className="tabular-nums">{weeklyPointsTarget}</span> points this week
+              <span className="tabular-nums">{committedPointsTotal}</span> points this week
             </p>
             <p className={cn('mt-1 text-2xl font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
               {onTrack ? 'On track' : 'Behind pace'}
@@ -196,30 +162,25 @@ export function SuccessSprintCard({
           {actions && actions.length > 0 ? (
             <>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Your Committed Actions
+                Total Weekly Committed Actions
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Click into an action below to go mark it done or started — completion happens on
+                that page, not here.
               </p>
               <div className="space-y-1.5">
-                {committedTier.map((action, i) => {
-                  const realIndex = actions.indexOf(action)
-                  // The goal-defined bonus line isn't a real action to revise —
-                  // only offer to edit it while the window that created it is
-                  // still open; otherwise show it with no control at all.
-                  const canEdit = !action.isGoalBonus || editWindowOpen
-                  const verified = isVerifiedActionType(action.actionType)
-                  return (
-                    <ActionRow
-                      key={i}
-                      text={action.text}
-                      points={action.points}
-                      estimatedMinutes={action.estimatedMinutes}
-                      actionType={action.actionType}
-                      completed={action.completed}
-                      recurring={action.recurring}
-                      committed
-                      onToggle={canEdit && !verified ? toggleSprintAction.bind(null, realIndex) : undefined}
-                    />
-                  )
-                })}
+                {committedTier.map((action, i) => (
+                  <ActionRow
+                    key={i}
+                    text={action.text}
+                    points={action.points}
+                    estimatedMinutes={action.estimatedMinutes}
+                    actionType={action.actionType}
+                    completed={action.completed}
+                    recurring={action.recurring}
+                    committed
+                  />
+                ))}
               </div>
 
               {(loggedExtras.length > 0 || availableCatalog.length > 0) && (
@@ -256,11 +217,6 @@ export function SuccessSprintCard({
                           completed={false}
                           recurring={isRecurringActionType(action.actionType)}
                           committed={false}
-                          onLog={
-                            isVerifiedActionType(action.actionType)
-                              ? undefined
-                              : { text: action.text, actionType: action.actionType }
-                          }
                         />
                       )
                     })}

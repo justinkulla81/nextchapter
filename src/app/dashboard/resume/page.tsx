@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 export default async function ResumePage() {
   const profile = await getDashboardData()
@@ -24,6 +25,7 @@ export default async function ResumePage() {
         <p className="mt-1 text-muted-foreground">
           Upload your resume for an honest read on ATS readability and how results-oriented it is.
         </p>
+        <SprintActionCompletion candidateId={profile.id} actionTypes={['RESUME_UPDATE', 'SKILLS_TRANSLATOR']} />
       </div>
 
       <ResumeUploadForm />

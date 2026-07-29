@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/InterviewPrepTabs'
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 export default async function InterviewPrepPage() {
   const profile = await getDashboardData()
@@ -19,6 +20,10 @@ export default async function InterviewPrepPage() {
           Your story, the tough questions, practice reps, and what to send afterward — all in one
           place.
         </p>
+        <SprintActionCompletion
+          candidateId={profile.id}
+          actionTypes={['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE']}
+        />
       </div>
 
       <JobDescriptionCard initialValue={profile.activeJobDescription} />

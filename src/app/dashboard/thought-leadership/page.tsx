@@ -4,6 +4,7 @@ import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeade
 import { SubstackSection } from '@/components/dashboard/SubstackSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 export default async function ThoughtLeadershipPage() {
   const profile = await getDashboardData()
@@ -40,6 +41,10 @@ export default async function ThoughtLeadershipPage() {
           consistent activity shows up on your Certified Executive Dossier as a real, visible signal, not a
           resume claim.
         </p>
+        <SprintActionCompletion
+          candidateId={profile.id}
+          actionTypes={['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_COMMENT', 'THOUGHT_LEADERSHIP_SHARE']}
+        />
       </div>
 
       {relevantTutorials.length > 0 && (

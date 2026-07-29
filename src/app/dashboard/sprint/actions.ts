@@ -83,7 +83,10 @@ export async function toggleSprintAction(actionIndex: number) {
 
   await toggleSprintActionCompletion(profile.id, actionIndex)
   captureServerEvent(profile.id, 'sprint_action_toggled', { actionIndex })
-  revalidatePath('/dashboard')
+  // Can now be called from any dashboard page (SprintActionCompletion), not
+  // just the Sprint card on /dashboard itself — revalidate the whole
+  // section so whichever page triggered this reflects the new state.
+  revalidatePath('/dashboard', 'layout')
 }
 
 // Logging something from "More Actions Available" — it wasn't part of the
@@ -106,5 +109,5 @@ export async function completeCatalogAction(formData: FormData) {
     recurring: isRecurringActionType(actionType),
   })
   captureServerEvent(profile.id, 'catalog_action_completed', { actionType })
-  revalidatePath('/dashboard')
+  revalidatePath('/dashboard', 'layout')
 }

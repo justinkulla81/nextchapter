@@ -30,6 +30,7 @@ import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 const SURFACED_JOB_LIST_SIZE = 5
 
@@ -134,6 +135,10 @@ export default async function JobFitPage() {
         <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">
           {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
         </p>
+        <SprintActionCompletion
+          candidateId={profile.id}
+          actionTypes={['OUTREACH_CLOSE_APPLICATION', 'NEGOTIATION_ADVICE']}
+        />
       </div>
 
       <div className="space-y-4">

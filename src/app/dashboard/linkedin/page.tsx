@@ -5,6 +5,7 @@ import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
 export default async function LinkedInPage() {
   const profile = await getDashboardData()
@@ -18,6 +19,7 @@ export default async function LinkedInPage() {
           Visibility compounds — recruiters and your network see consistent activity, not just a static
           profile.
         </p>
+        <SprintActionCompletion candidateId={profile.id} actionTypes={['LINKEDIN_SETUP']} />
       </div>
 
       <Card>
