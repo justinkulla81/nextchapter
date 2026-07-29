@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@/lib/weekly/action-effort'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
+import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -241,6 +242,33 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     })
     usedTypes.add('ANSWER_OPTIONAL_QUESTIONS')
     total += estimateActionEffort({ actionType: 'ANSWER_OPTIONAL_QUESTIONS' }).points
+  }
+
+  // Says they like being visible (content, networking) but recent weeks
+  // show none of it — surface the specific gap as its own suggestion
+  // rather than leaving it implicit in the canonical menu below.
+  const visibilityCalibration = await getVisibilityCalibration(candidateId)
+  if (visibilityCalibration.gap === 'wants_more_visibility') {
+    if (
+      !usedTypes.has('LINKEDIN_POST_IDEA') &&
+      (visibilityCalibration.contentComfortLevel ?? 0) >= 60 &&
+      visibilityCalibration.contentActionsCompletedRecently === 0
+    ) {
+      suggestions.push({
+        text: "Post something — you've said you enjoy this, but it hasn't happened lately",
+        actionType: 'LINKEDIN_POST_IDEA',
+      })
+      usedTypes.add('LINKEDIN_POST_IDEA')
+      total += estimateActionEffort({ actionType: 'LINKEDIN_POST_IDEA' }).points
+    }
+    if (!usedTypes.has('OUTREACH_MESSAGE') && visibilityCalibration.networkingLevel === 2) {
+      suggestions.push({
+        text: 'Reach out to one more person this week — you said you should be doing more of this',
+        actionType: 'OUTREACH_MESSAGE',
+      })
+      usedTypes.add('OUTREACH_MESSAGE')
+      total += estimateActionEffort({ actionType: 'OUTREACH_MESSAGE' }).points
+    }
   }
 
   for (const task of CANONICAL_TASK_MENU) {

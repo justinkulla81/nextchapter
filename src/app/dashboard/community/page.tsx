@@ -107,6 +107,7 @@ export default async function SupportNetworkPage({
         <CommunityTab
           candidateId={profile.id}
           privacyTier={profile.privacyTier}
+          privacyOpenedUpBonusAt={profile.privacyOpenedUpBonusAt}
           encouragementGivingOptIn={profile.encouragementGivingOptIn}
           layoffCohortId={profile.layoffCohortId}
           firstName={profile.firstName}
@@ -205,6 +206,7 @@ function partnerNameFor(thread: { coach: { fullName: string } | null; recruiter:
 async function CommunityTab({
   candidateId,
   privacyTier,
+  privacyOpenedUpBonusAt,
   encouragementGivingOptIn,
   layoffCohortId,
   firstName,
@@ -216,6 +218,7 @@ async function CommunityTab({
 }: {
   candidateId: string
   privacyTier: PrivacyTier
+  privacyOpenedUpBonusAt: Date | null
   encouragementGivingOptIn: boolean
   layoffCohortId: string | null
   firstName: string | null
@@ -239,7 +242,7 @@ async function CommunityTab({
             Choose a visibility below to unlock the Support Network — no need to leave this page.
           </p>
         </div>
-        <PrivacyTierSelector currentTier={privacyTier} />
+        <PrivacyTierSelector currentTier={privacyTier} alreadyAwarded={!!privacyOpenedUpBonusAt} />
       </div>
     )
   }

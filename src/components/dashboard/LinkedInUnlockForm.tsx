@@ -34,6 +34,12 @@ export function LinkedInUnlockForm() {
         pending && 'cursor-wait [&_*]:cursor-wait'
       )}
     >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium text-foreground">Unlock the LinkedIn post generator</p>
+        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+          +5 pts, one time
+        </span>
+      </div>
       <div className="space-y-2">
         <Label>How do you feel about being open about your job search?</Label>
         <FourStopSlider name="opennessComfort" choices={OPENNESS_CHOICES} defaultValue={null} />

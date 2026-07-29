@@ -86,6 +86,14 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // that Public/Semi-Public specifically earns in computeWeeklyEngines.
   PRIVACY_CONFIRMED: { minutes: 5, points: 5 },
   JOB_BOARD_USAGE_CONFIRMED: { minutes: 3, points: 5 },
+
+  // One-time unlock-gate bonuses — every gate that unlocks a whole section
+  // gets the same small, clearly-labeled one-time award as the confirms
+  // above, so "answer this to unlock X" never feels like unpaid setup work.
+  MARKETING_PLAN_UNLOCK: { minutes: 3, points: 5 },
+  GIG_DIRECTORY_UNLOCK: { minutes: 3, points: 5 },
+  LINKEDIN_UNLOCK: { minutes: 3, points: 5 },
+  WORK_SAMPLE_TYPE_CONFIRMED: { minutes: 3, points: 5 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -146,6 +154,10 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PARTNER_CLICK_THROUGH: 'connecting',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
+  MARKETING_PLAN_UNLOCK: 'working',
+  GIG_DIRECTORY_UNLOCK: 'connecting',
+  LINKEDIN_UNLOCK: 'working',
+  WORK_SAMPLE_TYPE_CONFIRMED: 'working',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -212,9 +224,9 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   ENGAGE_POST_UPDATE: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_PEER_SUPPORT: { href: '/dashboard/community', label: 'Support Network' },
   LINKEDIN_SETUP: { href: '/dashboard/linkedin', label: 'LinkedIn' },
-  LINKEDIN_POST_IDEA: { href: '/dashboard/thought-leadership', label: 'Thought Leadership' },
-  THOUGHT_LEADERSHIP_COMMENT: { href: '/dashboard/thought-leadership', label: 'Thought Leadership' },
-  THOUGHT_LEADERSHIP_SHARE: { href: '/dashboard/thought-leadership', label: 'Thought Leadership' },
+  LINKEDIN_POST_IDEA: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  THOUGHT_LEADERSHIP_COMMENT: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  THOUGHT_LEADERSHIP_SHARE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   LEARNING_MODULE: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_CERTIFICATE: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_NEW_TOOL: { href: '/dashboard/learning', label: 'Learning' },
@@ -232,6 +244,10 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
   JOB_BOARD_USAGE_CONFIRMED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
+  MARKETING_PLAN_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work', label: 'Interim Work' },
+  LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
+  WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

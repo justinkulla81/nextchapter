@@ -7,6 +7,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { applyWorkSampleUploadedRewrite } from '@/lib/scoring/rewrite-actions'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export type FormState = { error?: string } | undefined
 
@@ -30,6 +32,25 @@ export async function submitWorkSampleType(_prevState: FormState, formData: Form
     where: { id: profile.id },
     data: { workSampleType },
   })
+
+  // One-time bonus for answering the gate at all — same shape as
+  // privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  if (!profile.workSampleTypeBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'WORK_SAMPLE_TYPE_CONFIRMED' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'WORK_SAMPLE_TYPE_CONFIRMED',
+        text: 'Confirmed your work sample type',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { workSampleTypeBonusAt: new Date() },
+      })
+    }
+  }
 
   revalidatePath('/dashboard/work-samples')
   revalidatePath('/dashboard')

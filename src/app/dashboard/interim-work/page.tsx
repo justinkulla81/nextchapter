@@ -179,8 +179,8 @@ export default async function InterimWorkPage() {
             <p className="text-sm text-muted-foreground">
               Sharing what you know publicly is also how board seats and fractional clients find you.
               Use the{' '}
-              <Link href="/dashboard/thought-leadership" className="text-primary underline underline-offset-4">
-                Thought Leadership Studio
+              <Link href="/dashboard/marketing-plan" className="text-primary underline underline-offset-4">
+                My Marketing Plan
               </Link>{' '}
               to build the content that leads to these invitations.
             </p>

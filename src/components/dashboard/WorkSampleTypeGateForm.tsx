@@ -18,10 +18,15 @@ export function WorkSampleTypeGateForm() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        Do you have real work you could show — writing, code, designs, a deck? A concrete sample
-        does more to prove what you can do than another line on a resume.
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          Do you have real work you could show — writing, code, designs, a deck? A concrete sample
+          does more to prove what you can do than another line on a resume.
+        </p>
+        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+          +5 pts, one time
+        </span>
+      </div>
       <div className="flex flex-wrap gap-2">
         {OPTIONS.map((opt) => (
           <form

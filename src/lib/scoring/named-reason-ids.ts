@@ -8,6 +8,7 @@ export const JOB_HOPPING_GAP_ID = 'jobHopping_gap'
 export const STABLE_TENURE_STRENGTH_ID = 'stableTenure_strength'
 export const CAREER_TRAJECTORY_STRENGTH_ID = 'careerTrajectory_strength'
 export const CAREER_TRAJECTORY_GAP_ID = 'careerTrajectory_gap'
+export const VISIBILITY_CALIBRATION_GAP_ID = 'visibilityCalibration_gap'
 
 // Every gap-type named reason gets a link to the one existing page best
 // positioned to actually close it — so "here's what a hiring manager
@@ -27,6 +28,7 @@ export const NAMED_REASON_ACTION_LINKS: Record<string, { href: string; label: st
   adaptability_gap: { href: '/dashboard/search-strategy', label: 'Revisit your flexibility in Search Strategy' },
   ownership_gap: { href: '/dashboard/references', label: 'Request a reference that speaks to this' },
   [CAREER_TRAJECTORY_GAP_ID]: { href: '/dashboard/interview-prep', label: 'Prep an answer for this in Interview Prep' },
+  [VISIBILITY_CALIBRATION_GAP_ID]: { href: '/dashboard/marketing-plan', label: 'Build your Marketing Plan' },
 }
 
 export function getNamedReasonActionLink(reasonId: string): { href: string; label: string } | null {

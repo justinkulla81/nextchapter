@@ -11,6 +11,12 @@ export function GigDirectoryUnlockForm() {
 
   return (
     <div className="space-y-4 rounded-lg border border-border p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium text-foreground">Unlock the Interim/Gig Directory</p>
+        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+          +5 pts, one time
+        </span>
+      </div>
       <div className="space-y-2 text-sm text-muted-foreground">
         <p>
           Interim and fractional work fills an employment gap while you search — a gap you can

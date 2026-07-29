@@ -7,6 +7,7 @@ import {
 } from '@/lib/scoring/hireability-grade'
 import { scoreToGrade, type CategoryGrade } from '@/lib/scoring/grade'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
+import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 
 function clamp(n: number): number {
   return Math.max(0, Math.min(100, Math.round(n)))
@@ -28,10 +29,13 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
     include: GRADE_RELATIONS_INCLUDE,
   })
 
-  const latestAiProject = await prisma.learningBadge.findFirst({
-    where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
-    orderBy: { completedAt: 'desc' },
-  })
+  const [latestAiProject, visibilityCalibration] = await Promise.all([
+    prisma.learningBadge.findFirst({
+      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+      orderBy: { completedAt: 'desc' },
+    }),
+    getVisibilityCalibration(candidateId),
+  ])
 
   const categories: CategoryGrade[] = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
   const marketRealityScore = clamp(categories.reduce((sum, c) => sum + c.score, 0) / categories.length)
@@ -39,6 +43,7 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
   const namedReasons: NamedReason[] = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null, {
     jobHoppingFlag: candidate.jobHoppingFlag,
     careerTrajectory: candidate.careerTrajectory,
+    visibilityGap: visibilityCalibration.gap === 'wants_more_visibility',
   })
 
   await prisma.marketRealitySnapshot.create({

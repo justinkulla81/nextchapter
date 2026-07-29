@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import {
   submitSubstackNo,
   submitSubstackUrl,
-} from '@/app/dashboard/thought-leadership/actions'
+} from '@/app/dashboard/marketing-plan/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'

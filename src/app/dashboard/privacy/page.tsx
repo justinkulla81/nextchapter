@@ -27,7 +27,7 @@ export default async function PrivacyPage() {
           Control exactly what employers can see about you, and when.
         </p>
       </div>
-      <PrivacyTierSelector currentTier={profile.privacyTier} />
+      <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>

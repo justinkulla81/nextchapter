@@ -149,6 +149,16 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.visibilityCalibration.gap && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Visibility calibration</p>
+          <p className="mt-1 text-sm text-foreground">{notes.visibilityCalibration.note}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Good jumping-off point for building their own Marketing Plan together.
+          </p>
+        </div>
+      )}
+
       {notes.coachingOnboardingAnswers && notes.coachingOnboardingAnswers.length > 0 && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">Coaching Onboarding Form answers</p>

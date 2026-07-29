@@ -6,7 +6,7 @@ import {
   generateIdeasAction,
   draftPostAction,
   generateArticleAction,
-} from '@/app/dashboard/thought-leadership/actions'
+} from '@/app/dashboard/marketing-plan/actions'
 import { markLinkedInActivity } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'

@@ -17,6 +17,7 @@ import {
   type CandidateWithGradeRelations,
 } from '@/lib/scoring/hireability-grade'
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
+import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coach/visibility-calibration'
 
 export interface GapAnalysisGap {
   area: string
@@ -81,10 +82,14 @@ export interface CoachingNotes {
   // Prompt 60 — the candidate's Coaching Onboarding Form answers, once
   // submitted. Null until they've completed it.
   coachingOnboardingAnswers: CoachingOnboardingAnswerDisplay[] | null
+  // How much the candidate says they like being visible (content,
+  // networking) versus how much they've actually done recently — feeds a
+  // coach's help building the candidate's own Marketing Plan.
+  visibilityCalibration: VisibilityCalibration
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -124,6 +129,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     }),
     getCoachingOnboardingAnswersForDisplay(candidateId),
     getSelfAwarenessFlags(candidateId),
+    getVisibilityCalibration(candidateId),
   ])
 
   return {
@@ -156,5 +162,6 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
         : null,
     jobFitHistory: surfacedJobs,
     coachingOnboardingAnswers,
+    visibilityCalibration,
   }
 }

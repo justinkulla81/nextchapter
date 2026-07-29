@@ -7,6 +7,7 @@ import {
   STABLE_TENURE_STRENGTH_ID,
   CAREER_TRAJECTORY_STRENGTH_ID,
   CAREER_TRAJECTORY_GAP_ID,
+  VISIBILITY_CALIBRATION_GAP_ID,
 } from '@/lib/scoring/named-reason-ids'
 
 export { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
@@ -69,6 +70,8 @@ export interface StructuralFlags {
   realRoleCount?: number
   shortTenureCount?: number
   averageTenureMonths?: number | null
+  /** From getVisibilityCalibration — says they want more visibility than they're showing. */
+  visibilityGap?: boolean
 }
 
 // The bar for claiming stability as a strength, deliberately stricter than
@@ -164,6 +167,20 @@ export function computeNamedReasons(
       kind: 'gap',
       text: 'Your most recent move reads as a step down in scope or seniority — have a clear, honest one-liner ready for why (relocation, industry pivot, deliberately choosing IC work) before it comes up.',
       category: 'ownership',
+    })
+  }
+
+  // Says they enjoy being visible (content, networking) but recent weeks
+  // show none of it — a recruiter scanning LinkedIn or your network for
+  // recent activity won't find it either. Only ever the gap side; doing a
+  // lot despite disliking it isn't a problem worth naming (see
+  // getVisibilityCalibration).
+  if (structuralFlags?.visibilityGap) {
+    reasons.push({
+      id: VISIBILITY_CALIBRATION_GAP_ID,
+      kind: 'gap',
+      text: "You've said you're open to being visible — posting, networking — but recent weeks show little of it. A recruiter or your network can only notice activity that actually happens.",
+      category: 'communication',
     })
   }
 

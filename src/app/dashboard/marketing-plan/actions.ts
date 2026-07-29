@@ -8,6 +8,8 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { generatePostIdeas, draftPost, type PostIdea } from '@/lib/network/thought-leadership'
 import { analyzeSubstack } from '@/lib/network/analyze-substack'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -44,7 +46,26 @@ export async function submitThoughtLeadershipUnlock(
 
   captureServerEvent(profile.id, 'thought_leadership_unlocked')
 
-  revalidatePath('/dashboard/thought-leadership')
+  // One-time bonus for answering the unlock question at all — same
+  // shape as privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  if (!profile.contentUnlockBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'MARKETING_PLAN_UNLOCK' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'MARKETING_PLAN_UNLOCK',
+        text: 'Set up your Marketing Plan',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { contentUnlockBonusAt: new Date() },
+      })
+    }
+  }
+
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export type IdeasFormState = { ideas?: PostIdea[]; error?: string } | undefined
@@ -107,7 +128,7 @@ export async function submitSubstackNo(): Promise<void> {
     data: { substackHasAccount: false },
   })
 
-  revalidatePath('/dashboard/thought-leadership')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function submitSubstackUrl(
@@ -133,5 +154,5 @@ export async function submitSubstackUrl(
 
   await analyzeSubstack(profile.id, url)
 
-  revalidatePath('/dashboard/thought-leadership')
+  revalidatePath('/dashboard/marketing-plan')
 }

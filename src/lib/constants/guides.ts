@@ -88,8 +88,8 @@ export const GUIDES: Guide[] = [
     slug: 'thought-leadership',
     title: 'Build a public presence.',
     description: 'How to write and share thought leadership content that gets noticed.',
-    lockedTeaser: 'Unlocks once you answer the two gating questions in Build Thought Leadership.',
-    activateHref: '/dashboard/thought-leadership',
+    lockedTeaser: 'Unlocks once you answer the two gating questions in My Marketing Plan.',
+    activateHref: '/dashboard/marketing-plan',
   },
   {
     slug: 'first-90-days',

@@ -516,15 +516,23 @@ model CandidateProfile {
   // completion tracking, not a Search Action, so no points/effort fields.
   benefitsActionPlanCompletedItems String[]       @default([])
   gigDirectoryUnlockAnswer         String? // target rate/openness question — gates the Gig Directory
+  // One-time points award for answering the Gig Directory unlock question — mirrors privacyOpenedUpBonusAt
+  gigDirectoryUnlockBonusAt        DateTime?
   interimOfferDefinition           String?        @db.Text // "what specific expertise are you offering" — Interim Launch Plan phase 2
   interimOutreachStartedAt         DateTime? // manual self-report — Interim Launch Plan phase 6 (no external signal to derive this from)
-  contentComfortLevel              Int? // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
+  contentComfortLevel              Int? // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates My Marketing Plan
   contentVenues                    ContentVenue[] @default([])
+  // One-time points award for answering the Marketing Plan unlock question — mirrors privacyOpenedUpBonusAt
+  contentUnlockBonusAt              DateTime?
   linkedinOpennessComfort          Int? // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
   linkedinUsageFrequency           String? // "daily" | "weekly" | "rarely" | "never" — same gate
   linkedinProfileUpToDate          Boolean? // same gate
+  // One-time points award for answering the LinkedIn unlock gate — mirrors privacyOpenedUpBonusAt
+  linkedinUnlockBonusAt             DateTime?
   activeJobDescription             String?        @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
   workSampleType                   String? // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
+  // One-time points award for answering the work-sample-type gate — mirrors privacyOpenedUpBonusAt
+  workSampleTypeBonusAt             DateTime?
   substackHasAccount               Boolean? // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
   substackUrl                      String?
   substackCritique                 Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }

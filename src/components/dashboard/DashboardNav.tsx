@@ -59,24 +59,12 @@ function buildSections(
           badge: needsWorkStyleSurvey ? 'Recommended' : undefined,
         },
         { href: '/dashboard/resume', label: 'My Resume' },
-        { href: '/dashboard/find-my-job', label: 'My Cover Letter' },
         {
           href: '/dashboard/portfolio',
           label: 'My Portfolio',
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
         },
-      ],
-    },
-    {
-      title: 'Effort',
-      links: [
-        { href: '/dashboard/references', label: 'My References' },
-        { href: '/dashboard/thought-leadership', label: 'My Thought Leadership' },
-        {
-          href: '/dashboard/find-my-job',
-          label: 'Jobs',
-          badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
-        },
+        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
       ],
     },
@@ -84,6 +72,7 @@ function buildSections(
       title: 'Connecting',
       links: [
         { href: '/dashboard/network', label: 'Outreach Contacts' },
+        { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/community',
           label: 'Support Network',
@@ -105,10 +94,15 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
+        {
+          href: '/dashboard/find-my-job',
+          label: 'Find Full-Time Jobs',
+          badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
+        },
+        { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         { href: '/dashboard/learning', label: 'Learn New Skills' },
-        { href: '/dashboard/interim-work', label: 'Interim Work' },
         { href: '/dashboard/guides', label: 'Search Strategy Guides' },
-        { href: '/dashboard/benefits', label: 'Benefits' },
+        { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
         { href: '/faq', label: 'FAQ' },
       ],
     },

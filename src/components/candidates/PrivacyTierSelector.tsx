@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { PrivacyTier } from '@prisma/client'
 
-export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier }) {
+export function PrivacyTierSelector({
+  currentTier,
+  alreadyAwarded = true,
+}: {
+  currentTier: PrivacyTier
+  alreadyAwarded?: boolean
+}) {
   const [state, formAction, pending] = useActionState(updatePrivacyTier, undefined)
   const [selected, setSelected] = useState<PrivacyTier>(currentTier)
   const selectedTier = PRIVACY_TIERS.find((tier) => tier.value === selected)!
@@ -80,9 +86,16 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <Button type="submit" disabled={pending || selected === currentTier}>
-        {pending ? 'Saving…' : 'Save privacy setting'}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={pending || selected === currentTier}>
+          {pending ? 'Saving…' : 'Save privacy setting'}
+        </Button>
+        {!alreadyAwarded && (
+          <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+            +5 pts, one time, for confirming any setting here
+          </span>
+        )}
+      </div>
     </form>
   )
 }

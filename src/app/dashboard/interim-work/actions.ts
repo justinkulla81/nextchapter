@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { logCatalogAction } from '@/lib/weekly/sprint'
+import { logCatalogAction, getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 
 export type FormState = { error?: string } | undefined
 
@@ -32,6 +32,25 @@ export async function submitGigDirectoryUnlock(_prevState: FormState, formData: 
   })
 
   captureServerEvent(profile.id, 'interim_launch_phase_completed', { phase: 1 })
+
+  // One-time bonus for answering the unlock question at all — same shape
+  // as privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  if (!profile.gigDirectoryUnlockBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'GIG_DIRECTORY_UNLOCK' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'GIG_DIRECTORY_UNLOCK',
+        text: 'Unlocked the Interim/Gig Directory',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { gigDirectoryUnlockBonusAt: new Date() },
+      })
+    }
+  }
 
   revalidatePath('/dashboard/interim-work')
 }

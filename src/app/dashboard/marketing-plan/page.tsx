@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { prisma } from '@/lib/prisma'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeadershipUnlockForm'
 import { SubstackSection } from '@/components/dashboard/SubstackSection'
@@ -6,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
-export default async function ThoughtLeadershipPage() {
+export default async function MarketingPlanPage() {
   const profile = await getDashboardData()
   const unlocked = profile.contentComfortLevel !== null && profile.contentVenues.length > 0
 
@@ -14,10 +16,11 @@ export default async function ThoughtLeadershipPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Thought Leadership Studio</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My Marketing Plan</h1>
           <p className="mt-1 text-muted-foreground">
-            Post ideas grounded in your actual background — pick one, get a draft, edit it so it
-            sounds like you, and post.
+            You&apos;re the product right now — this is where you plan how you get in front of
+            people. Post ideas grounded in your actual background — pick one, get a draft, edit it
+            so it sounds like you, and post.
           </p>
         </div>
         <ThoughtLeadershipUnlockForm />
@@ -26,14 +29,16 @@ export default async function ThoughtLeadershipPage() {
   }
 
   const relevantTutorials = CONTENT_TUTORIALS.filter((t) => profile.contentVenues.includes(t.venue))
+  const hasNarrative = (await prisma.candidateNarrative.count({ where: { candidateId: profile.id } })) > 0
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Thought Leadership Studio</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">My Marketing Plan</h1>
         <p className="mt-1 text-muted-foreground">
-          Post ideas grounded in your actual background — pick one, get a draft, edit it so it sounds like you,
-          and post.
+          You&apos;re the product right now — this is where you plan how you get in front of
+          people. Post ideas grounded in your actual background — pick one, get a draft, edit it so
+          it sounds like you, and post.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Posting is one of the highest-leverage things you can do right now — it&apos;s how
@@ -45,6 +50,21 @@ export default async function ThoughtLeadershipPage() {
           candidateId={profile.id}
           actionTypes={['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_COMMENT', 'THOUGHT_LEADERSHIP_SHARE']}
         />
+      </div>
+
+      <div className="rounded-lg border border-border bg-off-white p-4">
+        <p className="text-sm text-foreground">
+          Your posts land better when they&apos;re grounded in the same core story you tell
+          everywhere else.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-3 text-sm">
+          <Link href="/dashboard/portfolio" className="font-medium text-primary underline underline-offset-4">
+            {hasNarrative ? 'Review your narrative' : 'Build your narrative first'}
+          </Link>
+          <Link href="/dashboard/interview-prep" className="font-medium text-primary underline underline-offset-4">
+            Practice saying it out loud in Interview Prep
+          </Link>
+        </div>
       </div>
 
       {relevantTutorials.length > 0 && (
