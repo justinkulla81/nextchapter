@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
+import { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { cn } from '@/lib/utils'
 
@@ -55,6 +57,17 @@ export function MarketRealitySnapshotArchive({ snapshots }: { snapshots: Archive
                         {reason.kind === 'gap' ? 'Gap: ' : 'Strength: '}
                       </span>
                       {reason.text}
+                      {reason.kind === 'gap' && isResumeSpecificGap(reason.id) && (
+                        <>
+                          {' '}
+                          <Link
+                            href={`/dashboard/resume?fromGap=${encodeURIComponent(reason.text)}`}
+                            className="text-primary underline underline-offset-4"
+                          >
+                            Fix this in Resume Analysis →
+                          </Link>
+                        </>
+                      )}
                     </p>
                   ))
                 )}

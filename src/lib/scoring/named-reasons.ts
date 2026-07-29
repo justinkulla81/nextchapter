@@ -1,5 +1,8 @@
 import 'server-only'
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
+import { AI_FLUENCY_GAP_ID } from '@/lib/scoring/named-reason-ids'
+
+export { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
 
 // Market Reality Grade's structured, individually-referenceable named
 // reasons — short, specific, labeled gaps/strengths (not a paragraph of
@@ -46,7 +49,6 @@ const CATEGORY_REASONS: Record<CategoryKey, { gap: string; strength: string }> =
   },
 }
 
-const AI_FLUENCY_GAP_ID = 'ai_fluency_gap'
 const AI_FLUENCY_STRENGTH_ID = 'ai_fluency_strength'
 
 export function computeNamedReasons(categories: CategoryGrade[], aiFluencyExample: string | null): NamedReason[] {

@@ -5,9 +5,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 
-export default async function ResumePage() {
+export default async function ResumePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ fromGap?: string }>
+}) {
   const profile = await getDashboardData()
   const admin = createAdminClient()
+  const { fromGap } = await searchParams
 
   const resumesWithLinks = await Promise.all(
     profile.resumes.map(async (resume) => {
@@ -102,8 +107,14 @@ export default async function ResumePage() {
               )}
 
               {latest.resume.actionItems.length > 0 && (
-                <div className="space-y-1.5 border-t border-border pt-4">
+                <div id="action-plan" className="space-y-1.5 border-t border-border pt-4">
                   <p className="text-sm font-medium">Your action plan</p>
+                  {fromGap && (
+                    <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                      From your Market Reality Report: <span className="italic">&ldquo;{fromGap}&rdquo;</span> — the
+                      items below are what to fix on the resume itself.
+                    </p>
+                  )}
                   <ul className="space-y-1.5 text-sm">
                     {latest.resume.actionItems.map((item, i) => (
                       <li key={i} className="flex items-start gap-2">
