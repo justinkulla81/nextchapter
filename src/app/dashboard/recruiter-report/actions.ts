@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -37,4 +38,29 @@ export async function approvePositioningStatement(
 
   captureServerEvent(profile.id, 'dossier_positioning_statement_approved')
   revalidatePath('/dashboard/recruiter-report')
+}
+
+// Explicit refresh for the Dossier's two cached LLM generations (proof-point
+// follow-ups + job-reaction pattern summary). Clearing the cache is all
+// that's needed — the next render regenerates and re-caches via
+// getCachedGenerations. Deliberately candidate-initiated: it's what keeps
+// generation cost tied to intent rather than to page views.
+export async function regenerateDossierSections(): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { dossierGeneratedCache: Prisma.DbNull, dossierGeneratedAt: null },
+  })
+
+  captureServerEvent(profile.id, 'dossier_sections_regenerated', {})
+
+  revalidatePath('/dashboard/recruiter-report')
+  revalidatePath('/dashboard/coach-dossier')
 }

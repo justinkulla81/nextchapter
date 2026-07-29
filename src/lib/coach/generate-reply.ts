@@ -68,7 +68,13 @@ Asked someone for help: ${candidate.askedForHelpAt ? 'yes' : 'no'}
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      // Sonnet 5, not Opus — this fires on EVERY chat turn, making it the
+      // highest-frequency model call in the app. Conversational coaching is
+      // well within Sonnet's range, and chat quality depends more on
+      // responsiveness than on marginal reasoning depth; adaptive thinking
+      // still covers the turns that genuinely need to reason. Opus stays
+      // reserved for the once-per-candidate Hireability Report.
+      model: 'claude-sonnet-5',
       max_tokens: 1000,
       thinking: { type: 'adaptive' },
       system: `${SYSTEM_PROMPT_PREFIX}\n${DIRECTNESS_INSTRUCTION[directnessLevel]}\n\nCandidate context:\n${contextBlock}`,

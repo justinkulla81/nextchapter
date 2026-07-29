@@ -1,4 +1,5 @@
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import {
@@ -382,6 +383,48 @@ ${starResponses.map((r, i) => `Answer ${i + 1} (for: "${r.questionText}"):\n${r.
   }
 }
 
+interface DossierGeneratedCache {
+  proofPoints: DossierProofPoint[]
+  patternSummary: string | null
+}
+
+// Read-through cache for the Dossier's two per-view LLM generations. These
+// are the only two that don't self-cache (getOrDraftPositioningStatement
+// already writes its draft back on first run), so without this every page
+// view of the Dossier cost two Sonnet calls and the latency to match.
+// Deliberately never auto-invalidates: a candidate refreshes explicitly via
+// regenerateDossierSections, which keeps cost tied to intent.
+async function getCachedGenerations(
+  candidateId: string,
+  cached: unknown
+): Promise<{ proofPoints: DossierProofPoint[]; patternSummary: string | null }> {
+  const parsed = cached as DossierGeneratedCache | null
+  if (parsed && Array.isArray(parsed.proofPoints)) {
+    return { proofPoints: parsed.proofPoints, patternSummary: parsed.patternSummary ?? null }
+  }
+
+  const [patternSummary, proofPoints] = await Promise.all([
+    generateReactionSummary(candidateId),
+    getProofPoints(candidateId),
+  ])
+
+  // Cache-write failure must never take the page down — the generated
+  // content is already in hand, it just costs again next view.
+  try {
+    await prisma.candidateProfile.update({
+      where: { id: candidateId },
+      data: {
+        dossierGeneratedCache: { proofPoints, patternSummary } as unknown as Prisma.InputJsonValue,
+        dossierGeneratedAt: new Date(),
+      },
+    })
+  } catch (error) {
+    console.error('Failed to cache Dossier generations for candidate', candidateId, error)
+  }
+
+  return { patternSummary, proofPoints }
+}
+
 export async function getDossierSections(candidateId: string): Promise<DossierData> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
@@ -399,7 +442,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     careerTrajectory: candidate.careerTrajectory,
   })
 
-  const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, patternSummary, proofPoints] =
+  const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated] =
     await Promise.all([
       getOrDraftPositioningStatement(candidate),
       getHowIOperate(candidateId, candidate.topStrengths),
@@ -412,9 +455,20 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
       computeCandidatePeerSupportCount(candidateId),
       getSelfAwareness(candidateId),
       getLearningGrowth(candidateId),
-      generateReactionSummary(candidateId),
-      getProofPoints(candidateId),
+      getCachedGenerations(candidateId, candidate.dossierGeneratedCache),
     ])
+  const { patternSummary, proofPoints } = generated
+
+  // Self-Awareness is Dossier-eligible only when it's genuinely HIGH — i.e.
+  // every category we have an outside read on agrees with the candidate's
+  // own self-assessment. A 'mismatch' means they rate themselves above what
+  // references/assessment show, which is the last thing to hand a hiring
+  // manager; in that case the section is dropped entirely rather than
+  // softened. Needs at least one real read — an all-'not_available' profile
+  // hasn't earned the claim either way.
+  const reads = categories.map((c) => c.selfAwareness).filter((r) => r && r.status !== 'not_available')
+  const selfAwarenessIsHigh = reads.length > 0 && reads.every((r) => r?.status === 'match')
+  const gatedSelfAwareness = selfAwarenessIsHigh ? selfAwareness : { growthEdges: [] }
 
   return {
     namedReasons,
@@ -429,7 +483,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
       quotes: impactQuotes.map((q) => ({ theme: q.theme, quoteText: q.quoteText, refereeName: q.reference.refereeName })),
       communityNarrative: communityTierNarrative(peerSupportCount),
     },
-    selfAwareness,
+    selfAwareness: gatedSelfAwareness,
     learningGrowth,
     fit: { patternSummary },
     proofPoints,
@@ -450,7 +504,11 @@ export function getDossierSectionCompleteness(
     let hasContent: boolean
     switch (id) {
       case 'positioning':
-        hasContent = !!dossier.positioning.draftText || !!dossier.positioning.approvedText
+        // Approved text only. An unapproved AI draft is explicitly NOT
+        // Dossier-eligible (see the positioningStatement* comment in
+        // schema.prisma), so counting a draft as "content" inflated the
+        // completeness ring for a section a hiring manager can't actually see.
+        hasContent = !!dossier.positioning.approvedText
         break
       case 'howIOperate':
         hasContent = dossier.howIOperate.dimensionSummaries.length > 0 || dossier.howIOperate.superpowers.length > 0

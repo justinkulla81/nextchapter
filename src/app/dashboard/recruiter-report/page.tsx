@@ -4,6 +4,8 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getRecruiterReportData } from '@/lib/reports/recruiter-report'
 import { getDossierSections, getDossierSectionCompleteness } from '@/lib/reports/dossier-sections'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { regenerateDossierSections } from './actions'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { DossierCompletenessRing } from '@/components/dashboard/DossierCompletenessRing'
 import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
@@ -36,6 +38,14 @@ export default async function RecruiterReportPage() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
+          {/* Regenerates the two AI-written sections (proof-point follow-ups,
+              job-reaction pattern). They're cached after the first build so
+              opening this page stays fast and doesn't re-run the models. */}
+          <form action={regenerateDossierSections}>
+            <SubmitButton variant="outline" pendingLabel="Refreshing…">
+              Refresh AI sections
+            </SubmitButton>
+          </form>
           <PrintReportButton />
         </div>
       </div>

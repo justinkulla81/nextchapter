@@ -176,6 +176,31 @@ export const TRADEOFF_PRIORITIES = [
   { key: 'priorityMission', label: 'Mission alignment' },
 ] as const
 
+// The 4 discrete stops every ConfidenceSlider snaps to (see
+// components/onboarding/ConfidenceSlider.tsx) — shared here so server code
+// (e.g. the Hireability Report prompt) can translate a stored value back to
+// its label without duplicating the slider's own stop list.
+export const CONFIDENCE_SLIDER_STOPS = [25, 50, 75, 100] as const
+
+export const CREATIVITY_LABELS = [
+  'I prefer when things are clearly mapped out',
+  'I like things well-defined, with a little room to adapt',
+  'I like the freedom to be creative',
+  'I thrive when I have no boundaries',
+] as const
+
+// Translates a stored ConfidenceSlider value (one of CONFIDENCE_SLIDER_STOPS,
+// or null if unanswered) back to its label — null for anything else so
+// callers can render "not specified" and never fabricate a label.
+export function confidenceSliderLabel(
+  value: number | null,
+  labels: readonly [string, string, string, string]
+): string | null {
+  if (value === null) return null
+  const index = CONFIDENCE_SLIDER_STOPS.indexOf(value as (typeof CONFIDENCE_SLIDER_STOPS)[number])
+  return index === -1 ? null : labels[index]
+}
+
 // Which QuadBlock/LikertItem rotationGroup is currently live in onboarding —
 // bump this when re-seeding new assessment content so old and new content
 // don't collide (see scripts/seed-assessment-content.ts).

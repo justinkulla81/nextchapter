@@ -24,6 +24,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { PrismaClient, Prisma, type CurrentJobStatus, type SearchIntensity, type Mood } from '@prisma/client'
 import { scoreToGrade } from '../src/lib/scoring/grade'
+import { estimateActionEffort, isRecurringActionType } from '../src/lib/weekly/action-effort'
 
 const prisma = new PrismaClient()
 
@@ -105,6 +106,17 @@ async function findAuthUserByEmail(email: string) {
     page++
   }
 }
+
+// Rotation spanning all four weekly engines (connecting, learning, working,
+// effort — see ENGINE_BY_ACTION_TYPE) so seeded committed actions produce a
+// realistic, non-zero score in every engine bucket.
+const COMMITTED_ACTION_TYPE_CYCLE = [
+  'OUTREACH_MESSAGE',
+  'LEARNING_MODULE',
+  'RESUME_UPDATE',
+  'INTERVIEW_PREP',
+  'ENGAGE_COMMENT',
+]
 
 // Monday 00:00 UTC of the week `weeksAgo` weeks before the current week.
 function weekStart(weeksAgo: number): Date {
@@ -299,12 +311,19 @@ async function createFixtures() {
     for (let w = weekCount - 1; w >= 0; w--) {
       const ws = weekStart(w)
       const actionCount = c.tier === 'A' ? 5 : c.tier === 'B' ? 4 : 2
-      const committedActions = Array.from({ length: actionCount }, (_, a) => ({
-        text: `Committed action ${a + 1}`,
-        difficulty: (a % 3) + 1,
-        completed: a / actionCount < completionRate,
-        completedAt: a / actionCount < completionRate ? ws : null,
-      }))
+      const committedActions = Array.from({ length: actionCount }, (_, a) => {
+        const actionType = COMMITTED_ACTION_TYPE_CYCLE[a % COMMITTED_ACTION_TYPE_CYCLE.length]
+        const effort = estimateActionEffort({ actionType })
+        return {
+          text: `Committed action ${a + 1}`,
+          actionType,
+          points: effort.points,
+          estimatedMinutes: effort.minutes,
+          recurring: isRecurringActionType(actionType),
+          completed: a / actionCount < completionRate,
+          completedAt: a / actionCount < completionRate ? ws : null,
+        }
+      })
       await prisma.weeklySprint.create({
         data: { candidateId: profile.id, weekStartDate: ws, committedActions, autoAssigned: false },
       })

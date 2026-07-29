@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { ConfidenceSlider } from './ConfidenceSlider'
 import { ChoiceButtons } from './ChoiceButtons'
 import { MultiChoiceButtons } from './MultiChoiceButtons'
-import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX } from '@/lib/constants/onboarding'
+import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX, CREATIVITY_LABELS } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
@@ -31,13 +31,6 @@ const ACTION_ORIENTED_LABELS = [
   'I do what is asked of me',
   'I like to be first and on top of it',
   'I like to do things without being told, even if it means more work for me',
-] as const
-
-const CREATIVITY_LABELS = [
-  'I prefer when things are clearly mapped out',
-  'I like things well-defined, with a little room to adapt',
-  'I like the freedom to be creative',
-  'I thrive when I have no boundaries',
 ] as const
 
 const COMMUNICATOR_LABELS = [

@@ -17,10 +17,18 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
+import { computeNamedReasons } from '@/lib/scoring/named-reasons'
+import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
+import {
+  BIGGEST_BARRIER_OPTIONS,
+  TOP_STRENGTH_OPTIONS,
+  TRADEOFF_PRIORITIES,
+  CREATIVITY_LABELS,
+  confidenceSliderLabel,
+} from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { hasStartedSprint } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
@@ -120,6 +128,7 @@ Write:
 3. Hill to climb: one honest, holistic evaluation of how hard finding a job will realistically be for this candidate, given everything below (their Market Reality Grade and its categories, experience, market conditions, job search intensity, consistency/self-awareness signals, resume/network completeness). Choose a "tone" — "very_positive" for strong candidates who are doing the right things, "positive_with_work" for solid candidates with real gaps, "significant_climb" for candidates facing a genuinely hard market position — and write 2-5 narrative sentences that are honest about the difficulty but never discouraging: always end on what consistent weekly effort (via the actions below) does to improve their odds, even where Target Fit is structurally harder to move. Never imply the grade guarantees an outcome.
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, the tone and narrative must reflect that pivoting is a harder path than a lateral move (see the weaknesses instruction above) — never pick "very_positive" on the strength of a lateral candidate's profile alone if they're pivoting. Still end on what's in their control: the transferable-skills story they build, the networking they do, and the specificity of the target they pick all move the needle even on a pivot.
 4. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
+   - After satisfying every HARD REQUIREMENT item below, fill any remaining day slots with items that make progress on "Currently open gaps" (see candidate data below) rather than generic advice — when a gap lists an existing platform resource, point the candidate at it by name instead of re-deriving generic advice unrelated to any open gap.
    - HARD REQUIREMENT: if "Resume on file" below says "no", one of the 7 days MUST include uploading a resume, and must explain that it meaningfully improves their score and lets this report generate specific, evidence-based resume suggestions. If "Resume on file" says "yes", one of the 7 days MUST instead include applying this report's/the resume analysis's suggestions to improve it. Never do both, never do neither.
    - HARD REQUIREMENT: if "LinkedIn status confirmed" below says "no", one of the 7 days MUST include confirming whether they have a LinkedIn URL or don't have one yet, tagged actionType "LINKEDIN_SETUP". If "LinkedIn status confirmed" says "yes" but "LinkedIn URL on file" says "no", one of the 7 days MUST include actually creating a LinkedIn profile, tagged actionType "LINKEDIN_SETUP", explaining briefly why having one is critical to a modern job search (visibility to recruiters, network effects). If both say "yes", one of the 7 days MUST instead include concrete active-use steps — completing the profile fully, posting, being active daily — also tagged "LINKEDIN_SETUP".
    - HARD REQUIREMENT: one of the 7 days MUST include 3-7 separate items, each a distinct LinkedIn post-topic idea genuinely grounded in the candidate's real work history/achievements/function below (not generic "share an article" filler) — each such idea as its own item tagged actionType "LINKEDIN_POST_IDEA".
@@ -216,8 +225,24 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     candidate.targetRoleType
   )
 
-  const grade = await computeHireabilityGrade(candidate)
-  const startedSprint = await hasStartedSprint(candidateId)
+  const [grade, startedSprint, latestAiProject] = await Promise.all([
+    computeHireabilityGrade(candidate),
+    hasStartedSprint(candidateId),
+    prisma.learningBadge.findFirst({
+      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+      orderBy: { completedAt: 'desc' },
+    }),
+  ])
+
+  // Same structured gap list the Market Reality Report UI and Executive
+  // Dossier already compute (see named-reasons.ts) — passed into the action
+  // plan prompt below so the 7-day plan can actually prioritize closing
+  // gaps a hiring manager would notice, instead of being generated with no
+  // awareness of them.
+  const namedReasons = computeNamedReasons(grade.categories, latestAiProject?.judgmentCall ?? null, {
+    jobHoppingFlag: candidate.jobHoppingFlag,
+    careerTrajectory: candidate.careerTrajectory,
+  })
 
   const weekNumber = candidate._count.weeklySprints + 1
   const directnessLevel = computeDirectnessLevel(
@@ -233,6 +258,16 @@ Market Reality Grade: ${grade.grade} (${GRADE_LABEL[grade.grade]}, ${grade.score
   ${grade.categories.map((c) => `${c.label}: ${c.grade} (${c.score}/100)`).join('\n  ')}
 Weekly effort: ${grade.weeklyPoints}/${grade.weeklyPointsTarget} points
   ${grade.weeklyEngines.map((e) => `${e.label}: ${e.grade} (${e.score}/100)`).join('\n  ')}
+Currently open gaps (named reasons a hiring manager would notice about this candidate right now — when choosing action-plan items in part 4 below, beyond what's already required, prioritize items that make progress on these, especially ones with an existing platform resource named):
+  ${
+    namedReasons
+      .filter((r) => r.kind === 'gap')
+      .map((r) => {
+        const link = getNamedReasonActionLink(r.id)
+        return `- ${r.text}${link ? ` (existing platform resource: ${link.label})` : ''}`
+      })
+      .join('\n  ') || 'none currently open'
+  }
 Target role: ${candidate.targetRoleType ?? 'not specified'}${isVagueTargetRole(candidate.targetRoleType) ? ' (vague/no clear direction — e.g. "flexible" or "open" rather than an actual title)' : ''}
 Management/IC preference vs. goals conflict: ${
     managementGoalConflict
@@ -268,6 +303,14 @@ Top strengths they identify with (up to 3): ${
     candidate.topStrengths.length > 0
       ? candidate.topStrengths.map((v) => TOP_STRENGTH_OPTIONS.find((o) => o.value === v)?.label ?? v).join(', ')
       : 'not specified'
+  }
+Self-rated creativity/structure preference: ${confidenceSliderLabel(candidate.creativityConfidence, CREATIVITY_LABELS) ?? 'not specified'}
+Tradeoff priorities, ranked most to least important: ${
+    TRADEOFF_PRIORITIES.map((p) => ({ label: p.label as string, rank: candidate[p.key] }))
+      .filter((p) => p.rank !== null)
+      .sort((a, b) => (a.rank as number) - (b.rank as number))
+      .map((p) => p.label)
+      .join(' > ') || 'not specified'
   }
 
 Work-style profile (self-reported): ${
@@ -343,7 +386,11 @@ Openings matching their target function + industry: ${industrySpecificCount !== 
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
-      model: 'claude-opus-4-8',
+      // Opus 5 (was the older opus-4-8) — the one place the premium model
+      // earns its cost: this is the flagship artifact, generated once per
+      // candidate rather than per interaction, and its quality sets the
+      // first impression of the whole product.
+      model: 'claude-opus-5',
       max_tokens: 8000,
       thinking: { type: 'adaptive' },
       output_config: { format: zodOutputFormat(hireabilityReportSchema), effort: 'medium' },

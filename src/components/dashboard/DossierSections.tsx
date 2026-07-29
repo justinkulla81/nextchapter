@@ -73,17 +73,19 @@ function DossierSectionBlock({
 }) {
   switch (id) {
     case 'positioning':
+      // readOnly is the shared/printed view a hiring manager sees — show the
+      // section only once there's approved text. It used to render an
+      // "awaiting approval" placeholder, which advertised an incomplete
+      // Dossier to exactly the audience it's meant to impress. The
+      // candidate's own view (below) still shows the draft + approve control.
+      if (readOnly && !dossier.positioning.approvedText) return null
       if (!dossier.positioning.draftText && !dossier.positioning.approvedText) return null
       return (
         <section>
           <SectionHeading>{title}</SectionHeading>
           <div className="mt-2">
             {readOnly ? (
-              <p className="text-sm text-foreground">
-                {dossier.positioning.approvedText ?? (
-                  <span className="italic text-muted-foreground">Drafted — awaiting the candidate&apos;s approval.</span>
-                )}
-              </p>
+              <p className="text-sm text-foreground">{dossier.positioning.approvedText}</p>
             ) : (
               <PositioningStatementApproval
                 draftText={dossier.positioning.draftText ?? ''}

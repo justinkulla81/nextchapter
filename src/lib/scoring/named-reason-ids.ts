@@ -5,6 +5,7 @@
 
 export const AI_FLUENCY_GAP_ID = 'ai_fluency_gap'
 export const JOB_HOPPING_GAP_ID = 'jobHopping_gap'
+export const STABLE_TENURE_STRENGTH_ID = 'stableTenure_strength'
 export const CAREER_TRAJECTORY_STRENGTH_ID = 'careerTrajectory_strength'
 export const CAREER_TRAJECTORY_GAP_ID = 'careerTrajectory_gap'
 

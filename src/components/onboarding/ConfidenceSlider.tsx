@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-
-const STOPS = [25, 50, 75, 100] as const
+import { CONFIDENCE_SLIDER_STOPS as STOPS } from '@/lib/constants/onboarding'
 
 export function ConfidenceSlider({
   name,

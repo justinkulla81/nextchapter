@@ -165,7 +165,7 @@ function getCategoryConfidence(
     case 'adaptability':
       return refCount >= 1 ? 'HIGH' : 'BUILDING'
     case 'ownership':
-      return refCount >= 1 ? 'HIGH' : 'BUILDING'
+      return refCount >= 1 ? 'HIGH' : candidate.actionOrientedConfidence !== null ? 'BUILDING' : 'PROVISIONAL'
   }
 }
 
@@ -286,24 +286,30 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
       ? clamp(adaptabilitySelfReport * 0.5 + adaptabilityRefRating * 0.5)
       : adaptabilitySelfReport
 
-  // ---- Ownership & Reliability — almost entirely a reference signal;
-  // there's no good self-report proxy for "can you be trusted without
-  // supervision," so this leans on the reference reliability rating far
-  // more than the others, with a neutral default until one exists.
+  // ---- Ownership & Reliability — "how action-oriented are you?" (onboarding
+  // Part 3) is the self-report proxy for "can you be trusted without
+  // supervision": doing things without being told, even at the cost of more
+  // work, is initiative/follow-through in the candidate's own words. Blended
+  // with the reference "follow-through" rating the same way every other
+  // category blends self-report and reference signal, rather than leaning on
+  // the reference alone.
+  const ownershipSelfReport = candidate.actionOrientedConfidence ?? 50
   const ownershipRefRating = averageReferenceRating(refs, 'traitFollowThroughRating')
+  const ownershipBase =
+    ownershipRefRating !== null
+      ? clamp(ownershipSelfReport * 0.5 + ownershipRefRating * 0.5)
+      : ownershipSelfReport
 
-  // Structural facts layered onto the reference-based baseline, not a
-  // replacement for it — job-hopping and career-trajectory are real
-  // patterns a hiring manager notices, and this category has no other home
-  // for them (it's the only one of the six with a genuine self-report
-  // vacuum today). First-pass magnitudes — tune after seeing this against
-  // real seeded candidates.
+  // Structural facts layered on top of the reference/self-report baseline —
+  // job-hopping and career-trajectory are real patterns a hiring manager
+  // notices, and this category has no other home for them. First-pass
+  // magnitudes — tune after seeing this against real seeded candidates.
   let ownershipStructuralAdjustment = 0
   if (candidate.jobHoppingFlag) ownershipStructuralAdjustment -= 15
   if (candidate.careerTrajectory === 'PROMOTED') ownershipStructuralAdjustment += 10
   if (candidate.careerTrajectory === 'DEMOTED') ownershipStructuralAdjustment -= 10
 
-  const ownershipScore = clamp((ownershipRefRating ?? 55) + ownershipStructuralAdjustment)
+  const ownershipScore = clamp(ownershipBase + ownershipStructuralAdjustment)
 
   const scores: Record<CategoryKey, number> = {
     targetFit: targetFitScore,
@@ -389,7 +395,7 @@ async function computeWeeklyEngines(
   for (const action of committedActions) {
     if (!action.completed) continue
     const engine = engineForActionType(action.actionType)
-    pointsByEngine[engine] += action.points
+    pointsByEngine[engine] += action.points ?? 0
   }
 
   // Being Public/Semi-Public amplifies real networking effort already done

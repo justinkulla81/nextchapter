@@ -378,6 +378,18 @@ model CandidateProfile {
   positioningStatementDraft String?   @db.Text
   positioningStatementText  String?   @db.Text
   positioningStatementSetAt DateTime?
+
+  // Cache for the Dossier's two genuinely per-view LLM generations
+  // (proof-point follow-ups, job-reaction pattern summary). Unlike
+  // positioningStatementDraft above — which self-caches on first draft —
+  // these two used to re-generate on EVERY render of /dashboard/
+  // recruiter-report, /dashboard/coach-dossier, and the coach's full client
+  // view, making cost scale with page views instead of with real activity.
+  // Regenerated only when the candidate explicitly asks (see
+  // regenerateDossierSections in dashboard/recruiter-report/actions.ts), so
+  // a stale-but-cheap read is the default and refreshing is a deliberate act.
+  dossierGeneratedCache     Json?
+  dossierGeneratedAt        DateTime?
   functionSkillConfidence   Int? // 0-100, 4-stop discrete scale ("Good" -> "Among the best in my field")
   aiFlexibilityLevel        Int? // 0-100, repurposed as AI-skill confidence slider, same 4-stop scale
   managementSkillConfidence Int? // 0-100, 4-stop "soft trait" scale, only asked if isPeopleManager

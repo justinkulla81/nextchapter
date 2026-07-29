@@ -4,6 +4,7 @@ import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import {
   AI_FLUENCY_GAP_ID,
   JOB_HOPPING_GAP_ID,
+  STABLE_TENURE_STRENGTH_ID,
   CAREER_TRAJECTORY_STRENGTH_ID,
   CAREER_TRAJECTORY_GAP_ID,
 } from '@/lib/scoring/named-reason-ids'
@@ -64,6 +65,28 @@ const AI_FLUENCY_STRENGTH_ID = 'ai_fluency_strength'
 export interface StructuralFlags {
   jobHoppingFlag: boolean
   careerTrajectory: CareerTrajectory | null
+  /** Real roles counted after internship exclusion — see work-history-facts.ts. */
+  realRoleCount?: number
+  shortTenureCount?: number
+  averageTenureMonths?: number | null
+}
+
+// The bar for claiming stability as a strength, deliberately stricter than
+// "didn't trip the job-hopping flag". Job-hopping fires at 3+ sub-year
+// roles; the mere absence of that is not evidence of anything for someone
+// with two jobs. This requires a track record long enough to actually read
+// as stable — same "don't fabricate a pattern" rule the rest of this file
+// follows.
+const STABLE_TENURE_MIN_ROLES = 3
+const STABLE_TENURE_MIN_AVG_MONTHS = 24
+
+export function hasStableTenure(flags: StructuralFlags): boolean {
+  return (
+    !flags.jobHoppingFlag &&
+    (flags.realRoleCount ?? 0) >= STABLE_TENURE_MIN_ROLES &&
+    (flags.shortTenureCount ?? 0) === 0 &&
+    (flags.averageTenureMonths ?? 0) >= STABLE_TENURE_MIN_AVG_MONTHS
+  )
 }
 
 export function computeNamedReasons(
@@ -113,6 +136,18 @@ export function computeNamedReasons(
       id: JOB_HOPPING_GAP_ID,
       kind: 'gap',
       text: 'Several roles under a year each read as a job-hopping pattern to a hiring manager — worth having a clear, specific reason ready (market conditions, layoffs, a wrong-fit sequence) rather than letting each one stand alone.',
+      category: 'ownership',
+    })
+  }
+  // The positive counterpart to jobHopping_gap. Stability is something a
+  // hiring manager actively values, and until now only its absence was
+  // named — a candidate with a long, steady record got no credit for it
+  // anywhere in the Dossier.
+  if (structuralFlags && hasStableTenure(structuralFlags)) {
+    reasons.push({
+      id: STABLE_TENURE_STRENGTH_ID,
+      kind: 'strength',
+      text: 'Your work history shows real staying power — multiple roles, none cut short, averaging over two years each. Hiring managers read that as someone who commits and sees things through.',
       category: 'ownership',
     })
   }
