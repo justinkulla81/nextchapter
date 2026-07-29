@@ -2,11 +2,19 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import type { ActionWindow, Mood, EeocGenderIdentity, EeocRaceEthnicity, EeocYesNoDecline } from '@prisma/client'
+import type {
+  ActionWindow,
+  Mood,
+  EeocGenderIdentity,
+  EeocRaceEthnicity,
+  EeocYesNoDecline,
+  PublicDisclosureComfort,
+} from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
+import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
@@ -60,6 +68,27 @@ export async function checkInMood(mood: Mood) {
 
   await recordMoodCheckIn(profile.id, mood)
   captureServerEvent(profile.id, 'mood_checked_in', { mood })
+  revalidatePath('/dashboard')
+}
+
+// This week's answer to "how comfortable do you feel being publicly visible
+// in your search this week?" — a coaching/sentiment signal only (see
+// getVisibilityComfortTrend), never a direct grade input, so this is a
+// standalone one-field write rather than routed through commitWeeklySprint.
+// Silently no-ops if no current-week sprint exists yet, same accepted gap
+// as autoCompleteEngagementAction/ENGAGE_POST_UPDATE.
+export async function checkInVisibilityComfort(comfort: PublicDisclosureComfort) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (!sprint) return
+
+  await prisma.weeklySprint.update({
+    where: { id: sprint.id },
+    data: { visibilityComfort: comfort },
+  })
+  captureServerEvent(profile.id, 'visibility_comfort_checked_in', { comfort })
   revalidatePath('/dashboard')
 }
 

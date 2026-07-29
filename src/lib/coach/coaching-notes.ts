@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Mood } from '@prisma/client'
 import { getMoodHistory, getSentimentAlert, type SentimentAlert } from '@/lib/daily/mood'
+import { getVisibilityComfortTrend, type VisibilityComfortTrend } from '@/lib/weekly/visibility-sentiment'
 import { detectAvoidancePattern, type AvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { PUBLIC_DISCLOSURE_COMFORT_OPTIONS, REFERRAL_RECENCY_OPTIONS } from '@/lib/constants/onboarding'
 import {
@@ -35,6 +36,11 @@ export interface CoachingNotes {
   sentimentAlert: SentimentAlert
   marketRealityTrend: TrendSnapshot[]
   publicDisclosureComfortLabel: string | null
+  // The most recent weekly re-check (WeeklySprint.visibilityComfort), if
+  // any answer exists yet — distinct from publicDisclosureComfortLabel
+  // above, which is the one-time onboarding baseline.
+  latestWeeklyVisibilityComfortLabel: string | null
+  visibilityComfortTrend: VisibilityComfortTrend
   hasBeenReferredBefore: boolean | null
   referralRecencyLabel: string | null
   lastSalary: number | null
@@ -49,7 +55,7 @@ export interface CoachingNotes {
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -64,6 +70,12 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     }),
     getMoodHistory(candidateId),
     getSentimentAlert(candidateId),
+    getVisibilityComfortTrend(candidateId),
+    prisma.weeklySprint.findFirst({
+      where: { candidateId, visibilityComfort: { not: null } },
+      orderBy: { weekStartDate: 'desc' },
+      select: { visibilityComfort: true },
+    }),
     prisma.marketRealitySnapshot.findMany({
       where: { candidateId },
       orderBy: { weekStartDate: 'asc' },
@@ -91,6 +103,10 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     publicDisclosureComfortLabel: candidate.publicDisclosureComfort
       ? (PUBLIC_DISCLOSURE_COMFORT_OPTIONS.find((o) => o.value === candidate.publicDisclosureComfort)?.label ?? null)
       : null,
+    latestWeeklyVisibilityComfortLabel: latestWeeklyVisibilityComfort?.visibilityComfort
+      ? (PUBLIC_DISCLOSURE_COMFORT_OPTIONS.find((o) => o.value === latestWeeklyVisibilityComfort.visibilityComfort)?.label ?? null)
+      : null,
+    visibilityComfortTrend,
     hasBeenReferredBefore: candidate.hasBeenReferredBefore,
     referralRecencyLabel: candidate.referralRecency
       ? (REFERRAL_RECENCY_OPTIONS.find((o) => o.value === candidate.referralRecency)?.label ?? null)

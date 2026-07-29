@@ -7,6 +7,11 @@ const SENTIMENT_ALERT_REASON_TEXT: Record<'low_average' | 'declining_trend', str
   declining_trend: 'their mood check-ins have been trending down over the last two weeks',
 }
 
+const VISIBILITY_COMFORT_ALERT_REASON_TEXT: Record<'low_average' | 'declining_trend', string> = {
+  low_average: 'their weekly visibility check-ins have run mostly "keeping this private"',
+  declining_trend: 'their comfort with being publicly visible has been trending down week over week',
+}
+
 // Coach-only panel (Prompt 54) — deliberately broader than the external
 // Executive Dossier ever shows. In-app only: no download, export, print, or
 // forward affordance anywhere in this component or its parent page.
@@ -18,6 +23,15 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
           <p className="text-sm font-semibold text-foreground">Sentiment flag</p>
           <p className="mt-1 text-sm text-foreground">
             Worth a check-in: {SENTIMENT_ALERT_REASON_TEXT[notes.sentimentAlert.reason]}.
+          </p>
+        </div>
+      )}
+
+      {notes.visibilityComfortTrend.lowComfort && notes.visibilityComfortTrend.reason && (
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <p className="text-sm font-semibold text-foreground">Visibility comfort flag</p>
+          <p className="mt-1 text-sm text-foreground">
+            Worth a check-in: {VISIBILITY_COMFORT_ALERT_REASON_TEXT[notes.visibilityComfortTrend.reason]}.
           </p>
         </div>
       )}
@@ -42,8 +56,14 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         <dl className="mt-2 grid gap-2 text-sm">
           {notes.publicDisclosureComfortLabel && (
             <div>
-              <dt className="text-muted-foreground">Public disclosure comfort</dt>
+              <dt className="text-muted-foreground">Public disclosure comfort (onboarding baseline)</dt>
               <dd className="text-foreground">{notes.publicDisclosureComfortLabel}</dd>
+            </div>
+          )}
+          {notes.latestWeeklyVisibilityComfortLabel && (
+            <div>
+              <dt className="text-muted-foreground">Public disclosure comfort (most recent weekly check-in)</dt>
+              <dd className="text-foreground">{notes.latestWeeklyVisibilityComfortLabel}</dd>
             </div>
           )}
           {notes.hasBeenReferredBefore !== null && (
