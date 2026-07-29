@@ -54,10 +54,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   NEGOTIATION_ADVICE: { minutes: 20, points: 20 },
 
   // One-time items
-  ASSESSMENT_COMPLETE: { minutes: 20, points: 20 },
   WORKING_STYLE_QUIZ: { minutes: 25, points: 25 },
-  REFERENCE_ADDED: { minutes: 30, points: 30 },
-  RESUME_BOOK_UPLOAD: { minutes: 10, points: 10 },
 
   // Prompt 68 — Interim Work page. Signing up for a fractional/talent
   // marketplace is a real, if small, step; deliberately smaller than

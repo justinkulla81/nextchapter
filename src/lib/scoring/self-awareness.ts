@@ -102,3 +102,35 @@ export function getSelfAwarenessRead(
       return undefined
   }
 }
+
+export type SelfAwarenessVerdict = 'strong' | 'mixed' | 'wildly_off'
+
+// Deliberately generous. Self-vs-evidence comparison is noisy: references
+// rate on their own scales, a candidate can be genuinely strong at
+// something one referee never saw, and the assessment vectors are style
+// poles rather than quality measures. So a single disagreement means
+// nothing and is surfaced NOWHERE.
+//
+//   strong      — two or more independent reads, all agreeing. A real,
+//                 corroborated positive; Dossier-eligible.
+//   wildly_off  — disagreement on two or more separate dimensions, which is
+//                 no longer noise. Coaching Notes only, never the Dossier
+//                 and never the candidate's ring.
+//   mixed       — anything else. Silent by design.
+//
+// More references improve this rather than endanger it: each one adds a
+// read, so consistent people reach 'strong' and one outlier can't drag
+// someone to 'wildly_off' on its own.
+const STRONG_MIN_READS = 2
+const WILDLY_OFF_MIN_MISMATCHES = 2
+
+export function summarizeSelfAwareness(
+  reads: (SelfAwarenessRead | undefined)[]
+): SelfAwarenessVerdict {
+  const available = reads.filter((r): r is SelfAwarenessRead => !!r && r.status !== 'not_available')
+  const mismatches = available.filter((r) => r.status === 'mismatch').length
+
+  if (mismatches >= WILDLY_OFF_MIN_MISMATCHES) return 'wildly_off'
+  if (available.length >= STRONG_MIN_READS && mismatches === 0) return 'strong'
+  return 'mixed'
+}

@@ -3,7 +3,6 @@ import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { CandidateCard } from '@/components/talent/CandidateCard'
-import type { HireabilityGrade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 

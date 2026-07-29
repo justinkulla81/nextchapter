@@ -7,6 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export async function regenerateHireabilityReport() {
   const supabase = await createClient()
@@ -32,6 +33,8 @@ export async function regenerateHireabilityReport() {
   // re-send the email (only the first auto-generated report is emailed) to
   // avoid spamming candidates who click regenerate repeatedly.
   await generateHireabilityReport(profile.id)
+
+  captureServerEvent(profile.id, 'hireability_report_regenerated', {})
 
   revalidatePath('/dashboard/hireability-report')
 }

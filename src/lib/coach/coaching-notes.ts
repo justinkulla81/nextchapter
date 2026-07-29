@@ -11,6 +11,12 @@ import {
 } from '@/lib/coach/onboarding-form'
 import type { TrendSnapshot } from '@/components/dashboard/MarketRealityTrendChart'
 import { benefitsPressureLabel } from '@/lib/benefits/pressure-options'
+import {
+  computeCategoryGrades,
+  GRADE_RELATIONS_INCLUDE,
+  type CandidateWithGradeRelations,
+} from '@/lib/scoring/hireability-grade'
+import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 
 export interface GapAnalysisGap {
   area: string
@@ -31,6 +37,28 @@ export interface JobFitHistoryEntry {
 // compensation, unfiltered Gap Analysis, sentiment). Never rendered
 // anywhere outside the coach's Full Client View, and only after the
 // candidate's explicit consent (coachDossierConsentedAt) is recorded.
+// Only a 'wildly_off' verdict reaches a human, and only here — never the
+// Dossier, never the candidate's completeness ring. See
+// summarizeSelfAwareness: a single disagreement is noise and stays silent;
+// this fires only when two or more independent dimensions disagree, which
+// is a real coaching conversation rather than a scoring penalty.
+export interface SelfAwarenessFlag {
+  categoryLabel: string
+  note: string
+}
+
+async function getSelfAwarenessFlags(candidateId: string): Promise<SelfAwarenessFlag[]> {
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    include: GRADE_RELATIONS_INCLUDE,
+  })
+  const categories = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
+  if (summarizeSelfAwareness(categories.map((c) => c.selfAwareness)) !== 'wildly_off') return []
+  return categories
+    .filter((c) => c.selfAwareness?.status === 'mismatch' && c.selfAwareness.note)
+    .map((c) => ({ categoryLabel: c.label, note: c.selfAwareness!.note! }))
+}
+
 export interface CoachingNotes {
   moodHistory: { date: Date; mood: Mood }[]
   sentimentAlert: SentimentAlert
@@ -47,6 +75,7 @@ export interface CoachingNotes {
   targetCompMin: number | null
   gapAnalysis: { targetRole: string; gaps: GapAnalysisGap[] } | null
   avoidancePattern: AvoidancePattern | null
+  selfAwarenessFlags: SelfAwarenessFlag[]
   financialPressureContext: string | null
   jobFitHistory: JobFitHistoryEntry[]
   // Prompt 60 — the candidate's Coaching Onboarding Form answers, once
@@ -55,7 +84,7 @@ export interface CoachingNotes {
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -94,6 +123,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       take: 50,
     }),
     getCoachingOnboardingAnswersForDisplay(candidateId),
+    getSelfAwarenessFlags(candidateId),
   ])
 
   return {
@@ -117,6 +147,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       ? (latestReport.gapAnalysis as unknown as { targetRole: string; gaps: GapAnalysisGap[] })
       : null,
     avoidancePattern,
+    selfAwarenessFlags,
     financialPressureContext:
       candidate.benefitsPressures.length > 0
         ? candidate.benefitsPressures

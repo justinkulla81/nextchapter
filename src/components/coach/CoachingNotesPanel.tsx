@@ -131,6 +131,24 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.selfAwarenessFlags.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Worth calibrating together</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Their self-assessment reads higher than the outside evidence on more than one dimension.
+            This stays here — it never appears in their Dossier or on their dashboard. More
+            completed references sharpen this read either way.
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground">
+            {notes.selfAwarenessFlags.map((flag) => (
+              <li key={flag.categoryLabel}>
+                <span className="font-medium">{flag.categoryLabel}:</span> {flag.note}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {notes.coachingOnboardingAnswers && notes.coachingOnboardingAnswers.length > 0 && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">Coaching Onboarding Form answers</p>

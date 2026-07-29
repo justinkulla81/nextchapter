@@ -5,6 +5,7 @@ import type { ShareRecipientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 const EXPIRY_DAYS: Record<string, number | null> = { '7': 7, '30': 30, never: null }
 
@@ -45,6 +46,8 @@ export async function createProfileShare(
       label,
     },
   })
+
+  captureServerEvent(profile.id, 'profile_share_created', {})
 
   revalidatePath('/dashboard/privacy')
 }

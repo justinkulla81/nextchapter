@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string } | undefined
 
@@ -73,6 +74,8 @@ export async function updateSearchStrategy(
       searchStrategyConfirmedAt: new Date(),
     },
   })
+
+  captureServerEvent(profile.id, 'search_strategy_updated', {})
 
   revalidatePath('/dashboard/search-strategy')
 }

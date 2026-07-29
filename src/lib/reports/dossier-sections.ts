@@ -10,6 +10,7 @@ import {
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
+import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
@@ -459,16 +460,13 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     ])
   const { patternSummary, proofPoints } = generated
 
-  // Self-Awareness is Dossier-eligible only when it's genuinely HIGH — i.e.
-  // every category we have an outside read on agrees with the candidate's
-  // own self-assessment. A 'mismatch' means they rate themselves above what
-  // references/assessment show, which is the last thing to hand a hiring
-  // manager; in that case the section is dropped entirely rather than
-  // softened. Needs at least one real read — an all-'not_available' profile
-  // hasn't earned the claim either way.
-  const reads = categories.map((c) => c.selfAwareness).filter((r) => r && r.status !== 'not_available')
-  const selfAwarenessIsHigh = reads.length > 0 && reads.every((r) => r?.status === 'match')
-  const gatedSelfAwareness = selfAwarenessIsHigh ? selfAwareness : { growthEdges: [] }
+  // Self-Awareness is Dossier-eligible only on a 'strong' verdict —
+  // corroborated agreement across two or more independent reads. Anything
+  // less is silent here; a 'wildly_off' read never reaches this document at
+  // all, only Coaching Notes. See summarizeSelfAwareness for why the bar is
+  // set generously.
+  const selfAwarenessVerdict = summarizeSelfAwareness(categories.map((c) => c.selfAwareness))
+  const gatedSelfAwareness = selfAwarenessVerdict === 'strong' ? selfAwareness : { growthEdges: [] }
 
   return {
     namedReasons,

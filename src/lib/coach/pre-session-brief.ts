@@ -4,7 +4,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
-import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
 

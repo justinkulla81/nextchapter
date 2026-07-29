@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { generateCoachReply } from '@/lib/coach/generate-reply'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export type FormState = { error?: string } | undefined
 
@@ -36,6 +37,8 @@ export async function sendCoachMessage(_prevState: FormState, formData: FormData
   await prisma.coachMessage.create({
     data: { conversationId: conversation.id, role: 'assistant', content: reply },
   })
+
+  captureServerEvent(profile.id, 'coach_message_sent', { hasReply: !!reply })
 
   revalidatePath('/dashboard')
   revalidatePath('/coaching')

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { detectAvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
-import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { captureServerEvent } from '@/lib/posthog/server'
 

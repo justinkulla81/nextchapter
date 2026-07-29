@@ -49,9 +49,8 @@ import type {
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
-import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
-import { computeDetailOrientednessScore } from '@/lib/scoring/detail-orientedness'
 import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
+import { computeReferenceWeights } from '@/lib/references/collusion-check'
 import { getCurrentWeekSprint, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, gradeForWeeklyPoints, engineForActionType } from '@/lib/weekly/action-effort'
 import {
@@ -131,12 +130,22 @@ function averageReferenceRating(
   references: Reference[],
   field: 'traitPresenceRating' | 'overallRating' | 'traitCollaborationRating' | 'traitAdaptabilityRating' | 'traitFollowThroughRating'
 ): number | null {
-  const values = references
-    .filter((r) => r.status === 'COMPLETED')
-    .map((r) => r[field])
-    .filter((v): v is number => v !== null && v !== undefined)
-  if (values.length === 0) return null
-  const avg = values.reduce((sum, v) => sum + v, 0) / values.length
+  const completed = references.filter((r) => r.status === 'COMPLETED')
+
+  // Weighted, not a flat mean — near-identical reference text collapses to
+  // roughly one voice (see references/collusion-check.ts). Without this, the
+  // cheapest way to raise a reference-backed category is to submit the same
+  // testimony several times.
+  const weights = computeReferenceWeights(completed)
+
+  const weighted = completed
+    .map((r) => ({ value: r[field], weight: weights.get(r.id) ?? 1 }))
+    .filter((x): x is { value: number; weight: number } => x.value !== null && x.value !== undefined)
+  if (weighted.length === 0) return null
+
+  const totalWeight = weighted.reduce((sum, x) => sum + x.weight, 0)
+  if (totalWeight === 0) return null
+  const avg = weighted.reduce((sum, x) => sum + x.value * x.weight, 0) / totalWeight
   return clamp(((avg - 1) / 4) * 100)
 }
 

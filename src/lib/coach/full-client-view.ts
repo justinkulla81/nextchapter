@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
-import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 
 export interface FullClientView {

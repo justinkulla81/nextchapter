@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import type { Grade, HireabilityGrade } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
