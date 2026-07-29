@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { Grade } from '@/lib/scoring/grade'
+import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { cn } from '@/lib/utils'
 
@@ -40,7 +40,9 @@ export function MarketRealitySnapshotArchive({ snapshots }: { snapshots: Archive
               <span>
                 Week of {s.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
               </span>
-              <span className="tabular-nums text-muted-foreground">{s.grade} {isOpen ? '▲' : '▼'}</span>
+              <span className="tabular-nums text-muted-foreground">
+                <span className={cn('font-semibold', GRADE_TEXT_COLOR[s.grade])}>{s.grade}</span> {isOpen ? '▲' : '▼'}
+              </span>
             </button>
             {isOpen && (
               <div className={cn('mt-2 space-y-1 rounded-md bg-muted/40 p-3')}>

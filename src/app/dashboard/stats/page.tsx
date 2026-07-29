@@ -3,8 +3,9 @@ import { ListChecks } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade, normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
-import { WEEKLY_ENGINE_LABEL, type WeeklyEngine } from '@/lib/scoring/grade'
+import { WEEKLY_ENGINE_LABEL, GRADE_TEXT_COLOR, type WeeklyEngine } from '@/lib/scoring/grade'
 import type { HireabilityGrade, Grade } from '@/lib/scoring/grade'
+import { cn } from '@/lib/utils'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
@@ -139,7 +140,7 @@ export default async function YourStatsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-foreground">{grade.grade}</span>
+              <span className={cn('text-3xl font-bold', GRADE_TEXT_COLOR[grade.grade])}>{grade.grade}</span>
               {(() => {
                 const delta = gradeDelta(grade.grade, previousMarketRealityGrade)
                 return delta ? (
@@ -312,7 +313,7 @@ export default async function YourStatsPage() {
             {grade.weeklyEngines.map((e) => (
               <div key={e.key} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <span className="text-sm text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
-                <span className="text-sm font-semibold text-foreground tabular-nums">{e.grade}</span>
+                <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
               </div>
             ))}
           </div>
