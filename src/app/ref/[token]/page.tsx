@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { ReferenceSubmissionForm } from '@/components/references/ReferenceSubmissionForm'
+import { submitReference } from './actions'
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
 
@@ -72,6 +73,7 @@ export default async function ReferenceTokenPage({
         token={token}
         candidateName={candidateName}
         dimensionGroups={dimensionGroups}
+        action={submitReference}
       />
     </div>
   )

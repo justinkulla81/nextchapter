@@ -35,6 +35,7 @@ import { getUnviewedSessionImpact } from '@/lib/coach/session-impact'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { CoachingFormReminderCard } from '@/components/dashboard/CoachingFormReminderCard'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
+import { PendingEmployerReferenceBanner } from '@/components/dashboard/PendingEmployerReferenceBanner'
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 
 // Resolves the candidate's latest report, generating it on demand if the
@@ -163,6 +164,7 @@ export default async function DashboardPage() {
       {user && !user.email_confirmed_at && user.email && (
         <EmailConfirmationBanner email={user.email} />
       )}
+      <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>

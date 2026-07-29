@@ -1,7 +1,6 @@
 'use client'
 
 import { useActionState } from 'react'
-import { submitReference } from '@/app/ref/[token]/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -15,23 +14,47 @@ interface DimensionGroup {
   anchors: { scalePoint: number; anchorText: string }[]
 }
 
+export type ReferenceFormState = { error?: string } | undefined
+
+// The Prompt 48 mirrored-trait reference instrument — one question set,
+// two entry points. `action` is pluggable (rather than hardcoding
+// submitReference) specifically so the Prompt 65 employer-submitted flow
+// can reuse this exact component/fields against its own server action
+// instead of a second, duplicate form with the same questions.
 export function ReferenceSubmissionForm({
   token,
   candidateName,
   dimensionGroups,
+  action,
+  hiddenFields,
+  submitLabel = 'Submit reference',
+  beforeContent,
 }: {
-  token: string
+  token?: string
   candidateName: string
   dimensionGroups: DimensionGroup[]
+  action: (state: ReferenceFormState, formData: FormData) => Promise<ReferenceFormState>
+  hiddenFields?: Record<string, string>
+  submitLabel?: string
+  // Extra fields rendered inside the same <form>, before the reference
+  // questions — the Prompt 65 employer flow uses this for the
+  // employer/employee identification fields that have no equivalent in
+  // the token-based referee flow (which already knows who's referring).
+  beforeContent?: React.ReactNode
 }) {
-  const [state, formAction, pending] = useActionState(submitReference, undefined)
+  const [state, formAction, pending] = useActionState(action, undefined)
 
   return (
     <form
       action={formAction}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <input type="hidden" name="token" value={token} />
+      {token && <input type="hidden" name="token" value={token} />}
+      {hiddenFields &&
+        Object.entries(hiddenFields).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
+      {beforeContent}
 
       <RatingScale
         name="overallRating"
@@ -159,7 +182,7 @@ export function ReferenceSubmissionForm({
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <Button type="submit" disabled={pending}>
-        {pending ? 'Submitting…' : 'Submit reference'}
+        {pending ? 'Submitting…' : submitLabel}
       </Button>
     </form>
   )

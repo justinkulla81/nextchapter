@@ -508,6 +508,7 @@ model CandidateProfile {
   workHistory                  WorkHistoryEntry[]
   references                   Reference[]
   referenceQuotes              ReferenceQuote[]
+  claimedEmployerReferences    EmployerReferenceSubmission[]
   workSamples                  WorkSample[]
   interviewResponses           InterviewResponse[]
   peerNominations              PeerNomination[]
@@ -2299,4 +2300,111 @@ model Message {
   createdAt  DateTime          @default(now())
 
   @@index([threadId, createdAt])
+}
+
+// Prompt 65 — "Give a Reference." An employer/manager leaves a reference
+// for someone they just let go, before that person has a NextChapter
+// account. This is intentionally NOT a Reference row with a nullable
+// candidateId — Reference.candidateId is required everywhere downstream
+// (Dossier, Coaching Notes, reference-delta scoring all assume a real
+// candidate relation), so relaxing it would mean auditing every one of
+// those call sites for a new "might be unclaimed" case. Instead this is a
+// fully separate holding model: nothing here is a Reference (the only
+// thing Dossier/Coaching Notes/etc. actually query), so the consent
+// guarantee in the prompt — "nothing becomes visible, attached to a real
+// candidate profile, or usable ANYWHERE until the invited person
+// explicitly accepts" — holds by construction, not by a filter someone
+// could forget. Accepting (claimEmployerReferenceSubmission) is the one
+// moment this becomes a real Reference row, at that point owned by the
+// claiming candidate like any other reference.
+model EmployerReferenceSubmission {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Submitting employer/manager. No real company-email-domain verification
+  // exists anywhere in the app yet (confirmed against job-board-submission.ts,
+  // which documents the same gap and uses a named-contact requirement as its
+  // trust gate instead) — same trust gate reused here rather than building a
+  // second, parallel verification system.
+  submitterName    String
+  submitterTitle   String?
+  submitterCompany String
+  submitterEmail   String
+
+  // Departing employee — minimal by design (Prompt 65 section 3): just
+  // enough to send the invite, nothing else collected at this stage.
+  employeeName  String
+  employeeEmail String
+
+  // Reference content — the exact same fields/instrument as Reference
+  // (Prompt 48's mirrored-trait framework: relationship/context, BARS
+  // dimensions, five character traits with one-example-each, open-ended
+  // "superpower"/story questions, would-work-again). Duplicated as columns
+  // here rather than relaxing Reference itself — see model comment above.
+  relationshipType    ReferenceType
+  yearsWorkedTogether Int?
+
+  overallRating     Int?
+  wouldHireAgain    Boolean?
+  strengthSummary   String?  @db.Text
+  growthAreaSummary String?  @db.Text
+  contextNotes      String?  @db.Text
+
+  barsVelocity          Int?
+  barsArchitecture      Int?
+  barsStructure         Int?
+  barsCommunication     Int?
+  barsEnvironment       Int?
+  barsLeadership        Int?
+  barsOversight         Int?
+  barsCommitment        Int?
+  barsConscientiousness Int?
+
+  traitAdaptabilityRating   Int?
+  traitAdaptabilityExample  String? @db.Text
+  traitFollowThroughRating  Int?
+  traitFollowThroughExample String? @db.Text
+  traitPresenceRating       Int?
+  traitPresenceExample      String? @db.Text
+  traitCollaborationRating  Int?
+  traitCollaborationExample String? @db.Text
+  traitComposureRating      Int?
+  traitComposureExample     String? @db.Text
+
+  superpowerText           String? @db.Text
+  underPressureStory       String? @db.Text
+  definingStory            String? @db.Text
+  wouldWorkWithAgainReason String? @db.Text
+
+  quotableWithAttribution Boolean?
+
+  // The soft, optional layoff-context question (section 5) — a single
+  // "yes" here has to produce BOTH the immediate founder notification AND
+  // the Attio outplacement-pipeline record, not one or the other.
+  isLayoffContext      Boolean   @default(false)
+  founderNotifiedAt    DateTime? // set once sendLayoffContextAlertEmail succeeds
+  // No live Attio API integration exists in this app yet (no client, no
+  // credentials configured) — attioSyncRequestedAt marks "this needs to
+  // sync to the outplacement pipeline" so a real sync can run the moment
+  // Attio credentials exist, without losing which submissions are waiting.
+  // See IDEAS.md.
+  attioSyncRequestedAt DateTime?
+  attioSyncedAt        DateTime?
+
+  // Claim state (Prompt 65 section 1's consent gate). Status stays
+  // 'pending' until the invited person explicitly acts — 'claimed' only
+  // after they accept (which also creates the real Reference row via
+  // createdReferenceId), 'declined' if they choose not to.
+  status               String            @default("pending")
+  inviteToken          String            @unique @default(cuid())
+  invitedAt            DateTime?
+  claimedByCandidateId String?
+  claimedByCandidate   CandidateProfile? @relation(fields: [claimedByCandidateId], references: [id], onDelete: SetNull)
+  claimedAt            DateTime?
+  declinedAt           DateTime?
+  createdReferenceId   String?
+
+  @@index([employeeEmail])
+  @@index([inviteToken])
+  @@index([status])
 }
