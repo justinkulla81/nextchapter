@@ -21,6 +21,7 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
       <div className="grid grid-cols-5 gap-2">
         {PRIVACY_TIERS.map((tier) => {
           const isSelected = selected === tier.value
+          const unlocksSupportNetwork = tier.value === 'PUBLIC' || tier.value === 'SEMI_PUBLIC'
           return (
             <button
               key={tier.value}
@@ -28,13 +29,18 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
               onClick={() => setSelected(tier.value)}
               aria-pressed={isSelected}
               className={cn(
-                'rounded-lg border-2 p-3 text-center text-sm font-medium transition-colors',
+                'flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center text-sm font-medium transition-colors',
                 isSelected
                   ? 'border-brand bg-brand/5 text-brand'
                   : 'border-border bg-white text-foreground hover:border-brand/40'
               )}
             >
-              {tier.label}
+              <span>{tier.label}</span>
+              {unlocksSupportNetwork && (
+                <span className="rounded-full bg-success/10 px-1.5 py-0.5 text-[10px] font-medium normal-case text-success">
+                  Unlocks Support Network
+                </span>
+              )}
             </button>
           )
         })}
@@ -43,7 +49,7 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
       {/* Only the selected tier's detail shows — five full descriptions at
           once was the confusing part, not the tier count itself. */}
       <div className="rounded-lg border border-border p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedTier.recommended && (
             <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
               Recommended
@@ -54,8 +60,19 @@ export function PrivacyTierSelector({ currentTier }: { currentTier: PrivacyTier 
               Currently set
             </span>
           )}
+          {(selectedTier.value === 'PUBLIC' || selectedTier.value === 'SEMI_PUBLIC') && (
+            <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+              Unlocks Support Network
+            </span>
+          )}
         </div>
         <p className="mt-2 text-sm text-muted-foreground">{selectedTier.description}</p>
+        {(selectedTier.value === 'PUBLIC' || selectedTier.value === 'SEMI_PUBLIC') && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Posting, commenting, expressing interest, and sending encouragement in the Support
+            Network all require Public or Semi-Public visibility.
+          </p>
+        )}
         <p className="mt-2 rounded-md bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
           {selectedTier.preview}
         </p>

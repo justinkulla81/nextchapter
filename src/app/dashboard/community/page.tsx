@@ -5,9 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import { getUnreadEncouragementNotes } from '@/lib/community/encouragement'
+import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { buildSelfIntroDraft } from '@/lib/community/self-intro'
 import { getCohortInfo } from '@/lib/community/layoff-cohort'
-import { getCandidateThreads, getThreadWithMessages, markThreadRead } from '@/lib/messaging/threads'
+import { getCandidateThreads, getThreadWithMessages, getCandidateUnreadCount, markThreadRead } from '@/lib/messaging/threads'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
@@ -17,11 +18,12 @@ import { sendCandidateMessage } from '@/app/dashboard/messages/actions'
 import { SendEncouragementForm } from '@/components/dashboard/SendEncouragementForm'
 import { MessageBubbles } from '@/components/messaging/MessageBubbles'
 import { MessageComposer } from '@/components/messaging/MessageComposer'
-import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { cn } from '@/lib/utils'
+import type { PrivacyTier } from '@prisma/client'
 
 const PARTNER_TYPE_LABEL = {
   COACH: 'Coach',
@@ -46,6 +48,14 @@ export default async function SupportNetworkPage({
   const params = await searchParams
   const tab = params.tab === 'messages' ? 'messages' : 'community'
 
+  // Computed off the profile snapshot already in hand, before CommunityTab's
+  // unconditional communityLastViewedAt reset fires later in this same
+  // request — reading it after that reset would always show zero.
+  const [communityUnreadCount, messagesUnreadCount] = await Promise.all([
+    getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
+    getCandidateUnreadCount(profile.id),
+  ])
+
   return (
     <div className="space-y-6">
       <div>
@@ -63,20 +73,30 @@ export default async function SupportNetworkPage({
         <Link
           href="/dashboard/community?tab=community"
           className={cn(
-            'border-b-2 pb-2 text-sm font-medium transition-colors',
+            'flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium transition-colors',
             tab === 'community' ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
           )}
         >
           Community messages
+          {communityUnreadCount > 0 && (
+            <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase tabular-nums">
+              {communityUnreadCount}
+            </span>
+          )}
         </Link>
         <Link
           href="/dashboard/community?tab=messages"
           className={cn(
-            'border-b-2 pb-2 text-sm font-medium transition-colors',
+            'flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium transition-colors',
             tab === 'messages' ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
           )}
         >
           Private messages
+          {messagesUnreadCount > 0 && (
+            <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase tabular-nums">
+              {messagesUnreadCount}
+            </span>
+          )}
         </Link>
       </div>
 
@@ -194,7 +214,7 @@ async function CommunityTab({
   searchParams,
 }: {
   candidateId: string
-  privacyTier: string
+  privacyTier: PrivacyTier
   encouragementGivingOptIn: boolean
   layoffCohortId: string | null
   firstName: string | null
@@ -208,14 +228,17 @@ async function CommunityTab({
 
   if (!canParticipate) {
     return (
-      <div className="rounded-lg border border-border p-6 text-center">
-        <p className="text-sm text-muted-foreground">
-          Posting and expressing interest requires a Public or Semi-Public profile — you can&apos;t
-          meaningfully network anonymously.
-        </p>
-        <Button nativeButton={false} render={<Link href="/dashboard/privacy" />} className="mt-4">
-          Update privacy settings
-        </Button>
+      <div className="space-y-4 rounded-lg border border-border p-6">
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Posting, commenting, expressing interest, and sending encouragement all require a
+            Public or Semi-Public profile — you can&apos;t meaningfully network anonymously.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose a visibility below to unlock the Support Network — no need to leave this page.
+          </p>
+        </div>
+        <PrivacyTierSelector currentTier={privacyTier} />
       </div>
     )
   }

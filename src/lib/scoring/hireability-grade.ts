@@ -39,6 +39,7 @@ import type {
   CoachingFocus,
   JobPosting,
   LinkedInActivityLog,
+  PrivacyTier,
   Reference,
   Resume,
   SurfacedJob,
@@ -363,7 +364,8 @@ export async function updateCategoryBaseline(
 // of the week's overall ramp target.
 async function computeWeeklyEngines(
   candidateId: string,
-  weekNumber: number
+  weekNumber: number,
+  privacyTier: PrivacyTier
 ): Promise<{ engines: WeeklyEngine[]; weeklyPoints: number; weeklyPointsTarget: number }> {
   const weeklyPointsTarget = pointsNeededForA(weekNumber)
   const perEngineTarget = weeklyPointsTarget / 4
@@ -376,6 +378,17 @@ async function computeWeeklyEngines(
     if (!action.completed) continue
     const engine = engineForActionType(action.actionType)
     pointsByEngine[engine] += action.points
+  }
+
+  // Being Public/Semi-Public amplifies real networking effort already done
+  // this week — it never manufactures connecting-engine score from nothing.
+  // Gating on pointsByEngine.connecting > 0 matters specifically because of
+  // the week-4+ anti-neglect floor below: an ungated bonus would let a
+  // candidate cross that floor by leaving a visibility toggle set, with zero
+  // real outreach, defeating the one mechanism that catches neglect.
+  const isPubliclyVisible = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
+  if (isPubliclyVisible && pointsByEngine.connecting > 0) {
+    pointsByEngine.connecting += 5
   }
 
   const weeklyPoints = Object.values(pointsByEngine).reduce((sum, p) => sum + p, 0)
@@ -425,7 +438,7 @@ export async function computeHireabilityGrade(candidate: CandidateWithGradeRelat
   const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget }] = await Promise.all([
     getCategoryBaseline(candidate),
     computeCategoryGrades(candidate),
-    computeWeeklyEngines(candidate.id, weekNumber),
+    computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier),
   ])
 
   const hasExecutiveCoach = candidate.coach?.focus === 'EXECUTIVE'

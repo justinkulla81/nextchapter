@@ -8,6 +8,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import type { PrivacyTier, NotificationTier } from '@prisma/client'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
@@ -40,8 +42,33 @@ export async function updatePrivacyTier(
     data: { privacyTier: tier },
   })
 
+  captureServerEvent(profile.id, 'privacy_tier_updated', { tier, previousTier: profile.privacyTier })
+
+  // One-time bonus for confirming any explicit privacy tier choice at all —
+  // only awarded once per candidate, and only if a current-week sprint
+  // exists to record it against (same accepted gap ENGAGE_POST_UPDATE lives
+  // with for brand-new candidates without a first sprint yet).
+  if (!profile.privacyOpenedUpBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'PRIVACY_CONFIRMED' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'PRIVACY_CONFIRMED',
+        text: 'Confirmed your privacy setting',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { privacyOpenedUpBonusAt: new Date() },
+      })
+      captureServerEvent(profile.id, 'privacy_confirmed_bonus_awarded', { points: effort.points })
+    }
+  }
+
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')
+  revalidatePath('/dashboard/community')
 }
 
 export async function updateNotificationTier(

@@ -267,6 +267,10 @@ model CandidateProfile {
 
   // Privacy & Visibility
   privacyTier PrivacyTier @default(LOCKED)
+  // One-time bonus marker for confirming a privacy tier choice at all — same
+  // shape as introCommittedAt/registrationCompletedAt below. Checked before
+  // awarding PRIVACY_CONFIRMED so it only ever fires once per candidate.
+  privacyOpenedUpBonusAt DateTime?
 
   // Recruiter database — explicit candidate opt-in required before appearing
   // in any employer-facing Talent match list. privacyTier alone is opt-out,
@@ -1388,6 +1392,12 @@ model WeeklySprint {
   committedActions Json // [{text, actionType?, difficulty: 1-3, completed, completedAt?}]
   autoAssigned     Boolean          @default(false) // true if the Monday-midnight-PT cron committed this, not the candidate
   createdAt        DateTime         @default(now())
+  // How comfortable the candidate feels being publicly visible in their
+  // search THIS week — reuses the onboarding enum rather than a new one.
+  // Coaching/sentiment signal only (see getVisibilityComfortTrend) — never
+  // a direct input to computeHireabilityGrade. The actual privacyTier state
+  // is the grade input; this is how the candidate says they feel about it.
+  visibilityComfort PublicDisclosureComfort?
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, weekStartDate])

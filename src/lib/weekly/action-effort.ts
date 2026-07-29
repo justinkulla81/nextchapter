@@ -82,6 +82,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   SALARY_CONFIRM: { minutes: 5, points: 5 },
   WORK_AUTHORIZATION: { minutes: 5, points: 5 },
   ANSWER_OPTIONAL_QUESTIONS: { minutes: 2, points: 5 },
+
+  // One-time bonus for confirming ANY explicit privacy tier choice — same
+  // point value as the other one-time confirm bonuses above. Separate from
+  // (and much smaller than) the recurring per-week connecting-engine bump
+  // that Public/Semi-Public specifically earns in computeWeeklyEngines.
+  PRIVACY_CONFIRMED: { minutes: 5, points: 5 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -140,6 +146,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   ANSWER_OPTIONAL_QUESTIONS: 'effort',
   INTERIM_PROFILE_CREATED: 'connecting',
   PARTNER_CLICK_THROUGH: 'connecting',
+  PRIVACY_CONFIRMED: 'connecting',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -224,6 +231,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
+  PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the
