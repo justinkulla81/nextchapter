@@ -17,8 +17,8 @@ export function LockedFeatureNotice({
   return (
     <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
       <div className="flex items-center gap-2">
-        <Lock className="size-4 text-muted-foreground" />
-        <p className="text-sm font-medium text-foreground">{title} — locked</p>
+        <Lock className="size-4 text-orange" />
+        <p className="text-sm font-medium text-orange">{title} — locked</p>
       </div>
       <p className="mt-1.5 text-sm text-muted-foreground">{requirement}</p>
       <p className="mt-1.5 text-sm text-muted-foreground">

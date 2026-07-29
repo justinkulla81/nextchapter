@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { reactToSurfacedJob } from '@/app/dashboard/find-my-job/actions'
-import { FIT_BUCKET_LABEL, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
 
 const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
@@ -53,11 +53,16 @@ export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitB
             <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{job.description}</p>
           )}
         </div>
-        {fitBucket && (
-          <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[fitBucket])}>
-            {FIT_BUCKET_LABEL[fitBucket]}
-          </span>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {isRecentlyListed(job.surfacedAt) && (
+            <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
+          )}
+          {fitBucket && (
+            <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[fitBucket])}>
+              {FIT_BUCKET_LABEL[fitBucket]}
+            </span>
+          )}
+        </div>
       </div>
 
       {!showReasons ? (

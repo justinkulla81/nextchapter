@@ -22,12 +22,18 @@ export const maxDuration = 300
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getDashboardData()
 
-  const [narrativeCount, hasMarketReality, supportNetworkUnreadCount, messagesUnreadCount] = await Promise.all([
-    prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
-    prisma.marketRealitySnapshot.count({ where: { candidateId: profile.id } }),
-    getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
-    getCandidateUnreadCount(profile.id),
-  ])
+  const [narrativeCount, hasMarketReality, supportNetworkUnreadCount, messagesUnreadCount, newJobMatchesCount] =
+    await Promise.all([
+      prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
+      prisma.marketRealitySnapshot.count({ where: { candidateId: profile.id } }),
+      getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
+      getCandidateUnreadCount(profile.id),
+      // Unreacted automated-search-partner matches waiting for the candidate
+      // to rate — the same queue find-my-job/page.tsx tops up to 5 on every
+      // visit, so this is a real, already-tracked "new matches" signal
+      // rather than a separate read/unread marker.
+      prisma.surfacedJob.count({ where: { candidateId: profile.id, reaction: null } }),
+    ])
 
   // Each category counts once toward "assets you have" regardless of how
   // much history it holds — a resume with 4 versions or a Market Reality
@@ -48,6 +54,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         supportNetworkUnreadCount={supportNetworkUnreadCount}
         needsWorkStyleSurvey={profile.assessmentResponses.length === 0}
         messagesUnreadCount={messagesUnreadCount}
+        newJobMatchesCount={newJobMatchesCount}
       />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>

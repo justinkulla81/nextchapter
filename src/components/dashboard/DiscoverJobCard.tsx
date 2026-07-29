@@ -6,7 +6,7 @@ import type { ExclusiveJobPosting } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { promoteJobBoardListing, requestJobBoardIntro } from '@/app/dashboard/find-my-job/actions'
-import { FIT_BUCKET_LABEL, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
@@ -28,6 +28,10 @@ function FitBadge({ bucket }: { bucket: FitBucket }) {
   )
 }
 
+function NewBadge() {
+  return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
+}
+
 // A-List-only listing a non-A candidate can't see yet — shown masked
 // rather than omitted, so the board itself is a visible reason to reach an
 // A instead of a wall these candidates never even know exists.
@@ -35,8 +39,8 @@ export function LockedDiscoverJobCard({ posting }: { posting: Pick<ExclusiveJobP
   return (
     <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
       <div className="flex items-center gap-2">
-        <Lock className="size-4 text-muted-foreground" />
-        <p className="text-sm font-medium text-foreground">A-List-exclusive opportunity — locked</p>
+        <Lock className="size-4 text-orange" />
+        <p className="text-sm font-medium text-orange">A-List-exclusive opportunity — locked</p>
       </div>
       <p className="text-sm text-muted-foreground">
         {posting.postingType && POSTING_TYPE_LABEL[posting.postingType]}
@@ -84,7 +88,10 @@ export function DiscoverJobCard({
               ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}
           </p>
         </div>
-        <FitBadge bucket={fitBucket} />
+        <div className="flex shrink-0 items-center gap-2">
+          {isRecentlyListed(posting.createdAt) && <NewBadge />}
+          <FitBadge bucket={fitBucket} />
+        </div>
       </div>
 
       {posting.description && <p className="text-sm text-muted-foreground">{posting.description}</p>}
