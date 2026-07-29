@@ -20,6 +20,8 @@ import {
   applyOfferReceivedRewrite,
   applyInterviewPatternConfirmedRewrite,
 } from '@/lib/scoring/rewrite-actions'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export type FormState = { error?: string } | undefined
 
@@ -617,7 +619,7 @@ export async function updateJobBoardUsage(
   const usage = {
     linkedin: (formData.get('linkedin') as string | null) || 'never',
     indeed: (formData.get('indeed') as string | null) || 'never',
-    ziprecruiter: (formData.get('ziprecruiter') as string | null) || 'never',
+    theladders: (formData.get('theladders') as string | null) || 'never',
     company_pages: (formData.get('company_pages') as string | null) || 'never',
   }
 
@@ -631,9 +633,32 @@ export async function updateJobBoardUsage(
     where: { id: profile.id },
     data: {
       jobBoardUsage: usage,
+      jobBoardUsageOther: (formData.get('other') as string | null)?.trim() || null,
       ...(showNudge ? { jobBoardUsageNudgeShownAt: new Date() } : {}),
     },
   })
+
+  // One-time points for telling us where they already look — same shape as
+  // the PRIVACY_CONFIRMED bonus (awarded once, only when a current-week
+  // sprint exists to record it against). Editing the answer later is free
+  // and doesn't re-award.
+  if (!profile.jobBoardUsageBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'JOB_BOARD_USAGE_CONFIRMED' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'JOB_BOARD_USAGE_CONFIRMED',
+        text: 'Told us which job boards you use',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { jobBoardUsageBonusAt: new Date() },
+      })
+      captureServerEvent(profile.id, 'job_board_usage_bonus_awarded', { points: effort.points })
+    }
+  }
 
   revalidatePath('/dashboard/find-my-job')
 

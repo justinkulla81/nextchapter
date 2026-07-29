@@ -712,9 +712,14 @@ model CandidateProfile {
   communityLastViewedAt DateTime @default(now())
 
   // Prompt 62 — job-board usage check-in (Find a Job / Job Fit page).
-  // jobBoardUsage: { linkedin, indeed, ziprecruiter, company_pages } -> 'daily' | 'few_times_week' | 'rarely' | 'never'
+  // jobBoardUsage: { linkedin, indeed, theladders, company_pages } -> 'daily' | 'few_times_week' | 'rarely' | 'never'
+  // ZipRecruiter was dropped — its posting mix skews well below the level
+  // this platform's candidates target, so asking about it implied we'd
+  // recommend it. TheLadders replaced it as the executive-focused board.
   jobBoardUsage             Json?
+  jobBoardUsageOther        String? // free text — boards we don't list (e.g. Otta, Built In, an industry board)
   jobBoardUsageNudgeShownAt DateTime? // caps the Victoria nudge to once/week
+  jobBoardUsageBonusAt      DateTime? // one-time points award for answering, mirrors privacyOpenedUpBonusAt
 
   // Scoring Model 2.0 — persisted per-category baseline (Record<CategoryKey,
   // number>, 0-100 each). The weekly grade is baseline + a bounded weekly

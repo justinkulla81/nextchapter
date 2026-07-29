@@ -85,6 +85,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // (and much smaller than) the recurring per-week connecting-engine bump
   // that Public/Semi-Public specifically earns in computeWeeklyEngines.
   PRIVACY_CONFIRMED: { minutes: 5, points: 5 },
+  JOB_BOARD_USAGE_CONFIRMED: { minutes: 3, points: 5 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -144,6 +145,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   INTERIM_PROFILE_CREATED: 'connecting',
   PARTNER_CLICK_THROUGH: 'connecting',
   PRIVACY_CONFIRMED: 'connecting',
+  JOB_BOARD_USAGE_CONFIRMED: 'effort',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -229,6 +231,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
+  JOB_BOARD_USAGE_CONFIRMED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

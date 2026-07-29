@@ -223,7 +223,11 @@ export default async function JobFitPage() {
           <summary className="cursor-pointer font-medium text-foreground">More places to look</summary>
           <div className="mt-3 space-y-4">
             <JobBoardRecommendations targetIndustries={profile.targetIndustries} />
-            <JobBoardUsageCheckIn currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null} />
+            <JobBoardUsageCheckIn
+              currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null}
+              currentOther={profile.jobBoardUsageOther}
+              alreadyAwarded={!!profile.jobBoardUsageBonusAt}
+            />
           </div>
         </details>
       </div>

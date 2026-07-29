@@ -80,8 +80,50 @@ const LEVEL_KEYWORDS: { level: (typeof HIGHEST_LEVEL_OPTIONS)[number]; keywords:
   { level: 'Manager', keywords: ['manager', 'team lead'] },
 ]
 
+// "Partner" only means firm-equity seniority when it stands on its own
+// ("Partner", "Managing Partner", "General Partner"). Preceded by a function
+// qualifier it's an ordinary staff title: an HR Business Partner is an IC,
+// and an "Administrative Business Partner" is an executive assistant.
+//
+// This was a live bug, not a hypothetical. The bare 'partner' C-Suite
+// keyword classified that whole title family as C-Suite, and the ATS feed's
+// level gate (ats-job-board-feed.ts — levelDistance <= 1) trusts this
+// function, so "Business Partner Analyst" and "Administrative Business
+// Partner" were being surfaced to VP/C-suite candidates as matches.
+//
+// Rewrites the qualifier phrase instead of dropping the word, so a title
+// like "Business Partner Analyst" still infers its function normally.
+const STAFF_PARTNER_QUALIFIERS = [
+  'business',
+  'hr',
+  'human resources',
+  'people',
+  'talent',
+  'finance',
+  'financial',
+  'administrative',
+  'admin',
+  'channel',
+  'delivery',
+  'implementation',
+  'solutions',
+  'customer',
+  'account',
+  'learning',
+]
+
+function neutralizeStaffPartnerPhrase(lower: string): string {
+  const alternation = STAFF_PARTNER_QUALIFIERS.map((q) => q.replace(/ /g, '\\s+')).join('|')
+  // One optional word may sit between the qualifier and "partner" — covers
+  // "Customer Success Partner", "Talent Acquisition Partner", "People
+  // Operations Partner" without needing an entry for every combination.
+  // Genuine equity titles ("Managing Partner", "General Partner") don't
+  // start with a staff qualifier, so they're untouched.
+  return lower.replace(new RegExp(`\\b(${alternation})(\\s+\\w+)?\\s+partner\\b`, 'g'), '$1$2 specialist')
+}
+
 export function inferLevelFromTitle(title: string): string {
-  const lower = ` ${stripExecutiveOfficePhrase(title.toLowerCase())} `
+  const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))} `
   for (const entry of LEVEL_KEYWORDS) {
     if (entry.keywords.some((kw) => lower.includes(kw))) {
       return entry.level
