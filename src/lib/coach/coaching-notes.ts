@@ -9,6 +9,7 @@ import {
   type CoachingOnboardingAnswerDisplay,
 } from '@/lib/coach/onboarding-form'
 import type { TrendSnapshot } from '@/components/dashboard/MarketRealityTrendChart'
+import { benefitsPressureLabel } from '@/lib/benefits/pressure-options'
 
 export interface GapAnalysisGap {
   area: string
@@ -57,7 +58,8 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
         referralRecency: true,
         lastSalary: true,
         targetCompMin: true,
-        benefitsUnlockAnswer: true,
+        benefitsPressures: true,
+        benefitsPressureOtherText: true,
       },
     }),
     getMoodHistory(candidateId),
@@ -99,7 +101,12 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       ? (latestReport.gapAnalysis as unknown as { targetRole: string; gaps: GapAnalysisGap[] })
       : null,
     avoidancePattern,
-    financialPressureContext: candidate.benefitsUnlockAnswer,
+    financialPressureContext:
+      candidate.benefitsPressures.length > 0
+        ? candidate.benefitsPressures
+            .map((p) => (p === 'OTHER' && candidate.benefitsPressureOtherText ? candidate.benefitsPressureOtherText : benefitsPressureLabel(p)))
+            .join(', ')
+        : null,
     jobFitHistory: surfacedJobs,
     coachingOnboardingAnswers,
   }

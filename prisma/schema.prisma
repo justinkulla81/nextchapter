@@ -411,9 +411,16 @@ model CandidateProfile {
   askedForHelpAt            DateTime?
 
   // Content-page unlock gates
-  benefitsUnlockAnswer          String? // "What's the biggest financial pressure on you right now?" — gates Benefits page
-  benefitsActionPlan            String?        @db.Text
-  benefitsActionPlanGeneratedAt DateTime?
+  // Prompt 72 — replaced the old free-text "biggest financial pressure"
+  // question with a structured multi-select so the action plan below can
+  // be generated deterministically (branch on real values) instead of
+  // parsed from an LLM reading of free text. benefitsPressureOtherText is
+  // only used when 'OTHER' is one of the selected values.
+  benefitsPressures         String[] @default([])
+  benefitsPressureOtherText String?
+  // Which action-plan item ids the candidate has checked off — plain
+  // completion tracking, not a Search Action, so no points/effort fields.
+  benefitsActionPlanCompletedItems String[] @default([])
   gigDirectoryUnlockAnswer      String? // target rate/openness question — gates the Gig Directory
   interimOfferDefinition        String?        @db.Text // "what specific expertise are you offering" — Interim Launch Plan phase 2
   interimOutreachStartedAt      DateTime? // manual self-report — Interim Launch Plan phase 6 (no external signal to derive this from)

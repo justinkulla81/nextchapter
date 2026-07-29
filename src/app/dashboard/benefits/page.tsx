@@ -1,5 +1,7 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { BenefitsUnlockForm } from '@/components/dashboard/BenefitsUnlockForm'
+import { BenefitsPressureForm } from '@/components/dashboard/BenefitsPressureForm'
+import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPlanCard'
+import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ResourceLink {
@@ -91,6 +93,8 @@ export default async function BenefitsPage() {
     (t) => t.links
   )
   const cardTopics = TOPICS.filter((t) => !ACTION_PLAN_LINK_TOPICS.includes(t.title))
+  const actionItems = getBenefitsActionPlanItems(profile.benefitsPressures)
+  const completedItemIds = new Set(profile.benefitsActionPlanCompletedItems)
 
   return (
     <div className="space-y-8">
@@ -103,14 +107,18 @@ export default async function BenefitsPage() {
         </p>
       </div>
 
-      {!profile.benefitsUnlockAnswer ? (
-        <BenefitsUnlockForm />
+      {profile.benefitsPressures.length === 0 ? (
+        <BenefitsPressureForm />
       ) : (
         <>
-          {profile.benefitsActionPlan && (
+          {actionItems.length > 0 && (
             <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
               <h2 className="text-sm font-medium text-muted-foreground">Your action plan</h2>
-              <p className="whitespace-pre-wrap text-sm text-foreground">{profile.benefitsActionPlan}</p>
+              <div className="space-y-2">
+                {actionItems.map((item) => (
+                  <BenefitsActionPlanCard key={item.id} item={item} completed={completedItemIds.has(item.id)} />
+                ))}
+              </div>
               <div className="space-y-1 border-t border-border pt-3">
                 {actionPlanLinks.map((link) => (
                   <a
