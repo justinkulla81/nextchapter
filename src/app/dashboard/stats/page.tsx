@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ListChecks } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade, normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
@@ -20,6 +21,7 @@ import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketReali
 import { StreakHeroBanner } from '@/components/dashboard/StreakHeroBanner'
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
+import { EmptyState } from '@/components/ui/empty-state'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 
 type EngineKey = WeeklyEngine['key']
@@ -326,6 +328,13 @@ export default async function YourStatsPage() {
             <p className="text-sm text-muted-foreground">
               You haven&apos;t committed to this week&apos;s actions yet — set them up from the dashboard.
             </p>
+          ) : completedByEngine.size === 0 ? (
+            <EmptyState
+              icon={ListChecks}
+              title="Nothing completed yet this week"
+              description="You've committed to this week's actions — check them off from the dashboard as you go."
+              cta={{ label: 'Go to dashboard', href: '/dashboard' }}
+            />
           ) : (
             ENGINE_ORDER.map((engine) => {
               const actions = completedByEngine.get(engine)

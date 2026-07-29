@@ -53,7 +53,7 @@ export default async function RecruiterReportPage() {
 
         <section>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
               Effort summary
             </h3>
             {hasEffort && <EvidenceTypeBadge type={data.effortSummaryLines[0].evidenceType} />}
@@ -74,7 +74,7 @@ export default async function RecruiterReportPage() {
         {data.peerSupportLine && (
           <section>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 Peer Support
               </h3>
               <EvidenceTypeBadge type={data.peerSupportLine.evidenceType} />
@@ -86,7 +86,7 @@ export default async function RecruiterReportPage() {
         {data.references.length > 0 && (
           <section>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 References
               </h3>
               <EvidenceTypeBadge type="reference_verified" />
@@ -119,7 +119,7 @@ export default async function RecruiterReportPage() {
         {data.aiProjects.length > 0 && (
           <section>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                 AI Fluency
               </h3>
               <EvidenceTypeBadge type={data.aiProjects[0].evidenceType} />
@@ -150,7 +150,7 @@ export default async function RecruiterReportPage() {
 
         {data.learningItems.length > 0 && (
           <section>
-            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
               Learning
             </h3>
             <ul className="mt-2 space-y-1 text-sm text-foreground">
@@ -172,7 +172,7 @@ export default async function RecruiterReportPage() {
 
         <section>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
               Availability &amp; fit
             </h3>
             <EvidenceTypeBadge type={data.availability.evidenceType} />

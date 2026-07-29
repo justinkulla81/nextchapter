@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
+import { InlineLoadingState } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 
 export function ResumeUploadForm() {
@@ -37,6 +38,7 @@ export function ResumeUploadForm() {
       <Button type="submit" disabled={pending}>
         {pending ? 'Uploading and analyzing…' : 'Upload resume'}
       </Button>
+      {pending && <InlineLoadingState label="This takes a few seconds — analyzing your resume…" />}
     </form>
   )
 }

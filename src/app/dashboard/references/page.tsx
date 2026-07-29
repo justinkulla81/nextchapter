@@ -1,3 +1,4 @@
+import { Users } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { ReferenceRequestForm } from '@/components/references/ReferenceRequestForm'
@@ -5,6 +6,7 @@ import { ReferenceDisputeControl } from '@/components/references/ReferenceDisput
 import { ReferenceQuoteReview } from '@/components/references/ReferenceQuoteReview'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/constants/references'
 import { Card, CardContent } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { ReferenceStatus } from '@prisma/client'
 
@@ -55,6 +57,14 @@ export default async function ReferencesPage() {
       />
 
       <ReferenceRequestForm />
+
+      {profile.references.length === 0 && (
+        <EmptyState
+          icon={Users}
+          title="No references requested yet"
+          description="Use the form above to request your first one — even 1-2 real references make a real difference to your Market Reality Grade."
+        />
+      )}
 
       {profile.references.length > 0 && (
         <div className="space-y-4">

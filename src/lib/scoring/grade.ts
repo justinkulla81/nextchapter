@@ -55,16 +55,16 @@ export const GRADE_BAND_DESCRIPTION: Record<Grade, string> = {
 export const GRADE_TEXT_COLOR: Record<Grade, string> = {
   A: 'text-success',
   B: 'text-brand',
-  C: 'text-light-blue',
-  D: 'text-warning',
+  C: 'text-warning',
+  D: 'text-error',
   F: 'text-error',
 }
 
 export const GRADE_RING_STROKE: Record<Grade, string> = {
   A: 'stroke-success',
   B: 'stroke-brand',
-  C: 'stroke-light-blue',
-  D: 'stroke-warning',
+  C: 'stroke-warning',
+  D: 'stroke-error',
   F: 'stroke-error',
 }
 

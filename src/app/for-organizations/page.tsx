@@ -129,7 +129,7 @@ export default function ForOrganizationsPage() {
             const Icon = card.icon
             return (
               <Link key={card.href} href={card.href}>
-                <Card className="h-full border-border transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <Card className="h-full border-border transition-colors hover:border-brand">
                   <CardContent className="pt-6">
                     <div
                       className={cn(

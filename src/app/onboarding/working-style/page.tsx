@@ -22,8 +22,8 @@ export default async function WorkingStylePage() {
     <div className="space-y-6">
       <div>
         <Greeting firstName={profile.firstName} />
-        <h1 className="text-3xl font-bold tracking-tight text-navy">How do you prefer working</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">How do you prefer working</h1>
+        <p className="mt-1 text-muted-foreground">
           No wrong answers — this helps employers understand what makes you thrive, not just what
           you can do.
         </p>

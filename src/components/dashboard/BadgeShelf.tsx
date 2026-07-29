@@ -1,5 +1,6 @@
 import type { WeeklyBadgeStatus } from '@/lib/badges/weekly-badges'
 import type { MilestoneBadgeStatus } from '@/lib/badges/milestone-badges'
+import { StatusIcon } from '@/components/ui/status-icon'
 import { cn } from '@/lib/utils'
 
 // Weekly and milestone badges display in visually distinct shelves, never
@@ -26,7 +27,7 @@ function BadgeTile({
       title={description}
     >
       <span className={cn('flex size-10 items-center justify-center rounded-full text-lg', earned ? 'bg-brand/15' : 'bg-muted')}>
-        {earned ? '🏅' : '🔒'}
+        {earned ? '🏅' : <StatusIcon status="locked" size={18} />}
       </span>
       <p className="text-xs font-medium text-foreground">
         {label}

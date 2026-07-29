@@ -10,6 +10,7 @@ import {
 import { markLinkedInActivity } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { InlineLoadingState } from '@/components/ui/spinner'
 import { CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 
 interface PostIdea {
@@ -58,6 +59,7 @@ function IdeaCard({ idea, venues }: { idea: PostIdea; venues: ContentVenue[] }) 
         <Button type="submit" variant="outline" size="sm" disabled={drafting} className={drafting ? 'cursor-progress' : ''}>
           {drafting ? 'Drafting…' : `Draft this for ${CONTENT_VENUE_LABEL[venue]}`}
         </Button>
+        {drafting && <InlineLoadingState label="Drafting your post…" />}
       </form>
       {draftState?.error && <p className="mt-2 text-sm text-destructive">{draftState.error}</p>}
       {draftState?.draft && (
@@ -89,6 +91,7 @@ function ArticleGenerator() {
         <Button type="submit" variant="outline" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
           {pending ? 'Drafting…' : 'Generate draft'}
         </Button>
+        {pending && <InlineLoadingState label="This can take a bit longer — drafting a full long-form piece…" />}
       </form>
       {state?.error && <p className="mt-2 text-sm text-destructive">{state.error}</p>}
       {state?.draft && (
@@ -115,6 +118,7 @@ export function ThoughtLeadershipStudio({
         <Button type="submit" disabled={generating} className={generating ? 'cursor-progress' : ''}>
           {generating ? 'Generating…' : 'Generate 5 Ideas Tailored to my background and goals'}
         </Button>
+        {generating && <InlineLoadingState label="Generating ideas tailored to your background…" />}
       </form>
       {ideasState?.error && <p className="text-sm text-destructive">{ideasState.error}</p>}
 

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { getBlockedJobHost } from '@/lib/jobs/blocked-job-hosts'
+import { InlineLoadingState } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 
 export function JobUrlForm() {
@@ -58,6 +59,7 @@ export function JobUrlForm() {
       <Button type="submit" disabled={pending}>
         {pending ? 'Analyzing…' : blocked ? 'Analyze pasted text' : 'Add job'}
       </Button>
+      {pending && <InlineLoadingState label="Fetching the posting and analyzing your fit…" />}
     </form>
   )
 }
