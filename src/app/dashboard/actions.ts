@@ -9,6 +9,7 @@ import type {
   EeocRaceEthnicity,
   EeocYesNoDecline,
   PublicDisclosureComfort,
+  HighestEducationLevel,
 } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -18,6 +19,8 @@ import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
+import { normalizeMetroArea } from '@/lib/constants/metro-areas'
+import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -153,6 +156,8 @@ export async function confirmProfile(
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
+  const currentCity = (formData.get('currentCity') as string) || null
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
@@ -160,14 +165,32 @@ export async function confirmProfile(
       lastName: (formData.get('lastName') as string) || null,
       phone: (formData.get('phone') as string) || null,
       streetAddress: (formData.get('streetAddress') as string) || null,
-      currentCity: (formData.get('currentCity') as string) || null,
+      currentCity,
       currentState: (formData.get('currentState') as string) || null,
+      metroArea: normalizeMetroArea(currentCity),
       profileConfirmedAt: new Date(),
     },
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
+}
+
+export async function confirmEducation(
+  _prevState: ConfirmFormState,
+  formData: FormData
+): Promise<ConfirmFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const highestEducationLevel = (formData.get('highestEducationLevel') as HighestEducationLevel | null) || null
+  const hasMBA = formData.get('hasMBA') === 'on'
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { highestEducationLevel, hasMBA },
+  })
+  revalidatePath('/dashboard/profile')
 }
 
 export async function confirmIndustry(
@@ -177,10 +200,13 @@ export async function confirmIndustry(
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
+  const industryContext = (formData.get('industryContext') as string) || null
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
-      industryContext: (formData.get('industryContext') as string) || null,
+      industryContext,
+      industryBucket: normalizeIndustryBucket(industryContext),
       industryConfirmedAt: new Date(),
     },
   })

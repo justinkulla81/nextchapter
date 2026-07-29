@@ -2,6 +2,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
 import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
+import { EducationConfirmForm } from '@/components/dashboard/EducationConfirmForm'
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryAuthorizationConfirmForm } from '@/components/dashboard/SalaryAuthorizationConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
@@ -90,6 +91,18 @@ export default async function ProfilePage() {
           </CardHeader>
           <CardContent>
             <IndustryConfirmForm industryContext={profile.industryContext} confirmedAt={profile.industryConfirmedAt} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Education</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EducationConfirmForm
+              highestEducationLevel={profile.highestEducationLevel}
+              hasMBA={profile.hasMBA}
+            />
           </CardContent>
         </Card>
 

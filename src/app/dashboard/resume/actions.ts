@@ -176,7 +176,7 @@ export async function getResumeSignedUrl(resumeId: string): Promise<string | nul
   return data?.signedUrl ?? null
 }
 
-const ENGAGEMENT_TYPES: EngagementType[] = ['FULL_TIME', 'FRACTIONAL', 'INTERIM', 'CONSULTING']
+const ENGAGEMENT_TYPES: EngagementType[] = ['FULL_TIME', 'FRACTIONAL', 'INTERIM', 'CONSULTING', 'INTERNSHIP']
 
 export type WorkHistoryFormState = { error?: string; victoriaNudge?: string } | undefined
 

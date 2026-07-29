@@ -13,7 +13,8 @@
     "seed:test-candidates": "tsx --env-file=.env.local scripts/seed-test-candidates.ts",
     "seed:portal-connections": "tsx --env-file=.env.local scripts/seed-portal-connections.ts",
     "seed:interim-listings": "tsx --env-file=.env.local scripts/seed-interim-listings.ts",
-    "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts"
+    "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts",
+    "backfill:profile-buckets": "tsx --env-file=.env.local scripts/backfill-profile-buckets.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
