@@ -16,8 +16,13 @@ import type { Grade } from '@/lib/scoring/grade'
 // (kept separate, with no 'server-only' import, so client components can
 // render the label without pulling this file's server-only deps in).
 
+// The score a listing needs to clear to count as a "strong" fit — reused
+// by the ATS admission gate (a listing is only worth adding if the BEST
+// candidate in the whole pool would see it as strong, not just "good").
+export const STRONG_FIT_THRESHOLD = 70
+
 function bucketFromScore(score: number): FitBucket {
-  if (score >= 70) return 'strong'
+  if (score >= STRONG_FIT_THRESHOLD) return 'strong'
   if (score >= 45) return 'good'
   return 'stretch'
 }
@@ -70,12 +75,20 @@ export function computeBoardListingFitBucket(
   candidate: FitCandidate,
   posting: Pick<
     ExclusiveJobPosting,
-    'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
+    'title' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
   >
 ): FitBucket {
+  // Most board postings (self-submitted OPEN listings, every ATS-fed row)
+  // never have targetFunction/targetLevel set — those only exist for
+  // recruiter TARGETED listings. Without the title-inference fallback here,
+  // computeMatchScore silently fell back to neutral credit for both, so the
+  // fit badge ended up driven almost entirely by location/comp — a senior
+  // candidate could see an entry-level analyst role labeled "Good fit"
+  // purely because the location matched. Falls back the same way the
+  // admin-side postingToRole below already does.
   const { score } = computeMatchScore(candidate, {
-    primaryFunction: posting.targetFunction,
-    roleLevel: posting.targetLevel,
+    primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
+    roleLevel: posting.targetLevel ?? inferLevelFromTitle(posting.title),
     remotePolicy: posting.targetRemotePolicy ?? (inferRemoteFromLocation(posting.location) ? 'remote' : null),
     locationRequirement: posting.targetLocation ?? posting.location,
     compMin: posting.salaryMin,
@@ -192,6 +205,7 @@ function boostedMatchScore(candidate: AdminFitCandidate, posting: FitRankablePos
   return Math.min(100, boosted)
 }
 
+
 // The threshold a boosted score has to clear to count as a real, plausible
 // fit — shared by every consumer below so "good fit" means the same thing
 // everywhere on the admin side.
@@ -245,14 +259,18 @@ export function rankCandidatesByFitCoverage<T extends FitRankablePosting>(
 
 // SurfacedJob rows have no structured function/level/comp fields — only
 // title/location free text, since the waterfall that generated them already
-// searched using the candidate's own target role. Passing nulls through the
-// same computeMatchScore lands on its existing "insufficient data" neutral
-// credit for those dimensions, so this is a real reuse, not a special case.
-export function computeSurfacedJobFitBucket(candidate: FitCandidate, job: Pick<SurfacedJob, 'location'>): FitBucket {
+// searched using the candidate's own target role. Function/level are now
+// inferred from the title (same helpers as the board-listing path above)
+// rather than passed through as null — passing null unconditionally meant
+// every surfaced job landed in the same "good fit" band by default
+// regardless of actual seniority/function match, since the neutral credits
+// for missing function+level plus a location match alone were already
+// enough to clear the "good" threshold.
+export function computeSurfacedJobFitBucket(candidate: FitCandidate, job: Pick<SurfacedJob, 'title' | 'location'>): FitBucket {
   const { score } = computeMatchScore(candidate, {
-    primaryFunction: null,
-    roleLevel: null,
-    remotePolicy: null,
+    primaryFunction: inferFunctionFromTitle(job.title),
+    roleLevel: inferLevelFromTitle(job.title),
+    remotePolicy: inferRemoteFromLocation(job.location) ? 'remote' : null,
     locationRequirement: job.location,
     compMin: null,
     compMax: null,

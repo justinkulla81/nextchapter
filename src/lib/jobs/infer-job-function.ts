@@ -26,12 +26,39 @@ const FUNCTION_KEYWORDS: { function: (typeof PRIMARY_FUNCTION_OPTIONS)[number]; 
   { function: 'Operations', keywords: ['operations', 'supply chain', 'logistics'] },
 ]
 
+// Single-word keywords common enough in everyday English to describe jobs
+// that have nothing to do with the function they're filed under here —
+// "operations" shows up in Facilities/IT/Warehouse/Fraud Operations just as
+// often as the general biz-ops sense meant here (a "Facilities Operations
+// Manager" is not a business-operations candidate's peer), and bare
+// "president" is a substring of "vice president" at any level in any
+// function, so e.g. "VP of Engineering" was misclassifying as Executive
+// Leadership. Verified against ~6,750 real live ATS titles: requiring 2+
+// keyword hits as a *blanket* rule wipes out ~55% of genuinely correct
+// single-keyword matches (Software Engineer, Sales Director, etc.), so the
+// fix is scoped to just these two known offenders — a solo hit on one of
+// these needs a second corroborating keyword from the same entry (e.g.
+// "supply chain manager") before counting as confident.
+const AMBIGUOUS_SOLO_KEYWORDS = new Set(['operations', 'president'])
+
+// "Administrative Business Partner, Office of the CEO" is a support role
+// that works FOR an executive, not the executive themselves — but "office
+// of the ceo" contains the bare substring "ceo", so it was matching the
+// Executive Leadership function and C-Suite level the same way an actual
+// CEO title would. Neutralize the acronym/title inside this specific
+// "office of the ___" phrasing before running the keyword scan, for both
+// function and level inference.
+function stripExecutiveOfficePhrase(lower: string): string {
+  return lower.replace(/\boffice of the (chief \w+( \w+)?|ceo|coo|cfo|cto|cmo|cpo|president)\b/g, 'office of the executive')
+}
+
 export function inferFunctionFromTitle(title: string): string | null {
-  const lower = title.toLowerCase()
+  const lower = stripExecutiveOfficePhrase(title.toLowerCase())
   for (const entry of FUNCTION_KEYWORDS) {
-    if (entry.keywords.some((kw) => lower.includes(kw))) {
-      return entry.function
-    }
+    const hits = entry.keywords.filter((kw) => lower.includes(kw))
+    if (hits.length === 0) continue
+    const weak = hits.length === 1 && AMBIGUOUS_SOLO_KEYWORDS.has(hits[0])
+    if (!weak) return entry.function
   }
   return null
 }
@@ -51,7 +78,7 @@ const LEVEL_KEYWORDS: { level: (typeof HIGHEST_LEVEL_OPTIONS)[number]; keywords:
 ]
 
 export function inferLevelFromTitle(title: string): string {
-  const lower = ` ${title.toLowerCase()} `
+  const lower = ` ${stripExecutiveOfficePhrase(title.toLowerCase())} `
   for (const entry of LEVEL_KEYWORDS) {
     if (entry.keywords.some((kw) => lower.includes(kw))) {
       return entry.level

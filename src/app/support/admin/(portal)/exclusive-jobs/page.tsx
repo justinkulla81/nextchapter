@@ -222,10 +222,12 @@ export default async function ExclusiveJobsAdminPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Job Board</h1>
         <p className="mt-1 text-muted-foreground">
-          Every non-admin submission lands here as pending until approved — no employer/recruiter
-          domain verification exists yet, so this review is the trust gate. Visible only to
-          candidates currently holding an A Market Reality Grade and opted into the recruiter
-          database. Limited to US-based roles.
+          Every employer/recruiter submission lands here as pending until approved — no domain
+          verification exists yet, so this review is the trust gate. ATS-fed listings skip this
+          queue and go straight onto the board (they&apos;re pulled from a company&apos;s own live
+          careers page, so there&apos;s no identity to verify) but still have to clear a real
+          strong-fit check first — reject or archive from the board itself if one slips through.
+          Limited to US-based roles.
         </p>
       </div>
 

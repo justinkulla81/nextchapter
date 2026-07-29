@@ -13,7 +13,7 @@ export interface MatchResult {
   label: string
 }
 
-function levelDistance(a: string | null, b: string | null): number {
+export function levelDistance(a: string | null, b: string | null): number {
   if (!a || !b) return 2
   const levels = HIGHEST_LEVEL_OPTIONS as readonly string[]
   const ia = levels.indexOf(a)

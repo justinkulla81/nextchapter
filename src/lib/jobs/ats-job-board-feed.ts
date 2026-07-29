@@ -1,8 +1,10 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { ATS_COMPANIES, type AtsCompany } from '@/lib/market/ats-companies'
-import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isUsLocation } from '@/lib/jobs/us-location'
+import { loadAdminFitCandidates } from '@/lib/jobs/job-fit-bucket'
+import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { levelDistance } from '@/lib/matching/compute-match-score'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -149,34 +151,35 @@ export interface AtsFeedResult {
   skippedNonUs: number
 }
 
-// Prompt 63 — seeds NC Job Board with listings pulled directly from each
-// company's own ATS-hosted board (never LinkedIn/Indeed). Every row lands
-// as source: 'ats_feed', status: 'pending', contactName: null — no public
-// ATS feed exposes a named hiring contact (confirmed against the real
-// Greenhouse, Lever, and Ashby docs), so these always need a human to add
-// one or reject before going live, same review queue as employer/recruiter
-// self-submissions.
+// Prompt 63, later upgraded — seeds NC Job Board with listings pulled
+// directly from each company's own ATS-hosted board (never LinkedIn/
+// Indeed). Every row lands as source: 'ats_feed', contactName: null — no
+// public ATS feed exposes a named hiring contact (confirmed against the
+// real Greenhouse, Lever, and Ashby docs) — but status: 'approved', not
+// 'pending': unlike an employer/recruiter self-submission (a real hiring
+// need from a real party that still needs a human trust check, since no
+// domain verification exists), an ATS row is pulled straight from the
+// company's own live careers page, so there's no identity to verify.
 //
 // This is the one job-board entry point with no real recruiter behind
-// it — an algorithm is deciding what's worth putting in front of an admin,
-// so it should only suggest roles that at least one real candidate could
-// actually fill. Quality over quantity: a title has to confidently map to a
-// function (e.g. "Senior Software Engineer" -> Engineering) that a current
-// candidate actually has, or it's skipped outright rather than added to the
-// pending queue — an ambiguous title that can't be confidently classified
-// is treated the same as a no-fit title, not given the benefit of the
-// doubt. Employer/recruiter self-submissions are untouched by this — those
-// represent a real hiring need from a real party and already get a human
-// review either way.
+// it — an algorithm is deciding what goes straight in front of candidates,
+// so the bar is real fit, not just a plausible title. Quality over
+// quantity: a listing is only admitted if it confidently maps to a
+// function (inferFunctionFromTitle — deliberately conservative, see that
+// file) that some real candidate has AND that same candidate's seniority
+// is within one band of the title's inferred level (levelDistance <= 1,
+// e.g. Director admits Director/VP/Manager but not IC or C-Suite) — one
+// genuinely great fit for a single candidate is enough, a crowd of
+// mediocre ones isn't. An earlier version of this gate used the admin
+// review queue's continuous boosted score (function+level+location+comp+
+// title-similarity), but verified against the real live candidate pool
+// that let ~97% of US listings through — taking the max across a diverse
+// pool means location/comp neutral credits alone clear the bar for nearly
+// any professional title, so this uses a hard function+seniority match
+// instead of a blended score. Employer/recruiter self-submissions are
+// untouched by this — those still land pending either way.
 export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
-  const candidateFunctions = await prisma.candidateProfile.findMany({
-    where: { primaryFunction: { not: null } },
-    select: { primaryFunction: true },
-    distinct: ['primaryFunction'],
-  })
-  const candidateFunctionSet = new Set(
-    candidateFunctions.map((c) => c.primaryFunction!.trim().toLowerCase())
-  )
+  const candidates = await loadAdminFitCandidates()
 
   // Every company's board is fetched concurrently rather than one at a time —
   // awaiting each of the 45 companies in sequence (up to FETCH_TIMEOUT_MS
@@ -228,7 +231,17 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
     }
 
     const inferredFunction = inferFunctionFromTitle(listing.title)
-    if (!inferredFunction || !candidateFunctionSet.has(inferredFunction.toLowerCase())) {
+    if (!inferredFunction) {
+      skippedNoFit += 1
+      continue
+    }
+    const inferredLevel = inferLevelFromTitle(listing.title)
+    const hasFit = candidates.some(
+      (c) =>
+        c.primaryFunction?.trim().toLowerCase() === inferredFunction.toLowerCase() &&
+        levelDistance(c.highestLevelReached, inferredLevel) <= 1
+    )
+    if (!hasFit) {
       skippedNoFit += 1
       continue
     }
@@ -253,7 +266,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
         description: listing.description,
         postingType: 'direct',
         source: 'ats_feed',
-        status: 'pending',
+        status: 'approved',
         contactName: null,
         salaryMin: listing.salaryMin,
         salaryMax: listing.salaryMax,
