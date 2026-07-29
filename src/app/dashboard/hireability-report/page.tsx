@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { InlineLoadingState } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
@@ -183,9 +184,7 @@ export default async function HireabilityReportPage() {
       )}
 
       {!report ? (
-        <p className="text-sm text-muted-foreground">
-          Your report is generating — check back in a moment.
-        </p>
+        <InlineLoadingState label="Your report is generating — check back in a moment." />
       ) : (
         <div className="mx-auto max-w-3xl rounded-xl border border-border bg-white p-8 shadow-sm sm:p-12">
           {/* Letterhead */}
@@ -402,9 +401,7 @@ export default async function HireabilityReportPage() {
               A-level goal for you automatically.
             </p>
             {suggestedActions.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Your suggested activities are still generating — check back in a moment.
-              </p>
+              <InlineLoadingState label="Your suggested activities are still generating — check back in a moment." className="mt-3" />
             ) : (
               <ul className="mt-4 divide-y divide-border">
                 {suggestedActions.map((action, i) => (

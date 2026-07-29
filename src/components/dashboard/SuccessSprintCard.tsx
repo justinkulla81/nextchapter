@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { InlineLoadingState } from '@/components/ui/spinner'
 import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
@@ -279,9 +280,7 @@ export function SuccessSprintCard({
           <div className="space-y-3 border-t border-border pt-6">
             <h3 className="text-sm font-semibold text-foreground">Set next week&apos;s goals</h3>
             {suggestedActions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Your report is still generating — check back in a moment for suggested actions.
-              </p>
+              <InlineLoadingState label="Your report is still generating — check back in a moment for suggested actions." />
             ) : (
               <SprintSetupForm
                 suggestedActions={suggestedActions}
