@@ -31,6 +31,8 @@ export async function markRecommendationCompleted(title: string, provider: strin
     },
   })
 
+  captureServerEvent(profile.id, 'learning_recommendation_completed', { title, provider })
+
   try {
     await applyLearningClosesBarrierRewrite(profile.id)
   } catch (error) {
@@ -89,6 +91,36 @@ export async function logAiProject(
 
   revalidatePath('/dashboard/learning')
   revalidatePath('/dashboard/recruiter-report')
+}
+
+export type UpdateSkillsStillNeededState = { error?: string } | undefined
+
+// The same CandidateProfile.skillsStillNeeded field the Search Strategy
+// page edits — surfaced again here since it's the direct input to the
+// Learning page's personalization (see rationale.ts), not a separate
+// field. Revalidates both pages so neither shows a stale value.
+export async function updateSkillsStillNeeded(
+  _prevState: UpdateSkillsStillNeededState,
+  formData: FormData
+): Promise<UpdateSkillsStillNeededState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+
+  const skillsStillNeeded = (formData.get('skillsStillNeeded') as string | null)?.trim() || null
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { skillsStillNeeded },
+  })
+
+  captureServerEvent(profile.id, 'learning_skills_still_needed_updated', { hasContent: !!skillsStillNeeded })
+
+  revalidatePath('/dashboard/learning')
+  revalidatePath('/dashboard/search-strategy')
 }
 
 export async function deleteLearningBadge(badgeId: string): Promise<void> {

@@ -283,6 +283,13 @@ export interface ManagementGoalConflict {
   targetRoleType: string | null
 }
 
+// Shared with the Learning page's personalization engine (build-learning-plan.ts)
+// to gate leadership-adjacent content — this was module-private until then,
+// but it's exactly the right regex list, so exported rather than duplicated.
+export function isExecutiveTargetRole(targetRoleType: string | null): boolean {
+  return Boolean(targetRoleType && EXECUTIVE_TARGET_ROLE_PATTERNS.some((p) => p.test(targetRoleType.toLowerCase())))
+}
+
 export function detectManagementGoalConflict(
   managementSkillConfidence: number | null,
   teamSizeManaged: number | null,
@@ -291,9 +298,7 @@ export function detectManagementGoalConflict(
   if (managementSkillConfidence !== PREFERS_IC_MANAGEMENT_CONFIDENCE_VALUE) return null
 
   const managedLargeTeam = (teamSizeManaged ?? 0) >= SUBSTANTIAL_TEAM_SIZE_THRESHOLD
-  const targetsExecutiveRole = Boolean(
-    targetRoleType && EXECUTIVE_TARGET_ROLE_PATTERNS.some((p) => p.test(targetRoleType.toLowerCase()))
-  )
+  const targetsExecutiveRole = isExecutiveTargetRole(targetRoleType)
 
   if (!managedLargeTeam && !targetsExecutiveRole) return null
 

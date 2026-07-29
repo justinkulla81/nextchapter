@@ -1,16 +1,13 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { prisma } from '@/lib/prisma'
 import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/InterviewPrepTabs'
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 
 export default async function InterviewPrepPage() {
   const profile = await getDashboardData()
-  const narrative = await prisma.candidateNarrative.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'asc' },
-  })
+  const narrative = await getDefaultNarrative(profile.id)
 
   return (
     <div className="space-y-8">
