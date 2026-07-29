@@ -25,6 +25,30 @@ enum EngagementType {
   FRACTIONAL
   INTERIM
   CONSULTING
+  INTERNSHIP
+}
+
+// Highest degree completed — resume-derived (Phase 1), candidate-confirmable.
+// Used for the education/outcome correlation on the admin metrics page.
+enum HighestEducationLevel {
+  SOME_COLLEGE
+  ASSOCIATE
+  BACHELORS
+  MASTERS
+  MBA
+  JD
+  MD
+  PHD
+  OTHER
+}
+
+// Computed from WorkHistoryEntry title-level changes over time (see
+// detectCareerTrajectory in work-history-facts.ts) — null means there isn't
+// enough work history yet to judge, never a guessed default.
+enum CareerTrajectory {
+  PROMOTED
+  STABLE
+  DEMOTED
 }
 
 enum CoachingFocus {
@@ -266,7 +290,7 @@ model CandidateProfile {
   updatedAt DateTime @updatedAt
 
   // Privacy & Visibility
-  privacyTier PrivacyTier @default(LOCKED)
+  privacyTier            PrivacyTier @default(LOCKED)
   // One-time bonus marker for confirming a privacy tier choice at all — same
   // shape as introCommittedAt/registrationCompletedAt below. Checked before
   // awarding PRIVACY_CONFIRMED so it only ever fires once per candidate.
@@ -307,6 +331,10 @@ model CandidateProfile {
   currentCity    String? // resume-derived (Phase 1), candidate-confirmable
   currentState   String?
   currentCountry String        @default("US")
+  // Normalized metro-area bucket derived from currentCity/currentState (see
+  // src/lib/constants/metro-areas.ts) — never authoritative, only used for
+  // Community metro grouping. currentCity/currentState stay the source of truth.
+  metroArea      String?
 
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
@@ -327,6 +355,10 @@ model CandidateProfile {
   highestLevelReached String? // "IC", "Manager", "Director", "VP", "C-Suite"
   primaryFunction     String? // resume-derived (Phase 1), candidate-confirmable
   industryContext     String? // resume-derived (Phase 1), candidate-confirmable
+  // Normalized industry bucket derived from industryContext (see
+  // src/lib/constants/industry-buckets.ts) — never authoritative, only used
+  // for Community industry grouping. industryContext stays the source of truth.
+  industryBucket      String?
   resumeKeywords      String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
   isPeopleManager     Boolean? // gates teamSizeManaged + managementSkillConfidence questions
   teamSizeManaged     Int? // 0 = IC, otherwise largest team managed
@@ -395,6 +427,29 @@ model CandidateProfile {
   resumeLatestJobTitle    String?
   resumeAiReadinessScore  Int?
   resumeAiReadinessNotes  String?
+  // Highest degree completed — resume-derived, candidate-confirmable (same
+  // convention as primaryFunction/industryContext above). Feeds the
+  // education/outcome correlation on the admin metrics page.
+  highestEducationLevel   HighestEducationLevel?
+  hasMBA                  Boolean                @default(false)
+
+  // Structural Market Reality signals, computed from WorkHistoryEntry (see
+  // computeStructuralFlags in src/lib/resume/compute-structural-flags.ts) —
+  // recomputed on resume upload and on any manual work-history edit, never
+  // hand-set by the candidate. Feed the ownership category (hireability-grade.ts)
+  // and the corresponding named reasons (named-reasons.ts).
+  jobHoppingFlag   Boolean           @default(false)
+  shortTenureCount Int               @default(0)
+  careerTrajectory CareerTrajectory? // null = not enough work history yet to judge
+
+  // A single free-text explanation the candidate can write for a real
+  // employment gap ("what I learned/accomplished, why I haven't gone
+  // stale") — one field, not per-gap, since most candidates have one gap
+  // worth explaining. Only ever shown externally when both this toggle AND
+  // the specific /share/[token] recipient's own toggle are on (see
+  // CreateShareForm.tsx / profile-share.ts) — never shown by default.
+  gapExplanation                 String? @db.Text
+  includeGapExplanationInDossier Boolean @default(false)
 
   // Action-plan-only questions (not asked during onboarding)
   lastSalary        Int?
@@ -420,25 +475,25 @@ model CandidateProfile {
   // be generated deterministically (branch on real values) instead of
   // parsed from an LLM reading of free text. benefitsPressureOtherText is
   // only used when 'OTHER' is one of the selected values.
-  benefitsPressures         String[] @default([])
-  benefitsPressureOtherText String?
+  benefitsPressures                String[]       @default([])
+  benefitsPressureOtherText        String?
   // Which action-plan item ids the candidate has checked off — plain
   // completion tracking, not a Search Action, so no points/effort fields.
-  benefitsActionPlanCompletedItems String[] @default([])
-  gigDirectoryUnlockAnswer      String? // target rate/openness question — gates the Gig Directory
-  interimOfferDefinition        String?        @db.Text // "what specific expertise are you offering" — Interim Launch Plan phase 2
-  interimOutreachStartedAt      DateTime? // manual self-report — Interim Launch Plan phase 6 (no external signal to derive this from)
-  contentComfortLevel           Int? // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
-  contentVenues                 ContentVenue[] @default([])
-  linkedinOpennessComfort       Int? // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
-  linkedinUsageFrequency        String? // "daily" | "weekly" | "rarely" | "never" — same gate
-  linkedinProfileUpToDate       Boolean? // same gate
-  activeJobDescription          String?        @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
-  workSampleType                String? // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
-  substackHasAccount            Boolean? // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
-  substackUrl                   String?
-  substackCritique              Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
-  substackAnalyzedAt            DateTime?
+  benefitsActionPlanCompletedItems String[]       @default([])
+  gigDirectoryUnlockAnswer         String? // target rate/openness question — gates the Gig Directory
+  interimOfferDefinition           String?        @db.Text // "what specific expertise are you offering" — Interim Launch Plan phase 2
+  interimOutreachStartedAt         DateTime? // manual self-report — Interim Launch Plan phase 6 (no external signal to derive this from)
+  contentComfortLevel              Int? // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates Thought Leadership Studio
+  contentVenues                    ContentVenue[] @default([])
+  linkedinOpennessComfort          Int? // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
+  linkedinUsageFrequency           String? // "daily" | "weekly" | "rarely" | "never" — same gate
+  linkedinProfileUpToDate          Boolean? // same gate
+  activeJobDescription             String?        @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
+  workSampleType                   String? // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
+  substackHasAccount               Boolean? // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
+  substackUrl                      String?
+  substackCritique                 Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
+  substackAnalyzedAt               DateTime?
 
   // Daily loop — mood check-in + daily Victoria email
   actionWindow             ActionWindow     @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
@@ -517,6 +572,7 @@ model CandidateProfile {
 
   // Relations
   workHistory                  WorkHistoryEntry[]
+  educationHistory             EducationEntry[]
   references                   Reference[]
   referenceQuotes              ReferenceQuote[]
   claimedEmployerReferences    EmployerReferenceSubmission[]
@@ -694,7 +750,54 @@ model WorkHistoryEntry {
   expectedEndDate DateTime?
   nextReverifyAt  DateTime?
 
+  // Normalized via normalizeOrgName() (src/lib/text/org-name-match.ts) —
+  // used for company-group membership on Community and for resume-parsing
+  // dedup, so "Google" and "Google LLC" collapse to the same group instead
+  // of fragmenting. Backfilled for pre-existing rows by
+  // scripts/backfill-profile-buckets.ts.
+  companyNameNormalized String  @default("")
+  // True only for rows written by the resume-parsing sync (never for
+  // manually-entered rows) — lets that sync tell its own rows apart from
+  // candidate-typed ones without a separate join table.
+  resumeDerived         Boolean @default(false)
+
   @@index([candidateId])
+  @@index([companyNameNormalized])
+}
+
+// Structured, one-row-per-degree education history — mirrors WorkHistoryEntry's
+// conventions exactly. Supports multiple degrees per candidate (undergrad +
+// MBA at different schools, etc.); isPrimary marks the one that represents
+// them for the alma-mater exec-ed lookup (Learning page) and the alumni
+// community group.
+model EducationEntry {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Normalized to the parent institution only (e.g. "Harvard University",
+  // never "Harvard Kennedy School") — both the resume-extraction prompt and
+  // schoolNameNormalized enforce this, so exec-ed lookup and alumni grouping
+  // never fragment by sub-school/department.
+  schoolName           String
+  schoolNameNormalized String
+  degree               String?
+  fieldOfStudy         String?
+  startDate            DateTime? // nullable — resumes routinely omit this
+  graduationDate       DateTime?
+
+  // Exactly one row per candidate should end up primary — see
+  // syncResumeEducation() for the tie-break rule (most recent graduation
+  // date wins, then degree rank, then first-listed).
+  isPrimary     Boolean @default(false)
+  resumeDerived Boolean @default(false)
+  verified      Boolean @default(false)
+  verifiedBy    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([candidateId])
+  @@index([schoolNameNormalized])
 }
 
 model Reference {
@@ -1312,6 +1415,14 @@ model CommunityPost {
   postFunction String?
   postIndustry String?
 
+  // Same snapshot-at-post-time convention as the four fields above, for the
+  // Community "peers like you" groups (src/lib/community/groups.ts) — arrays
+  // for schools/companies since those are genuinely multi-valued per candidate.
+  postIndustryBucket String?
+  postMetroArea      String?
+  postSchools        String[] @default([])
+  postCompanies      String[] @default([])
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
@@ -1319,6 +1430,7 @@ model CommunityPost {
 
   @@index([postType, isActive, createdAt])
   @@index([postCity, postFunction, postIndustry])
+  @@index([postMetroArea, postFunction, postIndustryBucket])
 }
 
 // Anonymous (by default) support note sent from one candidate to another
@@ -1385,13 +1497,13 @@ model HireabilityReport {
 // completedAt (not just a boolean) lets the Sunday Night Report reason
 // about front-loading/back-loading patterns across the week.
 model WeeklySprint {
-  id               String           @id @default(cuid())
-  candidateId      String
-  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  weekStartDate    DateTime // Monday 00:00 UTC of the committed week
-  committedActions Json // [{text, actionType?, difficulty: 1-3, completed, completedAt?}]
-  autoAssigned     Boolean          @default(false) // true if the Monday-midnight-PT cron committed this, not the candidate
-  createdAt        DateTime         @default(now())
+  id                String                   @id @default(cuid())
+  candidateId       String
+  candidate         CandidateProfile         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate     DateTime // Monday 00:00 UTC of the committed week
+  committedActions  Json // [{text, actionType?, difficulty: 1-3, completed, completedAt?}]
+  autoAssigned      Boolean                  @default(false) // true if the Monday-midnight-PT cron committed this, not the candidate
+  createdAt         DateTime                 @default(now())
   // How comfortable the candidate feels being publicly visible in their
   // search THIS week — reuses the onboarding enum rather than a new one.
   // Coaching/sentiment signal only (see getVisibilityComfortTrend) — never
@@ -2494,20 +2606,20 @@ enum InterimListingDesignation {
 }
 
 model InterimListing {
-  id          String                     @id @default(cuid())
-  category    InterimListingCategory
-  name        String
-  description String
-  url         String
-  designation InterimListingDesignation @default(INCLUDED_FOR_QUALITY)
+  id              String                    @id @default(cuid())
+  category        InterimListingCategory
+  name            String
+  description     String
+  url             String
+  designation     InterimListingDesignation @default(INCLUDED_FOR_QUALITY)
   // Free-text nuance on the designation, e.g. Toptal's client-referral
   // (not talent-referral) program — shown alongside the badge so the
   // distinction isn't silently lost.
-  designationNote String? @db.Text
-  isActive        Boolean @default(true)
-  sortOrder       Int     @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  designationNote String?                   @db.Text
+  isActive        Boolean                   @default(true)
+  sortOrder       Int                       @default(0)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
 
   signups InterimMarketplaceSignup[]
 
