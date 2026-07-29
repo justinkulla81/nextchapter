@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ListChecks } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { computeHireabilityGrade, normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
 import { WEEKLY_ENGINE_LABEL, GRADE_TEXT_COLOR, type WeeklyEngine } from '@/lib/scoring/grade'
 import type { Grade } from '@/lib/scoring/grade'
 import { cn } from '@/lib/utils'
@@ -44,7 +44,6 @@ export default async function YourStatsPage() {
 
   const [
     grade,
-    recentReports,
     applicationsCount,
     currentSprint,
     moodHistory,
@@ -56,12 +55,6 @@ export default async function YourStatsPage() {
     aListWeeks,
   ] = await Promise.all([
     computeHireabilityGrade(profile),
-    prisma.sundayNightReport.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { weekStartDate: 'desc' },
-      take: 12,
-      select: { weekStartDate: true, gradeSnapshot: true },
-    }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     getCurrentWeekSprint(profile.id),
     getMoodHistory(profile.id),
@@ -114,12 +107,6 @@ export default async function YourStatsPage() {
 
   const previousMarketRealityGrade =
     marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
-  const weeklyScoreSnapshots = [...recentReports]
-    .reverse()
-    .map((r) => ({
-      weekStartDate: r.weekStartDate,
-      grade: normalizeGradeSnapshot(r.gradeSnapshot)!.grade,
-    }))
 
   return (
     <div className="space-y-8">
@@ -181,19 +168,6 @@ export default async function YourStatsPage() {
         <CardContent>
           <MarketRealityTrendChart
             snapshots={marketRealitySnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MarketRealityTrendChart
-            snapshots={weeklyScoreSnapshots}
-            emptyStateText="Your Weekly Search Score trend will show up here after a couple of weekly reports."
-            ariaLabel="Weekly Search Score over time"
           />
         </CardContent>
       </Card>

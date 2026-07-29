@@ -6,8 +6,7 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { scoreToGrade, GRADE_LABEL, type Grade, type HireabilityGrade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { scoreToGrade, GRADE_LABEL, type Grade } from '@/lib/scoring/grade'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { GapDurationBucket, MarketResponseType } from '@prisma/client'
 
@@ -45,7 +44,6 @@ interface CandidateSnapshot {
   gapDuration: GapDurationBucket | null
   checkIns: Date[]
   sprints: { createdAt: Date; committedActions: CommittedAction[] }[]
-  reports: { generatedAt: Date; weekStartDate: Date; gradeSnapshot: HireabilityGrade }[]
   aListWeeks: Date[]
   marketResponseLogs: { type: MarketResponseType; loggedAt: Date }[]
   outreachLogs: Date[]
@@ -68,9 +66,6 @@ async function loadAllCandidateRows() {
       gapDuration: true,
       dailyCheckIns: { select: { checkedInAt: true } },
       weeklySprints: { select: { createdAt: true, committedActions: true } },
-      sundayNightReports: {
-        select: { generatedAt: true, weekStartDate: true, gradeSnapshot: true },
-      },
       // Sourced from WeeklyBadgeEarned, the real currently-written record —
       // SundayNightReport.onAList is legacy and nothing writes to it anymore
       // (see src/lib/badges/weekly-badge-archive.ts).
@@ -102,13 +97,6 @@ function snapshotAsOf(rows: CandidateRow[], asOf: Date): CandidateSnapshot[] {
         .map((s) => ({
           createdAt: s.createdAt,
           committedActions: s.committedActions as unknown as CommittedAction[],
-        })),
-      reports: r.sundayNightReports
-        .filter((rep) => rep.generatedAt <= asOf)
-        .map((rep) => ({
-          generatedAt: rep.generatedAt,
-          weekStartDate: rep.weekStartDate,
-          gradeSnapshot: normalizeGradeSnapshot(rep.gradeSnapshot)!,
         })),
       aListWeeks: r.weeklyBadgesEarned.filter((b) => b.earnedAt <= asOf).map((b) => b.weekStartDate),
       marketResponseLogs: r.marketResponseLogs.filter((l) => l.loggedAt <= asOf),
@@ -193,8 +181,7 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
       const windowEnd = new Date(reg.getTime() + (weekOffsetDays + windowDays) * DAY_MS)
       return (
         c.checkIns.some((d) => d >= windowStart && d <= windowEnd) ||
-        c.sprints.some((s) => s.createdAt >= windowStart && s.createdAt <= windowEnd) ||
-        c.reports.some((r) => r.generatedAt >= windowStart && r.generatedAt <= windowEnd)
+        c.sprints.some((s) => s.createdAt >= windowStart && s.createdAt <= windowEnd)
       )
     })
     return pct(active.length, eligible.length)
@@ -202,8 +189,10 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
   const week2RetentionRate = retentionRate(7, 7)
   const week6RetentionRate = retentionRate(35, 7)
 
+  // "Reached week 13" = 13 distinct weeks of committed Search Sprints —
+  // there is no separate weekly-report record to count against.
   const week13Eligible = signups.filter((c) => daysBetween(c.registrationCompletedAt!, asOf) >= 13 * 7)
-  const week13Reached = week13Eligible.filter((c) => c.reports.length >= 13)
+  const week13Reached = week13Eligible.filter((c) => c.sprints.length >= 13)
   const week13CompletionRate = pct(week13Reached.length, week13Eligible.length)
 
   const hardActionEligible = signups.filter((c) => daysBetween(c.registrationCompletedAt!, asOf) >= 14)
@@ -253,20 +242,19 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
   const totalInterviewsLogged = candidates.reduce((sum, c) => sum + c.interviewDates.length, 0)
 
   const latestWeekStart = candidates
-    .flatMap((c) => c.reports.map((r) => r.weekStartDate.getTime()))
+    .flatMap((c) => c.aListWeeks.map((d) => d.getTime()))
     .reduce((max, t) => Math.max(max, t), 0)
   const weeklyAListEarners =
     latestWeekStart > 0
       ? candidates.filter((c) => c.aListWeeks.some((d) => d.getTime() === latestWeekStart)).length
       : 0
 
-  const latestSnapshots = candidates
-    .map((c) => (c.reports.length > 0 ? c.reports[c.reports.length - 1] : null))
-    .filter((r): r is NonNullable<typeof r> => r !== null)
-  const avgMarketRealityScore = latestSnapshots.length
-    ? latestSnapshots.reduce((sum, r) => sum + r.gradeSnapshot.score, 0) / latestSnapshots.length
-    : null
-  const avgSearchExecScore = avgMarketRealityScore
+  // Average grade metrics need a live per-candidate computeHireabilityGrade
+  // call (extra relations + queries per candidate) rather than a stored
+  // snapshot — not worth the N+1 cost for this batch view yet, so these
+  // stay honestly untracked instead of reading from the dead report table.
+  const avgSearchExecScore: number | null = null
+  const avgMarketRealityScore: number | null = null
 
   const candidatesAtWeek4Plus = signups.filter(
     (c) => daysBetween(c.registrationCompletedAt!, asOf) >= 28
@@ -475,7 +463,7 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
       null,
       'grade',
       'unknown',
-      noTargetStatus(cur.avgSearchExecutionGrade ? 1 : null)
+      'not_tracked'
     ),
     row(
       'avgMarketPositionGrade',
@@ -484,7 +472,7 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
       null,
       'grade',
       'unknown',
-      noTargetStatus(cur.avgMarketPositionGrade ? 1 : null)
+      'not_tracked'
     ),
   ]
 

@@ -91,19 +91,11 @@ export async function hasStartedSprint(candidateId: string): Promise<boolean> {
   return count > 0
 }
 
-// Suggested actions for the upcoming week — pulled from the most recent
-// Sunday Night Report if one exists, otherwise falls back to flattening the
-// existing Hireability Report's 7-day plan (Week 1, before any weekly
-// report has run).
+// Suggested actions for the upcoming week — flattened from the candidate's
+// most recent Hireability Report 7-day plan. (There is no weekly-report
+// generator; SundayNightReport is only ever populated by the seed script,
+// so this is the only real source of personalized suggestions today.)
 async function getPersonalizedSuggestions(candidateId: string): Promise<SuggestedAction[]> {
-  const latestReport = await prisma.sundayNightReport.findFirst({
-    where: { candidateId },
-    orderBy: { generatedAt: 'desc' },
-  })
-  if (latestReport) {
-    return latestReport.suggestedActionPlan as unknown as SuggestedAction[]
-  }
-
   const hireabilityReport = await prisma.hireabilityReport.findFirst({
     where: { candidateId },
     orderBy: { generatedAt: 'desc' },

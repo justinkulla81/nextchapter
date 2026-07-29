@@ -266,12 +266,13 @@ export async function getWhatDrivesMe(
   candidateId: string,
   knownFor: string | null
 ): Promise<{ motivationNarrative: string | null; effortStatText: string | null }> {
-  // Denominator (weeks tracked) still comes from SundayNightReport — the
-  // numerator (A weeks) is sourced from WeeklyBadgeEarned, the real
+  // Denominator (weeks tracked) comes from WeeklySprint — every week the
+  // candidate has committed to a sprint, whether or not it landed an A.
+  // Numerator (A weeks) is sourced from WeeklyBadgeEarned, the real
   // currently-written record; SundayNightReport.onAList is legacy and
-  // nothing writes to it anymore (see src/lib/badges/weekly-badge-archive.ts).
+  // nothing writes to it (see src/lib/badges/weekly-badge-archive.ts).
   const [totalWeeks, aListWeekCount] = await Promise.all([
-    prisma.sundayNightReport.count({ where: { candidateId } }),
+    prisma.weeklySprint.count({ where: { candidateId } }),
     prisma.weeklyBadgeEarned.count({ where: { candidateId, badgeKey: 'WEEKLY_SCORE_A_LIST' } }),
   ])
   const effortStatText =
