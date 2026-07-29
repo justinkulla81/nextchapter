@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { submitGigDirectoryUnlock } from '@/app/dashboard/gig-directory/actions'
+import { submitGigDirectoryUnlock } from '@/app/dashboard/interim-work/actions'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'

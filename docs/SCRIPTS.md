@@ -46,6 +46,12 @@ Specifically: assigns 5 candidates as coach clients with 2 sessions each and one
 
 Does not touch auth credentials for the three test accounts — only adds/updates data rows connected to them. Safe to re-run — the connection rows it owns (sessions, sourced candidates, memos, roles, interactions) are deleted and recreated each run.
 
+### Seed Interim Work page listings (marketplaces, expert networks, boards)
+```bash
+npm run seed:interim-listings
+```
+`scripts/seed-interim-listings.ts` — creates the initial `InterimListing` rows shown on the Interim Work page (fractional/talent marketplaces, expert networks, board & advisory sites, nonprofit-board alternatives). This is real page content the admin CRUD page (`/admin/interim-listings`) edits afterward, not test data — safe to re-run, it skips any `(category, name)` pair that already exists rather than overwriting admin edits.
+
 ## Scratch-script convention (not permanent, not in `scripts/`)
 
 Throughout this build, one-off verification needs (e.g. "create a single test account with a specific edge-case profile shape and check a redirect works") were handled with disposable scripts in the project root, named `scratch-*.ts`/`.mjs` — written, run, then immediately deleted (`rm -f scratch-*.mjs`) once their purpose was served, so they never accumulate or get mistaken for permanent tooling. If you see a `scratch-*` file in the repo root, it's leftover cleanup, not something intentionally checked in — safe to delete after confirming it's not mid-use.

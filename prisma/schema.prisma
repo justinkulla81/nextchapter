@@ -544,6 +544,7 @@ model CandidateProfile {
   pivotIdeas                   PivotIdea[]
   marketResponseLogs           MarketResponseLog[]
   profileShares                ProfileShare[]
+  interimMarketplaceSignups    InterimMarketplaceSignup[]
 
   // Coach P0-lite — set once, at profile creation, when the candidate came in
   // through a coach's personal invite link. Never re-assigned afterward (an
@@ -2436,4 +2437,62 @@ model EmployerReferenceSubmission {
   @@index([employeeEmail])
   @@index([inviteToken])
   @@index([status])
+}
+
+// Prompt 68 — Interim Work page. Fractional/talent-marketplace, expert-
+// network, and board/advisory listings for sections 2-4, stored as
+// editable data rather than hardcoded into the page — several of these
+// are pending direct partner outreach, so the designation has to be
+// updatable from the admin portal without a code deploy each time a
+// partnership status changes. See src/app/support/admin/interim-listings.
+enum InterimListingCategory {
+  MARKETPLACE_TECHNICAL // AI/technical background — Mercor, Toptal
+  MARKETPLACE_GENERAL // strategy/ops/finance — Catalant, Business Talent Group
+  MARKETPLACE_MARKETING // MarketerHire
+  MARKETPLACE_STARTUP // startup-stage operator — Bolster
+  MARKETPLACE_ANY_FUNCTION // Fractional Jobs — shown regardless of function
+  EXPERT_NETWORK // GLG, AlphaSights, Guidepoint, Third Bridge
+  BOARD_ADVISORY // NACD, BoardProspects, Athena Alliance, theBoardlist — seniority-gated
+  NONPROFIT_BOARD // shown instead of BOARD_ADVISORY below the seniority gate
+}
+
+enum InterimListingDesignation {
+  PARTNER // a confirmed revenue arrangement actually exists
+  INCLUDED_FOR_QUALITY // no revenue claim — included because it's a real, relevant option
+}
+
+model InterimListing {
+  id          String                     @id @default(cuid())
+  category    InterimListingCategory
+  name        String
+  description String
+  url         String
+  designation InterimListingDesignation @default(INCLUDED_FOR_QUALITY)
+  // Free-text nuance on the designation, e.g. Toptal's client-referral
+  // (not talent-referral) program — shown alongside the badge so the
+  // distinction isn't silently lost.
+  designationNote String? @db.Text
+  isActive        Boolean @default(true)
+  sortOrder       Int     @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  signups InterimMarketplaceSignup[]
+
+  @@index([category, isActive, sortOrder])
+}
+
+// One row per (candidate, listing) "I created a profile on X" self-report
+// — persisted (not just this week's Sprint JSON) so the checkbox reflects
+// a durable checked state and the points-eligible action only logs once
+// per listing per candidate, ever.
+model InterimMarketplaceSignup {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  listingId   String
+  listing     InterimListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@unique([candidateId, listingId])
 }

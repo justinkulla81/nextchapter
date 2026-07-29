@@ -59,6 +59,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   REFERENCE_ADDED: { minutes: 30, points: 30 },
   RESUME_BOOK_UPLOAD: { minutes: 10, points: 10 },
 
+  // Prompt 68 — Interim Work page. Signing up for a fractional/talent
+  // marketplace is a real, if small, step; deliberately smaller than
+  // REFERENCE_ADDED/WORKING_STYLE_QUIZ since it's self-reported with no
+  // verification, same reasoning as the other self-report action types.
+  INTERIM_PROFILE_CREATED: { minutes: 10, points: 10 },
+
   // Onboarding confirmations — small, real setup steps.
   PROFILE_CONFIRM: { minutes: 5, points: 5 },
   INDUSTRY_CONFIRM: { minutes: 5, points: 5 },
@@ -122,6 +128,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   SALARY_CONFIRM: 'effort',
   WORK_AUTHORIZATION: 'effort',
   ANSWER_OPTIONAL_QUESTIONS: 'effort',
+  INTERIM_PROFILE_CREATED: 'connecting',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -205,6 +212,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   SALARY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
+  INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

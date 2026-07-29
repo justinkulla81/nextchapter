@@ -106,7 +106,7 @@ function buildSections(
       title: 'Learning & Working',
       links: [
         { href: '/dashboard/learning', label: 'Learn New Skills' },
-        { href: '/dashboard/gig-directory', label: 'Find Interim Work' },
+        { href: '/dashboard/interim-work', label: 'Interim Work' },
         { href: '/dashboard/guides', label: 'Search Strategy Guides' },
         { href: '/dashboard/benefits', label: 'Benefits' },
         { href: '/faq', label: 'FAQ' },

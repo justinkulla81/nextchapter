@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Check } from 'lucide-react'
-import { markInterimOutreachStarted } from '@/app/dashboard/gig-directory/actions'
+import { markInterimOutreachStarted } from '@/app/dashboard/interim-work/actions'
 import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { InterimOfferDefinitionForm } from '@/components/dashboard/InterimOfferDefinitionForm'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -13,7 +13,7 @@ export function InterimLaunchPlanTracker({ phases }: { phases: LaunchPhase[] }) 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Interim Consulting Launch Plan</h2>
+        <h2 className="text-lg font-semibold">Launch plan</h2>
         <p className="text-sm text-muted-foreground">
           {completedCount} of {phases.length} phases done — work through them in order, or jump to
           whichever fits where you are today.

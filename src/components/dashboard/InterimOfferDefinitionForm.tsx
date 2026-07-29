@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { submitInterimOfferDefinition } from '@/app/dashboard/gig-directory/actions'
+import { submitInterimOfferDefinition } from '@/app/dashboard/interim-work/actions'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
