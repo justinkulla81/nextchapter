@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { BenefitsPressureForm } from '@/components/dashboard/BenefitsPressureForm'
 import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPlanCard'
 import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
+import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ResourceLink {
@@ -13,6 +15,43 @@ interface Topic {
   title: string
   body: string[]
   links: ResourceLink[]
+  // Cross-link to another in-app page instead of an external URL — used to
+  // point at Interim Work rather than duplicating bridge-income content here.
+  relatedLink?: { label: string; href: string }
+}
+
+// Prompt 73 — senior candidates (reusing the same board-readiness signal as
+// Interim Work, since a title-string match would be unreliable here too)
+// get Rapid Response / Dislocated Worker Unit framing instead of generic
+// funded-training copy — that program's career-counseling and job-search
+// support is the relevant part for someone who isn't looking to reskill.
+// Career-changers stay on the training-focused framing even if senior,
+// since they may genuinely want a funded certificate program.
+function getWioaTopic(isSenior: boolean): Topic {
+  if (isSenior) {
+    return {
+      title: 'State Rapid Response & Dislocated Worker services',
+      body: [
+        "As an experienced professional, the most useful part of WIOA is usually not a training program — it's your state's Rapid Response team and Dislocated Worker Unit, which provide a dedicated case manager, career counseling, and job-search support whether or not you ever take a course.",
+        'If your layoff was part of a larger workforce reduction, Rapid Response may already have reached out to your former employer — but you can request services directly through your state program even if you missed that outreach.',
+      ],
+      links: [
+        { name: 'U.S. DOL — Rapid Response program', url: 'https://www.dol.gov/agencies/eta/layoffs/rapid-response' },
+        { name: 'Find your local American Job Center', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx' },
+      ],
+    }
+  }
+  return {
+    title: 'WIOA-funded training',
+    body: [
+      'The Workforce Innovation and Opportunity Act funds free occupational training and career services through your local American Job Center — often including full tuition for approved certificate programs.',
+      "Eligibility is broad (most laid-off and many currently-employed job seekers qualify) and it costs nothing to find out. Start with an eligibility conversation at your local center, not by ruling yourself out.",
+    ],
+    links: [
+      { name: 'Find your local American Job Center', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx' },
+      { name: 'Search WIOA-eligible training programs', url: 'https://www.careeronestop.org/Toolkit/Training/find-training.aspx' },
+    ],
+  }
 }
 
 const TOPICS: Topic[] = [
@@ -29,21 +68,12 @@ const TOPICS: Topic[] = [
     body: [
       'COBRA lets you keep your employer health plan for up to 18 months after leaving a job — but you pay the full premium yourself (no employer subsidy), so it can be expensive.',
       'A Healthcare.gov marketplace plan is usually cheaper, and losing job-based coverage qualifies you for a Special Enrollment Period outside the normal open-enrollment window — you do not have to wait.',
+      "If you had an employer-sponsored HSA, it's yours to keep, but it may start charging maintenance fees once you're no longer on that employer's plan — rolling it over to a no-fee provider like Lively avoids that.",
     ],
     links: [
       { name: 'Healthcare.gov — losing job-based coverage', url: 'https://www.healthcare.gov/unemployed/' },
       { name: 'U.S. DOL — COBRA basics', url: 'https://www.dol.gov/general/topic/health-plans/cobra' },
-    ],
-  },
-  {
-    title: 'WIOA-funded training',
-    body: [
-      'The Workforce Innovation and Opportunity Act funds free occupational training and career services through your local American Job Center — often including full tuition for approved certificate programs.',
-      "Eligibility is broad (most laid-off and many currently-employed job seekers qualify) and it costs nothing to find out. Start with an eligibility conversation at your local center, not by ruling yourself out.",
-    ],
-    links: [
-      { name: 'Find your local American Job Center', url: 'https://www.careeronestop.org/LocalHelp/AmericanJobCenters/american-job-centers.aspx' },
-      { name: 'Search WIOA-eligible training programs', url: 'https://www.careeronestop.org/Toolkit/Training/find-training.aspx' },
+      { name: 'Lively — no-fee HSA rollover', url: 'https://www.livelyme.com/' },
     ],
   },
   {
@@ -55,16 +85,20 @@ const TOPICS: Topic[] = [
     links: [
       { name: 'Find a nonprofit credit counselor (NFCC)', url: 'https://www.nfcc.org/' },
     ],
+    relatedLink: { label: 'Bridging income between roles? See Interim Work →', href: '/dashboard/interim-work' },
   },
   {
     title: 'Tapping retirement savings or home equity',
     body: [
-      "If your runway is running out, two options come up often — but both carry real costs. A 401(k) withdrawal before age 59½ usually means a 10% penalty plus ordinary income tax, though hardship withdrawals and 401(k) loans have narrower rules that avoid some of that cost.",
+      "If your runway is running out, two options come up often — but both carry real costs. A 401(k) withdrawal before age 59½ usually means a 10% penalty plus ordinary income tax, though hardship withdrawals and 401(k) loans have narrower rules that avoid some of that cost. If you're rolling an old 401(k) into an IRA rather than withdrawing, Capitalize does it free (they're paid by the receiving brokerage, not by you).",
       'A home equity loan or HELOC can offer a lower interest rate than credit cards or personal loans, but your home is the collateral — missed payments put it at risk. Talk to your plan administrator or lender directly before deciding, and see the credit counselor above first if you can.',
+      "This is also a good moment to make sure your beneficiary designations and any will are current — job loss and a change in income are exactly the kind of life event that makes people put this off longer than they should. Trust & Will handles both for a flat fee, well below a traditional estate attorney.",
     ],
     links: [
       { name: 'IRS — hardships, early withdrawals, and 401(k) loans', url: 'https://www.irs.gov/retirement-plans/hardships-early-withdrawals-and-loans' },
       { name: 'CFPB — home equity loans and HELOCs', url: 'https://www.consumerfinance.gov/consumer-tools/home-equity/' },
+      { name: 'Capitalize — free 401(k) rollover', url: 'https://www.hicapitalize.com/' },
+      { name: 'Trust & Will — wills & beneficiary planning', url: 'https://trustandwill.com/' },
     ],
   },
   {
@@ -89,10 +123,13 @@ const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bri
 
 export default async function BenefitsPage() {
   const profile = await getDashboardData()
-  const actionPlanLinks = TOPICS.filter((t) => ACTION_PLAN_LINK_TOPICS.includes(t.title)).flatMap(
+  const isSenior = isBoardReady(profile) && !profile.isPivoting
+  const budgetingIndex = TOPICS.findIndex((t) => t.title === 'Budgeting through a search')
+  const topics = [...TOPICS.slice(0, budgetingIndex), getWioaTopic(isSenior), ...TOPICS.slice(budgetingIndex)]
+  const actionPlanLinks = topics.filter((t) => ACTION_PLAN_LINK_TOPICS.includes(t.title)).flatMap(
     (t) => t.links
   )
-  const cardTopics = TOPICS.filter((t) => !ACTION_PLAN_LINK_TOPICS.includes(t.title))
+  const cardTopics = topics.filter((t) => !ACTION_PLAN_LINK_TOPICS.includes(t.title))
   const actionItems = getBenefitsActionPlanItems(profile.benefitsPressures)
   const completedItemIds = new Set(profile.benefitsActionPlanCompletedItems)
 
@@ -159,6 +196,14 @@ export default async function BenefitsPage() {
                         {link.name} →
                       </a>
                     ))}
+                    {topic.relatedLink && (
+                      <Link
+                        href={topic.relatedLink.href}
+                        className="block text-sm text-primary underline underline-offset-4"
+                      >
+                        {topic.relatedLink.label}
+                      </Link>
+                    )}
                   </div>
                 </CardContent>
               </Card>
