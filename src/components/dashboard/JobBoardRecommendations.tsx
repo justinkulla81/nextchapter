@@ -1,4 +1,5 @@
 import { GENERAL_JOB_BOARDS, getIndustryJobBoards } from '@/lib/constants/industry-job-boards'
+import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 
 export function JobBoardRecommendations({ targetIndustries }: { targetIndustries: string[] }) {
   const industryBoards = getIndustryJobBoards(targetIndustries)
@@ -13,15 +14,15 @@ export function JobBoardRecommendations({ targetIndustries }: { targetIndustries
       </div>
       <div className="flex flex-wrap gap-2">
         {GENERAL_JOB_BOARDS.map((board) => (
-          <a
+          <OutboundPartnerLink
             key={board.name}
             href={board.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            partnerName={board.name}
+            section="job_board_recommendations"
             className="rounded-full border border-border bg-off-white px-3 py-1 text-sm font-medium text-foreground hover:border-brand/40"
           >
             {board.name}
-          </a>
+          </OutboundPartnerLink>
         ))}
       </div>
       {industryBoards.length > 0 && (
@@ -31,15 +32,15 @@ export function JobBoardRecommendations({ targetIndustries }: { targetIndustries
           </p>
           <div className="flex flex-wrap gap-2">
             {industryBoards.map((board) => (
-              <a
+              <OutboundPartnerLink
                 key={board.name}
                 href={board.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                partnerName={board.name}
+                section="job_board_recommendations"
                 className="rounded-full border border-brand/30 bg-brand/5 px-3 py-1 text-sm font-medium text-brand hover:border-brand/60"
               >
                 {board.name}
-              </a>
+              </OutboundPartnerLink>
             ))}
           </div>
         </div>

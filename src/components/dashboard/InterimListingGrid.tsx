@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 import { markInterimMarketplaceSignup } from '@/app/dashboard/interim-work/actions'
 import type { InterimListing } from '@prisma/client'
 
@@ -21,14 +22,14 @@ export function InterimListingGrid({ listings, signedUpIds, showSignupCheckbox =
           <Card key={listing.id}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <a
+                <OutboundPartnerLink
                   href={listing.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  partnerName={listing.name}
+                  section="interim_work"
                   className="text-primary underline underline-offset-4"
                 >
                   {listing.name}
-                </a>
+                </OutboundPartnerLink>
                 <span
                   className={
                     listing.designation === 'PARTNER'

@@ -545,6 +545,7 @@ model CandidateProfile {
   marketResponseLogs           MarketResponseLog[]
   profileShares                ProfileShare[]
   interimMarketplaceSignups    InterimMarketplaceSignup[]
+  partnerClickThroughs         PartnerClickThrough[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -2537,4 +2538,21 @@ enum EeocYesNoDecline {
   YES
   NO
   PREFER_NOT_TO_ANSWER
+}
+
+// Prompt 70 — observability retrofit. One row per (candidate, partner,
+// day) — the unique constraint on dayKey is what makes "once per
+// candidate per partner per day" a real cap instead of a UI-only
+// suggestion; a second click same-day is a normal PostHog-tracked event
+// but does not insert a new row or award points again.
+model PartnerClickThrough {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  partnerName String
+  section     String // 'interim_work' | 'job_board_recommendations'
+  dayKey      String // 'YYYY-MM-DD' UTC
+  createdAt   DateTime         @default(now())
+
+  @@unique([candidateId, partnerName, dayKey])
 }

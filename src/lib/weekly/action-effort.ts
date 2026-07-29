@@ -65,6 +65,16 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // verification, same reasoning as the other self-report action types.
   INTERIM_PROFILE_CREATED: { minutes: 10, points: 10 },
 
+  // Prompt 70 — observability retrofit. A tracked click-through to an
+  // outbound partner link (Interim Work, job board recommendations) is
+  // real signal, but deliberately much smaller than profile-creation
+  // (INTERIM_PROFILE_CREATED, 10pts) or placement-logging (REFERENCE_ADDED,
+  // 30pts) — a click costs nothing and proves nothing beyond "looked at
+  // it," so it shouldn't earn comparable credit. Capped once per
+  // candidate/partner/day at the DB layer (PartnerClickThrough unique
+  // constraint), not just here.
+  PARTNER_CLICK_THROUGH: { minutes: 2, points: 2 },
+
   // Onboarding confirmations — small, real setup steps.
   PROFILE_CONFIRM: { minutes: 5, points: 5 },
   INDUSTRY_CONFIRM: { minutes: 5, points: 5 },
@@ -129,6 +139,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   WORK_AUTHORIZATION: 'effort',
   ANSWER_OPTIONAL_QUESTIONS: 'effort',
   INTERIM_PROFILE_CREATED: 'connecting',
+  PARTNER_CLICK_THROUGH: 'connecting',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
