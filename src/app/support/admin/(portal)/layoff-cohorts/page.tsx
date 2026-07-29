@@ -5,18 +5,9 @@ import { LayoffCohortForm } from '@/components/admin/LayoffCohortForm'
 import { LayoffCohortMatchRow } from '@/components/admin/LayoffCohortMatchRow'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { orgNamesMatch as companiesMatch } from '@/lib/text/org-name-match'
 
 export const maxDuration = 30
-
-function normalize(name: string) {
-  return name.trim().toLowerCase()
-}
-
-function companiesMatch(a: string, b: string) {
-  const normA = normalize(a)
-  const normB = normalize(b)
-  return normA.includes(normB) || normB.includes(normA)
-}
 
 export default async function LayoffCohortsAdminPage() {
   await requireAdmin()

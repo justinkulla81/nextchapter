@@ -1,4 +1,4 @@
-import { matchByFunction } from '@/lib/constants/ai-tools-by-function'
+import { matchByFunction } from '@/lib/constants/match-by-function'
 
 export interface AiWorkflow {
   title: string

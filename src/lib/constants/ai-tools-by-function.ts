@@ -1,3 +1,5 @@
+import { matchByFunction, SALES_KEYWORDS } from '@/lib/constants/match-by-function'
+
 export interface AiToolRecommendation {
   name: string
   description: string
@@ -25,7 +27,7 @@ const AI_TOOLS_BY_KEYWORD: { keywords: string[]; tools: AiToolRecommendation[] }
     ],
   },
   {
-    keywords: ['sales', 'account executive', 'business development', 'revenue'],
+    keywords: SALES_KEYWORDS,
     tools: [
       { name: 'Gong', description: 'AI-analyzed call recordings that surface what actually moves deals.', url: 'https://www.gong.io' },
       { name: 'Clari', description: 'AI-driven revenue forecasting and pipeline risk detection.', url: 'https://www.clari.com' },
@@ -76,17 +78,4 @@ const GENERAL_FALLBACK: AiToolRecommendation[] = [
 
 export function getAiToolsForFunction(primaryFunction: string | null): AiToolRecommendation[] {
   return matchByFunction(primaryFunction, AI_TOOLS_BY_KEYWORD.map((g) => ({ keywords: g.keywords, value: g.tools }))) ?? GENERAL_FALLBACK
-}
-
-// Shared keyword-match mechanism — reused by ai-fluency-workflows.ts so the
-// "what's your function" branching logic isn't duplicated, even though the
-// two files' content (tools vs. guided workflows) is unrelated.
-export function matchByFunction<T>(
-  primaryFunction: string | null,
-  groups: { keywords: string[]; value: T }[]
-): T | null {
-  if (!primaryFunction) return null
-  const normalized = primaryFunction.toLowerCase()
-  const match = groups.find((group) => group.keywords.some((k) => normalized.includes(k)))
-  return match?.value ?? null
 }
