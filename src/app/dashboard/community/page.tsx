@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getCommunityFeed } from '@/lib/community/community-feed'
-import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
+import { mergeCommunityStream } from '@/lib/community/unified-feed'
 import { getUnreadEncouragementNotes } from '@/lib/community/encouragement'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { buildSelfIntroDraft } from '@/lib/community/self-intro'
@@ -11,6 +11,7 @@ import { getCohortInfo } from '@/lib/community/layoff-cohort'
 import { getCandidateThreads, getThreadWithMessages, getCandidateUnreadCount, markThreadRead } from '@/lib/messaging/threads'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
+import { CommunityStreamItem } from '@/components/dashboard/CommunityStreamItem'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
 import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
@@ -285,35 +286,17 @@ async function CommunityTab({
           />
         </div>
 
-        {previewPosts.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-sm font-medium text-muted-foreground">What people are posting</h2>
-            {previewPosts.map((post) => (
-              <CommunityPostCard key={post.id} post={post} isOwnPost={false} />
-            ))}
-          </div>
-        )}
-
-        {previewFeed.length > 0 && (
+        {(previewPosts.length > 0 || previewFeed.length > 0) && (
           <div className="space-y-3">
-            <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
-            <div className="space-y-2">
-              {previewFeed.map((item) => {
-                const style = FEED_ITEM_STYLE[item.type]
-                return (
-                  <div
-                    key={item.id}
-                    className={`flex items-start gap-2 rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
-                  >
-                    {item.displayName && <AvatarDisplay name={item.displayName} url={item.avatarUrl} size={24} />}
-                    <p>
-                      <span className="mr-1">{style.icon}</span>
-                      {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
-                      {item.detail}
-                    </p>
-                  </div>
-                )
-              })}
+            <h2 className="text-sm font-medium text-muted-foreground">What&apos;s happening here</h2>
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {mergeCommunityStream(previewPosts, previewFeed).map((streamItem) => (
+                <CommunityStreamItem
+                  key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id}
+                  item={streamItem}
+                  candidateId={candidateId}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -413,46 +396,19 @@ async function CommunityTab({
         ownIndustry={industryContext}
       />
 
-      {posts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No posts match these filters yet.</p>
+      {posts.length === 0 && feed.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nothing to show yet — check back soon.</p>
       ) : (
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <CommunityPostCard key={post.id} post={post} isOwnPost={post.candidateId === candidateId} />
+        <div className="divide-y divide-border rounded-lg border border-border">
+          {mergeCommunityStream(posts, feed).map((streamItem) => (
+            <CommunityStreamItem
+              key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id}
+              item={streamItem}
+              candidateId={candidateId}
+            />
           ))}
         </div>
       )}
-
-      <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
-        <div className="space-y-2">
-          {feed.length === 0 ? (
-            <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
-              No activity yet this week — check back soon.
-            </p>
-          ) : (
-            feed.map((item) => {
-              const style = FEED_ITEM_STYLE[item.type]
-              return (
-                <div
-                  key={item.id}
-                  className={`flex items-start gap-2 rounded-lg border-l-4 border border-border p-4 text-sm text-foreground ${style.borderClass}`}
-                >
-                  {item.displayName && <AvatarDisplay name={item.displayName} url={item.avatarUrl} size={24} />}
-                  <p>
-                    <span className="mr-1">{style.icon}</span>
-                    {item.displayName && <span className="font-medium">{item.displayName}</span>}{' '}
-                    {item.detail}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {item.occurredAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                  </p>
-                </div>
-              )
-            })
-          )}
-        </div>
-      </div>
     </div>
   )
 }

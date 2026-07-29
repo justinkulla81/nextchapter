@@ -1,8 +1,12 @@
+import { Trophy, Pin, Lightbulb, PartyPopper, type LucideIcon } from 'lucide-react'
 import type { CommunityFeedItemType } from '@/lib/community/community-feed'
 
-export const FEED_ITEM_STYLE: Record<CommunityFeedItemType, { icon: string; borderClass: string }> = {
-  alist: { icon: '🏆', borderClass: 'border-l-orange' },
-  activity: { icon: '📌', borderClass: 'border-l-success' },
-  victoria_insight: { icon: '💡', borderClass: 'border-l-light-blue' },
-  comeback: { icon: '🎉', borderClass: 'border-l-success-hover' },
+// Muted icon + accent color per type — replaces the raw emoji + colored
+// left-border box treatment, which read as childish and visually
+// disconnected from the real posts sitting above it in their own cards.
+export const FEED_ITEM_STYLE: Record<CommunityFeedItemType, { icon: LucideIcon; colorClass: string }> = {
+  alist: { icon: Trophy, colorClass: 'text-orange' },
+  activity: { icon: Pin, colorClass: 'text-success' },
+  victoria_insight: { icon: Lightbulb, colorClass: 'text-light-blue' },
+  comeback: { icon: PartyPopper, colorClass: 'text-success-hover' },
 }

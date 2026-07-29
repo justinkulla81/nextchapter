@@ -1,0 +1,26 @@
+import 'server-only'
+import type { CommunityPost } from '@prisma/client'
+import type { CommunityFeedItem } from '@/lib/community/community-feed'
+
+export type CommunityPostWithCandidate = CommunityPost & {
+  candidate: { firstName: string | null; lastName: string | null }
+}
+
+export type UnifiedStreamItem =
+  | { kind: 'post'; occurredAt: Date; post: CommunityPostWithCandidate }
+  | { kind: 'feed'; occurredAt: Date; item: CommunityFeedItem }
+
+// One chronological stream instead of two visually separate sections (real
+// posts in their own boxes above, auto-generated activity in differently
+// styled boxes below) — real candidate posts and platform-generated
+// activity interleave by recency, same as any normal feed.
+export function mergeCommunityStream(
+  posts: CommunityPostWithCandidate[],
+  feed: CommunityFeedItem[]
+): UnifiedStreamItem[] {
+  const items: UnifiedStreamItem[] = [
+    ...posts.map((post): UnifiedStreamItem => ({ kind: 'post', occurredAt: post.createdAt, post })),
+    ...feed.map((item): UnifiedStreamItem => ({ kind: 'feed', occurredAt: item.occurredAt, item })),
+  ]
+  return items.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+}

@@ -2,10 +2,13 @@
 
 import { useActionState, useState } from 'react'
 import { createCommunityPost } from '@/app/dashboard/community/actions'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+
+const POST_UPDATE_POINTS = estimateActionEffort({ actionType: 'ENGAGE_POST_UPDATE' }).points
 
 // Starter phrases for the nudge chips below — clicking one drops the
 // candidate straight into the middle of a sentence so the blank box never
@@ -48,15 +51,15 @@ export function CommunityPostForm() {
       />
       <Input name="externalUrl" type="url" placeholder="Link (optional)" />
 
-      <p className="text-xs text-muted-foreground">
-        Posting an update earns 10 points toward your Weekly Search Score (Networking) — sharing
-        here counts as real progress, not just talk.
-      </p>
-
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
-        {pending ? 'Posting…' : 'Post'}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
+          {pending ? 'Posting…' : 'Post'}
+        </Button>
+        <span className="text-xs font-medium text-muted-foreground tabular-nums">
+          +{POST_UPDATE_POINTS} pts
+        </span>
+      </div>
     </form>
   )
 }
