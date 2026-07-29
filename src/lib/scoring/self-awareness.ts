@@ -63,7 +63,7 @@ function checkCommunication(inputs: SelfAwarenessInputs): SelfAwarenessRead {
 
   const highSelfRating = (inputs.communicatorConfidence ?? 0) >= HIGH_SELF_RATING_THRESHOLD
   const communicationVector = inputs.dimensionVectors?.communication
-  const noStrengthListed = !inputs.topStrengths.includes('communicator')
+  const noStrengthListed = !inputs.topStrengths.includes('clear_communicator')
 
   if (highSelfRating && communicationVector !== undefined && communicationVector < LOW_POLE_THRESHOLD && noStrengthListed) {
     return {

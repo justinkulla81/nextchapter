@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
-import { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
+import { getNamedReasonActionLink, isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { cn } from '@/lib/utils'
 
@@ -51,25 +51,30 @@ export function MarketRealitySnapshotArchive({ snapshots }: { snapshots: Archive
                 {s.namedReasons.length === 0 ? (
                   <p className="text-xs text-muted-foreground">No named reasons recorded for this week.</p>
                 ) : (
-                  s.namedReasons.map((reason) => (
-                    <p key={reason.id} className="text-xs text-foreground">
-                      <span className={reason.kind === 'gap' ? 'text-amber-700' : 'text-emerald-700'}>
-                        {reason.kind === 'gap' ? 'Gap: ' : 'Strength: '}
-                      </span>
-                      {reason.text}
-                      {reason.kind === 'gap' && isResumeSpecificGap(reason.id) && (
-                        <>
-                          {' '}
-                          <Link
-                            href={`/dashboard/resume?fromGap=${encodeURIComponent(reason.text)}`}
-                            className="text-primary underline underline-offset-4"
-                          >
-                            Fix this in Resume Analysis →
-                          </Link>
-                        </>
-                      )}
-                    </p>
-                  ))
+                  s.namedReasons.map((reason) => {
+                    const actionLink = reason.kind === 'gap' ? getNamedReasonActionLink(reason.id) : null
+                    const href = actionLink
+                      ? isResumeSpecificGap(reason.id)
+                        ? `${actionLink.href}?fromGap=${encodeURIComponent(reason.text)}`
+                        : actionLink.href
+                      : null
+                    return (
+                      <p key={reason.id} className="text-xs text-foreground">
+                        <span className={reason.kind === 'gap' ? 'text-amber-700' : 'text-emerald-700'}>
+                          {reason.kind === 'gap' ? 'Gap: ' : 'Strength: '}
+                        </span>
+                        {reason.text}
+                        {actionLink && href && (
+                          <>
+                            {' '}
+                            <Link href={href} className="text-primary underline underline-offset-4">
+                              {actionLink.label} →
+                            </Link>
+                          </>
+                        )}
+                      </p>
+                    )
+                  })
                 )}
               </div>
             )}

@@ -28,29 +28,33 @@ const GRADE_TO_SCORE: Record<CategoryGrade['grade'], number> = { A: 4, B: 3, C: 
 // skipped — not clearly enough a gap or a strength to name with confidence,
 // same "don't fabricate a pattern" principle used elsewhere in this scoring
 // system (see coach/pre-session-brief.ts's avoidance-pattern heuristic).
+// Every gap is framed as what a hiring manager or recruiter would actually
+// notice reviewing the candidate, not as generic self-improvement advice —
+// the point is to name the market-facing consequence, not just the
+// internal trait, so it's clear why closing it matters.
 const CATEGORY_REASONS: Record<CategoryKey, { gap: string; strength: string }> = {
   targetFit: {
-    gap: "Your target — the role, industry, and how well it lines up with your background — is working against you right now, not just your effort.",
+    gap: "A recruiter scanning your background will notice your target — the role, industry, or level — doesn't line up with it yet. That mismatch is working against you right now, not just your effort.",
     strength: 'Real market demand and a well-matched, clearly named target are working in your favor.',
   },
   leadership: {
-    gap: "Leadership scope isn't clearly evidenced yet — worth sharpening how you describe scale and impact, or gathering a reference that speaks to it directly.",
+    gap: "A hiring manager reviewing your background won't find clear evidence of leadership scope — sharpen how you describe scale and impact, or get a reference that speaks to it directly.",
     strength: 'Clear, evidenced leadership scope — this reads well to a hiring manager.',
   },
   skillsExecution: {
-    gap: 'Core skill confidence or evidence of finishing what you start could be sharper.',
+    gap: "A recruiter looking for proof you finish what you start won't find much evidence of it yet — sharpen your core skill evidence or follow-through record.",
     strength: 'Strong, well-evidenced core skills and follow-through.',
   },
   communication: {
-    gap: 'How you communicate could come across more clearly, on paper or in how references describe it.',
+    gap: 'A hiring manager reading your materials, or talking to your references, may notice your communication doesn\'t come across as clearly as it could.',
     strength: 'Communication reads clearly and consistently across your profile and references.',
   },
   adaptability: {
-    gap: "Flexibility or realism about the change you're asking for could be stronger.",
+    gap: "A recruiter may notice you're asking for a bigger change than your flexibility signals support — strengthen how you show realism about the change you're pursuing.",
     strength: "You're showing real flexibility and a clear-eyed read on the change you're pursuing.",
   },
   ownership: {
-    gap: 'Limited third-party evidence yet that people can hand you something and trust it gets done.',
+    gap: "A hiring manager checking references will notice limited third-party evidence yet that people can hand you something and trust it gets done.",
     strength: 'References back up that you can be trusted to follow through without supervision.',
   },
 }
@@ -94,7 +98,7 @@ export function computeNamedReasons(
     reasons.push({
       id: AI_FLUENCY_GAP_ID,
       kind: 'gap',
-      text: 'No visible signal of AI fluency in a function being reshaped by it.',
+      text: 'A hiring manager will notice no visible signal of AI fluency in a function being reshaped by it.',
       category: 'skillsExecution',
     })
   }

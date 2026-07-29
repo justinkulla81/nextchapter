@@ -283,25 +283,7 @@ export async function getWhatDrivesMe(
   return { motivationNarrative: knownFor, effortStatText }
 }
 
-export async function getSelfAwareness(candidateId: string): Promise<{ growthEdges: string[] }> {
-  const latestReport = await prisma.hireabilityReport.findFirst({
-    where: { candidateId },
-    orderBy: { generatedAt: 'desc' },
-    select: { gapAnalysis: true },
-  })
-  if (!latestReport) return { growthEdges: [] }
-  const gapAnalysis = latestReport.gapAnalysis as unknown as {
-    gaps: { area: string; why: string }[]
-  }
-  const growthEdges = (gapAnalysis.gaps ?? [])
-    .slice(0, 2)
-    .map((g) => `Still building: ${g.area} — ${g.why}`)
-  return { growthEdges }
-}
-
-export async function getLearningGrowth(
-  candidateId: string
-): Promise<{ items: { title: string; closedGapArea: string | null }[] }> {
+async function getGapAreasAndLearningItems(candidateId: string) {
   const [learningItems, latestReport] = await Promise.all([
     prisma.learningBadge.findMany({
       where: { candidateId, badgeType: { not: 'ai_project' } },
@@ -314,15 +296,44 @@ export async function getLearningGrowth(
       select: { gapAnalysis: true },
     }),
   ])
-  const gaps = ((latestReport?.gapAnalysis as unknown as { gaps: { area: string }[] } | undefined)?.gaps ?? []).map(
+  const gapAreas = ((latestReport?.gapAnalysis as unknown as { gaps: { area: string }[] } | undefined)?.gaps ?? []).map(
     (g) => g.area
   )
+  return { learningItems, gapAreas }
+}
 
-  const items = learningItems.map((item) => {
-    const normalizedTitle = item.title.toLowerCase()
-    const closedGapArea = gaps.find((area) => normalizedTitle.includes(area.toLowerCase().split(' ')[0])) ?? null
-    return { title: item.title, closedGapArea }
-  })
+function matchClosedGapArea(itemTitle: string, gapAreas: string[]): string | null {
+  const normalizedTitle = itemTitle.toLowerCase()
+  return gapAreas.find((area) => normalizedTitle.includes(area.toLowerCase().split(' ')[0])) ?? null
+}
+
+// Positives only, per this module's own rule (see header comment) — this
+// used to quote the raw, unresolved "Still building: {area} — {why}" gap
+// text straight from HireabilityReport.gapAnalysis, which is exactly the
+// weakness disclosure that has no place in a document that leaves the
+// candidate's hands. Self-awareness only reads as a strength to a hiring
+// manager when it's paired with action already taken — a gap the candidate
+// spotted and then closed — not a bare admission of something unresolved.
+export async function getSelfAwareness(candidateId: string): Promise<{ growthEdges: string[] }> {
+  const { learningItems, gapAreas } = await getGapAreasAndLearningItems(candidateId)
+  const growthEdges = learningItems
+    .map((item) => {
+      const closedArea = matchClosedGapArea(item.title, gapAreas)
+      return closedArea ? `Recognized ${closedArea} as a growth area early and closed it with ${item.title}.` : null
+    })
+    .filter((edge): edge is string => edge !== null)
+    .slice(0, 2)
+  return { growthEdges }
+}
+
+export async function getLearningGrowth(
+  candidateId: string
+): Promise<{ items: { title: string; closedGapArea: string | null }[] }> {
+  const { learningItems, gapAreas } = await getGapAreasAndLearningItems(candidateId)
+  const items = learningItems.map((item) => ({
+    title: item.title,
+    closedGapArea: matchClosedGapArea(item.title, gapAreas),
+  }))
   return { items }
 }
 
