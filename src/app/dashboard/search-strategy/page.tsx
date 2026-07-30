@@ -6,12 +6,21 @@ import { regenerateSearchStrategyGuidance } from '@/app/dashboard/search-strateg
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
   const stage = getSearchStage(profile)
   const showSkillsNeeded = !(profile.functionSkillConfidence === 100 && profile.aiFlexibilityLevel === 100)
   const strategyGuidance = await getOrDraftSearchStrategyGuidance(profile.id)
+  // getDashboardData doesn't order workHistory — sort here so the recency
+  // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
+  // actually reflects most-recent-first, matching onboarding/goals/page.tsx.
+  const workHistoryByRecency = [...profile.workHistory].sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1
+    return b.startDate.getTime() - a.startDate.getTime()
+  })
+  const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
 
   return (
     <div className="space-y-8">
@@ -65,7 +74,11 @@ export default async function SearchStrategyPage() {
           <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Goals</CardTitle>
         </CardHeader>
         <CardContent>
-          <SearchStrategyForm profile={profile} showSkillsNeeded={showSkillsNeeded} />
+          <SearchStrategyForm
+            profile={profile}
+            showSkillsNeeded={showSkillsNeeded}
+            inferredIndustries={inferredIndustries}
+          />
         </CardContent>
       </Card>
 

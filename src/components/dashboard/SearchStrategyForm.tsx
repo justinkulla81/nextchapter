@@ -26,9 +26,11 @@ import type { CandidateProfile } from '@prisma/client'
 export function SearchStrategyForm({
   profile,
   showSkillsNeeded,
+  inferredIndustries,
 }: {
   profile: CandidateProfile
   showSkillsNeeded: boolean
+  inferredIndustries: string[]
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
@@ -84,10 +86,17 @@ export function SearchStrategyForm({
       </div>
 
       <div className="space-y-2">
+        {inferredIndustries.length > 0 && profile.targetIndustries.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Your past industries included:{' '}
+            <span className="font-medium text-foreground">{inferredIndustries.join(', ')}</span>.
+            We&apos;ve added these below — remove any that don&apos;t apply, or add more.
+          </p>
+        )}
         <Label>Target industries</Label>
         <TagInput
           name="targetIndustries"
-          defaultValue={profile.targetIndustries}
+          defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
           placeholder="e.g. Healthcare, Fintech"
         />
       </div>
@@ -113,18 +122,6 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="secondaryIndustryContext">
-          Also relevant: a recent industry that&apos;s different from your primary
-        </Label>
-        <Input
-          id="secondaryIndustryContext"
-          name="secondaryIndustryContext"
-          defaultValue={profile.secondaryIndustryContext ?? ''}
-          placeholder="e.g. Healthcare (leave blank if not applicable)"
-        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
