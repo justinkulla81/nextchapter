@@ -1,7 +1,8 @@
 import 'server-only'
-import type { CandidateProfile, RoleProfile } from '@prisma/client'
+import type { CandidateProfile, RoleProfile, CompanySizeBand } from '@prisma/client'
 import { scoreToGrade, GRADE_LABEL, type Grade } from '@/lib/scoring/grade'
 import { HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
+import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 
 // P0-only heuristic — deterministic overlap across function/level/location/comp.
 // This is NOT the real Hireability/Employability score and must never be fed
@@ -13,6 +14,13 @@ export interface MatchResult {
   label: string
 }
 
+// Superseded by calibratedLevelDistance (src/lib/scoring/level-rank.ts) for
+// any caller with a company-size signal available — that version adjusts
+// for the size of the company a title was held at, so e.g. a VP at a
+// mega-cap and a C-Suite title at a mid-size company register as an exact
+// match instead of a full level apart. Kept here, unused internally, only
+// because it's still a harmless plain ordinal distance and nothing outside
+// this file/ats-job-board-feed.ts imports it.
 export function levelDistance(a: string | null, b: string | null): number {
   if (!a || !b) return 2
   const levels = HIGHEST_LEVEL_OPTIONS as readonly string[]
@@ -31,7 +39,7 @@ const MANAGEMENT_LEVELS = new Set(['Manager', 'Director', 'VP', 'C-Suite'])
 export function computeMatchScore(
   candidate: Pick<
     CandidateProfile,
-    'primaryFunction' | 'highestLevelReached' | 'remotePreference' | 'currentCity' | 'openToRelocation' | 'targetCompMin' | 'compFlexible'
+    'primaryFunction' | 'highestLevelReached' | 'remotePreference' | 'currentCity' | 'openToRelocation' | 'targetCompMin' | 'compFlexible' | 'levelRankScore'
   > & {
     // Optional so existing narrower selects elsewhere keep compiling —
     // absent/null simply means the bonus below doesn't apply, never a
@@ -39,7 +47,13 @@ export function computeMatchScore(
     isPeopleManager?: boolean | null
     currentState?: string | null
   },
-  role: Pick<RoleProfile, 'primaryFunction' | 'roleLevel' | 'remotePolicy' | 'locationRequirement' | 'compMin' | 'compMax'>
+  role: Pick<RoleProfile, 'primaryFunction' | 'roleLevel' | 'remotePolicy' | 'locationRequirement' | 'compMin' | 'compMax'> & {
+    // Resolved separately by the caller — RoleProfile callers pass
+    // mapEmployerCompanySizeStringToBand(employer.companySize); callers
+    // with no company context (the ad hoc recruiter search filter) omit
+    // it, which is treated as unknown, i.e. anchor band, no adjustment.
+    employerCompanySizeBand?: CompanySizeBand | null
+  }
 ): MatchResult {
   let score = 0
 
@@ -50,8 +64,13 @@ export function computeMatchScore(
     score += 20 // role didn't specify — neutral credit rather than penalizing
   }
 
-  // Level match — exact match full credit, adjacent partial (25 pts)
-  const dist = levelDistance(candidate.highestLevelReached, role.roleLevel)
+  // Level match — exact match full credit, adjacent partial (25 pts).
+  // Calibrated by company size on both sides where known (see
+  // level-rank.ts) — falls back to the candidate's persisted baseline, or
+  // an anchor-band-only live compute if that baseline isn't set yet.
+  const candidateScore = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleScore = calibratedLevelRank(role.roleLevel, role.employerCompanySizeBand ?? null)
+  const dist = calibratedLevelDistance(candidateScore, roleScore)
   score += dist === 0 ? 25 : dist === 1 ? 15 : dist === 2 ? 5 : 0
 
   // Location/remote fit (20 pts)

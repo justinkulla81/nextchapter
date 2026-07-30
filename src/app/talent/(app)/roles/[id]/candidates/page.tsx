@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
+import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { CandidateCard } from '@/components/talent/CandidateCard'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
@@ -10,8 +11,12 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
   const { id } = await params
   const employer = await getTalentDashboardData()
 
-  const role = await prisma.roleProfile.findFirst({ where: { id, employerId: employer.id } })
+  const role = await prisma.roleProfile.findFirst({
+    where: { id, employerId: employer.id },
+    include: { employer: { select: { companySize: true } } },
+  })
   if (!role) notFound()
+  const employerCompanySizeBand = mapEmployerCompanySizeStringToBand(role.employer.companySize)
 
   // Opting in is necessary but not sufficient — a candidate is only actually
   // surfaced here while their current standing (latest report snapshot) is
@@ -38,6 +43,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       openToRelocation: true,
       targetCompMin: true,
       compFlexible: true,
+      levelRankScore: true,
       hireabilityReports: {
         orderBy: { generatedAt: 'desc' },
         take: 1,
@@ -65,7 +71,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       })
         .map((line) => line.replace(/\.$/, ''))
         .join(', ')
-      return { candidate, match: computeMatchScore(candidate, role), effortSummary }
+      return { candidate, match: computeMatchScore(candidate, { ...role, employerCompanySizeBand }), effortSummary }
     })
     .sort((a, b) => b.match.score - a.match.score)
 

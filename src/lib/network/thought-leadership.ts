@@ -5,6 +5,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 // Venue-specific formatting instructions — the same underlying idea/angle
 // gets drafted very differently depending on where it's actually going.
@@ -42,15 +43,19 @@ export interface PostIdea {
 }
 
 export async function generatePostIdeas(candidateId: string, venues: ContentVenue[] = []): Promise<PostIdea[]> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    include: { workHistory: true },
-  })
+  const [candidate, levelRank] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      include: { workHistory: true },
+    }),
+    getCandidateLevelRank(candidateId),
+  ])
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Target industries: ${candidate.targetIndustries.length > 0 ? candidate.targetIndustries.join(', ') : 'not specified'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${levelRank.label ?? 'not available'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${
     candidate.workHistory
@@ -89,13 +94,17 @@ export async function draftPost(
   venue: ContentVenue,
   reason?: string
 ): Promise<string> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    include: { workHistory: true },
-  })
+  const [candidate, levelRank] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      include: { workHistory: true },
+    }),
+    getCandidateLevelRank(candidateId),
+  ])
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${levelRank.label ?? 'not available'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${
     candidate.workHistory

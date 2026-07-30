@@ -5,6 +5,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { computeWorkHistoryFacts } from '@/lib/resume/work-history-facts'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 export interface ResumeFeedbackItem {
   issue: string
@@ -38,7 +39,7 @@ const PROMPT_PREFIX = `You are grading a resume on three independent dimensions 
    - Short average tenure or several sub-12-month roles is worth noting as a job-hopping signal, but explain the "why it matters to employers" framing rather than being punitive.
    - Compare the candidate's past roles/functions/industries against their stated target role, target industries, and primary function — call out strong alignment as a strength, and misalignment as something to address in the resume's positioning (not as a character flaw).
    - If the candidate's most recent or current role title reads as an independent/interim consulting title (e.g. "Consultant," "Independent Consultant," "Freelance Consultant," self-employed advisory work) and it looks like a stopgap rather than a genuine multi-year consulting career (short tenure, or started right after a layoff/gap), flag it explicitly: many recruiters read a "Consultant" title at the top of a resume as a euphemism for being out of work, so the candidate needs specific, concrete client stories (named projects, quantified outcomes) ready to counter that assumption in interviews — not just the title on the page.
-   - Compare the candidate's demonstrated seniority (highestLevelReached, teamSizeManaged, lastSalary) against their stated target (targetRoleType, targetCompMin, willingToStartLower). If they are overqualified or at the high end of the pay/seniority range for what they're targeting, say so plainly: the resume will look strong on paper, but it will likely be a tough climb — employers may worry about comp fit or flight risk once a role at the candidate's real level opens up, so the candidate should proactively address "why this level, why this comp" in their positioning rather than let it go unaddressed.
+   - Compare the candidate's demonstrated seniority (highestLevelReached, teamSizeManaged, lastSalary) against their stated target (targetRoleType, targetCompMin, willingToStartLower). If they are overqualified or at the high end of the pay/seniority range for what they're targeting, say so plainly: the resume will look strong on paper, but it will likely be a tough climb — employers may worry about comp fit or flight risk once a role at the candidate's real level opens up, so the candidate should proactively address "why this level, why this comp" in their positioning rather than let it go unaddressed. Weigh levelRankLabel below as a more accurate read of real seniority than highestLevelReached alone (it accounts for the size of the company a title was held at) — but never reference "levelRankLabel," its name, or its raw text directly in your feedback; fold it silently into your judgment.
 
 Computed work history facts:
 `
@@ -73,6 +74,8 @@ export async function analyzeResume(resumeId: string): Promise<void> {
     }))
   )
 
+  const levelRank = await getCandidateLevelRank(resume.candidateId)
+
   const factsBlock = JSON.stringify(
     {
       ...facts,
@@ -81,6 +84,7 @@ export async function analyzeResume(resumeId: string): Promise<void> {
       primaryFunction: resume.candidate.primaryFunction,
       industryContext: resume.candidate.industryContext,
       highestLevelReached: resume.candidate.highestLevelReached,
+      levelRankLabel: levelRank.label,
       teamSizeManaged: resume.candidate.teamSizeManaged,
       lastSalary: resume.candidate.lastSalary,
       targetCompMin: resume.candidate.targetCompMin,

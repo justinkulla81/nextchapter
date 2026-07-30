@@ -1,6 +1,7 @@
 import 'server-only'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 const PROMPT_PREFIX = `Write a "Core Narrative Statement" for this candidate — 2-3 sentences they can say or write anywhere (LinkedIn, a resume summary, out loud in an interview) that captures who they are professionally and what they're looking for next. Ground every claim in their real background below — never invent achievements, employers, or skills that aren't there. First person, confident, specific (not generic buzzwords like "results-driven" or "team player"). Plain prose only, no markdown, no labels — just the statement itself.
 
@@ -10,16 +11,20 @@ Candidate profile:
 `
 
 async function draftCoreStatement(candidateId: string, scenarioContext?: string): Promise<string | null> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    include: { workHistory: true },
-  })
+  const [candidate, levelRank] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      include: { workHistory: true },
+    }),
+    getCandidateLevelRank(candidateId),
+  ])
 
   const summary = `
 Name: ${candidate.firstName ?? ''}
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Years of experience: ${candidate.yearsExperience ?? 'not specified'}
 Highest level reached: ${candidate.highestLevelReached ?? 'not specified'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${levelRank.label ?? 'not available'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Target function: ${candidate.targetFunction ?? 'not specified'}
 Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}

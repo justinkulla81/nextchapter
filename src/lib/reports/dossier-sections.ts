@@ -11,6 +11,7 @@ import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reaso
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
@@ -181,6 +182,7 @@ async function getOrDraftPositioningStatement(candidate: {
   firstName: string | null
   primaryFunction: string | null
   highestLevelReached: string | null
+  levelRankLabel: string | null
   yearsExperience: number | null
   targetRoleType: string | null
   knownFor: string | null
@@ -203,6 +205,7 @@ async function getOrDraftPositioningStatement(candidate: {
 
 Function: ${candidate.primaryFunction ?? 'not given'}
 Level: ${candidate.highestLevelReached ?? 'not given'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${candidate.levelRankLabel ?? 'not available'}
 Years of experience: ${candidate.yearsExperience ?? 'not given'}
 Target role: ${candidate.targetRoleType ?? 'not given'}
 How they're known by colleagues: ${candidate.knownFor ?? 'not given'}`
@@ -433,10 +436,13 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     include: GRADE_RELATIONS_INCLUDE,
   })
 
-  const latestAiProject = await prisma.learningBadge.findFirst({
-    where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
-    orderBy: { completedAt: 'desc' },
-  })
+  const [latestAiProject, levelRank] = await Promise.all([
+    prisma.learningBadge.findFirst({
+      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+      orderBy: { completedAt: 'desc' },
+    }),
+    getCandidateLevelRank(candidateId),
+  ])
 
   const categories = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
   const namedReasons = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null, {
@@ -446,7 +452,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
 
   const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated] =
     await Promise.all([
-      getOrDraftPositioningStatement(candidate),
+      getOrDraftPositioningStatement({ ...candidate, levelRankLabel: levelRank.label }),
       getHowIOperate(candidateId, candidate.topStrengths),
       getWhatDrivesMe(candidateId, candidate.knownFor),
       prisma.referenceQuote.findMany({

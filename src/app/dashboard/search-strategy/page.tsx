@@ -1,13 +1,17 @@
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getSearchStage, SEARCH_STAGE_MESSAGE } from '@/lib/search-strategy'
+import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
+import { regenerateSearchStrategyGuidance } from '@/app/dashboard/search-strategy/actions'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SubmitButton } from '@/components/ui/submit-button'
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
   const stage = getSearchStage(profile)
   const showSkillsNeeded = !(profile.functionSkillConfidence === 100 && profile.aiFlexibilityLevel === 100)
+  const strategyGuidance = await getOrDraftSearchStrategyGuidance(profile.id)
 
   return (
     <div className="space-y-8">
@@ -62,6 +66,29 @@ export default async function SearchStrategyPage() {
         </CardHeader>
         <CardContent>
           <SearchStrategyForm profile={profile} showSkillsNeeded={showSkillsNeeded} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Strategy Guidance</CardTitle>
+          {strategyGuidance && (
+            <form action={regenerateSearchStrategyGuidance}>
+              <SubmitButton variant="outline" size="sm" pendingLabel="Regenerating…">
+                Regenerate guidance
+              </SubmitButton>
+            </form>
+          )}
+        </CardHeader>
+        <CardContent>
+          {strategyGuidance ? (
+            <p className="text-foreground">{strategyGuidance}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Fill in your target role or function above in Your Search Goals, then come back — we&apos;ll
+              turn your goals into specific strategic guidance here.
+            </p>
+          )}
         </CardContent>
       </Card>
 

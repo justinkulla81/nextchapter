@@ -21,6 +21,7 @@ import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
+import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -260,6 +261,12 @@ export async function confirmFunctionAndExperience(
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
+
+  try {
+    await recomputeCandidateLevelRank(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute level rank after function/experience confirm:', error)
+  }
 }
 
 export async function confirmLinkedIn(

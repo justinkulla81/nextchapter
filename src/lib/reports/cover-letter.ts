@@ -1,13 +1,14 @@
 import 'server-only'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 const PROMPT_PREFIX = `Write a cover letter for this candidate, tailored specifically to this job posting. Ground every claim in their actual background below — never invent achievements, employers, or skills that aren't there. Keep it to 3-4 short paragraphs: an opening that names the role and why it fits, 1-2 paragraphs connecting specific real experience to what the posting asks for, and a brief closing. Plain prose only — no markdown, no placeholder brackets like "[Company Name]" (use the real company/role from the posting text). If the posting doesn't name a company, refer to "your team" instead of guessing.
 
 `
 
 export async function generateCoverLetter(jobPostingId: string, candidateId: string): Promise<void> {
-  const [jobPosting, candidate, latestResume] = await Promise.all([
+  const [jobPosting, candidate, latestResume, levelRank] = await Promise.all([
     prisma.jobPosting.findUniqueOrThrow({ where: { id: jobPostingId } }),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
@@ -17,6 +18,7 @@ export async function generateCoverLetter(jobPostingId: string, candidateId: str
       where: { candidateId, extractedText: { not: null } },
       orderBy: { uploadedAt: 'desc' },
     }),
+    getCandidateLevelRank(candidateId),
   ])
 
   if (!jobPosting.extractedText) {
@@ -32,6 +34,7 @@ Name: ${candidate.firstName ?? ''} ${candidate.lastName ?? ''}
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Years of experience: ${candidate.yearsExperience ?? 'not specified'}
 Highest level reached: ${candidate.highestLevelReached ?? 'not specified'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${levelRank.label ?? 'not available'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}${w.keyAchievement ? ` — ${w.keyAchievement}` : ''}`).join('; ') || 'not specified'}

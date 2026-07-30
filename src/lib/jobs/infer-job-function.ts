@@ -1,4 +1,6 @@
+import type { CompanySizeBand } from '@prisma/client'
 import { PRIMARY_FUNCTION_OPTIONS, HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
+import { calibratedLevelRank } from '@/lib/scoring/level-rank'
 
 // Best-effort mapping from a free-text job title (all we get from an ATS
 // feed before a human ever looks at it) to the same function vocabulary
@@ -130,4 +132,12 @@ export function inferLevelFromTitle(title: string): string {
     }
   }
   return 'IC'
+}
+
+// Composes the title-only heuristic above with a known company size — the
+// one place job-side company size enters the level-matching path today (see
+// ats-job-board-feed.ts, the only caller). See src/lib/scoring/level-rank.ts
+// for the calibration math.
+export function inferCalibratedLevelRank(title: string, companySizeBand: CompanySizeBand | null): number | null {
+  return calibratedLevelRank(inferLevelFromTitle(title), companySizeBand)
 }

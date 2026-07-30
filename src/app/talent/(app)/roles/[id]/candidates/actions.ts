@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
+import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendEmployerInterestEmail } from '@/lib/email/send-employer-interest'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
@@ -40,11 +41,17 @@ export async function expressInterest(candidateId: string, roleId: string) {
 
   const [candidate, role] = await Promise.all([
     prisma.candidateProfile.findUnique({ where: { id: candidateId } }),
-    prisma.roleProfile.findFirst({ where: { id: roleId, employerId: employer.id } }),
+    prisma.roleProfile.findFirst({
+      where: { id: roleId, employerId: employer.id },
+      include: { employer: { select: { companySize: true } } },
+    }),
   ])
   if (!candidate || !role) return
 
-  const match = computeMatchScore(candidate, role)
+  const match = computeMatchScore(candidate, {
+    ...role,
+    employerCompanySizeBand: mapEmployerCompanySizeStringToBand(role.employer.companySize),
+  })
 
   const existing = await prisma.candidateInteraction.findUnique({
     where: { employerId_candidateId: { employerId: employer.id, candidateId } },

@@ -40,11 +40,14 @@ export async function approvePositioningStatement(
   revalidatePath('/dashboard/recruiter-report')
 }
 
-// Explicit refresh for the Dossier's two cached LLM generations (proof-point
-// follow-ups + job-reaction pattern summary). Clearing the cache is all
-// that's needed — the next render regenerates and re-caches via
-// getCachedGenerations. Deliberately candidate-initiated: it's what keeps
-// generation cost tied to intent rather than to page views.
+// Explicit refresh for the Dossier's cached LLM generations: the two
+// per-view generations (proof-point follow-ups + job-reaction pattern
+// summary) plus the self-caching Positioning Statement draft. Clearing the
+// cache columns is all that's needed — the next render regenerates and
+// re-caches via getCachedGenerations / getOrDraftPositioningStatement.
+// Deliberately candidate-initiated: it's what keeps generation cost tied to
+// intent rather than to page views. Never touches positioningStatementText
+// (the human-approved column) — only the AI draft is ever cleared here.
 export async function regenerateDossierSections(): Promise<void> {
   const supabase = await createClient()
   const {
@@ -56,7 +59,7 @@ export async function regenerateDossierSections(): Promise<void> {
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { dossierGeneratedCache: Prisma.DbNull, dossierGeneratedAt: null },
+    data: { dossierGeneratedCache: Prisma.DbNull, dossierGeneratedAt: null, positioningStatementDraft: null },
   })
 
   captureServerEvent(profile.id, 'dossier_sections_regenerated', {})

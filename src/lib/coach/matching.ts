@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getSentimentAlert } from '@/lib/daily/mood'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import { coachMatchesSeniority } from '@/lib/scoring/level-rank'
 
 const SHORTLIST_SIZE = 3
 const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
@@ -21,17 +23,27 @@ export interface CoachShortlistEntry {
 // candidate, so a coach's shortlist position can never be influenced by how
 // "easy" a candidate looks. Scores become visible to a coach only after a
 // match is confirmed and coachDossierConsentedAt is set, never before.
+// levelRankScore (below) is exempt from that rule — it's a seniority-fit
+// signal (a calibrated version of the same highestLevelReached/seniorityFit
+// comparison this function already made), not a quality/grade score, so
+// using it here is consistent with, not a violation of, the invariant above.
 export async function generateCoachShortlist(candidateId: string): Promise<CoachShortlistEntry[]> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    select: {
-      primaryFunction: true,
-      highestLevelReached: true,
-      coachGenderPreference: true,
-      coachLanguagePreference: true,
-      coachTimezonePreference: true,
-    },
-  })
+  const [candidate, levelRank] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      select: {
+        primaryFunction: true,
+        highestLevelReached: true,
+        coachGenderPreference: true,
+        coachLanguagePreference: true,
+        coachTimezonePreference: true,
+      },
+    }),
+    // Fetched via the lazy-backfill accessor (not the raw column) so even a
+    // brand-new candidate's very first shortlist generation gets a real
+    // calibrated score instead of silently skipping the seniority bonus.
+    getCandidateLevelRank(candidateId),
+  ])
 
   const allCoaches = await prisma.coach.findMany({
     where: { isSampleData: false },
@@ -83,7 +95,7 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
   const scored = pool.map((coach) => {
     let score = 0
     if (candidate.primaryFunction && coach.industries.includes(candidate.primaryFunction)) score += 3
-    if (candidate.highestLevelReached && coach.seniorityFit.includes(candidate.highestLevelReached)) score += 2
+    if (levelRank.score !== null && coachMatchesSeniority(coach.seniorityFit, levelRank.score)) score += 2
     // A struggling candidate's shortlist is weighted toward coaches who've
     // tagged comfort with high-need candidates — never exposed to the coach
     // as a raw flag, just reflected in ranking order.

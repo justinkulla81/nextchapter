@@ -80,6 +80,7 @@ export default async function RecruiterSearchPage({
       openToRelocation: true,
       targetCompMin: true,
       compFlexible: true,
+      levelRankScore: true,
     },
   })
 

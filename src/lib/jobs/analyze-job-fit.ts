@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 const jobFitSchema = z.object({
   // Pulled from the posting text itself (not the candidate's data) — reuses
@@ -32,12 +33,13 @@ Also extract 3-10 of the most important keywords/skills from the posting (exact 
 `
 
 export async function analyzeJobFit(jobPostingId: string, candidateId: string): Promise<void> {
-  const [jobPosting, candidate] = await Promise.all([
+  const [jobPosting, candidate, levelRank] = await Promise.all([
     prisma.jobPosting.findUniqueOrThrow({ where: { id: jobPostingId } }),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       include: { workHistory: true },
     }),
+    getCandidateLevelRank(candidateId),
   ])
 
   if (!jobPosting.extractedText) return
@@ -47,6 +49,7 @@ Target role: ${candidate.targetRoleType ?? 'not specified'}
 Target industries: ${candidate.targetIndustries.join(', ') || 'not specified'}
 Years of experience: ${candidate.yearsExperience ?? 'not specified'}
 Highest level reached: ${candidate.highestLevelReached ?? 'not specified'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${levelRank.label ?? 'not available'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}${candidate.secondaryFunction ? ` (also recently: ${candidate.secondaryFunction})` : ''}
 Industry background: ${candidate.industryContext ?? 'not specified'}${candidate.secondaryIndustryContext ? ` (also recently: ${candidate.secondaryIndustryContext})` : ''}
 Known for: ${candidate.knownFor ?? 'not specified'}

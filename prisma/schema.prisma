@@ -57,6 +57,23 @@ enum CareerTrajectory {
   DEMOTED
 }
 
+// Company-size band used ONLY by the level-rank calibration system
+// (CompanySizeLookup, the static tier list, and the calibration math in
+// src/lib/scoring/level-rank.ts). Deliberately more granular than
+// EmployerProfile.companySize (which tops out at "1000+") — see
+// mapEmployerCompanySizeStringToBand() for the lossy adapter between the
+// two. Never shown to any user; internal calibration input only.
+enum CompanySizeBand {
+  MICRO // 1-10
+  SMALL // 11-50
+  SMALL_MID // 51-200
+  MID // 201-1000 — calibration anchor band
+  MID_LARGE // 1001-5000
+  LARGE // 5001-20000
+  ENTERPRISE // 20001-100000
+  MEGA // 100000+
+}
+
 enum CoachingFocus {
   CAREER
   LIFE
@@ -385,6 +402,17 @@ model CandidateProfile {
   positioningStatementDraft String?   @db.Text
   positioningStatementText  String?   @db.Text
   positioningStatementSetAt DateTime?
+
+  // Search Strategy Guidance — AI-drafted paragraph synthesizing the
+  // candidate's calibrated seniority (levelRankScore/levelRankLabel) with
+  // their Search Goals form inputs (target role/company size/stage/comp,
+  // deal-breakers, pivoting/relocation flags). Self-caches on first draft,
+  // same pattern as positioningStatementDraft above — see
+  // src/lib/reports/search-strategy-guidance.ts. Nulled (never regenerated
+  // in place) whenever the candidate saves the Search Goals form, or via an
+  // explicit "Regenerate guidance" action — never on a plain page read.
+  searchStrategyGuidance            String?   @db.Text
+  searchStrategyGuidanceGeneratedAt DateTime?
 
   // Cache for the Dossier's two genuinely per-view LLM generations
   // (proof-point follow-ups, job-reaction pattern summary). Unlike
@@ -746,6 +774,18 @@ model CandidateProfile {
   categoryBaselineScores    Json?
   categoryBaselineUpdatedAt DateTime?
 
+  // Internal, invisible-to-users calibrated seniority signal (1-100), title
+  // adjusted for the size of the company(ies) that title was held at — see
+  // src/lib/scoring/level-rank.ts. Persisted baseline, recomputed only on
+  // explicit trigger events (work history added/deleted/re-primaried,
+  // resume parse, highestLevelReached confirmed), never live on an
+  // ordinary page read — same pattern as categoryBaselineScores above.
+  // MUST NEVER be rendered on any candidate/recruiter/coach/employer-facing
+  // surface.
+  levelRankScore     Int?
+  levelRankLabel     String?
+  levelRankUpdatedAt DateTime?
+
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
@@ -818,6 +858,50 @@ model WorkHistoryEntry {
 
   @@index([candidateId])
   @@index([companyNameNormalized])
+}
+
+// Permanent, platform-wide cache of company name -> employee-count band.
+// Keyed by normalizeOrgName() (src/lib/text/org-name-match.ts) so "Google" /
+// "Google LLC" / "Google Inc." collapse to one row, resolved once and
+// reused forever — this is what makes the LLM fallback in
+// src/lib/market/company-size.ts one-time-per-distinct-company-name-ever,
+// never per-candidate and never recurring. Shared by the candidate-side
+// level-rank calibration (level-rank-service.ts) and the ATS job-board feed
+// (ats-job-board-feed.ts). RoleProfile does NOT use this table — it reads
+// its owning EmployerProfile.companySize directly (a free, direct relation,
+// no lookup needed).
+//
+// Never exposed on any user-facing surface — internal calibration input
+// only, same visibility rule as CandidateProfile.levelRankScore.
+model CompanySizeLookup {
+  id String @id @default(cuid())
+
+  // via normalizeOrgName() — the only real key. Unique so a race between
+  // two concurrent first-encounters of the same company resolves to one
+  // row (see the upsert-based write in company-size.ts).
+  companyNameNormalized String @unique
+  // First-seen raw name, kept only for admin/debugging readability — never
+  // used for matching (companyNameNormalized is authoritative).
+  companyNameOriginal String
+  sizeBand            CompanySizeBand
+
+  // 'static' | 'llm' — 'static' rows are fully trusted (confidence always
+  // null); 'llm' rows carry the model's own confidence.
+  source String
+  // 0-1, only meaningful for source: 'llm'. Not currently used to gate
+  // anything (an LLM guess, even low-confidence, beats no data at all per
+  // the "unknown -> anchor, never blocks" fallback rule) — captured so a
+  // future pass can decide to treat low-confidence rows differently
+  // without needing a new column.
+  confidence  Float?
+  // The LLM's own free-text reasoning, kept for admin/QA debugging only —
+  // never shown to any candidate/recruiter/coach/employer surface.
+  llmRawNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sizeBand])
 }
 
 // Structured, one-row-per-degree education history — mirrors WorkHistoryEntry's

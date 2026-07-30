@@ -15,6 +15,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
 import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/lib/scoring/rewrite-actions'
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
+import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -244,6 +245,12 @@ export async function addWorkHistoryEntry(
     console.error('Failed to recompute structural flags after work-history add:', error)
   }
 
+  try {
+    await recomputeCandidateLevelRank(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute level rank after work-history add:', error)
+  }
+
   if (engagementType !== 'FULL_TIME') {
     return {
       victoriaNudge:
@@ -271,6 +278,12 @@ export async function deleteWorkHistoryEntry(entryId: string): Promise<void> {
     await computeStructuralFlags(profile.id)
   } catch (error) {
     console.error('Failed to recompute structural flags after work-history delete:', error)
+  }
+
+  try {
+    await recomputeCandidateLevelRank(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute level rank after work-history delete:', error)
   }
 }
 
@@ -303,4 +316,10 @@ export async function setPrimaryEngagement(entryId: string): Promise<void> {
   ])
 
   revalidatePath('/dashboard/resume')
+
+  try {
+    await recomputeCandidateLevelRank(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute level rank after primary-engagement change:', error)
+  }
 }

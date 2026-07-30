@@ -4,6 +4,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { fetchSubstack } from '@/lib/network/fetch-substack'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 const critiqueSchema = z.object({
   relevanceToBackground: z.string(),
@@ -23,9 +24,10 @@ Candidate background:
 `
 
 export async function analyzeSubstack(candidateId: string, url: string): Promise<void> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
-
-  const result = await fetchSubstack(url)
+  const [candidate, result] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
+    fetchSubstack(url),
+  ])
   if (result.status !== 'success' || !result.text) {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
@@ -43,10 +45,13 @@ export async function analyzeSubstack(candidateId: string, url: string): Promise
     return
   }
 
+  const levelRank = await getCandidateLevelRank(candidateId)
+
   const candidateSummary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
 Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Industry background: ${candidate.industryContext ?? 'not specified'}
+Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): ${levelRank.label ?? 'not available'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 `.trim()
 

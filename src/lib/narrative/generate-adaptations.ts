@@ -1,6 +1,7 @@
 import 'server-only'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
+import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 
 export interface NarrativeAdaptations {
   linkedinHeadline: string // under 120 characters
@@ -26,10 +27,16 @@ Return strict JSON with this exact shape, no markdown, no extra keys:
 Core Narrative Statement:
 `
 
+const LEVEL_RANK_CONTEXT_PREFIX =
+  'Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): '
+
 export async function generateAdaptations(candidateId: string, narrativeId?: string): Promise<void> {
-  const narrative = narrativeId
-    ? await prisma.candidateNarrative.findUnique({ where: { id: narrativeId } })
-    : await prisma.candidateNarrative.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'asc' } })
+  const [narrative, levelRank] = await Promise.all([
+    narrativeId
+      ? prisma.candidateNarrative.findUnique({ where: { id: narrativeId } })
+      : prisma.candidateNarrative.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'asc' } }),
+    getCandidateLevelRank(candidateId),
+  ])
   if (!narrative || narrative.candidateId !== candidateId) return
 
   let text: string
@@ -39,7 +46,12 @@ export async function generateAdaptations(candidateId: string, narrativeId?: str
       model: 'claude-sonnet-5',
       max_tokens: 1500,
       thinking: { type: 'disabled' },
-      messages: [{ role: 'user', content: `${PROMPT_PREFIX}${narrative.coreStatement}` }],
+      messages: [
+        {
+          role: 'user',
+          content: `${PROMPT_PREFIX}${narrative.coreStatement}\n\n${LEVEL_RANK_CONTEXT_PREFIX}${levelRank.label ?? 'not available'}`,
+        },
+      ],
     })
     const message = await stream.finalMessage()
     text = message.content
