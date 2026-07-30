@@ -28,6 +28,7 @@ export async function generateNarrative() {
   await generateCoreNarrative(profile.id)
   await generateAdaptations(profile.id)
   revalidatePath('/dashboard/interview-prep')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function updateCoreStatement(newStatement: string) {
@@ -51,6 +52,7 @@ export async function updateCoreStatement(newStatement: string) {
   }
   await generateAdaptations(profile.id)
   revalidatePath('/dashboard/interview-prep')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function requestToughAnswer(question: string): Promise<string | null> {

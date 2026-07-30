@@ -28,6 +28,7 @@ export async function createNarrative(label: string, scenarioContext: string): P
   await generateAdaptations(profile.id, id)
   captureServerEvent(profile.id, 'narrative_created', { narrativeId: id, label: trimmedLabel })
   revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
   return { id }
 }
 
@@ -44,6 +45,7 @@ export async function renameNarrative(narrativeId: string, label: string) {
   await prisma.candidateNarrative.update({ where: { id: narrativeId }, data: { label: trimmed } })
   captureServerEvent(profile.id, 'narrative_renamed', { narrativeId, label: trimmed })
   revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function deleteNarrative(narrativeId: string) {
@@ -66,6 +68,7 @@ export async function deleteNarrative(narrativeId: string) {
   await prisma.candidateNarrative.delete({ where: { id: narrativeId } })
   captureServerEvent(profile.id, 'narrative_deleted', { narrativeId })
   revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function regenerateNarrative(narrativeId: string) {
@@ -79,6 +82,7 @@ export async function regenerateNarrative(narrativeId: string) {
   await generateAdaptations(profile.id, narrativeId)
   captureServerEvent(profile.id, 'narrative_regenerated', { narrativeId })
   revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function updateGapExplanation(text: string, includeInDossier: boolean) {
@@ -113,4 +117,5 @@ export async function updateNarrativeStatement(narrativeId: string, newStatement
   await generateAdaptations(profile.id, narrativeId)
   captureServerEvent(profile.id, 'narrative_edited', { narrativeId })
   revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
 }

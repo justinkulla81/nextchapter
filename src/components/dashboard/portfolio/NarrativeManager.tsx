@@ -234,7 +234,7 @@ function NarrativeRow({ narrative }: { narrative: NarrativeItem }) {
   )
 }
 
-function NewNarrativeForm({ onCreated }: { onCreated: () => void }) {
+export function NewNarrativeForm({ onCreated }: { onCreated: () => void }) {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const [label, setLabel] = useState('')
