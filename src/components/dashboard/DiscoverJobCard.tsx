@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { promoteJobBoardListing, requestJobBoardIntro, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { AddToWatchlistButton } from '@/components/dashboard/AddToWatchlistButton'
 import { cn } from '@/lib/utils'
 
 const POSTING_TYPE_LABEL: Record<string, string> = {
@@ -131,6 +132,7 @@ export function DiscoverJobCard({
             </SubmitButton>
           </form>
         )}
+        {!confidential && <AddToWatchlistButton companyName={posting.companyName} />}
       </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
     </div>

@@ -42,7 +42,8 @@ function buildSections(
   supportNetworkUnreadCount: number,
   needsWorkStyleSurvey: boolean,
   messagesUnreadCount: number,
-  newJobMatchesCount: number
+  newJobMatchesCount: number,
+  watchlistNotificationCount: number
 ): NavSection[] {
   return [
     {
@@ -99,6 +100,11 @@ function buildSections(
           label: 'Find Full-Time Jobs',
           badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
         },
+        {
+          href: '/dashboard/company-tracker',
+          label: 'Company Tracker',
+          badge: watchlistNotificationCount > 0 ? String(watchlistNotificationCount) : undefined,
+        },
         { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         { href: '/dashboard/learning', label: 'Learn New Skills' },
         { href: '/dashboard/guides', label: 'Search Strategy Guides' },
@@ -127,6 +133,7 @@ function NavContent({
   needsWorkStyleSurvey,
   messagesUnreadCount,
   newJobMatchesCount,
+  watchlistNotificationCount,
 }: {
   pathname: string
   onNavigate?: () => void
@@ -135,6 +142,7 @@ function NavContent({
   needsWorkStyleSurvey: boolean
   messagesUnreadCount: number
   newJobMatchesCount: number
+  watchlistNotificationCount: number
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(
@@ -142,7 +150,8 @@ function NavContent({
     supportNetworkUnreadCount,
     needsWorkStyleSurvey,
     messagesUnreadCount,
-    newJobMatchesCount
+    newJobMatchesCount,
+    watchlistNotificationCount
   )
 
   return (
@@ -216,12 +225,14 @@ export function DashboardNav({
   needsWorkStyleSurvey = false,
   messagesUnreadCount = 0,
   newJobMatchesCount = 0,
+  watchlistNotificationCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   needsWorkStyleSurvey?: boolean
   messagesUnreadCount?: number
   newJobMatchesCount?: number
+  watchlistNotificationCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -230,7 +241,8 @@ export function DashboardNav({
     supportNetworkUnreadCount,
     needsWorkStyleSurvey,
     messagesUnreadCount,
-    newJobMatchesCount
+    newJobMatchesCount,
+    watchlistNotificationCount
   )
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
@@ -247,6 +259,7 @@ export function DashboardNav({
           needsWorkStyleSurvey={needsWorkStyleSurvey}
           messagesUnreadCount={messagesUnreadCount}
           newJobMatchesCount={newJobMatchesCount}
+          watchlistNotificationCount={watchlistNotificationCount}
         />
       </aside>
 
@@ -281,6 +294,7 @@ export function DashboardNav({
               needsWorkStyleSurvey={needsWorkStyleSurvey}
               messagesUnreadCount={messagesUnreadCount}
               newJobMatchesCount={newJobMatchesCount}
+              watchlistNotificationCount={watchlistNotificationCount}
             />
           </div>
         </div>

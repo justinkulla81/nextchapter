@@ -72,6 +72,13 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // constraint), not just here.
   PARTNER_CLICK_THROUGH: { minutes: 2, points: 2 },
 
+  // Prompt 77 — Company Tracker. Same click-through weight as
+  // PARTNER_CLICK_THROUGH above: naming a target company or opening a
+  // posting you were notified about costs nothing and proves nothing
+  // beyond "looked at it."
+  WATCHLIST_ADD: { minutes: 2, points: 2 },
+  WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
+
   // Onboarding confirmations — small, real setup steps.
   PROFILE_CONFIRM: { minutes: 5, points: 5 },
   INDUSTRY_CONFIRM: { minutes: 5, points: 5 },
@@ -152,6 +159,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   ANSWER_OPTIONAL_QUESTIONS: 'effort',
   INTERIM_PROFILE_CREATED: 'connecting',
   PARTNER_CLICK_THROUGH: 'connecting',
+  WATCHLIST_ADD: 'connecting',
+  WATCHLIST_POSTING_VIEWED: 'connecting',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
   MARKETING_PLAN_UNLOCK: 'working',
@@ -248,6 +257,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work', label: 'Interim Work' },
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
+  WATCHLIST_ADD: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
+  WATCHLIST_POSTING_VIEWED: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

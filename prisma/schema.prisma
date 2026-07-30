@@ -691,6 +691,7 @@ model CandidateProfile {
   profileShares                ProfileShare[]
   interimMarketplaceSignups    InterimMarketplaceSignup[]
   partnerClickThroughs         PartnerClickThrough[]
+  companyWatchlist             CompanyWatchlistEntry[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -2457,6 +2458,30 @@ model CandidateMessageDismissal {
   dismissedAt DateTime         @default(now())
 
   @@unique([candidateId, messageId])
+}
+
+// Account-Based Job Search watchlist (Prompt 77) — a candidate names a
+// specific target company and gets notified when a new posting from it
+// shows up. Deliberately no new sourcing here: notifications are computed
+// by matching companyNameNormalized against postings already flowing
+// through the NC Job Board / ATS feed (ExclusiveJobPosting.companyName is
+// a bare denormalized string, so matching goes through the same
+// normalizeOrgName() convention used for resume-derived company dedup).
+model CompanyWatchlistEntry {
+  id                    String           @id @default(cuid())
+  candidateId           String
+  candidate             CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  companyName           String // as typed by the candidate
+  companyNameNormalized String
+  createdAt             DateTime         @default(now())
+  // Postings created after this timestamp count as "new" for this entry's
+  // notification badge — bumped to now() whenever the candidate visits the
+  // Company Tracker page, same "visit resets the counter" convention as
+  // communityLastViewedAt.
+  lastViewedAt           DateTime        @default(now())
+
+  @@unique([candidateId, companyNameNormalized])
+  @@index([companyNameNormalized])
 }
 
 // Sitewide counter for metered third-party APIs — currently just JSearch's
