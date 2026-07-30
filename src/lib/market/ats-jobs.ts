@@ -1,6 +1,7 @@
 import 'server-only'
 import { ATS_COMPANIES, type AtsCompany } from '@/lib/market/ats-companies'
 import type { AdzunaListing } from '@/lib/market/adzuna'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 
 const FETCH_TIMEOUT_MS = 4000
 // None of Greenhouse/Lever/Ashby's public per-company endpoints support a
@@ -100,7 +101,8 @@ function matchesQuery(title: string, queryTokens: string[]): boolean {
 export async function searchAtsJobs(
   query: string,
   limit: number,
-  rotationSeed: string
+  rotationSeed: string,
+  candidateFunctions: { primaryFunction: string | null; secondaryFunction: string | null }
 ): Promise<AdzunaListing[]> {
   const queryTokens = query
     .toLowerCase()
@@ -108,8 +110,29 @@ export async function searchAtsJobs(
     .filter((t) => t.length > 2)
   if (queryTokens.length === 0) return []
 
+  // Greenhouse/Lever/Ashby don't support server-side search (see the note on
+  // COMPANIES_PER_CALL above), so `matchesQuery` is a bare single-token
+  // substring OR match over each company's full open-jobs list — on its own
+  // that's enough for a target role like "Business Operations" to pull in an
+  // unrelated "Business Partner Analyst" title just because it shares the
+  // word "business". Require the title's own inferred function to actually
+  // agree with the candidate's, the same admission bar the ATS job-board
+  // feed already applies (ats-job-board-feed.ts) — falls back to the bare
+  // token match only when the candidate has no function on file to check
+  // against.
+  const targetFunctions = [candidateFunctions.primaryFunction, candidateFunctions.secondaryFunction]
+    .filter((f): f is string => !!f)
+    .map((f) => f.toLowerCase())
+
   const companies = pickCompaniesForToday(rotationSeed, COMPANIES_PER_CALL)
   const results = await Promise.all(companies.map(fetchCompanyJobs))
-  const matched = results.flat().filter((job) => matchesQuery(job.title, queryTokens))
+  const matched = results
+    .flat()
+    .filter((job) => matchesQuery(job.title, queryTokens))
+    .filter((job) => {
+      if (targetFunctions.length === 0) return true
+      const inferredFunction = inferFunctionFromTitle(job.title)
+      return inferredFunction !== null && targetFunctions.includes(inferredFunction.toLowerCase())
+    })
   return matched.slice(0, limit)
 }

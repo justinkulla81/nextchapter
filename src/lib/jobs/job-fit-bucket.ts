@@ -24,10 +24,15 @@ import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jo
 // a continuous score maxed over a large, diverse candidate pool proved too
 // easy to clear for that use case.
 export const STRONG_FIT_THRESHOLD = 70
+// Shared with the admin-side callers further down this file (formerly its
+// own separate 45 constant there) so "good fit" means the same score cutoff
+// everywhere, including the unconfident-function cap in
+// computeEnrichedFitScore below.
+const GOOD_FIT_THRESHOLD = 45
 
 function bucketFromScore(score: number): FitBucket {
   if (score >= STRONG_FIT_THRESHOLD) return 'strong'
-  if (score >= 45) return 'good'
+  if (score >= GOOD_FIT_THRESHOLD) return 'good'
   return 'stretch'
 }
 
@@ -216,6 +221,22 @@ function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLik
   // the ceiling rather than zeroing the score, since the role can still be
   // a legitimate "good" fit on function/level/location alone.
   if (failsGate) score = Math.min(score, STRONG_FIT_THRESHOLD - 1)
+
+  // computeMatchScore's neutral function-match credit (+20) assumes
+  // `role.primaryFunction === null` means "this posting genuinely has no
+  // function requirement" — true for an untargeted board listing, but not
+  // for a title we tried and failed to classify (inferFunctionFromTitle
+  // returning null just means the title was ambiguous, e.g. "Business
+  // Partner Analyst" or "Administrative Business Partner, Office of the
+  // CEO" — see the comments on those keyword tables). Letting that
+  // unconfident state clear the "good" bar was exactly how those two
+  // example titles were reading as good fits for any candidate at all.
+  // Only applies when the function came from title inference (no explicit
+  // targetFunction on the posting) — an explicitly untargeted listing still
+  // gets the neutral credit as intended.
+  const hasConfidentFunction = posting.targetFunction != null || inferFunctionFromTitle(posting.title) != null
+  if (!hasConfidentFunction) score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+
   return score
 }
 
@@ -336,12 +357,6 @@ export type FitRankablePosting = Pick<
 function boostedMatchScore(candidate: AdminFitCandidate, posting: FitRankablePosting): number {
   return computeEnrichedFitScore(candidate, posting)
 }
-
-
-// The threshold a boosted score has to clear to count as a real, plausible
-// fit — shared by every consumer below so "good fit" means the same thing
-// everywhere on the admin side.
-const GOOD_FIT_THRESHOLD = 45
 
 export function countPendingJobMatches(posting: FitRankablePosting, candidates: AdminFitCandidate[]): PendingJobMatchCount {
   const matched = candidates.filter((c) => boostedMatchScore(c, posting) >= GOOD_FIT_THRESHOLD).length

@@ -42,7 +42,10 @@ export async function surfaceNewJobs(candidateId: string): Promise<number> {
   const query = buildSearchQuery(candidate)
   if (!query) return 0
 
-  let listings: AdzunaListing[] = await searchAtsJobs(query, SURFACE_LIMIT, candidateId)
+  let listings: AdzunaListing[] = await searchAtsJobs(query, SURFACE_LIMIT, candidateId, {
+    primaryFunction: candidate.primaryFunction,
+    secondaryFunction: candidate.secondaryFunction,
+  })
 
   if (listings.length < SURFACE_LIMIT) {
     const jsearchListings = await searchJSearchJobs(
