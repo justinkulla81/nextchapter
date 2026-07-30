@@ -32,7 +32,12 @@ export function SubstackSection({
     return (
       <Card>
         <CardContent className="space-y-3 pt-6">
-          <p className="font-medium text-foreground">Do you have a Substack?</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-medium text-foreground">Do you have a Substack?</p>
+            <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+              +5 pts, one time
+            </span>
+          </div>
           <div className="flex flex-wrap gap-2">
             <form action={urlAction} className="flex flex-1 gap-2">
               <Input name="url" type="url" placeholder="Paste your Substack URL" className="flex-1" />

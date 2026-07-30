@@ -127,6 +127,8 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   GIG_DIRECTORY_UNLOCK: { minutes: 3, points: 5 },
   LINKEDIN_UNLOCK: { minutes: 3, points: 5 },
   WORK_SAMPLE_TYPE_CONFIRMED: { minutes: 3, points: 5 },
+  NETWORK_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
+  SUBSTACK_UNLOCK: { minutes: 3, points: 5 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -201,6 +203,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   GIG_DIRECTORY_UNLOCK: 'connecting',
   LINKEDIN_UNLOCK: 'working',
   WORK_SAMPLE_TYPE_CONFIRMED: 'working',
+  NETWORK_COMFORT_CONFIRMED: 'connecting',
+  SUBSTACK_UNLOCK: 'working',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -299,6 +303,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work', label: 'Interim Work' },
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
+  NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Outreach Contacts' },
+  SUBSTACK_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   WATCHLIST_ADD: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
   GMAIL_CONNECTED: { href: '/dashboard/email-activity', label: 'Email Activity' },

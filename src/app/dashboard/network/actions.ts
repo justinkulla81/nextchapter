@@ -14,6 +14,8 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { parseLinkedInConnectionsCsv } from '@/lib/network/csv-import'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 
 const NETWORKING_LIST_TARGET = 25
 
@@ -163,6 +165,26 @@ export async function setNetworkComfortLevel(level: NetworkComfortLevel) {
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { networkComfortLevel: level } })
   captureServerEvent(profile.id, 'network_comfort_answered', { comfortLevel: level })
   captureServerEvent(profile.id, 'network_page_unlocked')
+
+  // One-time points award for answering the network comfort gate — mirrors
+  // gigDirectoryUnlockBonusAt/privacyOpenedUpBonusAt.
+  if (!profile.networkComfortBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'NETWORK_COMFORT_CONFIRMED' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'NETWORK_COMFORT_CONFIRMED',
+        text: 'Answered the network comfort check-in',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+      await prisma.candidateProfile.update({
+        where: { id: profile.id },
+        data: { networkComfortBonusAt: new Date() },
+      })
+    }
+  }
+
   revalidatePath('/dashboard/network')
 }
 

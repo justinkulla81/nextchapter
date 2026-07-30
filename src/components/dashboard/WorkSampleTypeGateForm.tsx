@@ -13,7 +13,7 @@ const OPTIONS = [
   { value: 'none', label: "Nothing I'd want to share" },
 ]
 
-export function WorkSampleTypeGateForm() {
+export function WorkSampleTypeGateForm({ alreadyAwarded = false }: { alreadyAwarded?: boolean }) {
   const [state, formAction, pending] = useActionState(submitWorkSampleType, undefined)
 
   return (
@@ -23,9 +23,11 @@ export function WorkSampleTypeGateForm() {
           Do you have real work you could show — writing, code, designs, a deck? A concrete sample
           does more to prove what you can do than another line on a resume.
         </p>
-        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-          +5 pts, one time
-        </span>
+        {!alreadyAwarded && (
+          <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+            +5 pts, one time
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
         {OPTIONS.map((opt) => (

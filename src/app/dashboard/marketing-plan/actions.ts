@@ -119,6 +119,28 @@ export async function generateArticleAction(
 
 export type SubstackAnswerState = { error?: string } | undefined
 
+// One-time bonus for answering the Substack yes/no gate at all — same
+// shape as contentUnlockBonusAt/privacyOpenedUpBonusAt. Called from both
+// answer paths (submitSubstackNo and submitSubstackUrl) so it fires
+// whichever way the candidate answers first.
+async function awardSubstackUnlockBonus(profile: { id: string; substackUnlockBonusAt: Date | null }) {
+  if (profile.substackUnlockBonusAt) return
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (!sprint) return
+
+  const effort = estimateActionEffort({ actionType: 'SUBSTACK_UNLOCK' })
+  await autoCompleteEngagementAction(profile.id, {
+    actionType: 'SUBSTACK_UNLOCK',
+    text: 'Answered the Substack question',
+    points: effort.points,
+    estimatedMinutes: effort.minutes,
+  })
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { substackUnlockBonusAt: new Date() },
+  })
+}
+
 export async function submitSubstackNo(): Promise<void> {
   const profile = await getAuthedProfile()
   if (!profile) return
@@ -127,6 +149,8 @@ export async function submitSubstackNo(): Promise<void> {
     where: { id: profile.id },
     data: { substackHasAccount: false },
   })
+
+  await awardSubstackUnlockBonus(profile)
 
   revalidatePath('/dashboard/marketing-plan')
 }
@@ -151,6 +175,8 @@ export async function submitSubstackUrl(
     where: { id: profile.id },
     data: { substackHasAccount: true },
   })
+
+  await awardSubstackUnlockBonus(profile)
 
   await analyzeSubstack(profile.id, url)
 

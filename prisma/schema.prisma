@@ -572,6 +572,8 @@ model CandidateProfile {
   substackUrl                      String?
   substackCritique                 Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
   substackAnalyzedAt               DateTime?
+  // One-time points award for answering the Substack yes/no gate — mirrors privacyOpenedUpBonusAt
+  substackUnlockBonusAt            DateTime?
 
   // Daily loop — mood check-in + daily Victoria email
   actionWindow             ActionWindow     @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing
@@ -598,6 +600,8 @@ model CandidateProfile {
 
   // Support Network / outreach
   networkComfortLevel       NetworkComfortLevel? // one-time comfort check, gates the rest of Activate My Network
+  // One-time points award for answering the network comfort gate — mirrors privacyOpenedUpBonusAt
+  networkComfortBonusAt     DateTime?
   networkingConcerns        NetworkingAnxiety[]  @default([])
   networkConnectPreferences String[]             @default([])
 

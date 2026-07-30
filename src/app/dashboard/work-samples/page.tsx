@@ -21,7 +21,7 @@ export default async function WorkSamplesPage() {
             score.
           </p>
         </div>
-        <WorkSampleTypeGateForm />
+        <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
 
         <div className="space-y-4 border-t border-border pt-8">
           <div>
@@ -54,7 +54,7 @@ export default async function WorkSamplesPage() {
             changes, pick a type below.
           </p>
         </div>
-        <WorkSampleTypeGateForm />
+        <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
 
         <div className="space-y-4 border-t border-border pt-8">
           <div>
