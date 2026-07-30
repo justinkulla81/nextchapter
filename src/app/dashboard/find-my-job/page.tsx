@@ -24,6 +24,7 @@ import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
 import { JobBoardRecommendations } from '@/components/dashboard/JobBoardRecommendations'
 import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckIn'
+import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -492,6 +493,7 @@ export default async function JobFitPage() {
                               ))}
                             </ul>
                           </div>
+                          <NegotiationPracticeTab jobPostingId={posting.id} />
                         </div>
                       )}
                     </div>

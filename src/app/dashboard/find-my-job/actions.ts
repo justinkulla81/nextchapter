@@ -10,6 +10,7 @@ import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
 import { analyzeJobFit } from '@/lib/jobs/analyze-job-fit'
 import { generateInterviewPrep } from '@/lib/jobs/generate-interview-prep'
 import { generateNegotiationAdvice } from '@/lib/jobs/generate-negotiation-advice'
+import { evaluateCounterOffer, type CounterOfferEvaluation } from '@/lib/negotiation/evaluate-counter-offer'
 import { generateCoverLetter } from '@/lib/reports/cover-letter'
 import { surfaceNewJobs, generateReactionSummary } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
@@ -670,4 +671,53 @@ export async function updateJobBoardUsage(
   if (!message) return { nudge: null }
 
   return { nudge: { title: message.title, bullets: message.bullets } }
+}
+
+// Prompt 78 — negotiation practice draft/feedback/redraft loop, same UI
+// pattern as Interview Prep's PracticeTab. Ephemeral: like Interview Prep,
+// the draft and feedback aren't persisted, only the fact that a real
+// session happened.
+export async function requestNegotiationPracticeFeedback(
+  jobPostingId: string,
+  draftText: string
+): Promise<CounterOfferEvaluation | null> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+  if (!draftText.trim()) return null
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const posting = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, candidateId: profile.id },
+  })
+  if (!posting?.negotiationAdvice) return null
+
+  const advice = posting.negotiationAdvice as unknown as {
+    talkingPoints: string[]
+    considerations: string[]
+    scriptOpening: string
+  }
+
+  const evaluation = await evaluateCounterOffer(draftText, advice)
+  if (!evaluation) return null
+
+  // Completing a real practice session (not just viewing generated advice)
+  // is what earns the Search Action — autoCompleteEngagementAction no-ops
+  // if it's already been earned this week (e.g. via manual self-report on
+  // this same page), so this never double-counts.
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'NEGOTIATION_ADVICE' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'NEGOTIATION_ADVICE',
+      text: 'Practiced your negotiation counter-ask',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+
+  captureServerEvent(profile.id, 'negotiation_practice_completed', { jobPostingId })
+  return evaluation
 }
