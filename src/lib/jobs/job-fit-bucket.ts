@@ -1,7 +1,7 @@
 import 'server-only'
-import type { CandidateProfile, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
+import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { computeMatchScore } from '@/lib/matching/compute-match-score'
+import { computeMatchScore, priorityMultiplier } from '@/lib/matching/compute-match-score'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
@@ -62,7 +62,40 @@ type FitCandidate = Pick<
   | 'hasJD'
   | 'hasMD'
   | 'hasDO'
+  | 'targetCompanySize'
+  | 'priorityMaxComp'
+  | 'priorityWorkLife'
+  | 'priorityBrandName'
+  | 'priorityMission'
 >
+
+// Candidate's 3-bucket company-size preference (COMPANY_SIZE_OPTIONS in
+// src/lib/constants/onboarding.ts) mapped to the resolver's 8-tier band
+// (src/lib/market/company-size.ts) — 'Any' or null intentionally has no
+// entry here, read as "no preference."
+const COMPANY_SIZE_TARGET_BANDS: Record<string, CompanySizeBand[]> = {
+  '1-50': ['MICRO', 'SMALL'],
+  '50-500': ['SMALL_MID', 'MID'],
+  '500+': ['MID_LARGE', 'LARGE', 'ENTERPRISE', 'MEGA'],
+}
+
+// Binary, same shape as industryMatchBonus below — a mismatch or an
+// unresolved band both read as neutral (0), never a penalty, so a company
+// outside the candidate's stated size preference still shows, just without
+// this bonus. Scaled by how highly the candidate ranked a recognizable
+// brand name (Part 3) — large/enterprise/mega bands double as the closest
+// existing recognizability proxy, since there's no separate brand
+// classifier.
+function companySizeMatchBonus(
+  targetCompanySize: string | null,
+  companySizeBand: CompanySizeBand | null | undefined,
+  priorityBrandNameRank: number | null
+): number {
+  if (!targetCompanySize || targetCompanySize === 'Any' || !companySizeBand) return 0
+  const acceptable = COMPANY_SIZE_TARGET_BANDS[targetCompanySize]
+  if (!acceptable || !acceptable.includes(companySizeBand)) return 0
+  return Math.round(10 * priorityMultiplier(priorityBrandNameRank))
+}
 
 // id/firstName/lastName/email are only needed by admin-side display and the
 // two candidate-centric ranking helpers below (rankPendingPostingsForCandidate,
@@ -109,7 +142,7 @@ function keywordMatchInfo(resumeKeywords: string[], postingText: string): { bonu
 // candidates haven't filled in targetIndustries, and an empty array
 // shouldn't read as "targeting nothing."
 function industryMatchBonus(
-  candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext'>,
+  candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext' | 'priorityMission'>,
   postingText: string
 ): number {
   const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
@@ -117,7 +150,11 @@ function industryMatchBonus(
   )
   if (targets.length === 0) return 0
   const lower = postingText.toLowerCase()
-  return targets.some((t) => lower.includes(t.toLowerCase())) ? 10 : 0
+  const matches = targets.some((t) => lower.includes(t.toLowerCase()))
+  // Approximate proxy for "mission alignment" (Part 3 of the tradeoff-
+  // priority reweight) — industry match is the closest existing signal to
+  // it; no separate mission classifier exists.
+  return matches ? Math.round(10 * priorityMultiplier(candidate.priorityMission)) : 0
 }
 
 // Best-effort extraction of a minimum-years requirement from free-text
@@ -163,6 +200,10 @@ interface FitPostingLike {
   targetLevel: string | null
   targetRemotePolicy: string | null
   targetLocation: string | null
+  // Pre-resolved by the caller (resolveCompanySizeBand in
+  // src/lib/market/company-size.ts is async; this scorer is not) — omitted
+  // or null both read as "unresolved," i.e. neutral, never a penalty.
+  companySizeBand?: CompanySizeBand | null
 }
 
 // Deliberately no employerCompanySizeBand here — ExclusiveJobPosting has no
@@ -213,7 +254,8 @@ function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLik
     titleSimilarityBonus(candidate.targetRoleType, posting.title) +
     keywordBonus +
     industryMatchBonus(candidate, postingText) +
-    yearsExperienceBonus(candidate.yearsExperience, postingText)
+    yearsExperienceBonus(candidate.yearsExperience, postingText) +
+    companySizeMatchBonus(candidate.targetCompanySize, posting.companySizeBand, candidate.priorityBrandName)
   score = Math.min(100, score)
 
   // A keyword-rich resume with too few real hits can't be called a
@@ -258,9 +300,10 @@ export function computeBoardListingFitBucket(
     | 'location'
     | 'salaryMin'
     | 'salaryMax'
-  >
+  >,
+  companySizeBand?: CompanySizeBand | null
 ): FitBucket {
-  return bucketFromScore(computeEnrichedFitScore(candidate, posting))
+  return bucketFromScore(computeEnrichedFitScore(candidate, { ...posting, companySizeBand }))
 }
 
 // How many candidates in the whole pool this pending posting is a
@@ -330,6 +373,11 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       hasJD: true,
       hasMD: true,
       hasDO: true,
+      targetCompanySize: true,
+      priorityMaxComp: true,
+      priorityWorkLife: true,
+      priorityBrandName: true,
+      priorityMission: true,
     },
   })
 }
@@ -415,7 +463,8 @@ export function rankCandidatesByFitCoverage<T extends FitRankablePosting>(
 // enough to clear the "good" threshold.
 export function computeSurfacedJobFitBucket(
   candidate: FitCandidate,
-  job: Pick<SurfacedJob, 'title' | 'location' | 'description'>
+  job: Pick<SurfacedJob, 'title' | 'location' | 'description'>,
+  companySizeBand?: CompanySizeBand | null
 ): FitBucket {
   const score = computeEnrichedFitScore(candidate, {
     title: job.title,
@@ -427,6 +476,7 @@ export function computeSurfacedJobFitBucket(
     targetLevel: null,
     targetRemotePolicy: null,
     targetLocation: null,
+    companySizeBand,
   })
   return bucketFromScore(score)
 }

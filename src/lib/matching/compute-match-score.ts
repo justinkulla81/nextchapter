@@ -36,10 +36,31 @@ export function levelDistance(a: string | null, b: string | null): number {
 // judgment call, not a real taxonomy fact.
 const MANAGEMENT_LEVELS = new Set(['Manager', 'Director', 'VP', 'C-Suite'])
 
+// Soft per-candidate weighting from the Goals-page tradeoff ranking (1 =
+// matters most, 5 = matters least, null = never ranked) — nudges the
+// dimension a priority maps to up or down by a bounded amount rather than a
+// full reweight, so no single priority can swing a score by more than a few
+// points and results stay comparable across the whole candidate pool
+// (admin views, recruiter search, etc. all share this same scorer).
+export function priorityMultiplier(rank: number | null): number {
+  if (rank === 1 || rank === 2) return 1.3
+  if (rank === 4 || rank === 5) return 0.7
+  return 1
+}
+
 export function computeMatchScore(
   candidate: Pick<
     CandidateProfile,
-    'primaryFunction' | 'highestLevelReached' | 'remotePreference' | 'currentCity' | 'openToRelocation' | 'targetCompMin' | 'compFlexible' | 'levelRankScore'
+    | 'primaryFunction'
+    | 'highestLevelReached'
+    | 'remotePreference'
+    | 'currentCity'
+    | 'openToRelocation'
+    | 'targetCompMin'
+    | 'compFlexible'
+    | 'levelRankScore'
+    | 'priorityMaxComp'
+    | 'priorityWorkLife'
   > & {
     // Optional so existing narrower selects elsewhere keep compiling —
     // absent/null simply means the bonus below doesn't apply, never a
@@ -73,17 +94,21 @@ export function computeMatchScore(
   const dist = calibratedLevelDistance(candidateScore, roleScore)
   score += dist === 0 ? 25 : dist === 1 ? 15 : dist === 2 ? 5 : 0
 
-  // Location/remote fit (20 pts)
+  // Location/remote fit (20 pts) — the positive-match branches are scaled
+  // by how highly the candidate ranked work-life balance (remote/flexible
+  // fit is the closest existing proxy for it); the insufficient-data floor
+  // stays flat since there's no signal there to weight.
+  const workLifeMultiplier = priorityMultiplier(candidate.priorityWorkLife)
   if (role.remotePolicy === 'remote' || candidate.remotePreference === 'remote' || candidate.remotePreference === 'flexible') {
-    score += 20
+    score += Math.round(20 * workLifeMultiplier)
   } else if (candidate.openToRelocation) {
-    score += 15
+    score += Math.round(15 * workLifeMultiplier)
   } else if (
     role.locationRequirement &&
     candidate.currentCity &&
     role.locationRequirement.toLowerCase().includes(candidate.currentCity.toLowerCase())
   ) {
-    score += 20
+    score += Math.round(20 * workLifeMultiplier)
   } else if (
     role.locationRequirement &&
     candidate.currentState &&
@@ -93,7 +118,7 @@ export function computeMatchScore(
     // "Austin, TX" and the candidate is in Dallas) is still meaningfully
     // closer than no location signal at all — worth more than the bare
     // insufficient-data floor, less than an exact city match.
-    score += 12
+    score += Math.round(12 * workLifeMultiplier)
   } else {
     score += 5
   }
@@ -106,13 +131,16 @@ export function computeMatchScore(
     score += 10
   }
 
-  // Comp overlap (15 pts) — loosened if candidate is comp-flexible
+  // Comp overlap (15 pts) — loosened if candidate is comp-flexible, and the
+  // match branches scaled by how highly the candidate ranked maximizing
+  // compensation.
+  const compMultiplier = priorityMultiplier(candidate.priorityMaxComp)
   if (candidate.targetCompMin == null || role.compMax == null) {
     score += 8 // insufficient data — neutral credit
   } else if (role.compMax >= candidate.targetCompMin) {
-    score += 15
+    score += Math.round(15 * compMultiplier)
   } else if (candidate.compFlexible) {
-    score += 10
+    score += Math.round(10 * compMultiplier)
   } else {
     score += 0
   }

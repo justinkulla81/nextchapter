@@ -44,6 +44,8 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       targetCompMin: true,
       compFlexible: true,
       levelRankScore: true,
+      priorityMaxComp: true,
+      priorityWorkLife: true,
       hireabilityReports: {
         orderBy: { generatedAt: 'desc' },
         take: 1,

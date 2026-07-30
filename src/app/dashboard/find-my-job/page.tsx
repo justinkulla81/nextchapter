@@ -33,6 +33,8 @@ import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { resolveCompanySizeBand } from '@/lib/market/company-size'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 
 const SURFACED_JOB_LIST_SIZE = 5
 // The locked A-List teaser board can have dozens of approved postings once
@@ -120,12 +122,29 @@ export default async function JobFitPage() {
   const lockedBoardPostings = boardPostings.filter(
     (p) => p.audienceTier === 'A_LIST_ONLY' && !isAList
   )
+
+  // computeBoardListingFitBucket/computeSurfacedJobFitBucket are synchronous
+  // (called inline in JSX below), but resolveCompanySizeBand isn't — resolve
+  // every distinct company name shown on this page once, up front, into a
+  // normalizeOrgName-keyed map so each render call can look its band up
+  // synchronously instead of awaiting per-card.
+  const companyNames = [...openBoardPostings.map((p) => p.companyName), ...surfacedJobs.map((j) => j.companyName)].filter(
+    (name): name is string => !!name
+  )
+  const distinctCompanyNames = [...new Set(companyNames)]
+  const resolvedBands = await Promise.all(distinctCompanyNames.map((name) => resolveCompanySizeBand(name)))
+  const companySizeBandByName = new Map(
+    distinctCompanyNames.map((name, i) => [normalizeOrgName(name), resolvedBands[i].band])
+  )
+  const companySizeBandFor = (companyName: string | null) =>
+    companyName ? (companySizeBandByName.get(normalizeOrgName(companyName)) ?? null) : null
+
   // A Targeted listing is only shown to candidates who actually fit it —
   // an Open one is shown to everyone regardless of fit (the bucket badge
   // still tells them how good a match it is).
   const visibleBoardPostings = openBoardPostings.filter((p) => {
     if (p.distribution !== 'TARGETED') return true
-    return computeBoardListingFitBucket(profile, p) !== 'stretch'
+    return computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)) !== 'stretch'
   })
 
   const ratedCount = profile.jobPostings.length + reactedCount
@@ -175,7 +194,11 @@ export default async function JobFitPage() {
             {visibleBoardPostings.length > 0 && (
               <div className="space-y-3">
                 {visibleBoardPostings.map((posting) => (
-                  <DiscoverJobCard key={posting.id} posting={posting} fitBucket={computeBoardListingFitBucket(profile, posting)} />
+                  <DiscoverJobCard
+                    key={posting.id}
+                    posting={posting}
+                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                  />
                 ))}
               </div>
             )}
@@ -188,7 +211,11 @@ export default async function JobFitPage() {
                   {totalUnreactedCount > surfacedJobs.length && ` — showing the latest ${surfacedJobs.length}`}
                 </p>
                 {surfacedJobs.map((job) => (
-                  <NextSurfacedJobCard key={job.id} job={job} fitBucket={computeSurfacedJobFitBucket(profile, job)} />
+                  <NextSurfacedJobCard
+                    key={job.id}
+                    job={job}
+                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                  />
                 ))}
               </div>
             )}

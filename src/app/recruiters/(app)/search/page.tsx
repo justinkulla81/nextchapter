@@ -81,6 +81,8 @@ export default async function RecruiterSearchPage({
       targetCompMin: true,
       compFlexible: true,
       levelRankScore: true,
+      priorityMaxComp: true,
+      priorityWorkLife: true,
     },
   })
 

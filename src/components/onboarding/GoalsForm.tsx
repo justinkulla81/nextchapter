@@ -195,48 +195,6 @@ export function GoalsForm({
       </div>
 
       <div className="space-y-2">
-        <Label>
-          How comfortable are you with being publicly visible as job-searching — things like
-          LinkedIn&apos;s &quot;Open to Work&quot; or a public post — separate from telling people you know
-          directly?
-        </Label>
-        <ChoiceButtons
-          name="publicDisclosureComfort"
-          options={PUBLIC_DISCLOSURE_COMFORT_OPTIONS}
-          value={publicDisclosureComfort}
-          onChange={setPublicDisclosureComfort}
-          columns={2}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="hasBeenReferredBefore"
-            name="hasBeenReferredBefore"
-            value="on"
-            defaultChecked={hasBeenReferredBefore ?? false}
-            onCheckedChange={(checked) => setHasBeenReferredBefore(checked === true)}
-          />
-          <Label htmlFor="hasBeenReferredBefore" className="font-normal">
-            Have you networked or been referred into a job before?
-          </Label>
-        </div>
-        {hasBeenReferredBefore && (
-          <div className="space-y-2 pl-6">
-            <Label>How recently?</Label>
-            <ChoiceButtons
-              name="referralRecency"
-              options={REFERRAL_RECENCY_OPTIONS}
-              value={referralRecency}
-              onChange={setReferralRecency}
-              columns={3}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="remotePreference">Location preference</Label>
         <Select
           name="remotePreference"
@@ -323,6 +281,48 @@ export function GoalsForm({
           rows={2}
           defaultValue={profile.dealBreakers ?? ''}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          How comfortable are you with being publicly visible as job-searching — things like
+          LinkedIn&apos;s &quot;Open to Work&quot; or a public post — separate from telling people you know
+          directly?
+        </Label>
+        <ChoiceButtons
+          name="publicDisclosureComfort"
+          options={PUBLIC_DISCLOSURE_COMFORT_OPTIONS}
+          value={publicDisclosureComfort}
+          onChange={setPublicDisclosureComfort}
+          columns={2}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="hasBeenReferredBefore"
+            name="hasBeenReferredBefore"
+            value="on"
+            defaultChecked={hasBeenReferredBefore ?? false}
+            onCheckedChange={(checked) => setHasBeenReferredBefore(checked === true)}
+          />
+          <Label htmlFor="hasBeenReferredBefore" className="font-normal">
+            Have you networked or been referred into a job before?
+          </Label>
+        </div>
+        {hasBeenReferredBefore && (
+          <div className="space-y-2 pl-6">
+            <Label>How recently?</Label>
+            <ChoiceButtons
+              name="referralRecency"
+              options={REFERRAL_RECENCY_OPTIONS}
+              value={referralRecency}
+              onChange={setReferralRecency}
+              columns={3}
+            />
+          </div>
+        )}
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
