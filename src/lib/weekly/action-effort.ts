@@ -91,6 +91,14 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   CHECK_IN_NOTE_SENT: { minutes: 10, points: 10 },
   INTRO_CONNECTION_REQUEST_SENT: { minutes: 15, points: 15 },
 
+  // Prompt 79 — Calendar Connect. Same one-time connection bonus as Gmail.
+  // INTERVIEW_ATTENDED is a real, high-value signal detected passively (no
+  // active-prep credit here — that's INTERVIEW_PREP's job) so it's weighted
+  // below that but above a routine outreach call. Detected networking calls
+  // reuse the existing OUTREACH_CALL type rather than adding a parallel one.
+  CALENDAR_CONNECTED: { minutes: 5, points: 10 },
+  INTERVIEW_ATTENDED: { minutes: 30, points: 25 },
+
   // Onboarding confirmations — small, real setup steps.
   PROFILE_CONFIRM: { minutes: 5, points: 5 },
   INDUSTRY_CONFIRM: { minutes: 5, points: 5 },
@@ -178,6 +186,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   FOLLOW_UP_NOTE_SENT: 'connecting',
   CHECK_IN_NOTE_SENT: 'connecting',
   INTRO_CONNECTION_REQUEST_SENT: 'connecting',
+  CALENDAR_CONNECTED: 'connecting',
+  INTERVIEW_ATTENDED: 'effort',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
   MARKETING_PLAN_UNLOCK: 'working',
@@ -216,6 +226,7 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   'FOLLOW_UP_NOTE_SENT',
   'CHECK_IN_NOTE_SENT',
   'INTRO_CONNECTION_REQUEST_SENT',
+  'INTERVIEW_ATTENDED',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
@@ -288,6 +299,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   FOLLOW_UP_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
   CHECK_IN_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
   INTRO_CONNECTION_REQUEST_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
+  CALENDAR_CONNECTED: { href: '/dashboard/calendar-activity', label: 'Calendar Activity' },
+  INTERVIEW_ATTENDED: { href: '/dashboard/calendar-activity', label: 'Calendar Activity' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

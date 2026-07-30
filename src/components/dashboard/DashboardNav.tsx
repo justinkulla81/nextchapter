@@ -44,7 +44,8 @@ function buildSections(
   messagesUnreadCount: number,
   newJobMatchesCount: number,
   watchlistNotificationCount: number,
-  showEmailActivity: boolean
+  showEmailActivity: boolean,
+  showCalendarActivity: boolean
 ): NavSection[] {
   return [
     {
@@ -79,6 +80,11 @@ function buildSections(
         // from everyone else rather than showing a dead end.
         ...(showEmailActivity
           ? [{ href: '/dashboard/email-activity', label: 'Email Activity' }]
+          : []),
+        // Prompt 79 — same hidden-not-shown-as-locked convention as Email
+        // Activity above.
+        ...(showCalendarActivity
+          ? [{ href: '/dashboard/calendar-activity', label: 'Calendar Activity' }]
           : []),
         {
           href: '/dashboard/community',
@@ -141,6 +147,7 @@ function NavContent({
   newJobMatchesCount,
   watchlistNotificationCount,
   showEmailActivity,
+  showCalendarActivity,
 }: {
   pathname: string
   onNavigate?: () => void
@@ -151,6 +158,7 @@ function NavContent({
   newJobMatchesCount: number
   watchlistNotificationCount: number
   showEmailActivity: boolean
+  showCalendarActivity: boolean
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(
@@ -160,7 +168,8 @@ function NavContent({
     messagesUnreadCount,
     newJobMatchesCount,
     watchlistNotificationCount,
-    showEmailActivity
+    showEmailActivity,
+    showCalendarActivity
   )
 
   return (
@@ -236,6 +245,7 @@ export function DashboardNav({
   newJobMatchesCount = 0,
   watchlistNotificationCount = 0,
   showEmailActivity = false,
+  showCalendarActivity = false,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -244,6 +254,7 @@ export function DashboardNav({
   newJobMatchesCount?: number
   watchlistNotificationCount?: number
   showEmailActivity?: boolean
+  showCalendarActivity?: boolean
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -254,7 +265,8 @@ export function DashboardNav({
     messagesUnreadCount,
     newJobMatchesCount,
     watchlistNotificationCount,
-    showEmailActivity
+    showEmailActivity,
+    showCalendarActivity
   )
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
@@ -273,6 +285,7 @@ export function DashboardNav({
           newJobMatchesCount={newJobMatchesCount}
           watchlistNotificationCount={watchlistNotificationCount}
           showEmailActivity={showEmailActivity}
+          showCalendarActivity={showCalendarActivity}
         />
       </aside>
 
@@ -309,6 +322,7 @@ export function DashboardNav({
               newJobMatchesCount={newJobMatchesCount}
               watchlistNotificationCount={watchlistNotificationCount}
               showEmailActivity={showEmailActivity}
+              showCalendarActivity={showCalendarActivity}
             />
           </div>
         </div>

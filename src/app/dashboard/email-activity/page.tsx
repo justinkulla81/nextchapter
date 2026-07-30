@@ -2,6 +2,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
+import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EmailActivitySyncButton, EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
@@ -46,6 +47,7 @@ export default async function EmailActivityPage({
     return acc
   }, {})
   const needsReview = activities.filter((a) => a.activityType === 'NEEDS_REVIEW')
+  const reconciliation = connection ? await getActivityReconciliation(profile.id) : null
   const unacknowledgedReactions = activities.filter(
     (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
   )
@@ -183,6 +185,12 @@ export default async function EmailActivityPage({
               ))}
             </CardContent>
           </Card>
+
+          {reconciliation?.networkingNote && (
+            <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
+              {reconciliation.networkingNote}
+            </p>
+          )}
 
           {needsReview.length > 0 && (
             <Card>

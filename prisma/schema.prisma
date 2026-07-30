@@ -694,6 +694,8 @@ model CandidateProfile {
   companyWatchlist             CompanyWatchlistEntry[]
   emailConnection              EmailConnection?
   trackedEmailActivities       TrackedEmailActivity[]
+  calendarConnection           CalendarConnection?
+  trackedCalendarEvents        TrackedCalendarEvent[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -2015,6 +2017,59 @@ model TrackedEmailActivity {
 
   @@unique([connectionId, externalMessageId])
   @@index([candidateId, activityType])
+}
+
+// Prompt 79 — Calendar Connect. Same testing-mode posture as EmailConnection
+// above (reuses the same tester allow-list, isGmailTrackingTester — one
+// internal-testing cohort, not a separately configured list), and the same
+// CANDIDATE_GOOGLE_OAUTH_CLIENT_ID/SECRET OAuth client as Gmail, just a
+// different scope/redirect URI. Unlike gmail.metadata, calendar.readonly and
+// calendar.events.readonly are Sensitive, not Restricted (confirmed against
+// Google's own restricted-scopes list) — no CASA review needed here, only
+// standard OAuth verification, so this is testing-mode only because the app
+// itself isn't verified yet, not because of an ongoing paid security review.
+model CalendarConnection {
+  id               String           @id @default(cuid())
+  candidateId      String           @unique
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  accessToken      String           @db.Text
+  refreshToken     String           @db.Text
+  expiresAt        DateTime
+  connectedAt      DateTime         @default(now())
+  lastSyncAt       DateTime?
+  needsReconnectAt DateTime?
+  disconnectedAt   DateTime?
+
+  events TrackedCalendarEvent[]
+}
+
+// INTERVIEW: title matches interview/screen/onsite-shaped patterns.
+// NETWORKING_CALL: title matches a 1:1-shaped catch-up/coffee-chat/intro-call
+// pattern. NEEDS_REVIEW is the deliberate "don't guess" bucket, same
+// convention as EmailActivityType — most calendar events (internal meetings,
+// personal appointments) land here and are never shown as detected activity.
+enum CalendarEventType {
+  INTERVIEW
+  NETWORKING_CALL
+  NEEDS_REVIEW
+}
+
+model TrackedCalendarEvent {
+  id               String             @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  connectionId     String
+  connection       CalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  externalEventId  String // Google Calendar event id — dedupe key alongside connectionId
+  eventType        CalendarEventType
+  confidence       String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
+  title            String? // candidate's own review UI only — never exposed to anyone else
+  startTime        DateTime
+  detectedAt       DateTime           @default(now())
+  reviewedAt       DateTime? // candidate confirmed/corrected a needs-review item
+
+  @@unique([connectionId, externalEventId])
+  @@index([candidateId, eventType])
 }
 
 // One row per person in the candidate's 5x5 Support Network. category is

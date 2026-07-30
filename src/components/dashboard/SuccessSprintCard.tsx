@@ -122,6 +122,15 @@ export function SuccessSprintCard({
   const oneTimeTotal = (actions ?? []).filter((a) => !a.recurring).length
   const oneTimeDone = (actions ?? []).filter((a) => !a.recurring && a.completed).length
   const recurringStarted = (actions ?? []).filter((a) => a.recurring && a.completed).length
+  // Splits weeklyPoints by kind so the blended total doesn't obscure how much
+  // came from a real finish line (one-time) vs a habit that resets next week
+  // (recurring) — see the isRecurringActionType doc comment in CommittedAction.
+  const oneTimePointsEarned = (actions ?? [])
+    .filter((a) => !a.recurring && a.completed)
+    .reduce((sum, a) => sum + a.points, 0)
+  const recurringPointsEarned = (actions ?? [])
+    .filter((a) => a.recurring && a.completed)
+    .reduce((sum, a) => sum + a.points, 0)
 
   // The header's denominator must equal the sum of what's actually listed
   // below it (committedTier's points) — using the system's ramp target here
@@ -150,6 +159,11 @@ export function SuccessSprintCard({
               <span className="tabular-nums">{weeklyPoints}</span> of{' '}
               <span className="tabular-nums">{committedPointsTotal}</span> points this week
             </p>
+            {recurringPointsEarned > 0 && (
+              <p className="text-xs text-muted-foreground tabular-nums">
+                {oneTimePointsEarned} pts one-time + {recurringPointsEarned} pts recurring
+              </p>
+            )}
             <p className={cn('mt-1 text-2xl font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
               {onTrack ? 'On track' : 'Behind pace'}
             </p>
@@ -168,6 +182,10 @@ export function SuccessSprintCard({
               <p className="text-xs text-muted-foreground">
                 Click into an action below to go mark it done or started — completion happens on
                 that page, not here.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                One-time actions count once, ever. Recurring actions count once per week — do them
+                again next week to earn those points again.
               </p>
               <div className="space-y-1.5">
                 {committedTier.map((action, i) => (
