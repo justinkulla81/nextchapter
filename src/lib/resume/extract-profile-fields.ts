@@ -8,6 +8,7 @@ import { computeYearsExperienceFromResume } from '@/lib/resume/work-history-fact
 import { syncResumeEducation } from '@/lib/resume/sync-resume-education'
 import { syncResumeWorkHistory } from '@/lib/resume/sync-resume-work-history'
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
+import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -59,6 +60,22 @@ const profileFieldsSchema = z.object({
   resumeKeywords: z.array(z.string()).max(15),
 })
 
+// Kept as its own call rather than folded into profileFieldsSchema above —
+// that schema already sits right at Anthropic's structured-output cap on
+// nullable/union-typed parameters (16), confirmed by a real 400
+// ("too many parameters with union types") the first time these two fields
+// were added there. A second small Haiku call costs little and keeps the
+// main extraction schema untouched.
+const secondaryFunctionIndustrySchema = z.object({
+  secondaryFunction: z.enum(PRIMARY_FUNCTION_OPTIONS).nullable(),
+  secondaryIndustry: z.string().nullable(),
+})
+
+const SECONDARY_PROMPT = `Look at this resume. If the candidate's most recent 1-2 roles are in a clearly different function or industry than the bulk of their career (e.g. a recent pivot), name that difference as secondaryFunction/secondaryIndustry. If their history is consistent, return null for both — do not force a secondary value when there isn't a real one.
+
+Resume text:
+`
+
 const PROMPT_PREFIX = `Extract the following fields from this resume. Only extract what is explicitly present in the text — never fabricate or guess a value that isn't there; use null instead.
 
 - firstName, lastName: from the resume header/contact info.
@@ -70,7 +87,7 @@ const PROMPT_PREFIX = `Extract the following fields from this resume. Only extra
 - firstJobStartDate: the start date of their EARLIEST listed job (their first job after school), as an ISO date. If only a year is given, use YYYY-01-01.
 - latestJobTitle: their most recent job title.
 - industry: the industry of their most recent employer, in a few words.
-- primaryFunction: their primary functional area, constrained to one of the provided categories.
+- primaryFunction: their primary functional area (the one that describes the bulk of their career), constrained to one of the provided categories.
 - aiReadinessScore (0-100) and aiReadinessNotes: assess how "AI-ready" this resume signals the candidate is — mentions of AI tools, automation, LLM usage, building with AI, etc. This is being captured for future use, not for immediate scoring — be honest and specific in the notes.
 - resumeKeywords: up to 15 concrete skills, tools, technologies, certifications, and role-specific terms pulled directly from the resume text (e.g. "Salesforce", "P&L management", "Six Sigma", "Python") — used to match this candidate against job postings. Prefer specific, searchable terms over generic ones (skip words like "communication" or "teamwork").
 
@@ -113,8 +130,17 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
       output_config: { format: zodOutputFormat(profileFieldsSchema) },
       messages: [{ role: 'user', content: PROMPT_PREFIX + resume.extractedText }],
     })
-    const message = await stream.finalMessage()
+    const secondaryStream = client.messages.stream({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      thinking: { type: 'disabled' },
+      output_config: { format: zodOutputFormat(secondaryFunctionIndustrySchema) },
+      messages: [{ role: 'user', content: SECONDARY_PROMPT + resume.extractedText }],
+    })
+
+    const [message, secondaryMessage] = await Promise.all([stream.finalMessage(), secondaryStream.finalMessage()])
     const data = message.parsed_output
+    const secondaryData = secondaryMessage.parsed_output
 
     if (!data) return
 
@@ -141,6 +167,8 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
         industryContext: data.industry,
         industryBucket: normalizeIndustryBucket(data.industry),
         primaryFunction: data.primaryFunction,
+        secondaryFunction: secondaryData?.secondaryFunction ?? null,
+        secondaryIndustryContext: secondaryData?.secondaryIndustry ?? null,
         yearsExperience,
         highestEducationLevel: data.highestEducationLevel,
         // Each credential flag only ever flips true, never overwrites a
@@ -198,6 +226,12 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     if (educationInserted > 0 || employersInserted > 0) {
       await computeStructuralFlags(resume.candidateId).catch((error) => {
         console.error('Failed to compute structural flags after resume upload:', error)
+      })
+    }
+
+    if (employersInserted > 0) {
+      await recomputeCandidateLevelRank(resume.candidateId).catch((error) => {
+        console.error('Failed to recompute level rank after resume upload:', error)
       })
     }
   } catch (error) {

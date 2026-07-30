@@ -47,8 +47,8 @@ Target role: ${candidate.targetRoleType ?? 'not specified'}
 Target industries: ${candidate.targetIndustries.join(', ') || 'not specified'}
 Years of experience: ${candidate.yearsExperience ?? 'not specified'}
 Highest level reached: ${candidate.highestLevelReached ?? 'not specified'}
-Primary function: ${candidate.primaryFunction ?? 'not specified'}
-Industry background: ${candidate.industryContext ?? 'not specified'}
+Primary function: ${candidate.primaryFunction ?? 'not specified'}${candidate.secondaryFunction ? ` (also recently: ${candidate.secondaryFunction})` : ''}
+Industry background: ${candidate.industryContext ?? 'not specified'}${candidate.secondaryIndustryContext ? ` (also recently: ${candidate.secondaryIndustryContext})` : ''}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}`).join('; ') || 'not specified'}
 

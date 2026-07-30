@@ -3,8 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { ATS_COMPANIES, type AtsCompany } from '@/lib/market/ats-companies'
 import { isUsLocation } from '@/lib/jobs/us-location'
 import { loadAdminFitCandidates } from '@/lib/jobs/job-fit-bucket'
-import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
-import { levelDistance } from '@/lib/matching/compute-match-score'
+import { inferFunctionFromTitle, inferCalibratedLevelRank } from '@/lib/jobs/infer-job-function'
+import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
+import { resolveCompanySizeBand } from '@/lib/market/company-size'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -166,9 +168,12 @@ export interface AtsFeedResult {
 // so the bar is real fit, not just a plausible title. Quality over
 // quantity: a listing is only admitted if it confidently maps to a
 // function (inferFunctionFromTitle — deliberately conservative, see that
-// file) that some real candidate has AND that same candidate's seniority
-// is within one band of the title's inferred level (levelDistance <= 1,
-// e.g. Director admits Director/VP/Manager but not IC or C-Suite) — one
+// file) that some real candidate has AND that same candidate's calibrated
+// seniority (see level-rank.ts — title adjusted for the hiring company's
+// size, not just the raw title) is within one band of the title's inferred,
+// company-size-adjusted level (calibratedLevelDistance <= 1, e.g. a
+// Director-equivalent admits Director/VP/Manager-equivalent listings but
+// not IC- or C-Suite-equivalent ones) — one
 // genuinely great fit for a single candidate is enough, a crowd of
 // mediocre ones isn't. An earlier version of this gate used the admin
 // review queue's continuous boosted score (function+level+location+comp+
@@ -180,6 +185,17 @@ export interface AtsFeedResult {
 // untouched by this — those still land pending either way.
 export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   const candidates = await loadAdminFitCandidates()
+
+  // Resolved once, up front, for the whole (small, ~45-company) ATS_COMPANIES
+  // list — not per-listing — so the admission-gate loop below stays
+  // synchronous. See company-size.ts: a company already in the static tier
+  // list or the permanent cache costs nothing here; a first-ever encounter
+  // costs one LLM call, cached forever after.
+  const companySizeBands = new Map(
+    await Promise.all(
+      ATS_COMPANIES.map(async (c) => [normalizeOrgName(c.name), (await resolveCompanySizeBand(c.name)).band] as const)
+    )
+  )
 
   // Every company's board is fetched concurrently rather than one at a time —
   // awaiting each of the 45 companies in sequence (up to FETCH_TIMEOUT_MS
@@ -235,11 +251,17 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
       skippedNoFit += 1
       continue
     }
-    const inferredLevel = inferLevelFromTitle(listing.title)
+    const companySizeBand = companySizeBands.get(normalizeOrgName(listing.companyName)) ?? null
+    const inferredLevelScore = inferCalibratedLevelRank(listing.title, companySizeBand)
+    const inferredFunctionLower = inferredFunction.toLowerCase()
     const hasFit = candidates.some(
       (c) =>
-        c.primaryFunction?.trim().toLowerCase() === inferredFunction.toLowerCase() &&
-        levelDistance(c.highestLevelReached, inferredLevel) <= 1
+        (c.primaryFunction?.trim().toLowerCase() === inferredFunctionLower ||
+          c.secondaryFunction?.trim().toLowerCase() === inferredFunctionLower) &&
+        calibratedLevelDistance(
+          c.levelRankScore ?? calibratedLevelRank(c.highestLevelReached, null),
+          inferredLevelScore
+        ) <= 1
     )
     if (!hasFit) {
       skippedNoFit += 1

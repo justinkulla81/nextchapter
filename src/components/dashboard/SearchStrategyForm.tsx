@@ -92,6 +92,41 @@ export function SearchStrategyForm({
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="secondaryFunction">
+          Also relevant: a recent function that&apos;s different from your primary
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          Only set this if your most recent role(s) are in a different function than the bulk of
+          your career — we&apos;ll match jobs against both. Leave as &quot;None&quot; otherwise.
+        </p>
+        <Select name="secondaryFunction" defaultValue={profile.secondaryFunction ?? 'none'}>
+          <SelectTrigger id="secondaryFunction" className="w-full">
+            <SelectValue placeholder="None" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">None</SelectItem>
+            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+              <SelectItem key={fn} value={fn}>
+                {fn}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="secondaryIndustryContext">
+          Also relevant: a recent industry that&apos;s different from your primary
+        </Label>
+        <Input
+          id="secondaryIndustryContext"
+          name="secondaryIndustryContext"
+          defaultValue={profile.secondaryIndustryContext ?? ''}
+          placeholder="e.g. Healthcare (leave blank if not applicable)"
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="targetCompanySize">Target company size</Label>

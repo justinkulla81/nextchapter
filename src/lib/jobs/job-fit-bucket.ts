@@ -39,7 +39,9 @@ function bucketFromScore(score: number): FitBucket {
 type FitCandidate = Pick<
   CandidateProfile,
   | 'primaryFunction'
+  | 'secondaryFunction'
   | 'highestLevelReached'
+  | 'levelRankScore'
   | 'remotePreference'
   | 'currentCity'
   | 'currentState'
@@ -50,6 +52,7 @@ type FitCandidate = Pick<
   | 'resumeKeywords'
   | 'yearsExperience'
   | 'industryContext'
+  | 'secondaryIndustryContext'
   | 'targetIndustries'
   | 'hasJD'
   | 'hasMD'
@@ -100,8 +103,11 @@ function keywordMatchInfo(resumeKeywords: string[], postingText: string): { bonu
 // Neutral (0, no penalty) when the candidate hasn't set any — most
 // candidates haven't filled in targetIndustries, and an empty array
 // shouldn't read as "targeting nothing."
-function industryMatchBonus(candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext'>, postingText: string): number {
-  const targets = [...candidate.targetIndustries, candidate.industryContext].filter(
+function industryMatchBonus(
+  candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext'>,
+  postingText: string
+): number {
+  const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
     (s): s is string => !!s && s.trim().length > 0
   )
   if (targets.length === 0) return 0
@@ -154,6 +160,15 @@ interface FitPostingLike {
   targetLocation: string | null
 }
 
+// Deliberately no employerCompanySizeBand here — ExclusiveJobPosting has no
+// synchronous path to a real company size (companyName is a denormalized
+// free-text string, not an EmployerProfile relation), and this function is
+// called synchronously from the candidate-facing Discover feed and
+// SurfacedJob badges, where an async per-listing company-size lookup would
+// be a much bigger change than this pass takes on. computeMatchScore treats
+// the missing band as "unknown" (anchor, no adjustment) — see
+// ats-job-board-feed.ts for the one place job-side company size IS applied
+// (a small, fixed, known company list, resolved once per run).
 function postingToRole(posting: FitPostingLike) {
   return {
     primaryFunction: posting.targetFunction ?? inferFunctionFromTitle(posting.title),
@@ -275,7 +290,9 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       lastName: true,
       email: true,
       primaryFunction: true,
+      secondaryFunction: true,
       highestLevelReached: true,
+      levelRankScore: true,
       remotePreference: true,
       currentCity: true,
       currentState: true,
@@ -286,6 +303,7 @@ export function loadAdminFitCandidates(): Promise<AdminFitCandidate[]> {
       resumeKeywords: true,
       yearsExperience: true,
       industryContext: true,
+      secondaryIndustryContext: true,
       targetIndustries: true,
       isPeopleManager: true,
       hasJD: true,

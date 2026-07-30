@@ -361,6 +361,13 @@ model CandidateProfile {
   highestLevelReached String? // "IC", "Manager", "Director", "VP", "C-Suite"
   primaryFunction     String? // resume-derived (Phase 1), candidate-confirmable
   industryContext     String? // resume-derived (Phase 1), candidate-confirmable
+  // Optional — a recent function/industry that differs from the primary
+  // above (e.g. a recent pivot). Resume-derived alongside the primary, or
+  // set/edited/cleared by the candidate on Search Strategy. Folded into job
+  // matching (job-fit-bucket.ts, ats-job-board-feed.ts) as an additional
+  // match, never a replacement for the primary.
+  secondaryFunction        String?
+  secondaryIndustryContext String?
   // Normalized industry bucket derived from industryContext (see
   // src/lib/constants/industry-buckets.ts) — never authoritative, only used
   // for Community industry grouping. industryContext stays the source of truth.
