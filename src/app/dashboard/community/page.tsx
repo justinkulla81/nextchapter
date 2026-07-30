@@ -13,6 +13,8 @@ import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityStreamItem } from '@/components/dashboard/CommunityStreamItem'
 import { CommunityFilterBar } from '@/components/dashboard/CommunityFilterBar'
+import { CommunityGroupStrip } from '@/components/dashboard/CommunityGroupStrip'
+import { getCandidateGroups } from '@/lib/community/groups'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
 import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
 import { sendCandidateMessage } from '@/app/dashboard/messages/actions'
@@ -24,7 +26,7 @@ import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { cn } from '@/lib/utils'
-import type { PrivacyTier } from '@prisma/client'
+import type { Prisma, PrivacyTier } from '@prisma/client'
 
 const PARTNER_TYPE_LABEL = {
   COACH: 'Coach',
@@ -38,6 +40,32 @@ type SearchParams = {
   city?: string
   function?: string
   industry?: string
+  group?: string
+}
+
+// `?group=dimension:value` — a fixed-size fact about the candidate (their
+// school/companies/industry-bucket/metro/function), not a picker among
+// alternatives, so it's a separate query param from the free-text
+// city/function/industry filter bar above it.
+function communityGroupWhere(group: string | undefined): Prisma.CommunityPostWhereInput {
+  if (!group) return {}
+  const [dimension, ...rest] = group.split(':')
+  const value = rest.join(':')
+  if (!value) return {}
+  switch (dimension) {
+    case 'school':
+      return { postSchools: { has: value } }
+    case 'company':
+      return { postCompanies: { has: value } }
+    case 'industry':
+      return { postIndustryBucket: value }
+    case 'metro':
+      return { postMetroArea: value }
+    case 'function':
+      return { postFunction: value }
+    default:
+      return {}
+  }
 }
 
 export default async function SupportNetworkPage({
@@ -313,13 +341,14 @@ async function CommunityTab({
   const functionFilter = searchParams.function ?? ''
   const industryFilter = searchParams.industry ?? ''
 
-  const [posts, feed, unreadNotes, cohort] = await Promise.all([
+  const [posts, feed, unreadNotes, cohort, groups] = await Promise.all([
     prisma.communityPost.findMany({
       where: {
         isActive: true,
         ...(cityFilter && { postCity: cityFilter }),
         ...(functionFilter && { postFunction: functionFilter }),
         ...(industryFilter && { postIndustry: industryFilter }),
+        ...communityGroupWhere(searchParams.group),
       },
       include: { candidate: { select: { firstName: true, lastName: true } } },
       orderBy: { createdAt: 'desc' },
@@ -327,6 +356,7 @@ async function CommunityTab({
     getCommunityFeed(),
     getUnreadEncouragementNotes(candidateId),
     layoffCohortId ? getCohortInfo(layoffCohortId, candidateId) : Promise.resolve(null),
+    getCandidateGroups(candidateId),
   ])
 
   return (
@@ -389,6 +419,11 @@ async function CommunityTab({
       )}
 
       <CommunityPostForm />
+
+      <CommunityGroupStrip
+        groups={groups}
+        otherParams={{ city: cityFilter, function: functionFilter, industry: industryFilter }}
+      />
 
       <CommunityFilterBar
         cityFilter={cityFilter}

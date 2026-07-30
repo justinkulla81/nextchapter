@@ -69,7 +69,7 @@ function monthsBetween(start: Date, end: Date): number {
 
 const INTERNSHIP_TITLE_KEYWORDS = ['intern', 'internship', 'co-op', 'coop']
 
-function isInternshipRole(entry: WorkHistoryEntryInput): boolean {
+export function isInternshipRole(entry: WorkHistoryEntryInput): boolean {
   if (entry.engagementType === 'INTERNSHIP') return true
   const lower = entry.roleTitle.toLowerCase()
   return INTERNSHIP_TITLE_KEYWORDS.some((kw) => lower.includes(kw))

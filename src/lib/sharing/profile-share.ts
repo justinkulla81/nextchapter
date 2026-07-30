@@ -41,6 +41,7 @@ export interface SharedProfileView {
   references: SharedReference[]
   targetCompMin: number | null
   hireabilityGrade: HireabilityGrade | null
+  gapExplanation: string | null
 }
 
 const NOT_ACTIVE = (status: ShareStatus, candidateName: string): SharedProfileView => ({
@@ -61,6 +62,7 @@ const NOT_ACTIVE = (status: ShareStatus, candidateName: string): SharedProfileVi
   references: [],
   targetCompMin: null,
   hireabilityGrade: null,
+  gapExplanation: null,
 })
 
 export async function getSharedProfileView(token: string): Promise<SharedProfileView> {
@@ -146,6 +148,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
       references: share.activeProcess ? referencesFor() : [],
       targetCompMin: null,
       hireabilityGrade: null,
+      gapExplanation: share.activeProcess && candidate.includeGapExplanationInDossier ? candidate.gapExplanation : null,
     }
   }
 
@@ -156,6 +159,10 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
       references: share.includeExtras.includes('REFERENCES') ? referencesFor() : [],
       targetCompMin: share.includeExtras.includes('SALARY') ? candidate.targetCompMin : null,
       hireabilityGrade: null,
+      gapExplanation:
+        share.includeExtras.includes('GAP_EXPLANATION') && candidate.includeGapExplanationInDossier
+          ? candidate.gapExplanation
+          : null,
     }
   }
 
@@ -169,5 +176,6 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
     references: referencesFor(),
     targetCompMin: candidate.targetCompMin,
     hireabilityGrade: normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration),
+    gapExplanation: candidate.gapExplanation,
   }
 }

@@ -5,7 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { NarrativeManager, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
+import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
+import { detectNarrativeWeaknesses } from '@/lib/narrative/detect-narrative-weaknesses'
 import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
@@ -18,7 +20,7 @@ const RESUME_UPDATE_POINTS = estimateActionEffort({ actionType: 'RESUME_UPDATE' 
 export default async function PortfolioPage() {
   const profile = await getDashboardData()
 
-  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade] = await Promise.all([
+  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade, weaknessGuidance] = await Promise.all([
     prisma.candidateNarrative.findMany({
       where: { candidateId: profile.id },
       orderBy: { generatedAt: 'asc' },
@@ -37,6 +39,7 @@ export default async function PortfolioPage() {
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
       : null,
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    detectNarrativeWeaknesses(profile.id),
   ])
 
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
@@ -138,6 +141,13 @@ export default async function PortfolioPage() {
           </p>
           <NarrativeManager narratives={narratives} />
         </div>
+
+        <WeaknessGuidanceCard
+          guidance={weaknessGuidance}
+          showGapForm
+          gapExplanation={profile.gapExplanation}
+          includeGapExplanationInDossier={profile.includeGapExplanationInDossier}
+        />
 
         <Card>
           <CardHeader>

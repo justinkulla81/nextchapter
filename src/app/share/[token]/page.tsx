@@ -147,6 +147,15 @@ export default async function SharedProfilePage({
           </section>
         )}
 
+        {view.gapExplanation && (
+          <section>
+            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              On the gap in my history
+            </h2>
+            <p className="mt-2 text-foreground">{view.gapExplanation}</p>
+          </section>
+        )}
+
         {view.resumeSignedUrl && (
           <section>
             <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">

@@ -24,6 +24,7 @@ export function InterviewPrepTabs({
   interviewComfort,
   elevatorPitchReady,
   hasJobDescription,
+  jobHoppingFlag,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
@@ -32,6 +33,7 @@ export function InterviewPrepTabs({
   interviewComfort: number | null
   elevatorPitchReady: number | null
   hasJobDescription: boolean
+  jobHoppingFlag: boolean
 }) {
   return (
     <Tabs defaultValue="story">
@@ -49,7 +51,7 @@ export function InterviewPrepTabs({
         <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} />
       </TabsContent>
       <TabsContent value="tough" className="mt-6">
-        <ToughQuestionsTab hasJobDescription={hasJobDescription} />
+        <ToughQuestionsTab hasJobDescription={hasJobDescription} jobHoppingFlag={jobHoppingFlag} />
       </TabsContent>
       <TabsContent value="practice" className="mt-6">
         <PracticeTab targetRoleType={targetRoleType} hasJobDescription={hasJobDescription} />

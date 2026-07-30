@@ -1,13 +1,18 @@
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/InterviewPrepTabs'
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
+import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
+import { detectNarrativeWeaknesses } from '@/lib/narrative/detect-narrative-weaknesses'
 
 export default async function InterviewPrepPage() {
   const profile = await getDashboardData()
-  const narrative = await getDefaultNarrative(profile.id)
+  const [narrative, weaknessGuidance] = await Promise.all([
+    getDefaultNarrative(profile.id),
+    detectNarrativeWeaknesses(profile.id),
+  ])
 
   return (
     <div className="space-y-8">
@@ -59,7 +64,10 @@ export default async function InterviewPrepPage() {
         interviewComfort={profile.interviewComfort}
         elevatorPitchReady={profile.elevatorPitchReady}
         hasJobDescription={!!profile.activeJobDescription}
+        jobHoppingFlag={profile.jobHoppingFlag}
       />
+
+      <WeaknessGuidanceCard guidance={weaknessGuidance} showGapForm={false} />
     </div>
   )
 }

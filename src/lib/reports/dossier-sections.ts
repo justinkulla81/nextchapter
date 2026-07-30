@@ -16,6 +16,7 @@ import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
 import { generateReactionSummary, MIN_REACTIONS_FOR_SUMMARY } from '@/lib/network/job-discovery'
+import { isInternshipRole } from '@/lib/resume/work-history-facts'
 
 // The Executive Dossier's dynamic sections (Prompt 47) — everything beyond
 // the existing Effort Summary / References / AI Projects / Learning /
@@ -102,6 +103,12 @@ export interface DossierProofPoint {
   followUps: string[]
 }
 
+export interface DossierCareerStep {
+  companyName: string
+  roleTitle: string
+  startDate: Date
+}
+
 export interface DossierCategoryStrength {
   category: CategoryKey
   label: string
@@ -135,6 +142,10 @@ export interface DossierData {
   learningGrowth: { items: { title: string; closedGapArea: string | null }[] }
   fit: { patternSummary: string | null }
   proofPoints: DossierProofPoint[]
+  // Only ever populated when careerTrajectory === 'PROMOTED' — mirrors the
+  // rest of this document's evidence-first-positives-only convention (a
+  // DEMOTED read never renders here, same as every other named-reason gap).
+  careerTrajectory: DossierCareerStep[] | null
 }
 
 // Reuses the strength copy already computed for namedReasons (kind ===
@@ -165,6 +176,20 @@ function reweightedSections(namedReasons: NamedReason[]): DossierSection[] {
     else rest.push(id)
   }
   return [...addressed, ...rest].map((id) => ({ id, title: SECTION_TITLES[id] }))
+}
+
+async function getCareerTrajectorySteps(candidateId: string, careerTrajectory: string | null): Promise<DossierCareerStep[] | null> {
+  if (careerTrajectory !== 'PROMOTED') return null
+
+  const workHistory = await prisma.workHistoryEntry.findMany({
+    where: { candidateId },
+    orderBy: { startDate: 'asc' },
+  })
+  const steps = workHistory
+    .filter((entry) => !isInternshipRole(entry))
+    .map((entry) => ({ companyName: entry.companyName, roleTitle: entry.roleTitle, startDate: entry.startDate }))
+
+  return steps.length > 0 ? steps : null
 }
 
 function closedLoopCallouts(namedReasons: NamedReason[]): ClosedLoopCallout[] {
@@ -450,7 +475,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     careerTrajectory: candidate.careerTrajectory,
   })
 
-  const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated] =
+  const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated, careerTrajectorySteps] =
     await Promise.all([
       getOrDraftPositioningStatement({ ...candidate, levelRankLabel: levelRank.label }),
       getHowIOperate(candidateId, candidate.topStrengths),
@@ -464,6 +489,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
       getSelfAwareness(candidateId),
       getLearningGrowth(candidateId),
       getCachedGenerations(candidateId, candidate.dossierGeneratedCache),
+      getCareerTrajectorySteps(candidateId, candidate.careerTrajectory),
     ])
   const { patternSummary, proofPoints } = generated
 
@@ -492,6 +518,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     learningGrowth,
     fit: { patternSummary },
     proofPoints,
+    careerTrajectory: careerTrajectorySteps,
   }
 }
 

@@ -47,6 +47,24 @@ export function DossierSectionsView({ dossier, readOnly = false }: { dossier: Do
         </section>
       )}
 
+      {dossier.careerTrajectory && dossier.careerTrajectory.length > 0 && (
+        <section>
+          <SectionHeading>Career Trajectory</SectionHeading>
+          <ol className="mt-2 space-y-2">
+            {dossier.careerTrajectory.map((step, i) => (
+              <li key={i} className="flex items-baseline justify-between gap-3 rounded-lg border border-border p-3 text-sm">
+                <span className="font-medium text-foreground">
+                  {step.roleTitle} <span className="text-muted-foreground">at {step.companyName}</span>
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                  {step.startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {dossier.sections.map((section) => (
         <DossierSectionBlock key={section.id} id={section.id} title={section.title} dossier={dossier} readOnly={readOnly} />
       ))}

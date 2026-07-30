@@ -50,6 +50,21 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
     return { error: 'Write something first.' }
   }
 
+  // Snapshot-at-post-time, same convention as postCity/postFunction/
+  // postIndustry above — read from the candidate's education/work-history
+  // relations so group-filtered feed views can match against them later
+  // without a join back to a profile that may since have changed.
+  const [primarySchool, recentCompanies] = await Promise.all([
+    prisma.educationEntry.findFirst({ where: { candidateId: profile.id, isPrimary: true }, select: { schoolNameNormalized: true } }),
+    prisma.workHistoryEntry.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { startDate: 'desc' },
+      select: { companyNameNormalized: true },
+      distinct: ['companyNameNormalized'],
+      take: 3,
+    }),
+  ])
+
   const post = await prisma.communityPost.create({
     data: {
       candidateId: profile.id,
@@ -60,6 +75,10 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
       postState: profile.currentState,
       postFunction: profile.primaryFunction,
       postIndustry: profile.industryContext,
+      postIndustryBucket: profile.industryBucket,
+      postMetroArea: profile.metroArea,
+      postSchools: primarySchool?.schoolNameNormalized ? [primarySchool.schoolNameNormalized] : [],
+      postCompanies: recentCompanies.map((c) => c.companyNameNormalized).filter(Boolean),
     },
   })
 

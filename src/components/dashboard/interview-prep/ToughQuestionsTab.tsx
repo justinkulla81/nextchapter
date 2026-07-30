@@ -8,11 +8,24 @@ import { requestToughAnswer, requestToughAnswerFeedback } from '@/app/dashboard/
 import { TOUGH_QUESTIONS } from '@/lib/interview-prep/constants'
 import type { PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
 
-export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: boolean }) {
+export function ToughQuestionsTab({
+  hasJobDescription,
+  jobHoppingFlag,
+}: {
+  hasJobDescription: boolean
+  jobHoppingFlag: boolean
+}) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [feedback, setFeedback] = useState<Record<string, PracticeEvaluation>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+
+  // A confirmed short-tenure pattern makes the jobhop question the one most
+  // likely to actually come up — surface it first instead of leaving it at
+  // its generic list position.
+  const orderedQuestions = jobHoppingFlag
+    ? [...TOUGH_QUESTIONS].sort((a, b) => (a.id === 'jobhop' ? -1 : b.id === 'jobhop' ? 1 : 0))
+    : TOUGH_QUESTIONS
 
   const handleGenerate = (id: string, question: string) => {
     setPendingId(id)
@@ -35,8 +48,14 @@ export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: bo
         answer that backfires if you&apos;re not ready for them. Generate a grounded answer for
         each, then see Victoria&apos;s take on it.
       </p>
-      {TOUGH_QUESTIONS.map((q) => (
-        <Card key={q.id} className={cn(pendingId === q.id && 'cursor-wait [&_*]:cursor-wait')}>
+      {orderedQuestions.map((q) => (
+        <Card
+          key={q.id}
+          className={cn(
+            pendingId === q.id && 'cursor-wait [&_*]:cursor-wait',
+            jobHoppingFlag && q.id === 'jobhop' && 'border-orange/40'
+          )}
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <span
@@ -49,6 +68,11 @@ export function ToughQuestionsTab({ hasJobDescription }: { hasJobDescription: bo
                 {q.category === 'objection' ? 'Objection' : 'Trap'}
               </span>
               {q.question}
+              {jobHoppingFlag && q.id === 'jobhop' && (
+                <span className="rounded-full bg-orange/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-orange uppercase">
+                  Likely to come up
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

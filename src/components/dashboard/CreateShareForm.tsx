@@ -23,6 +23,7 @@ const EXTRA_OPTIONS = [
   { value: 'RESUME', label: 'Resume' },
   { value: 'SALARY', label: 'Salary expectations' },
   { value: 'REFERENCES', label: 'Reference summaries' },
+  { value: 'GAP_EXPLANATION', label: 'My gap explanation' },
 ] as const
 
 const EXPIRY_OPTIONS = [
@@ -103,7 +104,8 @@ export function CreateShareForm() {
           </div>
           <p className="text-xs text-muted-foreground">
             Recruiters default to your target role, industries, seniority, and work history — these
-            are optional add-ons.
+            are optional add-ons. Gap explanation only sends if you&apos;ve also written one and
+            opted in on your Portfolio page.
           </p>
         </div>
       )}

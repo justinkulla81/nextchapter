@@ -81,6 +81,24 @@ export async function regenerateNarrative(narrativeId: string) {
   revalidatePath('/dashboard/portfolio')
 }
 
+export async function updateGapExplanation(text: string, includeInDossier: boolean) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: {
+      gapExplanation: text.trim() || null,
+      includeGapExplanationInDossier: includeInDossier,
+    },
+  })
+  captureServerEvent(profile.id, 'gap_explanation_saved', {
+    hasContent: !!text.trim(),
+    includedInDossier: includeInDossier,
+  })
+  revalidatePath('/dashboard/portfolio')
+}
+
 export async function updateNarrativeStatement(narrativeId: string, newStatement: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
