@@ -56,9 +56,9 @@ export function DashboardTopStrip({
 
       <div
         className="flex items-center gap-1.5"
-        title="On track means this week's points are ahead of pace for the week's target — measured against the target, not against whatever you personally committed to."
+        title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
       >
-        <span className="text-xs font-medium text-muted-foreground">Weekly Search Score</span>
+        <span className="text-xs font-medium text-muted-foreground">Weekly A Target</span>
         {searchExecutionAvailable ? (
           <span className="text-sm font-semibold text-foreground tabular-nums">
             {grade.weeklyPoints} / {grade.weeklyPointsTarget}

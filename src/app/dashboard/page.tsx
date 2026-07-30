@@ -198,6 +198,8 @@ export default async function DashboardPage() {
           dismissedToday={moodCardDismissedToday}
         />
 
+        <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
+
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
@@ -212,10 +214,6 @@ export default async function DashboardPage() {
           onTrack={onTrack}
         />
       </div>
-
-      <VisibilityComfortCard
-        initialComfort={currentSprint?.visibilityComfort ?? profile.publicDisclosureComfort}
-      />
 
       {sentimentAlert.lowSentiment && <SentimentSupportCard hasCoach={!!profile.coachId} />}
 

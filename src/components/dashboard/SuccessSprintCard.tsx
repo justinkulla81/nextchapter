@@ -156,8 +156,8 @@ export function SuccessSprintCard({
             )}
           >
             <p className="text-lg font-semibold text-foreground">
-              <span className="tabular-nums">{weeklyPoints}</span> of{' '}
-              <span className="tabular-nums">{committedPointsTotal}</span> points this week
+              <span className="tabular-nums">{weeklyPoints}</span> of your{' '}
+              <span className="tabular-nums">{committedPointsTotal}</span>-point sprint this week
             </p>
             {recurringPointsEarned > 0 && (
               <p className="text-xs text-muted-foreground tabular-nums">

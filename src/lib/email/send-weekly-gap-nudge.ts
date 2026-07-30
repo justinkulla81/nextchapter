@@ -6,7 +6,8 @@ import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
 export async function sendWeeklyGapNudgeEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   weeklyPoints: number,
-  weeklyPointsTarget: number
+  weeklyPointsTarget: number,
+  visibilityCheckedIn: boolean
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping weekly gap nudge email.')
@@ -38,6 +39,7 @@ export async function sendWeeklyGapNudgeEmail(
       weeklyPointsTarget,
       dashboardUrl,
       unsubscribeUrl,
+      visibilityCheckedIn,
     }),
   })
 

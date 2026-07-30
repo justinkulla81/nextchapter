@@ -15,7 +15,8 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
-import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
@@ -92,6 +93,18 @@ export async function checkInVisibilityComfort(comfort: PublicDisclosureComfort)
     where: { id: sprint.id },
     data: { visibilityComfort: comfort },
   })
+
+  // One-time-per-week points bonus — autoCompleteEngagementAction no-ops if
+  // this actionType is already completed in the current sprint's
+  // committedActions, so answering again later this week never double-awards.
+  const effort = estimateActionEffort({ actionType: 'VISIBILITY_COMFORT_CHECKIN' })
+  await autoCompleteEngagementAction(profile.id, {
+    actionType: 'VISIBILITY_COMFORT_CHECKIN',
+    text: "Answered this week's visibility comfort check-in",
+    points: effort.points,
+    estimatedMinutes: effort.minutes,
+  })
+
   captureServerEvent(profile.id, 'visibility_comfort_checked_in', { comfort })
   revalidatePath('/dashboard')
 }

@@ -114,6 +114,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   PRIVACY_CONFIRMED: { minutes: 5, points: 5 },
   JOB_BOARD_USAGE_CONFIRMED: { minutes: 3, points: 5 },
 
+  // Weekly (not lifetime) re-check of visibility comfort, prompted by
+  // VisibilityComfortCard on the dashboard — same small confirm-bonus
+  // weight as PRIVACY_CONFIRMED above, awarded once per week since it's
+  // injected into that week's committedActions, which resets every week.
+  VISIBILITY_COMFORT_CHECKIN: { minutes: 5, points: 5 },
+
   // One-time unlock-gate bonuses — every gate that unlocks a whole section
   // gets the same small, clearly-labeled one-time award as the confirms
   // above, so "answer this to unlock X" never feels like unpaid setup work.
@@ -190,6 +196,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   INTERVIEW_ATTENDED: 'effort',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
+  VISIBILITY_COMFORT_CHECKIN: 'connecting',
   MARKETING_PLAN_UNLOCK: 'working',
   GIG_DIRECTORY_UNLOCK: 'connecting',
   LINKEDIN_UNLOCK: 'working',

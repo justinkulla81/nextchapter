@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
 
       if (weeklyPoints >= weeklyPointsTarget) continue // already at or above target — no nudge needed
 
-      const result = await sendWeeklyGapNudgeEmail(candidate, weeklyPoints, weeklyPointsTarget)
+      const visibilityCheckedIn = sprint.visibilityComfort !== null
+      const result = await sendWeeklyGapNudgeEmail(candidate, weeklyPoints, weeklyPointsTarget, visibilityCheckedIn)
       if (result.sent) sentCount += 1
     } catch (error) {
       console.error('Weekly gap nudge failed for candidate', candidate.id, error)
