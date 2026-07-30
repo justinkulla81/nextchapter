@@ -39,6 +39,20 @@ export async function generateAdaptations(candidateId: string, narrativeId?: str
   ])
   if (!narrative || narrative.candidateId !== candidateId) return
 
+  // A core statement that doesn't end in terminal punctuation is almost
+  // certainly truncated (e.g. cut off mid-sentence by an upstream token
+  // limit) — adapting broken input just wastes a call and tends to come
+  // back as unparseable JSON anyway, so skip rather than garbage-in.
+  if (!/[.!?]['"”’]?\s*$/.test(narrative.coreStatement.trim())) {
+    console.error(
+      'Skipping adaptations for candidate',
+      candidateId,
+      '— core statement looks truncated:',
+      narrative.coreStatement
+    )
+    return
+  }
+
   let text: string
   try {
     const client = getAnthropicClient()

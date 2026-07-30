@@ -38,7 +38,11 @@ ${scenarioContext ? `\nThis particular narrative should be framed specifically a
     const client = getAnthropicClient()
     const stream = client.messages.stream({
       model: 'claude-sonnet-5',
-      max_tokens: 500,
+      // max_tokens is a shared budget covering both adaptive-thinking tokens
+      // and the final text — 500 left too little room after thinking, so
+      // the 2-3 sentence statement was getting cut off mid-word before the
+      // model finished (see narrative regeneration bug, Batch 25).
+      max_tokens: 1500,
       thinking: { type: 'adaptive' },
       messages: [{ role: 'user', content: `${PROMPT_PREFIX}${summary}` }],
     })
