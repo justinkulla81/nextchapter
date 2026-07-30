@@ -27,25 +27,28 @@ export default async function WelcomePage() {
       </div>
 
       <Card>
-        <CardContent className="space-y-3 pt-6 text-sm text-foreground">
+        <CardContent className="space-y-4 pt-6 text-sm text-foreground">
           <p>
-            Your Hireability Assessment set your baseline <strong>Market Reality Grade</strong> —
-            how competitive you look to employers right now. You raise it every week through real
-            action: a <strong>Search Sprint</strong> of outreach, applications, interview prep,
-            and networking that you commit to before the week starts. Complete it and your grade
-            moves, because you&apos;re proving you&apos;re doing the work.{' '}
-            <strong>Learning</strong>, <strong>Working</strong>, and <strong>Networking</strong>{' '}
-            raise it the same way, over time.
+            You already know what getting hired actually takes: outreach, applications, interview
+            prep, networking — done consistently, not in bursts. NextChapter turns that into a{' '}
+            <strong>Search Sprint</strong> you commit to before each week starts, and tracks your
+            progress as your <strong>Market Reality Grade</strong> — how competitive you look to
+            employers right now.
           </p>
-          <p>
-            Hold an A and you unlock the <strong>Certified Executive Dossier</strong>,{' '}
-            <strong>executive recruiter visibility</strong>, and the private{' '}
-            <strong>NC Job Board</strong> — plus a spot on that week&apos;s <strong>A-List</strong>.
-          </p>
-          <p>
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li>Your Hireability Assessment set your starting grade.</li>
+            <li>Complete your weekly Search Sprint and your grade moves, because you&apos;re proving you&apos;re doing the work.</li>
+            <li><strong>Learning</strong>, <strong>Working</strong>, and <strong>Networking</strong> raise it the same way, over time.</li>
+          </ul>
+          <p>Do the work, hold an A, and here&apos;s what you get:</p>
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li>The <strong>Certified Executive Dossier</strong>, handed to recruiters and hiring managers</li>
+            <li><strong>Executive recruiter visibility</strong></li>
+            <li>Access to the private <strong>NC Job Board</strong></li>
+          </ul>
+          <p className="text-muted-foreground">
             Honestly, the points aren&apos;t the point — they&apos;re just a proxy for doing what
-            actually gets people hired. The more real work you put in, the better your odds. Let&apos;s
-            get started.
+            actually gets people hired. Let&apos;s get started.
           </p>
         </CardContent>
       </Card>
