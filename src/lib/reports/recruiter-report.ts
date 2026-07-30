@@ -52,6 +52,11 @@ export interface RecruiterReportData {
     locationPreference: string
     evidenceType: EvidenceType
   }
+  // Only populated when the candidate has both written one AND opted in via
+  // includeGapExplanationInDossier — this document is self-serve/candidate-
+  // controlled with no per-recipient consent step (unlike /share/[token]),
+  // so that one flag is the whole gate here.
+  gapExplanation: string | null
 }
 
 function locationPreferenceLabel(
@@ -155,5 +160,6 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
       ),
       evidenceType: 'self_reported' as const,
     },
+    gapExplanation: candidate.includeGapExplanationInDossier ? candidate.gapExplanation : null,
   }
 }

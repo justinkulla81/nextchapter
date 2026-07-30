@@ -205,6 +205,15 @@ export default async function RecruiterReportPage() {
           </section>
         )}
 
+        {data.gapExplanation && (
+          <section>
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              On the gap in my history
+            </h3>
+            <p className="mt-2 text-sm text-foreground">{data.gapExplanation}</p>
+          </section>
+        )}
+
         <section>
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
