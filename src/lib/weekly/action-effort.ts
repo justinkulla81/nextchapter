@@ -79,6 +79,18 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   WATCHLIST_ADD: { minutes: 2, points: 2 },
   WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
 
+  // Prompt 76 — Gmail activity tracking. One-time connection bonus, same
+  // weight as other one-time confirm bonuses. The four Sent-folder
+  // categories are real, distinct networking actions — never merged into
+  // one "outreach" bucket — with INTRO_CONNECTION_REQUEST weighted higher
+  // since asking for an introduction is a more substantive ask than a
+  // routine note.
+  GMAIL_CONNECTED: { minutes: 5, points: 10 },
+  THANK_YOU_NOTE_SENT: { minutes: 10, points: 10 },
+  FOLLOW_UP_NOTE_SENT: { minutes: 10, points: 10 },
+  CHECK_IN_NOTE_SENT: { minutes: 10, points: 10 },
+  INTRO_CONNECTION_REQUEST_SENT: { minutes: 15, points: 15 },
+
   // Onboarding confirmations — small, real setup steps.
   PROFILE_CONFIRM: { minutes: 5, points: 5 },
   INDUSTRY_CONFIRM: { minutes: 5, points: 5 },
@@ -161,6 +173,11 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PARTNER_CLICK_THROUGH: 'connecting',
   WATCHLIST_ADD: 'connecting',
   WATCHLIST_POSTING_VIEWED: 'connecting',
+  GMAIL_CONNECTED: 'connecting',
+  THANK_YOU_NOTE_SENT: 'connecting',
+  FOLLOW_UP_NOTE_SENT: 'connecting',
+  CHECK_IN_NOTE_SENT: 'connecting',
+  INTRO_CONNECTION_REQUEST_SENT: 'connecting',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
   MARKETING_PLAN_UNLOCK: 'working',
@@ -192,6 +209,13 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   'THOUGHT_LEADERSHIP_COMMENT',
   'THOUGHT_LEADERSHIP_SHARE',
   'INTERVIEW_BEHAVIORAL_PRACTICE',
+  // Prompt 76 — a candidate can send more than one thank-you/follow-up/
+  // check-in/intro-request in a week; each detected instance earns points
+  // again, same as sending another outreach message.
+  'THANK_YOU_NOTE_SENT',
+  'FOLLOW_UP_NOTE_SENT',
+  'CHECK_IN_NOTE_SENT',
+  'INTRO_CONNECTION_REQUEST_SENT',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
@@ -259,6 +283,11 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   WATCHLIST_ADD: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
+  GMAIL_CONNECTED: { href: '/dashboard/email-activity', label: 'Email Activity' },
+  THANK_YOU_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
+  FOLLOW_UP_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
+  CHECK_IN_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
+  INTRO_CONNECTION_REQUEST_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
 }
 
 // The Mood Check-In card's "here's some ideas for today" list — the

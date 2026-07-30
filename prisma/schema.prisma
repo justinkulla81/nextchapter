@@ -692,6 +692,8 @@ model CandidateProfile {
   interimMarketplaceSignups    InterimMarketplaceSignup[]
   partnerClickThroughs         PartnerClickThrough[]
   companyWatchlist             CompanyWatchlistEntry[]
+  emailConnection              EmailConnection?
+  trackedEmailActivities       TrackedEmailActivity[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -1918,6 +1920,10 @@ model BountyClaim {
   offerLetterUrl String // storage path in the private 'offer-letters' bucket, not a public URL
   paymentMethod  BountyPaymentMethod?
   paymentHandle  String?
+  // Prompt 76 — mandatory, not skippable. This is a submission for admin
+  // review, never an automatic payout, and the testimonial is part of what
+  // gets reviewed — see submitBountyClaim's validation, not just this schema.
+  testimonial    String               @db.Text
 
   status          BountyClaimStatus @default(PENDING)
   reviewedBy      String?
@@ -1934,6 +1940,81 @@ model BountyClaim {
   createdAt DateTime @default(now())
 
   @@index([status])
+}
+
+// Prompt 76 — one Gmail connection per candidate. GMAIL only for now (Outlook
+// dropped from this pass). Testing-mode only: no candidate outside the
+// internal testing allow-list can complete this connection until a real CASA
+// security assessment is paid for — enforced in code (see gmail-oauth.ts),
+// not just by Google's own OAuth test-user gate, as defense in depth.
+// Tokens stored plaintext, matching this codebase's one existing precedent
+// (GoogleInboxConnection) — flagged there as a gap, not fixed here either;
+// revisit if this ever needs to hold up to a real security review.
+enum EmailProvider {
+  GMAIL
+}
+
+model EmailConnection {
+  id               String        @id @default(cuid())
+  candidateId      String        @unique
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  provider         EmailProvider @default(GMAIL)
+  accessToken      String        @db.Text
+  refreshToken     String        @db.Text
+  expiresAt        DateTime
+  connectedAt      DateTime      @default(now())
+  lastSyncAt       DateTime?
+  // Set when a token refresh fails (expected every ~7 days in Google's
+  // testing-mode token lifetime) — surfaced as an explicit "reconnect your
+  // Gmail" prompt, never a silent failure.
+  needsReconnectAt DateTime?
+  disconnectedAt   DateTime?
+
+  activities TrackedEmailActivity[]
+}
+
+enum EmailDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// Inbox: APPLICATION_CONFIRMATION, RECRUITER_OUTREACH, INTERVIEW_INVITE,
+// REJECTION, OFFER. Sent: THANK_YOU, FOLLOW_UP, CHECK_IN, INTRO_REQUEST —
+// four separate categories, never merged into one "outreach" bucket, each
+// with its own point value (action-effort.ts). NEEDS_REVIEW is the deliberate
+// "don't guess" bucket for low-confidence classifications.
+enum EmailActivityType {
+  APPLICATION_CONFIRMATION
+  RECRUITER_OUTREACH
+  INTERVIEW_INVITE
+  REJECTION
+  OFFER
+  THANK_YOU
+  FOLLOW_UP
+  CHECK_IN
+  INTRO_REQUEST
+  NEEDS_REVIEW
+}
+
+model TrackedEmailActivity {
+  id                String            @id @default(cuid())
+  candidateId       String
+  candidate         CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  connectionId      String
+  connection        EmailConnection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  externalMessageId String // Gmail message id — dedupe key alongside connectionId
+  direction         EmailDirection
+  activityType      EmailActivityType
+  confidence        String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
+  companyName       String?
+  roleTitle         String?
+  subject           String? // candidate's own review UI only — never exposed to anyone else
+  fromAddress       String?
+  detectedAt        DateTime          @default(now())
+  reviewedAt        DateTime? // candidate confirmed/corrected a needs-review item
+
+  @@unique([connectionId, externalMessageId])
+  @@index([candidateId, activityType])
 }
 
 // One row per person in the candidate's 5x5 Support Network. category is

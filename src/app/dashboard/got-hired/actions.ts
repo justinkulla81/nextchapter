@@ -32,10 +32,14 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
   const companyName = (formData.get('companyName') as string | null)?.trim()
   const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
   const startDateRaw = formData.get('startDate') as string | null
+  const testimonial = (formData.get('testimonial') as string | null)?.trim()
   const file = formData.get('offerLetter') as File | null
 
   if (!companyName || !roleTitle || !startDateRaw) {
     return { error: 'Fill in the company, role, and start date.' }
+  }
+  if (!testimonial || testimonial.length < 20) {
+    return { error: 'Tell us a bit about your experience — this is part of what gets reviewed.' }
   }
   const startDate = new Date(startDateRaw)
   if (Number.isNaN(startDate.getTime())) {
@@ -70,6 +74,7 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
       startDate,
       offerLetterUrl: path,
       gradeAtSubmission: currentGrade,
+      testimonial,
     },
   })
 
