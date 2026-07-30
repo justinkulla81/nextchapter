@@ -10,6 +10,7 @@
 import 'server-only'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
+import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
@@ -106,6 +107,13 @@ type RawActionPlan = z.infer<typeof hireabilityReportSchema>['actionPlan']
 // rejecting the whole report over a cosmetic day-count/day-number slip.
 function normalizeActionPlan(actionPlan: RawActionPlan): RawActionPlan {
   return actionPlan.slice(0, 7).map((day, i) => ({ ...day, day: i + 1 }))
+}
+
+// Resume.atsFeedback/resultsFeedback/experienceFeedback are stored as
+// Json[] of { issue, action } (see analyze-resume.ts) — flatten each pair
+// into one line for this plain-text prompt context.
+function joinResumeFeedback(feedback: Prisma.JsonValue[]): string {
+  return (feedback as unknown as ResumeFeedbackItem[]).map((f) => `${f.issue} (Fix: ${f.action})`).join('; ')
 }
 
 const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
@@ -336,7 +344,7 @@ Completed references (qualitative): ${
 Resume on file: ${hasResume ? 'yes' : 'no'}
 Resume analysis: ${
     latestResume
-      ? `ATS readability ${latestResume.atsScore ?? 'n/a'}/100 (${latestResume.atsFeedback.join('; ') || 'n/a'}); Results-orientation ${latestResume.resultsScore ?? 'n/a'}/100 (${latestResume.resultsFeedback.join('; ') || 'n/a'}); Experience evaluation ${latestResume.experienceScore ?? 'n/a'}/100 (${latestResume.experienceFeedback.join('; ') || 'n/a'})`
+      ? `ATS readability ${latestResume.atsScore ?? 'n/a'}/100 (${joinResumeFeedback(latestResume.atsFeedback) || 'n/a'}); Results-orientation ${latestResume.resultsScore ?? 'n/a'}/100 (${joinResumeFeedback(latestResume.resultsFeedback) || 'n/a'}); Experience evaluation ${latestResume.experienceScore ?? 'n/a'}/100 (${joinResumeFeedback(latestResume.experienceFeedback) || 'n/a'})`
       : 'no resume uploaded yet'
   }
 

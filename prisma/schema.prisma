@@ -1371,12 +1371,11 @@ model Resume {
   extractionError String?
 
   atsScore           Int? // 0-100
-  atsFeedback        String[]  @default([])
+  atsFeedback        Json[]    @default([]) // { issue: string, action: string } — issue framed as what a recruiter/hiring manager would notice
   resultsScore       Int? // 0-100 — quantified impact vs. vague duties
-  resultsFeedback    String[]  @default([])
+  resultsFeedback    Json[]    @default([]) // { issue: string, action: string }
   experienceScore    Int? // 0-100 — gaps, tenure, alignment with stated goals
-  experienceFeedback String[]  @default([])
-  actionItems        String[]  @default([]) // concrete itemized checklist derived from the gaps above
+  experienceFeedback Json[]    @default([]) // { issue: string, action: string }
   analysisError      String?
   analyzedAt         DateTime?
 
