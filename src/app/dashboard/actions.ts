@@ -72,6 +72,21 @@ export async function checkInMood(mood: Mood) {
   if (!profile) return
 
   await recordMoodCheckIn(profile.id, mood)
+
+  // Small recurring bonus, same one-award-per-week shape as
+  // VISIBILITY_COMFORT_CHECKIN — autoCompleteEngagementAction no-ops if
+  // this week's check-in already earned it.
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'MOOD_CHECKIN' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'MOOD_CHECKIN',
+      text: "Checked in on how you're feeling",
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+
   captureServerEvent(profile.id, 'mood_checked_in', { mood })
   revalidatePath('/dashboard')
 }

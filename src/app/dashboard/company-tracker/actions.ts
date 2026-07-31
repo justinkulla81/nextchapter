@@ -47,7 +47,7 @@ export async function addWatchlistCompany(
   if (result.error) return { error: result.error }
 
   await logWatchlistAdd(profile.id, companyName)
-  revalidatePath('/dashboard/company-tracker')
+  revalidatePath('/dashboard/find-my-job')
   revalidatePath('/dashboard', 'layout')
 }
 
@@ -62,7 +62,7 @@ export async function addWatchlistCompanyByName(companyName: string): Promise<{ 
   if (result.error) return result
 
   await logWatchlistAdd(profile.id, companyName)
-  revalidatePath('/dashboard/company-tracker')
+  revalidatePath('/dashboard/find-my-job')
   revalidatePath('/dashboard', 'layout')
   return {}
 }
@@ -71,7 +71,7 @@ export async function removeWatchlistCompany(entryId: string): Promise<void> {
   const profile = await getProfile()
   if (!profile) return
   await removeCompanyFromWatchlist(profile.id, entryId)
-  revalidatePath('/dashboard/company-tracker')
+  revalidatePath('/dashboard/find-my-job')
   revalidatePath('/dashboard', 'layout')
 }
 
@@ -89,8 +89,9 @@ export async function viewWatchlistPosting(postingId: string, companyName: strin
 }
 
 // Resets the "new" counter for the whole watchlist — called once when the
-// candidate loads the Company Tracker page, same "visiting clears it"
-// convention as communityLastViewedAt.
+// candidate loads the Find Full-Time Jobs page (which now embeds the
+// Company Tracker section), same "visiting clears it" convention as
+// communityLastViewedAt.
 export async function markWatchlistPageViewed(): Promise<void> {
   const profile = await getProfile()
   if (!profile) return

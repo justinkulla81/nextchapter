@@ -65,9 +65,14 @@ export function MoodCheckInCard({
   return (
     <Card aria-busy={isPending}>
       <CardHeader className="relative">
-        <CardTitle className="text-base font-medium text-foreground">
-          How motivated are you today{firstName ? `, ${firstName}` : ''}?
-        </CardTitle>
+        <div className="flex items-center gap-2 pr-6">
+          <CardTitle className="text-base font-medium text-foreground">
+            How motivated are you today{firstName ? `, ${firstName}` : ''}?
+          </CardTitle>
+          <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+            +3 pts
+          </span>
+        </div>
         <button
           type="button"
           onClick={handleDismiss}

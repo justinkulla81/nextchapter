@@ -8,6 +8,7 @@ import {
   estimateActionEffort,
   formatMinutes,
   isRecurringActionType,
+  navCategoryForActionType,
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
@@ -50,6 +51,7 @@ function ActionRow({
   committed: boolean
 }) {
   const link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
+  const navCategory = navCategoryForActionType(actionType)
   return (
     <div
       className={cn(
@@ -70,6 +72,11 @@ function ActionRow({
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {recurring ? 'Recurring' : 'One-time'}
         </span>
+        {navCategory && (
+          <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+            {navCategory}
+          </span>
+        )}
         {!committed && (
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             Not committed
@@ -99,6 +106,7 @@ export function SuccessSprintCard({
   laggingEngines,
   categoryMinimumsMet,
   weeklyPoints,
+  weeklyPointsTarget,
   onTrack,
 }: {
   actions: CommittedAction[] | null
@@ -111,6 +119,7 @@ export function SuccessSprintCard({
   laggingEngines: WeeklyEngine['key'][]
   categoryMinimumsMet: boolean
   weeklyPoints: number
+  weeklyPointsTarget: number
   onTrack: boolean
 }) {
   const committedTier = actions?.filter((a) => !a.addedFromCatalog) ?? []
@@ -132,14 +141,6 @@ export function SuccessSprintCard({
     .filter((a) => a.recurring && a.completed)
     .reduce((sum, a) => sum + a.points, 0)
 
-  // The header's denominator must equal the sum of what's actually listed
-  // below it (committedTier's points) — using the system's ramp target here
-  // instead would show an unreachable number whenever a candidate committed
-  // to less than the full ramp (a fully supported, common case: goal-setting
-  // only requires clearing the B bar, not the A bar). weeklyPointsTarget
-  // still drives the separate On track/Behind pace pacing pill below.
-  const committedPointsTotal = committedTier.reduce((sum, a) => sum + a.points, 0)
-
   return (
     <Card>
       <CardHeader>
@@ -156,8 +157,8 @@ export function SuccessSprintCard({
             )}
           >
             <p className="text-lg font-semibold text-foreground">
-              <span className="tabular-nums">{weeklyPoints}</span> of your{' '}
-              <span className="tabular-nums">{committedPointsTotal}</span>-point sprint this week
+              <span className="tabular-nums">{weeklyPoints}</span> of{' '}
+              <span className="tabular-nums">{weeklyPointsTarget}</span> points this week
             </p>
             {recurringPointsEarned > 0 && (
               <p className="text-xs text-muted-foreground tabular-nums">

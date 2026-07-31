@@ -174,8 +174,6 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <DashboardMessageCard message={dashboardMessage} />
-
       <DashboardTopStrip
         grade={grade}
         searchExecutionAvailable={searchExecutionAvailable}
@@ -184,6 +182,8 @@ export default async function DashboardPage() {
         dayNumber={dayNumber}
         suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
       />
+
+      <DashboardMessageCard message={dashboardMessage} />
 
       <EmployerInterestSection candidateId={profile.id} />
 
@@ -211,6 +211,7 @@ export default async function DashboardPage() {
           laggingEngines={grade.laggingEngines}
           categoryMinimumsMet={grade.categoryMinimumsMet}
           weeklyPoints={grade.weeklyPoints}
+          weeklyPointsTarget={grade.weeklyPointsTarget}
           onTrack={onTrack}
         />
       </div>

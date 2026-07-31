@@ -69,13 +69,14 @@ function buildSections(
         },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
+        { href: '/dashboard/profile', label: 'My Profile' },
       ],
     },
     {
       title: 'Connecting',
       links: [
-        { href: '/dashboard/network', label: 'Outreach Contacts' },
         { href: '/dashboard/references', label: 'My References' },
+        { href: '/dashboard/network', label: 'Outreach Contacts' },
         // Prompt 76 — internal testing only; the nav link itself is hidden
         // from everyone else rather than showing a dead end.
         ...(showEmailActivity
@@ -110,28 +111,27 @@ function buildSections(
         {
           href: '/dashboard/find-my-job',
           label: 'Find Full-Time Jobs',
-          badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
+          // Includes the watchlist notification count — Company Tracker
+          // lives inside this page now, not as its own nav item.
+          badge:
+            newJobMatchesCount + watchlistNotificationCount > 0
+              ? String(newJobMatchesCount + watchlistNotificationCount)
+              : undefined,
         },
-        {
-          href: '/dashboard/company-tracker',
-          label: 'Company Tracker',
-          badge: watchlistNotificationCount > 0 ? String(watchlistNotificationCount) : undefined,
-        },
+        { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
         { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         { href: '/dashboard/learning', label: 'Learn New Skills' },
         { href: '/dashboard/guides', label: 'Search Strategy Guides' },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
-        { href: '/faq', label: 'FAQ' },
       ],
     },
     {
-      title: 'Profile',
+      title: 'Misc',
       links: [
-        { href: '/dashboard/profile', label: 'My Profile' },
-        { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
-        { href: '/dashboard/support', label: "I'm Struggling" },
+        { href: "/dashboard/support", label: "I'm Struggling" },
         { href: '/dashboard/stats', label: 'My Stats & Reports' },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },
+        { href: '/faq', label: 'FAQ' },
       ],
     },
   ]

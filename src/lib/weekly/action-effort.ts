@@ -120,6 +120,11 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // injected into that week's committedActions, which resets every week.
   VISIBILITY_COMFORT_CHECKIN: { minutes: 5, points: 5 },
 
+  // Daily mood check-in — small recurring bonus, same weekly-reset shape as
+  // VISIBILITY_COMFORT_CHECKIN above (awarded once per week, the first time
+  // that week's check-in happens, via autoCompleteEngagementAction).
+  MOOD_CHECKIN: { minutes: 2, points: 3 },
+
   // One-time unlock-gate bonuses — every gate that unlocks a whole section
   // gets the same small, clearly-labeled one-time award as the confirms
   // above, so "answer this to unlock X" never feels like unpaid setup work.
@@ -199,6 +204,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
   VISIBILITY_COMFORT_CHECKIN: 'connecting',
+  MOOD_CHECKIN: 'connecting',
   MARKETING_PLAN_UNLOCK: 'working',
   GIG_DIRECTORY_UNLOCK: 'connecting',
   LINKEDIN_UNLOCK: 'working',
@@ -210,6 +216,73 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
   if (actionType && ENGINE_BY_ACTION_TYPE[actionType]) return ENGINE_BY_ACTION_TYPE[actionType]
   return 'effort'
+}
+
+// Which top-level hamburger-nav section (Building / Connecting / Learning &
+// Working) each action type's real work happens under — a separate axis
+// from the four scoring engines above (engine = what it counts toward,
+// nav category = where you'd actually go do it). Kept as its own map
+// rather than derived from ACTION_TYPE_LINK's href so it stays correct
+// even for action types with no deep link.
+export type NavCategory = 'Building' | 'Connecting' | 'Learning & Working'
+
+const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
+  WORKING_STYLE_QUIZ: 'Building',
+  RESUME_UPDATE: 'Building',
+  SKILLS_TRANSLATOR: 'Building',
+  INTERVIEW_PREP: 'Building',
+  INTERVIEW_BEHAVIORAL_PRACTICE: 'Building',
+  LINKEDIN_POST_IDEA: 'Building',
+  THOUGHT_LEADERSHIP_COMMENT: 'Building',
+  THOUGHT_LEADERSHIP_SHARE: 'Building',
+  MARKETING_PLAN_UNLOCK: 'Building',
+  SUBSTACK_UNLOCK: 'Building',
+  LINKEDIN_SETUP: 'Building',
+  LINKEDIN_UNLOCK: 'Building',
+  WORK_SAMPLE_TYPE_CONFIRMED: 'Building',
+  PROFILE_CONFIRM: 'Building',
+  INDUSTRY_CONFIRM: 'Building',
+  FUNCTION_CONFIRM: 'Building',
+  SALARY_CONFIRM: 'Building',
+  WORK_AUTHORIZATION: 'Building',
+  ANSWER_OPTIONAL_QUESTIONS: 'Building',
+
+  HELP_SCRIPT: 'Connecting',
+  NETWORKING_LIST: 'Connecting',
+  OUTREACH_MESSAGE: 'Connecting',
+  OUTREACH_CALL: 'Connecting',
+  OUTREACH_FOLLOW_UP: 'Connecting',
+  NETWORK_COMFORT_CONFIRMED: 'Connecting',
+  ENGAGE_COMMENT: 'Connecting',
+  ENGAGE_EVENT: 'Connecting',
+  ENGAGE_POST_UPDATE: 'Connecting',
+  ENGAGE_PEER_SUPPORT: 'Connecting',
+  MOOD_CHECKIN: 'Connecting',
+  PRIVACY_CONFIRMED: 'Connecting',
+  VISIBILITY_COMFORT_CHECKIN: 'Connecting',
+  GMAIL_CONNECTED: 'Connecting',
+  THANK_YOU_NOTE_SENT: 'Connecting',
+  FOLLOW_UP_NOTE_SENT: 'Connecting',
+  CHECK_IN_NOTE_SENT: 'Connecting',
+  INTRO_CONNECTION_REQUEST_SENT: 'Connecting',
+  CALENDAR_CONNECTED: 'Connecting',
+  INTERVIEW_ATTENDED: 'Connecting',
+
+  LEARNING_MODULE: 'Learning & Working',
+  LEARNING_CERTIFICATE: 'Learning & Working',
+  LEARNING_NEW_TOOL: 'Learning & Working',
+  OUTREACH_CLOSE_APPLICATION: 'Learning & Working',
+  NEGOTIATION_ADVICE: 'Learning & Working',
+  JOB_BOARD_USAGE_CONFIRMED: 'Learning & Working',
+  INTERIM_PROFILE_CREATED: 'Learning & Working',
+  GIG_DIRECTORY_UNLOCK: 'Learning & Working',
+  PARTNER_CLICK_THROUGH: 'Learning & Working',
+  WATCHLIST_ADD: 'Learning & Working',
+  WATCHLIST_POSTING_VIEWED: 'Learning & Working',
+}
+
+export function navCategoryForActionType(actionType: string | undefined): NavCategory | undefined {
+  return actionType ? NAV_CATEGORY_BY_ACTION_TYPE[actionType] : undefined
 }
 
 // Recurring action types represent an ongoing habit you can engage with
@@ -305,8 +378,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   SUBSTACK_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
-  WATCHLIST_ADD: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
-  WATCHLIST_POSTING_VIEWED: { href: '/dashboard/company-tracker', label: 'Company Tracker' },
+  WATCHLIST_ADD: { href: '/dashboard/find-my-job', label: 'Find My Job' },
+  WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   GMAIL_CONNECTED: { href: '/dashboard/email-activity', label: 'Email Activity' },
   THANK_YOU_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },
   FOLLOW_UP_NOTE_SENT: { href: '/dashboard/email-activity', label: 'Email Activity' },

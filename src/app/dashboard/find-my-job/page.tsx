@@ -2,6 +2,11 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
+import { getWatchlistWithCounts, getWatchlistPostings } from '@/lib/company-tracker/watchlist'
+import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
+import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
+import { CompanyWatchlistList, WatchlistPostingsList } from '@/components/dashboard/CompanyWatchlistList'
+import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
 import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
@@ -85,7 +90,16 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [surfacedJobs, totalUnreactedCount, interestedJobs, reactedCount, grade, boardPostings] = await Promise.all([
+  const [
+    surfacedJobs,
+    totalUnreactedCount,
+    interestedJobs,
+    reactedCount,
+    grade,
+    boardPostings,
+    watchlistCompanies,
+    watchlistPostings,
+  ] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -113,6 +127,8 @@ export default async function JobFitPage() {
       },
       orderBy: { createdAt: 'desc' },
     }),
+    getWatchlistWithCounts(profile.id),
+    getWatchlistPostings(profile.id),
   ])
 
   const isAList = grade.grade === 'A'
@@ -154,6 +170,7 @@ export default async function JobFitPage() {
 
   return (
     <div className="space-y-10">
+      <MarkWatchlistViewedOnMount />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
         <p className="mt-1 text-muted-foreground">
@@ -258,6 +275,47 @@ export default async function JobFitPage() {
             />
           </div>
         </details>
+      </div>
+
+      <div className="space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Company Tracker</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Name the 15–30 companies you&apos;d actually want to work for and watch for openings
+            there, instead of only reacting to what&apos;s already posted — the same account-based
+            approach executive search firms use.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-foreground">Add a company</p>
+            <CompanyWatchlistForm />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-foreground">Your watchlist ({watchlistCompanies.length})</p>
+            <CompanyWatchlistList companies={watchlistCompanies} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-foreground">Open postings from watched companies</p>
+            <WatchlistPostingsList
+              postings={watchlistPostings.map((p) => ({
+                id: p.id,
+                title: p.title,
+                companyName: p.companyName,
+                location: p.location,
+                url: p.url,
+                isNew: isRecentlyListed(p.createdAt),
+              }))}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       <div className="space-y-4 border-t border-border pt-8">
