@@ -2197,11 +2197,19 @@ model ExclusiveJobPosting {
   title       String
   companyName String
   location    String?
-  url         String
+  url         String    @unique // upsert key for the ncrawl bulk importer (see /api/admin/jobs/import) — every other write path (admin form, ATS feed cron) also produces one row per url, so this holds for all sources, not just imports
   description String?
-  addedBy     String // admin email, from requireAdmin() — for admin-added rows
+  addedBy     String // admin email from requireAdmin(), or a pipeline name like 'ncrawl' for bulk-imported rows
   createdAt   DateTime  @default(now())
   archivedAt  DateTime? // soft-hide instead of delete, keeps admin history
+
+  // Populated only by the ncrawl bulk importer (see /api/admin/jobs/import) —
+  // every other write path leaves these null. Deliberately free-text rather
+  // than Prisma enums since ncrawl's own taxonomy evolves independently of
+  // this schema.
+  level          String? // e.g. C_SUITE, EVP_SVP, VP, DIRECTOR — ncrawl's seniority classification
+  sourceCategory String? // e.g. employer, search_firm, venture, pe, association — who runs the board this came from
+  badges         String[] @default([]) // e.g. "PE-backed", "VC-backed", "Recruiter-led search" — the signals that differentiate this feed from a generic job board, surfaced on the listing
 
   // 'direct' | 'recruiter_search' — shown prominently on the listing itself,
   // per Prompt 61: this is a real trust differentiator, never buried.
