@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
@@ -11,6 +12,9 @@ import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers
 import { AiProofPointExercise } from '@/components/dashboard/learning/AiProofPointExercise'
 import { InterviewSkillsSection } from '@/components/dashboard/learning/InterviewSkillsSection'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
+
+export const metadata: Metadata = { title: 'Learning & Training' }
+
 
 function renderSection(section: LearningPlanSection, completedTitles: Set<string>) {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ListChecks } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -24,6 +25,9 @@ import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
+
+export const metadata: Metadata = { title: 'My Stats & Reports' }
+
 
 type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']

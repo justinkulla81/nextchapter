@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -14,6 +15,7 @@ import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { JobReactionSummary } from '@/components/dashboard/JobReactionSummary'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
+import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -40,6 +42,8 @@ import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+
+export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
 
 const SURFACED_JOB_LIST_SIZE = 5
 // The locked A-List teaser board can have dozens of approved postings once
@@ -188,6 +192,8 @@ export default async function JobFitPage() {
           actionTypes={['OUTREACH_CLOSE_APPLICATION', 'NEGOTIATION_ADVICE']}
         />
       </div>
+
+      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
       <div className="space-y-4">
         <div>

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
@@ -10,6 +11,9 @@ import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
 import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/AlternativeNarrativeTabs'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
+
+export const metadata: Metadata = { title: 'My Marketing Plan' }
+
 
 export default async function MarketingPlanPage() {
   const profile = await getDashboardData()

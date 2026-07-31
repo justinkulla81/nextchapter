@@ -1,9 +1,13 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { AssessmentForm } from '@/components/onboarding/AssessmentForm'
 import { KnownForForm } from '@/components/dashboard/KnownForForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CURRENT_ASSESSMENT_ROTATION_GROUP } from '@/lib/constants/onboarding'
+
+export const metadata: Metadata = { title: 'How I Work Best' }
+
 
 const RETAKE_COOLDOWN_DAYS = 7
 

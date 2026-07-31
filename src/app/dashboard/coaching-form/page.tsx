@@ -1,9 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getCoachTemplate, hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { prisma } from '@/lib/prisma'
 import { CoachingOnboardingForm } from '@/components/onboarding/CoachingOnboardingForm'
 import { submitCoachingOnboardingFormDashboard } from '@/app/dashboard/coaching-form/actions'
+
+export const metadata: Metadata = { title: 'Coaching Intake Form' }
+
 
 export default async function DashboardCoachingFormPage() {
   const profile = await getDashboardData()

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -27,6 +28,9 @@ import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompl
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { cn } from '@/lib/utils'
 import type { Prisma, PrivacyTier } from '@prisma/client'
+
+export const metadata: Metadata = { title: 'Support Network' }
+
 
 const PARTNER_TYPE_LABEL = {
   COACH: 'Coach',

@@ -1,9 +1,13 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { BountyClaimForm } from '@/components/dashboard/BountyClaimForm'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+
+export const metadata: Metadata = { title: 'Got An Offer' }
+
 
 const STATUS_COPY: Record<string, { heading: string; body: string }> = {
   PENDING: {

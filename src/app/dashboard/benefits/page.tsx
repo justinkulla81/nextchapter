@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { BenefitsPressureForm } from '@/components/dashboard/BenefitsPressureForm'
@@ -5,6 +6,9 @@ import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPla
 import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
 import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+export const metadata: Metadata = { title: 'Benefits & Financial Bridge' }
+
 
 interface ResourceLink {
   name: string

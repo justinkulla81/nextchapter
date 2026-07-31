@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
@@ -22,6 +23,9 @@ import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplaine
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { cn } from '@/lib/utils'
+
+export const metadata: Metadata = { title: 'Hireability Report' }
+
 
 // A first-ever report has essentially no track record behind it yet — an F
 // at that point reflects thin signal, not a real verdict, so it's shown as

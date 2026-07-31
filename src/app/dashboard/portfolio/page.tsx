@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -14,6 +15,9 @@ import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+
+export const metadata: Metadata = { title: 'My Portfolio' }
+
 
 const RESUME_UPDATE_POINTS = estimateActionEffort({ actionType: 'RESUME_UPDATE' }).points
 

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
@@ -6,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CalendarActivitySyncButton, CalendarActivityDismissButton } from '@/components/dashboard/CalendarActivityControls'
 import { disconnectCalendar } from './actions'
+
+export const metadata: Metadata = { title: 'Calendar Activity' }
+
 
 export default async function CalendarActivityPage({
   searchParams,

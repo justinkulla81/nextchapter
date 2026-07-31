@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { InterimLaunchPlanTracker } from '@/components/dashboard/InterimLaunchPlanTracker'
@@ -10,6 +11,9 @@ import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { hasLegalRestrictionFlag } from '@/lib/interim-work/expert-network-caution'
 import { getActiveListings, getSignedUpListingIds } from '@/lib/interim-work/listings'
 import { InterimListingCategory } from '@prisma/client'
+
+export const metadata: Metadata = { title: 'Interim Work' }
+
 
 export default async function InterimWorkPage() {
   const profile = await getDashboardData()

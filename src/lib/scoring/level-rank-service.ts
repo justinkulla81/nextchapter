@@ -17,15 +17,28 @@ export interface LevelRankResult {
   label: string | null
 }
 
+// A non-current entry with no logged endDate has a genuinely unknown
+// tenure — falling back to `now` (the old behavior) treated "we don't know
+// when it ended" as "it ended today," handing an old, incompletely-filled-in
+// role the same max recency/tenure weight as one ending right now. This was
+// a live bug, not hypothetical: a real candidate's decade-old IC roles with
+// missing end dates were outweighing their genuinely current senior titles
+// in the blend. startDate is the conservative fallback — it can only ever
+// understate an unknown tenure, never overstate it.
+function effectiveEnd(entry: WorkHistoryEntry, now: Date): Date {
+  if (entry.isCurrent) return now
+  return entry.endDate ?? entry.startDate
+}
+
 function recencyWeight(entry: WorkHistoryEntry, now: Date): number {
   if (entry.isCurrent) return 1
-  const end = entry.endDate ?? now
+  const end = effectiveEnd(entry, now)
   const yearsSinceEnd = Math.max(0, (now.getTime() - end.getTime()) / MS_PER_YEAR)
   return Math.max(RECENCY_WEIGHT_FLOOR, Math.pow(0.5, yearsSinceEnd / RECENCY_HALF_LIFE_YEARS))
 }
 
 function tenureWeight(entry: WorkHistoryEntry, now: Date): number {
-  const end = entry.endDate ?? now
+  const end = effectiveEnd(entry, now)
   const tenureMonths = Math.max(0, (end.getTime() - entry.startDate.getTime()) / (MS_PER_YEAR / 12))
   return Math.min(TENURE_WEIGHT_CAP, Math.max(TENURE_WEIGHT_FLOOR, tenureMonths / 12))
 }

@@ -5,8 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getWatchlistNotificationCount } from '@/lib/company-tracker/watchlist'
-import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
-import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 
 export const metadata: Metadata = {
@@ -68,8 +66,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         messagesUnreadCount={messagesUnreadCount}
         newJobMatchesCount={newJobMatchesCount}
         watchlistNotificationCount={watchlistNotificationCount}
-        showEmailActivity={profile.email ? isGmailTrackingTester(profile.email) : false}
-        showCalendarActivity={profile.email ? isCalendarTrackingTester(profile.email) : false}
       />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>

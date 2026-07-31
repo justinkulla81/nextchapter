@@ -38,6 +38,29 @@ export function buildCandidateGmailAuthUrl(state: string): string {
   return `${GOOGLE_AUTH_URL}?${params.toString()}`
 }
 
+// Combined Gmail + Calendar Connect — one consent screen, both scopes, one
+// click. Both features share the same OAuth client (see
+// google-calendar-oauth.ts's own comment on why), so there was never a
+// technical need for two separate connect flows; this is the entry point
+// /api/auth/google-connect/{start,callback} use so a candidate isn't asked
+// to click "Connect" twice for what's functionally one grant.
+export function buildCombinedGoogleAuthUrl(state: string): string {
+  const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
+  if (!clientId) throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID is not set.')
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: `${appUrl}/api/auth/google-connect/callback`,
+    response_type: 'code',
+    scope: `${SCOPE} https://www.googleapis.com/auth/calendar.events.readonly`,
+    access_type: 'offline',
+    prompt: 'consent',
+    state,
+  })
+  return `${GOOGLE_AUTH_URL}?${params.toString()}`
+}
+
 interface GoogleTokenResponse {
   access_token: string
   refresh_token?: string

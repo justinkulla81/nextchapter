@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/InterviewPrepTabs'
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
@@ -6,6 +7,9 @@ import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 import { detectNarrativeWeaknesses } from '@/lib/narrative/detect-narrative-weaknesses'
+
+export const metadata: Metadata = { title: 'Interview Prep' }
+
 
 export default async function InterviewPrepPage() {
   const profile = await getDashboardData()

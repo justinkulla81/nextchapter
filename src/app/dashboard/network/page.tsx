@@ -1,7 +1,9 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
+import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { NetworkEncouragement } from '@/components/dashboard/NetworkEncouragement'
 import { NetworkingAnxietySelector } from '@/components/dashboard/NetworkingAnxietySelector'
 import { NetworkConnectPreferenceSelector } from '@/components/dashboard/NetworkConnectPreferenceSelector'
@@ -22,6 +24,8 @@ import {
   fillGoodWordTemplate,
   fillCheckingInTemplate,
 } from '@/lib/constants/network-email-templates'
+
+export const metadata: Metadata = { title: 'Outreach Contacts' }
 
 const CATEGORY_ORDER = [
   'FORMER_COLLEAGUE',
@@ -91,6 +95,8 @@ export default async function NetworkPage() {
           actionTypes={['HELP_SCRIPT', 'NETWORKING_LIST', 'OUTREACH_MESSAGE', 'OUTREACH_CALL', 'OUTREACH_FOLLOW_UP']}
         />
       </div>
+
+      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
       <NetworkEncouragement comfortLevel={profile.networkComfortLevel} />
 

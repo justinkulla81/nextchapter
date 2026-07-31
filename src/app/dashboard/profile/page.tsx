@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
 import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
@@ -17,6 +18,8 @@ import {
   removeMyProfilePicture,
   toggleMyProfilePictureVisible,
 } from '@/app/dashboard/actions'
+
+export const metadata: Metadata = { title: 'My Profile' }
 
 export default async function ProfilePage() {
   const profile = await getDashboardData()

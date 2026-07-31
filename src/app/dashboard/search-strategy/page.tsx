@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getSearchStage, SEARCH_STAGE_MESSAGE } from '@/lib/search-strategy'
@@ -7,6 +8,9 @@ import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
+
+export const metadata: Metadata = { title: 'My Search Strategy' }
+
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()

@@ -160,15 +160,24 @@ const BARE_ED_ABBREVIATION = /\bed\b/
 const BARE_PRINCIPAL = /\bprincipal\b/
 const PRINCIPAL_IC_QUALIFIER = /\bprincipal\s+(engineer|scientist|architect|developer|consultant|analyst|designer)\b/
 
+// A board seat is a governance-tier role, categorically more senior than an
+// internal-org "Director" job title with the same word in it — a real gap,
+// not hypothetical (a candidate's "Senior Adviser, Board Director" title was
+// landing on the plain Director tier via the bare 'director' substring
+// match above, understating what's genuinely an executive/governance-level
+// role and dragging down their whole career-seniority signal).
+const BOARD_QUALIFIER = /\bboard\s+(director|member|advisor|adviser)\b/
+
 export function inferLevelFromTitle(title: string): string {
   const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))} `
   for (const entry of LEVEL_KEYWORDS) {
     const matchesKeyword = entry.keywords.some((kw) => lower.includes(kw))
     const matchesExecAcronym = entry.level === 'C-Suite' && EXEC_ACRONYM_PATTERN.test(lower)
+    const matchesBoardQualifier = entry.level === 'C-Suite' && BOARD_QUALIFIER.test(lower)
     const matchesBareED = entry.level === 'Director' && BARE_ED_ABBREVIATION.test(lower)
     const matchesBarePrincipal =
       entry.level === 'Director' && BARE_PRINCIPAL.test(lower) && !PRINCIPAL_IC_QUALIFIER.test(lower)
-    if (matchesKeyword || matchesExecAcronym || matchesBareED || matchesBarePrincipal) {
+    if (matchesKeyword || matchesExecAcronym || matchesBoardQualifier || matchesBareED || matchesBarePrincipal) {
       return entry.level
     }
   }

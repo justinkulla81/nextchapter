@@ -5,6 +5,7 @@ import { estimateActionEffort, pointsNeededForA, isRecurringActionType } from '@
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
+import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export interface CommittedAction {
@@ -153,6 +154,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
       salaryConfirmedAt: true,
       workAuthConfirmedAt: true,
       comfortCheckBonusAt: true,
+      email: true,
       jobsAppliedBucket: true,
       interviewsReceivedCount: true,
       networkingLevel: true,
@@ -201,6 +203,20 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     suggestions.push({ text: 'Confirm your work authorization status', actionType: 'WORK_AUTHORIZATION' })
     usedTypes.add('WORK_AUTHORIZATION')
     total += estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
+  }
+  // Internal testing only — surfaces the one-click combined Gmail +
+  // Calendar connect (see GoogleConnectPrompt) as a real suggested action
+  // instead of it only being discoverable on the Network/Find My Job pages.
+  if (profile?.email && isGmailTrackingTester(profile.email) && !usedTypes.has('GMAIL_CONNECTED')) {
+    const [hasEmailConnection, hasCalendarConnection] = await Promise.all([
+      prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
+      prisma.calendarConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
+    ])
+    if (!hasEmailConnection || !hasCalendarConnection) {
+      suggestions.push({ text: 'Connect your Gmail & Calendar (one click, both)', actionType: 'GMAIL_CONNECTED' })
+      usedTypes.add('GMAIL_CONNECTED')
+      total += estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).points
+    }
   }
   // Also the one-time unlock gate for the recurring INTERVIEW_BEHAVIORAL_PRACTICE
   // action — see RECURRING_ACTION_TYPES / the week-1 gating below.

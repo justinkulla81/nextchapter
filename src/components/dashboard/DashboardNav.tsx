@@ -43,9 +43,7 @@ function buildSections(
   needsWorkStyleSurvey: boolean,
   messagesUnreadCount: number,
   newJobMatchesCount: number,
-  watchlistNotificationCount: number,
-  showEmailActivity: boolean,
-  showCalendarActivity: boolean
+  watchlistNotificationCount: number
 ): NavSection[] {
   return [
     {
@@ -77,16 +75,6 @@ function buildSections(
       links: [
         { href: '/dashboard/references', label: 'My References' },
         { href: '/dashboard/network', label: 'Outreach Contacts' },
-        // Prompt 76 — internal testing only; the nav link itself is hidden
-        // from everyone else rather than showing a dead end.
-        ...(showEmailActivity
-          ? [{ href: '/dashboard/email-activity', label: 'Email Activity' }]
-          : []),
-        // Prompt 79 — same hidden-not-shown-as-locked convention as Email
-        // Activity above.
-        ...(showCalendarActivity
-          ? [{ href: '/dashboard/calendar-activity', label: 'Calendar Activity' }]
-          : []),
         {
           href: '/dashboard/community',
           label: 'Support Network',
@@ -146,8 +134,6 @@ function NavContent({
   messagesUnreadCount,
   newJobMatchesCount,
   watchlistNotificationCount,
-  showEmailActivity,
-  showCalendarActivity,
 }: {
   pathname: string
   onNavigate?: () => void
@@ -157,8 +143,6 @@ function NavContent({
   messagesUnreadCount: number
   newJobMatchesCount: number
   watchlistNotificationCount: number
-  showEmailActivity: boolean
-  showCalendarActivity: boolean
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(
@@ -167,9 +151,7 @@ function NavContent({
     needsWorkStyleSurvey,
     messagesUnreadCount,
     newJobMatchesCount,
-    watchlistNotificationCount,
-    showEmailActivity,
-    showCalendarActivity
+    watchlistNotificationCount
   )
 
   return (
@@ -244,8 +226,6 @@ export function DashboardNav({
   messagesUnreadCount = 0,
   newJobMatchesCount = 0,
   watchlistNotificationCount = 0,
-  showEmailActivity = false,
-  showCalendarActivity = false,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -253,8 +233,6 @@ export function DashboardNav({
   messagesUnreadCount?: number
   newJobMatchesCount?: number
   watchlistNotificationCount?: number
-  showEmailActivity?: boolean
-  showCalendarActivity?: boolean
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -264,9 +242,7 @@ export function DashboardNav({
     needsWorkStyleSurvey,
     messagesUnreadCount,
     newJobMatchesCount,
-    watchlistNotificationCount,
-    showEmailActivity,
-    showCalendarActivity
+    watchlistNotificationCount
   )
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
@@ -284,8 +260,6 @@ export function DashboardNav({
           messagesUnreadCount={messagesUnreadCount}
           newJobMatchesCount={newJobMatchesCount}
           watchlistNotificationCount={watchlistNotificationCount}
-          showEmailActivity={showEmailActivity}
-          showCalendarActivity={showCalendarActivity}
         />
       </aside>
 
@@ -321,8 +295,6 @@ export function DashboardNav({
               messagesUnreadCount={messagesUnreadCount}
               newJobMatchesCount={newJobMatchesCount}
               watchlistNotificationCount={watchlistNotificationCount}
-              showEmailActivity={showEmailActivity}
-              showCalendarActivity={showCalendarActivity}
             />
           </div>
         </div>

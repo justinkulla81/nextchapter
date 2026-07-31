@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FileText } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -13,6 +14,9 @@ import { StatusRow } from '@/components/ui/status-icon'
 import { EmptyState } from '@/components/ui/empty-state'
 import { CHARACTER_SIGNAL_MIN_REFERENCES } from '@/lib/reports/evidence-type'
 import { Logo } from '@/components/Logo'
+
+export const metadata: Metadata = { title: 'Certified Executive Dossier' }
+
 
 export default async function RecruiterReportPage() {
   const profile = await getDashboardData()

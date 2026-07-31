@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -6,6 +7,9 @@ import { getCoachingNotes } from '@/lib/coach/coaching-notes'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 import { captureServerEvent } from '@/lib/posthog/server'
+
+export const metadata: Metadata = { title: 'Coach Dossier & Notes' }
+
 
 export default async function CoachDossierPage() {
   const profile = await getDashboardData()

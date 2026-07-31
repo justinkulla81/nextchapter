@@ -1,5 +1,9 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+export const metadata: Metadata = { title: 'Support During Transition' }
+
 
 export default function SupportDuringTransitionPage() {
   return (

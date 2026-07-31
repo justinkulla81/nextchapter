@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { WorkSampleForm } from '@/components/dashboard/WorkSampleForm'
 import { WorkSampleTypeGateForm } from '@/components/dashboard/WorkSampleTypeGateForm'
@@ -6,6 +7,9 @@ import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+
+export const metadata: Metadata = { title: 'Work Samples' }
+
 
 export default async function WorkSamplesPage() {
   const profile = await getDashboardData()

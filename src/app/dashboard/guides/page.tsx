@@ -1,7 +1,11 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { GUIDES } from '@/lib/constants/guides'
 import { GuideCard } from '@/components/dashboard/GuideCard'
+
+export const metadata: Metadata = { title: 'Job Search Guides' }
+
 
 function isUnlocked(
   slug: string,

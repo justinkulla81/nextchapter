@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
@@ -6,6 +7,9 @@ import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershi
 import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+
+export const metadata: Metadata = { title: 'LinkedIn' }
+
 
 export default async function LinkedInPage() {
   const profile = await getDashboardData()

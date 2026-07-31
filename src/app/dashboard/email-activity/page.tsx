@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
@@ -7,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EmailActivitySyncButton, EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
 import { disconnectGmail } from './actions'
+
+export const metadata: Metadata = { title: 'Email Activity' }
+
 
 const SENT_LABEL: Record<string, string> = {
   THANK_YOU: 'Thank-you notes',

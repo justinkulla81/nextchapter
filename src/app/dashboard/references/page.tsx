@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Users } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -9,6 +10,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { ReferenceStatus } from '@prisma/client'
+
+export const metadata: Metadata = { title: 'My References' }
+
 
 const STATUS_STYLES: Record<ReferenceStatus, string> = {
   REQUESTED: 'bg-muted text-muted-foreground',

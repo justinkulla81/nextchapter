@@ -1,8 +1,12 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateCoachShortlist } from '@/lib/coach/matching'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { submitCoachPreferences, selectCoach } from './actions'
+
+export const metadata: Metadata = { title: 'Coach Matching' }
+
 
 const selectClass =
   'mt-1 h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand'

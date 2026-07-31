@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
@@ -6,6 +7,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
+
+export const metadata: Metadata = { title: 'My Resume' }
+
 
 function asFeedbackItems(value: unknown): ResumeFeedbackItem[] {
   return value as unknown as ResumeFeedbackItem[]
