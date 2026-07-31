@@ -612,6 +612,13 @@ model CandidateProfile {
   networkingConcerns        NetworkingAnxiety[] @default([])
   networkConnectPreferences String[]            @default([])
 
+  // Admin-managed Gmail/Calendar tracking allow-list (see
+  // /support/admin/tracking-testers) — replaces the old env-var-only
+  // GMAIL_TRACKING_TESTER_EMAILS list with a per-candidate toggle an admin
+  // can flip without a deploy. isGmailTrackingTester() checks this OR the
+  // env var OR the manual TrackingTesterAllowlistEntry table.
+  gmailTrackingTesterEnabled Boolean @default(false)
+
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp     Int?
   priorityBrandName   Int?
@@ -2994,4 +3001,16 @@ model PartnerClickThrough {
   createdAt   DateTime         @default(now())
 
   @@unique([candidateId, partnerName, dayKey])
+}
+
+// Manually-added Gmail/Calendar tester emails that aren't (yet) tied to a
+// CandidateProfile — e.g. an admin's own test inbox. Real candidates get
+// toggled via CandidateProfile.gmailTrackingTesterEnabled instead; this
+// table is the "add by email" escape hatch, managed from
+// /support/admin/tracking-testers.
+model TrackingTesterAllowlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  addedBy   String? // admin auth email, for audit purposes
+  createdAt DateTime @default(now())
 }

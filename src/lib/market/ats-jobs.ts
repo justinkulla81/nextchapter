@@ -67,6 +67,24 @@ async function fetchAshbyJobs(company: AtsCompany): Promise<AdzunaListing[]> {
   }))
 }
 
+// UNVERIFIED — see the matching comment on fetchJobAdderListings in
+// ats-job-board-feed.ts for why this shape isn't trusted yet.
+async function fetchJobAdderJobs(company: AtsCompany): Promise<AdzunaListing[]> {
+  const apiKey = process.env.JOBADDER_API_KEY
+  if (!apiKey) return []
+  const data = (await fetchJson(`https://api.jobadder.com/v2/jobboards/${company.token}/ads?apikey=${apiKey}`)) as {
+    items?: { jobTitle: string; location?: { area?: string; name?: string }; jobAdUrl: string }[]
+  } | null
+  if (!data?.items) return []
+  return data.items.map((j) => ({
+    title: j.jobTitle,
+    companyName: company.name,
+    location: j.location?.area ?? j.location?.name ?? null,
+    url: j.jobAdUrl,
+    description: null,
+  }))
+}
+
 async function fetchCompanyJobs(company: AtsCompany): Promise<AdzunaListing[]> {
   switch (company.provider) {
     case 'greenhouse':
@@ -75,6 +93,8 @@ async function fetchCompanyJobs(company: AtsCompany): Promise<AdzunaListing[]> {
       return fetchLeverJobs(company)
     case 'ashby':
       return fetchAshbyJobs(company)
+    case 'jobadder':
+      return fetchJobAdderJobs(company)
   }
 }
 

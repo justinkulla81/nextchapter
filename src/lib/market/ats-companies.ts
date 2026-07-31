@@ -10,7 +10,7 @@
 // the entire universe of companies NextChapter can search directly. Expand
 // it over time; it's meant to grow, not be exhaustive on day one.
 
-export type AtsProvider = 'greenhouse' | 'lever' | 'ashby'
+export type AtsProvider = 'greenhouse' | 'lever' | 'ashby' | 'jobadder'
 
 export interface AtsCompany {
   name: string
@@ -82,4 +82,11 @@ export const ATS_COMPANIES: AtsCompany[] = [
   { name: 'Pika', provider: 'ashby', token: 'pika' },
   { name: 'Writer', provider: 'ashby', token: 'writer' },
   { name: 'PostHog', provider: 'ashby', token: 'posthog' },
+
+  // JobAdder — token is the company's job board ID (find it in the URL of
+  // their JobAdder-hosted careers page, e.g. jobs.jobadder.com/{boardId}, or
+  // in the embed code for a self-hosted board). Deliberately empty for
+  // now: unlike Greenhouse/Lever/Ashby above, every entry here needs a
+  // live-verified board ID before it's added (see this file's header
+  // comment) — none has been confirmed against the real API yet.
 ]

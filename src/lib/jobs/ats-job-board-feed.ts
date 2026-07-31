@@ -134,6 +134,40 @@ async function fetchAshbyListings(company: AtsCompany): Promise<FeedListing[]> {
   })
 }
 
+// UNVERIFIED against a live board — JobAdder's public Job Board API needs
+// an API key (JOBADDER_API_KEY) unlike the other three providers, which are
+// fully public. Field names below (items[], jobTitle, location.area,
+// jobAdUrl, summary, salary.ratePer/rateLow/rateHigh/currency) are this
+// integration's best-available understanding of JobAdder's Job Board API
+// v2 response shape, not confirmed against a real response — do not trust
+// this shape until it's been checked against one live company's board (see
+// ats-companies.ts's header comment on why every entry needs that before
+// being added).
+async function fetchJobAdderListings(company: AtsCompany): Promise<FeedListing[]> {
+  const apiKey = process.env.JOBADDER_API_KEY
+  if (!apiKey) return []
+  const data = (await fetchJson(`https://api.jobadder.com/v2/jobboards/${company.token}/ads?apikey=${apiKey}`)) as {
+    items?: {
+      jobTitle: string
+      location?: { area?: string; name?: string }
+      jobAdUrl: string
+      summary?: string
+      salary?: { ratePer?: string; rateLow?: number; rateHigh?: number; currency?: string }
+    }[]
+  } | null
+  if (!data?.items) return []
+  return data.items.map((j) => ({
+    title: j.jobTitle,
+    companyName: company.name,
+    location: j.location?.area ?? j.location?.name ?? null,
+    url: j.jobAdUrl,
+    description: j.summary?.replace(/<[^>]+>/g, ' ').trim().slice(0, 2000) ?? null,
+    salaryMin: j.salary?.rateLow ?? null,
+    salaryMax: j.salary?.rateHigh ?? null,
+    salaryCurrency: j.salary?.currency ?? null,
+  }))
+}
+
 async function fetchCompanyListings(company: AtsCompany): Promise<FeedListing[]> {
   switch (company.provider) {
     case 'greenhouse':
@@ -142,6 +176,8 @@ async function fetchCompanyListings(company: AtsCompany): Promise<FeedListing[]>
       return fetchLeverListings(company)
     case 'ashby':
       return fetchAshbyListings(company)
+    case 'jobadder':
+      return fetchJobAdderListings(company)
   }
 }
 

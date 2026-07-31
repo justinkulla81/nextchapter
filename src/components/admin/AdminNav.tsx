@@ -87,6 +87,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/interim-listings', label: 'Interim Work Listings' },
         { href: '/support/admin/bias-detection', label: 'Bias Detection' },
         { href: '/support/admin/research', label: 'Research Library' },
+        { href: '/support/admin/tracking-testers', label: 'Gmail/Calendar Testers' },
         { href: '/support/admin/digest', label: 'Weekly Market Digest (Coming soon)', muted: true, disabled: true },
       ],
     },

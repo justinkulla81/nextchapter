@@ -33,7 +33,7 @@ export default async function EmailActivityPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const isTester = profile.email ? isGmailTrackingTester(profile.email) : false
+  const isTester = profile.email ? await isGmailTrackingTester(profile.email) : false
 
   const connection = await prisma.emailConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=not_logged_in', request.url))
   }
 
-  if (!isGmailTrackingTester(user.email)) {
+  if (!(await isGmailTrackingTester(user.email))) {
     return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=not_a_tester', request.url))
   }
 

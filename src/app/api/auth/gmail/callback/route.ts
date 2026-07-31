@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
   // Second layer of the hard gate — checked again here, not just at /start,
   // since this route is independently reachable.
-  if (!isGmailTrackingTester(user.email)) {
+  if (!(await isGmailTrackingTester(user.email))) {
     return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=not_a_tester', request.url))
   }
 

@@ -13,7 +13,7 @@ export async function GoogleConnectPrompt({
   candidateId: string
   email: string | null
 }) {
-  if (!email || !isGmailTrackingTester(email)) return null
+  if (!email || !(await isGmailTrackingTester(email))) return null
 
   const [emailConnection, calendarConnection] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),

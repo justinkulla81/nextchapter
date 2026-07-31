@@ -207,7 +207,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   // Internal testing only — surfaces the one-click combined Gmail +
   // Calendar connect (see GoogleConnectPrompt) as a real suggested action
   // instead of it only being discoverable on the Network/Find My Job pages.
-  if (profile?.email && isGmailTrackingTester(profile.email) && !usedTypes.has('GMAIL_CONNECTED')) {
+  if (profile?.email && (await isGmailTrackingTester(profile.email)) && !usedTypes.has('GMAIL_CONNECTED')) {
     const [hasEmailConnection, hasCalendarConnection] = await Promise.all([
       prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
       prisma.calendarConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),

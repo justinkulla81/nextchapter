@@ -1,4 +1,5 @@
 import 'server-only'
+import { prisma } from '@/lib/prisma'
 
 // Prompt 76 — candidate-facing Gmail connection. Deliberately separate
 // credentials and env vars from src/lib/google/oauth.ts, which is the
@@ -124,10 +125,28 @@ export async function refreshAccessToken(refreshToken: string): Promise<GoogleTo
 // depth alongside Google's own test-user allow-list on the consent screen
 // itself. No candidate outside this list can connect Gmail while it remains
 // in unverified/testing mode, full stop — this must not quietly expand.
-export function isGmailTrackingTester(email: string): boolean {
-  const allowlist = (process.env.GMAIL_TRACKING_TESTER_EMAILS || '')
+//
+// Three sources, any one of which grants access: the legacy env var (kept
+// as a deploy-time override that always works even if the DB is
+// unreachable), a candidate's own gmailTrackingTesterEnabled toggle (set
+// from /support/admin/tracking-testers), and the manual
+// TrackingTesterAllowlistEntry table (for emails not tied to any candidate,
+// e.g. an admin's own test inbox).
+export async function isGmailTrackingTester(email: string): Promise<boolean> {
+  const normalized = email.trim().toLowerCase()
+
+  const envAllowlist = (process.env.GMAIL_TRACKING_TESTER_EMAILS || '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
-  return allowlist.includes(email.trim().toLowerCase())
+  if (envAllowlist.includes(normalized)) return true
+
+  const [candidate, manualEntry] = await Promise.all([
+    prisma.candidateProfile.findFirst({
+      where: { email: { equals: normalized, mode: 'insensitive' } },
+      select: { gmailTrackingTesterEnabled: true },
+    }),
+    prisma.trackingTesterAllowlistEntry.findUnique({ where: { email: normalized } }),
+  ])
+  return !!candidate?.gmailTrackingTesterEnabled || !!manualEntry
 }

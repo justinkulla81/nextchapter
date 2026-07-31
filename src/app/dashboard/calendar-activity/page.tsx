@@ -18,7 +18,7 @@ export default async function CalendarActivityPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const isTester = profile.email ? isCalendarTrackingTester(profile.email) : false
+  const isTester = profile.email ? await isCalendarTrackingTester(profile.email) : false
 
   const connection = await prisma.calendarConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },

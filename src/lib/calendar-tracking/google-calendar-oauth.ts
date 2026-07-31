@@ -101,6 +101,6 @@ export async function refreshAccessToken(refreshToken: string): Promise<GoogleTo
 // Deliberately the same allow-list as Gmail (GMAIL_TRACKING_TESTER_EMAILS) —
 // one internal-testing cohort across both connect-account features, not a
 // second env var to keep in sync.
-export function isCalendarTrackingTester(email: string): boolean {
+export async function isCalendarTrackingTester(email: string): Promise<boolean> {
   return isGmailTrackingTester(email)
 }

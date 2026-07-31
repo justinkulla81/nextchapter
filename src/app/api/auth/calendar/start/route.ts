@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_logged_in', request.url))
   }
 
-  if (!isCalendarTrackingTester(user.email)) {
+  if (!(await isCalendarTrackingTester(user.email))) {
     return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_a_tester', request.url))
   }
 
