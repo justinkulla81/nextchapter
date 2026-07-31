@@ -152,6 +152,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
       functionConfirmedAt: true,
       salaryConfirmedAt: true,
       workAuthConfirmedAt: true,
+      comfortCheckBonusAt: true,
       jobsAppliedBucket: true,
       interviewsReceivedCount: true,
       networkingLevel: true,
@@ -200,6 +201,13 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     suggestions.push({ text: 'Confirm your work authorization status', actionType: 'WORK_AUTHORIZATION' })
     usedTypes.add('WORK_AUTHORIZATION')
     total += estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
+  }
+  // Also the one-time unlock gate for the recurring INTERVIEW_BEHAVIORAL_PRACTICE
+  // action — see RECURRING_ACTION_TYPES / the week-1 gating below.
+  if (profile && !profile.comfortCheckBonusAt && !usedTypes.has('COMFORT_CHECK_CONFIRM')) {
+    suggestions.push({ text: 'Complete your Interview Prep Comfort Check', actionType: 'COMFORT_CHECK_CONFIRM' })
+    usedTypes.add('COMFORT_CHECK_CONFIRM')
+    total += estimateActionEffort({ actionType: 'COMFORT_CHECK_CONFIRM' }).points
   }
 
   // "How I Work Best" is a genuinely optional dashboard action, never part
@@ -263,12 +271,27 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     }
   }
 
+  // Week 1 specifically: don't surface recurring, open-ended Search Actions
+  // (outreach, engagement, posting) until every one-time setup/confirm
+  // action is done. A brand-new candidate should nail down profile/level/
+  // comfort-check data up front — the exact inputs job matching and grading
+  // depend on — rather than that being left to inference while they're
+  // already off sending outreach messages. Once no one-time suggestion
+  // remains outstanding, recurring ones flow through normally, even in
+  // week 1.
+  const suppressRecurringForWeek1 = weekNumber === 1
+
   for (const task of CANONICAL_TASK_MENU) {
     if (total >= buffer) break
     if (task.actionType && usedTypes.has(task.actionType)) continue
+    if (suppressRecurringForWeek1 && isRecurringActionType(task.actionType)) continue
     suggestions.push({ text: task.text, actionType: task.actionType })
     if (task.actionType) usedTypes.add(task.actionType)
     total += estimateActionEffort(task).points
+  }
+
+  if (suppressRecurringForWeek1 && suggestions.some((s) => !isRecurringActionType(s.actionType))) {
+    return suggestions.filter((s) => !isRecurringActionType(s.actionType))
   }
 
   return suggestions

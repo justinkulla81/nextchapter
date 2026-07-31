@@ -275,6 +275,11 @@ export async function confirmFunctionAndExperience(
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
   const yearsExperience = formData.get('yearsExperience')
+  const highestLevelReached = (formData.get('highestLevelReached') as string) || null
+  // Required, not just recommended — this drives levelRankScore, which
+  // feeds job-fit matching sitewide. A blank value here previously slipped
+  // through silently and left the candidate matched as an entry-level IC.
+  if (!highestLevelReached) return { error: 'Select your highest level reached before confirming.' }
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
@@ -282,7 +287,7 @@ export async function confirmFunctionAndExperience(
       primaryFunction: (formData.get('primaryFunction') as string) || null,
       resumeLatestJobTitle: (formData.get('resumeLatestJobTitle') as string) || null,
       yearsExperience: yearsExperience ? Number(yearsExperience) : null,
-      highestLevelReached: (formData.get('highestLevelReached') as string) || null,
+      highestLevelReached,
       functionConfirmedAt: new Date(),
     },
   })

@@ -55,6 +55,7 @@ function buildSections(
     {
       title: 'Building',
       links: [
+        { href: '/dashboard/profile', label: 'My Profile' },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
         {
           href: '/dashboard/retake-assessment',
@@ -62,14 +63,13 @@ function buildSections(
           badge: needsWorkStyleSurvey ? 'Recommended' : undefined,
         },
         { href: '/dashboard/resume', label: 'My Resume' },
+        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
+        { href: '/dashboard/stats', label: 'My Stats & Reports' },
         {
           href: '/dashboard/portfolio',
           label: 'My Portfolio',
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
         },
-        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
-        { href: '/dashboard/interview-prep', label: 'Interview Prep' },
-        { href: '/dashboard/profile', label: 'My Profile' },
       ],
     },
     {
@@ -118,18 +118,18 @@ function buildSections(
               ? String(newJobMatchesCount + watchlistNotificationCount)
               : undefined,
         },
+        { href: '/dashboard/interview-prep', label: 'Interview Prep' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
         { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         { href: '/dashboard/learning', label: 'Learn New Skills' },
-        { href: '/dashboard/guides', label: 'Search Strategy Guides' },
-        { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
       ],
     },
     {
       title: 'Misc',
       links: [
+        { href: '/dashboard/guides', label: 'Search Strategy Guides' },
+        { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
         { href: "/dashboard/support", label: "I'm Struggling" },
-        { href: '/dashboard/stats', label: 'My Stats & Reports' },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },
         { href: '/faq', label: 'FAQ' },
       ],

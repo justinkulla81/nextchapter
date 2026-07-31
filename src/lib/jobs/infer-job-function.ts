@@ -150,13 +150,25 @@ function neutralizeStaffPartnerPhrase(lower: string): string {
 // elsewhere in the title still wins.
 const BARE_ED_ABBREVIATION = /\bed\b/
 
+// Bare "Principal" (e.g. "Principal" at a PE/VC/consulting firm, "Principal
+// and Founding Member") is genuinely Director-equivalent seniority — a real
+// gap, not hypothetical (a candidate's "Principal and Founding Member" title
+// was defaulting to IC, dragging down their whole career-seniority signal).
+// But "Principal Engineer"/"Principal Scientist"/etc. is a common senior-IC
+// (not people-manager) tech-ladder title, so this excludes that qualifier
+// pattern rather than trusting the bare word everywhere.
+const BARE_PRINCIPAL = /\bprincipal\b/
+const PRINCIPAL_IC_QUALIFIER = /\bprincipal\s+(engineer|scientist|architect|developer|consultant|analyst|designer)\b/
+
 export function inferLevelFromTitle(title: string): string {
   const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))} `
   for (const entry of LEVEL_KEYWORDS) {
     const matchesKeyword = entry.keywords.some((kw) => lower.includes(kw))
     const matchesExecAcronym = entry.level === 'C-Suite' && EXEC_ACRONYM_PATTERN.test(lower)
     const matchesBareED = entry.level === 'Director' && BARE_ED_ABBREVIATION.test(lower)
-    if (matchesKeyword || matchesExecAcronym || matchesBareED) {
+    const matchesBarePrincipal =
+      entry.level === 'Director' && BARE_PRINCIPAL.test(lower) && !PRINCIPAL_IC_QUALIFIER.test(lower)
+    if (matchesKeyword || matchesExecAcronym || matchesBareED || matchesBarePrincipal) {
       return entry.level
     }
   }

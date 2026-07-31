@@ -11,6 +11,8 @@ import { evaluatePracticeAnswer, type PracticeEvaluation } from '@/lib/interview
 import { generateThankYouEmail, type ThankYouEmailInput } from '@/lib/interview-prep/generate-thank-you-email'
 import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -138,5 +140,26 @@ export async function updateComfortCheck(fields: {
     where: { id: profile.id },
     data: fields,
   })
+
+  // One-time points award for the first Comfort Check submission — mirrors
+  // networkComfortBonusAt. Also the one-time unlock gate for the recurring
+  // INTERVIEW_BEHAVIORAL_PRACTICE action (see RECURRING_ACTION_TYPES).
+  if (!profile.comfortCheckBonusAt) {
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'COMFORT_CHECK_CONFIRM' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'COMFORT_CHECK_CONFIRM',
+        text: 'Completed the Interview Prep Comfort Check',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+    }
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { comfortCheckBonusAt: new Date() },
+    })
+  }
+
   revalidatePath('/dashboard/interview-prep')
 }

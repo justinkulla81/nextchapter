@@ -113,6 +113,9 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // that Public/Semi-Public specifically earns in computeWeeklyEngines.
   PRIVACY_CONFIRMED: { minutes: 5, points: 5 },
   JOB_BOARD_USAGE_CONFIRMED: { minutes: 3, points: 5 },
+  // One-time Interview Prep Comfort Check — same weight as the other
+  // one-time confirms, and the unlock gate for INTERVIEW_BEHAVIORAL_PRACTICE.
+  COMFORT_CHECK_CONFIRM: { minutes: 3, points: 5 },
 
   // Weekly (not lifetime) re-check of visibility comfort, prompted by
   // VisibilityComfortCard on the dashboard — same small confirm-bonus
@@ -203,6 +206,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   INTERVIEW_ATTENDED: 'effort',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
+  COMFORT_CHECK_CONFIRM: 'effort',
   VISIBILITY_COMFORT_CHECKIN: 'connecting',
   MOOD_CHECKIN: 'connecting',
   MARKETING_PLAN_UNLOCK: 'working',
@@ -246,6 +250,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   SALARY_CONFIRM: 'Building',
   WORK_AUTHORIZATION: 'Building',
   ANSWER_OPTIONAL_QUESTIONS: 'Building',
+  COMFORT_CHECK_CONFIRM: 'Building',
 
   HELP_SCRIPT: 'Connecting',
   NETWORKING_LIST: 'Connecting',
@@ -331,6 +336,7 @@ export const VERIFIED_ACTION_TYPES = new Set<string>([
   'WORK_AUTHORIZATION',
   'WORKING_STYLE_QUIZ',
   'ANSWER_OPTIONAL_QUESTIONS',
+  'COMFORT_CHECK_CONFIRM',
 ])
 
 export function isVerifiedActionType(actionType: string | undefined): boolean {
@@ -369,6 +375,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   SALARY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
   WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
+  COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
   JOB_BOARD_USAGE_CONFIRMED: { href: '/dashboard/find-my-job', label: 'Find My Job' },

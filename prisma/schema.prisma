@@ -374,10 +374,10 @@ model CandidateProfile {
   // forced-choice + Likert cross-validation instrument.
 
   // Part 3: Experience
-  yearsExperience     Int? // resume-derived (Phase 1), candidate-confirmable
-  highestLevelReached String? // "IC", "Manager", "Director", "VP", "C-Suite"
-  primaryFunction     String? // resume-derived (Phase 1), candidate-confirmable
-  industryContext     String? // resume-derived (Phase 1), candidate-confirmable
+  yearsExperience          Int? // resume-derived (Phase 1), candidate-confirmable
+  highestLevelReached      String? // "IC", "Manager", "Director", "VP", "C-Suite"
+  primaryFunction          String? // resume-derived (Phase 1), candidate-confirmable
+  industryContext          String? // resume-derived (Phase 1), candidate-confirmable
   // Optional — a recent function/industry that differs from the primary
   // above (e.g. a recent pivot). Resume-derived alongside the primary, or
   // set/edited/cleared by the candidate on Search Strategy. Folded into job
@@ -388,12 +388,12 @@ model CandidateProfile {
   // Normalized industry bucket derived from industryContext (see
   // src/lib/constants/industry-buckets.ts) — never authoritative, only used
   // for Community industry grouping. industryContext stays the source of truth.
-  industryBucket      String?
-  resumeKeywords      String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
-  isPeopleManager     Boolean? // gates teamSizeManaged + managementSkillConfidence questions
-  teamSizeManaged     Int? // 0 = IC, otherwise largest team managed
-  topStrengths        String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
-  knownFor            String? // "How former colleagues would describe me" — required before requesting references
+  industryBucket           String?
+  resumeKeywords           String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
+  isPeopleManager          Boolean? // gates teamSizeManaged + managementSkillConfidence questions
+  teamSizeManaged          Int? // 0 = IC, otherwise largest team managed
+  topStrengths             String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
+  knownFor                 String? // "How former colleagues would describe me" — required before requesting references
 
   // Executive Dossier Positioning Statement (Prompt 47) — AI-drafted from
   // profile/accomplishment data, but never published in the Dossier until
@@ -558,16 +558,16 @@ model CandidateProfile {
   contentComfortLevel              Int? // 0-100, 4-stop scale — "how comfortable are you sharing your thoughts publicly?", gates My Marketing Plan
   contentVenues                    ContentVenue[] @default([])
   // One-time points award for answering the Marketing Plan unlock question — mirrors privacyOpenedUpBonusAt
-  contentUnlockBonusAt              DateTime?
+  contentUnlockBonusAt             DateTime?
   linkedinOpennessComfort          Int? // 0-100, 4-stop scale — "how do you feel about being open about your job search?", gates the LinkedIn post generator
   linkedinUsageFrequency           String? // "daily" | "weekly" | "rarely" | "never" — same gate
   linkedinProfileUpToDate          Boolean? // same gate
   // One-time points award for answering the LinkedIn unlock gate — mirrors privacyOpenedUpBonusAt
-  linkedinUnlockBonusAt             DateTime?
+  linkedinUnlockBonusAt            DateTime?
   activeJobDescription             String?        @db.Text // pasted job posting, grounds all Interview Prep generation — persisted, editable anytime
   workSampleType                   String? // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
   // One-time points award for answering the work-sample-type gate — mirrors privacyOpenedUpBonusAt
-  workSampleTypeBonusAt             DateTime?
+  workSampleTypeBonusAt            DateTime?
   substackHasAccount               Boolean? // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
   substackUrl                      String?
   substackCritique                 Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
@@ -599,11 +599,18 @@ model CandidateProfile {
   encouragementGivingOptIn Boolean @default(false) // opted in to occasional prompts to send support notes
 
   // Support Network / outreach
-  networkComfortLevel       NetworkComfortLevel? // one-time comfort check, gates the rest of Activate My Network
+  networkComfortLevel   NetworkComfortLevel? // one-time comfort check, gates the rest of Activate My Network
   // One-time points award for answering the network comfort gate — mirrors privacyOpenedUpBonusAt
-  networkComfortBonusAt     DateTime?
-  networkingConcerns        NetworkingAnxiety[]  @default([])
-  networkConnectPreferences String[]             @default([])
+  networkComfortBonusAt DateTime?
+
+  // One-time points award for completing the Interview Prep Comfort Check
+  // (storyComfort/interviewComfort/elevatorPitchReady below) — mirrors
+  // privacyOpenedUpBonusAt. This is also the one-time unlock gate for the
+  // recurring INTERVIEW_BEHAVIORAL_PRACTICE action (guides.tsx already
+  // treats storyComfort !== null as "interview-prep guide unlocked").
+  comfortCheckBonusAt       DateTime?
+  networkingConcerns        NetworkingAnxiety[] @default([])
+  networkConnectPreferences String[]            @default([])
 
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp     Int?
@@ -888,15 +895,15 @@ model CompanySizeLookup {
   // via normalizeOrgName() — the only real key. Unique so a race between
   // two concurrent first-encounters of the same company resolves to one
   // row (see the upsert-based write in company-size.ts).
-  companyNameNormalized String @unique
+  companyNameNormalized String          @unique
   // First-seen raw name, kept only for admin/debugging readability — never
   // used for matching (companyNameNormalized is authoritative).
-  companyNameOriginal String
-  sizeBand            CompanySizeBand
+  companyNameOriginal   String
+  sizeBand              CompanySizeBand
 
   // 'static' | 'llm' — 'static' rows are fully trusted (confidence always
   // null); 'llm' rows carry the model's own confidence.
-  source String
+  source      String
   // 0-1, only meaningful for source: 'llm'. Not currently used to gate
   // anything (an LLM guess, even low-confidence, beats no data at all per
   // the "unknown -> anchor, never blocks" fallback rule) — captured so a
@@ -1961,14 +1968,14 @@ enum EmailProvider {
 }
 
 model EmailConnection {
-  id               String        @id @default(cuid())
-  candidateId      String        @unique
+  id               String           @id @default(cuid())
+  candidateId      String           @unique
   candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  provider         EmailProvider @default(GMAIL)
-  accessToken      String        @db.Text
-  refreshToken     String        @db.Text
+  provider         EmailProvider    @default(GMAIL)
+  accessToken      String           @db.Text
+  refreshToken     String           @db.Text
   expiresAt        DateTime
-  connectedAt      DateTime      @default(now())
+  connectedAt      DateTime         @default(now())
   lastSyncAt       DateTime?
   // Set when a token refresh fails (expected every ~7 days in Google's
   // testing-mode token lifetime) — surfaced as an explicit "reconnect your
@@ -2059,18 +2066,18 @@ enum CalendarEventType {
 }
 
 model TrackedCalendarEvent {
-  id               String             @id @default(cuid())
-  candidateId      String
-  candidate        CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  connectionId     String
-  connection       CalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  externalEventId  String // Google Calendar event id — dedupe key alongside connectionId
-  eventType        CalendarEventType
-  confidence       String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
-  title            String? // candidate's own review UI only — never exposed to anyone else
-  startTime        DateTime
-  detectedAt       DateTime           @default(now())
-  reviewedAt       DateTime? // candidate confirmed/corrected a needs-review item
+  id              String             @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  connectionId    String
+  connection      CalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  externalEventId String // Google Calendar event id — dedupe key alongside connectionId
+  eventType       CalendarEventType
+  confidence      String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
+  title           String? // candidate's own review UI only — never exposed to anyone else
+  startTime       DateTime
+  detectedAt      DateTime           @default(now())
+  reviewedAt      DateTime? // candidate confirmed/corrected a needs-review item
 
   @@unique([connectionId, externalEventId])
   @@index([candidateId, eventType])
@@ -2618,7 +2625,7 @@ model CompanyWatchlistEntry {
   // notification badge — bumped to now() whenever the candidate visits the
   // Company Tracker page, same "visit resets the counter" convention as
   // communityLastViewedAt.
-  lastViewedAt           DateTime        @default(now())
+  lastViewedAt          DateTime         @default(now())
 
   @@unique([candidateId, companyNameNormalized])
   @@index([companyNameNormalized])

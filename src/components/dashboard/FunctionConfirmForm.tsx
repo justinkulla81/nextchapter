@@ -46,7 +46,11 @@ export function FunctionConfirmForm({
     values.resumeLatestJobTitle !== (resumeLatestJobTitle ?? '') ||
     values.yearsExperience !== (yearsExperience != null ? String(yearsExperience) : '') ||
     values.highestLevelReached !== (highestLevelReached ?? '')
-  const canConfirm = !isConfirmed || isDirty
+  // Highest level reached feeds levelRankScore, which drives job-fit
+  // matching sitewide — letting this stay blank meant a candidate could
+  // confirm everything else and still get matched as if they were an
+  // entry-level IC, with no indication anything was missing.
+  const canConfirm = (!isConfirmed || isDirty) && !!values.highestLevelReached
 
   return (
     <form
@@ -104,6 +108,11 @@ export function FunctionConfirmForm({
           ))}
         </SelectContent>
       </Select>
+      {!values.highestLevelReached && (
+        <p className="text-xs text-muted-foreground">
+          Highest level reached is required — it drives how jobs are matched to you.
+        </p>
+      )}
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm" variant={canConfirm ? 'outline' : 'ghost'} disabled={pending || !canConfirm}>
