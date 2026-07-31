@@ -11,6 +11,7 @@ const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
   strong: 'bg-success/10 text-success',
   good: 'bg-brand/10 text-brand',
   stretch: 'bg-muted text-muted-foreground',
+  overqualified: 'bg-muted text-muted-foreground',
 }
 
 const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [

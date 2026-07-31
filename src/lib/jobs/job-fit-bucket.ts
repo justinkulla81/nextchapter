@@ -3,6 +3,7 @@ import type { CandidateProfile, CompanySizeBand, ExclusiveJobPosting, SurfacedJo
 import { prisma } from '@/lib/prisma'
 import { computeMatchScore, priorityMultiplier } from '@/lib/matching/compute-match-score'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
@@ -34,6 +35,29 @@ function bucketFromScore(score: number): FitBucket {
   if (score >= STRONG_FIT_THRESHOLD) return 'strong'
   if (score >= GOOD_FIT_THRESHOLD) return 'good'
   return 'stretch'
+}
+
+// Below the "good fit" bar, the label needs to know which direction the
+// level mismatch runs — "Stretch" is only right when the ROLE reaches
+// above the candidate (a real aim-higher case). A candidate well above the
+// role's level (e.g. a former CEO/Partner shown a Manager posting) reads
+// the same "Stretch" label as encouraging, when it's actually the opposite
+// problem. Mirrors the same calibratedLevelRank/calibratedLevelDistance
+// math computeMatchScore uses internally for its own level-match points,
+// so "overqualified" only fires when that dimension would have scored 0
+// there too (dist >= 3) — never a looser check than the score itself used.
+function isCandidateOverqualified(candidate: FitCandidate, posting: FitPostingLike): boolean {
+  const candidateScore = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
+  const roleLevel = posting.targetLevel ?? inferLevelFromTitle(posting.title)
+  const roleScore = calibratedLevelRank(roleLevel, posting.companySizeBand ?? null)
+  if (candidateScore === null || roleScore === null) return false
+  return candidateScore > roleScore && calibratedLevelDistance(candidateScore, roleScore) >= 3
+}
+
+function bucketFromScoreAndLevel(score: number, candidate: FitCandidate, posting: FitPostingLike): FitBucket {
+  const bucket = bucketFromScore(score)
+  if (bucket === 'stretch' && isCandidateOverqualified(candidate, posting)) return 'overqualified'
+  return bucket
 }
 
 // Widened to carry every signal the enriched scorer below uses — industry,
@@ -303,7 +327,8 @@ export function computeBoardListingFitBucket(
   >,
   companySizeBand?: CompanySizeBand | null
 ): FitBucket {
-  return bucketFromScore(computeEnrichedFitScore(candidate, { ...posting, companySizeBand }))
+  const postingLike = { ...posting, companySizeBand }
+  return bucketFromScoreAndLevel(computeEnrichedFitScore(candidate, postingLike), candidate, postingLike)
 }
 
 // How many candidates in the whole pool this pending posting is a
@@ -466,7 +491,7 @@ export function computeSurfacedJobFitBucket(
   job: Pick<SurfacedJob, 'title' | 'location' | 'description'>,
   companySizeBand?: CompanySizeBand | null
 ): FitBucket {
-  const score = computeEnrichedFitScore(candidate, {
+  const postingLike = {
     title: job.title,
     description: job.description,
     location: job.location,
@@ -477,6 +502,7 @@ export function computeSurfacedJobFitBucket(
     targetRemotePolicy: null,
     targetLocation: null,
     companySizeBand,
-  })
-  return bucketFromScore(score)
+  }
+  const score = computeEnrichedFitScore(candidate, postingLike)
+  return bucketFromScoreAndLevel(score, candidate, postingLike)
 }

@@ -3,12 +3,28 @@
 // bucket using compute-match-score.ts) so client components can render the
 // label without pulling server-only code into the client bundle.
 
-export type FitBucket = 'strong' | 'good' | 'stretch'
+// 'stretch' means the role reaches above the candidate's own level — a
+// real aim-higher case. 'overqualified' is the opposite direction: the
+// candidate is well above the role's level (e.g. a former CEO/Partner
+// shown a Manager posting) — both land below the "good fit" score
+// threshold, but reading them with the same "Stretch" label was actively
+// misleading for the overqualified case, so they're split into distinct
+// buckets. See computeBoardListingFitBucket/computeSurfacedJobFitBucket in
+// job-fit-bucket.ts for the direction check.
+export type FitBucket = 'strong' | 'good' | 'stretch' | 'overqualified'
 
 export const FIT_BUCKET_LABEL: Record<FitBucket, string> = {
   strong: 'Strong fit',
   good: 'Good fit',
   stretch: 'Stretch',
+  overqualified: 'Below your level',
+}
+
+// Neither of these buckets clears the "good fit" score threshold — used
+// wherever a caller needs "is this a real recommendation" rather than the
+// specific reason it isn't.
+export function isWeakFit(bucket: FitBucket): boolean {
+  return bucket === 'stretch' || bucket === 'overqualified'
 }
 
 // Listings live on the board for up to 30 days (see THIRTY_DAYS_MS in

@@ -14,10 +14,13 @@ const FUNCTION_KEYWORDS: { function: (typeof PRIMARY_FUNCTION_OPTIONS)[number]; 
   // "Executive Assistant to the CEO" lands on Administration rather than
   // matching the bare "ceo" substring.
   { function: 'Administration', keywords: ['administrative assistant', 'office manager', 'executive assistant'] },
-  { function: 'Executive Leadership', keywords: ['chief executive', 'chief operating', 'chief financial', 'chief technology', 'chief marketing', 'chief product', 'chief people', 'chief revenue', 'chief legal', 'ceo', 'coo', 'cfo', 'cto', 'cmo', 'cpo', 'general manager', 'president'] },
+  // The bare 3-letter acronyms (ceo/coo/cfo/cto/cmo/cpo) are handled
+  // separately via EXEC_ACRONYM_PATTERN below, not as plain substrings here —
+  // see that constant's comment for why (they collide with ordinary words).
+  { function: 'Executive Leadership', keywords: ['chief executive', 'chief operating', 'chief financial', 'chief technology', 'chief marketing', 'chief product', 'chief people', 'chief revenue', 'chief legal', 'general manager', 'president'] },
   { function: 'Legal', keywords: ['legal', 'counsel', 'attorney', 'compliance', 'paralegal'] },
   { function: 'Human Resources', keywords: ['human resources', 'recruiter', 'recruiting', 'talent acquisition', 'people partner', 'people operations', 'hrbp'] },
-  { function: 'Data & Analytics', keywords: ['data scientist', 'data analyst', 'analytics', 'business intelligence', 'bi analyst', 'machine learning engineer', 'ml engineer'] },
+  { function: 'Data & Analytics', keywords: ['data scientist', 'data analyst', 'analytics', 'business intelligence', 'bi analyst', 'machine learning engineer', 'ml engineer', 'data & ai', 'data and ai'] },
   { function: 'Engineering', keywords: ['engineer', 'developer', 'software', 'devops', 'site reliability', 'sre', 'architect', 'programmer', 'qa engineer'] },
   { function: 'Design', keywords: ['designer', 'ux', 'ui/ux', 'product design', 'creative director'] },
   { function: 'Product', keywords: ['product manager', 'product owner', 'product lead'] },
@@ -43,6 +46,16 @@ const FUNCTION_KEYWORDS: { function: (typeof PRIMARY_FUNCTION_OPTIONS)[number]; 
 // "supply chain manager") before counting as confident.
 const AMBIGUOUS_SOLO_KEYWORDS = new Set(['operations', 'president'])
 
+// The bare 3-letter C-suite acronyms need a word-boundary check, not a
+// plain substring match — "cto" is a literal substring of "director"
+// (dire-CTO-r), "contractor", "doctor", "factory", "sector", and "actor";
+// "coo" is a substring of "coordinator"/"cooperate". Checked as plain
+// .includes() keywords, any of those ordinary titles were silently
+// misclassifying as Executive Leadership / C-Suite for every candidate,
+// regardless of the candidate's own level — a live bug, not hypothetical
+// (surfaced by an "Executive Director" posting reading as C-Suite here).
+const EXEC_ACRONYM_PATTERN = /\b(?:ceo|coo|cfo|cto|cmo|cpo)\b/
+
 // "Administrative Business Partner, Office of the CEO" is a support role
 // that works FOR an executive, not the executive themselves — but "office
 // of the ceo" contains the bare substring "ceo", so it was matching the
@@ -58,8 +71,9 @@ export function inferFunctionFromTitle(title: string): string | null {
   const lower = stripExecutiveOfficePhrase(title.toLowerCase())
   for (const entry of FUNCTION_KEYWORDS) {
     const hits = entry.keywords.filter((kw) => lower.includes(kw))
-    if (hits.length === 0) continue
-    const weak = hits.length === 1 && AMBIGUOUS_SOLO_KEYWORDS.has(hits[0])
+    const matchesExecAcronym = entry.function === 'Executive Leadership' && EXEC_ACRONYM_PATTERN.test(lower)
+    if (hits.length === 0 && !matchesExecAcronym) continue
+    const weak = hits.length === 1 && !matchesExecAcronym && AMBIGUOUS_SOLO_KEYWORDS.has(hits[0])
     if (!weak) return entry.function
   }
   return null
@@ -73,7 +87,9 @@ export function inferFunctionFromTitle(title: string): string | null {
 // are individual-contributor roles, and this is only ever used as a soft
 // match signal, never a hard gate.
 const LEVEL_KEYWORDS: { level: (typeof HIGHEST_LEVEL_OPTIONS)[number]; keywords: string[] }[] = [
-  { level: 'C-Suite', keywords: ['chief executive', 'chief operating', 'chief financial', 'chief technology', 'chief marketing', 'chief product', 'chief people', 'chief revenue', 'chief legal', 'ceo', 'coo', 'cfo', 'cto', 'cmo', 'cpo', 'president', 'partner'] },
+  // Bare acronyms (ceo/coo/cfo/cto/cmo/cpo) handled via EXEC_ACRONYM_PATTERN
+  // below, not as plain substrings here — see that constant's comment.
+  { level: 'C-Suite', keywords: ['chief executive', 'chief operating', 'chief financial', 'chief technology', 'chief marketing', 'chief product', 'chief people', 'chief revenue', 'chief legal', 'president', 'partner'] },
   { level: 'VP', keywords: ['vice president', ' vp ', 'vp,', 'vp of', 'svp', 'evp'] },
   // "Head of X" is a director-equivalent title at most companies (it names
   // ownership of a whole function, not a single team) — checked before
@@ -124,10 +140,23 @@ function neutralizeStaffPartnerPhrase(lower: string): string {
   return lower.replace(new RegExp(`\\b(${alternation})(\\s+\\w+)?\\s+partner\\b`, 'g'), '$1$2 specialist')
 }
 
+// Bare "ED" is corporate shorthand for Executive Director, common in some
+// companies' internal title conventions (e.g. "ED, Data & AI, Enterprise").
+// The spelled-out "Executive Director" already matches the plain 'director'
+// substring above; this two-letter abbreviation needs its own word-boundary
+// check so it doesn't collide with ordinary words ending in "...ed" (e.g.
+// "Certified", "Related"). Scoped to the Director tier only, checked in the
+// same most-senior-first loop below so an explicit VP/C-Suite keyword
+// elsewhere in the title still wins.
+const BARE_ED_ABBREVIATION = /\bed\b/
+
 export function inferLevelFromTitle(title: string): string {
   const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))} `
   for (const entry of LEVEL_KEYWORDS) {
-    if (entry.keywords.some((kw) => lower.includes(kw))) {
+    const matchesKeyword = entry.keywords.some((kw) => lower.includes(kw))
+    const matchesExecAcronym = entry.level === 'C-Suite' && EXEC_ACRONYM_PATTERN.test(lower)
+    const matchesBareED = entry.level === 'Director' && BARE_ED_ABBREVIATION.test(lower)
+    if (matchesKeyword || matchesExecAcronym || matchesBareED) {
       return entry.level
     }
   }

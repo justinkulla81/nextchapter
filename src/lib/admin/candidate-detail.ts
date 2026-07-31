@@ -4,6 +4,7 @@ import { getFullClientView, type FullClientView } from '@/lib/coach/full-client-
 import { getSentimentAlert, getMoodHistory, type SentimentAlert } from '@/lib/daily/mood'
 import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
 import { computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { isWeakFit } from '@/lib/jobs/fit-bucket-types'
 import type { Mood } from '@prisma/client'
 
 export interface AdminCandidateDetail {
@@ -133,7 +134,7 @@ export async function getAdminCandidateDetail(
 
   const surfaced = surfacedForFit.map(({ location: _location, description: _description, ...rest }) => rest)
   const goodFitOrBetter = surfacedForFit.filter(
-    (job) => computeSurfacedJobFitBucket(candidate, job) !== 'stretch'
+    (job) => !isWeakFit(computeSurfacedJobFitBucket(candidate, job))
   ).length
   const inGeo = surfacedForFit.filter((job) => isInCandidateGeo(candidate, job.location)).length
 
