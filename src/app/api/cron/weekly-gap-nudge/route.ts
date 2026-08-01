@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
+import { computeWeeklyEngines } from '@/lib/scoring/hireability-grade'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { sendWeeklyGapNudgeEmail } from '@/lib/email/send-weekly-gap-nudge'
 
@@ -13,8 +13,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const weekStartDate = getMondayOfWeek(new Date())
-
   const eligible = await prisma.candidateProfile.findMany({
     where: { registrationCompletedAt: { not: null }, weeklyReportOptedOut: false },
     select: {
@@ -22,6 +20,7 @@ export async function GET(request: NextRequest) {
       userId: true,
       firstName: true,
       notificationTier: true,
+      privacyTier: true,
       _count: { select: { weeklySprints: true } },
     },
   })
@@ -31,15 +30,19 @@ export async function GET(request: NextRequest) {
     try {
       if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
 
-      const sprint = await prisma.weeklySprint.findUnique({
-        where: { candidateId_weekStartDate: { candidateId: candidate.id, weekStartDate } },
-      })
+      const sprint = await getCurrentWeekSprint(candidate.id)
       if (!sprint) continue // nothing committed this week — the goal-setting sequence already covers that gap
 
-      const weekNumber = candidate._count.weeklySprints
-      const weeklyPointsTarget = pointsNeededForA(weekNumber)
-      const actions = sprint.committedActions as unknown as CommittedAction[]
-      const weeklyPoints = actions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+      // Single source of truth shared with the dashboard's own "Weekly A
+      // Target" strip (see computeHireabilityGrade) — this cron used to
+      // reimplement this math inline and drifted from the live dashboard
+      // numbers (wrong week-number offset, missing the visibility bonus).
+      const weekNumber = candidate._count.weeklySprints + 1
+      const { weeklyPoints, weeklyPointsTarget } = await computeWeeklyEngines(
+        candidate.id,
+        weekNumber,
+        candidate.privacyTier
+      )
 
       if (weeklyPoints >= weeklyPointsTarget) continue // already at or above target — no nudge needed
 

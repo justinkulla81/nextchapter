@@ -389,7 +389,7 @@ export async function updateCategoryBaseline(
 // math as before: each of the four engines sums the points of *completed*
 // committed actions that map to it, scored against a proportional quarter
 // of the week's overall ramp target.
-async function computeWeeklyEngines(
+export async function computeWeeklyEngines(
   candidateId: string,
   weekNumber: number,
   privacyTier: PrivacyTier
