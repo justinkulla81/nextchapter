@@ -369,11 +369,14 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   INTERVIEW_PREP: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERVIEW_BEHAVIORAL_PRACTICE: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   NEGOTIATION_ADVICE: { href: '/dashboard/find-my-job', label: 'Find My Job' },
-  PROFILE_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
-  INDUSTRY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
-  FUNCTION_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
-  SALARY_CONFIRM: { href: '/dashboard/profile', label: 'Profile' },
-  WORK_AUTHORIZATION: { href: '/dashboard/profile', label: 'Profile' },
+  // Hash anchors so clicking a profile task lands scrolled to that exact
+  // section instead of the top of a long page — see the matching `id`s on
+  // each Card in src/app/dashboard/profile/page.tsx.
+  PROFILE_CONFIRM: { href: '/dashboard/profile#basics', label: 'Profile' },
+  INDUSTRY_CONFIRM: { href: '/dashboard/profile#industry', label: 'Profile' },
+  FUNCTION_CONFIRM: { href: '/dashboard/profile#function-experience', label: 'Profile' },
+  SALARY_CONFIRM: { href: '/dashboard/profile#salary', label: 'Profile' },
+  WORK_AUTHORIZATION: { href: '/dashboard/profile#work-authorization', label: 'Profile' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
   COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
@@ -396,16 +399,54 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   INTERVIEW_ATTENDED: { href: '/dashboard/calendar-activity', label: 'Calendar Activity' },
 }
 
+// actionTypes that represent real growth/stretch effort (networking,
+// learning, and starting an interim-work search) — the ones worth pushing
+// on specifically when a candidate says they're feeling motivated, per the
+// "capitalize on it" framing rather than just "give them the biggest number."
+const GROWTH_ACTION_TYPES = new Set([
+  'OUTREACH_MESSAGE',
+  'OUTREACH_CALL',
+  'NETWORKING_LIST',
+  'HELP_SCRIPT',
+  'LEARNING_MODULE',
+  'LEARNING_CERTIFICATE',
+  'LEARNING_NEW_TOOL',
+  'INTERIM_PROFILE_CREATED',
+])
+
 // The Mood Check-In card's "here's some ideas for today" list — the
 // current week's Sprint is the one real source of "what should I do today,"
 // so this just filters it down to what's left, capped to a short scannable
-// list rather than dumping the whole committed list.
+// list. When today's mood is known, the order is tilted by it: feeling
+// motivated (MOVING/FIRED_UP) surfaces the higher-effort, higher-point
+// growth actions (networking, learning, starting an interim-work search)
+// first so the candidate capitalizes on the momentum; feeling low
+// (STUCK/GETTING_THERE) surfaces the cheapest already-open actions first,
+// so there's an easy win available rather than the biggest ask in the list.
 export function getMoodCardIdeas<T extends { text: string; actionType?: string; completed: boolean }>(
   committedActions: T[] | null | undefined,
-  max = 3
+  max = 3,
+  mood?: import('@prisma/client').Mood | null
 ): T[] {
   if (!committedActions) return []
-  return committedActions.filter((a) => !a.completed).slice(0, max)
+  const open = committedActions.filter((a) => !a.completed)
+
+  if (mood === 'MOVING' || mood === 'FIRED_UP') {
+    return [...open]
+      .sort((a, b) => {
+        const aGrowth = a.actionType && GROWTH_ACTION_TYPES.has(a.actionType) ? 1 : 0
+        const bGrowth = b.actionType && GROWTH_ACTION_TYPES.has(b.actionType) ? 1 : 0
+        if (aGrowth !== bGrowth) return bGrowth - aGrowth
+        return estimateActionEffort(b).points - estimateActionEffort(a).points
+      })
+      .slice(0, max)
+  }
+
+  if (mood === 'STUCK' || mood === 'GETTING_THERE') {
+    return [...open].sort((a, b) => estimateActionEffort(a).points - estimateActionEffort(b).points).slice(0, max)
+  }
+
+  return open.slice(0, max)
 }
 
 export function formatMinutes(minutes: number): string {

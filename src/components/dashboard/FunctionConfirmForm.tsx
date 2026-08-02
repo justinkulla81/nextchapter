@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { PRIMARY_FUNCTION_OPTIONS, HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { cn } from '@/lib/utils'
 
 const POINTS = estimateActionEffort({ actionType: 'FUNCTION_CONFIRM' }).points
@@ -57,6 +58,7 @@ export function FunctionConfirmForm({
       action={formAction}
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <ConfirmHint show={!isConfirmed} />
       <Select
         name="primaryFunction"
         value={values.primaryFunction || null}

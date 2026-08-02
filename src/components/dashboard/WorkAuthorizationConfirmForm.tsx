@@ -1,10 +1,8 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { confirmSalaryAndAuthorization } from '@/app/dashboard/actions'
+import { confirmWorkAuthorization } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -12,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
 
@@ -39,27 +38,19 @@ const VISA_STATUS_LABELS: Record<string, string> = Object.fromEntries(
   VISA_STATUS_OPTIONS.map((opt) => [opt.value, opt.label])
 )
 
-// Confirms two separate one-time actions (SALARY_CONFIRM, WORK_AUTHORIZATION)
-// with a single button — the server action always sets both timestamps
-// together, so they're always in sync.
-const POINTS =
-  estimateActionEffort({ actionType: 'SALARY_CONFIRM' }).points +
-  estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
+const POINTS = estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
 
-export function SalaryAuthorizationConfirmForm({
-  lastSalary,
+export function WorkAuthorizationConfirmForm({
   workAuthorization,
   visaStatus,
   confirmedAt,
 }: {
-  lastSalary: number | null
   workAuthorization: string | null
   visaStatus: string | null
   confirmedAt: Date | null
 }) {
-  const [state, formAction, pending] = useActionState(confirmSalaryAndAuthorization, undefined)
+  const [state, formAction, pending] = useActionState(confirmWorkAuthorization, undefined)
 
-  const initialSalaryThousands = lastSalary ? String(Math.round(lastSalary / 1000)) : ''
   // Base UI's Select silently highlights the first item as its uncontrolled
   // default when no value is given at all — it doesn't stay in a genuine
   // "nothing chosen" state the way the placeholder text implied. Left
@@ -70,48 +61,16 @@ export function SalaryAuthorizationConfirmForm({
   const initialWorkAuthorization = workAuthorization ?? 'work_authorized_no_sponsorship'
   const initialVisaStatus = visaStatus ?? 'not_applicable'
 
-  const [salaryThousands, setSalaryThousands] = useState(initialSalaryThousands)
   const [workAuth, setWorkAuth] = useState(initialWorkAuthorization)
   const [visa, setVisa] = useState(initialVisaStatus)
 
   const isConfirmed = !!confirmedAt
-  const isDirty =
-    salaryThousands !== initialSalaryThousands || workAuth !== initialWorkAuthorization || visa !== initialVisaStatus
+  const isDirty = workAuth !== initialWorkAuthorization || visa !== initialVisaStatus
   const canConfirm = !isConfirmed || isDirty
 
   return (
-    <form
-      action={formAction}
-      className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
-    >
-      <div className="space-y-1">
-        <Label htmlFor="lastSalaryThousands">Last salary</Label>
-        <div className="flex items-center gap-2">
-          <div className="relative w-32">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="lastSalaryThousands"
-              name="lastSalaryThousands"
-              type="number"
-              min={0}
-              placeholder="120"
-              className="pl-7"
-              value={salaryThousands}
-              onChange={(e) => setSalaryThousands(e.target.value)}
-            />
-          </div>
-          <span className="text-sm text-muted-foreground">
-            ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Never shared with a recruiter or shown publicly — used only to match jobs and calibrate
-          level.
-        </p>
-      </div>
-
+    <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
+      <ConfirmHint show={!isConfirmed} />
       <Select
         name="workAuthorization"
         value={workAuth}
@@ -134,9 +93,7 @@ export function SalaryAuthorizationConfirmForm({
       <Select name="visaStatus" value={visa} onValueChange={(v) => setVisa((v as string) ?? initialVisaStatus)}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Visa status (if applicable)">
-            {(value: string | null) =>
-              value ? VISA_STATUS_LABELS[value] : 'Visa status (if applicable)'
-            }
+            {(value: string | null) => (value ? VISA_STATUS_LABELS[value] : 'Visa status (if applicable)')}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>

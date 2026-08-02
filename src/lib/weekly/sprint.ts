@@ -141,7 +141,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const buffer = Math.ceil(target * 1.5)
 
   // The two work-status confirmations are real, unfinished one-time setup
-  // steps (see SalaryAuthorizationConfirmForm) — surface them until
+  // steps (see SalaryConfirmForm / WorkAuthorizationConfirmForm) — surface them until
   // answered regardless of point budget, so they don't get silently
   // skipped just because the rest of the list already covers this week's
   // target.
@@ -187,10 +187,34 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
       .filter(([confirmedAt]) => !!confirmedAt)
       .map(([, actionType]) => actionType)
   )
-  const personalizedRaw = await getPersonalizedSuggestions(candidateId)
-  const personalized = personalizedRaw.filter((a) => !a.actionType || !verifiedDoneTypes.has(a.actionType))
+  // Every one-time actionType this candidate has ever completed, across ALL
+  // past sprints — without this, a completed one-time task (e.g.
+  // RESUME_UPDATE) has no persisted-history check anywhere: it could still
+  // be sitting in a stale personalized snapshot (see the comment above) or
+  // get re-added by the CANONICAL_TASK_MENU top-up below in a later week.
+  // Recurring actions are deliberately excluded since they're meant to
+  // reset weekly.
+  const pastSprints = await prisma.weeklySprint.findMany({
+    where: { candidateId },
+    select: { committedActions: true },
+  })
+  const completedOneTimeTypes = new Set<string>()
+  for (const past of pastSprints) {
+    const pastActions = past.committedActions as unknown as CommittedAction[]
+    if (!Array.isArray(pastActions)) continue
+    for (const a of pastActions) {
+      if (a.actionType && a.completed && !isRecurringActionType(a.actionType)) {
+        completedOneTimeTypes.add(a.actionType)
+      }
+    }
+  }
 
-  const usedTypes = new Set(personalized.map((a) => a.actionType).filter(Boolean))
+  const personalizedRaw = await getPersonalizedSuggestions(candidateId)
+  const personalized = personalizedRaw.filter(
+    (a) => !a.actionType || (!verifiedDoneTypes.has(a.actionType) && !completedOneTimeTypes.has(a.actionType))
+  )
+
+  const usedTypes = new Set([...personalized.map((a) => a.actionType).filter(Boolean), ...completedOneTimeTypes])
   const suggestions = [...personalized]
   let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
 
@@ -467,7 +491,7 @@ export async function autoCompleteEngagementAction(
       estimatedMinutes: action.estimatedMinutes,
       completed: true,
       completedAt: new Date().toISOString(),
-      recurring: true,
+      recurring: isRecurringActionType(action.actionType),
       addedFromCatalog: true,
     })
   }

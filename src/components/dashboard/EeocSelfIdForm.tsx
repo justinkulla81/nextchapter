@@ -66,7 +66,9 @@ export function EeocSelfIdForm({
             <Label htmlFor="eeocGenderIdentity">Gender identity</Label>
             <Select name="eeocGenderIdentity" defaultValue={eeocGenderIdentity ?? undefined}>
               <SelectTrigger id="eeocGenderIdentity">
-                <SelectValue placeholder="Prefer not to answer" />
+                <SelectValue placeholder="Prefer not to answer">
+                  {(value: EeocGenderIdentity) => GENDER_OPTIONS.find((o) => o.value === value)?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {GENDER_OPTIONS.map((o) => (
@@ -82,7 +84,9 @@ export function EeocSelfIdForm({
             <Label htmlFor="eeocRaceEthnicity">Race / ethnicity</Label>
             <Select name="eeocRaceEthnicity" defaultValue={eeocRaceEthnicity ?? undefined}>
               <SelectTrigger id="eeocRaceEthnicity">
-                <SelectValue placeholder="Prefer not to answer" />
+                <SelectValue placeholder="Prefer not to answer">
+                  {(value: EeocRaceEthnicity) => RACE_OPTIONS.find((o) => o.value === value)?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {RACE_OPTIONS.map((o) => (
@@ -98,7 +102,9 @@ export function EeocSelfIdForm({
             <Label htmlFor="eeocDisabilityStatus">Disability status</Label>
             <Select name="eeocDisabilityStatus" defaultValue={eeocDisabilityStatus ?? undefined}>
               <SelectTrigger id="eeocDisabilityStatus">
-                <SelectValue placeholder="Prefer not to answer" />
+                <SelectValue placeholder="Prefer not to answer">
+                  {(value: EeocYesNoDecline) => YES_NO_OPTIONS.find((o) => o.value === value)?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {YES_NO_OPTIONS.map((o) => (
@@ -114,7 +120,9 @@ export function EeocSelfIdForm({
             <Label htmlFor="eeocVeteranStatus">Veteran status</Label>
             <Select name="eeocVeteranStatus" defaultValue={eeocVeteranStatus ?? undefined}>
               <SelectTrigger id="eeocVeteranStatus">
-                <SelectValue placeholder="Prefer not to answer" />
+                <SelectValue placeholder="Prefer not to answer">
+                  {(value: EeocYesNoDecline) => YES_NO_OPTIONS.find((o) => o.value === value)?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {YES_NO_OPTIONS.map((o) => (

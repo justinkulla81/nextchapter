@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { cn } from '@/lib/utils'
 
 const POINTS = estimateActionEffort({ actionType: 'PROFILE_CONFIRM' }).points
@@ -57,6 +58,7 @@ export function ProfileConfirmForm({
       action={formAction}
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <ConfirmHint show={!isConfirmed} />
       <div className="grid grid-cols-2 gap-2">
         <Input
           name="firstName"

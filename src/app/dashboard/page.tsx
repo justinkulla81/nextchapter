@@ -137,7 +137,11 @@ export default async function DashboardPage() {
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
-  const todaysIdeas = getMoodCardIdeas(currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null)
+  const todaysIdeas = getMoodCardIdeas(
+    currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null,
+    3,
+    todaysMood
+  )
 
   // Prompt 45 §8: on_track is measured against the system's points_target
   // (the ramp), never against whatever the candidate personally committed

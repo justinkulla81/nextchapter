@@ -17,6 +17,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { deriveHighestLevel } from '@/lib/constants/education'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
@@ -212,15 +213,18 @@ export async function confirmEducation(
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
-  const highestEducationLevel = (formData.get('highestEducationLevel') as HighestEducationLevel | null) || null
-  const hasMBA = formData.get('hasMBA') === 'on'
-  const hasJD = formData.get('hasJD') === 'on'
-  const hasMD = formData.get('hasMD') === 'on'
-  const hasDO = formData.get('hasDO') === 'on'
+  const checkedDegrees = new Set(formData.getAll('degrees') as HighestEducationLevel[])
+  const highestEducationLevel = deriveHighestLevel(checkedDegrees)
+  const hasJD = checkedDegrees.has('JD')
+  const hasMD = checkedDegrees.has('MD')
 
+  // hasMBA/hasDO are intentionally left untouched — there's no checkbox for
+  // either in the current UI (see DEGREE_OPTIONS), so overwriting them here
+  // would silently erase a value set by resume extraction or an earlier
+  // version of this form.
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { highestEducationLevel, hasMBA, hasJD, hasMD, hasDO },
+    data: { highestEducationLevel, hasJD, hasMD },
   })
   revalidatePath('/dashboard/profile')
 }
@@ -233,11 +237,13 @@ export async function confirmIndustry(
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
   const industryContext = (formData.get('industryContext') as string) || null
+  const secondaryIndustryContext = (formData.get('secondaryIndustryContext') as string) || null
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
       industryContext,
+      secondaryIndustryContext,
       industryBucket: normalizeIndustryBucket(industryContext),
       industryConfirmedAt: new Date(),
     },
@@ -328,20 +334,12 @@ export async function confirmLinkedIn(
   revalidatePath('/dashboard/hireability-report')
 }
 
-export async function confirmSalaryAndAuthorization(
-  _prevState: ConfirmFormState,
-  formData: FormData
-): Promise<ConfirmFormState> {
+export async function confirmSalary(_prevState: ConfirmFormState, formData: FormData): Promise<ConfirmFormState> {
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
   const lastSalaryThousandsRaw = formData.get('lastSalaryThousands')
-  const workAuthorization = (formData.get('workAuthorization') as string) || null
-  const visaStatus = (formData.get('visaStatus') as string) || null
-
-  if (!lastSalaryThousandsRaw || !workAuthorization) {
-    return { error: 'Please answer both questions.' }
-  }
+  if (!lastSalaryThousandsRaw) return { error: 'Enter your last salary.' }
 
   const lastSalaryThousandsEntered = Number(lastSalaryThousandsRaw)
   // Auto-correct if someone enters the full dollar amount instead of thousands.
@@ -350,16 +348,29 @@ export async function confirmSalaryAndAuthorization(
       ? Math.round(lastSalaryThousandsEntered / 1000) * 1000
       : lastSalaryThousandsEntered * 1000
 
-  const now = new Date()
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: {
-      lastSalary,
-      workAuthorization,
-      visaStatus,
-      salaryConfirmedAt: now,
-      workAuthConfirmedAt: now,
-    },
+    data: { lastSalary, salaryConfirmedAt: new Date() },
+  })
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/profile')
+  revalidatePath('/dashboard/hireability-report')
+}
+
+export async function confirmWorkAuthorization(
+  _prevState: ConfirmFormState,
+  formData: FormData
+): Promise<ConfirmFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const workAuthorization = (formData.get('workAuthorization') as string) || null
+  const visaStatus = (formData.get('visaStatus') as string) || null
+  if (!workAuthorization) return { error: 'Select your work authorization status.' }
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { workAuthorization, visaStatus, workAuthConfirmedAt: new Date() },
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')

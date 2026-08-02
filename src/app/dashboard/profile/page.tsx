@@ -5,7 +5,8 @@ import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
 import { EducationConfirmForm } from '@/components/dashboard/EducationConfirmForm'
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
-import { SalaryAuthorizationConfirmForm } from '@/components/dashboard/SalaryAuthorizationConfirmForm'
+import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
+import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthorizationConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
@@ -21,6 +22,12 @@ import {
 
 export const metadata: Metadata = { title: 'My Profile' }
 
+// Section order: Email, Basics, Profile picture, Industry, Education,
+// Function & experience, Salary, Work Authorization, Optional demographics,
+// Keywords. The "Save profile" button spans two non-contiguous card groups
+// (id="profile-cards-1" and "profile-cards-2") since Optional demographics
+// sits between Work Authorization and Keywords but saves independently via
+// its own button — see ProfileSaveAllButton's array support.
 export default async function ProfilePage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
@@ -47,31 +54,8 @@ export default async function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Profile picture (optional)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-3 text-sm text-muted-foreground">
-            Shown to your coach and recruiter/employer contacts in messaging, and in weekly
-            recognition (A-List, badges). Never shown on your resume, dossier, or to hiring managers
-            reviewing your report.
-          </p>
-          <AvatarUploadForm
-            displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
-            currentUrl={profile.profilePictureUrl}
-            visible={profile.profilePictureVisible}
-            uploadAction={uploadMyProfilePicture}
-            removeAction={removeMyProfilePicture}
-            toggleVisibilityAction={toggleMyProfilePictureVisible}
-          />
-        </CardContent>
-      </Card>
-
-      <div id="profile-cards" className="space-y-8">
-        <Card>
+      <div id="profile-cards-1" className="space-y-8">
+        <Card id="basics" className="scroll-mt-4">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Basics</CardTitle>
           </CardHeader>
@@ -90,10 +74,37 @@ export default async function ProfilePage() {
 
         <Card>
           <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Profile picture (optional)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Shown to your coach and recruiter/employer contacts in messaging, and in weekly
+              recognition (A-List, badges). Never shown on your resume, dossier, or to hiring managers
+              reviewing your report.
+            </p>
+            <AvatarUploadForm
+              displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
+              currentUrl={profile.profilePictureUrl}
+              visible={profile.profilePictureVisible}
+              uploadAction={uploadMyProfilePicture}
+              removeAction={removeMyProfilePicture}
+              toggleVisibilityAction={toggleMyProfilePictureVisible}
+            />
+          </CardContent>
+        </Card>
+
+        <Card id="industry" className="scroll-mt-4">
+          <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Industry</CardTitle>
           </CardHeader>
           <CardContent>
-            <IndustryConfirmForm industryContext={profile.industryContext} confirmedAt={profile.industryConfirmedAt} />
+            <IndustryConfirmForm
+              industryContext={profile.industryContext}
+              secondaryIndustryContext={profile.secondaryIndustryContext}
+              confirmedAt={profile.industryConfirmedAt}
+            />
           </CardContent>
         </Card>
 
@@ -104,15 +115,13 @@ export default async function ProfilePage() {
           <CardContent>
             <EducationConfirmForm
               highestEducationLevel={profile.highestEducationLevel}
-              hasMBA={profile.hasMBA}
               hasJD={profile.hasJD}
               hasMD={profile.hasMD}
-              hasDO={profile.hasDO}
             />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="function-experience" className="scroll-mt-4">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Function &amp; experience
@@ -129,36 +138,32 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="salary" className="scroll-mt-4">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Salary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SalaryConfirmForm lastSalary={profile.lastSalary} confirmedAt={profile.salaryConfirmedAt} />
+          </CardContent>
+        </Card>
+
+        <Card id="work-authorization" className="scroll-mt-4">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Salary &amp; work authorization
+              Work authorization
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <SalaryAuthorizationConfirmForm
-              lastSalary={profile.lastSalary}
+            <WorkAuthorizationConfirmForm
               workAuthorization={profile.workAuthorization}
               visaStatus={profile.visaStatus}
-              confirmedAt={profile.salaryConfirmedAt}
+              confirmedAt={profile.workAuthConfirmedAt}
             />
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Resume keywords
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} />
-          </CardContent>
-        </Card>
-
       </div>
 
-      <ProfileSaveAllButton containerId="profile-cards" />
+      <ProfileSaveAllButton containerId={['profile-cards-1', 'profile-cards-2']} />
 
       <Card>
         <CardHeader>
@@ -175,6 +180,19 @@ export default async function ProfilePage() {
           />
         </CardContent>
       </Card>
+
+      <div id="profile-cards-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Resume keywords
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

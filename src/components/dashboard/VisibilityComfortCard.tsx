@@ -17,10 +17,6 @@ const WEEKLY_COMFORT_OPTIONS: { value: PublicDisclosureComfort; label: string }[
   { value: 'FULLY_COMFORTABLE', label: 'Completely comfortable being public' },
 ]
 
-const COMFORT_LABEL: Record<PublicDisclosureComfort, string> = Object.fromEntries(
-  WEEKLY_COMFORT_OPTIONS.map((o) => [o.value, o.label])
-) as Record<PublicDisclosureComfort, string>
-
 export function VisibilityComfortCard({
   initialComfort,
 }: {
@@ -37,7 +33,12 @@ export function VisibilityComfortCard({
     })
   }
 
-  if (dismissed) return null
+  // Once answered this week, the card disappears entirely rather than
+  // sticking around in a "You said: X" state — initialComfort is re-derived
+  // from the current week's WeeklySprint on every page load, so this
+  // naturally reappears once a new week's sprint has visibilityComfort: null
+  // again. No separate "next week" logic needed.
+  if (dismissed || comfort) return null
 
   return (
     <Card aria-busy={isPending}>
@@ -60,34 +61,21 @@ export function VisibilityComfortCard({
         </button>
       </CardHeader>
       <CardContent>
-        {!comfort ? (
-          <div className="flex flex-wrap gap-2">
-            {WEEKLY_COMFORT_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                disabled={isPending}
-                onClick={() => handleSelect(option.value)}
-                className={cn(
-                  'rounded-md border border-input bg-white px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-brand/40 disabled:cursor-wait'
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-foreground">
-            You said: <span className="font-medium">{COMFORT_LABEL[comfort]}</span>.{' '}
+        <div className="flex flex-wrap gap-2">
+          {WEEKLY_COMFORT_OPTIONS.map((option) => (
             <button
+              key={option.value}
               type="button"
-              onClick={() => setComfort(null)}
-              className="text-primary underline underline-offset-4"
+              disabled={isPending}
+              onClick={() => handleSelect(option.value)}
+              className={cn(
+                'rounded-md border border-input bg-white px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-brand/40 disabled:cursor-wait'
+              )}
             >
-              Change this
+              {option.label}
             </button>
-          </p>
-        )}
+          ))}
+        </div>
       </CardContent>
     </Card>
   )

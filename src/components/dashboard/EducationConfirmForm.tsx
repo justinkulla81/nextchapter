@@ -6,90 +6,57 @@ import { confirmEducation } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DEGREE_OPTIONS, legacyLevelToOption } from '@/lib/constants/education'
 import { cn } from '@/lib/utils'
-
-const LEVEL_LABELS: Record<HighestEducationLevel, string> = {
-  SOME_COLLEGE: 'Some college, no degree',
-  ASSOCIATE: "Associate's degree",
-  BACHELORS: "Bachelor's degree",
-  MASTERS: "Master's degree",
-  MBA: 'MBA',
-  MPH: 'MPH',
-  JD: 'JD',
-  MD: 'MD',
-  DO: 'DO',
-  PHARMD: 'PharmD',
-  DDS: 'DDS/DMD',
-  DVM: 'DVM',
-  PSYD: 'PsyD',
-  PHD: 'PhD',
-  OTHER: 'Other',
-}
 
 export function EducationConfirmForm({
   highestEducationLevel,
-  hasMBA,
   hasJD,
   hasMD,
-  hasDO,
 }: {
   highestEducationLevel: HighestEducationLevel | null
-  hasMBA: boolean
   hasJD: boolean
   hasMD: boolean
-  hasDO: boolean
 }) {
   const [state, formAction, pending] = useActionState(confirmEducation, undefined)
-  const [level, setLevel] = useState<HighestEducationLevel | ''>(highestEducationLevel ?? '')
+
+  const initialChecked = new Set<HighestEducationLevel>(
+    [
+      highestEducationLevel ? legacyLevelToOption(highestEducationLevel) : null,
+      hasJD ? 'JD' : null,
+      hasMD ? 'MD' : null,
+      highestEducationLevel === 'PHD' ? 'PHD' : null,
+    ].filter((v): v is HighestEducationLevel => !!v)
+  )
+  const [checked, setChecked] = useState(initialChecked)
+
+  function toggle(value: HighestEducationLevel, isChecked: boolean) {
+    setChecked((prev) => {
+      const next = new Set(prev)
+      if (isChecked) next.add(value)
+      else next.delete(value)
+      return next
+    })
+  }
 
   return (
-    <form
-      action={formAction}
-      className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
-    >
-      <div className="space-y-1">
-        <Label htmlFor="highestEducationLevel">Highest degree completed</Label>
-        <select
-          id="highestEducationLevel"
-          name="highestEducationLevel"
-          value={level}
-          onChange={(e) => setLevel(e.target.value as HighestEducationLevel)}
-          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="">Not set</option>
-          {(Object.keys(LEVEL_LABELS) as HighestEducationLevel[]).map((key) => (
-            <option key={key} value={key}>
-              {LEVEL_LABELS[key]}
-            </option>
-          ))}
-        </select>
-      </div>
-
+    <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Checkbox id="hasMBA" name="hasMBA" value="on" defaultChecked={hasMBA} />
-          <Label htmlFor="hasMBA" className="font-normal">
-            I have an MBA
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox id="hasJD" name="hasJD" value="on" defaultChecked={hasJD} />
-          <Label htmlFor="hasJD" className="font-normal">
-            I have a JD (law degree)
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox id="hasMD" name="hasMD" value="on" defaultChecked={hasMD} />
-          <Label htmlFor="hasMD" className="font-normal">
-            I have an MD
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox id="hasDO" name="hasDO" value="on" defaultChecked={hasDO} />
-          <Label htmlFor="hasDO" className="font-normal">
-            I have a DO
-          </Label>
-        </div>
+        <Label>Education</Label>
+        {DEGREE_OPTIONS.map((opt) => (
+          <div key={opt.value} className="flex items-center gap-2">
+            <Checkbox
+              id={`degree-${opt.value}`}
+              name="degrees"
+              value={opt.value}
+              checked={checked.has(opt.value)}
+              onCheckedChange={(isChecked) => toggle(opt.value, !!isChecked)}
+            />
+            <Label htmlFor={`degree-${opt.value}`} className="font-normal">
+              {opt.label}
+            </Label>
+          </div>
+        ))}
       </div>
 
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
