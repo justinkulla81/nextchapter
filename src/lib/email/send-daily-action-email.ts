@@ -71,8 +71,8 @@ export async function sendDailyActionEmail(candidateId: string) {
         replyTo: 'support@launchyournextchapter.com',
         to: email,
         subject: candidate.firstName
-          ? `Your Day 1 action plan is ready, ${candidate.firstName}`
-          : 'Your Day 1 action plan is ready',
+          ? `Your Day 2 action plan is ready, ${candidate.firstName}`
+          : 'Your Day 2 action plan is ready',
         react: Week1KickoffEmail({
           firstName: candidate.firstName,
           victoriaName: getVictoriaName('introduction'),
