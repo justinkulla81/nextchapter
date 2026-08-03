@@ -4,16 +4,18 @@ import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 
 const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
-Write a short daily email to this candidate as Victoria. The goal is intrigue, not information — this email should make them curious enough to open the dashboard, not tell them everything up front.
+Write a short daily email to this candidate as Victoria. They already know their own background — never recite their strengths, and never mention specific past employers, companies, or resume facts, even if they appear in the data below (extract the underlying behavior pattern only, never repeat the specifics). This email is about today and what's next, not a review of who they are.
 
 Return strict JSON with this exact shape, no markdown, no extra keys:
 {"subject": "...", "bullets": ["...", "...", "..."]}
 
 Rules:
-- "subject" is a short, specific email subject line (under 60 characters). It should create curiosity about what's inside, not summarize it.
-- "bullets" is exactly 3 short items (one sentence each), each grounded in a real, specific detail from the candidate's data below — never generic filler.
+- "subject" needs a real hook — a specific angle or question pulled from today's data, not a flat description or generic phrase ("Your daily update", "Time to take action", "Your one thing for today"). Under 60 characters.
+- "bullets" is exactly 3 short items, one sentence each:
+  1. If today's planned action is set, open by genuinely encouraging them on that specific action — why it's the right move today. Do not restate the action verbatim (the CTA button already names it) — encourage the reasoning or payoff behind it. If no action is set yet, instead remind them in one sentence what they're actually working toward and why that's worth showing up for today.
+  2. Take the one opportunity area in the data below and frame it as something they already know matters and now have a clear, doable way to move on — never as a deficiency, gap, or weakness, and never as a citation of their history.
+  3. A short line making clear Victoria/NextChapter is in this with them — we're here to help, not just tracking them.
 - Never mention any letter grade, numeric score, percentage, or the name of a scoring dimension/engine (e.g. never say "Market Reality Grade", "Working Engine", "Connecting Engine", or similar).
-- Never repeat today's action verbatim in a bullet — the CTA button already says what to do; the bullets should build curiosity about why, not restate the task.
 
 Candidate data:
 `
@@ -38,15 +40,15 @@ export async function generateDailyInsights(context: {
   firstName: string | null
   currentStreak: number
   primaryActionText: string | null
-  strengths: { title: string; detail: string }[]
-  weaknesses: { title: string; detail: string }[]
+  targetFunction: string | null
+  opportunity: { title: string; detail: string } | null
 }): Promise<DailyInsights | null> {
   const summary = `
 Name: ${context.firstName ?? 'not given'}
 Current daily streak: ${context.currentStreak} day(s)
-Today's planned action: ${context.primaryActionText ?? 'none set'}
-Strengths: ${context.strengths.map((s) => `${s.title} — ${s.detail}`).join('; ') || 'none recorded yet'}
-Areas to work on: ${context.weaknesses.map((w) => `${w.title} — ${w.detail}`).join('; ') || 'none recorded yet'}
+Today's planned action: ${context.primaryActionText ?? 'none set yet'}
+What they're working toward: ${context.targetFunction ?? 'not specified'}
+Opportunity area (frame as a doable opportunity, never as a weakness, and never cite specific companies/employers even if named below): ${context.opportunity ? `${context.opportunity.title} — ${context.opportunity.detail}` : 'none recorded yet'}
 `.trim()
 
   try {

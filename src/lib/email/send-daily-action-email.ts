@@ -114,16 +114,18 @@ export async function sendDailyActionEmail(candidateId: string) {
           )
         : null
 
-    const insights =
-      !isReset && primaryAction
-        ? await generateDailyInsights({
-            firstName: candidate.firstName,
-            currentStreak: candidate.currentStreak,
-            primaryActionText: primaryAction.text,
-            strengths: report ? ((report.strengths as unknown as Strength[]) ?? []) : [],
-            weaknesses: report ? ((report.weaknesses as unknown as Strength[]) ?? []) : [],
-          })
-        : null
+    // Runs even with no primaryAction (e.g. before the week's actions are
+    // assigned) — the prompt falls back to reminding them what they're
+    // working toward instead of restating a task that doesn't exist yet.
+    const insights = !isReset
+      ? await generateDailyInsights({
+          firstName: candidate.firstName,
+          currentStreak: candidate.currentStreak,
+          primaryActionText: primaryAction?.text ?? null,
+          targetFunction: candidate.targetFunction ?? candidate.targetRoleType ?? null,
+          opportunity: report ? ((report.weaknesses as unknown as Strength[])[0] ?? null) : null,
+        })
+      : null
 
     const subject =
       insights?.subject ??
