@@ -6,6 +6,7 @@ import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getWatchlistNotificationCount } from '@/lib/company-tracker/watchlist'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
+import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -25,7 +26,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const [
     narrativeCount,
-    hasMarketReality,
+    marketRealitySnapshotCount,
+    learningBadgeCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
     newJobMatchesCount,
@@ -33,6 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profile.id } }),
+    prisma.learningBadge.count({ where: { candidateId: profile.id } }),
     getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
     getCandidateUnreadCount(profile.id),
     // Unreacted automated-search-partner matches waiting for the candidate
@@ -45,16 +48,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
     getWatchlistNotificationCount(profile.id),
   ])
 
-  // Each category counts once toward "assets you have" regardless of how
-  // much history it holds — a resume with 4 versions or a Market Reality
-  // Report with 10 weekly snapshots is still one current asset, not N.
-  const portfolioAssetCount =
-    (profile.resumes.length > 0 ? 1 : 0) +
-    profile.jobPostings.filter((j) => !!j.coverLetter).length +
-    narrativeCount +
-    (profile.hireabilityReports.length > 0 ? 1 : 0) +
-    (hasMarketReality > 0 ? 1 : 0) +
-    profile.workSamples.length
+  // See buildPortfolioAssetChecklist — the Portfolio page computes this
+  // same checklist from the same shape of inputs, so the nav badge and the
+  // page's own "X of 8 assets" count can never disagree.
+  const portfolioAssetCount = buildPortfolioAssetChecklist({
+    hasResume: profile.resumes.length > 0,
+    hasCoverLetter: profile.jobPostings.some((j) => !!j.coverLetter),
+    hasNarrative: narrativeCount > 0,
+    hasHireabilityReport: profile.hireabilityReports.length > 0,
+    hasMarketRealityReport: marketRealitySnapshotCount > 0,
+    hasWorkSample: profile.workSamples.length > 0,
+    hasCompletedReference: profile.references.some((r) => r.status === 'COMPLETED'),
+    hasLearningBadge: learningBadgeCount > 0,
+  }).filter((a) => a.done).length
 
   return (
     <div className="min-h-screen">

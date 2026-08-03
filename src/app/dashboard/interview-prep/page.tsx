@@ -71,7 +71,12 @@ export default async function InterviewPrepPage() {
         jobHoppingFlag={profile.jobHoppingFlag}
       />
 
-      <WeaknessGuidanceCard guidance={weaknessGuidance} showGapForm={false} />
+      <WeaknessGuidanceCard
+        guidance={weaknessGuidance}
+        showGapForm
+        gapExplanation={profile.gapExplanation}
+        includeGapExplanationInDossier={profile.includeGapExplanationInDossier}
+      />
     </div>
   )
 }

@@ -6,9 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { NarrativeManager, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
-import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
-import { detectNarrativeWeaknesses } from '@/lib/narrative/detect-narrative-weaknesses'
+import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
@@ -24,27 +23,28 @@ const RESUME_UPDATE_POINTS = estimateActionEffort({ actionType: 'RESUME_UPDATE' 
 export default async function PortfolioPage() {
   const profile = await getDashboardData()
 
-  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade, weaknessGuidance] = await Promise.all([
-    prisma.candidateNarrative.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { generatedAt: 'asc' },
-    }),
-    prisma.hireabilityReport.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { generatedAt: 'desc' },
-      take: 6,
-      select: { id: true, generatedAt: true, hireabilityGradeAtGeneration: true },
-    }),
-    prisma.marketRealitySnapshot.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { weekStartDate: 'asc' },
-    }),
-    profile.coachId
-      ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
-      : null,
-    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
-    detectNarrativeWeaknesses(profile.id),
-  ])
+  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade, learningBadgeCount] =
+    await Promise.all([
+      prisma.candidateNarrative.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { generatedAt: 'asc' },
+      }),
+      prisma.hireabilityReport.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { generatedAt: 'desc' },
+        take: 6,
+        select: { id: true, generatedAt: true, hireabilityGradeAtGeneration: true },
+      }),
+      prisma.marketRealitySnapshot.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { weekStartDate: 'asc' },
+      }),
+      profile.coachId
+        ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
+        : null,
+      computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+      prisma.learningBadge.count({ where: { candidateId: profile.id } }),
+    ])
 
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
     id: n.id,
@@ -58,19 +58,23 @@ export default async function PortfolioPage() {
   const coverLettersCount = profile.jobPostings.filter((j) => !!j.coverLetter).length
   const hasCoachDossierAccess = profile.coachId !== null && profile.coachDossierConsentedAt !== null
   const isAList = grade.grade === 'A'
+  const completedReferenceCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
-  // Same six categories the "My Portfolio" nav badge counts (see
-  // portfolioAssetCount in dashboard/layout.tsx) — surfaced here so the
-  // number in the nav has a legible meaning on the page itself instead of
-  // just being an unexplained count.
-  const coreAssets = [
-    { label: 'Resume', done: profile.resumes.length > 0 },
-    { label: 'A cover letter', done: coverLettersCount > 0 },
-    { label: 'Your narrative', done: narratives.length > 0 },
-    { label: 'Hireability Report', done: reportHistory.length > 0 },
-    { label: 'Market Reality Report', done: marketRealitySnapshots.length > 0 },
-    { label: 'A work sample', done: profile.workSamples.length > 0 },
-  ]
+  // Same categories the "My Portfolio" nav badge counts (see
+  // portfolioAssetCount in dashboard/layout.tsx, built from the same
+  // buildPortfolioAssetChecklist) — surfaced here so the number in the nav
+  // has a legible meaning on the page itself instead of just being an
+  // unexplained count.
+  const coreAssets = buildPortfolioAssetChecklist({
+    hasResume: profile.resumes.length > 0,
+    hasCoverLetter: coverLettersCount > 0,
+    hasNarrative: narratives.length > 0,
+    hasHireabilityReport: reportHistory.length > 0,
+    hasMarketRealityReport: marketRealitySnapshots.length > 0,
+    hasWorkSample: profile.workSamples.length > 0,
+    hasCompletedReference: completedReferenceCount > 0,
+    hasLearningBadge: learningBadgeCount > 0,
+  })
   const completedAssetCount = coreAssets.filter((a) => a.done).length
   const missingAssets = coreAssets.filter((a) => !a.done)
 
@@ -92,8 +96,16 @@ export default async function PortfolioPage() {
 
       <div className="space-y-4">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Your Documents
+          Your Assets
         </h2>
+        <p className="text-sm text-muted-foreground">
+          What you can hand to a recruiter, hiring manager, or coach — your prep for tough
+          interview questions lives on{' '}
+          <Link href="/dashboard/interview-prep" className="underline">
+            Interview Prep
+          </Link>{' '}
+          instead.
+        </p>
 
         <Card>
           <CardHeader>
@@ -146,13 +158,6 @@ export default async function PortfolioPage() {
           <NarrativeManager narratives={narratives} />
         </div>
 
-        <WeaknessGuidanceCard
-          guidance={weaknessGuidance}
-          showGapForm
-          gapExplanation={profile.gapExplanation}
-          includeGapExplanationInDossier={profile.includeGapExplanationInDossier}
-        />
-
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Work Samples</CardTitle>
@@ -170,6 +175,40 @@ export default async function PortfolioPage() {
               render={<Link href="/dashboard/work-samples" />}
             >
               {profile.workSamples.length > 0 ? 'View' : 'Add a sample'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">References</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {completedReferenceCount > 0
+                ? `${completedReferenceCount} completed reference${completedReferenceCount === 1 ? '' : 's'}`
+                : "Someone else's word for it — none received yet."}
+            </p>
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/references" />}>
+              {completedReferenceCount > 0 ? 'View' : 'Request a reference'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Learning Credentials
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {learningBadgeCount > 0
+                ? `${learningBadgeCount} credential${learningBadgeCount === 1 ? '' : 's'} logged`
+                : 'A course, certification, or project worth mentioning.'}
+            </p>
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/learning" />}>
+              {learningBadgeCount > 0 ? 'View' : 'Add a credential'}
             </Button>
           </CardContent>
         </Card>

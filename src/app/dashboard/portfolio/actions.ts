@@ -100,7 +100,7 @@ export async function updateGapExplanation(text: string, includeInDossier: boole
     hasContent: !!text.trim(),
     includedInDossier: includeInDossier,
   })
-  revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/interview-prep')
 }
 
 export async function updateNarrativeStatement(narrativeId: string, newStatement: string) {
