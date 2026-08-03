@@ -238,6 +238,12 @@ export interface HireabilityGrade {
   weeklyPoints: number
   weeklyPointsTarget: number
   recognizedWeeklyPoints: number
+  // The Public/Semi-Public networking-effort bonus folded into weeklyPoints
+  // by computeWeeklyEngines (0 when not applicable) — broken out so the
+  // dashboard can show candidates where their weekly total actually comes
+  // from instead of leaving a gap between "points earned" and the sum of
+  // their visible committed actions.
+  weeklyVisibilityBonus: number
 
   // Bonus multiplier: executive coach +10%, prior-week-A +10%, both stack,
   // capped at +20% total combined. Applied to recognizedWeeklyPoints before

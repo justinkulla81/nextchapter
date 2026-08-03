@@ -393,7 +393,12 @@ export async function computeWeeklyEngines(
   candidateId: string,
   weekNumber: number,
   privacyTier: PrivacyTier
-): Promise<{ engines: WeeklyEngine[]; weeklyPoints: number; weeklyPointsTarget: number }> {
+): Promise<{
+  engines: WeeklyEngine[]
+  weeklyPoints: number
+  weeklyPointsTarget: number
+  visibilityBonus: number
+}> {
   const weeklyPointsTarget = pointsNeededForA(weekNumber)
   const perEngineTarget = weeklyPointsTarget / 4
 
@@ -414,8 +419,10 @@ export async function computeWeeklyEngines(
   // candidate cross that floor by leaving a visibility toggle set, with zero
   // real outreach, defeating the one mechanism that catches neglect.
   const isPubliclyVisible = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
+  let visibilityBonus = 0
   if (isPubliclyVisible && pointsByEngine.connecting > 0) {
-    pointsByEngine.connecting += 5
+    visibilityBonus = 5
+    pointsByEngine.connecting += visibilityBonus
   }
 
   const weeklyPoints = Object.values(pointsByEngine).reduce((sum, p) => sum + p, 0)
@@ -425,7 +432,7 @@ export async function computeWeeklyEngines(
     return { key, label: WEEKLY_ENGINE_LABEL[key], score, grade: scoreToGrade(score) }
   })
 
-  return { engines, weeklyPoints, weeklyPointsTarget }
+  return { engines, weeklyPoints, weeklyPointsTarget, visibilityBonus }
 }
 
 // Did the candidate earn an A the calendar week immediately before the
@@ -462,7 +469,7 @@ function blendCategoryScore(baselineScore: number, weeklyPerformanceRatio: numbe
 
 export async function computeHireabilityGrade(candidate: CandidateWithGradeRelations): Promise<HireabilityGrade> {
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
-  const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget }] = await Promise.all([
+  const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget, visibilityBonus }] = await Promise.all([
     getCategoryBaseline(candidate),
     computeCategoryGrades(candidate),
     computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier),
@@ -507,6 +514,7 @@ export async function computeHireabilityGrade(candidate: CandidateWithGradeRelat
     weeklyPoints,
     weeklyPointsTarget,
     recognizedWeeklyPoints,
+    weeklyVisibilityBonus: visibilityBonus,
     bonusMultiplier,
     hasExecutiveCoach,
     hadPriorWeekA: hadAGradeLastWeek,
@@ -556,6 +564,7 @@ interface LegacyHireabilityGradeSnapshot {
     hasExecutiveCoach?: boolean
     hadPriorWeekA?: boolean
     recognizedWeeklyPoints?: number
+    weeklyVisibilityBonus?: number
   }
 }
 
@@ -584,6 +593,7 @@ export function normalizeGradeSnapshot(raw: unknown): HireabilityGrade | null {
       weeklyPoints: raw.searchExecution.weeklyPoints,
       weeklyPointsTarget: raw.searchExecution.weeklyPointsTarget,
       recognizedWeeklyPoints: raw.searchExecution.recognizedWeeklyPoints ?? raw.searchExecution.weeklyPoints,
+      weeklyVisibilityBonus: raw.searchExecution.weeklyVisibilityBonus ?? 0,
       bonusMultiplier: raw.searchExecution.bonusMultiplier ?? 1,
       hasExecutiveCoach: raw.searchExecution.hasExecutiveCoach ?? false,
       hadPriorWeekA: raw.searchExecution.hadPriorWeekA ?? false,
