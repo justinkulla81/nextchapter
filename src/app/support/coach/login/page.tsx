@@ -2,8 +2,11 @@ import { Suspense } from 'react'
 import { HeartHandshake } from 'lucide-react'
 import { PortalAuthCard } from '@/components/auth/PortalAuthCard'
 import { LoginForm } from '@/components/auth/LoginForm'
+import { redirectIfAuthenticated } from '@/lib/auth/redirect-if-authenticated'
 
-export default function CoachLoginPage() {
+export default async function CoachLoginPage() {
+  await redirectIfAuthenticated('/support/coach')
+
   return (
     <PortalAuthCard
       icon={HeartHandshake}

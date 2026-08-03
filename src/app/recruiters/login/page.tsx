@@ -2,8 +2,11 @@ import { Suspense } from 'react'
 import { Users } from 'lucide-react'
 import { PortalAuthCard } from '@/components/auth/PortalAuthCard'
 import { LoginForm } from '@/components/auth/LoginForm'
+import { redirectIfAuthenticated } from '@/lib/auth/redirect-if-authenticated'
 
-export default function RecruiterLoginPage() {
+export default async function RecruiterLoginPage() {
+  await redirectIfAuthenticated('/recruiters/dashboard')
+
   return (
     <PortalAuthCard
       icon={Users}
