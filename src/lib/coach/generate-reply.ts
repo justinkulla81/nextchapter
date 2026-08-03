@@ -7,6 +7,7 @@ import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { computeHireabilityGrade, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/hireability-grade'
+import { getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 
@@ -43,7 +44,7 @@ export async function generateCoachReply(
   const recentLinkedInPosts = candidate.linkedInActivityLogs.filter((l) => l.loggedAt > windowStart).length
 
   const grade = await computeHireabilityGrade(candidate)
-  const weekNumber = candidate._count.weeklySprints + 1
+  const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
     isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)

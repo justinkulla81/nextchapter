@@ -15,6 +15,7 @@ import {
   getCurrentWeekSprint,
   getSuggestedActions,
   getMondayOfWeek,
+  getCandidateWeekNumber,
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
@@ -84,8 +85,8 @@ export default async function DashboardPage() {
   // its result.
   after(() => resolveLatestReport(profile.id, profile.hireabilityReports[0]))
 
-  const weekNumber = profile._count.weeklySprints + 1
   const weekStartDate = getMondayOfWeek(new Date())
+  const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
 
   // All of these are independent of one another — issuing them together
   // instead of one-by-one turns ~9 sequential round trips into one parallel

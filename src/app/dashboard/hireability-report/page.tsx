@@ -13,7 +13,7 @@ import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmatio
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
-import { hasStartedSprint, getSuggestedActions } from '@/lib/weekly/sprint'
+import { hasStartedSprint, getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
@@ -111,7 +111,7 @@ export default async function HireabilityReportPage() {
 
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
-  const weekNumber = profile._count.weeklySprints + 1
+  const weekNumber = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date()))
   const [searchExecutionAvailable, priorReportCount, suggestedActions] = await Promise.all([
     hasStartedSprint(profile.id),
     prisma.hireabilityReport.count({

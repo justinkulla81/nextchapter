@@ -31,7 +31,7 @@ import {
   confidenceSliderLabel,
 } from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
-import { hasStartedSprint } from '@/lib/weekly/sprint'
+import { hasStartedSprint, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
 import {
   CURRENT_JOB_STATUS_LABELS,
@@ -252,7 +252,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     careerTrajectory: candidate.careerTrajectory,
   })
 
-  const weekNumber = candidate._count.weeklySprints + 1
+  const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
     isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)

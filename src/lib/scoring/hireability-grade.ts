@@ -51,7 +51,7 @@ import { getMarketConditions } from '@/lib/market'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
 import { computeReferenceWeights } from '@/lib/references/collusion-check'
-import { getCurrentWeekSprint, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, getMondayOfWeek, getCandidateWeekNumber, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, gradeForWeeklyPoints, engineForActionType } from '@/lib/weekly/action-effort'
 import {
   scoreToGrade,
@@ -461,7 +461,7 @@ function blendCategoryScore(baselineScore: number, weeklyPerformanceRatio: numbe
 }
 
 export async function computeHireabilityGrade(candidate: CandidateWithGradeRelations): Promise<HireabilityGrade> {
-  const weekNumber = candidate._count.weeklySprints + 1
+  const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget }] = await Promise.all([
     getCategoryBaseline(candidate),
     computeCategoryGrades(candidate),

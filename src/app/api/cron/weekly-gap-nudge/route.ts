@@ -37,7 +37,9 @@ export async function GET(request: NextRequest) {
       // Target" strip (see computeHireabilityGrade) — this cron used to
       // reimplement this math inline and drifted from the live dashboard
       // numbers (wrong week-number offset, missing the visibility bonus).
-      const weekNumber = candidate._count.weeklySprints + 1
+      // No "+1" here: `sprint` above is confirmed to exist, so
+      // _count.weeklySprints already includes this week's own row.
+      const weekNumber = candidate._count.weeklySprints
       const { weeklyPoints, weeklyPointsTarget } = await computeWeeklyEngines(
         candidate.id,
         weekNumber,

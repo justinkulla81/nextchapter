@@ -155,7 +155,11 @@ export default async function AdminPacingPage({
   ])
 
   let rows: PacingRow[] = candidates.map((c) => {
-    const weekNumber = c._count.weeklySprints + 1
+    // _count.weeklySprints already includes this week's row once it exists
+    // (weeklySprints[0], fetched above filtered to thisMonday) — only add
+    // the +1 when it doesn't exist yet. See getCandidateWeekNumber in
+    // sprint.ts for the general-purpose version of this same fix.
+    const weekNumber = c.weeklySprints[0] ? c._count.weeklySprints : c._count.weeklySprints + 1
     const weeklyPointsTarget = pointsNeededForA(weekNumber)
     const actions = (c.weeklySprints[0]?.committedActions as unknown as CommittedActionLike[]) ?? []
     const weeklyPoints = reconciledWeeklyPoints(actions, {

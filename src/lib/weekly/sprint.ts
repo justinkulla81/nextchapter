@@ -51,6 +51,24 @@ export function getMondayOfWeek(date: Date): Date {
   return d
 }
 
+// The one correct way to compute "which week number is this" — counts only
+// WeeklySprint rows strictly BEFORE the given week, then +1. This is
+// deliberately NOT `candidate._count.weeklySprints + 1`: that expression is
+// only correct in the narrow window before the current week's own row has
+// been created (e.g. inside auto-assign-sprint, right before it commits).
+// Everywhere else — the dashboard, the Hireability Report, admin pacing,
+// coach replies, the Friday gap-nudge email — runs AFTER that row already
+// exists, so `_count.weeklySprints` includes the current week too and the
+// `+1` overcounts by one, silently bumping every target to next week's ramp
+// value for the rest of the week. Counting strictly-prior rows is correct
+// regardless of whether this week's row exists yet.
+export async function getCandidateWeekNumber(candidateId: string, weekStartDate: Date): Promise<number> {
+  const priorWeeks = await prisma.weeklySprint.count({
+    where: { candidateId, weekStartDate: { lt: weekStartDate } },
+  })
+  return priorWeeks + 1
+}
+
 // Reconciles verified-action-type completion against real backing data
 // before returning, so every consumer of the current week's sprint (grading,
 // the dashboard card, the stats page) sees the same ungameable truth without

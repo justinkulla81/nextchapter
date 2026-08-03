@@ -55,9 +55,11 @@ function ActionRow({
   // that gets you to the points rather than a bare number — "2 x 15 pts =
   // 30 pts" is a concrete plan, "30 pts" on its own isn't.
   const targetCount = recurring ? getRecurringTargetCount(actionType) : null
-  const effortLabel = targetCount
-    ? `${targetCount} × ${points} pts = ${targetCount * points} pts`
-    : `${formatMinutes(estimatedMinutes)} · ${points} pts`
+  // Points get their own badge (see the brand-colored span below) so they
+  // pop against the rest of the row's muted metadata — the actual currency
+  // of the whole Weekly Search Sprint should read at a glance, not blend in.
+  const timeLabel = targetCount ? `${targetCount} × ${points} pts each =` : formatMinutes(estimatedMinutes)
+  const pointsLabel = targetCount ? `${targetCount * points} pts` : `${points} pts`
   return (
     <div
       className={cn(
@@ -89,8 +91,11 @@ function ActionRow({
           </span>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-3">
-        <span className="text-xs text-muted-foreground tabular-nums">{effortLabel}</span>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <span className="text-xs text-muted-foreground tabular-nums">{timeLabel}</span>
+        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+          {pointsLabel}
+        </span>
         {recurring && completed && (
           <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">Started</span>
         )}
