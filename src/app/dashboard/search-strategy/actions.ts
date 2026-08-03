@@ -28,6 +28,7 @@ export async function updateSearchStrategy(
   const primaryFunction = (formData.get('primaryFunction') as string | null) || null
   const secondaryFunctionRaw = (formData.get('secondaryFunction') as string | null) || null
   const secondaryFunction = secondaryFunctionRaw === 'none' ? null : secondaryFunctionRaw
+  const secondaryIndustryContext = (formData.get('secondaryIndustryContext') as string | null)?.trim() || null
   const targetCompanySize = (formData.get('targetCompanySize') as string | null) || null
   const targetCompanyStage = (formData.get('targetCompanyStage') as string | null) || null
   const applicationVolumeGoalRaw = formData.get('applicationVolumeGoal') as string | null
@@ -61,6 +62,7 @@ export async function updateSearchStrategy(
       targetIndustries,
       primaryFunction,
       secondaryFunction,
+      secondaryIndustryContext,
       targetCompanySize,
       targetCompanyStage,
       targetCompMin: targetCompMinThousands ? targetCompMinThousands * 1000 : null,

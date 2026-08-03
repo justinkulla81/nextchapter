@@ -102,7 +102,6 @@ export default async function ProfilePage() {
           <CardContent>
             <IndustryConfirmForm
               industryContext={profile.industryContext}
-              secondaryIndustryContext={profile.secondaryIndustryContext}
               confirmedAt={profile.industryConfirmedAt}
             />
           </CardContent>

@@ -94,6 +94,10 @@ export function SearchStrategyForm({
           </p>
         )}
         <Label>Target industries</Label>
+        <p className="text-xs text-muted-foreground">
+          Industries you&apos;d like to move into — separate from the industry your background is
+          actually in ({profile.industryContext || 'not set on your Profile yet'}).
+        </p>
         <TagInput
           name="targetIndustries"
           defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
@@ -122,6 +126,28 @@ export function SearchStrategyForm({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="secondaryIndustryContext">
+          Also relevant: a second industry your background spans, different from your primary
+          {profile.industryContext ? ` (${profile.industryContext})` : ''}
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          Only set this if your actual work history spans two industries (e.g. a recent pivot) —
+          we&apos;ll match jobs against both. Leave blank otherwise. Your primary industry itself is
+          set on your{' '}
+          <a href="/dashboard/profile#industry" className="underline">
+            Profile page
+          </a>
+          .
+        </p>
+        <Input
+          id="secondaryIndustryContext"
+          name="secondaryIndustryContext"
+          defaultValue={profile.secondaryIndustryContext ?? ''}
+          placeholder="e.g. Fintech"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

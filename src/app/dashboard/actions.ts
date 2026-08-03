@@ -237,13 +237,11 @@ export async function confirmIndustry(
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
   const industryContext = (formData.get('industryContext') as string) || null
-  const secondaryIndustryContext = (formData.get('secondaryIndustryContext') as string) || null
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
       industryContext,
-      secondaryIndustryContext,
       industryBucket: normalizeIndustryBucket(industryContext),
       industryConfirmedAt: new Date(),
     },
