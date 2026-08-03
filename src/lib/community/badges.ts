@@ -10,7 +10,7 @@ export type BadgeKey =
   | 'FIRST_COMMUNITY_POST'
   | 'SEVEN_DAY_STREAK'
   | 'THIRTY_DAY_STREAK'
-  | 'MADE_A_LIST'
+  | 'HIT_SPRINT_TARGET'
 
 export const BADGE_LABEL: Record<BadgeKey, string> = {
   FIRST_REFERENCE: 'First Reference',
@@ -18,7 +18,7 @@ export const BADGE_LABEL: Record<BadgeKey, string> = {
   FIRST_COMMUNITY_POST: 'First Community Post',
   SEVEN_DAY_STREAK: '7-Day Streak',
   THIRTY_DAY_STREAK: '30-Day Streak',
-  MADE_A_LIST: 'Made the A-List',
+  HIT_SPRINT_TARGET: 'Hit the Weekly Sprint Target',
 }
 
 export async function computeEarnedBadges(candidateId: string): Promise<BadgeKey[]> {
@@ -31,7 +31,7 @@ export async function computeEarnedBadges(candidateId: string): Promise<BadgeKey
       // Sourced from WeeklyBadgeEarned, the real currently-written record —
       // SundayNightReport.onAList is legacy and nothing writes to it anymore
       // (see src/lib/badges/weekly-badge-archive.ts).
-      weeklyBadgesEarned: { where: { badgeKey: 'WEEKLY_SCORE_A_LIST' }, take: 1 },
+      weeklyBadgesEarned: { where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' }, take: 1 },
     },
   })
 
@@ -41,7 +41,7 @@ export async function computeEarnedBadges(candidateId: string): Promise<BadgeKey
   if (candidate.communityPosts.length > 0) badges.push('FIRST_COMMUNITY_POST')
   if (candidate.longestStreak >= 7) badges.push('SEVEN_DAY_STREAK')
   if (candidate.longestStreak >= 30) badges.push('THIRTY_DAY_STREAK')
-  if (candidate.weeklyBadgesEarned.length > 0) badges.push('MADE_A_LIST')
+  if (candidate.weeklyBadgesEarned.length > 0) badges.push('HIT_SPRINT_TARGET')
 
   return badges
 }

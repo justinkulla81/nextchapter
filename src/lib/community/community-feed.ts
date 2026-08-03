@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 
-export type CommunityFeedItemType = 'alist' | 'activity' | 'victoria_insight' | 'comeback'
+export type CommunityFeedItemType = 'sprintTarget' | 'activity' | 'victoria_insight' | 'comeback'
 
 export interface CommunityFeedItem {
   id: string
@@ -58,21 +58,21 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   // Sourced from WeeklyBadgeEarned, the real currently-written record —
   // SundayNightReport.onAList is legacy and nothing writes to it anymore
   // (see src/lib/badges/weekly-badge-archive.ts).
-  const aListBadges = await prisma.weeklyBadgeEarned.findMany({
-    where: { badgeKey: 'WEEKLY_SCORE_A_LIST', earnedAt: { gte: windowStart } },
+  const sprintTargetBadges = await prisma.weeklyBadgeEarned.findMany({
+    where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT', earnedAt: { gte: windowStart } },
     include: { candidate: true },
     orderBy: { earnedAt: 'desc' },
   })
-  for (const badge of aListBadges) {
-    if (badge.candidate.aListOptOut || badge.candidate.privacyTier === 'LOCKED') continue
+  for (const badge of sprintTargetBadges) {
+    if (badge.candidate.weeklySprintTargetOptOut || badge.candidate.privacyTier === 'LOCKED') continue
     const name = anonymize(badge.candidate.firstName, badge.candidate.lastName)
     if (!name) continue
     items.push({
-      id: `alist-${badge.id}`,
-      type: 'alist',
+      id: `sprint-target-${badge.id}`,
+      type: 'sprintTarget',
       displayName: name,
       avatarUrl: visibleAvatarUrl(badge.candidate),
-      detail: 'made this week’s A-List',
+      detail: 'hit this week’s Sprint Target',
       occurredAt: badge.earnedAt,
     })
   }

@@ -179,7 +179,7 @@ export async function toggleEncouragementGiving(current: boolean) {
   revalidatePath('/dashboard/privacy')
 }
 
-export async function toggleAListOptOut(current: boolean) {
+export async function toggleWeeklySprintTargetOptOut(current: boolean) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -187,8 +187,11 @@ export async function toggleAListOptOut(current: boolean) {
   if (!user) return
 
   const profile = await getOrCreateCandidateProfile(user.id)
-  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { aListOptOut: !current } })
-  captureServerEvent(profile.id, 'a_list_opt_out_toggled', { optedOut: !current })
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { weeklySprintTargetOptOut: !current },
+  })
+  captureServerEvent(profile.id, 'weekly_sprint_target_opt_out_toggled', { optedOut: !current })
   revalidatePath('/dashboard/privacy')
 }
 

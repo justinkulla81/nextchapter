@@ -15,12 +15,10 @@ import {
   getCurrentWeekSprint,
   getSuggestedActions,
   getMondayOfWeek,
-  getGoalSettingWeekStart,
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
 import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
-import { isSprintEditWindowOpen } from '@/lib/weekly/pt-time'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
@@ -88,12 +86,6 @@ export default async function DashboardPage() {
 
   const weekNumber = profile._count.weeklySprints + 1
   const weekStartDate = getMondayOfWeek(new Date())
-  // Deliberately NOT weekStartDate above — the edit window always concerns
-  // the week starting the very next Monday, and weekStartDate (this week,
-  // for progress-tracking purposes) resolves to LAST Monday on a Sunday,
-  // which would wrongly report the window as closed. See
-  // getGoalSettingWeekStart's comment for why these two need to differ.
-  const editWindowOpen = isSprintEditWindowOpen(getGoalSettingWeekStart())
 
   // All of these are independent of one another — issuing them together
   // instead of one-by-one turns ~9 sequential round trips into one parallel
@@ -207,9 +199,6 @@ export default async function DashboardPage() {
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
-          marketRealityGrade={grade.grade}
-          weekNumber={weekNumber}
-          editWindowOpen={editWindowOpen}
           weeklySprintsCount={profile._count.weeklySprints}
           engines={grade.weeklyEngines}
           laggingEngines={grade.laggingEngines}

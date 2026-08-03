@@ -7,9 +7,9 @@ export interface WeeklyBadgeArchiveCandidate {
   name: string
   avatarUrl: string | null
   badgeLabels: string[]
-  onAList: boolean
+  onSprintTarget: boolean
   weeksInSystem: number | null
-  totalAListWeeks: number
+  totalSprintTargetWeeks: number
 }
 
 export interface WeeklyBadgeArchiveWeek {
@@ -23,7 +23,7 @@ export interface WeeklyBadgeArchiveWeek {
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000
 
 export async function getWeeklyBadgeArchive(limit = 12): Promise<WeeklyBadgeArchiveWeek[]> {
-  const [rows, totalAListByCandidate] = await Promise.all([
+  const [rows, totalSprintTargetByCandidate] = await Promise.all([
     prisma.weeklyBadgeEarned.findMany({
       orderBy: [{ weekStartDate: 'desc' }, { candidateId: 'asc' }],
       include: {
@@ -40,17 +40,17 @@ export async function getWeeklyBadgeArchive(limit = 12): Promise<WeeklyBadgeArch
         },
       },
     }),
-    // All-time A-List count, not scoped to the `limit`-week window shown
-    // below — a candidate who's been around longer than the archive
+    // All-time Sprint Target count, not scoped to the `limit`-week window
+    // shown below — a candidate who's been around longer than the archive
     // displays should still get full credit for every week they earned it.
     prisma.weeklyBadgeEarned.groupBy({
       by: ['candidateId'],
-      where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
+      where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
       _count: true,
     }),
   ])
 
-  const totalAListMap = new Map(totalAListByCandidate.map((r) => [r.candidateId, r._count]))
+  const totalSprintTargetMap = new Map(totalSprintTargetByCandidate.map((r) => [r.candidateId, r._count]))
 
   const weekMap = new Map<number, Map<string, WeeklyBadgeArchiveCandidate>>()
 
@@ -68,16 +68,16 @@ export async function getWeeklyBadgeArchive(limit = 12): Promise<WeeklyBadgeArch
         name,
         avatarUrl: row.candidate.profilePictureVisible ? row.candidate.profilePictureUrl : null,
         badgeLabels: [],
-        onAList: false,
+        onSprintTarget: false,
         weeksInSystem,
-        totalAListWeeks: totalAListMap.get(row.candidateId) ?? 0,
+        totalSprintTargetWeeks: totalSprintTargetMap.get(row.candidateId) ?? 0,
       })
     }
 
     const entry = candidateMap.get(row.candidateId)!
     const badgeKey = row.badgeKey as WeeklyBadgeKey
     entry.badgeLabels.push(WEEKLY_BADGE_LABEL[badgeKey] ?? row.badgeKey)
-    if (badgeKey === 'WEEKLY_SCORE_A_LIST') entry.onAList = true
+    if (badgeKey === 'WEEKLY_SPRINT_TARGET_HIT') entry.onSprintTarget = true
   }
 
   return Array.from(weekMap.entries())
@@ -85,6 +85,8 @@ export async function getWeeklyBadgeArchive(limit = 12): Promise<WeeklyBadgeArch
     .slice(0, limit)
     .map(([weekKey, candidateMap]) => ({
       weekStartDate: new Date(weekKey),
-      candidates: Array.from(candidateMap.values()).sort((a, b) => (b.onAList ? 1 : 0) - (a.onAList ? 1 : 0)),
+      candidates: Array.from(candidateMap.values()).sort(
+        (a, b) => (b.onSprintTarget ? 1 : 0) - (a.onSprintTarget ? 1 : 0)
+      ),
     }))
 }

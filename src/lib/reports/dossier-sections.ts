@@ -299,13 +299,13 @@ export async function getWhatDrivesMe(
   // Numerator (A weeks) is sourced from WeeklyBadgeEarned, the real
   // currently-written record; SundayNightReport.onAList is legacy and
   // nothing writes to it (see src/lib/badges/weekly-badge-archive.ts).
-  const [totalWeeks, aListWeekCount] = await Promise.all([
+  const [totalWeeks, sprintTargetWeekCount] = await Promise.all([
     prisma.weeklySprint.count({ where: { candidateId } }),
-    prisma.weeklyBadgeEarned.count({ where: { candidateId, badgeKey: 'WEEKLY_SCORE_A_LIST' } }),
+    prisma.weeklyBadgeEarned.count({ where: { candidateId, badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' } }),
   ])
   const effortStatText =
     totalWeeks > 0
-      ? `${aListWeekCount} of ${totalWeeks} weeks at an A. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
+      ? `${sprintTargetWeekCount} of ${totalWeeks} weeks hit the Sprint Target. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
       : null
 
   // No dedicated Victoria-guided "cost me something" elicitation exists yet

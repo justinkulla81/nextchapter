@@ -12,8 +12,8 @@ export default async function WeeklyRecognitionAdminPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Weekly Recognition Archive</h1>
         <p className="mt-1 text-muted-foreground">
-          Who made the A-List and earned badges, week by week — sourced from WeeklyBadgeEarned, the
-          currently-written record.
+          Who hit the Weekly Sprint Target and earned badges, week by week — sourced from
+          WeeklyBadgeEarned, the currently-written record.
         </p>
       </div>
 
@@ -42,12 +42,12 @@ export default async function WeeklyRecognitionAdminPage() {
                       <p className="text-xs text-muted-foreground">
                         {c.badgeLabels.join(', ')}
                         {c.weeksInSystem !== null && ` · Week ${c.weeksInSystem} in system`}
-                        {` · ${c.totalAListWeeks} A-List week${c.totalAListWeeks === 1 ? '' : 's'} total`}
+                        {` · ${c.totalSprintTargetWeeks} Sprint Target week${c.totalSprintTargetWeeks === 1 ? '' : 's'} total`}
                       </p>
                     </div>
-                    {c.onAList && (
+                    {c.onSprintTarget && (
                       <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                        A-List
+                        Sprint Target
                       </span>
                     )}
                   </div>

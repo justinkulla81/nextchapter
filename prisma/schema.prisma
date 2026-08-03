@@ -596,7 +596,7 @@ model CandidateProfile {
   smsConsentedAt DateTime?
 
   // The Circle — community support + recognition
-  aListOptOut              Boolean @default(false) // opt out of A-List name recognition specifically
+  weeklySprintTargetOptOut Boolean @default(false) // opt out of Weekly Sprint Target name recognition specifically
   encouragementGivingOptIn Boolean @default(false) // opted in to occasional prompts to send support notes
 
   // Support Network / outreach
@@ -1723,11 +1723,11 @@ model SundayNightReport {
 // src/lib/badges/weekly-badges.ts for the WeeklyBadgeKey union, computed
 // live and NOT otherwise persisted). Upserted from computeWeeklyBadges
 // whenever it runs for the current week, so this fills in as candidates use
-// the app rather than needing a dedicated cron. WEEKLY_SCORE_A_LIST rows
-// here ARE the weekly A-List membership record — this is the real,
-// currently-written source of truth for "who made the A-List each week"
-// admin needs, unlike the legacy SundayNightReport.onAList field above,
-// which nothing in the codebase writes to anymore.
+// the app rather than needing a dedicated cron. WEEKLY_SPRINT_TARGET_HIT
+// rows here ARE the weekly Sprint Target record — this is the real,
+// currently-written source of truth for "who hit the Sprint Target each
+// week" admin needs, unlike the legacy SundayNightReport.onAList field
+// above, which nothing in the codebase writes to anymore.
 model WeeklyBadgeEarned {
   id            String           @id @default(cuid())
   candidateId   String

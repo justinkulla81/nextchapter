@@ -219,33 +219,39 @@ Points gate: nothing directly "unlocks" on point totals except contributing to w
 
 Also called "Search Actions" or "Weekly Search Score" in various UI copy — all the same underlying `WeeklySprint` model.
 
-### 4.1 Week boundary and lock mechanics
+**Goal-setting is fully automatic** — there is no candidate-facing "commit to this week's goals" step anymore (the old manual "I Commit" flow, its edit-window lock mechanics, and the three goal-setting reminder emails were removed). Every candidate's week is set for them; the dashboard card is read-only progress tracking (mark an action done/started — that's still a candidate action).
 
-Weeks run Monday-Sunday (`getMondayOfWeek()`). Goal-setting has its own edge case: `getGoalSettingWeekStart()` bumps a Sunday reference forward one day, because the Sun 12:01am–Mon 12:01pm PT goal-setting window always concerns the week starting the *next* Monday — every caller that gates or writes the commitment must use this helper, not the plain Monday one, "otherwise a Sunday submission silently lands on the outgoing week's record."
+### 4.1 Week boundary
 
-`isSprintEditWindowOpen()` / `isLockTimePassed()` (`src/lib/weekly/pt-time.ts`) gate whether the current week's goals can still be edited (locks Monday 12:01pm PT).
+Weeks run Monday-Sunday (`getMondayOfWeek()`) — the only boundary helper left in `src/lib/weekly/sprint.ts`. There's no separate "goal-setting week" concept anymore (`getGoalSettingWeekStart()` and the whole PT-anchored `pt-time.ts` lock/edit-window module were removed along with the manual flow) — assignment happens *during* the week it applies to, not in advance, so the plain Monday boundary is always the right one.
 
 ### 4.2 Suggested actions and the four engines ("action catalog")
 
-`getSuggestedActions()` blends: (a) up to 5 personalized items pulled from the most recent Sunday Night Report, or falling back to the Hireability Report's 7-day plan on week 1; (b) always-injected unfinished one-time items (salary/work-auth confirmation, How I Work Best quiz — pushed to the very front); (c) top-up from `CANONICAL_TASK_MENU` (`src/lib/weekly/task-menu.ts`) until the available point total comfortably clears the week's target (×1.5 buffer).
+`getSuggestedActions()` blends: (a) up to 5 personalized items pulled from the most recent Sunday Night Report, or falling back to the Hireability Report's 7-day plan on week 1; (b) always-injected unfinished one-time items (salary/work-auth confirmation, How I Work Best quiz — pushed to the very front); (c) top-up from `CANONICAL_TASK_MENU` (`src/lib/weekly/task-menu.ts`) until the available point total comfortably clears the week's target (×1.5 buffer). This is the exact same engine both auto-assignment paths (see 4.3) use to pick the week's plan — nothing candidate-specific was lost when manual picking was removed, since the old manual form only ever let a candidate check/uncheck from this same suggested list.
 
 The four "engines" (candidate-facing labels): **Networking** (internally "connecting"), **Learning**, **Working**, and **Effort** (not shown as its own tile — its points fold into the visible weekly total).
 
-### 4.3 Committing and auto-assignment
+### 4.3 Auto-assignment
 
-`commitWeeklySprint()` writes `WeeklySprint.committedActions` (JSON array), always prepending a `GOAL_DEFINED_BONUS_POINTS` (5pt) "Defined this week's goal" line, plus a one-time `INTRO_WELCOME_BONUS_POINTS` (5pt) "Completed your welcome & commitment" line on the very first sprint only.
+`commitWeeklySprint()` writes `WeeklySprint.committedActions` (JSON array), always prepending a `GOAL_DEFINED_BONUS_POINTS` (5pt) "Defined this week's goal" line, plus a one-time `INTRO_WELCOME_BONUS_POINTS` (5pt) "Completed your welcome & commitment" line on the very first sprint only. `autoAssigned` is `true` on every row now — there's no manual path left that would set it `false`.
 
-If a candidate never sets goals themselves, `/api/cron/auto-assign-sprint` (Monday 20:05 UTC) auto-populates a sprint on their behalf via `autoPopulateFirstSprint`/similar logic — "I'll set an A-level goal for you automatically" (candidate-facing copy on the Hireability Report page confirms this is intentional, not a bug).
+Two triggers call it:
+- **`autoPopulateFirstSprint()`** — fires once, immediately, when a brand-new candidate completes the Welcome-page commitment (`submitIntroCommitment`), so their dashboard is never empty on first login.
+- **`/api/cron/auto-assign-sprint`** — fires every Monday ~5am ET (fixed UTC 09:00; drifts an hour across DST, an accepted tradeoff over exact wall-clock timing) for every registered candidate, unconditionally. Right after assigning, it sends the `weekly-goal-assigned` email (skipped for anyone opted out via `weeklyReportOptedOut`, or with no prior week to recap — i.e. their very first week, already handled by the Welcome-page path above): last week's points vs. target, whether the Weekly Sprint Target was hit, this week's new target and how it compares to last week's, and either the 4 real A-grade benefits or a short gap summary (same engine-gap logic as `UnlockAListCallout` on the dashboard), depending on the candidate's current Market Reality Grade.
 
-Mid-week extras: `logCatalogAction()` lets a candidate log something picked from "More Actions Available" (the broader catalog beyond the locked weekly commitment) — immediately marked complete, tagged `addedFromCatalog: true`.
+Mid-week extras: `logCatalogAction()` lets a candidate log something picked from "More Actions Available" (the broader catalog beyond the auto-assigned plan) — immediately marked complete, tagged `addedFromCatalog: true`.
 
-### 4.4 A-List and Sunday Night Report — **legacy/dormant model, important gotcha**
+### 4.4 Weekly Sprint Target, A-List, and Sunday Night Report — naming and a legacy/dormant model, important gotchas
+
+**Naming split, easy to conflate:** "A-List" and the weekly points-target badge used to share the same name (`WEEKLY_SCORE_A_LIST`) — genuinely confusing, since they're very different bars. This was split:
+- **"A-List"** is now reserved exclusively for the real, slow-moving, multi-week overall **Market Reality Grade A** tier — it gates real benefits: NC Job Board "A-List only" exclusive postings, Offer Bonus claim eligibility, a shareable Executive Dossier, and surfacing to recruiters browsing the candidate database. See `UnlockAListCallout`, `find-my-job/page.tsx`, `got-hired/page.tsx`, `portfolio/page.tsx`.
+- **"Weekly Sprint Target"** (`WeeklyBadgeKey` = `WEEKLY_SPRINT_TARGET_HIT`) is the much easier weekly bar — did this week's completed points clear this week's ramp target. It's purely a badge/streak/community-feed signal, gates nothing.
 
 The `SundayNightReport` Prisma model (append-only weekly digest: grade snapshot, strengths/weaknesses, suggested action plan, `onAList` flag, market response funnel) is **still read in several places** (`src/lib/weekly/sprint.ts`'s suggestion fallback, `src/lib/reports/dossier-sections.ts`'s week-count denominator, the Stats page's "Weekly Search Score trend" chart, `src/app/api/export-data`, admin metrics) — **but nothing in the current codebase creates new rows in it.** A repo-wide search confirms zero `.create()` calls against `prisma.sundayNightReport`. Multiple code comments confirm this explicitly: *"SundayNightReport.onAList is legacy and nothing writes to it anymore."*
 
 What actually replaced it, live and currently written:
-- **Market Reality Grade weekly snapshot** → `MarketRealitySnapshot` (`src/lib/scoring/market-reality-snapshot.ts`), generated by `/api/cron/market-reality-snapshot` (Monday 20:20 UTC, right after the sprint locks). Powers the Stats page's grade trend chart and grade history log.
-- **A-List weekly membership** → `WeeklyBadgeEarned` rows with `badgeKey = 'WEEKLY_SCORE_A_LIST'` (written by `computeWeeklyBadges()`, computed live on every relevant page load — Stats page, Dossier, etc.).
+- **Market Reality Grade weekly snapshot** → `MarketRealitySnapshot` (`src/lib/scoring/market-reality-snapshot.ts`), generated by `/api/cron/market-reality-snapshot` (Monday 20:20 UTC — well after the ~5am ET auto-assign, so every candidate's week is already set before this runs). Powers the Stats page's grade trend chart and grade history log.
+- **Weekly Sprint Target membership** → `WeeklyBadgeEarned` rows with `badgeKey = 'WEEKLY_SPRINT_TARGET_HIT'` (written by `computeWeeklyBadges()`, computed live on every relevant page load — Stats page, Dossier, etc.).
 
 Net effect for a maintainer: the Stats page's "Weekly Search Score trend" chart (sourced from `SundayNightReport.gradeSnapshot`) will show only whatever historical rows already existed before this transition — it receives no new data points going forward. Anyone re-enabling weekly-digest generation should be aware they're choosing between reviving `SundayNightReport` or building fresh off `MarketRealitySnapshot`/`WeeklyBadgeEarned`.
 
@@ -392,9 +398,7 @@ All send functions live in `src/lib/email/`, use Resend, and no-op with a consol
 | **Daily action email** ("Your one thing for today") | `/api/cron/daily-action-email`, 13:00 UTC daily | LLM-personalized insights (`generateDailyInsights`); "reset" framing if no check-in in 3+ days; gated by notification tier |
 | **Hireability Report ready** | Event-based: first dashboard load after registration (`after()` callback in `getDashboardData`), and again as a fallback on every Hireability Report page load if `emailSentAt` is still null | Atomically claimed via `updateMany({ where: { emailSentAt: null } })` to prevent double-send races |
 | **Registration reminder** ("Finish creating your account") | `/api/cron/registration-reminders`, 14:00 UTC daily | Targets candidates who finished the assessment but never confirmed their account; includes a magic link |
-| **Sprint goal — open** | `/api/cron/sprint-goal-open`, Sunday 08:05 UTC | Opens the weekly goal-setting window |
-| **Sprint goal — reminder** | `/api/cron/sprint-goal-reminder`, Monday 08:05 UTC | "You haven't set this week's Search Actions yet" |
-| **Sprint goal — final reminder** | `/api/cron/sprint-goal-final-reminder`, Monday 18:35 UTC | "Your Search Actions lock in about an hour" |
+| **Weekly goal assigned** | `/api/cron/auto-assign-sprint`, Monday ~09:00 UTC (~5am ET) | Last week's points vs. target, this week's new target + delta, and either the 4 real A-grade benefits or a gap summary, depending on current Market Reality Grade. Skipped for a candidate's first-ever week (nothing to recap) or if opted out (`weeklyReportOptedOut`) |
 | **Weekly gap nudge** | `/api/cron/weekly-gap-nudge`, Friday 21:00 UTC | "N points from an A this week" |
 | **Community & coaching digest** | `/api/cron/community-coaching-digest`, Saturday 15:00 UTC | Encouragement-notes-received count + whether they had a coach session |
 | **Market digest (candidate)** | `/api/cron/market-digest-candidates`, Tuesday 14:00 UTC | Local market conditions (Adzuna count, BLS YoY) + one curated market "nugget" |

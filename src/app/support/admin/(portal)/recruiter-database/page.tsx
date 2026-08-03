@@ -24,7 +24,7 @@ interface Row {
   requestedAt: Date | null
   execDossierGrade: Grade | null
   currentlySurfaced: boolean
-  onAList: boolean
+  onSprintTarget: boolean
   resumeScore: number | null
 }
 
@@ -37,7 +37,7 @@ type SortKey =
   | 'geo'
   | 'resumeScore'
   | 'execDossierGrade'
-  | 'aList'
+  | 'sprintTarget'
   | 'privacyTier'
   | 'requestedAt'
 
@@ -63,8 +63,8 @@ function compareRows(a: Row, b: Row, sort: SortKey): number {
       return (a.resumeScore ?? -1) - (b.resumeScore ?? -1)
     case 'execDossierGrade':
       return (a.execDossierGrade ? GRADE_RANK[a.execDossierGrade] : 0) - (b.execDossierGrade ? GRADE_RANK[b.execDossierGrade] : 0)
-    case 'aList':
-      return Number(a.onAList) - Number(b.onAList)
+    case 'sprintTarget':
+      return Number(a.onSprintTarget) - Number(b.onSprintTarget)
     case 'privacyTier':
       return a.privacyTier.localeCompare(b.privacyTier)
     case 'requestedAt':
@@ -116,7 +116,7 @@ export default async function RecruiterDatabaseAdminPage({
         // SundayNightReport.onAList is legacy and nothing writes to it
         // anymore (see src/lib/badges/weekly-badge-archive.ts).
         weeklyBadgesEarned: {
-          where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
+          where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
           orderBy: { weekStartDate: 'desc' },
           take: 1,
           select: { id: true },
@@ -149,7 +149,7 @@ export default async function RecruiterDatabaseAdminPage({
       requestedAt: c.recruiterDatabaseRequestedAt,
       execDossierGrade,
       currentlySurfaced: execDossierGrade === 'A',
-      onAList: c.weeklyBadgesEarned.length > 0,
+      onSprintTarget: c.weeklyBadgesEarned.length > 0,
       resumeScore: c.resumes[0]?.atsScore ?? null,
     }
   })
@@ -202,11 +202,13 @@ export default async function RecruiterDatabaseAdminPage({
         ),
     },
     {
-      header: 'A-List',
-      sortKey: 'aList',
+      header: 'Sprint Target',
+      sortKey: 'sprintTarget',
       render: (r) =>
-        r.onAList ? (
-          <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-semibold text-orange">A-List</span>
+        r.onSprintTarget ? (
+          <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-semibold text-orange">
+            Sprint Target
+          </span>
         ) : (
           <span className="text-muted-foreground">—</span>
         ),

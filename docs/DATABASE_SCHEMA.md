@@ -21,9 +21,9 @@ Some house rules that apply schema-wide, worth knowing before you read anything 
 ## Reports & grading
 
 - **`HireabilityReport`** — append-only; each generation is a new row (strengths, weaknesses, 7-day action plan, gap analysis, market conditions, grade snapshot at generation time).
-- **`WeeklySprint`** — one row per candidate per week: committed actions with difficulty + completion tracking.
-- **`SundayNightReport`** — append-only weekly digest (grade snapshot, market response funnel, A-List status at the time).
-- **`WeeklyBadgeEarned`** — the real, currently-written source of truth for weekly badges including A-List membership (`WEEKLY_SCORE_A_LIST` rows) — not `SundayNightReport.onAList`, which is legacy and nothing writes to it anymore.
+- **`WeeklySprint`** — one row per candidate per week: committed actions with difficulty + completion tracking. Goal-setting is fully automatic — a Monday ~5am ET cron (`auto-assign-sprint`) picks the week's Search Actions from the same suggestion engine the old manual "I Commit" flow used to surface; `autoAssigned` is `true` for every row now (there's no manual path left to set it `false`). Progress tracking (marking an action done) is still a candidate action.
+- **`SundayNightReport`** — append-only weekly digest (grade snapshot, market response funnel, Weekly Sprint Target status at the time).
+- **`WeeklyBadgeEarned`** — the real, currently-written source of truth for weekly badges including the Weekly Sprint Target (`WEEKLY_SPRINT_TARGET_HIT` rows) — not `SundayNightReport.onAList`, which is legacy and nothing writes to it anymore. Note "A-List" is a different, reserved name in this codebase for the real overall Market Reality Grade A tier (job board unlock, Executive Dossier, Offer Bonus, recruiter visibility) — never used for this weekly badge.
 - **`MarketRealitySnapshot`** — separate permanent weekly archive of grade + structured "named reasons," generated right after the sprint locks each Monday; feeds the Stats page trend graph.
 - **`MarketResponseLog`** — self-reported external signals (reply, conversation, referral, paid-project lead) logged as they happen, aggregated into the Sunday report.
 - **`MarketConditionsSnapshot`** — shared cross-candidate cache of Adzuna/BLS market data by (role, metro), 48h TTL — exists because Adzuna's free tier caps at 1,000 calls/month app-wide.

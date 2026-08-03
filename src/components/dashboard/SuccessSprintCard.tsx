@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { InlineLoadingState } from '@/components/ui/spinner'
 import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
@@ -13,8 +12,7 @@ import {
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
-import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
-import { SprintSetupForm } from '@/components/dashboard/SprintSetupForm'
+import type { WeeklyEngine } from '@/lib/scoring/grade'
 import { WeeklyEngineChecklist } from '@/components/dashboard/WeeklyEngineChecklist'
 import { cn } from '@/lib/utils'
 
@@ -98,9 +96,6 @@ function ActionRow({
 export function SuccessSprintCard({
   actions,
   suggestedActions,
-  marketRealityGrade,
-  weekNumber,
-  editWindowOpen,
   weeklySprintsCount,
   engines,
   laggingEngines,
@@ -111,9 +106,6 @@ export function SuccessSprintCard({
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
-  marketRealityGrade: Grade
-  weekNumber: number
-  editWindowOpen: boolean
   weeklySprintsCount: number
   engines: WeeklyEngine[]
   laggingEngines: WeeklyEngine['key'][]
@@ -246,26 +238,10 @@ export function SuccessSprintCard({
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              You haven&apos;t set goals for this week yet
-              {editWindowOpen ? ' — use the form below.' : '.'}
+              This week&apos;s goals are being set — check back shortly.
             </p>
           )}
         </div>
-
-        {editWindowOpen && (
-          <div className="space-y-3 border-t border-border pt-6">
-            <h3 className="text-sm font-semibold text-foreground">Set next week&apos;s goals</h3>
-            {suggestedActions.length === 0 ? (
-              <InlineLoadingState label="Your report is still generating — check back in a moment for suggested actions." />
-            ) : (
-              <SprintSetupForm
-                suggestedActions={suggestedActions}
-                marketRealityGrade={marketRealityGrade}
-                weekNumber={weekNumber}
-              />
-            )}
-          </div>
-        )}
 
         {weeklySprintsCount >= CATEGORY_MINIMUM_ENFORCED_FROM_WEEK && (
           <div className="border-t border-border pt-4">

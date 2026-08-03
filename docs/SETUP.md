@@ -158,11 +158,8 @@ Defined in `vercel.json`, all authenticated via `CRON_SECRET`. All times UTC:
 | `/api/cron/expire-job-postings` | 10:00 daily | Expires stale job board postings |
 | `/api/cron/ats-job-board-feed` | 10:30 daily | Pulls the ATS feed (Greenhouse/Lever/Ashby) into the job board |
 | `/api/cron/research-inbox-sweep` | 12:00 daily | Sweeps the Gmail research inbox into the Research Library pipeline |
-| `/api/cron/auto-assign-sprint` | Mon 20:05 | Auto-assigns the next Weekly Search Sprint |
-| `/api/cron/market-reality-snapshot` | Mon 20:20 | Archives that week's Market Reality grade snapshot |
-| `/api/cron/sprint-goal-open` | Sun 08:05 | Opens the weekly goal-setting window |
-| `/api/cron/sprint-goal-reminder` | Mon 08:05 | Reminds candidates who haven't set a weekly goal |
-| `/api/cron/sprint-goal-final-reminder` | Mon 18:35 | Final reminder before the goal window closes |
+| `/api/cron/auto-assign-sprint` | Mon 09:00 (~5am ET) | Auto-assigns every candidate's Weekly Search Sprint (fully automatic, no manual goal-setting step exists anymore) + sends the "weekly goal assigned" recap/preview email |
+| `/api/cron/market-reality-snapshot` | Mon 20:20 | Archives that week's Market Reality grade snapshot (well after auto-assign-sprint, so every candidate's week is already set) |
 | `/api/cron/weekly-gap-nudge` | Fri 21:00 | "Close the gap to an A" email |
 | `/api/cron/community-coaching-digest` | Sat 15:00 | Community & Coaching weekly digest |
 | `/api/cron/market-digest-candidates` | Tue 14:00 | Weekly market digest — candidates |

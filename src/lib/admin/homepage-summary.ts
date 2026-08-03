@@ -23,7 +23,7 @@ export interface AdminHighLevelStats {
   totalRecruiters: number
   totalHiringManagers: number
   liveJobBoardListings: number
-  thisWeekAListCount: number
+  thisWeekSprintTargetCount: number
 }
 
 export interface AdminHomepageSummary {
@@ -32,19 +32,19 @@ export interface AdminHomepageSummary {
   stats: AdminHighLevelStats
 }
 
-// This week's A-List count — sourced from WeeklyBadgeEarned, the real,
-// currently-written record (SundayNightReport.onAList is legacy and nothing
-// writes to it anymore, see weekly-badge-archive.ts). "This week" is the
-// most recent weekStartDate on record, same convention used there.
-async function thisWeekAListCount(): Promise<number> {
+// This week's Sprint Target count — sourced from WeeklyBadgeEarned, the
+// real, currently-written record (SundayNightReport.onAList is legacy and
+// nothing writes to it anymore, see weekly-badge-archive.ts). "This week" is
+// the most recent weekStartDate on record, same convention used there.
+async function thisWeekSprintTargetCount(): Promise<number> {
   const latest = await prisma.weeklyBadgeEarned.findFirst({
-    where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
+    where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
     orderBy: { weekStartDate: 'desc' },
     select: { weekStartDate: true },
   })
   if (!latest) return 0
   return prisma.weeklyBadgeEarned.count({
-    where: { weekStartDate: latest.weekStartDate, badgeKey: 'WEEKLY_SCORE_A_LIST' },
+    where: { weekStartDate: latest.weekStartDate, badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
   })
 }
 
@@ -65,7 +65,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     totalRecruiters,
     totalHiringManagers,
     liveJobBoardListings,
-    aListCount,
+    sprintTargetCount,
   ] = await Promise.all([
     prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
     prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
@@ -80,7 +80,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.recruiter.count(),
     prisma.employerProfile.count(),
     prisma.exclusiveJobPosting.count({ where: { status: 'approved', archivedAt: null } }),
-    thisWeekAListCount(),
+    thisWeekSprintTargetCount(),
   ])
 
   return {
@@ -102,7 +102,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
       totalRecruiters,
       totalHiringManagers,
       liveJobBoardListings,
-      thisWeekAListCount: aListCount,
+      thisWeekSprintTargetCount: sprintTargetCount,
     },
   }
 }

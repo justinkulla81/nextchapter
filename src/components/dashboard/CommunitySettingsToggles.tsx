@@ -1,25 +1,25 @@
 import { SubmitButton } from '@/components/ui/submit-button'
-import { toggleAListOptOut, toggleEncouragementGiving } from '@/app/dashboard/community/actions'
+import { toggleWeeklySprintTargetOptOut, toggleEncouragementGiving } from '@/app/dashboard/community/actions'
 
 export function CommunitySettingsToggles({
-  aListOptOut,
+  weeklySprintTargetOptOut,
   encouragementGivingOptIn,
 }: {
-  aListOptOut: boolean
+  weeklySprintTargetOptOut: boolean
   encouragementGivingOptIn: boolean
 }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-foreground">A-List recognition</p>
+          <p className="text-sm font-medium text-foreground">Weekly Sprint Target recognition</p>
           <p className="text-sm text-muted-foreground">
-            Show my name (first name, last initial) when I earn a weekly A-List spot.
+            Show my name (first name, last initial) when I hit the Weekly Sprint Target.
           </p>
         </div>
-        <form action={toggleAListOptOut.bind(null, aListOptOut)}>
+        <form action={toggleWeeklySprintTargetOptOut.bind(null, weeklySprintTargetOptOut)}>
           <SubmitButton variant="outline" size="sm">
-            {aListOptOut ? 'Opted out' : 'Opted in'}
+            {weeklySprintTargetOptOut ? 'Opted out' : 'Opted in'}
           </SubmitButton>
         </form>
       </div>

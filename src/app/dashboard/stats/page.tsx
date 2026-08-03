@@ -56,7 +56,7 @@ export default async function YourStatsPage() {
     lastWeekActions,
     weeklyBadges,
     milestoneBadges,
-    aListWeeks,
+    sprintTargetWeeks,
   ] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
@@ -74,7 +74,7 @@ export default async function YourStatsPage() {
     // SundayNightReport.onAList is legacy and nothing writes to it anymore
     // (see src/lib/badges/weekly-badge-archive.ts).
     prisma.weeklyBadgeEarned.findMany({
-      where: { candidateId: profile.id, badgeKey: 'WEEKLY_SCORE_A_LIST' },
+      where: { candidateId: profile.id, badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
       orderBy: { weekStartDate: 'desc' },
       take: 12,
       select: { weekStartDate: true },
@@ -376,18 +376,18 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly A List</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Sprint Target</CardTitle>
         </CardHeader>
         <CardContent>
-          {aListWeeks.length === 0 ? (
+          {sprintTargetWeeks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No A weeks yet — hit your weekly point target to start your Weekly A List.
+              No Sprint Target weeks yet — hit your weekly points target to start your streak.
             </p>
           ) : (
             <ul className="space-y-1.5">
-              {aListWeeks.map((r) => (
+              {sprintTargetWeeks.map((r) => (
                 <li key={r.weekStartDate.toISOString()} className="flex items-center gap-2 text-sm">
-                  <span aria-hidden>🅰️</span>
+                  <span aria-hidden>🎯</span>
                   <span className="text-foreground">
                     Week of {r.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                   </span>

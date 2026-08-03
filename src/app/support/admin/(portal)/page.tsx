@@ -85,7 +85,7 @@ export default async function AdminHomePage() {
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <StatCard label="Total candidates" value={stats.totalCandidates} />
           <StatCard label="Registered candidates" value={stats.registeredCandidates} />
-          <StatCard label="This week's A-List" value={stats.thisWeekAListCount} />
+          <StatCard label="This week's Sprint Targets hit" value={stats.thisWeekSprintTargetCount} />
           <StatCard label="Coaches" value={stats.totalCoaches} />
           <StatCard label="Recruiters" value={stats.totalRecruiters} />
           <StatCard label="Hiring managers" value={stats.totalHiringManagers} />

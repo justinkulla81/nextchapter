@@ -10,8 +10,9 @@ import { isDossierComplete } from '@/lib/reports/dossier-sections'
 // approach as weekly-badges.ts. GAP_CLOSER is the one badge in this system
 // that can be earned more than once — see `count` on MilestoneBadgeStatus.
 //
-// NAMING RULE: none of these may use "A-List" — that's reserved for the
-// weekly Weekly Search Score badge only (see weekly-badges.ts).
+// NAMING RULE: none of these may use "A-List" — that name is reserved for
+// the real, multi-week Market Reality Grade A tier, never the weekly
+// WEEKLY_SPRINT_TARGET_HIT badge (see weekly-badges.ts).
 export type MilestoneBadgeKey =
   | 'SEVEN_DAY_STREAK'
   | 'THIRTY_DAY_STREAK'

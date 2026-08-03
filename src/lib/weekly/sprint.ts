@@ -51,20 +51,6 @@ export function getMondayOfWeek(date: Date): Date {
   return d
 }
 
-// getMondayOfWeek(now) resolves to the right target on every day except
-// Sunday — Sunday belongs to the week that started the PRECEDING Monday, so
-// it would return LAST Monday. The Sun 12:01am-Mon 12:01pm PT goal-setting
-// window always concerns the week starting the very NEXT Monday, so on a
-// Sunday specifically this bumps the reference forward a day first. Every
-// caller that gates or writes the goal-setting commitment must use this,
-// not getMondayOfWeek directly — otherwise a Sunday submission silently
-// lands on the outgoing week's record instead of creating the new one.
-export function getGoalSettingWeekStart(reference: Date = new Date()): Date {
-  const isSunday = new Date(reference).getUTCDay() === 0
-  const adjusted = isSunday ? new Date(reference.getTime() + 24 * 60 * 60 * 1000) : reference
-  return getMondayOfWeek(adjusted)
-}
-
 // Reconciles verified-action-type completion against real backing data
 // before returning, so every consumer of the current week's sprint (grading,
 // the dashboard card, the stats page) sees the same ungameable truth without
@@ -352,7 +338,7 @@ export async function commitWeeklySprint(
   actions: { text: string; actionType?: string; points: number; estimatedMinutes: number }[],
   autoAssigned = false
 ) {
-  const weekStartDate = getGoalSettingWeekStart()
+  const weekStartDate = getMondayOfWeek(new Date())
 
   // Only ever true for the candidate's first sprint — checked against every
   // OTHER week so re-submitting goals within the same week's edit window

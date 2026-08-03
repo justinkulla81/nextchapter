@@ -44,7 +44,7 @@ interface CandidateSnapshot {
   gapDuration: GapDurationBucket | null
   checkIns: Date[]
   sprints: { createdAt: Date; committedActions: CommittedAction[] }[]
-  aListWeeks: Date[]
+  sprintTargetWeeks: Date[]
   marketResponseLogs: { type: MarketResponseType; loggedAt: Date }[]
   outreachLogs: Date[]
   interviewDates: Date[]
@@ -70,7 +70,7 @@ async function loadAllCandidateRows() {
       // SundayNightReport.onAList is legacy and nothing writes to it anymore
       // (see src/lib/badges/weekly-badge-archive.ts).
       weeklyBadgesEarned: {
-        where: { badgeKey: 'WEEKLY_SCORE_A_LIST' },
+        where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
         select: { weekStartDate: true, earnedAt: true },
       },
       marketResponseLogs: { select: { type: true, loggedAt: true } },
@@ -98,7 +98,7 @@ function snapshotAsOf(rows: CandidateRow[], asOf: Date): CandidateSnapshot[] {
           createdAt: s.createdAt,
           committedActions: s.committedActions as unknown as CommittedAction[],
         })),
-      aListWeeks: r.weeklyBadgesEarned.filter((b) => b.earnedAt <= asOf).map((b) => b.weekStartDate),
+      sprintTargetWeeks: r.weeklyBadgesEarned.filter((b) => b.earnedAt <= asOf).map((b) => b.weekStartDate),
       marketResponseLogs: r.marketResponseLogs.filter((l) => l.loggedAt <= asOf),
       outreachLogs: r.outreachLogs.map((o) => o.loggedAt).filter((d) => d <= asOf),
       interviewDates: r.jobPostings
@@ -148,7 +148,7 @@ interface RawAggregates {
   avgOutreachToReplyRate: number | null
   avgConversationsPerActiveUser: number | null
   totalInterviewsLogged: number
-  weeklyAListEarners: number
+  weeklySprintTargetEarners: number
   avgSearchExecutionGrade: Grade | null
   avgMarketPositionGrade: Grade | null
   candidatesAtWeek4Plus: number
@@ -242,11 +242,11 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
   const totalInterviewsLogged = candidates.reduce((sum, c) => sum + c.interviewDates.length, 0)
 
   const latestWeekStart = candidates
-    .flatMap((c) => c.aListWeeks.map((d) => d.getTime()))
+    .flatMap((c) => c.sprintTargetWeeks.map((d) => d.getTime()))
     .reduce((max, t) => Math.max(max, t), 0)
-  const weeklyAListEarners =
+  const weeklySprintTargetEarners =
     latestWeekStart > 0
-      ? candidates.filter((c) => c.aListWeeks.some((d) => d.getTime() === latestWeekStart)).length
+      ? candidates.filter((c) => c.sprintTargetWeeks.some((d) => d.getTime() === latestWeekStart)).length
       : 0
 
   // Average grade metrics need a live per-candidate computeHireabilityGrade
@@ -274,7 +274,7 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
     avgOutreachToReplyRate,
     avgConversationsPerActiveUser,
     totalInterviewsLogged,
-    weeklyAListEarners,
+    weeklySprintTargetEarners,
     avgSearchExecutionGrade: avgSearchExecScore !== null ? scoreToGrade(avgSearchExecScore) : null,
     avgMarketPositionGrade: avgMarketRealityScore !== null ? scoreToGrade(avgMarketRealityScore) : null,
     candidatesAtWeek4Plus,
@@ -448,12 +448,12 @@ export async function computePreSeedMetrics(): Promise<PreSeedMetrics> {
 
   const health: MetricRow[] = [
     row(
-      'weeklyAListEarners',
-      "This week's A-List earners",
-      cur.weeklyAListEarners,
+      'weeklySprintTargetEarners',
+      "This week's Sprint Target earners",
+      cur.weeklySprintTargetEarners,
       null,
       'count',
-      trendOf(cur.weeklyAListEarners, prev.weeklyAListEarners),
+      trendOf(cur.weeklySprintTargetEarners, prev.weeklySprintTargetEarners),
       'no_target'
     ),
     row(

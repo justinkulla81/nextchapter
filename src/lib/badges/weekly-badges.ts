@@ -9,10 +9,14 @@ import { pointsNeededForA } from '@/lib/weekly/action-effort'
 // LearningBadge, EncouragementNote, JobPosting), same "compute live, don't
 // store a duplicate" approach already used for src/lib/community/badges.ts.
 //
-// NAMING RULE: "A-List" is reserved exclusively for WEEKLY_SCORE_A_LIST —
-// no other badge in this system (weekly or milestone) may use it.
+// NAMING RULE: "A-List" means the real, multi-week Market Reality Grade A
+// tier (job board unlock, Executive Dossier, Offer Bonus, recruiter
+// visibility — see find-my-job/page.tsx, portfolio/page.tsx). It must never
+// be used for WEEKLY_SPRINT_TARGET_HIT, which is a much easier weekly bar
+// (just this week's points target) — conflating the two overpromises real
+// benefits a candidate who merely had a good week hasn't actually unlocked.
 export type WeeklyBadgeKey =
-  | 'WEEKLY_SCORE_A_LIST'
+  | 'WEEKLY_SPRINT_TARGET_HIT'
   | 'TEAM_PLAYER'
   | 'WEEKLY_LEARNING'
   | 'WEEKLY_NETWORKING'
@@ -21,7 +25,7 @@ export type WeeklyBadgeKey =
   | 'HIGH_FIT_APPLICATIONS'
 
 export const WEEKLY_BADGE_LABEL: Record<WeeklyBadgeKey, string> = {
-  WEEKLY_SCORE_A_LIST: 'Weekly Search Score A-List',
+  WEEKLY_SPRINT_TARGET_HIT: 'Weekly Sprint Target',
   TEAM_PLAYER: 'Team Player',
   WEEKLY_LEARNING: 'Weekly Learning',
   WEEKLY_NETWORKING: 'Weekly Networking',
@@ -31,7 +35,7 @@ export const WEEKLY_BADGE_LABEL: Record<WeeklyBadgeKey, string> = {
 }
 
 export const WEEKLY_BADGE_DESCRIPTION: Record<WeeklyBadgeKey, string> = {
-  WEEKLY_SCORE_A_LIST: "This week's Weekly Search Score hit the A target.",
+  WEEKLY_SPRINT_TARGET_HIT: "This week's Weekly Search Score hit the Sprint Target.",
   TEAM_PLAYER: '3+ give-actions in the Support Network this week.',
   WEEKLY_LEARNING: '1+ Learning Engine action completed this week.',
   WEEKLY_NETWORKING: '3+ networking touches this week.',
@@ -95,7 +99,7 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
   const highFitCount = Math.min(tailoredApplicationsCount, HIGH_FIT_CAP)
 
   const earned: Record<WeeklyBadgeKey, boolean> = {
-    WEEKLY_SCORE_A_LIST: pointsAchieved >= pointsTarget,
+    WEEKLY_SPRINT_TARGET_HIT: pointsAchieved >= pointsTarget,
     TEAM_PLAYER: giveActionsThisWeek >= TEAM_PLAYER_THRESHOLD,
     WEEKLY_LEARNING: learningThisWeek >= 1,
     WEEKLY_NETWORKING: outreachThisWeek >= WEEKLY_NETWORKING_THRESHOLD,
@@ -107,8 +111,8 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
   const earnedKeys = (Object.keys(earned) as WeeklyBadgeKey[]).filter((key) => earned[key])
   if (earnedKeys.length > 0) {
     // Fire-and-forget persistence for admin's historical archive — this is
-    // the only place any weekly badge (including WEEKLY_SCORE_A_LIST, which
-    // IS the A-List membership record) gets written down. Upsert is
+    // the only place any weekly badge (including WEEKLY_SPRINT_TARGET_HIT,
+    // which IS the Weekly Sprint Target record) gets written down. Upsert is
     // idempotent, so re-computing the same week repeatedly is harmless.
     await Promise.all(
       earnedKeys.map((badgeKey) =>

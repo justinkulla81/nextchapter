@@ -81,8 +81,8 @@ export default async function ProfilePage() {
           <CardContent>
             <p className="mb-3 text-sm text-muted-foreground">
               Shown to your coach and recruiter/employer contacts in messaging, and in weekly
-              recognition (A-List, badges). Never shown on your resume, dossier, or to hiring managers
-              reviewing your report.
+              recognition (Weekly Sprint Target, badges). Never shown on your resume, dossier, or to
+              hiring managers reviewing your report.
             </p>
             <AvatarUploadForm
               displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
