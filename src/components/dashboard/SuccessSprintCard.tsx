@@ -6,6 +6,7 @@ import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
   formatMinutes,
+  getRecurringTargetCount,
   isRecurringActionType,
   navCategoryForActionType,
   type SuggestedActionLike,
@@ -50,6 +51,13 @@ function ActionRow({
 }) {
   const link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
   const navCategory = navCategoryForActionType(actionType)
+  // For recurring actions with a known weekly rep target, show the count
+  // that gets you to the points rather than a bare number — "2 x 15 pts =
+  // 30 pts" is a concrete plan, "30 pts" on its own isn't.
+  const targetCount = recurring ? getRecurringTargetCount(actionType) : null
+  const effortLabel = targetCount
+    ? `${targetCount} × ${points} pts = ${targetCount * points} pts`
+    : `${formatMinutes(estimatedMinutes)} · ${points} pts`
   return (
     <div
       className={cn(
@@ -82,9 +90,7 @@ function ActionRow({
         )}
       </div>
       <div className="flex shrink-0 items-center gap-3">
-        <span className="text-xs text-muted-foreground tabular-nums">
-          {formatMinutes(estimatedMinutes)} · {points} pts
-        </span>
+        <span className="text-xs text-muted-foreground tabular-nums">{effortLabel}</span>
         {recurring && completed && (
           <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">Started</span>
         )}

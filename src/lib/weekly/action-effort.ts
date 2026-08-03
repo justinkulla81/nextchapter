@@ -322,6 +322,35 @@ export function isRecurringActionType(actionType: string | undefined): boolean {
   return !!actionType && RECURRING_ACTION_TYPES.has(actionType)
 }
 
+// A suggested rep count per week for recurring types the candidate actively
+// plans (surfaced in the committed/catalog list) — lets the dashboard show
+// "2 x 15 pts = 30 pts" instead of a bare point value, so the target reads
+// as a concrete number of real-world actions, not just an abstract score.
+// Starting defaults, tuned to land near typical weekly point targets —
+// adjust freely per type. Deliberately excludes the five passively-detected
+// types below (THANK_YOU_NOTE_SENT, FOLLOW_UP_NOTE_SENT, CHECK_IN_NOTE_SENT,
+// INTRO_CONNECTION_REQUEST_SENT, INTERVIEW_ATTENDED) — those accrue from
+// Gmail/Calendar reconciliation, not a candidate-set goal, so a "target
+// count" wouldn't correspond to anything the candidate is planning. Also
+// excludes ENGAGE_PEER_SUPPORT (0 points, nothing to multiply).
+const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
+  OUTREACH_MESSAGE: 2,
+  OUTREACH_CALL: 1,
+  OUTREACH_FOLLOW_UP: 2,
+  ENGAGE_COMMENT: 3,
+  ENGAGE_EVENT: 1,
+  ENGAGE_POST_UPDATE: 1,
+  LINKEDIN_POST_IDEA: 1,
+  THOUGHT_LEADERSHIP_COMMENT: 3,
+  THOUGHT_LEADERSHIP_SHARE: 2,
+  INTERVIEW_BEHAVIORAL_PRACTICE: 2,
+}
+
+export function getRecurringTargetCount(actionType: string | undefined): number | null {
+  if (!actionType) return null
+  return RECURRING_ACTION_TARGET_COUNT[actionType] ?? null
+}
+
 // Action types whose "done" state is derived from real backing data instead
 // of the self-reported completed flag in the committed-actions JSON blob —
 // see reconcileVerifiedActions in action-verification.ts, which does the
