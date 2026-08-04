@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { exchangeCodeForTokens, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { exchangeCodeForTokens, getCombinedRedirectUri, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const tokens = await exchangeCodeForTokens(code)
+    const tokens = await exchangeCodeForTokens(code, getCombinedRedirectUri())
     if (!tokens.refresh_token) {
       return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=no_refresh_token', request.url))
     }

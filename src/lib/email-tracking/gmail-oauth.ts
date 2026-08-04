@@ -20,6 +20,14 @@ function getRedirectUri(): string {
   return `${appUrl}/api/auth/gmail/callback`
 }
 
+// Exported so the combined callback route can pass the exact redirect_uri
+// it authorized with — Google's token endpoint 400s (redirect_uri_mismatch)
+// if the exchange doesn't repeat the same value used to obtain the code.
+export function getCombinedRedirectUri(): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  return `${appUrl}/api/auth/google-connect/callback`
+}
+
 export function buildCandidateGmailAuthUrl(state: string): string {
   const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
   if (!clientId) throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID is not set.')
@@ -49,10 +57,9 @@ export function buildCombinedGoogleAuthUrl(state: string): string {
   const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
   if (!clientId) throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID is not set.')
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: `${appUrl}/api/auth/google-connect/callback`,
+    redirect_uri: getCombinedRedirectUri(),
     response_type: 'code',
     scope: `${SCOPE} https://www.googleapis.com/auth/calendar.events.readonly`,
     access_type: 'offline',
@@ -79,7 +86,11 @@ function requireCredentials(): { clientId: string; clientSecret: string } {
   return { clientId, clientSecret }
 }
 
-export async function exchangeCodeForTokens(code: string): Promise<GoogleTokenResponse> {
+// redirectUri must exactly match whichever authorize URL produced `code` —
+// Google's token endpoint 400s otherwise. Defaults to the Gmail-only
+// callback since that's the original (only) caller; the combined callback
+// passes getCombinedRedirectUri() explicitly.
+export async function exchangeCodeForTokens(code: string, redirectUri: string = getRedirectUri()): Promise<GoogleTokenResponse> {
   const { clientId, clientSecret } = requireCredentials()
   const response = await fetch(GOOGLE_TOKEN_URL, {
     method: 'POST',
@@ -88,7 +99,7 @@ export async function exchangeCodeForTokens(code: string): Promise<GoogleTokenRe
       code,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: getRedirectUri(),
+      redirect_uri: redirectUri,
       grant_type: 'authorization_code',
     }),
   })
