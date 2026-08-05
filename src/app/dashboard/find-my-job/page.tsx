@@ -232,6 +232,20 @@ export default async function JobFitPage() {
         />
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Job Stats</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
+            <div key={type} className="rounded-lg border border-border p-3">
+              <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
       <div className="space-y-3 rounded-lg border border-border p-4">
@@ -257,22 +271,6 @@ export default async function JobFitPage() {
           </CardContent>
         </Card>
       ))}
-
-      {emailConnection && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Job activity detected</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
-              <div key={type} className="rounded-lg border border-border p-3">
-                <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
-                <p className="text-xs text-muted-foreground">{label}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
 
       <div className="space-y-4">
         <div>

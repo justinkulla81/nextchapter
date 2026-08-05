@@ -69,10 +69,10 @@ function buildSections(
       title: 'Connecting',
       links: [
         { href: '/dashboard/references', label: 'My References' },
-        { href: '/dashboard/network', label: 'Outreach Contacts', badge: 'High Priority' },
+        { href: '/dashboard/network', label: 'Networking', badge: 'High Priority' },
         {
           href: '/dashboard/community',
-          label: 'Support Network',
+          label: 'NC Support Network',
           badge:
             supportNetworkUnreadCount + messagesUnreadCount > 0
               ? String(supportNetworkUnreadCount + messagesUnreadCount)

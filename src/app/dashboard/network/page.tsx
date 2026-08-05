@@ -270,28 +270,10 @@ export default async function NetworkPage({
         </div>
       )}
 
-      {emailConnection && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Networking notes sent</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {Object.entries(SENT_LABEL).map(([type, label]) => (
-                <div key={type} className="rounded-lg border border-border p-3">
-                  <p className="text-2xl font-bold text-foreground tabular-nums">{emailCounts[type] ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {reconciliation?.networkingNote && (
-            <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
-              {reconciliation.networkingNote}
-            </p>
-          )}
-        </>
+      {emailConnection && reconciliation?.networkingNote && (
+        <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
+          {reconciliation.networkingNote}
+        </p>
       )}
     </div>
   )
@@ -414,6 +396,20 @@ export default async function NetworkPage({
           actionTypes={['NETWORKING_LIST', 'OUTREACH_MESSAGE', 'OUTREACH_CALL', 'FOLLOW_UP_NOTE_SENT']}
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Networking Stats</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Object.entries(SENT_LABEL).map(([type, label]) => (
+            <div key={type} className="rounded-lg border border-border p-3">
+              <p className="text-2xl font-bold text-foreground tabular-nums">{emailCounts[type] ?? 0}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       <NetworkQuickActionsCard contacts={contacts} />
 
