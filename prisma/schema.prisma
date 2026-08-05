@@ -612,6 +612,7 @@ model CandidateProfile {
   comfortCheckBonusAt       DateTime?
   networkingConcerns        NetworkingAnxiety[] @default([])
   networkConnectPreferences String[]            @default([])
+  outreachPlanDismissedAt   DateTime? // "Your outreach plan" banner's X was clicked on Outreach Contacts
 
   // Admin-managed Gmail/Calendar tracking allow-list (see
   // /support/admin/tracking-testers) — replaces the old env-var-only
@@ -2014,6 +2015,7 @@ enum EmailActivityType {
   FOLLOW_UP
   CHECK_IN
   INTRO_REQUEST
+  NETWORKING_OUTREACH
   NEEDS_REVIEW
 }
 

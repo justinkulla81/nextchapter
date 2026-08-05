@@ -163,3 +163,36 @@ export function matchIntroRequest(subject: string, bodyPreview: string): Pattern
   if (testAny(text, INTRO_REQUEST_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
   return { matched: false, confidence: 'low' }
 }
+
+// A first-time "cold" networking message has no fixed template the way a
+// follow-up or thank-you does, but real search-related outreach does
+// cluster around a recognizable set of phrases. High confidence requires an
+// actual networking-shaped phrase; the low-confidence list is bare keywords
+// ("job", "help", "connection") that show up in plenty of unrelated
+// subjects too, so those get tracked (visible in Needs Review) but never
+// auto-credited — see the high-confidence-only gate in sync-gmail.ts.
+const NETWORKING_OUTREACH_HIGH_CONFIDENCE = [
+  /\b(grab|get)\s+(a\s+)?(coffee|lunch)\b/i,
+  /\b(quick|brief)\s+call\b/i,
+  /pick your brain/i,
+  /\b(career|job search)\s+advice\b/i,
+  /\byour advice\b/i,
+  /\b(starting|in the middle of)\s+(my\s+|a\s+)?job search\b/i,
+  /\breaching out\b/i,
+]
+const NETWORKING_OUTREACH_LOW_CONFIDENCE = [
+  /\bnetworking\b/i,
+  /\bconnection\b/i,
+  /\bfeedback\b/i,
+  /\bintro(duction)?\b/i,
+  /\bhelp\b/i,
+  /\bjob\b/i,
+  /\bnext chapter\b/i,
+]
+
+export function matchNetworkingOutreach(subject: string, bodyPreview: string): PatternMatch {
+  const text = `${subject} ${bodyPreview}`
+  if (testAny(text, NETWORKING_OUTREACH_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  if (testAny(text, NETWORKING_OUTREACH_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
+  return { matched: false, confidence: 'low' }
+}

@@ -9,6 +9,7 @@ import {
   matchFollowUp,
   matchCheckIn,
   matchIntroRequest,
+  matchNetworkingOutreach,
   guessCompanyFromConfirmationSubject,
 } from './ats-patterns'
 
@@ -23,6 +24,7 @@ export interface ClassificationResult {
     | 'FOLLOW_UP'
     | 'CHECK_IN'
     | 'INTRO_REQUEST'
+    | 'NETWORKING_OUTREACH'
     | 'NEEDS_REVIEW'
   confidence: 'high' | 'low'
   companyName: string | null
@@ -100,6 +102,13 @@ export function classifyOutboundEmail(subject: string, bodyPreview: string, toAd
 
   const checkIn = matchCheckIn(subject, bodyPreview)
   if (checkIn.matched) return { activityType: 'CHECK_IN', confidence: checkIn.confidence, companyName }
+
+  // Lowest priority — a bare networking keyword shouldn't steal a message
+  // that already matched one of the more specific categories above.
+  const networkingOutreach = matchNetworkingOutreach(subject, bodyPreview)
+  if (networkingOutreach.matched) {
+    return { activityType: 'NETWORKING_OUTREACH', confidence: networkingOutreach.confidence, companyName }
+  }
 
   return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName }
 }

@@ -1,5 +1,12 @@
 import type { NetworkComfortLevel } from '@prisma/client'
 
+const COMFORT_LABEL: Record<NetworkComfortLevel, string> = {
+  VERY_COMFORTABLE: 'very comfortable',
+  SOMEWHAT_COMFORTABLE: 'somewhat comfortable',
+  NOT_VERY_COMFORTABLE: 'not very comfortable',
+  RATHER_NOT: "you'd rather not",
+}
+
 const ENCOURAGEMENT: Record<NetworkComfortLevel, string> = {
   VERY_COMFORTABLE:
     "Good — that's a real advantage. Most people find this the hardest part of a search, and you're not starting from a place of dread.",
@@ -14,7 +21,13 @@ const ENCOURAGEMENT: Record<NetworkComfortLevel, string> = {
 export function NetworkEncouragement({ comfortLevel }: { comfortLevel: NetworkComfortLevel }) {
   return (
     <div className="space-y-2 rounded-lg border border-border bg-off-white p-4">
-      <p className="text-sm text-foreground">{ENCOURAGEMENT[comfortLevel]}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        You told us
+      </p>
+      <p className="text-sm text-foreground">
+        You said {COMFORT_LABEL[comfortLevel]} letting your network know you&apos;re looking.{' '}
+        {ENCOURAGEMENT[comfortLevel]}
+      </p>
       <p className="text-sm font-medium text-foreground">
         Here&apos;s the honest truth, though: most roles get filled through a connection, not a
         cold application. Skipping this step is one of the highest-cost decisions you can make in

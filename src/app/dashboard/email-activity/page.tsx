@@ -18,6 +18,7 @@ const SENT_LABEL: Record<string, string> = {
   FOLLOW_UP: 'Follow-up notes',
   CHECK_IN: 'Check-in notes',
   INTRO_REQUEST: 'Intro/connection requests',
+  NETWORKING_OUTREACH: 'Networking outreach messages',
 }
 const INBOUND_LABEL: Record<string, string> = {
   APPLICATION_CONFIRMATION: 'Application confirmations',

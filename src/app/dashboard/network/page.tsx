@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import type { EmailActivityType } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
@@ -44,12 +45,56 @@ const CATEGORY_LABEL: Record<string, string> = {
   COULD_HELP_IN_RETURN: 'People you could genuinely help in return',
 }
 
+// Auto-detected via Gmail/Calendar Connect (sync-gmail.ts / calendar sync) —
+// same categories the Email Activity page's "Networking notes sent" stat
+// tracks, plus calendar-detected networking calls. Mirrors
+// activity-reconciliation.ts's NETWORKING_EMAIL_TYPES.
+const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
+  'THANK_YOU',
+  'FOLLOW_UP',
+  'CHECK_IN',
+  'INTRO_REQUEST',
+  'NETWORKING_OUTREACH',
+]
+
+function StatTile({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-lg border border-border p-3">
+      <p className="text-2xl font-bold text-foreground tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  )
+}
+
 export default async function NetworkPage() {
   const profile = await getDashboardData()
-  const contacts = await prisma.supportNetworkContact.findMany({
-    where: { candidateId: profile.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  const [contacts, outreachLoggedCount, emailConnection, calendarConnection] = await Promise.all([
+    prisma.supportNetworkContact.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.outreachLog.count({ where: { candidateId: profile.id } }),
+    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+    prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+  ])
+
+  const [networkingEmailCount, networkingCallCount] = await Promise.all([
+    emailConnection
+      ? prisma.trackedEmailActivity.count({
+          where: {
+            candidateId: profile.id,
+            direction: 'OUTBOUND',
+            activityType: { in: NETWORKING_EMAIL_TYPES },
+          },
+        })
+      : Promise.resolve(0),
+    calendarConnection
+      ? prisma.trackedCalendarEvent.count({ where: { candidateId: profile.id, eventType: 'NETWORKING_CALL' } })
+      : Promise.resolve(0),
+  ])
+
+  const isGoogleConnected = Boolean(emailConnection && calendarConnection)
+  const categorizedCount = contacts.filter((c) => c.category).length
 
   const scriptContext = {
     candidateFirstName: profile.firstName,
@@ -86,33 +131,48 @@ export default async function NetworkPage() {
           friends — they&apos;re the people you sort of know. This is the highest-leverage work in
           your search; don&apos;t let it sit untouched.
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Every contact you add and outreach you log counts toward the connecting signal in your
-          Market Reality Grade.
-        </p>
         <SprintActionCompletion
           candidateId={profile.id}
           actionTypes={['HELP_SCRIPT', 'NETWORKING_LIST', 'OUTREACH_MESSAGE', 'OUTREACH_CALL', 'OUTREACH_FOLLOW_UP']}
         />
       </div>
 
-      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
-
-      <NetworkEncouragement comfortLevel={profile.networkComfortLevel} />
-
-      <div className="space-y-4 rounded-lg border border-border p-4">
-        <NetworkingAnxietySelector current={profile.networkingConcerns} />
-        <NetworkConnectPreferenceSelector current={profile.networkConnectPreferences} />
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Your outreach at a glance</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile value={contacts.length} label="Contacts in your list" />
+          <StatTile value={categorizedCount} label="Sorted into a category" />
+          <StatTile value={outreachLoggedCount} label="Outreach logged" />
+          <StatTile value={networkingEmailCount + networkingCallCount} label="Auto-detected touches" />
+        </div>
+        {!isGoogleConnected && (
+          <p className="text-xs text-muted-foreground">
+            That last number only counts once Gmail &amp; Calendar are connected below — until then,
+            use &quot;Log outreach&quot; on a contact to track it yourself.
+          </p>
+        )}
+        <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
       </div>
 
       <OutreachPlanCard
         concerns={profile.networkingConcerns}
         connectPreferences={profile.networkConnectPreferences}
+        dismissedAlready={Boolean(profile.outreachPlanDismissedAt)}
       />
 
-      {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} unlocked />}
+      <NetworkEncouragement comfortLevel={profile.networkComfortLevel} />
 
-      <OutreachCheatSheetCard />
+      <div className="space-y-4 rounded-lg border border-border p-4">
+        <h2 className="text-lg font-semibold">Tell us more, so your plan and scripts fit you</h2>
+        <NetworkingAnxietySelector current={profile.networkingConcerns} />
+        <NetworkConnectPreferenceSelector current={profile.networkConnectPreferences} />
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Scripts &amp; guidance</h2>
+        {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} unlocked />}
+        <OutreachCheatSheetCard />
+      </div>
 
       {/* Steps 1-3 are one workflow: export → clean up → import. The
           connecting line + numbered circles below are the only thing that
@@ -176,7 +236,7 @@ export default async function NetworkPage() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Email Templates</h2>
+        <h2 className="text-lg font-semibold">Message templates</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <CopyableTemplateCard
             title="Ask someone for help"
@@ -203,7 +263,10 @@ export default async function NetworkPage() {
         </div>
       </div>
 
-      <EmailTrackingCard />
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Follow-up tracking</h2>
+        <EmailTrackingCard />
+      </div>
 
       <div className="space-y-3 rounded-lg border border-border p-4">
         <div>
@@ -216,33 +279,42 @@ export default async function NetworkPage() {
         <NetworkJobLeadForm />
       </div>
 
-      {contacts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No contacts yet — import your LinkedIn connections above to get started.
-        </p>
-      ) : (
-        CATEGORY_ORDER.map((category) => {
-          const categoryContacts = contacts.filter((c) => c.category === category)
-          if (categoryContacts.length === 0) return null
-          return (
-            <div key={category ?? 'uncategorized'} className="space-y-3">
-              <h2 className="text-lg font-semibold">
-                {category ? CATEGORY_LABEL[category] : 'Uncategorized — sort these into a category'}
-              </h2>
-              <div className="space-y-3">
-                {categoryContacts.map((contact) => (
-                  <ContactRow
-                    key={contact.id}
-                    contact={contact}
-                    networkingConcerns={profile.networkingConcerns}
-                    scriptContext={scriptContext}
-                  />
-                ))}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Your contacts</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every contact you add and outreach you log counts toward the connecting signal in your
+            Market Reality Grade.
+          </p>
+        </div>
+        {contacts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No contacts yet — import your LinkedIn connections above to get started.
+          </p>
+        ) : (
+          CATEGORY_ORDER.map((category) => {
+            const categoryContacts = contacts.filter((c) => c.category === category)
+            if (categoryContacts.length === 0) return null
+            return (
+              <div key={category ?? 'uncategorized'} className="space-y-3">
+                <h3 className="text-base font-medium text-foreground">
+                  {category ? CATEGORY_LABEL[category] : 'Uncategorized — sort these into a category'}
+                </h3>
+                <div className="space-y-3">
+                  {categoryContacts.map((contact) => (
+                    <ContactRow
+                      key={contact.id}
+                      contact={contact}
+                      networkingConcerns={profile.networkingConcerns}
+                      scriptContext={scriptContext}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })
-      )}
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }

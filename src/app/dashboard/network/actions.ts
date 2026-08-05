@@ -207,6 +207,17 @@ export async function toggleNetworkConnectPreference(preference: string) {
   revalidatePath('/dashboard/network')
 }
 
+export async function dismissOutreachPlan() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { outreachPlanDismissedAt: new Date() },
+  })
+  revalidatePath('/dashboard/network')
+}
+
 export async function logOutreach(contactId: string | null, channel: OutreachChannel) {
   const profile = await getAuthedProfile()
   if (!profile) return

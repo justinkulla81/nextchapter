@@ -82,6 +82,10 @@ const SENT_ACTION_TYPE_BY_ACTIVITY: Partial<Record<string, string>> = {
   FOLLOW_UP: 'FOLLOW_UP_NOTE_SENT',
   CHECK_IN: 'CHECK_IN_NOTE_SENT',
   INTRO_REQUEST: 'INTRO_CONNECTION_REQUEST_SENT',
+  // Maps to the same OUTREACH_MESSAGE type the "Reach out to one more
+  // person" Sprint item uses, so a detected cold outreach completes that
+  // exact row instead of only ever showing up as a separate tracked email.
+  NETWORKING_OUTREACH: 'OUTREACH_MESSAGE',
 }
 
 async function processMessage(
@@ -154,6 +158,8 @@ function sentActionLabel(activityType: string): string {
       return 'Sent a check-in note'
     case 'INTRO_REQUEST':
       return 'Asked for an introduction'
+    case 'NETWORKING_OUTREACH':
+      return 'Sent a networking outreach message'
     default:
       return 'Sent a networking email'
   }
