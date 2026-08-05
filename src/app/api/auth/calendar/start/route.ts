@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (!user?.email) {
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_logged_in', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_logged_in', request.url))
   }
 
   if (!(await isCalendarTrackingTester(user.email))) {
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_a_tester', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_a_tester', request.url))
   }
 
   const state = crypto.randomBytes(16).toString('hex')
@@ -27,6 +27,6 @@ export async function GET(request: NextRequest) {
     const url = buildCandidateCalendarAuthUrl(state)
     return NextResponse.redirect(url)
   } catch {
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_configured', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_configured', request.url))
   }
 }

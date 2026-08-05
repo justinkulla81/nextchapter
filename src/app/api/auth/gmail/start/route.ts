@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (!user?.email) {
-    return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=not_logged_in', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_logged_in', request.url))
   }
 
   if (!(await isGmailTrackingTester(user.email))) {
-    return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=not_a_tester', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_a_tester', request.url))
   }
 
   const state = crypto.randomBytes(16).toString('hex')
@@ -27,6 +27,6 @@ export async function GET(request: NextRequest) {
     const url = buildCandidateGmailAuthUrl(state)
     return NextResponse.redirect(url)
   } catch {
-    return NextResponse.redirect(new URL('/dashboard/email-activity?gmailError=not_configured', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_configured', request.url))
   }
 }

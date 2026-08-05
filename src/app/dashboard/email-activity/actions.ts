@@ -28,7 +28,7 @@ export async function disconnectGmail(): Promise<void> {
     data: { disconnectedAt: new Date() },
   })
   captureServerEvent(profile.id, 'gmail_disconnected')
-  revalidatePath('/dashboard/email-activity')
+  revalidatePath('/dashboard/network')
 }
 
 export async function acknowledgeEmailActivity(activityId: string): Promise<void> {
@@ -38,7 +38,7 @@ export async function acknowledgeEmailActivity(activityId: string): Promise<void
     where: { id: activityId, candidateId: profile.id, reviewedAt: null },
     data: { reviewedAt: new Date() },
   })
-  revalidatePath('/dashboard/email-activity')
+  revalidatePath('/dashboard/network')
 }
 
 export async function syncNowAction(): Promise<{ error?: string }> {
@@ -54,6 +54,6 @@ export async function syncNowAction(): Promise<{ error?: string }> {
   if (result === null) {
     return { error: 'Your Gmail connection needs to be reconnected — the sign-in expired.' }
   }
-  revalidatePath('/dashboard/email-activity')
+  revalidatePath('/dashboard/network')
   return {}
 }

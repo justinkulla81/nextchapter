@@ -28,7 +28,7 @@ export async function disconnectCalendar(): Promise<void> {
     data: { disconnectedAt: new Date() },
   })
   captureServerEvent(profile.id, 'calendar_disconnected')
-  revalidatePath('/dashboard/calendar-activity')
+  revalidatePath('/dashboard/network')
 }
 
 export async function syncCalendarNowAction(): Promise<{ error?: string }> {
@@ -44,7 +44,7 @@ export async function syncCalendarNowAction(): Promise<{ error?: string }> {
   if (result === null) {
     return { error: 'Your calendar connection needs to be reconnected — the sign-in expired.' }
   }
-  revalidatePath('/dashboard/calendar-activity')
+  revalidatePath('/dashboard/network')
   return {}
 }
 
@@ -55,5 +55,5 @@ export async function acknowledgeCalendarEvent(eventId: string): Promise<void> {
     where: { id: eventId, candidateId: profile.id, reviewedAt: null },
     data: { reviewedAt: new Date() },
   })
-  revalidatePath('/dashboard/calendar-activity')
+  revalidatePath('/dashboard/network')
 }

@@ -2,6 +2,14 @@ import type { Metadata } from 'next'
 import type { EmailActivityType } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
+import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
+import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
+import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
+import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
@@ -16,6 +24,11 @@ import { EmailTrackingCard } from '@/components/dashboard/EmailTrackingCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
 import { NetworkJobLeadForm } from '@/components/dashboard/NetworkJobLeadForm'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { TrackingTabs } from '@/components/dashboard/TrackingTabs'
+import { EmailActivitySyncButton, EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
+import { CalendarActivitySyncButton, CalendarActivityDismissButton } from '@/components/dashboard/CalendarActivityControls'
+import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
+import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
 import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
 import { GUIDES } from '@/lib/constants/guides'
@@ -45,10 +58,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   COULD_HELP_IN_RETURN: 'People you could genuinely help in return',
 }
 
-// Auto-detected via Gmail/Calendar Connect (sync-gmail.ts / calendar sync) —
-// same categories the Email Activity page's "Networking notes sent" stat
-// tracks, plus calendar-detected networking calls. Mirrors
-// activity-reconciliation.ts's NETWORKING_EMAIL_TYPES.
+// Mirrors activity-reconciliation.ts's NETWORKING_EMAIL_TYPES.
 const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
   'THANK_YOU',
   'FOLLOW_UP',
@@ -56,6 +66,21 @@ const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
   'INTRO_REQUEST',
   'NETWORKING_OUTREACH',
 ]
+
+const SENT_LABEL: Record<string, string> = {
+  THANK_YOU: 'Thank-you notes',
+  FOLLOW_UP: 'Follow-up notes',
+  CHECK_IN: 'Check-in notes',
+  INTRO_REQUEST: 'Intro/connection requests',
+  NETWORKING_OUTREACH: 'Networking outreach messages',
+}
+const INBOUND_LABEL: Record<string, string> = {
+  APPLICATION_CONFIRMATION: 'Application confirmations',
+  RECRUITER_OUTREACH: 'Recruiter outreach',
+  INTERVIEW_INVITE: 'Interview invites',
+  REJECTION: 'Rejections',
+  OFFER: 'Offers',
+}
 
 function StatTile({ value, label }: { value: number; label: string }) {
   return (
@@ -66,32 +91,95 @@ function StatTile({ value, label }: { value: number; label: string }) {
   )
 }
 
-export default async function NetworkPage() {
+function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' }) {
+  const label = kind === 'gmail' ? 'Gmail' : 'Calendar'
+  const message =
+    code === 'not_a_tester'
+      ? `${label} tracking is in internal testing right now — your account isn't on the tester list yet.`
+      : code === 'not_logged_in'
+        ? 'Please log in first.'
+        : code === 'no_refresh_token' || code === 'exchange_failed'
+          ? 'Something went wrong connecting — please try again.'
+          : code === 'not_configured'
+            ? `${label} connection is not available right now.`
+            : code === 'denied'
+              ? "Connection wasn't completed."
+              : null
+  if (!message) return null
+  return (
+    <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{message}</p>
+  )
+}
+
+export default async function NetworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ gmailConnected?: string; gmailError?: string; calendarConnected?: string; calendarError?: string }>
+}) {
   const profile = await getDashboardData()
-  const [contacts, outreachLoggedCount, emailConnection, calendarConnection] = await Promise.all([
-    prisma.supportNetworkContact.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.outreachLog.count({ where: { candidateId: profile.id } }),
-    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+  const params = await searchParams
+  const [contacts, outreachLoggedCount, emailConnection, calendarConnection, emailTester, calendarTester] =
+    await Promise.all([
+      prisma.supportNetworkContact.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.outreachLog.count({ where: { candidateId: profile.id } }),
+      prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+      prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+      profile.email ? isGmailTrackingTester(profile.email) : false,
+      profile.email ? isCalendarTrackingTester(profile.email) : false,
+    ])
+
+  // Auto-syncs on every visit instead of requiring the manual buttons below —
+  // both sync functions self-throttle to once per 5 minutes.
+  await Promise.all([
+    emailConnection
+      ? syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+      : null,
+    calendarConnection
+      ? syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
+          console.error('Calendar auto-sync failed:', error)
+        )
+      : null,
   ])
 
-  const [networkingEmailCount, networkingCallCount] = await Promise.all([
+  const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
-      ? prisma.trackedEmailActivity.count({
-          where: {
-            candidateId: profile.id,
-            direction: 'OUTBOUND',
-            activityType: { in: NETWORKING_EMAIL_TYPES },
-          },
-        })
-      : Promise.resolve(0),
+      ? prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id }, orderBy: { detectedAt: 'desc' } })
+      : Promise.resolve([]),
     calendarConnection
-      ? prisma.trackedCalendarEvent.count({ where: { candidateId: profile.id, eventType: 'NETWORKING_CALL' } })
-      : Promise.resolve(0),
+      ? prisma.trackedCalendarEvent.findMany({ where: { candidateId: profile.id }, orderBy: { startTime: 'desc' } })
+      : Promise.resolve([]),
+    emailConnection || calendarConnection ? getActivityReconciliation(profile.id) : Promise.resolve(null),
   ])
+
+  const emailCounts = emailActivities.reduce<Record<string, number>>((acc, a) => {
+    acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
+    return acc
+  }, {})
+  // A single application commonly triggers two confirmation emails (the
+  // ATS's own receipt plus LinkedIn's separate notification) — dedupe by
+  // company + day so it doesn't read as two applications submitted.
+  const seenApplications = new Set<string>()
+  for (const a of emailActivities) {
+    if (a.activityType !== 'APPLICATION_CONFIRMATION') continue
+    const key = a.companyName ? `${a.companyName.toLowerCase()}-${a.detectedAt.toISOString().slice(0, 10)}` : a.id
+    seenApplications.add(key)
+  }
+  emailCounts.APPLICATION_CONFIRMATION = seenApplications.size
+  const emailNeedsReview = emailActivities.filter((a) => a.activityType === 'NEEDS_REVIEW')
+  const unacknowledgedReactions = emailActivities.filter(
+    (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
+  )
+
+  const interviewCount = calendarEvents.filter((e) => e.eventType === 'INTERVIEW').length
+  const calendarNetworkingCount = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL').length
+  const calendarNeedsReview = calendarEvents.filter((e) => e.eventType === 'NEEDS_REVIEW' && !e.reviewedAt)
+
+  const networkingEmailCount = emailActivities.filter(
+    (a) => a.direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.includes(a.activityType)
+  ).length
 
   const isGoogleConnected = Boolean(emailConnection && calendarConnection)
   const categorizedCount = contacts.filter((c) => c.category).length
@@ -122,6 +210,280 @@ export default async function NetworkPage() {
     )
   }
 
+  const emailAlertCount = emailNeedsReview.length + unacknowledgedReactions.length + (emailConnection?.needsReconnectAt ? 1 : 0)
+  const calendarAlertCount = calendarNeedsReview.length + (calendarConnection?.needsReconnectAt ? 1 : 0)
+
+  const emailContent = (
+    <div className="space-y-4">
+      {params.gmailError && <ErrorBanner code={params.gmailError} kind="gmail" />}
+      {params.gmailConnected && (
+        <p className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
+          Gmail connected — your activity will start showing up here.
+        </p>
+      )}
+      {unacknowledgedReactions.map((activity) => (
+        <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm text-foreground">
+              {activity.activityType === 'REJECTION'
+                ? getRejectionReframe(activity.id.length)
+                : getOfferCongrats(activity.id.length)}
+            </p>
+            <EmailActivityAcknowledgeButton activityId={activity.id} />
+          </CardContent>
+        </Card>
+      ))}
+      <Card>
+        <CardHeader>
+          <CardTitle>Gmail connection</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!emailConnection ? (
+            <>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Before you connect, here&apos;s exactly what this does:</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>
+                    <strong>Read-only.</strong> NextChapter can never send, modify, or delete anything in your
+                    mailbox.
+                  </li>
+                  <li>
+                    <strong>What we look at:</strong> the sender, subject line, and date of messages in your Inbox
+                    and Sent folder — never the message body.
+                  </li>
+                  <li>
+                    <strong>Why:</strong> so applications, interviews, rejections, offers, and networking notes
+                    count toward your grade automatically, without you logging each one by hand.
+                  </li>
+                </ul>
+              </div>
+              {emailTester ? (
+                <Button nativeButton={false} render={<a href="/api/auth/gmail/start" />}>
+                  Connect Gmail
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Gmail tracking is in internal testing right now — it&apos;s not yet open to all candidates.
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-foreground">
+                Connected — 10 pts earned
+                {emailConnection.lastSyncAt && (
+                  <span className="text-muted-foreground"> · last checked {emailConnection.lastSyncAt.toLocaleString()}</span>
+                )}
+              </p>
+              {emailConnection.needsReconnectAt && (
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  Your Gmail connection expired (this happens periodically while this feature is in testing).{' '}
+                  <a href="/api/auth/gmail/start" className="underline">
+                    Reconnect
+                  </a>
+                  .
+                </p>
+              )}
+              <div className="flex gap-2">
+                <EmailActivitySyncButton />
+                <form action={disconnectGmail}>
+                  <Button type="submit" variant="outline" size="sm">
+                    Disconnect
+                  </Button>
+                </form>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {emailConnection && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Job activity detected</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {Object.entries(INBOUND_LABEL).map(([type, label]) => (
+                <div key={type} className="rounded-lg border border-border p-3">
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{emailCounts[type] ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Networking notes sent</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {Object.entries(SENT_LABEL).map(([type, label]) => (
+                <div key={type} className="rounded-lg border border-border p-3">
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{emailCounts[type] ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {reconciliation?.networkingNote && (
+            <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
+              {reconciliation.networkingNote}
+            </p>
+          )}
+
+          {emailNeedsReview.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Needs review ({emailNeedsReview.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  These didn&apos;t match a clear pattern, so nothing was guessed — they don&apos;t count toward
+                  your grade yet.
+                </p>
+                <ul className="space-y-1">
+                  {emailNeedsReview.slice(0, 10).map((a) => (
+                    <li key={a.id} className="text-sm text-muted-foreground">
+                      {a.subject || '(no subject)'}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
+  )
+
+  const calendarContent = (
+    <div className="space-y-4">
+      {params.calendarError && <ErrorBanner code={params.calendarError} kind="calendar" />}
+      {params.calendarConnected && (
+        <p className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
+          Calendar connected — your activity will start showing up here.
+        </p>
+      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Calendar connection</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!calendarConnection ? (
+            <>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Before you connect, here&apos;s exactly what this does:</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>
+                    <strong>Read-only.</strong> NextChapter can never create, edit, or delete anything on your
+                    calendar.
+                  </li>
+                  <li>
+                    <strong>What we look at:</strong> the title and time of events you&apos;ve already attended —
+                    never anything on your calendar that hasn&apos;t happened yet.
+                  </li>
+                  <li>
+                    <strong>Why:</strong> so interviews and networking calls count toward your grade
+                    automatically, without you logging each one by hand.
+                  </li>
+                </ul>
+              </div>
+              {calendarTester ? (
+                <Button nativeButton={false} render={<a href="/api/auth/calendar/start" />}>
+                  Connect Calendar
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Calendar tracking is in internal testing right now — it&apos;s not yet open to all candidates.
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-foreground">
+                Connected — 10 pts earned
+                {calendarConnection.lastSyncAt && (
+                  <span className="text-muted-foreground">
+                    {' '}
+                    · last checked {calendarConnection.lastSyncAt.toLocaleString()}
+                  </span>
+                )}
+              </p>
+              {calendarConnection.needsReconnectAt && (
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  Your calendar connection expired (this happens periodically while this feature is in
+                  testing).{' '}
+                  <a href="/api/auth/calendar/start" className="underline">
+                    Reconnect
+                  </a>
+                  .
+                </p>
+              )}
+              <div className="flex gap-2">
+                <CalendarActivitySyncButton />
+                <form action={disconnectCalendar}>
+                  <Button type="submit" variant="outline" size="sm">
+                    Disconnect
+                  </Button>
+                </form>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {calendarConnection && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity detected</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-2xl font-bold text-foreground tabular-nums">{interviewCount}</p>
+                <p className="text-xs text-muted-foreground">Interviews attended</p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-2xl font-bold text-foreground tabular-nums">{calendarNetworkingCount}</p>
+                <p className="text-xs text-muted-foreground">Networking calls</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {reconciliation?.interviewNote && (
+            <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
+              {reconciliation.interviewNote}
+            </p>
+          )}
+
+          {calendarNeedsReview.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Needs review ({calendarNeedsReview.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  These didn&apos;t match a clear pattern, so nothing was guessed — they don&apos;t count
+                  toward your grade.
+                </p>
+                <ul className="space-y-1">
+                  {calendarNeedsReview.slice(0, 10).map((e) => (
+                    <li key={e.id} className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                      <span className="truncate">{e.title || '(no title)'}</span>
+                      <CalendarActivityDismissButton eventId={e.id} />
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
+  )
+
   return (
     <div className="space-y-8">
       <div>
@@ -143,7 +505,7 @@ export default async function NetworkPage() {
           <StatTile value={contacts.length} label="Contacts in your list" />
           <StatTile value={categorizedCount} label="Sorted into a category" />
           <StatTile value={outreachLoggedCount} label="Outreach logged" />
-          <StatTile value={networkingEmailCount + networkingCallCount} label="Auto-detected touches" />
+          <StatTile value={networkingEmailCount + calendarNetworkingCount} label="Auto-detected touches" />
         </div>
         {!isGoogleConnected && (
           <p className="text-xs text-muted-foreground">
@@ -153,6 +515,22 @@ export default async function NetworkPage() {
         )}
         <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
       </div>
+
+      {(emailConnection || calendarConnection) && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Automatic tracking</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            What your connected Gmail and Calendar have picked up automatically.
+          </p>
+          <TrackingTabs
+            emailContent={emailContent}
+            calendarContent={calendarContent}
+            emailAlertCount={emailAlertCount}
+            calendarAlertCount={calendarAlertCount}
+            defaultTab={emailAlertCount >= calendarAlertCount ? 'email' : 'calendar'}
+          />
+        </div>
+      )}
 
       <OutreachPlanCard
         concerns={profile.networkingConcerns}

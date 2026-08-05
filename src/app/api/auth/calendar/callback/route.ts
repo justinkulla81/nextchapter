@@ -15,25 +15,25 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (!user?.email) {
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_logged_in', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_logged_in', request.url))
   }
   // Second layer of the hard gate — checked again here, not just at /start,
   // since this route is independently reachable.
   if (!(await isCalendarTrackingTester(user.email))) {
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=not_a_tester', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_a_tester', request.url))
   }
 
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
   if (error || !code) {
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=denied', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=denied', request.url))
   }
 
   try {
     const tokens = await exchangeCodeForTokens(code)
     if (!tokens.refresh_token) {
       return NextResponse.redirect(
-        new URL('/dashboard/calendar-activity?calendarError=no_refresh_token', request.url)
+        new URL('/dashboard/network?calendarError=no_refresh_token', request.url)
       )
     }
 
@@ -88,9 +88,9 @@ export async function GET(request: NextRequest) {
       captureServerEvent(profile.id, 'calendar_reconnected')
     }
 
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarConnected=1', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarConnected=1', request.url))
   } catch (err) {
     console.error('Calendar OAuth callback failed:', err)
-    return NextResponse.redirect(new URL('/dashboard/calendar-activity?calendarError=exchange_failed', request.url))
+    return NextResponse.redirect(new URL('/dashboard/network?calendarError=exchange_failed', request.url))
   }
 }
