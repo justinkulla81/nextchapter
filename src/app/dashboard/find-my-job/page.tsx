@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { after } from 'next/server'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -189,11 +188,11 @@ export default async function JobFitPage() {
   // Outreach Contacts (the only page that called syncGmailConnection) — a
   // candidate who applied to a job and only checked this page would never
   // see the confirmation email until they happened to visit that other
-  // page. Deferred via after() rather than awaited inline for the same
-  // reason as Outreach Contacts: a real sync is many sequential Gmail API
-  // calls and must never block this page's render.
+  // page. Awaited inline (see sync-gmail.ts's batched-existence-check
+  // comment) so a real application confirmation shows up on the very next
+  // refresh here too.
   if (emailConnection) {
-    after(() => syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error)))
+    await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
   }
   const jobEmailActivities = emailConnection
     ? await prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } })

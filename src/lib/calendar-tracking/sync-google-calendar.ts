@@ -91,11 +91,6 @@ async function processEvent(connection: CalendarConnection, event: GoogleCalenda
   const attendeeCount = event.attendees?.length ?? 0
   if (attendeeCount < 2) return false // needs at least one other invitee besides the candidate
 
-  const existing = await prisma.trackedCalendarEvent.findUnique({
-    where: { connectionId_externalEventId: { connectionId: connection.id, externalEventId: event.id } },
-  })
-  if (existing) return false
-
   const title = event.summary ?? ''
   // The encoded-offset hour (not a Date().getHours() call, which would use
   // the server's own timezone) — Google returns dateTime with the
@@ -162,8 +157,17 @@ export async function syncGoogleCalendarConnection(connectionId: string): Promis
 
   const events = await listPastEvents(accessToken, timeMin, timeMax)
 
+  // Same batched-existence-check pattern as sync-gmail.ts — one query
+  // instead of one findUnique per event.
+  const existing = await prisma.trackedCalendarEvent.findMany({
+    where: { connectionId: connection.id, externalEventId: { in: events.map((e) => e.id) } },
+    select: { externalEventId: true },
+  })
+  const existingIds = new Set(existing.map((e) => e.externalEventId))
+  const newEvents = events.filter((e) => !existingIds.has(e.id))
+
   let synced = 0
-  for (const event of events) {
+  for (const event of newEvents) {
     if (await processEvent(connection, event)) synced++
   }
 

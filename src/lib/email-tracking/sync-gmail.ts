@@ -94,11 +94,6 @@ async function processMessage(
   messageId: string,
   direction: EmailDirection
 ): Promise<boolean> {
-  const existing = await prisma.trackedEmailActivity.findUnique({
-    where: { connectionId_externalMessageId: { connectionId: connection.id, externalMessageId: messageId } },
-  })
-  if (existing) return false
-
   const message = await getMessageMetadata(accessToken, messageId)
   if (!message) return false
 
@@ -181,11 +176,33 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
     listMessageIds(accessToken, 'SENT'),
   ])
 
+  // A single batched existence check replaces up to 100 sequential
+  // findUnique round trips — most syncs (this runs on every page visit)
+  // see zero or a handful of genuinely new messages out of the ~100 most
+  // recent IDs fetched per label, so this collapses the common case from
+  // ~100 DB round trips to 1, which is what made a real send take multiple
+  // refreshes to show up (the sync was slow enough that it got deferred
+  // off the request path, so the first refresh after sending still saw
+  // last-sync's data).
+  const allIds = [...inboxIds, ...sentIds]
+  const existing = await prisma.trackedEmailActivity.findMany({
+    where: { connectionId: connection.id, externalMessageId: { in: allIds } },
+    select: { externalMessageId: true },
+  })
+  const existingIds = new Set(existing.map((e) => e.externalMessageId))
+  const newInboxIds = inboxIds.filter((id) => !existingIds.has(id))
+  const newSentIds = sentIds.filter((id) => !existingIds.has(id))
+
+  // Only genuinely new messages ever reach the Gmail API now. Kept
+  // sequential (not Promise.all) on purpose: autoCompleteEngagementAction
+  // does a read-modify-write on the sprint's committedActions JSON blob,
+  // and running two of these concurrently for different action types can
+  // silently lose one's completion to the other's overwrite.
   let synced = 0
-  for (const id of inboxIds) {
+  for (const id of newInboxIds) {
     if (await processMessage(connection, accessToken, id, 'INBOUND')) synced++
   }
-  for (const id of sentIds) {
+  for (const id of newSentIds) {
     if (await processMessage(connection, accessToken, id, 'OUTBOUND')) synced++
   }
 
