@@ -7,7 +7,6 @@ import {
   matchRecruiterOutreach,
   matchThankYou,
   matchFollowUp,
-  matchCheckIn,
   matchIntroRequest,
   matchNetworkingOutreach,
   guessCompanyFromConfirmationSubject,
@@ -97,11 +96,10 @@ export function classifyOutboundEmail(subject: string, bodyPreview: string, toAd
   const introRequest = matchIntroRequest(subject, bodyPreview)
   if (introRequest.matched) return { activityType: 'INTRO_REQUEST', confidence: introRequest.confidence, companyName }
 
+  // Covers both "following up" and "checking in" phrasing — see
+  // matchFollowUp's comment in ats-patterns.ts for why these were merged.
   const followUp = matchFollowUp(subject, bodyPreview)
   if (followUp.matched) return { activityType: 'FOLLOW_UP', confidence: followUp.confidence, companyName }
-
-  const checkIn = matchCheckIn(subject, bodyPreview)
-  if (checkIn.matched) return { activityType: 'CHECK_IN', confidence: checkIn.confidence, companyName }
 
   // Lowest priority — a bare networking keyword shouldn't steal a message
   // that already matched one of the more specific categories above.

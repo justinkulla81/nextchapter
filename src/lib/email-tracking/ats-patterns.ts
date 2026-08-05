@@ -117,13 +117,11 @@ const THANK_YOU_HIGH_CONFIDENCE = [
   /thanks again for (the|our) (conversation|interview|chat)/i,
 ]
 
-// This whole feature never reads the message body (see the Gmail connect
-// copy: "never the message body"), so classification runs on the subject
-// line alone. A real thank-you note commonly carries the phrase in the
-// body and just a bare subject like "Thank You" — with no body to check,
-// that subject on its own is otherwise unclassifiable and falls to Needs
-// Review. Match it directly rather than lose it.
-const THANK_YOU_BARE_SUBJECT = /^thanks?( you)?[!.]{0,3}$/i
+// A real thank-you note is often just a bare subject like "Thank You" with
+// all the substance in the body — match the bare subject directly rather
+// than rely on body phrasing alone, since a short reply's body can be just
+// as terse ("Thanks again!").
+const THANK_YOU_BARE_SUBJECT = /^(re:\s*)?thanks?( you)?[!.]{0,3}$/i
 
 export function matchThankYou(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
@@ -132,30 +130,32 @@ export function matchThankYou(subject: string, bodyPreview: string): PatternMatc
   return { matched: false, confidence: 'low' }
 }
 
+// Follow-up and check-in used to be tracked as two separate categories, but
+// they're the same real-world action from the candidate's side ("I
+// re-reached out") and were shown as one merged stat — so this single
+// matcher covers both phrasings rather than splitting hairs between
+// "following up on X" and "checking in on X".
 const FOLLOW_UP_HIGH_CONFIDENCE = [
-  /following up on (my|our) (application|conversation|previous email)/i,
-  /wanted to follow up (on|regarding)/i,
+  /following[\s-]?up on (my|our) (application|conversation|previous email)/i,
+  /wanted to follow[\s-]?up (on|regarding)/i,
   /circling back (on|regarding)/i,
-]
-
-export function matchFollowUp(subject: string, bodyPreview: string): PatternMatch {
-  const text = `${subject} ${bodyPreview}`
-  if (testAny(text, FOLLOW_UP_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
-  return { matched: false, confidence: 'low' }
-}
-
-// Distinct from a follow-up on a specific prior exchange — "still
-// interested, checking in" language with no reference to a particular
-// earlier conversation.
-const CHECK_IN_HIGH_CONFIDENCE = [
+  /touch(ing)?\s*base (on|regarding|about)/i,
   /still (very )?interested in (the|this) (role|position|opportunity)/i,
   /(just )?checking in (to see|on) (if|whether)/i,
   /wanted to (check in|reconnect) (about|regarding) my application/i,
 ]
 
-export function matchCheckIn(subject: string, bodyPreview: string): PatternMatch {
+// Real follow-ups are very often just a short, literal subject with the
+// substance (if any) in the body, and are very often replies within an
+// existing thread ("Re: Interview Follow-up") — so the "Re:" prefix is
+// accepted here as part of the bare-subject shape, not required.
+const FOLLOW_UP_BARE_SUBJECT =
+  /^(re:\s*)?(follow[\s-]?up|following[\s-]?up|check(ing)?[\s-]?in|touch(ing)?\s*base|reconnecting|circling back)[!.?]{0,3}$/i
+
+export function matchFollowUp(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, CHECK_IN_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  if (testAny(text, FOLLOW_UP_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  if (FOLLOW_UP_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high' }
   return { matched: false, confidence: 'low' }
 }
 
@@ -199,10 +199,18 @@ const NETWORKING_OUTREACH_LOW_CONFIDENCE = [
   /\bnext chapter\b/i,
 ]
 
-// Same reasoning as THANK_YOU_BARE_SUBJECT above — with no body to read, a
-// bare "Coffee" or "Lunch?" subject on a real invite has nothing else to
-// match against.
+// Same reasoning as THANK_YOU_BARE_SUBJECT above — a bare "Coffee" or
+// "Lunch?" subject on a real invite is common enough to match directly.
 const NETWORKING_OUTREACH_BARE_SUBJECT = /^(coffee|lunch|coffee chat|grab (a )?(coffee|lunch))[!.?]{0,3}$/i
+
+// A resume/CV/cover letter is only a networking signal when it was
+// actually attached — the keywords alone show up in plenty of unrelated
+// mail ("still working on my resume"), so this requires both.
+const RESUME_SHARE_KEYWORDS = /\b(resume|r[ée]sum[ée]|cover letter|\bcv\b|application|applying)\b/i
+
+export function matchResumeShared(subject: string, bodyPreview: string, hasAttachment: boolean): boolean {
+  return hasAttachment && RESUME_SHARE_KEYWORDS.test(`${subject} ${bodyPreview}`)
+}
 
 export function matchNetworkingOutreach(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`

@@ -62,13 +62,6 @@ const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
   'NETWORKING_OUTREACH',
 ]
 
-const SENT_LABEL: Record<string, string> = {
-  THANK_YOU: 'Thank-you notes',
-  FOLLOW_UP: 'Follow-up notes',
-  CHECK_IN: 'Check-in notes',
-  INTRO_REQUEST: 'Intro/connection requests',
-  NETWORKING_OUTREACH: 'Networking outreach messages',
-}
 
 function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' }) {
   const label = kind === 'gmail' ? 'Gmail' : 'Calendar'
@@ -150,6 +143,21 @@ export default async function NetworkPage({
     (a) => a.direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.includes(a.activityType)
   ).length
 
+  // FOLLOW_UP and CHECK_IN are shown as one stat — see matchFollowUp's
+  // comment in ats-patterns.ts for why they were merged as a single
+  // real-world action ("re-reached out"), rather than split by phrasing.
+  const followUpCount = (emailCounts.FOLLOW_UP ?? 0) + (emailCounts.CHECK_IN ?? 0)
+  const resumesSharedCount = emailActivities.filter((a) => a.direction === 'OUTBOUND' && a.hasResumeAttachment).length
+
+  const networkingStatTiles = [
+    { label: 'Thank-you notes', count: emailCounts.THANK_YOU ?? 0 },
+    { label: 'Follow-up notes', count: followUpCount },
+    { label: 'Intro/connection requests', count: emailCounts.INTRO_REQUEST ?? 0 },
+    { label: 'Networking outreach messages', count: emailCounts.NETWORKING_OUTREACH ?? 0 },
+    { label: 'Resumes shared', count: resumesSharedCount },
+    { label: 'Coffees, lunches & meetings scheduled', count: calendarNetworkingCount },
+  ]
+
   const scriptContext = {
     candidateFirstName: profile.firstName,
     targetRoleType: profile.targetRoleType,
@@ -205,8 +213,9 @@ export default async function NetworkPage({
                   mailbox.
                 </li>
                 <li>
-                  <strong>What we look at:</strong> the sender, subject line, and date of messages in your Inbox
-                  and Sent folder — never the message body.
+                  <strong>What we look at:</strong> the sender, subject line, date, and text of messages in your
+                  Inbox and Sent folder — only to detect things like thank-you notes, follow-ups, and application
+                  activity. Nothing is ever shown to anyone else.
                 </li>
                 <li>
                   <strong>Why:</strong> so applications, interviews, rejections, offers, and networking notes
@@ -405,11 +414,11 @@ export default async function NetworkPage({
         <CardHeader>
           <CardTitle>Networking Stats</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {Object.entries(SENT_LABEL).map(([type, label]) => (
-            <div key={type} className="rounded-lg border border-border p-3">
-              <p className="text-2xl font-bold text-foreground tabular-nums">{emailCounts[type] ?? 0}</p>
-              <p className="text-xs text-muted-foreground">{label}</p>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {networkingStatTiles.map((tile) => (
+            <div key={tile.label} className="rounded-lg border border-border p-3">
+              <p className="text-2xl font-bold text-foreground tabular-nums">{tile.count}</p>
+              <p className="text-xs text-muted-foreground">{tile.label}</p>
             </div>
           ))}
         </CardContent>
@@ -481,6 +490,11 @@ export default async function NetworkPage({
               <p className="text-xs text-muted-foreground">
                 Why: this is what turns a spreadsheet into an actual, workable list below — with
                 outreach scripts ready for each person.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                What happens: contacts already on your list are skipped automatically (safe to
+                re-upload anytime), and any genuinely new ones are added uncategorized so you can
+                tag them below.
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
+import { matchResumeShared } from './ats-patterns'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -9,22 +10,59 @@ import type { EmailConnection, EmailDirection } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
-// Per-label cap instead of a date-range query — the gmail.metadata scope
-// this app requests (see gmail-oauth.ts) rejects the `q` search parameter
-// entirely ("Metadata scope does not support 'q' parameter", 403), so
-// newer_than:/after: filtering is not available. messages.list without `q`
-// returns each label newest-first, so capping maxResults already gives "the
-// most recent N per folder"; the existing per-message dedup below (skip if
-// already tracked) keeps repeat syncs cheap without needing a time window.
+// Per-label cap instead of a date-range query — kept simple even though
+// gmail.readonly (unlike the old gmail.metadata scope) does support the `q`
+// search parameter now. messages.list without `q` returns each label
+// newest-first, so capping maxResults already gives "the most recent N per
+// folder"; the existing per-message dedup below (skip if already tracked)
+// keeps repeat syncs cheap without needing a time window.
 const MAX_MESSAGES_PER_LABEL = 50
+// Body text is only used for regex keyword matching, never stored — cap it
+// well past any realistic phrase-matching need so a huge email can't blow
+// up regex evaluation time.
+const BODY_PREVIEW_MAX_CHARS = 4000
 
 interface GmailHeader {
   name: string
   value: string
 }
+interface GmailPart {
+  mimeType?: string
+  filename?: string
+  body?: { data?: string }
+  parts?: GmailPart[]
+}
 interface GmailMessage {
   id: string
-  payload?: { headers?: GmailHeader[] }
+  payload?: { headers?: GmailHeader[] } & GmailPart
+}
+
+// Gmail nests the actual text/plain part arbitrarily deep inside
+// multipart/alternative and multipart/mixed containers — walk until one is
+// found. Depth-capped defensively; real messages never nest this deep.
+function extractBodyPreview(part: GmailPart | undefined, depth = 0): string {
+  if (!part || depth > 8) return ''
+  if (part.mimeType === 'text/plain' && part.body?.data) {
+    try {
+      return Buffer.from(part.body.data, 'base64url').toString('utf-8').slice(0, BODY_PREVIEW_MAX_CHARS)
+    } catch {
+      return ''
+    }
+  }
+  for (const sub of part.parts ?? []) {
+    const found = extractBodyPreview(sub, depth + 1)
+    if (found) return found
+  }
+  return ''
+}
+
+// A part with a non-empty filename is an attachment (Gmail's convention —
+// the inline body parts never carry one). Only presence is needed here,
+// never the file's actual content.
+function hasAttachment(part: GmailPart | undefined, depth = 0): boolean {
+  if (!part || depth > 8) return false
+  if (part.filename) return true
+  return (part.parts ?? []).some((sub) => hasAttachment(sub, depth + 1))
 }
 
 function getHeader(headers: GmailHeader[] | undefined, name: string): string {
@@ -68,13 +106,19 @@ async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT'): P
   return (data.messages ?? []).map((m) => m.id)
 }
 
-async function getMessageMetadata(accessToken: string, id: string): Promise<GmailMessage | null> {
-  const url =
-    `${GMAIL_API}/messages/${id}?format=metadata` +
-    `&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Subject`
+// format=full (not metadata) so classification can read the body and check
+// for attachments — see gmail-oauth.ts for the gmail.readonly scope this
+// requires. insufficientScope distinguishes "this token predates the scope
+// upgrade" (needs a real reconnect) from an ordinary transient failure.
+async function getFullMessage(
+  accessToken: string,
+  id: string
+): Promise<{ message: GmailMessage | null; insufficientScope: boolean }> {
+  const url = `${GMAIL_API}/messages/${id}?format=full`
   const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (!response.ok) return null
-  return response.json()
+  if (response.status === 403) return { message: null, insufficientScope: true }
+  if (!response.ok) return { message: null, insufficientScope: false }
+  return { message: await response.json(), insufficientScope: false }
 }
 
 const SENT_ACTION_TYPE_BY_ACTIVITY: Partial<Record<string, string>> = {
@@ -88,21 +132,33 @@ const SENT_ACTION_TYPE_BY_ACTIVITY: Partial<Record<string, string>> = {
   NETWORKING_OUTREACH: 'OUTREACH_MESSAGE',
 }
 
+type ProcessResult = 'synced' | 'skipped' | 'insufficient_scope'
+
 async function processMessage(
   connection: EmailConnection,
   accessToken: string,
   messageId: string,
   direction: EmailDirection
-): Promise<boolean> {
-  const message = await getMessageMetadata(accessToken, messageId)
-  if (!message) return false
+): Promise<ProcessResult> {
+  const { message, insufficientScope } = await getFullMessage(accessToken, messageId)
+  if (insufficientScope) return 'insufficient_scope'
+  if (!message) return 'skipped'
 
   const subject = getHeader(message.payload?.headers, 'Subject')
   const from = getHeader(message.payload?.headers, 'From')
   const to = getHeader(message.payload?.headers, 'To')
+  const bodyPreview = extractBodyPreview(message.payload)
+  const attachmentPresent = hasAttachment(message.payload)
 
   const classification =
-    direction === 'INBOUND' ? classifyInboundEmail(subject, '', from) : classifyOutboundEmail(subject, '', to)
+    direction === 'INBOUND'
+      ? classifyInboundEmail(subject, bodyPreview, from)
+      : classifyOutboundEmail(subject, bodyPreview, to)
+
+  // Resume-sharing is tracked independently of the primary category — a
+  // "sending you my resume" email might otherwise classify as a follow-up,
+  // thank-you, or nothing at all, but should still count toward the stat.
+  const resumeShared = direction === 'OUTBOUND' && matchResumeShared(subject, bodyPreview, attachmentPresent)
 
   await prisma.trackedEmailActivity.create({
     data: {
@@ -115,6 +171,7 @@ async function processMessage(
       companyName: classification.companyName,
       subject,
       fromAddress: direction === 'INBOUND' ? from : to,
+      hasResumeAttachment: resumeShared,
     },
   })
 
@@ -138,9 +195,10 @@ async function processMessage(
     direction,
     activityType: classification.activityType,
     confidence: classification.confidence,
+    hasResumeAttachment: resumeShared,
   })
 
-  return true
+  return 'synced'
 }
 
 function sentActionLabel(activityType: string): string {
@@ -199,11 +257,27 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   // and running two of these concurrently for different action types can
   // silently lose one's completion to the other's overwrite.
   let synced = 0
+  let scopeInsufficient = false
   for (const id of newInboxIds) {
-    if (await processMessage(connection, accessToken, id, 'INBOUND')) synced++
+    if (scopeInsufficient) break
+    const result = await processMessage(connection, accessToken, id, 'INBOUND')
+    if (result === 'insufficient_scope') scopeInsufficient = true
+    else if (result === 'synced') synced++
   }
   for (const id of newSentIds) {
-    if (await processMessage(connection, accessToken, id, 'OUTBOUND')) synced++
+    if (scopeInsufficient) break
+    const result = await processMessage(connection, accessToken, id, 'OUTBOUND')
+    if (result === 'insufficient_scope') scopeInsufficient = true
+    else if (result === 'synced') synced++
+  }
+
+  // A token issued under the old gmail.metadata scope 403s on the new
+  // format=full fetch — that's a real reconnect, not a transient error, so
+  // it gets the same candidate-facing prompt as an expired token rather
+  // than silently retrying forever.
+  if (scopeInsufficient) {
+    await prisma.emailConnection.update({ where: { id: connection.id }, data: { needsReconnectAt: new Date() } })
+    return { synced }
   }
 
   await prisma.emailConnection.update({ where: { id: connection.id }, data: { lastSyncAt: new Date() } })

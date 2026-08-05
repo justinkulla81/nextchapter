@@ -8,12 +8,17 @@ import { prisma } from '@/lib/prisma'
 // those would connect the wrong app.
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
-// gmail.metadata only — headers (From/To/Subject/Date) and labels, never the
-// message body. Classification is designed to work from this alone (see
-// classify-email.ts); this scope is Restricted (confirmed in Google Cloud
-// Console), which is exactly why this connection stays testing-mode-only
-// until a CASA assessment is paid for — see the hard gate in start/route.ts.
-const SCOPE = 'https://www.googleapis.com/auth/gmail.metadata'
+// gmail.readonly — headers, labels, AND message body/attachment metadata.
+// Upgraded from gmail.metadata because subject-only classification missed
+// real thank-you/follow-up/check-in notes and can't detect resume
+// attachments at all. Both scopes are Restricted (confirmed in Google Cloud
+// Console) — this is not a bigger compliance lift than before, since
+// gmail.metadata already required the same CASA assessment prior to
+// leaving testing-mode; see the hard gate in start/route.ts. Existing
+// connections authorized under the old metadata-only scope will 403 on
+// their next full-format fetch and get flagged needsReconnectAt, same as
+// any other token failure (see sync-gmail.ts).
+const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
 
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
