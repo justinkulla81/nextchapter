@@ -68,7 +68,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardNav
         portfolioAssetCount={portfolioAssetCount}
         supportNetworkUnreadCount={supportNetworkUnreadCount}
-        needsWorkStyleSurvey={profile.assessmentResponses.length === 0}
         messagesUnreadCount={messagesUnreadCount}
         newJobMatchesCount={newJobMatchesCount}
         watchlistNotificationCount={watchlistNotificationCount}

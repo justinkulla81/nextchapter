@@ -40,7 +40,6 @@ interface NavSection {
 function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
-  needsWorkStyleSurvey: boolean,
   messagesUnreadCount: number,
   newJobMatchesCount: number,
   watchlistNotificationCount: number
@@ -55,11 +54,7 @@ function buildSections(
       links: [
         { href: '/dashboard/profile', label: 'My Profile' },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
-        {
-          href: '/dashboard/retake-assessment',
-          label: 'Behavioral Assessments',
-          badge: 'Recommended',
-        },
+        { href: '/dashboard/retake-assessment', label: 'Behavioral Assessments' },
         { href: '/dashboard/resume', label: 'My Resume' },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
         { href: '/dashboard/stats', label: 'My Stats & Reports' },
@@ -74,7 +69,7 @@ function buildSections(
       title: 'Connecting',
       links: [
         { href: '/dashboard/references', label: 'My References' },
-        { href: '/dashboard/network', label: 'Outreach Contacts' },
+        { href: '/dashboard/network', label: 'Outreach Contacts', badge: 'High Priority' },
         {
           href: '/dashboard/community',
           label: 'Support Network',
@@ -96,8 +91,8 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
-        { href: '/dashboard/learning', label: 'Learn New Skills' },
-        { href: '/dashboard/interim-work', label: 'Find Interim Work' },
+        { href: '/dashboard/learning', label: 'Learn New Skills', badge: 'High Priority' },
+        { href: '/dashboard/interim-work', label: 'Find Interim Work', badge: 'High Priority' },
         {
           href: '/dashboard/find-my-job',
           label: 'Find Full-Time Jobs',
@@ -130,7 +125,6 @@ function NavContent({
   onNavigate,
   portfolioAssetCount,
   supportNetworkUnreadCount,
-  needsWorkStyleSurvey,
   messagesUnreadCount,
   newJobMatchesCount,
   watchlistNotificationCount,
@@ -139,7 +133,6 @@ function NavContent({
   onNavigate?: () => void
   portfolioAssetCount: number
   supportNetworkUnreadCount: number
-  needsWorkStyleSurvey: boolean
   messagesUnreadCount: number
   newJobMatchesCount: number
   watchlistNotificationCount: number
@@ -148,7 +141,6 @@ function NavContent({
   const sections = buildSections(
     portfolioAssetCount,
     supportNetworkUnreadCount,
-    needsWorkStyleSurvey,
     messagesUnreadCount,
     newJobMatchesCount,
     watchlistNotificationCount
@@ -222,14 +214,12 @@ function NavContent({
 export function DashboardNav({
   portfolioAssetCount = 0,
   supportNetworkUnreadCount = 0,
-  needsWorkStyleSurvey = false,
   messagesUnreadCount = 0,
   newJobMatchesCount = 0,
   watchlistNotificationCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
-  needsWorkStyleSurvey?: boolean
   messagesUnreadCount?: number
   newJobMatchesCount?: number
   watchlistNotificationCount?: number
@@ -239,7 +229,6 @@ export function DashboardNav({
   const sections = buildSections(
     portfolioAssetCount,
     supportNetworkUnreadCount,
-    needsWorkStyleSurvey,
     messagesUnreadCount,
     newJobMatchesCount,
     watchlistNotificationCount
@@ -256,7 +245,6 @@ export function DashboardNav({
           pathname={pathname}
           portfolioAssetCount={portfolioAssetCount}
           supportNetworkUnreadCount={supportNetworkUnreadCount}
-          needsWorkStyleSurvey={needsWorkStyleSurvey}
           messagesUnreadCount={messagesUnreadCount}
           newJobMatchesCount={newJobMatchesCount}
           watchlistNotificationCount={watchlistNotificationCount}
@@ -291,7 +279,6 @@ export function DashboardNav({
               onNavigate={() => setOpen(false)}
               portfolioAssetCount={portfolioAssetCount}
               supportNetworkUnreadCount={supportNetworkUnreadCount}
-              needsWorkStyleSurvey={needsWorkStyleSurvey}
               messagesUnreadCount={messagesUnreadCount}
               newJobMatchesCount={newJobMatchesCount}
               watchlistNotificationCount={watchlistNotificationCount}
