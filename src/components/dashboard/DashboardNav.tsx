@@ -96,6 +96,7 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
+        { href: '/dashboard/learning', label: 'Learn New Skills' },
         { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         {
           href: '/dashboard/find-my-job',
@@ -109,7 +110,6 @@ function buildSections(
         },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
-        { href: '/dashboard/learning', label: 'Learn New Skills' },
       ],
     },
     {
