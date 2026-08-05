@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { after } from 'next/server'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -35,6 +36,7 @@ import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckI
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
+import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -183,6 +185,16 @@ export default async function JobFitPage() {
   const emailConnection = await prisma.emailConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },
   })
+  // This page previously only ever saw activity synced from a visit to
+  // Outreach Contacts (the only page that called syncGmailConnection) — a
+  // candidate who applied to a job and only checked this page would never
+  // see the confirmation email until they happened to visit that other
+  // page. Deferred via after() rather than awaited inline for the same
+  // reason as Outreach Contacts: a real sync is many sequential Gmail API
+  // calls and must never block this page's render.
+  if (emailConnection) {
+    after(() => syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error)))
+  }
   const jobEmailActivities = emailConnection
     ? await prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } })
     : []
