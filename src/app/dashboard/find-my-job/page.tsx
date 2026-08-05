@@ -32,7 +32,9 @@ import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagn
 import { JobBoardRecommendations } from '@/components/dashboard/JobBoardRecommendations'
 import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckIn'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
+import { EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
@@ -172,6 +174,42 @@ export default async function JobFitPage() {
     .filter((j) => j.appliedAt !== null)
     .sort((a, b) => (b.appliedAt?.getTime() ?? 0) - (a.appliedAt?.getTime() ?? 0))
 
+  // Job-application-related email activity (confirmations, recruiter
+  // outreach, interview invites, rejections, offers) — auto-detected via
+  // the same Gmail connection managed on the Outreach Contacts page.
+  // Networking-shaped sent mail stays there; this page only shows the
+  // job-outcome side of that same synced inbox.
+  const emailConnection = await prisma.emailConnection.findFirst({
+    where: { candidateId: profile.id, disconnectedAt: null },
+  })
+  const jobEmailActivities = emailConnection
+    ? await prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } })
+    : []
+  const jobEmailCounts = jobEmailActivities.reduce<Record<string, number>>((acc, a) => {
+    acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
+    return acc
+  }, {})
+  // A single application commonly triggers two confirmation emails (the
+  // ATS's own receipt plus LinkedIn's separate notification) — dedupe by
+  // company + day so it doesn't read as two applications submitted.
+  const seenApplications = new Set<string>()
+  for (const a of jobEmailActivities) {
+    if (a.activityType !== 'APPLICATION_CONFIRMATION') continue
+    const key = a.companyName ? `${a.companyName.toLowerCase()}-${a.detectedAt.toISOString().slice(0, 10)}` : a.id
+    seenApplications.add(key)
+  }
+  jobEmailCounts.APPLICATION_CONFIRMATION = seenApplications.size
+  const unacknowledgedReactions = jobEmailActivities.filter(
+    (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
+  )
+  const JOB_EMAIL_LABEL: Record<string, string> = {
+    APPLICATION_CONFIRMATION: 'Application confirmations',
+    RECRUITER_OUTREACH: 'Recruiter outreach',
+    INTERVIEW_INVITE: 'Interview invites',
+    REJECTION: 'Rejections',
+    OFFER: 'Offers',
+  }
+
   return (
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
@@ -194,6 +232,35 @@ export default async function JobFitPage() {
       </div>
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
+
+      {unacknowledgedReactions.map((activity) => (
+        <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm text-foreground">
+              {activity.activityType === 'REJECTION'
+                ? getRejectionReframe(activity.id.length)
+                : getOfferCongrats(activity.id.length)}
+            </p>
+            <EmailActivityAcknowledgeButton activityId={activity.id} />
+          </CardContent>
+        </Card>
+      ))}
+
+      {emailConnection && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Job activity detected</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
+              <div key={type} className="rounded-lg border border-border p-3">
+                <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
+                <p className="text-xs text-muted-foreground">{label}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="space-y-4">
         <div>

@@ -96,6 +96,7 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
+        { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         {
           href: '/dashboard/find-my-job',
           label: 'Find Full-Time Jobs',
@@ -108,7 +109,6 @@ function buildSections(
         },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
-        { href: '/dashboard/interim-work', label: 'Find Interim Work' },
         { href: '/dashboard/learning', label: 'Learn New Skills' },
       ],
     },

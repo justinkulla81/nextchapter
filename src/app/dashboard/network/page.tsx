@@ -7,7 +7,6 @@ import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calenda
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
-import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
@@ -25,7 +24,7 @@ import { GuideCard } from '@/components/dashboard/GuideCard'
 import { NetworkJobLeadForm } from '@/components/dashboard/NetworkJobLeadForm'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { TrackingTabs } from '@/components/dashboard/TrackingTabs'
-import { EmailActivitySyncButton, EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
+import { EmailActivitySyncButton } from '@/components/dashboard/EmailActivityControls'
 import { CalendarActivitySyncButton, CalendarActivityDismissButton } from '@/components/dashboard/CalendarActivityControls'
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
@@ -74,14 +73,6 @@ const SENT_LABEL: Record<string, string> = {
   INTRO_REQUEST: 'Intro/connection requests',
   NETWORKING_OUTREACH: 'Networking outreach messages',
 }
-const INBOUND_LABEL: Record<string, string> = {
-  APPLICATION_CONFIRMATION: 'Application confirmations',
-  RECRUITER_OUTREACH: 'Recruiter outreach',
-  INTERVIEW_INVITE: 'Interview invites',
-  REJECTION: 'Rejections',
-  OFFER: 'Offers',
-}
-
 function StatTile({ value, label }: { value: number; label: string }) {
   return (
     <div className="rounded-lg border border-border p-3">
@@ -154,24 +145,14 @@ export default async function NetworkPage({
     emailConnection || calendarConnection ? getActivityReconciliation(profile.id) : Promise.resolve(null),
   ])
 
+  // Job-application-related counts (confirmations, rejections, offers,
+  // interview invites) live on the Find Full-Time Jobs page instead — this
+  // page only tracks the networking-shaped sent-mail categories below.
   const emailCounts = emailActivities.reduce<Record<string, number>>((acc, a) => {
     acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
     return acc
   }, {})
-  // A single application commonly triggers two confirmation emails (the
-  // ATS's own receipt plus LinkedIn's separate notification) — dedupe by
-  // company + day so it doesn't read as two applications submitted.
-  const seenApplications = new Set<string>()
-  for (const a of emailActivities) {
-    if (a.activityType !== 'APPLICATION_CONFIRMATION') continue
-    const key = a.companyName ? `${a.companyName.toLowerCase()}-${a.detectedAt.toISOString().slice(0, 10)}` : a.id
-    seenApplications.add(key)
-  }
-  emailCounts.APPLICATION_CONFIRMATION = seenApplications.size
   const emailNeedsReview = emailActivities.filter((a) => a.activityType === 'NEEDS_REVIEW')
-  const unacknowledgedReactions = emailActivities.filter(
-    (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
-  )
 
   const interviewCount = calendarEvents.filter((e) => e.eventType === 'INTERVIEW').length
   const calendarNetworkingCount = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL').length
@@ -210,8 +191,14 @@ export default async function NetworkPage({
     )
   }
 
-  const emailAlertCount = emailNeedsReview.length + unacknowledgedReactions.length + (emailConnection?.needsReconnectAt ? 1 : 0)
-  const calendarAlertCount = calendarNeedsReview.length + (calendarConnection?.needsReconnectAt ? 1 : 0)
+  // Deliberately excludes needsReview counts — most unclassified inbox mail
+  // and calendar events are just everyday noise (newsletters, personal
+  // meetings), not something the candidate needs to act on. The tab badge
+  // is reserved for things that actually need attention; the full
+  // needs-review list is still shown inside each tab, just not blown up
+  // into an alarming top-level count.
+  const emailAlertCount = emailConnection?.needsReconnectAt ? 1 : 0
+  const calendarAlertCount = calendarConnection?.needsReconnectAt ? 1 : 0
 
   const emailContent = (
     <div className="space-y-4">
@@ -221,18 +208,6 @@ export default async function NetworkPage({
           Gmail connected — your activity will start showing up here.
         </p>
       )}
-      {unacknowledgedReactions.map((activity) => (
-        <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm text-foreground">
-              {activity.activityType === 'REJECTION'
-                ? getRejectionReframe(activity.id.length)
-                : getOfferCongrats(activity.id.length)}
-            </p>
-            <EmailActivityAcknowledgeButton activityId={activity.id} />
-          </CardContent>
-        </Card>
-      ))}
       <Card>
         <CardHeader>
           <CardTitle>Gmail connection</CardTitle>
@@ -299,20 +274,6 @@ export default async function NetworkPage({
 
       {emailConnection && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Job activity detected</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {Object.entries(INBOUND_LABEL).map(([type, label]) => (
-                <div key={type} className="rounded-lg border border-border p-3">
-                  <p className="text-2xl font-bold text-foreground tabular-nums">{emailCounts[type] ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Networking notes sent</CardTitle>

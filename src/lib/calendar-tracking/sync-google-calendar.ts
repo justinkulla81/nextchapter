@@ -20,6 +20,7 @@ interface GoogleCalendarEvent {
   status?: string
   summary?: string
   start?: { dateTime?: string; date?: string }
+  end?: { dateTime?: string; date?: string }
   attendees?: GoogleCalendarAttendee[]
 }
 
@@ -96,7 +97,17 @@ async function processEvent(connection: CalendarConnection, event: GoogleCalenda
   if (existing) return false
 
   const title = event.summary ?? ''
-  const classification = classifyCalendarEvent(title)
+  // The encoded-offset hour (not a Date().getHours() call, which would use
+  // the server's own timezone) — Google returns dateTime with the
+  // calendar's own local offset baked in, e.g. "2026-08-04T17:00:00-04:00",
+  // so slicing the literal hour digits gives the organizer's local time
+  // regardless of what timezone this server runs in.
+  const startHour = event.start.dateTime ? Number(event.start.dateTime.slice(11, 13)) : null
+  const durationMinutes =
+    event.start.dateTime && event.end?.dateTime
+      ? Math.round((new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000)
+      : null
+  const classification = classifyCalendarEvent(title, { durationMinutes, startHour })
 
   await prisma.trackedCalendarEvent.create({
     data: {
