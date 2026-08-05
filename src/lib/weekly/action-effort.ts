@@ -22,7 +22,6 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // Outreach
   OUTREACH_MESSAGE: { minutes: 15, points: 15 },
   OUTREACH_CALL: { minutes: 30, points: 30 },
-  OUTREACH_CLOSE_APPLICATION: { minutes: 5, points: 5 },
   NETWORKING_LIST: { minutes: 25, points: 25 },
 
   // Engage (Support Network) — Peer Support is intentionally 0, see below.
@@ -158,7 +157,6 @@ export type SearchExecutionEngineKey = 'learning' | 'effort' | 'working' | 'conn
 const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   OUTREACH_MESSAGE: 'connecting',
   OUTREACH_CALL: 'connecting',
-  OUTREACH_CLOSE_APPLICATION: 'connecting',
   NETWORKING_LIST: 'connecting',
   ENGAGE_COMMENT: 'connecting',
   ENGAGE_EVENT: 'connecting',
@@ -270,7 +268,6 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   LEARNING_MODULE: 'Learning & Working',
   LEARNING_CERTIFICATE: 'Learning & Working',
   LEARNING_NEW_TOOL: 'Learning & Working',
-  OUTREACH_CLOSE_APPLICATION: 'Learning & Working',
   NEGOTIATION_ADVICE: 'Learning & Working',
   JOB_BOARD_USAGE_CONFIRMED: 'Learning & Working',
   INTERIM_PROFILE_CREATED: 'Learning & Working',
@@ -399,7 +396,6 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   NETWORKING_LIST: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
-  OUTREACH_CLOSE_APPLICATION: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   ENGAGE_COMMENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_EVENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_POST_UPDATE: { href: '/dashboard/community', label: 'Support Network' },

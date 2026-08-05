@@ -59,13 +59,6 @@ export async function getWatchlistPostings(candidateId: string): Promise<Watchli
   return postings.filter((p) => entries.some((e) => orgNamesMatch(p.companyName, e.companyName)))
 }
 
-// Total unseen-new-posting count across the whole watchlist — the number
-// shown as the nav badge, same convention as newJobMatchesCount.
-export async function getWatchlistNotificationCount(candidateId: string): Promise<number> {
-  const rows = await getWatchlistWithCounts(candidateId)
-  return rows.reduce((sum, r) => sum + r.newPostingCount, 0)
-}
-
 export async function addCompanyToWatchlist(
   candidateId: string,
   companyName: string

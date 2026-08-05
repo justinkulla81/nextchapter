@@ -14,7 +14,6 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: 'Send a personalized outreach message', actionType: 'OUTREACH_MESSAGE' },
   { text: 'Have a coffee chat or call', actionType: 'OUTREACH_CALL' },
   { text: 'Follow up on a previous outreach', actionType: 'FOLLOW_UP_NOTE_SENT' },
-  { text: 'Log and close an unanswered application', actionType: 'OUTREACH_CLOSE_APPLICATION' },
   { text: 'Add new contacts to your networking list', actionType: 'NETWORKING_LIST' },
 
   // Engage

@@ -4,7 +4,6 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
-import { getWatchlistNotificationCount } from '@/lib/company-tracker/watchlist'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 
@@ -31,7 +30,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     supportNetworkUnreadCount,
     messagesUnreadCount,
     newJobMatchesCount,
-    watchlistNotificationCount,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profile.id } }),
@@ -43,9 +41,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     // visit, so this is a real, already-tracked "new matches" signal
     // rather than a separate read/unread marker.
     prisma.surfacedJob.count({ where: { candidateId: profile.id, reaction: null } }),
-    // Company Tracker (Prompt 77) — new postings from watched companies
-    // since the candidate last viewed the page.
-    getWatchlistNotificationCount(profile.id),
   ])
 
   // See buildPortfolioAssetChecklist — the Portfolio page computes this
@@ -70,7 +65,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         supportNetworkUnreadCount={supportNetworkUnreadCount}
         messagesUnreadCount={messagesUnreadCount}
         newJobMatchesCount={newJobMatchesCount}
-        watchlistNotificationCount={watchlistNotificationCount}
       />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>

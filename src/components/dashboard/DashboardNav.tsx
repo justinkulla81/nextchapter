@@ -41,8 +41,7 @@ function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
   messagesUnreadCount: number,
-  newJobMatchesCount: number,
-  watchlistNotificationCount: number
+  newJobMatchesCount: number
 ): NavSection[] {
   return [
     {
@@ -96,12 +95,13 @@ function buildSections(
         {
           href: '/dashboard/find-my-job',
           label: 'Find Full-Time Jobs',
-          // Includes the watchlist notification count — Company Tracker
-          // lives inside this page now, not as its own nav item.
-          badge:
-            newJobMatchesCount + watchlistNotificationCount > 0
-              ? String(newJobMatchesCount + watchlistNotificationCount)
-              : undefined,
+          // Deliberately just this one count, not summed with the
+          // watchlist notification count — the watchlist already has its
+          // own on-page indicator (and clears itself on visit), so folding
+          // it in here silently produced a number that didn't match
+          // anything visible on the page (e.g. nav shows 10, page shows 5
+          // jobs waiting to rate).
+          badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
         },
         { href: '/dashboard/interview-prep', label: 'Interview Prep' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
@@ -127,7 +127,6 @@ function NavContent({
   supportNetworkUnreadCount,
   messagesUnreadCount,
   newJobMatchesCount,
-  watchlistNotificationCount,
 }: {
   pathname: string
   onNavigate?: () => void
@@ -135,15 +134,13 @@ function NavContent({
   supportNetworkUnreadCount: number
   messagesUnreadCount: number
   newJobMatchesCount: number
-  watchlistNotificationCount: number
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(
     portfolioAssetCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
-    newJobMatchesCount,
-    watchlistNotificationCount
+    newJobMatchesCount
   )
 
   return (
@@ -216,13 +213,11 @@ export function DashboardNav({
   supportNetworkUnreadCount = 0,
   messagesUnreadCount = 0,
   newJobMatchesCount = 0,
-  watchlistNotificationCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   messagesUnreadCount?: number
   newJobMatchesCount?: number
-  watchlistNotificationCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -230,8 +225,7 @@ export function DashboardNav({
     portfolioAssetCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
-    newJobMatchesCount,
-    watchlistNotificationCount
+    newJobMatchesCount
   )
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
@@ -247,7 +241,6 @@ export function DashboardNav({
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           messagesUnreadCount={messagesUnreadCount}
           newJobMatchesCount={newJobMatchesCount}
-          watchlistNotificationCount={watchlistNotificationCount}
         />
       </aside>
 
@@ -281,7 +274,6 @@ export function DashboardNav({
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               messagesUnreadCount={messagesUnreadCount}
               newJobMatchesCount={newJobMatchesCount}
-              watchlistNotificationCount={watchlistNotificationCount}
             />
           </div>
         </div>

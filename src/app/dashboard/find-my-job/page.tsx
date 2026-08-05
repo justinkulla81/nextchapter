@@ -234,13 +234,7 @@ export default async function JobFitPage() {
         <p className="text-sm text-muted-foreground">
           Rating jobs and applying counts toward your grade&apos;s weekly effort.
         </p>
-        <p className="text-sm font-medium text-muted-foreground tabular-nums">
-          {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
-        </p>
-        <SprintActionCompletion
-          candidateId={profile.id}
-          actionTypes={['OUTREACH_CLOSE_APPLICATION', 'NEGOTIATION_ADVICE']}
-        />
+        <SprintActionCompletion candidateId={profile.id} actionTypes={['NEGOTIATION_ADVICE']} />
       </div>
 
       <Card>
@@ -248,6 +242,10 @@ export default async function JobFitPage() {
           <CardTitle>Job Stats</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{ratedCount}</p>
+            <p className="text-xs text-muted-foreground">Jobs rated (fit-checked or reacted to)</p>
+          </div>
           {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
             <div key={type} className="rounded-lg border border-border p-3">
               <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
