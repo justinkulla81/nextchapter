@@ -2,17 +2,35 @@
 
 import { useState, useTransition } from 'react'
 import { X } from 'lucide-react'
-import type { NetworkingAnxiety } from '@prisma/client'
+import type { NetworkComfortLevel, NetworkingAnxiety } from '@prisma/client'
 import { getOutreachPlan } from '@/lib/network/scripts'
 import { dismissOutreachPlan } from '@/app/dashboard/network/actions'
+import { NetworkingAnxietySelector } from '@/components/dashboard/NetworkingAnxietySelector'
+import { NetworkConnectPreferenceSelector } from '@/components/dashboard/NetworkConnectPreferenceSelector'
+
+// One condensed line per comfort-level answer — this card is responding
+// directly to that answer, so it says so instead of reading as a
+// standalone, unexplained message. Trimmed to one sentence: the "most
+// roles get filled through a connection" framing already lives in the
+// page's own <h1> subtitle, so it doesn't need repeating a third time.
+const COMFORT_RESPONSE: Record<NetworkComfortLevel, string> = {
+  VERY_COMFORTABLE: "You said you're comfortable letting your network know you're looking — good, that's a real advantage most people don't start with.",
+  SOMEWHAT_COMFORTABLE:
+    "You said you're somewhat comfortable with this. That's normal — you don't have to feel fully ready, just willing to send one message.",
+  NOT_VERY_COMFORTABLE:
+    "You said this doesn't feel very comfortable yet. Start with the one or two people who'd be easiest to reach out to, not the hardest.",
+  RATHER_NOT: "You said you'd rather not — that's honest, and this part of a search does ask something real of you.",
+}
 
 export function OutreachPlanCard({
   concerns,
   connectPreferences,
+  comfortLevel,
   dismissedAlready,
 }: {
   concerns: NetworkingAnxiety[]
   connectPreferences: string[]
+  comfortLevel: NetworkComfortLevel
   dismissedAlready: boolean
 }) {
   const [dismissed, setDismissed] = useState(dismissedAlready)
@@ -39,6 +57,7 @@ export function OutreachPlanCard({
         <X className="size-4" />
       </button>
       <h2 className="pr-6 text-sm font-medium text-foreground">Your outreach plan</h2>
+      <p className="text-sm text-foreground">{COMFORT_RESPONSE[comfortLevel]}</p>
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Best time to reach out
@@ -57,6 +76,13 @@ export function OutreachPlanCard({
           ))}
         </ol>
       </div>
+      <details className="pt-1 text-sm">
+        <summary className="cursor-pointer font-medium text-primary">Not resonating? Adjust your answers</summary>
+        <div className="mt-3 space-y-4">
+          <NetworkingAnxietySelector current={concerns} />
+          <NetworkConnectPreferenceSelector current={connectPreferences} />
+        </div>
+      </details>
     </div>
   )
 }

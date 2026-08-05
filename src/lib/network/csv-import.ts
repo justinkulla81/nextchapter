@@ -11,6 +11,15 @@ export interface ImportedContact {
   email: string | null
 }
 
+// Lower-trimmed "name|company" dedup key — used both to stop re-uploading
+// the same LinkedIn export from creating duplicate SupportNetworkContact
+// rows (via createMany's skipDuplicates against the DB's unique index) and
+// to identify genuinely-new contacts for the weekly NETWORKING_LIST Sprint
+// credit.
+export function normalizeContactKey(name: string, company: string | null): string {
+  return `${name.trim().toLowerCase()}|${(company ?? '').trim().toLowerCase()}`
+}
+
 function splitCsvLine(line: string): string[] {
   const fields: string[] = []
   let current = ''

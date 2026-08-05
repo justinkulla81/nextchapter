@@ -721,3 +721,53 @@ export async function requestNegotiationPracticeFeedback(
   captureServerEvent(profile.id, 'negotiation_practice_completed', { jobPostingId })
   return evaluation
 }
+
+export type JobLeadFormState = { error?: string; success?: boolean } | undefined
+
+// A lead a candidate heard about through their own network — distinct from
+// the private "check my fit" flow (analyzeJobFit's mirrorJobPostingToBoard,
+// which never leaves that one candidate's view). This one goes into the
+// normal admin review queue, same trust gate as any employer/recruiter
+// self-submission, since a real human tip is worth surfacing to everyone
+// once verified — just without demanding the employer-submission form's
+// full contact/salary-band rigor upfront, which would be too much friction
+// for a candidate quickly logging a tip.
+export async function submitJobLead(_prevState: JobLeadFormState, formData: FormData): Promise<JobLeadFormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const url = (formData.get('url') as string | null)?.trim()
+  if (!url) return { error: 'Please enter the job posting URL.' }
+  try {
+    new URL(url)
+  } catch {
+    return { error: 'Please enter a valid URL.' }
+  }
+
+  const title = (formData.get('title') as string | null)?.trim() || 'Untitled posting (needs review)'
+  const companyName = (formData.get('companyName') as string | null)?.trim() || 'Unknown (needs review)'
+  const note = (formData.get('note') as string | null)?.trim() || null
+
+  await prisma.exclusiveJobPosting.create({
+    data: {
+      title,
+      companyName,
+      url,
+      description: note,
+      addedBy: profile.email ?? 'candidate',
+      status: 'pending',
+      source: 'candidate_referral',
+      submittedByCandidateId: profile.id,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  })
+
+  captureServerEvent(profile.id, 'network_job_lead_submitted', { companyName })
+
+  revalidatePath('/dashboard/find-my-job')
+  return { success: true }
+}

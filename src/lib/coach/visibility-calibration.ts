@@ -5,7 +5,7 @@ import type { CommittedAction } from '@/lib/weekly/sprint'
 // Content/thought-leadership actions from the Marketing Plan page — see
 // action-effort.ts's ACTION_TYPE_LINK, all three route there.
 const CONTENT_ACTION_TYPES = new Set(['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_COMMENT', 'THOUGHT_LEADERSHIP_SHARE'])
-const NETWORKING_ACTION_TYPES = new Set(['OUTREACH_MESSAGE', 'OUTREACH_CALL', 'OUTREACH_FOLLOW_UP', 'NETWORKING_LIST'])
+const NETWORKING_ACTION_TYPES = new Set(['OUTREACH_MESSAGE', 'OUTREACH_CALL', 'FOLLOW_UP_NOTE_SENT', 'NETWORKING_LIST'])
 
 const RECENT_SPRINT_WINDOW = 4
 // Matches COMFORT_LEVEL_CHOICES in content-venues.ts — 60 is "It's okay",

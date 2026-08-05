@@ -22,9 +22,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // Outreach
   OUTREACH_MESSAGE: { minutes: 15, points: 15 },
   OUTREACH_CALL: { minutes: 30, points: 30 },
-  OUTREACH_FOLLOW_UP: { minutes: 10, points: 10 },
   OUTREACH_CLOSE_APPLICATION: { minutes: 5, points: 5 },
-  HELP_SCRIPT: { minutes: 15, points: 15 },
   NETWORKING_LIST: { minutes: 25, points: 25 },
 
   // Engage (Support Network) — Peer Support is intentionally 0, see below.
@@ -160,9 +158,7 @@ export type SearchExecutionEngineKey = 'learning' | 'effort' | 'working' | 'conn
 const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   OUTREACH_MESSAGE: 'connecting',
   OUTREACH_CALL: 'connecting',
-  OUTREACH_FOLLOW_UP: 'connecting',
   OUTREACH_CLOSE_APPLICATION: 'connecting',
-  HELP_SCRIPT: 'connecting',
   NETWORKING_LIST: 'connecting',
   ENGAGE_COMMENT: 'connecting',
   ENGAGE_EVENT: 'connecting',
@@ -252,11 +248,9 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   ANSWER_OPTIONAL_QUESTIONS: 'Building',
   COMFORT_CHECK_CONFIRM: 'Building',
 
-  HELP_SCRIPT: 'Connecting',
   NETWORKING_LIST: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
   OUTREACH_CALL: 'Connecting',
-  OUTREACH_FOLLOW_UP: 'Connecting',
   NETWORK_COMFORT_CONFIRMED: 'Connecting',
   ENGAGE_COMMENT: 'Connecting',
   ENGAGE_EVENT: 'Connecting',
@@ -299,7 +293,11 @@ export function navCategoryForActionType(actionType: string | undefined): NavCat
 const RECURRING_ACTION_TYPES = new Set<string>([
   'OUTREACH_MESSAGE',
   'OUTREACH_CALL',
-  'OUTREACH_FOLLOW_UP',
+  // Accrues from a CSV-import event (new contacts detected), same
+  // "recurring, no single finish line" shape as the Gmail/Calendar-detected
+  // types below — not a candidate-chosen weekly rep count, see
+  // RECURRING_ACTION_TARGET_COUNT's comment.
+  'NETWORKING_LIST',
   'ENGAGE_COMMENT',
   'ENGAGE_EVENT',
   'ENGAGE_POST_UPDATE',
@@ -336,7 +334,6 @@ export function isRecurringActionType(actionType: string | undefined): boolean {
 const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   OUTREACH_MESSAGE: 2,
   OUTREACH_CALL: 1,
-  OUTREACH_FOLLOW_UP: 2,
   ENGAGE_COMMENT: 3,
   ENGAGE_EVENT: 1,
   ENGAGE_POST_UPDATE: 1,
@@ -372,15 +369,36 @@ export function isVerifiedActionType(actionType: string | undefined): boolean {
   return !!actionType && VERIFIED_ACTION_TYPES.has(actionType)
 }
 
+// Action types with a real automatic detector (Gmail sync, Calendar sync,
+// or CSV import) — distinct from VERIFIED_ACTION_TYPES above, which feeds
+// reconcileVerifiedActions's DB-column override for an unrelated set of
+// onboarding confirms. This Set exists so SprintActionCompletion can render
+// a plain status readout instead of a self-report "Mark done" button for
+// anything the app can already verify — no self-report, no partial-trust
+// fallback, for any candidate, per the product rule that a self-report
+// click is not evidence.
+export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
+  'OUTREACH_MESSAGE',
+  'OUTREACH_CALL',
+  'NETWORKING_LIST',
+  'FOLLOW_UP_NOTE_SENT',
+  'THANK_YOU_NOTE_SENT',
+  'CHECK_IN_NOTE_SENT',
+  'INTRO_CONNECTION_REQUEST_SENT',
+  'INTERVIEW_ATTENDED',
+])
+
+export function isAutoDetectedActionType(actionType: string | undefined): boolean {
+  return !!actionType && AUTO_DETECTED_ACTION_TYPES.has(actionType)
+}
+
 // Where each action type's real work actually happens — used to make
 // committed Sprint items click through to the page where you do the work,
 // instead of just toggling a checkbox in place.
 export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: string }>> = {
-  HELP_SCRIPT: { href: '/dashboard/network', label: 'My Network' },
   NETWORKING_LIST: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
-  OUTREACH_FOLLOW_UP: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CLOSE_APPLICATION: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   ENGAGE_COMMENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_EVENT: { href: '/dashboard/community', label: 'Support Network' },
@@ -436,7 +454,6 @@ const GROWTH_ACTION_TYPES = new Set([
   'OUTREACH_MESSAGE',
   'OUTREACH_CALL',
   'NETWORKING_LIST',
-  'HELP_SCRIPT',
   'LEARNING_MODULE',
   'LEARNING_CERTIFICATE',
   'LEARNING_NEW_TOOL',

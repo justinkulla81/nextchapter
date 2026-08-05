@@ -20,7 +20,6 @@ function normalizeItem(item: RawActionPlanItem): ActionPlanItem {
 // mainly moves — a hint, not a computed point value (that granularity isn't
 // tracked per-item yet).
 const ACTION_TYPE_ENGINE_HINT: Record<string, string> = {
-  HELP_SCRIPT: 'Connecting Engine',
   NETWORKING_LIST: 'Connecting Engine',
   LINKEDIN_SETUP: 'Working Engine',
   LINKEDIN_POST_IDEA: 'Working Engine',

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { submitNetworkJobLead } from '@/app/dashboard/network/actions'
+import { submitJobLead } from '@/app/dashboard/find-my-job/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -9,11 +9,11 @@ import { cn } from '@/lib/utils'
 
 // A contact tells you about an opening — this gets it in front of an admin
 // for the shared Job Board, unlike the private "See how you fit a job"
-// check on Find My Job (which never leaves your own view). Kept deliberately
-// light — just the URL is required — since demanding a full contact/salary
-// form here would be too much friction for quickly logging a tip.
-export function NetworkJobLeadForm() {
-  const [state, formAction, pending] = useActionState(submitNetworkJobLead, undefined)
+// check above (which never leaves your own view). Kept deliberately light —
+// just the URL is required — since demanding a full contact/salary form
+// here would be too much friction for quickly logging a tip.
+export function JobLeadForm() {
+  const [state, formAction, pending] = useActionState(submitJobLead, undefined)
 
   return (
     <form

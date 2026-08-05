@@ -40,8 +40,8 @@ import {
 } from '@/lib/constants/onboarding'
 
 export const actionPlanItemTypes = [
-  'HELP_SCRIPT',
   'NETWORKING_LIST',
+  'OUTREACH_MESSAGE',
   'LINKEDIN_SETUP',
   'LINKEDIN_POST_IDEA',
   'INTERVIEW_PREP',
@@ -141,7 +141,7 @@ Write:
    - HARD REQUIREMENT: if "LinkedIn status confirmed" below says "no", one of the 7 days MUST include confirming whether they have a LinkedIn URL or don't have one yet, tagged actionType "LINKEDIN_SETUP". If "LinkedIn status confirmed" says "yes" but "LinkedIn URL on file" says "no", one of the 7 days MUST include actually creating a LinkedIn profile, tagged actionType "LINKEDIN_SETUP", explaining briefly why having one is critical to a modern job search (visibility to recruiters, network effects). If both say "yes", one of the 7 days MUST instead include concrete active-use steps — completing the profile fully, posting, being active daily — also tagged "LINKEDIN_SETUP".
    - HARD REQUIREMENT: one of the 7 days MUST include 3-7 separate items, each a distinct LinkedIn post-topic idea genuinely grounded in the candidate's real work history/achievements/function below (not generic "share an article" filler) — each such idea as its own item tagged actionType "LINKEDIN_POST_IDEA".
    - HARD REQUIREMENT: if "Networking list (25 people) submitted" below says "no", one of the 7 days MUST reference building and submitting that list of 25 people they know who could help their search, tagged actionType "NETWORKING_LIST". If it says "yes", do NOT include this item at all — it's already done.
-   - HARD REQUIREMENT: if "Asked someone for help" below says "no", one of the 7 days MUST include reaching out to ask someone for help, tagged actionType "HELP_SCRIPT" — do NOT write the actual outreach message yourself, the platform already supplies a ready-to-use script; just reference that they should use it. If it says "yes", do NOT include this item at all — it's already done.
+   - HARD REQUIREMENT: if "Asked someone for help" below says "no", one of the 7 days MUST include reaching out to ask someone for help, tagged actionType "OUTREACH_MESSAGE" — do NOT write the actual outreach message yourself, the platform already supplies a ready-to-use script; just reference that they should use it. If it says "yes", do NOT include this item at all — it's already done.
    - If any job posting has landed an interview (see "Interview landed" below), mention it and point them to this platform's own generated interview prep for that job, tagged actionType "INTERVIEW_PREP", rather than re-deriving interview advice yourself.
    - If any job posting has an offer (see "Offer received" below), mention it and point them to this platform's own generated negotiation advice for that job, tagged actionType "NEGOTIATION_ADVICE", rather than re-deriving negotiation advice yourself.
    - HARD REQUIREMENT: if "Profile confirmed" below says "no", one of the 7 days MUST include confirming their name/contact/address details (auto-filled from their resume, may need correction), tagged actionType "PROFILE_CONFIRM". If "yes", do NOT include this item.

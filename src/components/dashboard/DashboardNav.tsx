@@ -57,8 +57,8 @@ function buildSections(
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
         {
           href: '/dashboard/retake-assessment',
-          label: 'How I Work Best',
-          badge: needsWorkStyleSurvey ? 'Recommended' : undefined,
+          label: 'Behavioral Assessments',
+          badge: 'Recommended',
         },
         { href: '/dashboard/resume', label: 'My Resume' },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },

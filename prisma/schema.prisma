@@ -2109,9 +2109,18 @@ model SupportNetworkContact {
   warmth    ContactWarmth    @default(WARM)
   source    ContactSource    @default(MANUAL)
   createdAt DateTime         @default(now())
+  // Lower-trimmed "name|company" dedup key, computed at write time by
+  // normalizeContactKey() in src/lib/network/csv-import.ts. Stops
+  // re-uploading the same LinkedIn export from creating duplicate rows
+  // (via createMany's skipDuplicates against the unique index below) and
+  // identifies genuinely-new contacts for the weekly NETWORKING_LIST Sprint
+  // credit. Nullable so pre-migration rows are unaffected — Postgres treats
+  // each NULL as distinct in a unique index, so legacy rows never collide.
+  normalizedKey String?
 
   outreachLogs OutreachLog[]
 
+  @@unique([candidateId, normalizedKey])
   @@index([candidateId])
 }
 

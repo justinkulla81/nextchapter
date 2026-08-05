@@ -16,6 +16,7 @@ import { JobReactionSummary } from '@/components/dashboard/JobReactionSummary'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
+import { JobLeadForm } from '@/components/dashboard/JobLeadForm'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -213,16 +214,16 @@ export default async function JobFitPage() {
   return (
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
-      <div>
+      <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
-        <p className="mt-1 text-muted-foreground">
+        <p className="text-muted-foreground">
           Discover real openings — from our job board and our automated search partners —
           and track every application through offer.
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Rating jobs and applying counts toward your grade&apos;s weekly effort.
         </p>
-        <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">
+        <p className="text-sm font-medium text-muted-foreground tabular-nums">
           {ratedCount} job{ratedCount === 1 ? '' : 's'} rated so far
         </p>
         <SprintActionCompletion
@@ -232,6 +233,17 @@ export default async function JobFitPage() {
       </div>
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
+
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <div>
+          <h2 className="text-lg font-semibold">Heard about an opening — from anywhere, not just job boards?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Send us the link and we&apos;ll add it to the shared Job Board once we&apos;ve confirmed
+            it&apos;s real — other candidates get the benefit of your lead too.
+          </p>
+        </div>
+        <JobLeadForm />
+      </div>
 
       {unacknowledgedReactions.map((activity) => (
         <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
