@@ -58,6 +58,19 @@ export default async function EmailActivityPage({
     acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
     return acc
   }, {})
+  // A single application commonly triggers two confirmation emails — the
+  // ATS's own receipt plus LinkedIn's separate "your application was sent"
+  // notification when Easy Apply was used — which would otherwise read as
+  // two applications submitted instead of one. Dedupe by company + day
+  // (rows without a resolved company name can't be deduped safely, so they
+  // each still count individually).
+  const seenApplications = new Set<string>()
+  for (const a of activities) {
+    if (a.activityType !== 'APPLICATION_CONFIRMATION') continue
+    const key = a.companyName ? `${a.companyName.toLowerCase()}-${a.detectedAt.toISOString().slice(0, 10)}` : a.id
+    seenApplications.add(key)
+  }
+  counts.APPLICATION_CONFIRMATION = seenApplications.size
   const needsReview = activities.filter((a) => a.activityType === 'NEEDS_REVIEW')
   const reconciliation = connection ? await getActivityReconciliation(profile.id) : null
   const unacknowledgedReactions = activities.filter(

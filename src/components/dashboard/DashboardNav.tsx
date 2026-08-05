@@ -75,6 +75,8 @@ function buildSections(
       links: [
         { href: '/dashboard/references', label: 'My References' },
         { href: '/dashboard/network', label: 'Outreach Contacts' },
+        { href: '/dashboard/email-activity', label: 'Email Activity' },
+        { href: '/dashboard/calendar-activity', label: 'Calendar Activity' },
         {
           href: '/dashboard/community',
           label: 'Support Network',

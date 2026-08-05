@@ -9,6 +9,7 @@ import {
   matchFollowUp,
   matchCheckIn,
   matchIntroRequest,
+  guessCompanyFromConfirmationSubject,
 } from './ats-patterns'
 
 export interface ClassificationResult {
@@ -34,11 +35,19 @@ export interface ClassificationResult {
 const NON_COMPANY_DOMAINS = new Set([
   'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',
   'greenhouse.io', 'lever.co', 'myworkday.com', 'ashbyhq.com', 'smartrecruiters.com',
-  'linkedin.com', 'indeed.com',
+  'linkedin.com', 'indeed.com', 'workablemail.com',
 ])
 
+// Gmail's From header is almost always "Display Name <email@domain>", not a
+// bare address — extract the address out of the angle brackets first, or
+// the trailing `>` makes the domain regex below never match anything.
+function extractEmailAddress(fromHeader: string): string {
+  const angleMatch = fromHeader.match(/<([^>]+)>/)
+  return angleMatch ? angleMatch[1] : fromHeader.trim()
+}
+
 function guessCompanyFromDomain(fromAddress: string): string | null {
-  const match = fromAddress.match(/@([a-z0-9.-]+)$/i)
+  const match = extractEmailAddress(fromAddress).match(/@([a-z0-9.-]+)$/i)
   if (!match) return null
   const domain = match[1].toLowerCase()
   const root = domain.split('.').slice(-2).join('.')
@@ -64,7 +73,11 @@ export function classifyInboundEmail(subject: string, bodyPreview: string, fromA
 
   const confirmation = matchApplicationConfirmation(subject, bodyPreview)
   if (confirmation.matched) {
-    return { activityType: 'APPLICATION_CONFIRMATION', confidence: confirmation.confidence, companyName }
+    return {
+      activityType: 'APPLICATION_CONFIRMATION',
+      confidence: confirmation.confidence,
+      companyName: companyName ?? guessCompanyFromConfirmationSubject(subject),
+    }
   }
 
   const outreach = matchRecruiterOutreach(subject, bodyPreview, fromAddress)

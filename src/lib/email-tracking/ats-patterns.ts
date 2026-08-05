@@ -80,6 +80,18 @@ export function matchApplicationConfirmation(subject: string, bodyPreview: strin
   return { matched: false, confidence: 'low' }
 }
 
+// Confirmation subjects almost always end in the company name ("Thanks for
+// applying to ARCHIMED", "your application was sent to ARCHIMED") — worth
+// extracting specifically here since the sender domain never has it: these
+// come from LinkedIn or a generic ATS mail relay (workablemail.com,
+// greenhouse.io, ...), never the hiring company's own domain.
+const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,5})\s*$/
+
+export function guessCompanyFromConfirmationSubject(subject: string): string | null {
+  const match = subject.match(CONFIRMATION_COMPANY_SUFFIX)
+  return match ? match[1].trim() : null
+}
+
 const RECRUITER_OUTREACH_HIGH_CONFIDENCE = [
   /i('m| am) a recruiter (at|with)/i,
   /came across your (profile|resume|background)/i,
