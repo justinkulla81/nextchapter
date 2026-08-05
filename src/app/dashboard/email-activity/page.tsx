@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
 import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
+import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EmailActivitySyncButton, EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
@@ -38,6 +39,13 @@ export default async function EmailActivityPage({
   const connection = await prisma.emailConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },
   })
+
+  // Auto-syncs on every visit instead of requiring the manual button below —
+  // syncGmailConnection self-throttles to once per 5 minutes, so repeat
+  // visits are cheap. The button stays as a way to force a check sooner.
+  if (connection) {
+    await syncGmailConnection(connection.id).catch((error) => console.error('Email activity auto-sync failed:', error))
+  }
 
   const activities = connection
     ? await prisma.trackedEmailActivity.findMany({

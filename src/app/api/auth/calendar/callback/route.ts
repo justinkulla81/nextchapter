@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
+import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     const existing = await prisma.calendarConnection.findUnique({ where: { candidateId: profile.id } })
     const isFirstEverConnection = !existing
 
-    await prisma.calendarConnection.upsert({
+    const connection = await prisma.calendarConnection.upsert({
       where: { candidateId: profile.id },
       create: {
         candidateId: profile.id,
@@ -60,6 +61,13 @@ export async function GET(request: NextRequest) {
         needsReconnectAt: null,
       },
     })
+
+    // Run the first sync immediately rather than waiting for the candidate
+    // to separately discover and click "Sync now" on the Calendar Activity
+    // page — best-effort, since the manual button is still a fallback.
+    await syncGoogleCalendarConnection(connection.id).catch((error) =>
+      console.error('Initial Calendar sync failed:', error)
+    )
 
     // One-time connection bonus — awarded once ever per candidate, not on
     // every reconnect.

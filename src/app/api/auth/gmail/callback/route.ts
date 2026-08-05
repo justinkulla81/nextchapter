@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     const existing = await prisma.emailConnection.findUnique({ where: { candidateId: profile.id } })
     const isFirstEverConnection = !existing
 
-    await prisma.emailConnection.upsert({
+    const connection = await prisma.emailConnection.upsert({
       where: { candidateId: profile.id },
       create: {
         candidateId: profile.id,
@@ -58,6 +59,11 @@ export async function GET(request: NextRequest) {
         needsReconnectAt: null,
       },
     })
+
+    // Run the first sync immediately rather than waiting for the candidate
+    // to separately discover and click "Sync now" on the Email Activity
+    // page — best-effort, since the manual button is still a fallback.
+    await syncGmailConnection(connection.id).catch((error) => console.error('Initial Gmail sync failed:', error))
 
     // One-time connection bonus — awarded once ever per candidate, not on
     // every reconnect.

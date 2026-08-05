@@ -3,6 +3,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
 import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
+import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CalendarActivitySyncButton, CalendarActivityDismissButton } from '@/components/dashboard/CalendarActivityControls'
@@ -23,6 +24,15 @@ export default async function CalendarActivityPage({
   const connection = await prisma.calendarConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },
   })
+
+  // Auto-syncs on every visit instead of requiring the manual button below —
+  // syncGoogleCalendarConnection self-throttles to once per 5 minutes, so
+  // repeat visits are cheap. The button stays as a way to force a check sooner.
+  if (connection) {
+    await syncGoogleCalendarConnection(connection.id).catch((error) =>
+      console.error('Calendar activity auto-sync failed:', error)
+    )
+  }
 
   const events = connection
     ? await prisma.trackedCalendarEvent.findMany({

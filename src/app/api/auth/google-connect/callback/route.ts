@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, getCombinedRedirectUri, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
+import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -44,7 +46,7 @@ export async function GET(request: NextRequest) {
       prisma.calendarConnection.findUnique({ where: { candidateId: profile.id } }),
     ])
 
-    await Promise.all([
+    const [emailConnection, calendarConnection] = await Promise.all([
       prisma.emailConnection.upsert({
         where: { candidateId: profile.id },
         create: { candidateId: profile.id, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt },
@@ -55,6 +57,18 @@ export async function GET(request: NextRequest) {
         create: { candidateId: profile.id, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt },
         update: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, disconnectedAt: null, needsReconnectAt: null },
       }),
+    ])
+
+    // Run the first sync immediately rather than waiting for the candidate
+    // to separately discover and click "Sync now" — otherwise a fresh
+    // connection looks like it did nothing until that extra step happens.
+    // Best-effort: a sync failure here shouldn't block the connection itself
+    // from completing, since the manual Sync now button is still a fallback.
+    await Promise.all([
+      syncGmailConnection(emailConnection.id).catch((error) => console.error('Initial Gmail sync failed:', error)),
+      syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
+        console.error('Initial Calendar sync failed:', error)
+      ),
     ])
 
     const sprint = await getCurrentWeekSprint(profile.id)
