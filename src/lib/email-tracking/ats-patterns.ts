@@ -117,9 +117,18 @@ const THANK_YOU_HIGH_CONFIDENCE = [
   /thanks again for (the|our) (conversation|interview|chat)/i,
 ]
 
+// This whole feature never reads the message body (see the Gmail connect
+// copy: "never the message body"), so classification runs on the subject
+// line alone. A real thank-you note commonly carries the phrase in the
+// body and just a bare subject like "Thank You" — with no body to check,
+// that subject on its own is otherwise unclassifiable and falls to Needs
+// Review. Match it directly rather than lose it.
+const THANK_YOU_BARE_SUBJECT = /^thanks?( you)?[!.]{0,3}$/i
+
 export function matchThankYou(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
   if (testAny(text, THANK_YOU_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  if (THANK_YOU_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high' }
   return { matched: false, confidence: 'low' }
 }
 
@@ -190,9 +199,15 @@ const NETWORKING_OUTREACH_LOW_CONFIDENCE = [
   /\bnext chapter\b/i,
 ]
 
+// Same reasoning as THANK_YOU_BARE_SUBJECT above — with no body to read, a
+// bare "Coffee" or "Lunch?" subject on a real invite has nothing else to
+// match against.
+const NETWORKING_OUTREACH_BARE_SUBJECT = /^(coffee|lunch|coffee chat|grab (a )?(coffee|lunch))[!.?]{0,3}$/i
+
 export function matchNetworkingOutreach(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
   if (testAny(text, NETWORKING_OUTREACH_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
+  if (NETWORKING_OUTREACH_BARE_SUBJECT.test(subject.trim())) return { matched: true, confidence: 'high' }
   if (testAny(text, NETWORKING_OUTREACH_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
   return { matched: false, confidence: 'low' }
 }

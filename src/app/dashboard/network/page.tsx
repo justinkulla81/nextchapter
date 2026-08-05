@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { after } from 'next/server'
 import type { EmailActivityType } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -109,17 +110,22 @@ export default async function NetworkPage({
   ])
 
   // Auto-syncs on every visit instead of requiring the manual buttons below —
-  // both sync functions self-throttle to once per 5 minutes.
-  await Promise.all([
-    emailConnection
-      ? syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
-      : null,
-    calendarConnection
-      ? syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
-          console.error('Calendar auto-sync failed:', error)
-        )
-      : null,
-  ])
+  // both sync functions self-throttle to once per 5 minutes. Deferred via
+  // after() rather than awaited inline: a real sync walks up to 50 inbox +
+  // 50 sent messages one Gmail API call at a time, which used to block this
+  // page's render for many seconds whenever the throttle window had
+  // elapsed. The page renders with whatever was synced as of the last
+  // visit; freshly-synced data shows up on the next load instead.
+  if (emailConnection) {
+    after(() => syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error)))
+  }
+  if (calendarConnection) {
+    after(() =>
+      syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
+        console.error('Calendar auto-sync failed:', error)
+      )
+    )
+  }
 
   const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
