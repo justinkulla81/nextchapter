@@ -17,7 +17,7 @@ export interface AdminCandidateDetail {
   jobActivity: {
     tracked: {
       id: string
-      url: string
+      url: string | null
       appliedAt: Date | null
       interviewLandedAt: Date | null
       offerReceivedAt: Date | null

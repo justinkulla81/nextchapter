@@ -101,7 +101,7 @@ export async function retryJobFetch(jobPostingId: string) {
   const jobPosting = await prisma.jobPosting.findFirst({
     where: { id: jobPostingId, candidateId: profile.id },
   })
-  if (!jobPosting) return
+  if (!jobPosting || !jobPosting.url) return
 
   const result = await fetchJobPosting(jobPosting.url)
 
@@ -281,11 +281,13 @@ export async function requestJobThankYouNote(jobPostingId: string, formData: For
   })
   if (!jobPosting) return
 
-  let companyName = 'the company'
-  try {
-    companyName = new URL(jobPosting.url).hostname.replace(/^www\./, '')
-  } catch {
-    // keep fallback
+  let companyName = jobPosting.companyName ?? 'the company'
+  if (!jobPosting.companyName && jobPosting.url) {
+    try {
+      companyName = new URL(jobPosting.url).hostname.replace(/^www\./, '')
+    } catch {
+      // keep fallback
+    }
   }
 
   const note = await generateThankYouEmail({
@@ -349,6 +351,29 @@ export async function markOfferReceived(jobPostingId: string) {
   await generateNegotiationAdvice(jobPostingId, profile.id)
 
   captureServerEvent(profile.id, 'offer_received', { jobId: jobPostingId })
+
+  revalidatePath('/dashboard/find-my-job')
+}
+
+export async function markDeclined(jobPostingId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const jobPosting = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, candidateId: profile.id },
+  })
+  if (!jobPosting || jobPosting.declinedAt || jobPosting.offerReceivedAt) return
+
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: { declinedAt: new Date() },
+  })
+
+  captureServerEvent(profile.id, 'application_declined', { jobId: jobPostingId })
 
   revalidatePath('/dashboard/find-my-job')
 }

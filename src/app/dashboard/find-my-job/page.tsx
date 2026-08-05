@@ -23,6 +23,7 @@ import {
   markApplied,
   markInterviewLanded,
   markOfferReceived,
+  markDeclined,
   generateCoverLetterAction,
   prepForPhoneScreen,
   markInterviewComplete,
@@ -33,7 +34,7 @@ import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagn
 import { JobBoardRecommendations } from '@/components/dashboard/JobBoardRecommendations'
 import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckIn'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
@@ -46,6 +47,7 @@ import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { getMondayOfWeek } from '@/lib/weekly/sprint'
 
 export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
 
@@ -83,8 +85,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default async function JobFitPage() {
   const profile = await getDashboardData()
+  // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
+  // analyzed, so they shouldn't block adding a URL-based one.
   const activeCount = profile.jobPostings.filter(
-    (j) => j.interviewLandedAt === null && j.offerReceivedAt === null
+    (j) => j.source !== 'EMAIL_DETECTED' && j.interviewLandedAt === null && j.offerReceivedAt === null
   ).length
   const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
 
@@ -172,9 +176,26 @@ export default async function JobFitPage() {
   })
 
   const ratedCount = profile.jobPostings.length + reactedCount
-  const appliedJobPostings = profile.jobPostings
+
+  // Every posting with appliedAt set is "My Applications", regardless of
+  // whether it was pasted in manually or auto-detected from email.
+  const allApplications = profile.jobPostings
     .filter((j) => j.appliedAt !== null)
     .sort((a, b) => (b.appliedAt?.getTime() ?? 0) - (a.appliedAt?.getTime() ?? 0))
+  const weekStart = getMondayOfWeek(new Date())
+  const applicationsThisWeek = allApplications.filter((j) => j.appliedAt! >= weekStart).length
+
+  // Open board postings per company, keyed by normalized name — surfaced
+  // next to each application so a candidate sees "3 open roles at Foo in
+  // our job board" right where they're tracking that application.
+  const boardPostingCountByCompany = new Map<string, number>()
+  for (const p of boardPostings) {
+    if (!p.companyName) continue
+    const key = normalizeOrgName(p.companyName)
+    boardPostingCountByCompany.set(key, (boardPostingCountByCompany.get(key) ?? 0) + 1)
+  }
+  const boardPostingCountFor = (companyName: string | null) =>
+    companyName ? (boardPostingCountByCompany.get(normalizeOrgName(companyName)) ?? 0) : 0
 
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
@@ -194,28 +215,22 @@ export default async function JobFitPage() {
   if (emailConnection) {
     await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
   }
-  const jobEmailActivities = emailConnection
-    ? await prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } })
-    : []
+  const [jobEmailActivities, resumesSharedCount] = emailConnection
+    ? await Promise.all([
+        prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } }),
+        prisma.trackedEmailActivity.count({
+          where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true },
+        }),
+      ])
+    : [[], 0]
   const jobEmailCounts = jobEmailActivities.reduce<Record<string, number>>((acc, a) => {
     acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
     return acc
   }, {})
-  // A single application commonly triggers two confirmation emails (the
-  // ATS's own receipt plus LinkedIn's separate notification) — dedupe by
-  // company + day so it doesn't read as two applications submitted.
-  const seenApplications = new Set<string>()
-  for (const a of jobEmailActivities) {
-    if (a.activityType !== 'APPLICATION_CONFIRMATION') continue
-    const key = a.companyName ? `${a.companyName.toLowerCase()}-${a.detectedAt.toISOString().slice(0, 10)}` : a.id
-    seenApplications.add(key)
-  }
-  jobEmailCounts.APPLICATION_CONFIRMATION = seenApplications.size
   const unacknowledgedReactions = jobEmailActivities.filter(
     (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
   )
   const JOB_EMAIL_LABEL: Record<string, string> = {
-    APPLICATION_CONFIRMATION: 'Application confirmations',
     RECRUITER_OUTREACH: 'Recruiter outreach',
     INTERVIEW_INVITE: 'Interview invites',
     REJECTION: 'Rejections',
@@ -236,24 +251,6 @@ export default async function JobFitPage() {
         </p>
         <SprintActionCompletion candidateId={profile.id} actionTypes={['NEGOTIATION_ADVICE']} />
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Job Stats</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{ratedCount}</p>
-            <p className="text-xs text-muted-foreground">Jobs rated (fit-checked or reacted to)</p>
-          </div>
-          {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
-            <div key={type} className="rounded-lg border border-border p-3">
-              <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
-              <p className="text-xs text-muted-foreground">{label}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
@@ -411,32 +408,119 @@ export default async function JobFitPage() {
       </div>
 
       <div className="space-y-4 border-t border-border pt-8">
-        <div>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 className="text-lg font-semibold tracking-tight">My Applications</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            This list is entirely yours — nothing gets added here automatically. A job only shows up
-            after you paste in its link or text below.
+          <p className="text-sm text-muted-foreground tabular-nums">
+            {allApplications.length} total · {applicationsThisWeek} this week
           </p>
         </div>
-        {atCap ? (
-          <p className="text-sm text-muted-foreground">
-            You have 5 job postings tracked — remove one below to add another.
-          </p>
-        ) : (
-          <JobUrlForm />
-        )}
+        <p className="text-xs text-muted-foreground">
+          Application confirmations from your connected Gmail are added here automatically —
+          interview invites and rejections update their status the same way. Add one by hand below
+          if you applied somewhere that doesn&apos;t send a confirmation email.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
+            <div key={type} className="rounded-lg border border-border p-3">
+              <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
+            </div>
+          ))}
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{resumesSharedCount}</p>
+            <p className="text-xs text-muted-foreground">Resumes shared</p>
+          </div>
+        </div>
+
+        <details className="rounded-lg border border-border p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-foreground">
+            Add a job manually (paste a URL for fit-check + cover letter tools)
+          </summary>
+          <div className="mt-3 space-y-3">
+            {atCap ? (
+              <p className="text-sm text-muted-foreground">
+                You have 5 job postings tracked — remove one below to add another.
+              </p>
+            ) : (
+              <JobUrlForm />
+            )}
+          </div>
+        </details>
 
         <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
 
         {profile.jobPostings.length > 0 && (
           <div className="space-y-4">
-            {profile.jobPostings.map((posting) => (
+            {profile.jobPostings.map((posting) => {
+              const openRoles = boardPostingCountFor(posting.companyName)
+
+              if (posting.source === 'EMAIL_DETECTED') {
+                const status = posting.offerReceivedAt
+                  ? 'Offer received'
+                  : posting.declinedAt
+                    ? 'Declined'
+                    : posting.interviewLandedAt
+                      ? 'Interview'
+                      : 'Applied'
+                return (
+                  <Card key={posting.id}>
+                    <CardContent className="space-y-3 pt-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-medium text-foreground">
+                            {posting.companyName ?? 'Unknown company'}
+                            {openRoles > 0 && (
+                              <span className="ml-1.5 font-normal text-muted-foreground">
+                                · {openRoles} open role{openRoles === 1 ? '' : 's'} in our job board
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {status} · {posting.appliedAt?.toLocaleDateString()} · Detected from email
+                          </p>
+                        </div>
+                        <form action={deleteJobPosting.bind(null, posting.id)}>
+                          <SubmitButton variant="ghost" size="sm">
+                            Remove
+                          </SubmitButton>
+                        </form>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {!posting.declinedAt && !posting.offerReceivedAt && !posting.interviewLandedAt && (
+                          <form action={markInterviewLanded.bind(null, posting.id)}>
+                            <SubmitButton variant="outline" size="sm">
+                              I got an interview
+                            </SubmitButton>
+                          </form>
+                        )}
+                        {!posting.declinedAt && !posting.offerReceivedAt && (
+                          <form action={markDeclined.bind(null, posting.id)}>
+                            <SubmitButton variant="outline" size="sm">
+                              Declined
+                            </SubmitButton>
+                          </form>
+                        )}
+                        {!posting.offerReceivedAt && !posting.declinedAt && (
+                          <form action={markOfferReceived.bind(null, posting.id)}>
+                            <SubmitButton variant="outline" size="sm">
+                              Offer Received
+                            </SubmitButton>
+                          </form>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              }
+
+              return (
               <Card key={posting.id}>
                 <CardContent className="space-y-3 pt-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <a
-                        href={posting.url}
+                        href={posting.url ?? '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-primary underline underline-offset-4"
@@ -446,6 +530,12 @@ export default async function JobFitPage() {
                       <p className="text-sm text-muted-foreground">
                         {STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus}
                       </p>
+                      {posting.companyName && openRoles > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {openRoles} open role{openRoles === 1 ? '' : 's'} at {posting.companyName} in our job
+                          board
+                        </p>
+                      )}
                     </div>
                     <div className="flex shrink-0 gap-2">
                       {(posting.fetchStatus === 'fetch_failed' || posting.fetchStatus === 'parse_failed') && (
@@ -528,7 +618,11 @@ export default async function JobFitPage() {
                     </div>
                   )}
 
-                  {posting.fitScore !== null && (
+                  {posting.declinedAt && (
+                    <p className="text-sm font-medium text-muted-foreground">Declined</p>
+                  )}
+
+                  {posting.fitScore !== null && !posting.declinedAt && (
                     <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
                       {!posting.appliedAt && (
                         <MarkAppliedForm jobPostingId={posting.id} markApplied={markApplied} />
@@ -558,6 +652,13 @@ export default async function JobFitPage() {
                         <form action={markOfferReceived.bind(null, posting.id)}>
                           <SubmitButton variant="outline" size="sm">
                             Offer Received
+                          </SubmitButton>
+                        </form>
+                      )}
+                      {posting.appliedAt && !posting.offerReceivedAt && (
+                        <form action={markDeclined.bind(null, posting.id)}>
+                          <SubmitButton variant="outline" size="sm">
+                            Declined
                           </SubmitButton>
                         </form>
                       )}
@@ -677,57 +778,11 @@ export default async function JobFitPage() {
                   )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {appliedJobPostings.length > 0 && (
-        <div className="space-y-2 border-t border-border pt-8">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            Applied jobs ({appliedJobPostings.length})
-          </h2>
-          <div className="divide-y divide-border rounded-md border border-border">
-            {appliedJobPostings.map((posting) => {
-              let hostname = posting.url
-              try {
-                hostname = new URL(posting.url).hostname
-              } catch {
-                // Keep the raw value if the URL somehow doesn't parse.
-              }
-              const stage = posting.offerReceivedAt
-                ? 'Offer received'
-                : posting.interviewLandedAt
-                  ? 'Interview'
-                  : 'Applied'
-              return (
-                <div key={posting.id} className="px-3 py-1.5 text-xs">
-                  <div className="flex items-center justify-between gap-3">
-                    <a
-                      href={posting.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate text-primary hover:underline"
-                    >
-                      {hostname}
-                    </a>
-                    <div className="flex shrink-0 items-center gap-3 text-muted-foreground">
-                      <span>{stage}</span>
-                      <span className="tabular-nums">{posting.appliedAt?.toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  {posting.coverLetter && (
-                    <details className="mt-0.5">
-                      <summary className="cursor-pointer text-muted-foreground">Cover letter</summary>
-                      <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{posting.coverLetter}</p>
-                    </details>
-                  )}
-                </div>
               )
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

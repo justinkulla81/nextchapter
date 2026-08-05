@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared } from './ats-patterns'
+import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -149,6 +150,9 @@ async function processMessage(
   const to = getHeader(message.payload?.headers, 'To')
   const bodyPreview = extractBodyPreview(message.payload)
   const attachmentPresent = hasAttachment(message.payload)
+  const dateHeader = getHeader(message.payload?.headers, 'Date')
+  const parsedDate = dateHeader ? new Date(dateHeader) : null
+  const emailDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date()
 
   const classification =
     direction === 'INBOUND'
@@ -174,6 +178,18 @@ async function processMessage(
       hasResumeAttachment: resumeShared,
     },
   })
+
+  // Mirrors application confirmations/interview invites/rejections into the
+  // candidate's My Applications list — see sync-job-postings.ts. Only for
+  // high-confidence inbound mail, same bar as point-awarding below.
+  if (direction === 'INBOUND' && classification.confidence === 'high') {
+    await syncJobPostingFromEmail(
+      connection.candidateId,
+      classification.activityType,
+      classification.companyName,
+      emailDate
+    ).catch((error) => console.error('Failed to sync job posting from email:', error))
+  }
 
   // Points only for high-confidence Sent-folder categories — never for
   // NEEDS_REVIEW (don't guess), never for Inbox categories (those aren't a

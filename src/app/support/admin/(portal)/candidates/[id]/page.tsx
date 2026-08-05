@@ -205,7 +205,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
               <ul className="mt-1 space-y-1 text-sm">
                 {detail.jobActivity.tracked.map((j) => (
                   <li key={j.id} className="truncate text-foreground">
-                    {j.url}
+                    {j.url ?? '(email-detected, no URL)'}
                     {j.offerReceivedAt ? ' — offer received' : j.interviewLandedAt ? ' — interviewing' : j.appliedAt ? ' — applied' : ' — not yet applied'}
                   </li>
                 ))}

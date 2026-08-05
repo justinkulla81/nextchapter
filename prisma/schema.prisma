@@ -1501,14 +1501,22 @@ model Resume {
 }
 
 // Job-fit feedback. Max 5 per candidate enforced in the server action, not
-// here. User-deletable (needed to swap one out once at the cap).
+// here (MANUAL rows only — see source below). User-deletable (needed to
+// swap one out once at the cap).
+enum JobPostingSource {
+  MANUAL // candidate pasted a URL/text — the only source that gets fit-checked
+  EMAIL_DETECTED // auto-created from a Gmail APPLICATION_CONFIRMATION — no URL, no fit score
+}
+
 model JobPosting {
   id          String           @id @default(cuid())
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  url           String
-  fetchStatus   String // "pending" | "success" | "fetch_failed" | "parse_failed"
+  source JobPostingSource @default(MANUAL)
+
+  url           String? // null for EMAIL_DETECTED rows — nothing to fetch/analyze
+  fetchStatus   String // "pending" | "success" | "fetch_failed" | "parse_failed" | "no_url"
   fetchError    String?
   extractedText String?
 
@@ -1538,6 +1546,7 @@ model JobPosting {
 
   appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
   channel                ApplicationChannel? // captured at the moment of marking applied; null on rows logged before this field existed
+  declinedAt             DateTime? // rejection — set manually or auto via a detected REJECTION email for the same company
   coverLetter            String?             @db.Text
   coverLetterError       String?
   coverLetterGeneratedAt DateTime?

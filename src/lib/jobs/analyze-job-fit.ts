@@ -96,7 +96,7 @@ ${
       },
     })
 
-    if (data.title) {
+    if (data.title && jobPosting.url) {
       await mirrorJobPostingToBoard({
         candidateId,
         url: jobPosting.url,
