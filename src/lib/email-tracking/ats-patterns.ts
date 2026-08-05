@@ -68,9 +68,9 @@ export function matchInterviewInvite(subject: string, bodyPreview: string): Patt
 }
 
 const APPLICATION_CONFIRMATION_HIGH_CONFIDENCE = [
-  /thank you for (applying|your application|your interest)/i,
+  /thanks?( you)? for (applying|your application|your interest)/i,
   /(we('| ha)ve )?received your application/i,
-  /your application (has been|was) (received|submitted)/i,
+  /your application (has been|was) (received|submitted|sent)/i,
   /application (confirmation|received)/i,
 ]
 

@@ -9,7 +9,14 @@ import type { EmailConnection, EmailDirection } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
-const FIRST_SYNC_WINDOW_DAYS = 30 // first-ever sync is bounded, not full mailbox history
+// Per-label cap instead of a date-range query — the gmail.metadata scope
+// this app requests (see gmail-oauth.ts) rejects the `q` search parameter
+// entirely ("Metadata scope does not support 'q' parameter", 403), so
+// newer_than:/after: filtering is not available. messages.list without `q`
+// returns each label newest-first, so capping maxResults already gives "the
+// most recent N per folder"; the existing per-message dedup below (skip if
+// already tracked) keeps repeat syncs cheap without needing a time window.
+const MAX_MESSAGES_PER_LABEL = 50
 
 interface GmailHeader {
   name: string
@@ -50,10 +57,13 @@ async function ensureFreshAccessToken(connection: EmailConnection): Promise<stri
   }
 }
 
-async function listMessageIds(accessToken: string, query: string): Promise<string[]> {
-  const url = `${GMAIL_API}/messages?q=${encodeURIComponent(query)}&maxResults=50`
+async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT'): Promise<string[]> {
+  const url = `${GMAIL_API}/messages?labelIds=${labelId}&maxResults=${MAX_MESSAGES_PER_LABEL}`
   const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (!response.ok) return []
+  if (!response.ok) {
+    console.error(`Gmail messages.list (${labelId}) failed: ${response.status} ${await response.text()}`)
+    return []
+  }
   const data = (await response.json()) as { messages?: { id: string }[] }
   return (data.messages ?? []).map((m) => m.id)
 }
@@ -160,13 +170,9 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   const accessToken = await ensureFreshAccessToken(connection)
   if (!accessToken) return null
 
-  const sinceQuery = connection.lastSyncAt
-    ? `after:${Math.floor(connection.lastSyncAt.getTime() / 1000)}`
-    : `newer_than:${FIRST_SYNC_WINDOW_DAYS}d`
-
   const [inboxIds, sentIds] = await Promise.all([
-    listMessageIds(accessToken, `in:inbox ${sinceQuery}`),
-    listMessageIds(accessToken, `in:sent ${sinceQuery}`),
+    listMessageIds(accessToken, 'INBOX'),
+    listMessageIds(accessToken, 'SENT'),
   ])
 
   let synced = 0
