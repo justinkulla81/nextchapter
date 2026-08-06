@@ -7,6 +7,8 @@
 // the easiest (most standardized phrasing) and the one with the most value
 // attached, since it's what triggers Victoria's supportive reframe.
 
+import { extractDomain } from './email-address'
+
 export interface PatternMatch {
   matched: boolean
   confidence: 'high' | 'low'
@@ -112,17 +114,72 @@ export function guessTitleFromConfirmationSubject(subject: string): string | nul
   return null
 }
 
+// Real recruiter outreach — especially from executive-search firms — very
+// rarely says "I'm a recruiter" or comes from a careers@/recruiting@ inbox;
+// it comes from a named person at their firm's own domain, introducing
+// themselves by practice area and asking to connect. Phrasing alone misses
+// most of these, so KNOWN_RECRUITING_FIRM_DOMAINS below matches by sender
+// domain instead — much more reliable for firms that email under their own
+// name rather than a generic alias.
 const RECRUITER_OUTREACH_HIGH_CONFIDENCE = [
   /i('m| am) a recruiter (at|with)/i,
   /came across your (profile|resume|background)/i,
   /reaching out (about|regarding) (an?|the) (opportunity|role|opening)/i,
   /would you be (open|interested) (to|in) (a conversation|learning more|exploring)/i,
+  /i focus on searches for/i,
+  /(executive|retained) search/i,
+  /(starting|beginning) work on a (new )?(leadership |sustainability-focused )?role/i,
+  /reach(ed| out)? to hear the latest on how things are going/i,
+  /would love your (perspective|thoughts) as we('re| are) (starting|beginning)/i,
+  /give me a call directly at/i,
+  /new message from .* on linkedin/i,
 ]
 const RECRUITER_SENDER_DOMAIN_HINTS = [/careers@/i, /recruiting@/i, /talent@/i, /recruiter@/i]
 
+// Retained-search / executive-search and staffing firms whose recruiters
+// email candidates directly under the firm's own domain rather than a
+// generic alias — not exhaustive, just the largest and most common ones.
+// Anything outside this list still gets a shot at matching on phrasing above.
+const KNOWN_RECRUITING_FIRM_DOMAINS = new Set([
+  'spencerstuart.com',
+  'kornferry.com',
+  'heidrick.com',
+  'russellreynolds.com',
+  'egonzehnder.com',
+  'odgersberndtson.com',
+  'dhrglobal.com',
+  'zrgpartners.com',
+  'wittkieffer.com',
+  'diversifiedsearchgroup.com',
+  'n2growth.com',
+  'boyden.com',
+  'lhh.com',
+  'roberthalf.com',
+  'michaelpage.com',
+  'robertwalters.com',
+  'randstad.com',
+  'randstadusa.com',
+  'manpowergroup.com',
+  'adecco.com',
+  'kellyservices.com',
+  'insightglobal.com',
+  'teksystems.com',
+  'aerotek.com',
+  'vaco.com',
+  'addisongroup.com',
+  'motionrecruitment.com',
+  'jobot.com',
+  'truesearch.com',
+])
+
 export function matchRecruiterOutreach(subject: string, bodyPreview: string, fromAddress: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
-  if (testAny(text, RECRUITER_OUTREACH_HIGH_CONFIDENCE) || testAny(fromAddress, RECRUITER_SENDER_DOMAIN_HINTS)) {
+  const domain = extractDomain(fromAddress)
+  if (
+    testAny(text, RECRUITER_OUTREACH_HIGH_CONFIDENCE) ||
+    testAny(fromAddress, RECRUITER_SENDER_DOMAIN_HINTS) ||
+    (domain && KNOWN_RECRUITING_FIRM_DOMAINS.has(domain))
+  ) {
     return { matched: true, confidence: 'high' }
   }
   return { matched: false, confidence: 'low' }

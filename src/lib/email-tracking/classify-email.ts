@@ -11,6 +11,7 @@ import {
   matchNetworkingOutreach,
   guessCompanyFromConfirmationSubject,
 } from './ats-patterns'
+import { extractEmailAddress } from './email-address'
 
 export interface ClassificationResult {
   activityType:
@@ -38,14 +39,6 @@ const NON_COMPANY_DOMAINS = new Set([
   'greenhouse.io', 'lever.co', 'myworkday.com', 'ashbyhq.com', 'smartrecruiters.com',
   'linkedin.com', 'indeed.com', 'workablemail.com',
 ])
-
-// Gmail's From header is almost always "Display Name <email@domain>", not a
-// bare address — extract the address out of the angle brackets first, or
-// the trailing `>` makes the domain regex below never match anything.
-function extractEmailAddress(fromHeader: string): string {
-  const angleMatch = fromHeader.match(/<([^>]+)>/)
-  return angleMatch ? angleMatch[1] : fromHeader.trim()
-}
 
 function guessCompanyFromDomain(fromAddress: string): string | null {
   const match = extractEmailAddress(fromAddress).match(/@([a-z0-9.-]+)$/i)
