@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { guessTitleFromConfirmationSubject } from './ats-patterns'
 import { applyInterviewLandedRewrite, applyInterviewPatternConfirmedRewrite } from '@/lib/scoring/rewrite-actions'
 import type { EmailActivityType } from '@prisma/client'
 
@@ -15,6 +16,7 @@ export async function syncJobPostingFromEmail(
   candidateId: string,
   activityType: EmailActivityType,
   companyName: string | null,
+  subject: string,
   emailDate: Date
 ): Promise<void> {
   if (!companyName) return
@@ -45,6 +47,7 @@ export async function syncJobPostingFromEmail(
         source: 'EMAIL_DETECTED',
         fetchStatus: 'no_url',
         companyName,
+        title: guessTitleFromConfirmationSubject(subject),
         appliedAt: emailDate,
       },
     })

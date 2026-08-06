@@ -4,7 +4,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { getWatchlistWithCounts, getWatchlistPostings } from '@/lib/company-tracker/watchlist'
-import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
+import { isRecentlyListed, FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
 import { CompanyWatchlistList, WatchlistPostingsList } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
@@ -24,6 +24,7 @@ import {
   markInterviewLanded,
   markOfferReceived,
   markDeclined,
+  updateApplicationDetails,
   generateCoverLetterAction,
   prepForPhoneScreen,
   markInterviewComplete,
@@ -35,6 +36,7 @@ import { JobBoardRecommendations } from '@/components/dashboard/JobBoardRecommen
 import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckIn'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
@@ -156,9 +158,11 @@ export default async function JobFitPage() {
   // every distinct company name shown on this page once, up front, into a
   // normalizeOrgName-keyed map so each render call can look its band up
   // synchronously instead of awaiting per-card.
-  const companyNames = [...openBoardPostings.map((p) => p.companyName), ...surfacedJobs.map((j) => j.companyName)].filter(
-    (name): name is string => !!name
-  )
+  const companyNames = [
+    ...openBoardPostings.map((p) => p.companyName),
+    ...surfacedJobs.map((j) => j.companyName),
+    ...profile.jobPostings.map((j) => j.companyName),
+  ].filter((name): name is string => !!name)
   const distinctCompanyNames = [...new Set(companyNames)]
   const resolvedBands = await Promise.all(distinctCompanyNames.map((name) => resolveCompanySizeBand(name)))
   const companySizeBandByName = new Map(
@@ -266,6 +270,10 @@ export default async function JobFitPage() {
         </p>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{allApplications.length}</p>
+            <p className="text-xs text-muted-foreground">Applications sent</p>
+          </div>
           {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
             <div key={type} className="rounded-lg border border-border p-3">
               <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
@@ -308,6 +316,18 @@ export default async function JobFitPage() {
                     : posting.interviewLandedAt
                       ? 'Interview'
                       : 'Applied'
+                // Only computable once a title exists — a confirmation
+                // subject rarely names the role, so this reads null
+                // ("can't tell yet") far more often than a real posting
+                // would. Same free, no-LLM heuristic as every Discover
+                // card uses, not a new scoring method.
+                const fitBucket = posting.title
+                  ? computeSurfacedJobFitBucket(
+                      profile,
+                      { title: posting.title, location: null, description: null },
+                      companySizeBandFor(posting.companyName)
+                    )
+                  : null
                 return (
                   <Card key={posting.id}>
                     <CardContent className="space-y-3 pt-6">
@@ -321,9 +341,25 @@ export default async function JobFitPage() {
                               </span>
                             )}
                           </p>
+                          {posting.title && <p className="text-sm text-foreground">{posting.title}</p>}
+                          {posting.url && (
+                            <a
+                              href={posting.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block text-xs text-primary underline underline-offset-4"
+                            >
+                              {posting.url}
+                            </a>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             {status} · {posting.appliedAt?.toLocaleDateString()} · Detected from email
                           </p>
+                          {fitBucket && (
+                            <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                              {FIT_BUCKET_LABEL[fitBucket]}
+                            </span>
+                          )}
                         </div>
                         <form action={deleteJobPosting.bind(null, posting.id)}>
                           <SubmitButton variant="ghost" size="sm">
@@ -354,6 +390,42 @@ export default async function JobFitPage() {
                           </form>
                         )}
                       </div>
+                      <details className="rounded-md border border-border p-3 text-xs">
+                        <summary className="cursor-pointer font-medium text-foreground">
+                          {posting.title || posting.url ? 'Edit title or link' : 'Add title or link'}
+                        </summary>
+                        <form
+                          action={updateApplicationDetails.bind(null, posting.id)}
+                          className="mt-3 space-y-3"
+                        >
+                          <div className="space-y-1">
+                            <label htmlFor={`title-${posting.id}`} className="text-xs font-medium text-foreground">
+                              Job title
+                            </label>
+                            <Input
+                              id={`title-${posting.id}`}
+                              name="title"
+                              defaultValue={posting.title ?? ''}
+                              placeholder="e.g. Senior Product Manager"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label htmlFor={`url-${posting.id}`} className="text-xs font-medium text-foreground">
+                              Posting link (optional — private, only you see it)
+                            </label>
+                            <Input
+                              id={`url-${posting.id}`}
+                              name="url"
+                              type="url"
+                              defaultValue={posting.url ?? ''}
+                              placeholder="https://"
+                            />
+                          </div>
+                          <SubmitButton variant="outline" size="sm">
+                            Save
+                          </SubmitButton>
+                        </form>
+                      </details>
                     </CardContent>
                   </Card>
                 )

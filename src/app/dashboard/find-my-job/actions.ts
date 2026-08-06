@@ -378,6 +378,41 @@ export async function markDeclined(jobPostingId: string) {
   revalidatePath('/dashboard/find-my-job')
 }
 
+// Lets a candidate fill in the title/link on an application NextChapter
+// only has a company name for (mainly EMAIL_DETECTED rows — a confirmation
+// subject rarely names the role). Purely a private annotation on their own
+// record: it never triggers fetchJobPosting/analyzeJobFit, so adding a
+// link here doesn't start the LLM fit-check pipeline or share anything
+// with anyone else.
+export async function updateApplicationDetails(jobPostingId: string, formData: FormData) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const jobPosting = await prisma.jobPosting.findFirst({
+    where: { id: jobPostingId, candidateId: profile.id },
+  })
+  if (!jobPosting) return
+
+  const title = (formData.get('title') as string | null)?.trim() || null
+  const rawUrl = (formData.get('url') as string | null)?.trim() || null
+  let url = jobPosting.url
+  if (rawUrl) {
+    try {
+      url = new URL(rawUrl).toString()
+    } catch {
+      // Leave the existing url alone rather than fail the whole save over
+      // an unparseable link — title-only edits are the common case.
+    }
+  }
+
+  await prisma.jobPosting.update({ where: { id: jobPostingId }, data: { title, url } })
+  revalidatePath('/dashboard/find-my-job')
+}
+
 export async function deleteJobPosting(jobPostingId: string) {
   const supabase = await createClient()
   const {

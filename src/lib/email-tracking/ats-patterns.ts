@@ -92,6 +92,26 @@ export function guessCompanyFromConfirmationSubject(subject: string): string | n
   return match ? match[1].trim() : null
 }
 
+// Best-effort only — most confirmation subjects never name the role
+// ("Thanks for applying to Foo"), so this only fires on the shapes that
+// do ("...for the Senior PM role at Foo", "application for Product
+// Manager has been received"). Returning null (common) just means no
+// title shows up on that application; nothing downstream treats this as
+// authoritative the way a real job-posting fetch would.
+const CONFIRMATION_TITLE_PATTERNS = [
+  /for the ([A-Z][\w\s/&-]{2,60}?) (?:role|position) at/i,
+  /application for (?:the )?([A-Z][\w\s/&-]{2,60}?) (?:role|position)?\s*(?:has been|was) (?:received|submitted|sent)/i,
+  /applying (?:for|to) the ([A-Z][\w\s/&-]{2,60}?) (?:role|position)/i,
+]
+
+export function guessTitleFromConfirmationSubject(subject: string): string | null {
+  for (const pattern of CONFIRMATION_TITLE_PATTERNS) {
+    const match = subject.match(pattern)
+    if (match) return match[1].trim()
+  }
+  return null
+}
+
 const RECRUITER_OUTREACH_HIGH_CONFIDENCE = [
   /i('m| am) a recruiter (at|with)/i,
   /came across your (profile|resume|background)/i,
