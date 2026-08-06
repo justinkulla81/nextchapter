@@ -58,12 +58,13 @@ function extractBodyPreview(part: GmailPart | undefined, depth = 0): string {
 }
 
 // A part with a non-empty filename is an attachment (Gmail's convention —
-// the inline body parts never carry one). Only presence is needed here,
-// never the file's actual content.
-function hasAttachment(part: GmailPart | undefined, depth = 0): boolean {
-  if (!part || depth > 8) return false
-  if (part.filename) return true
-  return (part.parts ?? []).some((sub) => hasAttachment(sub, depth + 1))
+// the inline body parts never carry one). Collects filenames (not content)
+// so callers can pattern-match on how the file itself is named, e.g.
+// "Jane_Doe_Resume.pdf", not just whether something was attached.
+function getAttachmentFilenames(part: GmailPart | undefined, depth = 0): string[] {
+  if (!part || depth > 8) return []
+  const own = part.filename ? [part.filename] : []
+  return own.concat((part.parts ?? []).flatMap((sub) => getAttachmentFilenames(sub, depth + 1)))
 }
 
 function getHeader(headers: GmailHeader[] | undefined, name: string): string {
@@ -149,7 +150,7 @@ async function processMessage(
   const from = getHeader(message.payload?.headers, 'From')
   const to = getHeader(message.payload?.headers, 'To')
   const bodyPreview = extractBodyPreview(message.payload)
-  const attachmentPresent = hasAttachment(message.payload)
+  const attachmentFilenames = getAttachmentFilenames(message.payload)
   const dateHeader = getHeader(message.payload?.headers, 'Date')
   const parsedDate = dateHeader ? new Date(dateHeader) : null
   const emailDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date()
@@ -162,7 +163,7 @@ async function processMessage(
   // Resume-sharing is tracked independently of the primary category — a
   // "sending you my resume" email might otherwise classify as a follow-up,
   // thank-you, or nothing at all, but should still count toward the stat.
-  const resumeShared = direction === 'OUTBOUND' && matchResumeShared(subject, bodyPreview, attachmentPresent)
+  const resumeShared = direction === 'OUTBOUND' && matchResumeShared(subject, bodyPreview, attachmentFilenames)
 
   await prisma.trackedEmailActivity.create({
     data: {

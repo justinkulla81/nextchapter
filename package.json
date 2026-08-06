@@ -14,7 +14,8 @@
     "seed:portal-connections": "tsx --env-file=.env.local scripts/seed-portal-connections.ts",
     "seed:interim-listings": "tsx --env-file=.env.local scripts/seed-interim-listings.ts",
     "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts",
-    "backfill:profile-buckets": "tsx --env-file=.env.local scripts/backfill-profile-buckets.ts"
+    "backfill:profile-buckets": "tsx --env-file=.env.local scripts/backfill-profile-buckets.ts",
+    "backfill:resume-detection": "tsx --env-file=.env.local scripts/backfill-resume-attachment-detection.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

@@ -285,8 +285,20 @@ const NETWORKING_OUTREACH_BARE_SUBJECT = /^(coffee|lunch|coffee chat|grab (a )?(
 // mail ("still working on my resume"), so this requires both.
 const RESUME_SHARE_KEYWORDS = /\b(resume|r[ée]sum[ée]|cover letter|\bcv\b|application|applying)\b/i
 
-export function matchResumeShared(subject: string, bodyPreview: string, hasAttachment: boolean): boolean {
-  return hasAttachment && RESUME_SHARE_KEYWORDS.test(`${subject} ${bodyPreview}`)
+// Real resume/CV/cover-letter attachments are usually named after what they
+// are ("Jane_Doe_Resume.pdf") even when the email body itself says nothing
+// more than "please see attached" — so a matching filename alone is enough,
+// no subject/body keyword needed. Separators are normalized to spaces first
+// so "_"/"-"/"." don't defeat the \b word boundaries.
+const RESUME_FILENAME_KEYWORDS = /\b(resume|r[ée]sum[ée]|cv|curriculum vitae|cover ?letter)\b/i
+
+function isResumeFilename(filename: string): boolean {
+  return RESUME_FILENAME_KEYWORDS.test(filename.toLowerCase().replace(/[_\-.]+/g, ' '))
+}
+
+export function matchResumeShared(subject: string, bodyPreview: string, attachmentFilenames: string[]): boolean {
+  if (attachmentFilenames.some(isResumeFilename)) return true
+  return attachmentFilenames.length > 0 && RESUME_SHARE_KEYWORDS.test(`${subject} ${bodyPreview}`)
 }
 
 export function matchNetworkingOutreach(subject: string, bodyPreview: string): PatternMatch {
