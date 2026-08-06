@@ -12,6 +12,7 @@ import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
 import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
+import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
@@ -248,70 +249,39 @@ export default async function JobFitPage() {
       <MarkWatchlistViewedOnMount />
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
-        <p className="text-muted-foreground">
-          Discover real openings — from our job board and our automated search partners —
-          and track every application through offer.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Rating jobs and applying counts toward your grade&apos;s weekly effort.
-        </p>
         <SprintActionCompletion candidateId={profile.id} actionTypes={['NEGOTIATION_ADVICE']} />
       </div>
 
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 className="text-lg font-semibold tracking-tight">My Applications</h2>
-          <p className="text-sm text-muted-foreground tabular-nums">
-            {allApplications.length} total · {applicationsThisWeek} this week
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-2xl font-bold text-foreground tabular-nums">
+            {allApplications.length}
+            <span className="ml-1.5 text-sm font-normal text-muted-foreground">
+              · {applicationsThisWeek} this week
+            </span>
           </p>
+          <p className="text-xs text-muted-foreground">Applications sent</p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Application confirmations from your connected Gmail are added here automatically —
-          interview invites and rejections update their status the same way. Add one by hand below
-          if you applied somewhere that doesn&apos;t send a confirmation email.
-        </p>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">
-              {allApplications.length}
-              <span className="ml-1.5 text-sm font-normal text-muted-foreground">
-                · {applicationsThisWeek} this week
-              </span>
-            </p>
-            <p className="text-xs text-muted-foreground">Applications sent</p>
+        {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
+          <div key={type} className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
           </div>
-          {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
-            <div key={type} className="rounded-lg border border-border p-3">
-              <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
-              <p className="text-xs text-muted-foreground">{label}</p>
-            </div>
-          ))}
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{resumesSharedCount}</p>
-            <p className="text-xs text-muted-foreground">Resumes shared</p>
-          </div>
+        ))}
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-2xl font-bold text-foreground tabular-nums">{resumesSharedCount}</p>
+          <p className="text-xs text-muted-foreground">Resumes shared</p>
         </div>
+      </div>
 
-        <details className="rounded-lg border border-border p-3 text-sm">
-          <summary className="cursor-pointer font-medium text-foreground">
-            Add a job manually (paste a URL for fit-check + cover letter tools)
-          </summary>
-          <div className="mt-3 space-y-3">
-            {atCap ? (
-              <p className="text-sm text-muted-foreground">
-                You have 5 job postings tracked — remove one below to add another.
-              </p>
-            ) : (
-              <JobUrlForm />
-            )}
-          </div>
-        </details>
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold tracking-tight">Jobs I&apos;ve Applied To</h2>
 
         <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
 
         {profile.jobPostings.length > 0 && (
           <div className="divide-y divide-border rounded-lg border border-border">
+            <ShowMoreList initialCount={10} totalCount={profile.jobPostings.length}>
             {profile.jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)
 
@@ -734,7 +704,33 @@ export default async function JobFitPage() {
               </details>
               )
             })}
+            </ShowMoreList>
+
+            <details>
+              <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-foreground">
+                Add a job manually (paste a URL for fit-check + cover letter tools)
+              </summary>
+              <div className="space-y-3 px-4 pb-4">
+                {atCap ? (
+                  <p className="text-sm text-muted-foreground">
+                    You have 5 job postings tracked — remove one below to add another.
+                  </p>
+                ) : (
+                  <JobUrlForm />
+                )}
+              </div>
+            </details>
           </div>
+        )}
+        {profile.jobPostings.length === 0 && (
+          <details className="rounded-lg border border-border p-3 text-sm">
+            <summary className="cursor-pointer font-medium text-foreground">
+              Add a job manually (paste a URL for fit-check + cover letter tools)
+            </summary>
+            <div className="mt-3 space-y-3">
+              <JobUrlForm />
+            </div>
+          </details>
         )}
       </div>
 
@@ -754,17 +750,7 @@ export default async function JobFitPage() {
       ))}
 
       <div className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Real openings from our job board, plus roles our automated search partners found for
-            you — one combined list below. Some of these unlock once you reach an A grade.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            The search-partner roles update automatically based on your target role, location, and
-            resume — refreshed each time your list runs low, no action needed from you.
-          </p>
-        </div>
+        <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
 
         {visibleBoardPostings.length === 0 &&
         lockedBoardPostings.length === 0 &&
@@ -800,10 +786,6 @@ export default async function JobFitPage() {
                     fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
                   />
                 ))}
-
-                {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
-                  <LockedDiscoverJobCard key={posting.id} posting={posting} />
-                ))}
               </div>
 
               {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
@@ -811,10 +793,14 @@ export default async function JobFitPage() {
                   <UnlockAListCallout
                     grade={grade.grade}
                     lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
-                    weeklySprintsCount={profile._count.weeklySprints}
-                    engines={grade.weeklyEngines}
-                    laggingEngines={grade.laggingEngines}
                   />
+
+                  <div className="divide-y divide-border rounded-lg border border-border">
+                    {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
+                      <LockedDiscoverJobCard key={posting.id} posting={posting} />
+                    ))}
+                  </div>
+
                   <p className="text-sm text-muted-foreground">
                     {lockedSurfacedCount > 0 &&
                       `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
