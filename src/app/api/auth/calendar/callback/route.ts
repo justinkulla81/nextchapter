@@ -44,6 +44,10 @@ export async function GET(request: NextRequest) {
     // reuses the same row (candidateId is unique) instead of erroring.
     const existing = await prisma.calendarConnection.findUnique({ where: { candidateId: profile.id } })
     const isFirstEverConnection = !existing
+    // Captured before the upsert clears it — true only when this callback
+    // is genuinely completing a reconnect of an expired connection, not an
+    // incidental re-hit of this route on an already-healthy connection.
+    const isGenuineReconnect = !!existing?.needsReconnectAt
 
     const connection = await prisma.calendarConnection.upsert({
       where: { candidateId: profile.id },
@@ -70,7 +74,10 @@ export async function GET(request: NextRequest) {
     )
 
     // One-time connection bonus — awarded once ever per candidate, not on
-    // every reconnect.
+    // every reconnect. A genuine reconnect (clearing a real expiry) earns
+    // its own smaller one-time bonus instead, per reconnect event — the
+    // needsReconnectAt gate above means this only fires once per expiry,
+    // not on every incidental hit of this route.
     if (isFirstEverConnection) {
       const sprint = await getCurrentWeekSprint(profile.id)
       if (sprint) {
@@ -84,7 +91,18 @@ export async function GET(request: NextRequest) {
         })
       }
       captureServerEvent(profile.id, 'calendar_connected')
-    } else {
+    } else if (isGenuineReconnect) {
+      const sprint = await getCurrentWeekSprint(profile.id)
+      if (sprint) {
+        const effort = estimateActionEffort({ actionType: 'CALENDAR_RECONNECTED' })
+        await logCatalogAction(profile.id, {
+          text: 'Reconnected Calendar after it expired',
+          actionType: 'CALENDAR_RECONNECTED',
+          points: effort.points,
+          estimatedMinutes: effort.minutes,
+          recurring: false,
+        })
+      }
       captureServerEvent(profile.id, 'calendar_reconnected')
     }
 

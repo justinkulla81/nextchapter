@@ -26,6 +26,7 @@ import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
+import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
@@ -196,6 +197,8 @@ export default async function DashboardPage() {
         />
 
         <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
+
+        <ReconnectBanner candidateId={profile.id} variant="link" />
 
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}

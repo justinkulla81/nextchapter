@@ -16,6 +16,7 @@ import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
+import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -259,6 +260,8 @@ export default async function JobFitPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
         <SprintActionCompletion candidateId={profile.id} actionTypes={['NEGOTIATION_ADVICE']} />
       </div>
+
+      <ReconnectBanner candidateId={profile.id} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border p-3">

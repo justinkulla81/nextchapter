@@ -19,6 +19,7 @@ import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { OutreachCheatSheetCard } from '@/components/dashboard/OutreachCheatSheetCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { TrackingTabs } from '@/components/dashboard/TrackingTabs'
 import { EmailActivitySyncButton } from '@/components/dashboard/EmailActivityControls'
 import { CalendarActivitySyncButton } from '@/components/dashboard/CalendarActivityControls'
@@ -409,6 +410,8 @@ export default async function NetworkPage({
           actionTypes={['NETWORKING_LIST', 'OUTREACH_MESSAGE', 'OUTREACH_CALL', 'FOLLOW_UP_NOTE_SENT']}
         />
       </div>
+
+      <ReconnectBanner candidateId={profile.id} />
 
       <Card>
         <CardHeader>

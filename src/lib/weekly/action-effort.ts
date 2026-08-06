@@ -87,6 +87,10 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // since asking for an introduction is a more substantive ask than a
   // routine note.
   GMAIL_CONNECTED: { minutes: 5, points: 10 },
+  // Smaller one-time bonus for reconnecting after a testing-mode token
+  // expiry — real (keeps auto-detected tracking working again) but a
+  // smaller ask than the original connect, since it's just re-authorizing.
+  GMAIL_RECONNECTED: { minutes: 3, points: 5 },
   THANK_YOU_NOTE_SENT: { minutes: 10, points: 10 },
   FOLLOW_UP_NOTE_SENT: { minutes: 10, points: 10 },
   CHECK_IN_NOTE_SENT: { minutes: 10, points: 10 },
@@ -98,6 +102,8 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // below that but above a routine outreach call. Detected networking calls
   // reuse the existing OUTREACH_CALL type rather than adding a parallel one.
   CALENDAR_CONNECTED: { minutes: 5, points: 10 },
+  // Same reconnect-bonus reasoning as GMAIL_RECONNECTED above.
+  CALENDAR_RECONNECTED: { minutes: 3, points: 5 },
   INTERVIEW_ATTENDED: { minutes: 30, points: 25 },
 
   // Onboarding confirmations — small, real setup steps.
@@ -197,11 +203,13 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   WATCHLIST_ADD: 'connecting',
   WATCHLIST_POSTING_VIEWED: 'connecting',
   GMAIL_CONNECTED: 'connecting',
+  GMAIL_RECONNECTED: 'connecting',
   THANK_YOU_NOTE_SENT: 'connecting',
   FOLLOW_UP_NOTE_SENT: 'connecting',
   CHECK_IN_NOTE_SENT: 'connecting',
   INTRO_CONNECTION_REQUEST_SENT: 'connecting',
   CALENDAR_CONNECTED: 'connecting',
+  CALENDAR_RECONNECTED: 'connecting',
   INTERVIEW_ATTENDED: 'effort',
   PRIVACY_CONFIRMED: 'connecting',
   JOB_BOARD_USAGE_CONFIRMED: 'effort',
@@ -263,11 +271,13 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   PRIVACY_CONFIRMED: 'Connecting',
   VISIBILITY_COMFORT_CHECKIN: 'Connecting',
   GMAIL_CONNECTED: 'Connecting',
+  GMAIL_RECONNECTED: 'Connecting',
   THANK_YOU_NOTE_SENT: 'Connecting',
   FOLLOW_UP_NOTE_SENT: 'Connecting',
   CHECK_IN_NOTE_SENT: 'Connecting',
   INTRO_CONNECTION_REQUEST_SENT: 'Connecting',
   CALENDAR_CONNECTED: 'Connecting',
+  CALENDAR_RECONNECTED: 'Connecting',
   INTERVIEW_ATTENDED: 'Connecting',
 
   LEARNING_MODULE: 'Learning & Working',
@@ -446,11 +456,13 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WATCHLIST_ADD: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   GMAIL_CONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
+  GMAIL_RECONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   THANK_YOU_NOTE_SENT: { href: '/dashboard/network', label: 'Outreach Contacts' },
   FOLLOW_UP_NOTE_SENT: { href: '/dashboard/network', label: 'Outreach Contacts' },
   CHECK_IN_NOTE_SENT: { href: '/dashboard/network', label: 'Outreach Contacts' },
   INTRO_CONNECTION_REQUEST_SENT: { href: '/dashboard/network', label: 'Outreach Contacts' },
   CALENDAR_CONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
+  CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Outreach Contacts' },
 }
 
