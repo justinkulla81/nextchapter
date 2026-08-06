@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
-import { getWatchlistWithCounts, getWatchlistPostings } from '@/lib/company-tracker/watchlist'
-import { isRecentlyListed, FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
+import { getWatchlistView } from '@/lib/company-tracker/watchlist'
+import { FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
-import { CompanyWatchlistList, WatchlistPostingsList } from '@/components/dashboard/CompanyWatchlistList'
+import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
@@ -31,8 +31,6 @@ import {
 import { ThankYouNoteCard } from '@/components/dashboard/ThankYouNoteCard'
 import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
-import { JobBoardRecommendations } from '@/components/dashboard/JobBoardRecommendations'
-import { JobBoardUsageCheckIn } from '@/components/dashboard/JobBoardUsageCheckIn'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -103,16 +101,7 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id)
   }
 
-  const [
-    surfacedJobs,
-    totalUnreactedCount,
-    interestedJobs,
-    reactedCount,
-    grade,
-    boardPostings,
-    watchlistCompanies,
-    watchlistPostings,
-  ] = await Promise.all([
+  const [surfacedJobs, totalUnreactedCount, interestedJobs, reactedCount, grade, boardPostings] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -140,11 +129,13 @@ export default async function JobFitPage() {
       },
       orderBy: { createdAt: 'desc' },
     }),
-    getWatchlistWithCounts(profile.id),
-    getWatchlistPostings(profile.id),
   ])
 
   const isAList = grade.grade === 'A'
+  // Needs isAList to decide which A_LIST_ONLY postings this candidate can
+  // actually open — can't join the barrier above since grade isn't known
+  // until it resolves.
+  const watchlistView = await getWatchlistView(profile.id, isAList)
   const openBoardPostings = boardPostings.filter(
     (p) => p.audienceTier === 'ALL_CANDIDATES' || isAList
   )
@@ -270,7 +261,12 @@ export default async function JobFitPage() {
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{allApplications.length}</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {allApplications.length}
+              <span className="ml-1.5 text-sm font-normal text-muted-foreground">
+                · {applicationsThisWeek} this week
+              </span>
+            </p>
             <p className="text-xs text-muted-foreground">Applications sent</p>
           </div>
           {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
@@ -789,18 +785,6 @@ export default async function JobFitPage() {
 
         <JobReactionSummary ratedCount={ratedCount} />
         <InterestedJobsList jobs={interestedJobs} />
-
-        <details className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-          <summary className="cursor-pointer font-medium text-foreground">More places to look</summary>
-          <div className="mt-3 space-y-4">
-            <JobBoardRecommendations targetIndustries={profile.targetIndustries} />
-            <JobBoardUsageCheckIn
-              currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null}
-              currentOther={profile.jobBoardUsageOther}
-              alreadyAwarded={!!profile.jobBoardUsageBonusAt}
-            />
-          </div>
-        </details>
       </div>
 
       <div className="space-y-4 border-t border-border pt-8">
@@ -814,32 +798,9 @@ export default async function JobFitPage() {
         </div>
 
         <Card>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-foreground">Add a company</p>
+          <CardContent className="space-y-4 pt-6">
             <CompanyWatchlistForm />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-foreground">Your watchlist ({watchlistCompanies.length})</p>
-            <CompanyWatchlistList companies={watchlistCompanies} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-foreground">Open postings from watched companies</p>
-            <WatchlistPostingsList
-              postings={watchlistPostings.map((p) => ({
-                id: p.id,
-                title: p.title,
-                companyName: p.companyName,
-                location: p.location,
-                url: p.url,
-                isNew: isRecentlyListed(p.createdAt),
-              }))}
-            />
+            <CompanyWatchlist entries={watchlistView} />
           </CardContent>
         </Card>
       </div>

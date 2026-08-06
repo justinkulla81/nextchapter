@@ -11,52 +11,77 @@ export interface WatchlistPosting {
   createdAt: Date
 }
 
-export interface WatchlistEntryWithCount {
+// One row per watched company, consolidated for the single-list Company
+// Tracker UI — company name, total count "in our system" (visible to this
+// candidate), and the actual postings to expand into on click. A_LIST_ONLY
+// postings a non-A-List candidate can't open are counted in lockedCount but
+// their details are never included in visiblePostings, since this shape is
+// sent straight to the client component.
+export interface WatchlistEntryView {
   id: string
   companyName: string
-  createdAt: Date
-  lastViewedAt: Date
   newPostingCount: number
+  visiblePostings: WatchlistPosting[]
+  lockedCount: number
 }
 
-// Active NC Job Board postings only (archived/rejected rows never count as
-// "new"). This dataset is bounded by the curated ATS company list plus
-// admin/employer/recruiter submissions — small enough to fetch in full and
-// match in JS against each candidate's watchlist, rather than needing a
-// normalized column on ExclusiveJobPosting itself.
-async function getActivePostings(): Promise<WatchlistPosting[]> {
+// Active NC Job Board postings only (archived/rejected/excluded/expired
+// rows never count) — the same eligibility filter find-my-job/page.tsx's
+// main boardPostings query uses, so "N open in our system" here never
+// disagrees with what Discover actually shows. This dataset is bounded by
+// the curated ATS company list plus admin/employer/recruiter submissions —
+// small enough to fetch in full and match in JS against each candidate's
+// watchlist, rather than needing a normalized column on ExclusiveJobPosting
+// itself.
+async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: string })[]> {
   return prisma.exclusiveJobPosting.findMany({
-    where: { archivedAt: null, status: 'approved' },
-    select: { id: true, title: true, companyName: true, location: true, url: true, createdAt: true },
+    where: {
+      archivedAt: null,
+      status: 'approved',
+      distribution: { not: 'EXCLUDED' },
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
+    select: {
+      id: true,
+      title: true,
+      companyName: true,
+      location: true,
+      url: true,
+      createdAt: true,
+      audienceTier: true,
+    },
     orderBy: { createdAt: 'desc' },
   })
 }
 
-export async function getWatchlistWithCounts(candidateId: string): Promise<WatchlistEntryWithCount[]> {
+export async function getWatchlistView(candidateId: string, isAList: boolean): Promise<WatchlistEntryView[]> {
   const [entries, postings] = await Promise.all([
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
     getActivePostings(),
   ])
 
   return entries.map((entry) => {
-    const newPostingCount = postings.filter(
-      (p) => orgNamesMatch(p.companyName, entry.companyName) && p.createdAt > entry.lastViewedAt
-    ).length
+    const matches = postings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
+    // A_LIST_ONLY postings are real "in our system" jobs, just not ones
+    // this candidate can open yet — counted, never detailed, unless the
+    // candidate is actually A-List.
+    const visible = matches.filter((p) => isAList || p.audienceTier !== 'A_LIST_ONLY')
+    const newPostingCount = matches.filter((p) => p.createdAt > entry.lastViewedAt).length
     return {
       id: entry.id,
       companyName: entry.companyName,
-      createdAt: entry.createdAt,
-      lastViewedAt: entry.lastViewedAt,
       newPostingCount,
+      visiblePostings: visible.map(({ id, title, companyName, location, url, createdAt }) => ({
+        id,
+        title,
+        companyName,
+        location,
+        url,
+        createdAt,
+      })),
+      lockedCount: matches.length - visible.length,
     }
   })
-}
-
-export async function getWatchlistPostings(candidateId: string): Promise<WatchlistPosting[]> {
-  const entries = await prisma.companyWatchlistEntry.findMany({ where: { candidateId } })
-  if (entries.length === 0) return []
-  const postings = await getActivePostings()
-  return postings.filter((p) => entries.some((e) => orgNamesMatch(p.companyName, e.companyName)))
 }
 
 export async function addCompanyToWatchlist(
