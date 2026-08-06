@@ -6,6 +6,7 @@ import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
+import { getBackchannelMatches } from '@/lib/network/backchannel'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -30,6 +31,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     supportNetworkUnreadCount,
     messagesUnreadCount,
     newJobMatchesCount,
+    backchannelMatches,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profile.id } }),
@@ -41,7 +43,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     // visit, so this is a real, already-tracked "new matches" signal
     // rather than a separate read/unread marker.
     prisma.surfacedJob.count({ where: { candidateId: profile.id, reaction: null } }),
+    getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
   ])
+  const newBackchannelCount = backchannelMatches.filter((m) => m.isNew).length
 
   // See buildPortfolioAssetChecklist — the Portfolio page computes this
   // same checklist from the same shape of inputs, so the nav badge and the
@@ -65,6 +69,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         supportNetworkUnreadCount={supportNetworkUnreadCount}
         messagesUnreadCount={messagesUnreadCount}
         newJobMatchesCount={newJobMatchesCount}
+        newBackchannelCount={newBackchannelCount}
       />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>

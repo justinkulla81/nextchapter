@@ -55,6 +55,10 @@
     {
       "path": "/api/cron/market-digest-employers",
       "schedule": "30 15 * * 2"
+    },
+    {
+      "path": "/api/cron/backchannel-match",
+      "schedule": "0 16 * * *"
     }
   ]
 }

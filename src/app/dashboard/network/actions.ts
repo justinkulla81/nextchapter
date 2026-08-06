@@ -199,6 +199,20 @@ export async function dismissOutreachPlan() {
   revalidatePath('/dashboard/network')
 }
 
+// Resets the "new backchannel matches" counter — same pattern as
+// communityLastViewedAt/markWatchlistPageViewed: a visit to this page is
+// what "seen" means, no per-match acknowledgment needed.
+export async function markBackchannelViewed() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { networkBackchannelLastViewedAt: new Date() },
+  })
+  revalidatePath('/dashboard', 'layout')
+}
+
 export async function logOutreach(contactId: string | null, channel: OutreachChannel) {
   const profile = await getAuthedProfile()
   if (!profile) return

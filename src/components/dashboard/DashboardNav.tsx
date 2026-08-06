@@ -41,7 +41,8 @@ function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
   messagesUnreadCount: number,
-  newJobMatchesCount: number
+  newJobMatchesCount: number,
+  newBackchannelCount: number
 ): NavSection[] {
   return [
     {
@@ -68,7 +69,14 @@ function buildSections(
       title: 'Connecting',
       links: [
         { href: '/dashboard/references', label: 'My References' },
-        { href: '/dashboard/network', label: 'Networking', badge: 'High Priority' },
+        {
+          href: '/dashboard/network',
+          label: 'Networking',
+          // A real "you know someone at a company you applied to" count
+          // takes priority over the generic High Priority label — it's a
+          // more specific, more actionable reason to visit right now.
+          badge: newBackchannelCount > 0 ? String(newBackchannelCount) : 'High Priority',
+        },
         {
           href: '/dashboard/community',
           label: 'NC Support Network',
@@ -127,6 +135,7 @@ function NavContent({
   supportNetworkUnreadCount,
   messagesUnreadCount,
   newJobMatchesCount,
+  newBackchannelCount,
 }: {
   pathname: string
   onNavigate?: () => void
@@ -134,13 +143,15 @@ function NavContent({
   supportNetworkUnreadCount: number
   messagesUnreadCount: number
   newJobMatchesCount: number
+  newBackchannelCount: number
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(
     portfolioAssetCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
-    newJobMatchesCount
+    newJobMatchesCount,
+    newBackchannelCount
   )
 
   return (
@@ -213,11 +224,13 @@ export function DashboardNav({
   supportNetworkUnreadCount = 0,
   messagesUnreadCount = 0,
   newJobMatchesCount = 0,
+  newBackchannelCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   messagesUnreadCount?: number
   newJobMatchesCount?: number
+  newBackchannelCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -225,7 +238,8 @@ export function DashboardNav({
     portfolioAssetCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
-    newJobMatchesCount
+    newJobMatchesCount,
+    newBackchannelCount
   )
   const current = sections.flatMap((s) => s.links).find((link) =>
     link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
@@ -241,6 +255,7 @@ export function DashboardNav({
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           messagesUnreadCount={messagesUnreadCount}
           newJobMatchesCount={newJobMatchesCount}
+          newBackchannelCount={newBackchannelCount}
         />
       </aside>
 
@@ -274,6 +289,7 @@ export function DashboardNav({
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               messagesUnreadCount={messagesUnreadCount}
               newJobMatchesCount={newJobMatchesCount}
+              newBackchannelCount={newBackchannelCount}
             />
           </div>
         </div>

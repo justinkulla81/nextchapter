@@ -26,7 +26,7 @@ export async function GET(
     type === 'daily'
       ? "You won't receive any more daily action emails from Vic."
       : type === 'weekly'
-        ? "You won't receive the Friday check-in or Community & Coaching digest emails anymore."
+        ? "You won't receive the Friday check-in, Community & Coaching digest, or backchannel-connection emails anymore."
         : type === 'sprintGoal'
           ? "You won't receive any more Weekly Search Sprint goal-setting reminders."
           : "You won't receive any more reminder emails from NextChapter about finishing your account."

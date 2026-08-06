@@ -14,6 +14,9 @@ import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActionsCard'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
+import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
+import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
+import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { ContactRow } from '@/components/dashboard/ContactRow'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
@@ -92,16 +95,18 @@ export default async function NetworkPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const [contacts, emailConnection, calendarConnection, emailTester, calendarTester] = await Promise.all([
-    prisma.supportNetworkContact.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    profile.email ? isGmailTrackingTester(profile.email) : false,
-    profile.email ? isCalendarTrackingTester(profile.email) : false,
-  ])
+  const [contacts, emailConnection, calendarConnection, emailTester, calendarTester, backchannelMatches] =
+    await Promise.all([
+      prisma.supportNetworkContact.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+      prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+      profile.email ? isGmailTrackingTester(profile.email) : false,
+      profile.email ? isCalendarTrackingTester(profile.email) : false,
+      getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
+    ])
 
   // Auto-syncs on every visit instead of requiring the manual buttons below —
   // both sync functions self-throttle to once per 5 minutes. Awaited
@@ -430,7 +435,10 @@ export default async function NetworkPage({
         />
       </div>
 
+      <MarkBackchannelViewedOnMount />
       <ReconnectBanner candidateId={profile.id} />
+
+      <BackchannelMatchesCard matches={backchannelMatches} />
 
       <Card>
         <CardHeader>
