@@ -16,7 +16,6 @@ import { JobReactionSummary } from '@/components/dashboard/JobReactionSummary'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
-import { JobLeadForm } from '@/components/dashboard/JobLeadForm'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -702,17 +701,6 @@ export default async function JobFitPage() {
       </div>
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
-
-      <div className="space-y-3 rounded-lg border border-border p-4">
-        <div>
-          <h2 className="text-lg font-semibold">Heard about an opening — from anywhere, not just job boards?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Send us the link and we&apos;ll add it to the shared Job Board once we&apos;ve confirmed
-            it&apos;s real — other candidates get the benefit of your lead too.
-          </p>
-        </div>
-        <JobLeadForm />
-      </div>
 
       {unacknowledgedReactions.map((activity) => (
         <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
