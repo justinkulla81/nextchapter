@@ -6,16 +6,20 @@ import { normalizeContactKey } from './csv-import'
 import type { ContactSource, RelationshipTag } from '@prisma/client'
 
 // Shared by calendar-attendee auto-add (sync-google-calendar.ts) and
-// recruiter/networking-email auto-add (sync-gmail.ts) — same rule either
-// way: never overwrite a candidate-confirmed `company` or drop an existing
-// relationshipTag, only fill gaps and add tags a real signal supports.
+// recruiter/coach/hiring-manager-email auto-add (sync-gmail.ts) — same rule
+// either way: never overwrite a candidate-confirmed `company` or drop an
+// existing relationshipTag, only fill gaps and add tags a real signal
+// supports.
 export async function upsertContactFromSignal(
   candidateId: string,
   params: {
     email: string
     name: string
     source: ContactSource
-    isRecruiter: boolean
+    // Role tags a real signal (subject/body/title keyword match) actually
+    // supports — RECRUITER, COACH, HIRING_MANAGER, etc. FORMER_COLLEAGUE is
+    // computed here from workHistoryCompanies, not passed in.
+    autoTags: RelationshipTag[]
     workHistoryCompanies: string[]
   }
 ): Promise<void> {
@@ -30,7 +34,7 @@ export async function upsertContactFromSignal(
   if (existing) {
     const tags = new Set(existing.relationshipTags)
     if (isFormerColleague) tags.add('FORMER_COLLEAGUE')
-    if (params.isRecruiter) tags.add('RECRUITER')
+    for (const tag of params.autoTags) tags.add(tag)
     const nextTags = Array.from(tags)
     const tagsChanged = nextTags.length !== existing.relationshipTags.length
     if (tagsChanged || !existing.inferredCompany || !existing.inferredSchool) {
@@ -46,9 +50,8 @@ export async function upsertContactFromSignal(
     return
   }
 
-  const relationshipTags: RelationshipTag[] = []
-  if (isFormerColleague) relationshipTags.push('FORMER_COLLEAGUE')
-  if (params.isRecruiter) relationshipTags.push('RECRUITER')
+  const relationshipTags = new Set<RelationshipTag>(params.autoTags)
+  if (isFormerColleague) relationshipTags.add('FORMER_COLLEAGUE')
 
   await prisma.supportNetworkContact
     .create({
@@ -57,7 +60,7 @@ export async function upsertContactFromSignal(
         name: params.name,
         email,
         source: params.source,
-        relationshipTags,
+        relationshipTags: Array.from(relationshipTags),
         inferredCompany,
         inferredSchool,
         normalizedKey: normalizeContactKey(params.name, inferredCompany),

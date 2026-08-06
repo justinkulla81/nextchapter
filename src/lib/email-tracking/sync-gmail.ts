@@ -3,14 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared } from './ats-patterns'
-import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
+import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { extractEmailAddress, extractDisplayName } from './email-address'
 import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
 import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
-import type { EmailConnection, EmailDirection } from '@prisma/client'
+import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
@@ -173,12 +173,14 @@ async function processMessage(
   // thank-you, or nothing at all, but should still count toward the stat.
   const resumeShared = direction === 'OUTBOUND' && matchResumeShared(subject, bodyPreview, attachmentFilenames)
 
-  // Same independence for recruiter contact — a role-title mention
-  // ("Senior Technical Recruiter", "Talent Acquisition Partner") is a real
-  // signal whether it's a recruiter's inbound outreach or the candidate's
-  // own outbound reply/cold outreach to one, regardless of how the primary
-  // category above classified the message.
-  const isRecruiterContact = matchRecruiterRoleMention(`${subject} ${bodyPreview}`)
+  // Same independence for recruiter/hiring-manager/coach contact — a
+  // role-title mention ("Senior Technical Recruiter", "Hiring Manager",
+  // "Career Coach") is a real signal regardless of which direction the
+  // email went or how the primary category above classified the message.
+  const roleText = `${subject} ${bodyPreview}`
+  const isRecruiterContact = matchRecruiterRoleMention(roleText)
+  const isHiringManagerContact = matchHiringManagerRoleMention(roleText)
+  const isCoachContact = matchCoachRoleMention(roleText)
 
   await prisma.trackedEmailActivity.create({
     data: {
@@ -196,15 +198,19 @@ async function processMessage(
     },
   })
 
-  // Anyone the app already labels a recruiter or networking contact belongs
-  // in the candidate's network list too, not just visible as a tracked
-  // email row — same "don't guess" bar as the points below: only
-  // high-confidence classifications, so a NEEDS_REVIEW guess never creates
-  // a noise contact.
+  // Anyone the app already labels a recruiter, hiring manager, coach, or
+  // networking contact belongs in the candidate's network list too, not
+  // just visible as a tracked email row — same "don't guess" bar as the
+  // points below: only high-confidence classifications, so a NEEDS_REVIEW
+  // guess never creates a noise contact.
   if (classification.confidence === 'high') {
     const isRecruiterOutreach = direction === 'INBOUND' && classification.activityType === 'RECRUITER_OUTREACH'
     const isNetworkingOutbound = direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.has(classification.activityType)
-    if (isRecruiterOutreach || isRecruiterContact || isNetworkingOutbound) {
+    const autoTags: RelationshipTag[] = []
+    if (isRecruiterOutreach || isRecruiterContact) autoTags.push('RECRUITER')
+    if (isHiringManagerContact) autoTags.push('HIRING_MANAGER')
+    if (isCoachContact) autoTags.push('COACH')
+    if (autoTags.length > 0 || isNetworkingOutbound) {
       const counterpartHeader = direction === 'INBOUND' ? from : to
       const email = extractEmailAddress(counterpartHeader)
       if (email.includes('@')) {
@@ -212,7 +218,7 @@ async function processMessage(
           email,
           name: extractDisplayName(counterpartHeader),
           source: 'EMAIL_DETECTED',
-          isRecruiter: isRecruiterOutreach || isRecruiterContact,
+          autoTags,
           workHistoryCompanies,
         }).catch((error) => console.error('Failed to auto-add email contact to network list:', error))
       }

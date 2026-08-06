@@ -2,12 +2,12 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './google-calendar-oauth'
 import { classifyCalendarEvent } from './classify-event'
-import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
+import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
-import type { CalendarConnection } from '@prisma/client'
+import type { CalendarConnection, RelationshipTag } from '@prisma/client'
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
@@ -106,6 +106,7 @@ const ATTENDEE_IMPORT_EVENT_TYPES = new Set(['NETWORKING_CALL', 'INTERVIEW'])
 async function addAttendeesToNetwork(
   candidateId: string,
   attendees: GoogleCalendarAttendee[],
+  autoTags: RelationshipTag[],
   workHistoryCompanies: string[]
 ): Promise<void> {
   const others = attendees.filter((a) => !a.self && a.email)
@@ -117,7 +118,7 @@ async function addAttendeesToNetwork(
       email,
       name,
       source: 'CALENDAR_IMPORT',
-      isRecruiter: false,
+      autoTags,
       workHistoryCompanies,
     })
   }
@@ -158,7 +159,10 @@ async function processEvent(
       ? Math.round((new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000)
       : null
   const classification = classifyCalendarEvent(title, description, location, { durationMinutes, startHour, isWeekday })
-  const isRecruiterContact = matchRecruiterRoleMention(`${title} ${description}`)
+  const eventText = `${title} ${description}`
+  const isRecruiterContact = matchRecruiterRoleMention(eventText)
+  const isHiringManagerContact = matchHiringManagerRoleMention(eventText)
+  const isCoachContact = matchCoachRoleMention(eventText)
 
   await prisma.trackedCalendarEvent.create({
     data: {
@@ -189,8 +193,12 @@ async function processEvent(
     }
 
     if (ATTENDEE_IMPORT_EVENT_TYPES.has(classification.eventType) && event.attendees) {
-      await addAttendeesToNetwork(connection.candidateId, event.attendees, workHistoryCompanies).catch((error) =>
-        console.error('Failed to add calendar attendees to network list:', error)
+      const autoTags: RelationshipTag[] = []
+      if (isRecruiterContact) autoTags.push('RECRUITER')
+      if (isHiringManagerContact) autoTags.push('HIRING_MANAGER')
+      if (isCoachContact) autoTags.push('COACH')
+      await addAttendeesToNetwork(connection.candidateId, event.attendees, autoTags, workHistoryCompanies).catch(
+        (error) => console.error('Failed to add calendar attendees to network list:', error)
       )
     }
   }

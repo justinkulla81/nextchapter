@@ -205,6 +205,17 @@ enum RelationshipTag {
   OTHER
 }
 
+// NextChapter admin's own follow-up status on a candidate-surfaced
+// recruiter/coach/hiring-manager contact — see SupportNetworkContact's
+// adminOutreachStatus comment for why this is a separate axis from
+// anything the candidate sets.
+enum ContactAdminOutreachStatus {
+  NOT_REVIEWED
+  TO_CONTACT
+  CONTACTED
+  NOT_INTERESTED
+}
+
 enum OutreachChannel {
   EMAIL
   LINKEDIN
@@ -2153,23 +2164,23 @@ model SupportNetworkContact {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  name             String
-  company          String?
-  title            String?
-  email            String?
-  category         ContactCategory?
-  warmth           ContactWarmth     @default(WARM)
-  source           ContactSource     @default(MANUAL)
-  createdAt        DateTime          @default(now())
+  name                String
+  company             String?
+  title               String?
+  email               String?
+  category            ContactCategory?
+  warmth              ContactWarmth              @default(WARM)
+  source              ContactSource              @default(MANUAL)
+  createdAt           DateTime                   @default(now())
   // Multi-select "who is this person" tags — see RelationshipTag's comment.
-  relationshipTags RelationshipTag[] @default([])
+  relationshipTags    RelationshipTag[]          @default([])
   // Set when the candidate marks SAME_SCHOOL and names the school.
-  schoolName       String?
+  schoolName          String?
   // Best-effort guesses from a non-consumer email domain (see
   // matchRecruiterRoleMention-adjacent logic in sync-google-calendar.ts) —
   // shown as a hint, never overwrites the candidate-confirmed `company`.
-  inferredCompany  String?
-  inferredSchool   String?
+  inferredCompany     String?
+  inferredSchool      String?
   // Lower-trimmed "name|company" dedup key, computed at write time by
   // normalizeContactKey() in src/lib/network/csv-import.ts. Stops
   // re-uploading the same LinkedIn export from creating duplicate rows
@@ -2177,7 +2188,14 @@ model SupportNetworkContact {
   // identifies genuinely-new contacts for the weekly NETWORKING_LIST Sprint
   // credit. Nullable so pre-migration rows are unaffected — Postgres treats
   // each NULL as distinct in a unique index, so legacy rows never collide.
-  normalizedKey    String?
+  normalizedKey       String?
+  // NextChapter admin's own outreach tracking for recruiters/coaches/hiring
+  // managers surfaced through candidates' networks — a business-development
+  // lead list, entirely separate from the candidate's own relationship to
+  // this person. Defaults NOT_REVIEWED for every contact, not just tagged
+  // ones, so the admin list's "reviewed" count means something.
+  adminOutreachStatus ContactAdminOutreachStatus @default(NOT_REVIEWED)
+  adminNotes          String?
 
   outreachLogs   OutreachLog[]
   // Jobs this contact has been manually flagged as able to help with
