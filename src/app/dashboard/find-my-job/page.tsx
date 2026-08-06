@@ -12,7 +12,6 @@ import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
 import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
-import { JobReactionSummary } from '@/components/dashboard/JobReactionSummary'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
@@ -51,6 +50,18 @@ import { getMondayOfWeek } from '@/lib/weekly/sprint'
 export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
 
 const SURFACED_JOB_LIST_SIZE = 5
+// Free candidates only ever see the first 3 automated-search-partner
+// matches — the rest count toward the same "opportunities waiting" total
+// the hamburger nav badge shows, but stay locked until an A grade.
+const SURFACED_JOB_FREE_PREVIEW = 3
+// Keeps the unreacted queue from silently ballooning: surfaceNewJobs used to
+// fetch a fresh batch of up to 10 every time the queue dropped below
+// SURFACED_JOB_LIST_SIZE, regardless of how close to that ceiling it already
+// was — so a candidate who reacted to just one match could see the total
+// jump from 4 to 14. Topping up only the shortfall to this fixed pool size
+// keeps the number bounded and keeps the nav badge and this page's own
+// count from ever drifting apart.
+const SURFACED_JOB_POOL_TARGET = 10
 // The locked A-List teaser board can have dozens of approved postings once
 // a candidate isn't A-List — showing all of them as individual dashed cards
 // is noise, not information. A few examples plus a summary line makes the
@@ -97,11 +108,11 @@ export default async function JobFitPage() {
   const unreactedCount = await prisma.surfacedJob.count({
     where: { candidateId: profile.id, reaction: null },
   })
-  if (unreactedCount < SURFACED_JOB_LIST_SIZE) {
-    await surfaceNewJobs(profile.id)
+  if (unreactedCount < SURFACED_JOB_POOL_TARGET) {
+    await surfaceNewJobs(profile.id, SURFACED_JOB_POOL_TARGET - unreactedCount)
   }
 
-  const [surfacedJobs, totalUnreactedCount, interestedJobs, reactedCount, grade, boardPostings] = await Promise.all([
+  const [surfacedJobs, totalUnreactedCount, interestedJobs, grade, boardPostings] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -116,9 +127,6 @@ export default async function JobFitPage() {
       where: { candidateId: profile.id, reaction: 'INTERESTED' },
       orderBy: { reactedAt: 'desc' },
     }),
-    prisma.surfacedJob.count({
-      where: { candidateId: profile.id, reaction: { not: null } },
-    }),
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
     prisma.exclusiveJobPosting.findMany({
       where: {
@@ -132,6 +140,12 @@ export default async function JobFitPage() {
   ])
 
   const isAList = grade.grade === 'A'
+  // Free candidates only ever see the first SURFACED_JOB_FREE_PREVIEW
+  // matches — the rest stay locked until an A grade, folded into the same
+  // unlock count as the locked job-board postings below so there's one
+  // combined "unlock at an A grade" number for the whole Discover list.
+  const visibleSurfacedJobs = isAList ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
+  const lockedSurfacedCount = isAList ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
   // Needs isAList to decide which A_LIST_ONLY postings this candidate can
   // actually open — can't join the barrier above since grade isn't known
   // until it resolves.
@@ -168,8 +182,6 @@ export default async function JobFitPage() {
     if (p.distribution !== 'TARGETED') return true
     return computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)) !== 'stretch'
   })
-
-  const ratedCount = profile.jobPostings.length + reactedCount
 
   // Every posting with appliedAt set is "My Applications", regardless of
   // whether it was pasted in manually or auto-detected from email.
@@ -299,7 +311,7 @@ export default async function JobFitPage() {
         <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
 
         {profile.jobPostings.length > 0 && (
-          <div className="space-y-4">
+          <div className="divide-y divide-border rounded-lg border border-border">
             {profile.jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)
 
@@ -324,19 +336,33 @@ export default async function JobFitPage() {
                     )
                   : null
                 return (
-                  <Card key={posting.id}>
-                    <CardContent className="space-y-3 pt-6">
+                  <details key={posting.id}>
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                      <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="text-sm font-medium text-foreground">
+                          {posting.companyName ?? 'Unknown company'}
+                        </span>
+                        {posting.title && (
+                          <span className="text-sm text-muted-foreground">— {posting.title}</span>
+                        )}
+                        {fitBucket && (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            {FIT_BUCKET_LABEL[fitBucket]}
+                          </span>
+                        )}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {status} · {posting.appliedAt?.toLocaleDateString()}
+                      </span>
+                    </summary>
+                    <div className="space-y-3 px-4 pb-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-0.5">
-                          <p className="text-sm font-medium text-foreground">
-                            {posting.companyName ?? 'Unknown company'}
-                            {openRoles > 0 && (
-                              <span className="ml-1.5 font-normal text-muted-foreground">
-                                · {openRoles} open role{openRoles === 1 ? '' : 's'} in our job board
-                              </span>
-                            )}
-                          </p>
-                          {posting.title && <p className="text-sm text-foreground">{posting.title}</p>}
+                          {openRoles > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              {openRoles} open role{openRoles === 1 ? '' : 's'} in our job board
+                            </p>
+                          )}
                           {posting.url && (
                             <a
                               href={posting.url}
@@ -347,14 +373,7 @@ export default async function JobFitPage() {
                               {posting.url}
                             </a>
                           )}
-                          <p className="text-xs text-muted-foreground">
-                            {status} · {posting.appliedAt?.toLocaleDateString()} · Detected from email
-                          </p>
-                          {fitBucket && (
-                            <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                              {FIT_BUCKET_LABEL[fitBucket]}
-                            </span>
-                          )}
+                          <p className="text-xs text-muted-foreground">Detected from email</p>
                         </div>
                         <form action={deleteJobPosting.bind(null, posting.id)}>
                           <SubmitButton variant="ghost" size="sm">
@@ -421,14 +440,37 @@ export default async function JobFitPage() {
                           </SubmitButton>
                         </form>
                       </details>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </details>
                 )
               }
 
               return (
-              <Card key={posting.id}>
-                <CardContent className="space-y-3 pt-6">
+              <details key={posting.id}>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {posting.title || posting.companyName || posting.url}
+                    </span>
+                    {posting.fitScore !== null && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                        Fit: {scoreToGrade(posting.fitScore)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {posting.declinedAt
+                      ? 'Declined'
+                      : posting.offerReceivedAt
+                        ? 'Offer received'
+                        : posting.interviewLandedAt
+                          ? 'Interview'
+                          : posting.appliedAt
+                            ? 'Applied'
+                            : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
+                  </span>
+                </summary>
+                <div className="space-y-3 px-4 pb-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <a
@@ -688,8 +730,8 @@ export default async function JobFitPage() {
                       )}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </details>
               )
             })}
           </div>
@@ -713,10 +755,10 @@ export default async function JobFitPage() {
 
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">Discover</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Real openings from our job board, plus roles our automated search partners
-            found for you — no grade required to see these.
+            Real openings from our job board, plus roles our automated search partners found for
+            you — one combined list below. Some of these unlock once you reach an A grade.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             The search-partner roles update automatically based on your target role, location, and
@@ -724,46 +766,44 @@ export default async function JobFitPage() {
           </p>
         </div>
 
-        {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+        {visibleBoardPostings.length === 0 &&
+        lockedBoardPostings.length === 0 &&
+        surfacedJobs.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No jobs surfaced yet — set a target role in your Goals to get started.
           </p>
         ) : (
-          <div className="space-y-5">
-            {visibleBoardPostings.length > 0 && (
-              <div className="space-y-3">
-                {visibleBoardPostings.map((posting) => (
-                  <DiscoverJobCard
-                    key={posting.id}
-                    posting={posting}
-                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-                  />
-                ))}
-              </div>
-            )}
-
+          <div className="space-y-3">
             {surfacedJobs.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-medium text-muted-foreground">
-                  {totalUnreactedCount} new match{totalUnreactedCount === 1 ? '' : 'es'} from your
-                  automated search partners
-                  {totalUnreactedCount > surfacedJobs.length && ` — showing the latest ${surfacedJobs.length}`}
-                </p>
-                {surfacedJobs.map((job) => (
-                  <NextSurfacedJobCard
-                    key={job.id}
-                    job={job}
-                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                  />
-                ))}
-              </div>
+              <p className="text-xs font-medium text-muted-foreground">
+                {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
+                automated search partners
+                {totalUnreactedCount > visibleSurfacedJobs.length &&
+                  ` — showing ${visibleSurfacedJobs.length} below`}
+              </p>
             )}
 
-            {lockedBoardPostings.length > 0 && (
-              <div className="space-y-3">
+            {visibleBoardPostings.map((posting) => (
+              <DiscoverJobCard
+                key={posting.id}
+                posting={posting}
+                fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+              />
+            ))}
+
+            {visibleSurfacedJobs.map((job) => (
+              <NextSurfacedJobCard
+                key={job.id}
+                job={job}
+                fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+              />
+            ))}
+
+            {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
+              <>
                 <UnlockAListCallout
                   grade={grade.grade}
-                  lockedCount={lockedBoardPostings.length}
+                  lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
                   weeklySprintsCount={profile._count.weeklySprints}
                   engines={grade.weeklyEngines}
                   laggingEngines={grade.laggingEngines}
@@ -771,19 +811,21 @@ export default async function JobFitPage() {
                 {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
                   <LockedDiscoverJobCard key={posting.id} posting={posting} />
                 ))}
-                {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT && (
+                {(lockedBoardPostings.length > LOCKED_PREVIEW_COUNT || lockedSurfacedCount > 0) && (
                   <p className="text-sm text-muted-foreground">
-                    +{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT} more A-List-exclusive
-                    opportunit{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT === 1 ? 'y' : 'ies'} unlock
-                    at an A grade.
+                    {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT &&
+                      `+${lockedBoardPostings.length - LOCKED_PREVIEW_COUNT} more from our job board`}
+                    {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT && lockedSurfacedCount > 0 && ' and '}
+                    {lockedSurfacedCount > 0 &&
+                      `${lockedSurfacedCount} more match${lockedSurfacedCount === 1 ? '' : 'es'} from your search partners`}
+                    {' '}unlock at an A grade.
                   </p>
                 )}
-              </div>
+              </>
             )}
           </div>
         )}
 
-        <JobReactionSummary ratedCount={ratedCount} />
         <InterestedJobsList jobs={interestedJobs} />
       </div>
 
@@ -791,9 +833,10 @@ export default async function JobFitPage() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Company Tracker</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Name the 15–30 companies you&apos;d actually want to work for and watch for openings
-            there, instead of only reacting to what&apos;s already posted — the same account-based
-            approach executive search firms use.
+            Name companies you&apos;d actually want to work for and watch for openings there,
+            instead of only reacting to what&apos;s already posted. Adding companies also helps us
+            tailor recommendations and train our matching system to understand what you&apos;re
+            looking for.
           </p>
         </div>
 

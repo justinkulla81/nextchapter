@@ -173,6 +173,59 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.jobSearchPatternSummary && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">What&apos;s My Pattern</p>
+          <p className="mt-2 text-sm text-foreground">{notes.jobSearchPatternSummary}</p>
+        </div>
+      )}
+
+      {notes.watchedCompanies.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Companies they&apos;re tracking</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {notes.watchedCompanies.map((name, i) => (
+              <span key={i} className="rounded-full border border-border px-2.5 py-0.5 text-xs text-foreground">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {notes.appliedJobs.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Companies and roles they&apos;ve applied to</p>
+          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-sm">
+            {notes.appliedJobs.map((j, i) => (
+              <li key={i} className="flex items-center justify-between gap-2 text-foreground">
+                <span className="truncate">
+                  {j.title ?? 'Unknown title'}
+                  {j.companyName ? ` — ${j.companyName}` : ''}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {j.appliedAt.toLocaleDateString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {notes.interestedJobs.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Jobs they marked Interested</p>
+          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-sm">
+            {notes.interestedJobs.map((j, i) => (
+              <li key={i} className="text-foreground">
+                {j.title}
+                {j.companyName ? ` — ${j.companyName}` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {notes.jobFitHistory.length > 0 && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">Full Job Fit reaction history</p>

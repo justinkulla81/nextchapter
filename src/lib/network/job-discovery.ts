@@ -8,7 +8,11 @@ import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 
 const SURFACE_LIMIT = 10
-export const MIN_REACTIONS_FOR_SUMMARY = 3
+// Same gate for both "is there enough signal to write a real pattern" and
+// "is there enough signal to unlock the Dossier's pattern section" — see
+// isDossierComplete in dossier-sections.ts, which mirrors this threshold
+// with its own cheap existence check rather than calling generateJobPattern.
+export const MIN_SIGNALS_FOR_PATTERN = 5
 
 // A vague/no-direction targetRoleType (e.g. "flexible", "open") makes for a
 // generic Adzuna text query that surfaces irrelevant gig-economy noise (e.g.
@@ -37,31 +41,31 @@ function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; targe
 // capped at its 200 free calls/month), then Adzuna last — Adzuna has the
 // broadest coverage but the least reliably relevant listings of the three,
 // so it only fills whatever gap the first two didn't.
-export async function surfaceNewJobs(candidateId: string): Promise<number> {
+export async function surfaceNewJobs(candidateId: string, limit: number = SURFACE_LIMIT): Promise<number> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
   const query = buildSearchQuery(candidate)
   if (!query) return 0
 
-  let listings: AdzunaListing[] = await searchAtsJobs(query, SURFACE_LIMIT, candidateId, {
+  let listings: AdzunaListing[] = await searchAtsJobs(query, limit, candidateId, {
     primaryFunction: candidate.primaryFunction,
     secondaryFunction: candidate.secondaryFunction,
   })
 
-  if (listings.length < SURFACE_LIMIT) {
+  if (listings.length < limit) {
     const jsearchListings = await searchJSearchJobs(
       query,
       candidate.currentCity,
-      SURFACE_LIMIT - listings.length
+      limit - listings.length
     )
     listings = [...listings, ...jsearchListings]
   }
 
-  if (listings.length < SURFACE_LIMIT) {
+  if (listings.length < limit) {
     const whatOr = buildSupplementaryKeywords(candidate)
     const adzunaListings = await searchAdzunaJobListings(
       query,
       candidate.currentCity,
-      SURFACE_LIMIT - listings.length,
+      limit - listings.length,
       { whatOr: whatOr.length > 0 ? whatOr : undefined, salaryMin: candidate.targetCompMin ?? undefined }
     )
     listings = [...listings, ...adzunaListings]
@@ -94,25 +98,54 @@ export async function surfaceNewJobs(candidateId: string): Promise<number> {
   return newListings.length
 }
 
-export async function generateReactionSummary(candidateId: string): Promise<string | null> {
-  const reactedJobs = await prisma.surfacedJob.findMany({
-    where: { candidateId, reaction: { not: null } },
-    orderBy: { reactedAt: 'desc' },
-    take: 30,
-  })
-  if (reactedJobs.length < MIN_REACTIONS_FOR_SUMMARY) return null
+export interface JobPatternResult {
+  summary: string | null
+  signalCount: number
+}
 
-  const summary = reactedJobs
-    .map((j) => `"${j.title}"${j.companyName ? ` at ${j.companyName}` : ''}: ${j.reaction}${j.reactionReason ? ` (${j.reactionReason})` : ''}`)
-    .join('\n')
+// "What's My Pattern" — reads both halves of a candidate's job activity,
+// not just the automated search-partner matches they've swiped on: jobs
+// they added and applied to themselves carry just as much signal about
+// what they actually want, and were being silently ignored before this.
+export async function generateJobPattern(candidateId: string): Promise<JobPatternResult> {
+  const [reactedJobs, jobPostings] = await Promise.all([
+    prisma.surfacedJob.findMany({
+      where: { candidateId, reaction: { not: null } },
+      orderBy: { reactedAt: 'desc' },
+      take: 30,
+    }),
+    prisma.jobPosting.findMany({
+      where: { candidateId, OR: [{ appliedAt: { not: null } }, { fitScore: { not: null } }] },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+    }),
+  ])
+
+  const signalCount = reactedJobs.length + jobPostings.length
+  if (signalCount < MIN_SIGNALS_FOR_PATTERN) return { summary: null, signalCount }
+
+  const lines = [
+    ...reactedJobs.map(
+      (j) =>
+        `"${j.title}"${j.companyName ? ` at ${j.companyName}` : ''}: ${j.reaction}${j.reactionReason ? ` (${j.reactionReason})` : ''}`
+    ),
+    ...jobPostings.map((p) => {
+      const title = p.title ?? 'an unnamed role'
+      const company = p.companyName ? ` at ${p.companyName}` : ''
+      const action = p.appliedAt ? 'applied' : 'reviewed for fit'
+      const fit = p.fitScore !== null ? `, fit score ${p.fitScore}/100` : ''
+      return `"${title}"${company}: ${action}${fit}`
+    }),
+  ]
+  const summaryInput = lines.join('\n')
 
   const prompt = `${VICTORIA_VOICE_PROMPT}
 
-Here are this candidate's reactions to jobs surfaced to them, most recent first:
+Here is this candidate's job search activity — reactions to jobs surfaced to them, plus jobs they added and applied to themselves, most recent first:
 
-${summary}
+${summaryInput}
 
-Write 2-4 sentences identifying the real pattern in what they're rejecting vs. showing interest in, and one concrete, specific recommendation for adjusting their target based on it. Reference actual reasons/roles from the data above — never invent a pattern that isn't there. If there's genuinely no clear pattern yet, say so honestly instead of forcing one.`
+Write 2-4 sentences identifying the real pattern in what they're rejecting vs. showing interest in vs. actually applying to, and one concrete, specific recommendation for adjusting their target based on it. Reference actual reasons/roles/companies from the data above — never invent a pattern that isn't there. If there's genuinely no clear pattern yet, say so honestly instead of forcing one.`
 
   try {
     const client = getAnthropicClient()
@@ -127,9 +160,9 @@ Write 2-4 sentences identifying the real pattern in what they're rejecting vs. s
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
       .join('')
-    return text || null
+    return { summary: text || null, signalCount }
   } catch (error) {
-    console.error('Failed to generate job-reaction pattern summary for candidate', candidateId, error)
-    return null
+    console.error('Failed to generate job-search pattern summary for candidate', candidateId, error)
+    return { summary: null, signalCount }
   }
 }

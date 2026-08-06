@@ -12,7 +12,7 @@ import { generateInterviewPrep } from '@/lib/jobs/generate-interview-prep'
 import { generateNegotiationAdvice } from '@/lib/jobs/generate-negotiation-advice'
 import { evaluateCounterOffer, type CounterOfferEvaluation } from '@/lib/negotiation/evaluate-counter-offer'
 import { generateCoverLetter } from '@/lib/reports/cover-letter'
-import { surfaceNewJobs, generateReactionSummary } from '@/lib/network/job-discovery'
+import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -499,20 +499,6 @@ export async function reactToSurfacedJob(
   })
   captureServerEvent(profile.id, 'job_rated', { jobId, source: 'suggested', reaction })
   revalidatePath('/dashboard/find-my-job')
-}
-
-export type SummaryFormState = { summary?: string; error?: string } | undefined
-
-export async function getReactionSummaryAction(_prevState: SummaryFormState): Promise<SummaryFormState> {
-  const profile = await getAuthedProfile()
-  if (!profile) return { error: 'You need to be logged in to do this.' }
-
-  const summary = await generateReactionSummary(profile.id)
-  if (!summary) {
-    return { error: 'React to a few more jobs first — I need at least 3 reactions to spot a real pattern.' }
-  }
-  captureServerEvent(profile.id, 'pattern_unlocked')
-  return { summary }
 }
 
 // A candidate marking a surfaced job "Interested" wants to move on it —

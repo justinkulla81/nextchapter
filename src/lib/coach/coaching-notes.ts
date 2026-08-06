@@ -33,6 +33,12 @@ export interface JobFitHistoryEntry {
   reactedAt: Date | null
 }
 
+export interface AppliedJobEntry {
+  title: string | null
+  companyName: string | null
+  appliedAt: Date
+}
+
 // Coach-only data (Prompt 54) — deliberately broader than anything the
 // external Executive Dossier ever shows (financial pressure, raw
 // compensation, unfiltered Gap Analysis, sentiment). Never rendered
@@ -79,6 +85,22 @@ export interface CoachingNotes {
   selfAwarenessFlags: SelfAwarenessFlag[]
   financialPressureContext: string | null
   jobFitHistory: JobFitHistoryEntry[]
+  // Jobs the candidate reacted "Interested" to — a callout of the more
+  // notable subset of jobFitHistory above, so a coach/recruiter doesn't
+  // have to scan the full reaction list to see what caught their eye.
+  interestedJobs: JobFitHistoryEntry[]
+  // Companies the candidate applied to directly (manual fit-check flow or
+  // detected from a confirmation email) — names and roles a recruiter
+  // should know the candidate is actively pursuing.
+  appliedJobs: AppliedJobEntry[]
+  // Company Tracker watchlist — companies the candidate named as places
+  // they'd want to work, regardless of whether we have an open role there.
+  watchedCompanies: string[]
+  // What's My Pattern, read from the most recent Market Reality Report
+  // (already generated there) rather than re-run here — this view can be
+  // opened often and shouldn't trigger its own LLM call. Null until a
+  // report has been generated, or until the candidate has enough signal.
+  jobSearchPatternSummary: string | null
   // Prompt 60 — the candidate's Coaching Onboarding Form answers, once
   // submitted. Null until they've completed it.
   coachingOnboardingAnswers: CoachingOnboardingAnswerDisplay[] | null
@@ -89,7 +111,7 @@ export interface CoachingNotes {
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -119,7 +141,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     prisma.hireabilityReport.findFirst({
       where: { candidateId },
       orderBy: { generatedAt: 'desc' },
-      select: { gapAnalysis: true },
+      select: { gapAnalysis: true, jobSearchPattern: true },
     }),
     prisma.surfacedJob.findMany({
       where: { candidateId, reaction: { not: null } },
@@ -130,6 +152,16 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     getCoachingOnboardingAnswersForDisplay(candidateId),
     getSelfAwarenessFlags(candidateId),
     getVisibilityCalibration(candidateId),
+    prisma.jobPosting.findMany({
+      where: { candidateId, appliedAt: { not: null } },
+      orderBy: { appliedAt: 'desc' },
+      select: { title: true, companyName: true, appliedAt: true },
+    }),
+    prisma.companyWatchlistEntry.findMany({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      select: { companyName: true },
+    }),
   ])
 
   return {
@@ -161,6 +193,14 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
             .join(', ')
         : null,
     jobFitHistory: surfacedJobs,
+    interestedJobs: surfacedJobs.filter((j) => j.reaction === 'INTERESTED'),
+    // appliedAt is guaranteed non-null by the query's where filter above —
+    // Prisma's generated type doesn't narrow on that, so assert it here.
+    appliedJobs: appliedJobs.map((j) => ({ ...j, appliedAt: j.appliedAt! })),
+    watchedCompanies: watchlistEntries.map((e) => e.companyName),
+    jobSearchPatternSummary: latestReport
+      ? ((latestReport.jobSearchPattern as unknown as { summary: string | null } | null)?.summary ?? null)
+      : null,
     coachingOnboardingAnswers,
     visibilityCalibration,
   }

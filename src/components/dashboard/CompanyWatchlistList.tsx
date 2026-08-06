@@ -56,7 +56,9 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
               >
                 <span className="text-sm font-medium text-foreground">{entry.companyName}</span>
                 <span className="text-sm text-muted-foreground">
-                  {openCount > 0 ? `${openCount} open in our system` : 'None open in our system'}
+                  {openCount > 0
+                    ? `${openCount} job${openCount === 1 ? '' : 's'} from ${entry.companyName} recommended for you`
+                    : `0 new jobs from ${entry.companyName} recommended for you at this time`}
                   {entry.lockedCount > 0 &&
                     ` (+${entry.lockedCount} A-List only)`}
                 </span>

@@ -15,7 +15,7 @@ import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
-import { generateReactionSummary, MIN_REACTIONS_FOR_SUMMARY } from '@/lib/network/job-discovery'
+import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { isInternshipRole } from '@/lib/resume/work-history-facts'
 
 // The Executive Dossier's dynamic sections (Prompt 47) — everything beyond
@@ -433,10 +433,11 @@ async function getCachedGenerations(
     return { proofPoints: parsed.proofPoints, patternSummary: parsed.patternSummary ?? null }
   }
 
-  const [patternSummary, proofPoints] = await Promise.all([
-    generateReactionSummary(candidateId),
+  const [pattern, proofPoints] = await Promise.all([
+    generateJobPattern(candidateId),
     getProofPoints(candidateId),
   ])
+  const patternSummary = pattern.summary
 
   // Cache-write failure must never take the page down — the generated
   // content is already in hand, it just costs again next view.
@@ -595,6 +596,7 @@ export async function isDossierComplete(candidateId: string): Promise<boolean> {
     selfAwareness,
     learningGrowth,
     reactedJobCount,
+    appliedOrReviewedJobCount,
     starResponses,
   ] = await Promise.all([
     getHowIOperate(candidateId, candidate.topStrengths),
@@ -607,6 +609,9 @@ export async function isDossierComplete(candidateId: string): Promise<boolean> {
     getSelfAwareness(candidateId),
     getLearningGrowth(candidateId),
     prisma.surfacedJob.count({ where: { candidateId, reaction: { not: null } } }),
+    prisma.jobPosting.count({
+      where: { candidateId, OR: [{ appliedAt: { not: null } }, { fitScore: { not: null } }] },
+    }),
     prisma.interviewResponse.findMany({
       where: { candidateId, responseType: 'text', responseText: { not: null } },
       select: { feedback: true },
@@ -624,7 +629,7 @@ export async function isDossierComplete(candidateId: string): Promise<boolean> {
     (impactQuoteCount > 0 || Boolean(communityTierNarrative(peerSupportCount))) &&
     selfAwareness.growthEdges.length > 0 &&
     learningGrowth.items.length > 0 &&
-    reactedJobCount >= MIN_REACTIONS_FOR_SUMMARY &&
+    reactedJobCount + appliedOrReviewedJobCount >= MIN_SIGNALS_FOR_PATTERN &&
     hasStarResponse
   )
 }

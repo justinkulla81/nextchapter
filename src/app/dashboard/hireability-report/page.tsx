@@ -55,6 +55,12 @@ interface MarketConditions {
   narrative: string[]
 }
 
+interface JobSearchPatternData {
+  summary: string | null
+  signalCount: number
+  minRequired: number
+}
+
 interface HillToClimb {
   tone: 'very_positive' | 'positive_with_work' | 'significant_climb'
   narrative: string[]
@@ -443,6 +449,30 @@ export default async function HireabilityReportPage() {
                   <li key={i}>{point}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* What's My Pattern — reactions to surfaced matches plus jobs
+              added and applied to directly, read together. */}
+          {report.jobSearchPattern !== null && (
+            <div className="mt-10 border-t border-border pt-8">
+              <SectionHeading>What&apos;s My Pattern</SectionHeading>
+              {(report.jobSearchPattern as unknown as JobSearchPatternData).summary ? (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {(report.jobSearchPattern as unknown as JobSearchPatternData).summary}
+                </p>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Not enough signal yet to spot a real pattern. Apply to companies and review the
+                  jobs we tailor for you on the{' '}
+                  <Link href="/dashboard/find-my-job" className="text-primary underline underline-offset-4">
+                    Jobs
+                  </Link>{' '}
+                  page — reviewing{' '}
+                  {(report.jobSearchPattern as unknown as JobSearchPatternData).minRequired} or more
+                  helps us train Victoria to get to know what you&apos;re really looking for.
+                </p>
+              )}
             </div>
           )}
         </div>

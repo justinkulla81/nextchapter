@@ -1652,6 +1652,10 @@ model HireabilityReport {
   gapAnalysis      Json // {targetRole, gaps: [{area, why, remediation, remediationType}]}
   marketConditions Json? // {narrative: string[], adzunaCount, blsYoyChangePct, ...} | null when unavailable
   hillToClimb      Json? // {tone: 'very_positive'|'positive_with_work'|'significant_climb', narrative: string[]}
+  // {summary: string|null, signalCount, minRequired} — What's My Pattern,
+  // generated from SurfacedJob reactions + applied/reviewed JobPostings.
+  // summary is null (locked state) when signalCount < minRequired.
+  jobSearchPattern Json?
 
   // Snapshot of the new dual-grade breakdown (HireabilityGrade shape from
   // hireability-grade.ts) at generation time, same reasoning as the score
