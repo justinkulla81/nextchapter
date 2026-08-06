@@ -378,6 +378,49 @@ export async function markDeclined(jobPostingId: string) {
   revalidatePath('/dashboard/find-my-job')
 }
 
+// Manually flags a contact as someone who can help with this specific
+// application ("who can help me get this job") — separate from the
+// automatic company-name backchannel match in src/lib/network/backchannel.ts,
+// which is computed on the fly and never stored per-job.
+export async function linkContactToJob(jobPostingId: string, contactId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const [jobPosting, contact] = await Promise.all([
+    prisma.jobPosting.findFirst({ where: { id: jobPostingId, candidateId: profile.id } }),
+    prisma.supportNetworkContact.findFirst({ where: { id: contactId, candidateId: profile.id } }),
+  ])
+  if (!jobPosting || !contact) return
+
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: { helpfulContacts: { connect: { id: contactId } } },
+  })
+  revalidatePath('/dashboard/find-my-job')
+}
+
+export async function unlinkContactFromJob(jobPostingId: string, contactId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const jobPosting = await prisma.jobPosting.findFirst({ where: { id: jobPostingId, candidateId: profile.id } })
+  if (!jobPosting) return
+
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: { helpfulContacts: { disconnect: { id: contactId } } },
+  })
+  revalidatePath('/dashboard/find-my-job')
+}
+
 // Lets a candidate fill in the title/link on an application NextChapter
 // only has a company name for (mainly EMAIL_DETECTED rows — a confirmation
 // subject rarely names the role). Purely a private annotation on their own

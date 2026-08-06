@@ -18,6 +18,7 @@ import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
+import { WhoCanHelpSection } from '@/components/dashboard/WhoCanHelpSection'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -47,7 +48,7 @@ import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
-import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 
 export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
@@ -177,6 +178,37 @@ export default async function JobFitPage() {
   )
   const companySizeBandFor = (companyName: string | null) =>
     companyName ? (companySizeBandByName.get(normalizeOrgName(companyName)) ?? null) : null
+
+  // "Who can help with this one?" — contacts already manually linked to a
+  // specific application, plus company-matched suggestions from the
+  // candidate's own network list they haven't linked yet.
+  const [contacts, jobsWithHelpfulContacts] = await Promise.all([
+    prisma.supportNetworkContact.findMany({
+      where: { candidateId: profile.id, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
+      select: { id: true, name: true, company: true, inferredCompany: true },
+    }),
+    prisma.jobPosting.findMany({
+      where: { candidateId: profile.id },
+      select: { id: true, helpfulContacts: { select: { id: true, name: true } } },
+    }),
+  ])
+  const helpfulContactsByJobId = new Map(jobsWithHelpfulContacts.map((j) => [j.id, j.helpfulContacts]))
+  const MAX_SUGGESTED_HELP_CONTACTS = 5
+  const whoCanHelpFor = (jobId: string, companyName: string | null) => {
+    const linkedContacts = helpfulContactsByJobId.get(jobId) ?? []
+    if (!companyName) return { linkedContacts, suggestedContacts: [] }
+    const linkedIds = new Set(linkedContacts.map((c) => c.id))
+    const suggestedContacts = contacts
+      .filter(
+        (c) =>
+          !linkedIds.has(c.id) &&
+          ((c.company && orgNamesMatch(c.company, companyName)) ||
+            (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName)))
+      )
+      .slice(0, MAX_SUGGESTED_HELP_CONTACTS)
+      .map((c) => ({ id: c.id, name: c.name }))
+    return { linkedContacts, suggestedContacts }
+  }
 
   // A Targeted listing is only shown to candidates who actually fit it —
   // an Open one is shown to everyone regardless of fit (the bucket badge
@@ -442,6 +474,7 @@ export default async function JobFitPage() {
                           </SubmitButton>
                         </form>
                       </details>
+                      <WhoCanHelpSection {...whoCanHelpFor(posting.id, posting.companyName)} jobId={posting.id} />
                     </div>
                   </details>
                 )
@@ -508,6 +541,8 @@ export default async function JobFitPage() {
                       </form>
                     </div>
                   </div>
+
+                  <WhoCanHelpSection {...whoCanHelpFor(posting.id, posting.companyName)} jobId={posting.id} />
 
                   {posting.fetchError && (
                     <p className="text-sm text-destructive">{posting.fetchError}</p>

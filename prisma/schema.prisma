@@ -185,6 +185,7 @@ enum ContactSource {
   MANUAL
   CSV_IMPORT
   CALENDAR_IMPORT
+  EMAIL_DETECTED
 }
 
 // Who this person is to the candidate — deliberately separate from
@@ -1583,6 +1584,11 @@ model JobPosting {
 
   createdAt DateTime @default(now())
 
+  // Contacts the candidate has manually flagged as able to help with this
+  // specific application — e.g. someone to backchannel to, distinct from
+  // the automatic company-name match in src/lib/network/backchannel.ts.
+  helpfulContacts SupportNetworkContact[] @relation("JobPostingHelpfulContacts")
+
   @@index([candidateId, createdAt])
 }
 
@@ -2173,7 +2179,12 @@ model SupportNetworkContact {
   // each NULL as distinct in a unique index, so legacy rows never collide.
   normalizedKey    String?
 
-  outreachLogs OutreachLog[]
+  outreachLogs   OutreachLog[]
+  // Jobs this contact has been manually flagged as able to help with
+  // ("who can help me get this job") — separate from the automatic
+  // company-name backchannel match, which is computed on the fly rather
+  // than stored.
+  helpfulForJobs JobPosting[]  @relation("JobPostingHelpfulContacts")
 
   @@unique([candidateId, normalizedKey])
   @@index([candidateId])

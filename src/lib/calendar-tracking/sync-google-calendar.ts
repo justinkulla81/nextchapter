@@ -6,9 +6,7 @@ import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { orgNamesMatch } from '@/lib/text/org-name-match'
-import { inferOrgFromEmailDomain } from '@/lib/text/email-domain'
-import { normalizeContactKey } from '@/lib/network/csv-import'
+import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
 import type { CalendarConnection } from '@prisma/client'
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
@@ -115,43 +113,13 @@ async function addAttendeesToNetwork(
   for (const attendee of others) {
     const email = attendee.email!.toLowerCase()
     const name = attendee.displayName?.trim() || email.split('@')[0]
-    const { inferredCompany, inferredSchool } = inferOrgFromEmailDomain(email)
-    const isFormerColleague = inferredCompany
-      ? workHistoryCompanies.some((company) => orgNamesMatch(company, inferredCompany))
-      : false
-
-    const existing = await prisma.supportNetworkContact.findFirst({ where: { candidateId, email } })
-
-    if (existing) {
-      const relationshipTags = new Set(existing.relationshipTags)
-      if (isFormerColleague) relationshipTags.add('FORMER_COLLEAGUE')
-      await prisma.supportNetworkContact.update({
-        where: { id: existing.id },
-        data: {
-          inferredCompany: existing.inferredCompany ?? inferredCompany,
-          inferredSchool: existing.inferredSchool ?? inferredSchool,
-          relationshipTags: Array.from(relationshipTags),
-        },
-      })
-      continue
-    }
-
-    await prisma.supportNetworkContact
-      .create({
-        data: {
-          candidateId,
-          name,
-          email,
-          source: 'CALENDAR_IMPORT',
-          relationshipTags: isFormerColleague ? ['FORMER_COLLEAGUE'] : [],
-          inferredCompany,
-          inferredSchool,
-          normalizedKey: normalizeContactKey(name, inferredCompany),
-        },
-      })
-      // Race with another concurrent sync hitting the same unique key —
-      // the other write already added this contact, nothing left to do.
-      .catch((error) => console.error('Failed to add calendar attendee to network list:', error))
+    await upsertContactFromSignal(candidateId, {
+      email,
+      name,
+      source: 'CALENDAR_IMPORT',
+      isRecruiter: false,
+      workHistoryCompanies,
+    })
   }
 }
 

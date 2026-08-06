@@ -4,6 +4,8 @@ import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared } from './ats-patterns'
 import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
+import { extractEmailAddress, extractDisplayName } from './email-address'
+import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
 import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -135,13 +137,18 @@ const SENT_ACTION_TYPE_BY_ACTIVITY: Partial<Record<string, string>> = {
   NETWORKING_OUTREACH: 'OUTREACH_MESSAGE',
 }
 
+// Outbound categories that mean "I'm networking with this specific person" —
+// mirrors the set network/page.tsx uses for its own networking-email stat.
+const NETWORKING_EMAIL_TYPES = new Set(['THANK_YOU', 'FOLLOW_UP', 'CHECK_IN', 'INTRO_REQUEST', 'NETWORKING_OUTREACH'])
+
 type ProcessResult = 'synced' | 'skipped' | 'insufficient_scope'
 
 async function processMessage(
   connection: EmailConnection,
   accessToken: string,
   messageId: string,
-  direction: EmailDirection
+  direction: EmailDirection,
+  workHistoryCompanies: string[]
 ): Promise<ProcessResult> {
   const { message, insufficientScope } = await getFullMessage(accessToken, messageId)
   if (insufficientScope) return 'insufficient_scope'
@@ -188,6 +195,29 @@ async function processMessage(
       isRecruiterContact,
     },
   })
+
+  // Anyone the app already labels a recruiter or networking contact belongs
+  // in the candidate's network list too, not just visible as a tracked
+  // email row — same "don't guess" bar as the points below: only
+  // high-confidence classifications, so a NEEDS_REVIEW guess never creates
+  // a noise contact.
+  if (classification.confidence === 'high') {
+    const isRecruiterOutreach = direction === 'INBOUND' && classification.activityType === 'RECRUITER_OUTREACH'
+    const isNetworkingOutbound = direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.has(classification.activityType)
+    if (isRecruiterOutreach || isRecruiterContact || isNetworkingOutbound) {
+      const counterpartHeader = direction === 'INBOUND' ? from : to
+      const email = extractEmailAddress(counterpartHeader)
+      if (email.includes('@')) {
+        await upsertContactFromSignal(connection.candidateId, {
+          email,
+          name: extractDisplayName(counterpartHeader),
+          source: 'EMAIL_DETECTED',
+          isRecruiter: isRecruiterOutreach || isRecruiterContact,
+          workHistoryCompanies,
+        }).catch((error) => console.error('Failed to auto-add email contact to network list:', error))
+      }
+    }
+  }
 
   // Mirrors application confirmations/interview invites/rejections into the
   // candidate's My Applications list — see sync-job-postings.ts. Only for
@@ -279,6 +309,15 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   const newInboxIds = inboxIds.filter((id) => !existingIds.has(id))
   const newSentIds = sentIds.filter((id) => !existingIds.has(id))
 
+  // Fetched once per sync, not once per message — feeds the FORMER_COLLEAGUE
+  // auto-tag when an auto-added contact's email domain matches a past
+  // employer (same pattern as sync-google-calendar.ts).
+  const workHistory = await prisma.workHistoryEntry.findMany({
+    where: { candidateId: connection.candidateId },
+    select: { companyName: true },
+  })
+  const workHistoryCompanies = workHistory.map((w) => w.companyName)
+
   // Only genuinely new messages ever reach the Gmail API now. Kept
   // sequential (not Promise.all) on purpose: autoCompleteEngagementAction
   // does a read-modify-write on the sprint's committedActions JSON blob,
@@ -288,13 +327,13 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   let scopeInsufficient = false
   for (const id of newInboxIds) {
     if (scopeInsufficient) break
-    const result = await processMessage(connection, accessToken, id, 'INBOUND')
+    const result = await processMessage(connection, accessToken, id, 'INBOUND', workHistoryCompanies)
     if (result === 'insufficient_scope') scopeInsufficient = true
     else if (result === 'synced') synced++
   }
   for (const id of newSentIds) {
     if (scopeInsufficient) break
-    const result = await processMessage(connection, accessToken, id, 'OUTBOUND')
+    const result = await processMessage(connection, accessToken, id, 'OUTBOUND', workHistoryCompanies)
     if (result === 'insufficient_scope') scopeInsufficient = true
     else if (result === 'synced') synced++
   }

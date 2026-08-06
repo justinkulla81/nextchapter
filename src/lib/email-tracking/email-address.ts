@@ -10,3 +10,11 @@ export function extractDomain(header: string): string | null {
   const match = extractEmailAddress(header).match(/@([a-z0-9.-]+)$/i)
   return match ? match[1].toLowerCase() : null
 }
+
+// The bit before "<email>", quotes stripped — falls back to the address's
+// local-part when the header is a bare address with no display name.
+export function extractDisplayName(header: string): string {
+  const namePart = header.replace(/<[^>]+>/, '').trim().replace(/^["']|["']$/g, '')
+  if (namePart) return namePart
+  return extractEmailAddress(header).split('@')[0]
+}
