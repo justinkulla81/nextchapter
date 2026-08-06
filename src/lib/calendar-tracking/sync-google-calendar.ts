@@ -6,6 +6,9 @@ import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { orgNamesMatch } from '@/lib/text/org-name-match'
+import { inferOrgFromEmailDomain } from '@/lib/text/email-domain'
+import { normalizeContactKey } from '@/lib/network/csv-import'
 import type { CalendarConnection } from '@prisma/client'
 
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
@@ -15,6 +18,8 @@ const FIRST_SYNC_WINDOW_DAYS = 30 // first-ever sync is bounded, not full calend
 interface GoogleCalendarAttendee {
   self?: boolean
   responseStatus?: string
+  email?: string
+  displayName?: string
 }
 interface GoogleCalendarEvent {
   id: string
@@ -90,7 +95,71 @@ function eventActionLabel(eventType: string): string {
   return 'Had a networking call'
 }
 
-async function processEvent(connection: CalendarConnection, event: GoogleCalendarEvent): Promise<boolean> {
+// Only wired for NETWORKING_CALL/INTERVIEW at high confidence — a
+// misclassified NEEDS_REVIEW event would otherwise pollute the candidate's
+// network list with strangers from an ordinary team meeting.
+const ATTENDEE_IMPORT_EVENT_TYPES = new Set(['NETWORKING_CALL', 'INTERVIEW'])
+
+// Adds/enriches SupportNetworkContact rows for the other people on a
+// networking call or interview. Never overwrites a candidate-confirmed
+// `company` or existing relationshipTags — only fills gaps (inferred hints,
+// and adding FORMER_COLLEAGUE when the domain-guessed company matches a
+// past employer, which a candidate can always uncheck).
+async function addAttendeesToNetwork(
+  candidateId: string,
+  attendees: GoogleCalendarAttendee[],
+  workHistoryCompanies: string[]
+): Promise<void> {
+  const others = attendees.filter((a) => !a.self && a.email)
+
+  for (const attendee of others) {
+    const email = attendee.email!.toLowerCase()
+    const name = attendee.displayName?.trim() || email.split('@')[0]
+    const { inferredCompany, inferredSchool } = inferOrgFromEmailDomain(email)
+    const isFormerColleague = inferredCompany
+      ? workHistoryCompanies.some((company) => orgNamesMatch(company, inferredCompany))
+      : false
+
+    const existing = await prisma.supportNetworkContact.findFirst({ where: { candidateId, email } })
+
+    if (existing) {
+      const relationshipTags = new Set(existing.relationshipTags)
+      if (isFormerColleague) relationshipTags.add('FORMER_COLLEAGUE')
+      await prisma.supportNetworkContact.update({
+        where: { id: existing.id },
+        data: {
+          inferredCompany: existing.inferredCompany ?? inferredCompany,
+          inferredSchool: existing.inferredSchool ?? inferredSchool,
+          relationshipTags: Array.from(relationshipTags),
+        },
+      })
+      continue
+    }
+
+    await prisma.supportNetworkContact
+      .create({
+        data: {
+          candidateId,
+          name,
+          email,
+          source: 'CALENDAR_IMPORT',
+          relationshipTags: isFormerColleague ? ['FORMER_COLLEAGUE'] : [],
+          inferredCompany,
+          inferredSchool,
+          normalizedKey: normalizeContactKey(name, inferredCompany),
+        },
+      })
+      // Race with another concurrent sync hitting the same unique key —
+      // the other write already added this contact, nothing left to do.
+      .catch((error) => console.error('Failed to add calendar attendee to network list:', error))
+  }
+}
+
+async function processEvent(
+  connection: CalendarConnection,
+  event: GoogleCalendarEvent,
+  workHistoryCompanies: string[]
+): Promise<boolean> {
   if (event.status === 'cancelled') return false
   if (!event.start?.dateTime) return false // all-day events carry no real "meeting happened" signal
   if (candidateDeclined(event)) return false
@@ -150,6 +219,12 @@ async function processEvent(connection: CalendarConnection, event: GoogleCalenda
         estimatedMinutes: effort.minutes,
       }).catch((error) => console.error('Failed to auto-complete calendar-detected action:', error))
     }
+
+    if (ATTENDEE_IMPORT_EVENT_TYPES.has(classification.eventType) && event.attendees) {
+      await addAttendeesToNetwork(connection.candidateId, event.attendees, workHistoryCompanies).catch((error) =>
+        console.error('Failed to add calendar attendees to network list:', error)
+      )
+    }
   }
 
   captureServerEvent(connection.candidateId, 'calendar_event_detected', {
@@ -188,9 +263,18 @@ export async function syncGoogleCalendarConnection(connectionId: string): Promis
   const existingIds = new Set(existing.map((e) => e.externalEventId))
   const newEvents = events.filter((e) => !existingIds.has(e.id))
 
+  // Fetched once per sync, not once per event — feeds the FORMER_COLLEAGUE
+  // auto-tag when a networking-call/interview attendee's email domain
+  // matches a past employer.
+  const workHistory = await prisma.workHistoryEntry.findMany({
+    where: { candidateId: connection.candidateId },
+    select: { companyName: true },
+  })
+  const workHistoryCompanies = workHistory.map((w) => w.companyName)
+
   let synced = 0
   for (const event of newEvents) {
-    if (await processEvent(connection, event)) synced++
+    if (await processEvent(connection, event, workHistoryCompanies)) synced++
   }
 
   await prisma.calendarConnection.update({ where: { id: connection.id }, data: { lastSyncAt: new Date() } })

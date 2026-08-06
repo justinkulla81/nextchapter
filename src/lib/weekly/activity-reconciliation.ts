@@ -35,11 +35,11 @@ export async function getActivityReconciliation(candidateId: string): Promise<Ac
       select: { interviewsReceivedCount: true, networkingLevel: true },
     }),
     prisma.trackedCalendarEvent.findMany({
-      where: { candidateId },
+      where: { candidateId, dismissedAt: null },
       select: { eventType: true },
     }),
     prisma.trackedEmailActivity.findMany({
-      where: { candidateId },
+      where: { candidateId, dismissedAt: null },
       select: { activityType: true },
     }),
   ])

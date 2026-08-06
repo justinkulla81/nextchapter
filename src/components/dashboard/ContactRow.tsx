@@ -2,6 +2,7 @@ import type { SupportNetworkContact } from '@prisma/client'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { updateContact, deleteContact, logOutreach, logMarketResponse } from '@/app/dashboard/network/actions'
 import { getOutreachScript, type ScriptContext } from '@/lib/network/scripts'
+import { RelationshipTagsFieldset } from '@/components/dashboard/RelationshipTagsFieldset'
 import type { NetworkingAnxiety } from '@prisma/client'
 
 const CATEGORY_OPTIONS: { value: string; label: string }[] = [
@@ -45,7 +46,13 @@ export function ContactRow({
         </form>
       </div>
 
-      <form action={updateContact.bind(null, contact.id)} className="flex flex-wrap items-center gap-2">
+      <form action={updateContact.bind(null, contact.id)} className="flex flex-wrap items-start gap-2">
+        <RelationshipTagsFieldset
+          defaultTags={contact.relationshipTags}
+          defaultSchoolName={contact.schoolName}
+          inferredCompany={contact.inferredCompany}
+          inferredSchool={contact.inferredSchool}
+        />
         <select
           name="category"
           defaultValue={contact.category ?? ''}

@@ -8,6 +8,7 @@ import type {
   NetworkComfortLevel,
   OutreachChannel,
   MarketResponseType,
+  RelationshipTag,
 } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -105,10 +106,19 @@ export async function updateContact(contactId: string, formData: FormData) {
 
   const category = formData.get('category') as ContactCategory | null
   const warmth = formData.get('warmth') as ContactWarmth | null
+  const relationshipTags = formData.getAll('relationshipTags') as RelationshipTag[]
+  const schoolName = (formData.get('schoolName') as string | null)?.trim() || null
 
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
-    data: { category: category || undefined, warmth: warmth || undefined },
+    data: {
+      category: category || undefined,
+      warmth: warmth || undefined,
+      relationshipTags,
+      // Only stored when SAME_SCHOOL is actually selected — a stray value
+      // left over from an earlier save shouldn't linger once unchecked.
+      schoolName: relationshipTags.includes('SAME_SCHOOL') ? schoolName : null,
+    },
   })
   revalidatePath('/dashboard/network')
 }

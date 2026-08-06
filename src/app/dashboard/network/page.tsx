@@ -13,6 +13,7 @@ import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActionsCard'
+import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { ContactRow } from '@/components/dashboard/ContactRow'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
@@ -121,10 +122,16 @@ export default async function NetworkPage({
 
   const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
-      ? prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id }, orderBy: { detectedAt: 'desc' } })
+      ? prisma.trackedEmailActivity.findMany({
+          where: { candidateId: profile.id, dismissedAt: null },
+          orderBy: { detectedAt: 'desc' },
+        })
       : Promise.resolve([]),
     calendarConnection
-      ? prisma.trackedCalendarEvent.findMany({ where: { candidateId: profile.id }, orderBy: { startTime: 'desc' } })
+      ? prisma.trackedCalendarEvent.findMany({
+          where: { candidateId: profile.id, dismissedAt: null },
+          orderBy: { startTime: 'desc' },
+        })
       : Promise.resolve([]),
     emailConnection || calendarConnection ? getActivityReconciliation(profile.id) : Promise.resolve(null),
   ])
@@ -132,11 +139,6 @@ export default async function NetworkPage({
   // Job-application-related counts (confirmations, rejections, offers,
   // interview invites) live on the Find Full-Time Jobs page instead — this
   // page only tracks the networking-shaped sent-mail categories below.
-  const emailCounts = emailActivities.reduce<Record<string, number>>((acc, a) => {
-    acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
-    return acc
-  }, {})
-
   const interviewCount = calendarEvents.filter((e) => e.eventType === 'INTERVIEW').length
   const calendarNetworkingCount = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL').length
 
@@ -144,19 +146,36 @@ export default async function NetworkPage({
     (a) => a.direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.includes(a.activityType)
   ).length
 
+  const emailItem = (a: (typeof emailActivities)[number]): StatTileItem => ({
+    id: a.id,
+    kind: 'email',
+    label: a.subject || (a.companyName ? `Email — ${a.companyName}` : 'Email'),
+    date: a.detectedAt,
+  })
+  const calendarItem = (e: (typeof calendarEvents)[number]): StatTileItem => ({
+    id: e.id,
+    kind: 'calendar',
+    label: e.title || 'Calendar event',
+    date: e.startTime,
+  })
+
   // FOLLOW_UP and CHECK_IN are shown as one stat — see matchFollowUp's
   // comment in ats-patterns.ts for why they were merged as a single
   // real-world action ("re-reached out"), rather than split by phrasing.
-  const followUpCount = (emailCounts.FOLLOW_UP ?? 0) + (emailCounts.CHECK_IN ?? 0)
-  const resumesSharedCount = emailActivities.filter((a) => a.direction === 'OUTBOUND' && a.hasResumeAttachment).length
+  const followUpItems = emailActivities.filter((a) => a.activityType === 'FOLLOW_UP' || a.activityType === 'CHECK_IN')
+  const resumesSharedItems = emailActivities.filter((a) => a.direction === 'OUTBOUND' && a.hasResumeAttachment)
+  const thankYouItems = emailActivities.filter((a) => a.activityType === 'THANK_YOU')
+  const introRequestItems = emailActivities.filter((a) => a.activityType === 'INTRO_REQUEST')
+  const networkingOutreachItems = emailActivities.filter((a) => a.activityType === 'NETWORKING_OUTREACH')
+  const networkingCallItems = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL')
 
   const networkingStatTiles = [
-    { label: 'Thank-you notes', count: emailCounts.THANK_YOU ?? 0 },
-    { label: 'Follow-up notes', count: followUpCount },
-    { label: 'Intro/connection requests', count: emailCounts.INTRO_REQUEST ?? 0 },
-    { label: 'Networking outreach messages', count: emailCounts.NETWORKING_OUTREACH ?? 0 },
-    { label: 'Resumes shared', count: resumesSharedCount },
-    { label: 'Coffees, lunches & meetings scheduled', count: calendarNetworkingCount },
+    { label: 'Thank-you notes', items: thankYouItems.map(emailItem) },
+    { label: 'Follow-up notes', items: followUpItems.map(emailItem) },
+    { label: 'Intro/connection requests', items: introRequestItems.map(emailItem) },
+    { label: 'Networking outreach messages', items: networkingOutreachItems.map(emailItem) },
+    { label: 'Resumes shared', items: resumesSharedItems.map(emailItem) },
+    { label: 'Coffees, lunches & meetings scheduled', items: networkingCallItems.map(calendarItem) },
   ]
 
   const scriptContext = {
@@ -419,10 +438,7 @@ export default async function NetworkPage({
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {networkingStatTiles.map((tile) => (
-            <div key={tile.label} className="rounded-lg border border-border p-3">
-              <p className="text-2xl font-bold text-foreground tabular-nums">{tile.count}</p>
-              <p className="text-xs text-muted-foreground">{tile.label}</p>
-            </div>
+            <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
           ))}
         </CardContent>
       </Card>

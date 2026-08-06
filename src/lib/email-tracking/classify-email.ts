@@ -12,6 +12,7 @@ import {
   guessCompanyFromConfirmationSubject,
 } from './ats-patterns'
 import { extractEmailAddress } from './email-address'
+import { NON_COMPANY_DOMAINS } from '@/lib/text/email-domain'
 
 export interface ClassificationResult {
   activityType:
@@ -34,12 +35,6 @@ export interface ClassificationResult {
 // rough (this is a nice-to-have annotation, not load-bearing for
 // classification itself). Returns null rather than guessing on consumer/ATS
 // mail-relay domains, where the domain tells you nothing about the company.
-const NON_COMPANY_DOMAINS = new Set([
-  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',
-  'greenhouse.io', 'lever.co', 'myworkday.com', 'ashbyhq.com', 'smartrecruiters.com',
-  'linkedin.com', 'indeed.com', 'workablemail.com',
-])
-
 function guessCompanyFromDomain(fromAddress: string): string | null {
   const match = extractEmailAddress(fromAddress).match(/@([a-z0-9.-]+)$/i)
   if (!match) return null

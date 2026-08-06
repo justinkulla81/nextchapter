@@ -184,6 +184,24 @@ enum ContactWarmth {
 enum ContactSource {
   MANUAL
   CSV_IMPORT
+  CALENDAR_IMPORT
+}
+
+// Who this person is to the candidate — deliberately separate from
+// ContactCategory above (that's "how this relationship might help my
+// search"; this is "what role does this person actually have"). A contact
+// can hold several at once (a former manager who is now also a recruiter),
+// so it's a list, not a single select.
+enum RelationshipTag {
+  HIRING_MANAGER
+  RECRUITER
+  PROFESSIONAL_CONTACT
+  FORMER_COLLEAGUE
+  HELPING_ME
+  COACH
+  PERSONAL_FRIEND
+  SAME_SCHOOL
+  OTHER
 }
 
 enum OutreachChannel {
@@ -778,6 +796,12 @@ model CandidateProfile {
   // see a surprise flood of historical activity counted as unread the
   // moment this field ships; it only starts counting forward from here.
   communityLastViewedAt DateTime @default(now())
+
+  // Same "default now()" reasoning as communityLastViewedAt above — the
+  // backchannel-match nav badge (Networking page: contacts who work at a
+  // company the candidate applied to) only counts matches computed after
+  // this timestamp, not a historical backlog.
+  networkBackchannelLastViewedAt DateTime @default(now())
 
   // Prompt 62 — job-board usage check-in (Find a Job / Job Fit page).
   // jobBoardUsage: { linkedin, indeed, theladders, company_pages } -> 'daily' | 'few_times_week' | 'rarely' | 'never'
@@ -1547,6 +1571,7 @@ model JobPosting {
   appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
   channel                ApplicationChannel? // captured at the moment of marking applied; null on rows logged before this field existed
   declinedAt             DateTime? // rejection — set manually or auto via a detected REJECTION email for the same company
+  backchannelEmailSentAt DateTime? // dedupes the one-off "you might know someone at this company" email to once per application
   coverLetter            String?             @db.Text
   coverLetterError       String?
   coverLetterGeneratedAt DateTime?
@@ -2050,6 +2075,7 @@ model TrackedEmailActivity {
   isRecruiterContact  Boolean           @default(false) // matchRecruiterRoleMention() — subject/body role-title keywords, either direction
   detectedAt          DateTime          @default(now())
   reviewedAt          DateTime? // candidate confirmed/corrected a needs-review item
+  dismissedAt         DateTime? // candidate marked this classification wrong — excluded from all stats/lists
 
   @@unique([connectionId, externalMessageId])
   @@index([candidateId, activityType])
@@ -2107,6 +2133,7 @@ model TrackedCalendarEvent {
   startTime          DateTime
   detectedAt         DateTime           @default(now())
   reviewedAt         DateTime? // candidate confirmed/corrected a needs-review item
+  dismissedAt        DateTime? // candidate marked this classification wrong — excluded from all stats/lists
 
   @@unique([connectionId, externalEventId])
   @@index([candidateId, eventType])
@@ -2120,14 +2147,23 @@ model SupportNetworkContact {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  name          String
-  company       String?
-  title         String?
-  email         String?
-  category      ContactCategory?
-  warmth        ContactWarmth    @default(WARM)
-  source        ContactSource    @default(MANUAL)
-  createdAt     DateTime         @default(now())
+  name             String
+  company          String?
+  title            String?
+  email            String?
+  category         ContactCategory?
+  warmth           ContactWarmth     @default(WARM)
+  source           ContactSource     @default(MANUAL)
+  createdAt        DateTime          @default(now())
+  // Multi-select "who is this person" tags — see RelationshipTag's comment.
+  relationshipTags RelationshipTag[] @default([])
+  // Set when the candidate marks SAME_SCHOOL and names the school.
+  schoolName       String?
+  // Best-effort guesses from a non-consumer email domain (see
+  // matchRecruiterRoleMention-adjacent logic in sync-google-calendar.ts) —
+  // shown as a hint, never overwrites the candidate-confirmed `company`.
+  inferredCompany  String?
+  inferredSchool   String?
   // Lower-trimmed "name|company" dedup key, computed at write time by
   // normalizeContactKey() in src/lib/network/csv-import.ts. Stops
   // re-uploading the same LinkedIn export from creating duplicate rows
@@ -2135,7 +2171,7 @@ model SupportNetworkContact {
   // identifies genuinely-new contacts for the weekly NETWORKING_LIST Sprint
   // credit. Nullable so pre-migration rows are unaffected — Postgres treats
   // each NULL as distinct in a unique index, so legacy rows never collide.
-  normalizedKey String?
+  normalizedKey    String?
 
   outreachLogs OutreachLog[]
 

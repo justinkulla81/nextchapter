@@ -57,3 +57,17 @@ export async function acknowledgeCalendarEvent(eventId: string): Promise<void> {
   })
   revalidatePath('/dashboard/network')
 }
+
+// The candidate is telling us the auto-detected classification was wrong —
+// excludes it from every stat count and detail list going forward. Points
+// already awarded for it are not clawed back (mirrors disconnectCalendar's
+// "past activity stands" rule above).
+export async function dismissCalendarEvent(eventId: string): Promise<void> {
+  const profile = await getProfile()
+  if (!profile) return
+  await prisma.trackedCalendarEvent.updateMany({
+    where: { id: eventId, candidateId: profile.id, dismissedAt: null },
+    data: { dismissedAt: new Date() },
+  })
+  revalidatePath('/dashboard/network')
+}

@@ -17,6 +17,7 @@ import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/D
 import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
+import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -223,26 +224,52 @@ export default async function JobFitPage() {
   if (emailConnection) {
     await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
   }
-  const [jobEmailActivities, resumesSharedCount, emailRecruiterContactCount, calendarRecruiterContactCount] =
+  const [jobEmailActivities, resumesSharedItems, emailRecruiterContactItems, calendarRecruiterContactItems] =
     emailConnection
       ? await Promise.all([
-          prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } }),
-          prisma.trackedEmailActivity.count({
-            where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true },
+          prisma.trackedEmailActivity.findMany({
+            where: { candidateId: profile.id, direction: 'INBOUND', dismissedAt: null },
           }),
-          prisma.trackedEmailActivity.count({ where: { candidateId: profile.id, isRecruiterContact: true } }),
-          prisma.trackedCalendarEvent.count({ where: { candidateId: profile.id, isRecruiterContact: true } }),
+          prisma.trackedEmailActivity.findMany({
+            where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true, dismissedAt: null },
+          }),
+          prisma.trackedEmailActivity.findMany({
+            where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
+          }),
+          prisma.trackedCalendarEvent.findMany({
+            where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
+          }),
         ])
-      : [[], 0, 0, 0]
+      : [[], [], [], []]
   const jobEmailCounts = jobEmailActivities.reduce<Record<string, number>>((acc, a) => {
     acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
     return acc
   }, {})
+  const jobEmailItem = (a: (typeof jobEmailActivities)[number]): StatTileItem => ({
+    id: a.id,
+    kind: 'email',
+    label: a.subject || (a.companyName ? `Email — ${a.companyName}` : 'Email'),
+    date: a.detectedAt,
+  })
   // Recruiter contact now covers both directions of email (a recruiter's
   // inbound outreach or the candidate's own outbound reply/cold outreach to
   // one) plus calendar events whose title/description mentions a recruiter
   // role — not just the INBOUND-only RECRUITER_OUTREACH email category.
-  jobEmailCounts.RECRUITER_OUTREACH = emailRecruiterContactCount + calendarRecruiterContactCount
+  jobEmailCounts.RECRUITER_OUTREACH = emailRecruiterContactItems.length + calendarRecruiterContactItems.length
+  const jobStatTileItems: Record<string, StatTileItem[]> = {
+    RECRUITER_OUTREACH: [
+      ...emailRecruiterContactItems.map(jobEmailItem),
+      ...calendarRecruiterContactItems.map((e) => ({
+        id: e.id,
+        kind: 'calendar' as const,
+        label: e.title || 'Calendar event',
+        date: e.startTime,
+      })),
+    ],
+    INTERVIEW_INVITE: jobEmailActivities.filter((a) => a.activityType === 'INTERVIEW_INVITE').map(jobEmailItem),
+    REJECTION: jobEmailActivities.filter((a) => a.activityType === 'REJECTION').map(jobEmailItem),
+    OFFER: jobEmailActivities.filter((a) => a.activityType === 'OFFER').map(jobEmailItem),
+  }
   const unacknowledgedReactions = jobEmailActivities.filter(
     (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
   )
@@ -274,15 +301,9 @@ export default async function JobFitPage() {
           <p className="text-xs text-muted-foreground">Applications sent</p>
         </div>
         {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
-          <div key={type} className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{jobEmailCounts[type] ?? 0}</p>
-            <p className="text-xs text-muted-foreground">{label}</p>
-          </div>
+          <NetworkStatTile key={type} label={label} items={jobStatTileItems[type] ?? []} />
         ))}
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-2xl font-bold text-foreground tabular-nums">{resumesSharedCount}</p>
-          <p className="text-xs text-muted-foreground">Resumes shared</p>
-        </div>
+        <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
       </div>
 
       <div className="space-y-4">

@@ -45,7 +45,7 @@ export default async function LearningPage() {
       orderBy: { completedAt: 'desc' },
     }),
     prisma.trackedCalendarEvent.findMany({
-      where: { candidateId: profile.id, eventType: 'LEARNING' },
+      where: { candidateId: profile.id, eventType: 'LEARNING', dismissedAt: null },
       select: { startTime: true, durationMinutes: true },
     }),
   ])
