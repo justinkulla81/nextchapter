@@ -252,162 +252,7 @@ export default async function JobFitPage() {
         <SprintActionCompletion candidateId={profile.id} actionTypes={['NEGOTIATION_ADVICE']} />
       </div>
 
-      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
-
-      <div className="space-y-3 rounded-lg border border-border p-4">
-        <div>
-          <h2 className="text-lg font-semibold">Heard about an opening — from anywhere, not just job boards?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Send us the link and we&apos;ll add it to the shared Job Board once we&apos;ve confirmed
-            it&apos;s real — other candidates get the benefit of your lead too.
-          </p>
-        </div>
-        <JobLeadForm />
-      </div>
-
-      {unacknowledgedReactions.map((activity) => (
-        <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm text-foreground">
-              {activity.activityType === 'REJECTION'
-                ? getRejectionReframe(activity.id.length)
-                : getOfferCongrats(activity.id.length)}
-            </p>
-            <EmailActivityAcknowledgeButton activityId={activity.id} />
-          </CardContent>
-        </Card>
-      ))}
-
       <div className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Discover</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Real openings from our job board, plus roles our automated search partners
-            found for you — no grade required to see these.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            The search-partner roles update automatically based on your target role, location, and
-            resume — refreshed each time your list runs low, no action needed from you.
-          </p>
-        </div>
-
-        {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No jobs surfaced yet — set a target role in your Goals to get started.
-          </p>
-        ) : (
-          <div className="space-y-5">
-            {visibleBoardPostings.length > 0 && (
-              <div className="space-y-3">
-                {visibleBoardPostings.map((posting) => (
-                  <DiscoverJobCard
-                    key={posting.id}
-                    posting={posting}
-                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-                  />
-                ))}
-              </div>
-            )}
-
-            {surfacedJobs.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-medium text-muted-foreground">
-                  {totalUnreactedCount} new match{totalUnreactedCount === 1 ? '' : 'es'} from your
-                  automated search partners
-                  {totalUnreactedCount > surfacedJobs.length && ` — showing the latest ${surfacedJobs.length}`}
-                </p>
-                {surfacedJobs.map((job) => (
-                  <NextSurfacedJobCard
-                    key={job.id}
-                    job={job}
-                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                  />
-                ))}
-              </div>
-            )}
-
-            {lockedBoardPostings.length > 0 && (
-              <div className="space-y-3">
-                <UnlockAListCallout
-                  grade={grade.grade}
-                  lockedCount={lockedBoardPostings.length}
-                  weeklySprintsCount={profile._count.weeklySprints}
-                  engines={grade.weeklyEngines}
-                  laggingEngines={grade.laggingEngines}
-                />
-                {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
-                  <LockedDiscoverJobCard key={posting.id} posting={posting} />
-                ))}
-                {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT && (
-                  <p className="text-sm text-muted-foreground">
-                    +{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT} more A-List-exclusive
-                    opportunit{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT === 1 ? 'y' : 'ies'} unlock
-                    at an A grade.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        <JobReactionSummary ratedCount={ratedCount} />
-        <InterestedJobsList jobs={interestedJobs} />
-
-        <details className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
-          <summary className="cursor-pointer font-medium text-foreground">More places to look</summary>
-          <div className="mt-3 space-y-4">
-            <JobBoardRecommendations targetIndustries={profile.targetIndustries} />
-            <JobBoardUsageCheckIn
-              currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null}
-              currentOther={profile.jobBoardUsageOther}
-              alreadyAwarded={!!profile.jobBoardUsageBonusAt}
-            />
-          </div>
-        </details>
-      </div>
-
-      <div className="space-y-4 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Company Tracker</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Name the 15–30 companies you&apos;d actually want to work for and watch for openings
-            there, instead of only reacting to what&apos;s already posted — the same account-based
-            approach executive search firms use.
-          </p>
-        </div>
-
-        <Card>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-foreground">Add a company</p>
-            <CompanyWatchlistForm />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-foreground">Your watchlist ({watchlistCompanies.length})</p>
-            <CompanyWatchlistList companies={watchlistCompanies} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm font-medium text-foreground">Open postings from watched companies</p>
-            <WatchlistPostingsList
-              postings={watchlistPostings.map((p) => ({
-                id: p.id,
-                title: p.title,
-                companyName: p.companyName,
-                location: p.location,
-                url: p.url,
-                isNew: isRecentlyListed(p.createdAt),
-              }))}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-4 border-t border-border pt-8">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 className="text-lg font-semibold tracking-tight">My Applications</h2>
           <p className="text-sm text-muted-foreground tabular-nums">
@@ -783,6 +628,162 @@ export default async function JobFitPage() {
           </div>
         )}
       </div>
+
+      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
+
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <div>
+          <h2 className="text-lg font-semibold">Heard about an opening — from anywhere, not just job boards?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Send us the link and we&apos;ll add it to the shared Job Board once we&apos;ve confirmed
+            it&apos;s real — other candidates get the benefit of your lead too.
+          </p>
+        </div>
+        <JobLeadForm />
+      </div>
+
+      {unacknowledgedReactions.map((activity) => (
+        <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm text-foreground">
+              {activity.activityType === 'REJECTION'
+                ? getRejectionReframe(activity.id.length)
+                : getOfferCongrats(activity.id.length)}
+            </p>
+            <EmailActivityAcknowledgeButton activityId={activity.id} />
+          </CardContent>
+        </Card>
+      ))}
+
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Discover</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Real openings from our job board, plus roles our automated search partners
+            found for you — no grade required to see these.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            The search-partner roles update automatically based on your target role, location, and
+            resume — refreshed each time your list runs low, no action needed from you.
+          </p>
+        </div>
+
+        {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No jobs surfaced yet — set a target role in your Goals to get started.
+          </p>
+        ) : (
+          <div className="space-y-5">
+            {visibleBoardPostings.length > 0 && (
+              <div className="space-y-3">
+                {visibleBoardPostings.map((posting) => (
+                  <DiscoverJobCard
+                    key={posting.id}
+                    posting={posting}
+                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                  />
+                ))}
+              </div>
+            )}
+
+            {surfacedJobs.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {totalUnreactedCount} new match{totalUnreactedCount === 1 ? '' : 'es'} from your
+                  automated search partners
+                  {totalUnreactedCount > surfacedJobs.length && ` — showing the latest ${surfacedJobs.length}`}
+                </p>
+                {surfacedJobs.map((job) => (
+                  <NextSurfacedJobCard
+                    key={job.id}
+                    job={job}
+                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                  />
+                ))}
+              </div>
+            )}
+
+            {lockedBoardPostings.length > 0 && (
+              <div className="space-y-3">
+                <UnlockAListCallout
+                  grade={grade.grade}
+                  lockedCount={lockedBoardPostings.length}
+                  weeklySprintsCount={profile._count.weeklySprints}
+                  engines={grade.weeklyEngines}
+                  laggingEngines={grade.laggingEngines}
+                />
+                {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
+                  <LockedDiscoverJobCard key={posting.id} posting={posting} />
+                ))}
+                {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT && (
+                  <p className="text-sm text-muted-foreground">
+                    +{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT} more A-List-exclusive
+                    opportunit{lockedBoardPostings.length - LOCKED_PREVIEW_COUNT === 1 ? 'y' : 'ies'} unlock
+                    at an A grade.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <JobReactionSummary ratedCount={ratedCount} />
+        <InterestedJobsList jobs={interestedJobs} />
+
+        <details className="rounded-lg border border-border p-3 text-sm text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground">More places to look</summary>
+          <div className="mt-3 space-y-4">
+            <JobBoardRecommendations targetIndustries={profile.targetIndustries} />
+            <JobBoardUsageCheckIn
+              currentUsage={(profile.jobBoardUsage as Record<string, string> | null) ?? null}
+              currentOther={profile.jobBoardUsageOther}
+              alreadyAwarded={!!profile.jobBoardUsageBonusAt}
+            />
+          </div>
+        </details>
+      </div>
+
+      <div className="space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Company Tracker</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Name the 15–30 companies you&apos;d actually want to work for and watch for openings
+            there, instead of only reacting to what&apos;s already posted — the same account-based
+            approach executive search firms use.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-foreground">Add a company</p>
+            <CompanyWatchlistForm />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-foreground">Your watchlist ({watchlistCompanies.length})</p>
+            <CompanyWatchlistList companies={watchlistCompanies} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <p className="text-sm font-medium text-foreground">Open postings from watched companies</p>
+            <WatchlistPostingsList
+              postings={watchlistPostings.map((p) => ({
+                id: p.id,
+                title: p.title,
+                companyName: p.companyName,
+                location: p.location,
+                url: p.url,
+                isNew: isRecentlyListed(p.createdAt),
+              }))}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   )
 }
