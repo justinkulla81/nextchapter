@@ -6,7 +6,7 @@ import {
   type CandidateWithGradeRelations,
 } from '@/lib/scoring/hireability-grade'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
-import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { isWeakFit, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 
 export interface CoachJobsSnapshot {
@@ -52,7 +52,7 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
 
   const openPostings = eligible
     .map((p) => ({ ...p, fitBucket: computeBoardListingFitBucket(candidate, p) }))
-    .filter((p) => p.distribution !== 'TARGETED' || p.fitBucket !== 'stretch')
+    .filter((p) => p.distribution !== 'TARGETED' || !isWeakFit(p.fitBucket))
 
   const surfacedJobs = unreactedSurfacedJobs.map((job) => ({
     ...job,

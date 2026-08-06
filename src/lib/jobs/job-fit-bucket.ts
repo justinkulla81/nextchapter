@@ -39,25 +39,28 @@ function bucketFromScore(score: number): FitBucket {
 
 // Below the "good fit" bar, the label needs to know which direction the
 // level mismatch runs — "Stretch" is only right when the ROLE reaches
-// above the candidate (a real aim-higher case). A candidate well above the
-// role's level (e.g. a former CEO/Partner shown a Manager posting) reads
-// the same "Stretch" label as encouraging, when it's actually the opposite
-// problem. Mirrors the same calibratedLevelRank/calibratedLevelDistance
-// math computeMatchScore uses internally for its own level-match points,
-// so "overqualified" only fires when that dimension would have scored 0
-// there too (dist >= 3) — never a looser check than the score itself used.
-function isCandidateOverqualified(candidate: FitCandidate, posting: FitPostingLike): boolean {
+// above the candidate (a real aim-higher case) or the comparison is
+// inconclusive (missing level data on either side). When the candidate is
+// actually above the role's level, "Stretch" reads as encouraging when
+// it's the opposite problem — that gets its own bucket instead, split by
+// how big the gap is: a small step down ('below_level') vs. a real
+// overqualification case ('overqualified', e.g. a former CEO/Partner shown
+// a Manager posting). Mirrors the same calibratedLevelRank/
+// calibratedLevelDistance math computeMatchScore uses internally for its
+// own level-match points, so this never disagrees with the score it's
+// annotating.
+function bucketFromScoreAndLevel(score: number, candidate: FitCandidate, posting: FitPostingLike): FitBucket {
+  const bucket = bucketFromScore(score)
+  if (bucket !== 'stretch') return bucket
+
   const candidateScore = candidate.levelRankScore ?? calibratedLevelRank(candidate.highestLevelReached, null)
   const roleLevel = posting.targetLevel ?? inferLevelFromTitle(posting.title)
   const roleScore = calibratedLevelRank(roleLevel, posting.companySizeBand ?? null)
-  if (candidateScore === null || roleScore === null) return false
-  return candidateScore > roleScore && calibratedLevelDistance(candidateScore, roleScore) >= 3
-}
+  // Missing data on either side, or the role is at/above the candidate's
+  // level — can't rule out a genuine aim-higher case, so "Stretch" stands.
+  if (candidateScore === null || roleScore === null || roleScore >= candidateScore) return 'stretch'
 
-function bucketFromScoreAndLevel(score: number, candidate: FitCandidate, posting: FitPostingLike): FitBucket {
-  const bucket = bucketFromScore(score)
-  if (bucket === 'stretch' && isCandidateOverqualified(candidate, posting)) return 'overqualified'
-  return bucket
+  return calibratedLevelDistance(candidateScore, roleScore) >= 3 ? 'overqualified' : 'below_level'
 }
 
 // Widened to carry every signal the enriched scorer below uses — industry,

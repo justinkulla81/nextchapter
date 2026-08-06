@@ -54,19 +54,46 @@ async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: 
   })
 }
 
+// This candidate's own automated-search-partner matches (see
+// surfaceNewJobs) — a real "in our system" signal just like the job board,
+// and the one actually shown on the Jobs page's combined recommendations
+// list. Without this, a company could show up there from a SurfacedJob
+// match while the watchlist still says "0 jobs" for it, since the board
+// query above only ever sees ExclusiveJobPosting rows. Not A-List gated —
+// SurfacedJob has no audienceTier concept, these are just genuinely
+// matched to this specific candidate.
+async function getSurfacedJobPostings(candidateId: string): Promise<WatchlistPosting[]> {
+  const jobs = await prisma.surfacedJob.findMany({
+    where: { candidateId, companyName: { not: null } },
+    select: { id: true, title: true, companyName: true, location: true, url: true, surfacedAt: true },
+  })
+  return jobs.map((j) => ({
+    id: j.id,
+    title: j.title,
+    companyName: j.companyName!,
+    location: j.location,
+    url: j.url,
+    createdAt: j.surfacedAt,
+  }))
+}
+
 export async function getWatchlistView(candidateId: string, isAList: boolean): Promise<WatchlistEntryView[]> {
-  const [entries, postings] = await Promise.all([
+  const [entries, boardPostings, surfacedPostings] = await Promise.all([
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
     getActivePostings(),
+    getSurfacedJobPostings(candidateId),
   ])
 
   return entries.map((entry) => {
-    const matches = postings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
+    const boardMatches = boardPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones
     // this candidate can open yet — counted, never detailed, unless the
     // candidate is actually A-List.
-    const visible = matches.filter((p) => isAList || p.audienceTier !== 'A_LIST_ONLY')
-    const newPostingCount = matches.filter((p) => p.createdAt > entry.lastViewedAt).length
+    const visibleBoard = boardMatches.filter((p) => isAList || p.audienceTier !== 'A_LIST_ONLY')
+    const surfacedMatches = surfacedPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
+    const allMatches = [...boardMatches, ...surfacedMatches]
+    const visible = [...visibleBoard, ...surfacedMatches]
+    const newPostingCount = allMatches.filter((p) => p.createdAt > entry.lastViewedAt).length
     return {
       id: entry.id,
       companyName: entry.companyName,
@@ -79,7 +106,7 @@ export async function getWatchlistView(candidateId: string, isAList: boolean): P
         url,
         createdAt,
       })),
-      lockedCount: matches.length - visible.length,
+      lockedCount: boardMatches.length - visibleBoard.length,
     }
   })
 }

@@ -11,6 +11,7 @@ const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
   strong: 'bg-success/10 text-success',
   good: 'bg-brand/10 text-brand',
   stretch: 'bg-muted text-muted-foreground',
+  below_level: 'bg-muted text-muted-foreground',
   overqualified: 'bg-muted text-muted-foreground',
 }
 
@@ -34,7 +35,7 @@ export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitB
   const [pending, setPending] = useState(false)
 
   return (
-    <div className="space-y-3 rounded-lg border border-border p-4">
+    <div className="space-y-2 px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <a
@@ -62,7 +63,7 @@ export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitB
             </p>
           )}
           {job.description && (
-            <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{job.description}</p>
+            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{job.description}</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">

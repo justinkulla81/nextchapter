@@ -4,7 +4,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { getWatchlistView } from '@/lib/company-tracker/watchlist'
-import { FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
+import { FIT_BUCKET_LABEL, isWeakFit } from '@/lib/jobs/fit-bucket-types'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
@@ -180,7 +180,7 @@ export default async function JobFitPage() {
   // still tells them how good a match it is).
   const visibleBoardPostings = openBoardPostings.filter((p) => {
     if (p.distribution !== 'TARGETED') return true
-    return computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)) !== 'stretch'
+    return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
 
   // Every posting with appliedAt set is "My Applications", regardless of
@@ -773,57 +773,57 @@ export default async function JobFitPage() {
             No jobs surfaced yet — set a target role in your Goals to get started.
           </p>
         ) : (
-          <div className="space-y-3">
-            {surfacedJobs.length > 0 && (
-              <p className="text-xs font-medium text-muted-foreground">
-                {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
-                automated search partners
-                {totalUnreactedCount > visibleSurfacedJobs.length &&
-                  ` — showing ${visibleSurfacedJobs.length} below`}
-              </p>
-            )}
+          <Card>
+            <CardContent className="space-y-3 pt-6">
+              {surfacedJobs.length > 0 && (
+                <p className="text-xs font-medium text-muted-foreground">
+                  {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
+                  automated search partners
+                  {totalUnreactedCount > visibleSurfacedJobs.length &&
+                    ` — showing ${visibleSurfacedJobs.length} below`}
+                </p>
+              )}
 
-            {visibleBoardPostings.map((posting) => (
-              <DiscoverJobCard
-                key={posting.id}
-                posting={posting}
-                fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-              />
-            ))}
+              <div className="divide-y divide-border rounded-lg border border-border">
+                {visibleBoardPostings.map((posting) => (
+                  <DiscoverJobCard
+                    key={posting.id}
+                    posting={posting}
+                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                  />
+                ))}
 
-            {visibleSurfacedJobs.map((job) => (
-              <NextSurfacedJobCard
-                key={job.id}
-                job={job}
-                fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-              />
-            ))}
+                {visibleSurfacedJobs.map((job) => (
+                  <NextSurfacedJobCard
+                    key={job.id}
+                    job={job}
+                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                  />
+                ))}
 
-            {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-              <>
-                <UnlockAListCallout
-                  grade={grade.grade}
-                  lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
-                  weeklySprintsCount={profile._count.weeklySprints}
-                  engines={grade.weeklyEngines}
-                  laggingEngines={grade.laggingEngines}
-                />
                 {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
                   <LockedDiscoverJobCard key={posting.id} posting={posting} />
                 ))}
-                {(lockedBoardPostings.length > LOCKED_PREVIEW_COUNT || lockedSurfacedCount > 0) && (
+              </div>
+
+              {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
+                <>
+                  <UnlockAListCallout
+                    grade={grade.grade}
+                    lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
+                    weeklySprintsCount={profile._count.weeklySprints}
+                    engines={grade.weeklyEngines}
+                    laggingEngines={grade.laggingEngines}
+                  />
                   <p className="text-sm text-muted-foreground">
-                    {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT &&
-                      `+${lockedBoardPostings.length - LOCKED_PREVIEW_COUNT} more from our job board`}
-                    {lockedBoardPostings.length > LOCKED_PREVIEW_COUNT && lockedSurfacedCount > 0 && ' and '}
                     {lockedSurfacedCount > 0 &&
-                      `${lockedSurfacedCount} more match${lockedSurfacedCount === 1 ? '' : 'es'} from your search partners`}
-                    {' '}unlock at an A grade.
+                      `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
+                    {boardPostings.length} total jobs in our ATS.
                   </p>
-                )}
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         <InterestedJobsList jobs={interestedJobs} />
