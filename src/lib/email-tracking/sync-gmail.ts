@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared } from './ats-patterns'
+import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
 import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -165,6 +166,13 @@ async function processMessage(
   // thank-you, or nothing at all, but should still count toward the stat.
   const resumeShared = direction === 'OUTBOUND' && matchResumeShared(subject, bodyPreview, attachmentFilenames)
 
+  // Same independence for recruiter contact — a role-title mention
+  // ("Senior Technical Recruiter", "Talent Acquisition Partner") is a real
+  // signal whether it's a recruiter's inbound outreach or the candidate's
+  // own outbound reply/cold outreach to one, regardless of how the primary
+  // category above classified the message.
+  const isRecruiterContact = matchRecruiterRoleMention(`${subject} ${bodyPreview}`)
+
   await prisma.trackedEmailActivity.create({
     data: {
       candidateId: connection.candidateId,
@@ -177,6 +185,7 @@ async function processMessage(
       subject,
       fromAddress: direction === 'INBOUND' ? from : to,
       hasResumeAttachment: resumeShared,
+      isRecruiterContact,
     },
   })
 
@@ -214,6 +223,7 @@ async function processMessage(
     activityType: classification.activityType,
     confidence: classification.confidence,
     hasResumeAttachment: resumeShared,
+    isRecruiterContact,
   })
 
   return 'synced'

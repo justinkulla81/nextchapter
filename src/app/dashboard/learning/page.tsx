@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getMondayOfWeek } from '@/lib/weekly/sprint'
+import { formatMinutes } from '@/lib/weekly/action-effort'
 import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
 import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
@@ -35,15 +37,22 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 
 export default async function LearningPage() {
   const profile = await getDashboardData()
-  const [plan, badges] = await Promise.all([
+  const weekStart = getMondayOfWeek(new Date())
+  const [plan, badges, learningEvents] = await Promise.all([
     buildLearningPlan(profile.id),
     prisma.learningBadge.findMany({
       where: { candidateId: profile.id },
       orderBy: { completedAt: 'desc' },
     }),
+    prisma.trackedCalendarEvent.findMany({
+      where: { candidateId: profile.id, eventType: 'LEARNING' },
+      select: { startTime: true, durationMinutes: true },
+    }),
   ])
 
   const completedTitles = new Set(badges.map((b) => b.title))
+  const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
+  const learningMinutesThisWeek = learningEventsThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
 
   captureServerEvent(profile.id, 'learning_plan_rendered', {
     sectionCount: plan.sections.length,
@@ -62,8 +71,21 @@ export default async function LearningPage() {
         </p>
         <SprintActionCompletion
           candidateId={profile.id}
-          actionTypes={['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL']}
+          actionTypes={['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED']}
         />
+        {learningEvents.length > 0 && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {learningEventsThisWeek.length > 0 ? (
+              <>
+                {learningEventsThisWeek.length} learning session{learningEventsThisWeek.length === 1 ? '' : 's'} on
+                your calendar this week{learningMinutesThisWeek > 0 && ` (${formatMinutes(learningMinutesThisWeek)})`}
+                . {learningEvents.length} total detected.
+              </>
+            ) : (
+              <>{learningEvents.length} learning session{learningEvents.length === 1 ? '' : 's'} detected from your calendar so far.</>
+            )}
+          </p>
+        )}
       </div>
 
       <LearningSection

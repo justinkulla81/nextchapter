@@ -39,6 +39,10 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   LEARNING_MODULE: { minutes: 20, points: 20 },
   LEARNING_CERTIFICATE: { minutes: 40, points: 40 },
   LEARNING_NEW_TOOL: { minutes: 15, points: 15 },
+  // Calendar-detected — a scheduled course/webinar/training block that
+  // actually happened. Same weight as LEARNING_MODULE, the closest
+  // self-report equivalent.
+  LEARNING_SESSION_ATTENDED: { minutes: 30, points: 20 },
 
   // Resume / Assets
   RESUME_UPDATE: { minutes: 30, points: 30 },
@@ -173,6 +177,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   LEARNING_MODULE: 'learning',
   LEARNING_CERTIFICATE: 'learning',
   LEARNING_NEW_TOOL: 'learning',
+  LEARNING_SESSION_ATTENDED: 'learning',
 
   INTERVIEW_PREP: 'effort',
   INTERVIEW_BEHAVIORAL_PRACTICE: 'effort',
@@ -268,6 +273,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   LEARNING_MODULE: 'Learning & Working',
   LEARNING_CERTIFICATE: 'Learning & Working',
   LEARNING_NEW_TOOL: 'Learning & Working',
+  LEARNING_SESSION_ATTENDED: 'Learning & Working',
   NEGOTIATION_ADVICE: 'Learning & Working',
   JOB_BOARD_USAGE_CONFIRMED: 'Learning & Working',
   INTERIM_PROFILE_CREATED: 'Learning & Working',
@@ -311,6 +317,10 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   'CHECK_IN_NOTE_SENT',
   'INTRO_CONNECTION_REQUEST_SENT',
   'INTERVIEW_ATTENDED',
+  // Prompt: calendar body/context classification — a candidate can attend
+  // more than one scheduled learning session in a week, same "no single
+  // finish line" shape as the other calendar-detected types above.
+  'LEARNING_SESSION_ATTENDED',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
@@ -383,6 +393,7 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'CHECK_IN_NOTE_SENT',
   'INTRO_CONNECTION_REQUEST_SENT',
   'INTERVIEW_ATTENDED',
+  'LEARNING_SESSION_ATTENDED',
 ])
 
 export function isAutoDetectedActionType(actionType: string | undefined): boolean {
@@ -407,6 +418,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LEARNING_MODULE: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_CERTIFICATE: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_NEW_TOOL: { href: '/dashboard/learning', label: 'Learning' },
+  LEARNING_SESSION_ATTENDED: { href: '/dashboard/learning', label: 'Learning' },
   RESUME_UPDATE: { href: '/dashboard/resume', label: 'Resume' },
   SKILLS_TRANSLATOR: { href: '/dashboard/resume', label: 'Resume' },
   INTERVIEW_PREP: { href: '/dashboard/interview-prep', label: 'Interview Prep' },

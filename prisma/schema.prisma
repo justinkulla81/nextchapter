@@ -2047,6 +2047,7 @@ model TrackedEmailActivity {
   subject             String? // candidate's own review UI only — never exposed to anyone else
   fromAddress         String?
   hasResumeAttachment Boolean           @default(false) // matchResumeShared() — keyword + real attachment present
+  isRecruiterContact  Boolean           @default(false) // matchRecruiterRoleMention() — subject/body role-title keywords, either direction
   detectedAt          DateTime          @default(now())
   reviewedAt          DateTime? // candidate confirmed/corrected a needs-review item
 
@@ -2086,22 +2087,26 @@ model CalendarConnection {
 enum CalendarEventType {
   INTERVIEW
   NETWORKING_CALL
+  LEARNING
+  NOT_JOB_SEARCH
   NEEDS_REVIEW
 }
 
 model TrackedCalendarEvent {
-  id              String             @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  connectionId    String
-  connection      CalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  externalEventId String // Google Calendar event id — dedupe key alongside connectionId
-  eventType       CalendarEventType
-  confidence      String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
-  title           String? // candidate's own review UI only — never exposed to anyone else
-  startTime       DateTime
-  detectedAt      DateTime           @default(now())
-  reviewedAt      DateTime? // candidate confirmed/corrected a needs-review item
+  id                 String             @id @default(cuid())
+  candidateId        String
+  candidate          CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  connectionId       String
+  connection         CalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  externalEventId    String // Google Calendar event id — dedupe key alongside connectionId
+  eventType          CalendarEventType
+  confidence         String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
+  title              String? // candidate's own review UI only — never exposed to anyone else
+  durationMinutes    Int? // used for the Learning page's total-time stat
+  isRecruiterContact Boolean            @default(false) // matchRecruiterRoleMention() — title/description role-title keywords
+  startTime          DateTime
+  detectedAt         DateTime           @default(now())
+  reviewedAt         DateTime? // candidate confirmed/corrected a needs-review item
 
   @@unique([connectionId, externalEventId])
   @@index([candidateId, eventType])

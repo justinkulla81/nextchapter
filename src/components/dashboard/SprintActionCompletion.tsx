@@ -26,6 +26,7 @@ const AUTO_DETECTED_SIGNAL: Partial<Record<string, string>> = {
   CHECK_IN_NOTE_SENT: 'Detected automatically when you send a check-in note from your connected Gmail.',
   INTRO_CONNECTION_REQUEST_SENT: 'Detected automatically when you ask for an introduction from your connected Gmail.',
   INTERVIEW_ATTENDED: 'Detected automatically from an interview on your connected Calendar.',
+  LEARNING_SESSION_ATTENDED: 'Detected automatically from a course/webinar/training block on your connected Calendar.',
 }
 
 // Marking a Weekly Search Sprint action done/started now only happens here

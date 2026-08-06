@@ -222,23 +222,31 @@ export default async function JobFitPage() {
   if (emailConnection) {
     await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
   }
-  const [jobEmailActivities, resumesSharedCount] = emailConnection
-    ? await Promise.all([
-        prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } }),
-        prisma.trackedEmailActivity.count({
-          where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true },
-        }),
-      ])
-    : [[], 0]
+  const [jobEmailActivities, resumesSharedCount, emailRecruiterContactCount, calendarRecruiterContactCount] =
+    emailConnection
+      ? await Promise.all([
+          prisma.trackedEmailActivity.findMany({ where: { candidateId: profile.id, direction: 'INBOUND' } }),
+          prisma.trackedEmailActivity.count({
+            where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true },
+          }),
+          prisma.trackedEmailActivity.count({ where: { candidateId: profile.id, isRecruiterContact: true } }),
+          prisma.trackedCalendarEvent.count({ where: { candidateId: profile.id, isRecruiterContact: true } }),
+        ])
+      : [[], 0, 0, 0]
   const jobEmailCounts = jobEmailActivities.reduce<Record<string, number>>((acc, a) => {
     acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
     return acc
   }, {})
+  // Recruiter contact now covers both directions of email (a recruiter's
+  // inbound outreach or the candidate's own outbound reply/cold outreach to
+  // one) plus calendar events whose title/description mentions a recruiter
+  // role — not just the INBOUND-only RECRUITER_OUTREACH email category.
+  jobEmailCounts.RECRUITER_OUTREACH = emailRecruiterContactCount + calendarRecruiterContactCount
   const unacknowledgedReactions = jobEmailActivities.filter(
     (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
   )
   const JOB_EMAIL_LABEL: Record<string, string> = {
-    RECRUITER_OUTREACH: 'Recruiter outreach',
+    RECRUITER_OUTREACH: 'Recruiter contact',
     INTERVIEW_INVITE: 'Interview invites',
     REJECTION: 'Rejections',
     OFFER: 'Offers',

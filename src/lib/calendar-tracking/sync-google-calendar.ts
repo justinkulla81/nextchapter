@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './google-calendar-oauth'
 import { classifyCalendarEvent } from './classify-event'
+import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -19,6 +20,8 @@ interface GoogleCalendarEvent {
   id: string
   status?: string
   summary?: string
+  description?: string
+  location?: string
   start?: { dateTime?: string; date?: string }
   end?: { dateTime?: string; date?: string }
   attendees?: GoogleCalendarAttendee[]
@@ -78,10 +81,13 @@ function candidateDeclined(event: GoogleCalendarEvent): boolean {
 const ACTION_TYPE_BY_EVENT_TYPE: Partial<Record<string, string>> = {
   INTERVIEW: 'INTERVIEW_ATTENDED',
   NETWORKING_CALL: 'OUTREACH_CALL',
+  LEARNING: 'LEARNING_SESSION_ATTENDED',
 }
 
 function eventActionLabel(eventType: string): string {
-  return eventType === 'INTERVIEW' ? 'Attended an interview' : 'Had a networking call'
+  if (eventType === 'INTERVIEW') return 'Attended an interview'
+  if (eventType === 'LEARNING') return 'Attended a learning session'
+  return 'Had a networking call'
 }
 
 async function processEvent(connection: CalendarConnection, event: GoogleCalendarEvent): Promise<boolean> {
@@ -92,17 +98,30 @@ async function processEvent(connection: CalendarConnection, event: GoogleCalenda
   if (attendeeCount < 2) return false // needs at least one other invitee besides the candidate
 
   const title = event.summary ?? ''
+  const description = event.description ?? ''
+  const location = event.location ?? ''
   // The encoded-offset hour (not a Date().getHours() call, which would use
   // the server's own timezone) — Google returns dateTime with the
   // calendar's own local offset baked in, e.g. "2026-08-04T17:00:00-04:00",
   // so slicing the literal hour digits gives the organizer's local time
   // regardless of what timezone this server runs in.
   const startHour = event.start.dateTime ? Number(event.start.dateTime.slice(11, 13)) : null
+  // Weekday from the date portion pinned to noon UTC — reading getDay() off
+  // a plain `new Date(dateTime)` would use the server's own timezone and
+  // could shift the day near midnight; noon UTC stays inside the same
+  // calendar day for any realistic offset.
+  const isWeekday = event.start.dateTime
+    ? (() => {
+        const day = new Date(`${event.start!.dateTime!.slice(0, 10)}T12:00:00Z`).getUTCDay()
+        return day >= 1 && day <= 5
+      })()
+    : null
   const durationMinutes =
     event.start.dateTime && event.end?.dateTime
       ? Math.round((new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000)
       : null
-  const classification = classifyCalendarEvent(title, { durationMinutes, startHour })
+  const classification = classifyCalendarEvent(title, description, location, { durationMinutes, startHour, isWeekday })
+  const isRecruiterContact = matchRecruiterRoleMention(`${title} ${description}`)
 
   await prisma.trackedCalendarEvent.create({
     data: {
@@ -112,12 +131,14 @@ async function processEvent(connection: CalendarConnection, event: GoogleCalenda
       eventType: classification.eventType,
       confidence: classification.confidence,
       title,
+      durationMinutes,
+      isRecruiterContact,
       startTime: new Date(event.start.dateTime),
     },
   })
 
   // Points only for high-confidence classified events — never for
-  // NEEDS_REVIEW (don't guess).
+  // NEEDS_REVIEW or NOT_JOB_SEARCH (don't guess, don't credit personal time).
   if (classification.confidence === 'high') {
     const actionType = ACTION_TYPE_BY_EVENT_TYPE[classification.eventType]
     if (actionType) {
@@ -134,6 +155,7 @@ async function processEvent(connection: CalendarConnection, event: GoogleCalenda
   captureServerEvent(connection.candidateId, 'calendar_event_detected', {
     eventType: classification.eventType,
     confidence: classification.confidence,
+    isRecruiterContact,
   })
 
   return true
