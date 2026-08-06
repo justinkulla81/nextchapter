@@ -7,6 +7,15 @@ const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.postho
 const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^https:\/\/(\w+)\./, "https://$1-assets.");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Default is 1MB — a real LinkedIn "Connections.csv" export (the file
+    // the Networking page's CSV import Server Action reads) can exceed that
+    // for anyone with a few thousand connections, which fails with a 413
+    // ("Body exceeded 1 MB limit") before the action code ever runs.
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   // Routes PostHog's client SDK through our own domain so ad blockers that
   // target posthog.com/i.posthog.com don't silently drop analytics.
   async rewrites() {
