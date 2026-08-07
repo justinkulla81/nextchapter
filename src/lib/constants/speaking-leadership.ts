@@ -11,6 +11,7 @@ import type { LearningResource } from '@/lib/constants/learning-partners'
 export const SPEAKING_RESOURCES: LearningResource[] = [
   {
     title: 'Toastmasters International',
+    sponsor: 'Toastmasters',
     description: 'The most established public-speaking practice community — local clubs meet weekly.',
     url: 'https://www.toastmasters.org/',
     provider: 'toastmasters',
@@ -19,7 +20,8 @@ export const SPEAKING_RESOURCES: LearningResource[] = [
   },
   {
     title: 'Dynamic Public Speaking Specialization',
-    description: "University of Washington's specialization on structuring and delivering a talk.",
+    sponsor: 'University of Washington',
+    description: 'A specialization on structuring and delivering a talk.',
     url: 'https://www.coursera.org/specializations/public-speaking',
     provider: 'coursera',
     free: false,
@@ -30,7 +32,8 @@ export const SPEAKING_RESOURCES: LearningResource[] = [
 export const SPEAKING_LEADERSHIP_GATED: LearningResource[] = [
   {
     title: 'Inspiring Leadership through Emotional Intelligence',
-    description: "Case Western's widely-taken course on leadership presence and self-awareness.",
+    sponsor: 'Case Western Reserve University',
+    description: 'A widely-taken course on leadership presence and self-awareness.',
     url: 'https://www.coursera.org/learn/emotional-intelligence-leadership',
     provider: 'coursera',
     free: false,
@@ -38,7 +41,8 @@ export const SPEAKING_LEADERSHIP_GATED: LearningResource[] = [
   },
   {
     title: 'Leadership Communication for Maximum Impact: Storytelling',
-    description: "Notre Dame's course on communicating as a leader through narrative and story structure.",
+    sponsor: 'Notre Dame',
+    description: 'A course on communicating as a leader through narrative and story structure.',
     url: 'https://www.edx.org/learn/business-storytelling/university-of-notre-dame-leadership-communication-for-maximum-impact-storytelling',
     provider: 'edx',
     free: false,

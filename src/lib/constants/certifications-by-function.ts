@@ -16,6 +16,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Operations: [
     {
       title: 'Project Management Professional (PMP)',
+      sponsor: 'PMI',
       description: 'The most widely recognized project-management certification across industries.',
       url: 'https://www.pmi.org/certifications/project-management-pmp',
       provider: 'certificationBody',
@@ -24,6 +25,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'Lean Six Sigma Green Belt',
+      sponsor: 'Coursera',
       description: 'Process-improvement methodology recognized in manufacturing, healthcare, and operations broadly.',
       url: 'https://www.coursera.org/professional-certificates/lean-six-sigma-green-belt',
       provider: 'coursera',
@@ -32,7 +34,8 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'CPIM (Certified in Planning and Inventory Management)',
-      description: 'APICS/ASCM\'s supply-chain and operations-planning certification.',
+      sponsor: 'APICS/ASCM',
+      description: 'A supply-chain and operations-planning certification.',
       url: 'https://www.ascm.org/certifications/cpim/',
       provider: 'certificationBody',
       free: false,
@@ -42,6 +45,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Finance: [
     {
       title: 'CPA (Certified Public Accountant)',
+      sponsor: 'AICPA',
       description: 'The standard credential for accounting and financial-reporting roles in the US.',
       url: 'https://www.aicpa-cima.com/becomeacpa',
       provider: 'certificationBody',
@@ -50,6 +54,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'CFA (Chartered Financial Analyst)',
+      sponsor: 'CFA Institute',
       description: 'The gold-standard credential for investment and financial-analysis roles.',
       url: 'https://www.cfainstitute.org/programs/cfa-program',
       provider: 'certificationBody',
@@ -58,6 +63,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'CMA (Certified Management Accountant)',
+      sponsor: 'IMA',
       description: 'Focused on management accounting and financial strategy, distinct from public-accounting CPA work.',
       url: 'https://www.imanet.org/cma-certification',
       provider: 'certificationBody',
@@ -68,6 +74,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Sales: [
     {
       title: 'Salesforce Administrator Certification',
+      sponsor: 'Salesforce',
       description: 'The standard credential for Salesforce platform administration — widely required in sales-ops job postings.',
       url: 'https://trailhead.salesforce.com/credentials/administrator',
       provider: 'certificationBody',
@@ -76,6 +83,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'Sales Development Representative Professional Certificate',
+      sponsor: 'Salesforce',
       description: 'A practical certificate covering the SDR/BDR pipeline-generation skill set.',
       url: 'https://www.coursera.org/professional-certificates/salesforce-sales-development-representative',
       provider: 'coursera',
@@ -86,6 +94,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Engineering: [
     {
       title: 'AWS Certified Solutions Architect',
+      sponsor: 'AWS',
       description: 'The most widely requested cloud-architecture certification in engineering job postings.',
       url: 'https://aws.amazon.com/certification/certified-solutions-architect-associate/',
       provider: 'certificationBody',
@@ -94,6 +103,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'Microsoft Certified: Azure Administrator (AZ-104)',
+      sponsor: 'Microsoft',
       description: 'The standard Azure administration credential for engineers working in Microsoft-stack environments.',
       url: 'https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/',
       provider: 'certificationBody',
@@ -102,6 +112,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'Certified Kubernetes Administrator (CKA)',
+      sponsor: 'CNCF',
       description: 'The recognized credential for Kubernetes/container-orchestration expertise.',
       url: 'https://www.cncf.io/training/certification/cka/',
       provider: 'certificationBody',
@@ -112,6 +123,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   'Human Resources': [
     {
       title: 'SHRM-CP (Society for Human Resource Management Certified Professional)',
+      sponsor: 'SHRM',
       description: 'The most widely recognized generalist HR certification in the US.',
       url: 'https://www.shrm.org/credentials/certification',
       provider: 'certificationBody',
@@ -120,7 +132,8 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'PHR (Professional in Human Resources)',
-      description: "HRCI's foundational HR-generalist certification, commonly requested alongside SHRM-CP.",
+      sponsor: 'HRCI',
+      description: 'A foundational HR-generalist certification, commonly requested alongside SHRM-CP.',
       url: 'https://www.hrci.org/our-programs/our-certifications/phr',
       provider: 'certificationBody',
       free: false,
@@ -130,6 +143,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Legal: [
     {
       title: 'CIPP/US (Certified Information Privacy Professional)',
+      sponsor: 'IAPP',
       description: 'The standard privacy-law certification, increasingly requested for in-house counsel and compliance roles.',
       url: 'https://iapp.org/certify/cippus/',
       provider: 'certificationBody',
@@ -138,6 +152,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'CCEP (Certified Compliance and Ethics Professional)',
+      sponsor: 'SCCE',
       description: 'A widely recognized credential for corporate compliance roles.',
       url: 'https://www.corporatecompliance.org/certification/ccep',
       provider: 'certificationBody',
@@ -148,6 +163,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   'Data & Analytics': [
     {
       title: 'Google Data Analytics Certificate',
+      sponsor: 'Google',
       description: 'A widely recognized, practical entry point into data-analytics tooling and workflows.',
       url: 'https://www.coursera.org/professional-certificates/google-data-analytics',
       provider: 'coursera',
@@ -156,6 +172,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
     },
     {
       title: 'Microsoft Certified: Power BI Data Analyst Associate (PL-300)',
+      sponsor: 'Microsoft',
       description: 'The standard BI-tooling certification for analysts working in Microsoft-stack environments.',
       url: 'https://learn.microsoft.com/en-us/credentials/certifications/power-bi-data-analyst-associate/',
       provider: 'certificationBody',
@@ -166,6 +183,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   'Customer Success': [
     {
       title: 'Customer Success Manager Certification (Success Coaching)',
+      sponsor: 'Success Coaching',
       description: 'A widely used practical certification covering the CSM playbook (onboarding, renewals, expansion).',
       url: 'https://www.successcoaching.co/certifications/certified-customer-success-manager',
       provider: 'certificationBody',
@@ -176,6 +194,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Design: [
     {
       title: 'Google UX Design Professional Certificate',
+      sponsor: 'Google',
       description: "The most widely recognized entry-level UX certification, built around a portfolio-ready capstone.",
       url: 'https://www.coursera.org/professional-certificates/google-ux-design',
       provider: 'coursera',
@@ -186,6 +205,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   Administration: [
     {
       title: 'Certified Administrative Professional (CAP)',
+      sponsor: 'IAAP',
       description: 'A recognized generalist credential for administrative and executive-support roles.',
       url: 'https://www.iaap-hq.org/page/cap',
       provider: 'certificationBody',
@@ -196,6 +216,7 @@ export const CERTIFICATIONS_BY_FUNCTION: Partial<Record<Function, LearningResour
   'Executive Leadership': [
     {
       title: 'NACD Directorship Certification',
+      sponsor: 'NACD',
       description: "The recognized board-governance credential — most of the genuinely substantive executive-leadership certification universe.",
       url: 'https://www.nacdonline.org/education/directorship-certification/',
       provider: 'certificationBody',

@@ -54,6 +54,12 @@ export const LEARNING_PROVIDERS: Record<string, LearningProvider> = {
 // plain string here since that module doesn't export a literal union).
 export interface LearningResource {
   title: string
+  // The institution/company that actually made the course (Wharton, Duke,
+  // Google, IBM, AWS...) — distinct from `provider`, which is the hosting
+  // platform (Coursera/edX). Optional because a handful of entries are
+  // generic training with no named issuing institution. Rendered as its
+  // own prominent label on the card, not left buried in the description.
+  sponsor?: string
   description: string
   url: string
   provider: keyof typeof LEARNING_PROVIDERS
