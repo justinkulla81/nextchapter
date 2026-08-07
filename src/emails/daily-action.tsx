@@ -1,10 +1,17 @@
 import { emailStyles } from '@/lib/email/email-styles'
 
+interface WeeklyRecap {
+  pointsEarned: number
+  pointsTarget: number
+  completedTexts: string[]
+}
+
 interface DailyActionEmailProps {
   firstName: string | null
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
   isReset: boolean
   bullets: string[] | null
+  weeklyRecap: WeeklyRecap | null
   appUrl: string
   unsubscribeUrl: string
 }
@@ -52,11 +59,33 @@ const footer: React.CSSProperties = {
   ...emailStyles.muted,
 }
 
+const recapBox: React.CSSProperties = {
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  marginTop: '28px',
+  padding: '16px 18px',
+  borderRadius: '8px',
+  backgroundColor: '#f4f6f4',
+}
+
+const recapTitle: React.CSSProperties = {
+  fontWeight: 700,
+  color: '#0b2545',
+  margin: 0,
+}
+
+const recapList: React.CSSProperties = {
+  paddingLeft: '18px',
+  margin: '8px 0 0',
+  fontSize: '14px',
+  color: '#4a5568',
+}
+
 export default function DailyActionEmail({
   firstName,
   victoriaName,
   isReset,
   bullets,
+  weeklyRecap,
   appUrl,
   unsubscribeUrl,
 }: DailyActionEmailProps) {
@@ -85,6 +114,20 @@ export default function DailyActionEmail({
       <a href={`${appUrl}/dashboard`} style={button}>
         Open my dashboard
       </a>
+
+      {weeklyRecap && (
+        <div style={recapBox}>
+          <p style={recapTitle}>
+            This week so far: {weeklyRecap.pointsEarned} of {weeklyRecap.pointsTarget} points — nice
+            work.
+          </p>
+          <ul style={recapList}>
+            {weeklyRecap.completedTexts.map((text, i) => (
+              <li key={i}>{text}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <p style={footer}>
         Don&apos;t want daily emails?{' '}

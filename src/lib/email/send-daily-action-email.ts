@@ -7,6 +7,9 @@ import { getTodaysPrimaryAction, type ActionDay } from '@/lib/daily/primary-acti
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { getWeek1Artifacts } from '@/lib/sprint/week1'
 import { shouldSendDailyEmailForTier } from '@/lib/email/notification-tier'
+import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
+import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 import DailyActionEmail from '@/emails/daily-action'
 import Week1KickoffEmail from '@/emails/week1-kickoff'
 
@@ -15,6 +18,31 @@ const QUIET_THRESHOLD_DAYS = 3
 interface Strength {
   title: string
   detail: string
+}
+
+// A running "here's what you've gotten done this week" recap folded into
+// the daily nudge — reinforces progress already made instead of only ever
+// asking for the next thing. Returns null before anything's been completed
+// yet this week (a 0-of-N recap reads as a nag, not encouragement).
+async function buildWeeklyRecap(candidateId: string) {
+  const weekNumber = await getCandidateWeekNumber(candidateId, getMondayOfWeek(new Date()))
+  const sprint = await getCurrentWeekSprint(candidateId)
+  if (!sprint) return null
+
+  const actions = (sprint.committedActions as unknown as CommittedAction[]) ?? []
+  const completed = actions.filter(
+    (a) => a.completed && !a.isGoalBonus && !isProfileChecklistActionType(a.actionType)
+  )
+  if (completed.length === 0) return null
+
+  const pointsEarned = completed.reduce((sum, a) => sum + a.points, 0)
+  const completedTexts = [...new Set(completed.map((a) => a.text))].slice(0, 5)
+
+  return {
+    pointsEarned,
+    pointsTarget: pointsNeededForA(weekNumber),
+    completedTexts,
+  }
 }
 
 export async function sendDailyActionEmail(candidateId: string) {
@@ -133,6 +161,8 @@ export async function sendDailyActionEmail(candidateId: string) {
         ? `Your one thing for today, ${candidate.firstName}.`
         : 'Your one thing for today')
 
+    const weeklyRecap = !isReset ? await buildWeeklyRecap(candidateId) : null
+
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
@@ -144,6 +174,7 @@ export async function sendDailyActionEmail(candidateId: string) {
         victoriaName,
         isReset,
         bullets: insights?.bullets ?? null,
+        weeklyRecap,
         appUrl,
         unsubscribeUrl,
       }),
