@@ -10,6 +10,14 @@ export interface CalendarEventContext {
   startHour: number | null // 0-23, in the calendar's own local time as Google encodes it
   isWeekday: boolean | null // Mon-Fri in the calendar's own local date
   isRecurring: boolean // true for any instance of a recurring event (Google's recurringEventId)
+  // Whether a real person besides the candidate was actually invited — the
+  // real sync caller (sync-google-calendar.ts) already requires this before
+  // an event reaches classification at all (see its attendeeCount check), so
+  // in practice this is always true here; kept as an explicit input rather
+  // than assumed so this function stays correct if ever called elsewhere
+  // without that precondition. A real invitee is strong corroboration on its
+  // own — someone actually scheduled time with another person.
+  hasOtherAttendees: boolean
 }
 
 // A title that's nothing but 2-4 short Title-Case name segments joined by a
@@ -129,12 +137,19 @@ const NETWORKING_HIGH_CONFIDENCE_NO_TIME_GATE: RegExp[] = [
   /\bmixer\b/i,
   /\bindustry event\b/i,
   /\bpanel discussion\b/i,
+  /\bnice to meet you\b/i,
 ]
 
 // Bare/generic phrasing — real, but common enough in non-job-search
-// invites too that it needs corroboration: either a normal weekday
-// business-hours slot, or (if outside that window) an explicit
-// career/job-search-context word or a recruiter role mention alongside it.
+// invites too that it needs corroboration: a real other attendee (see
+// CalendarEventContext.hasOtherAttendees — someone you actually scheduled
+// time with), a normal weekday business-hours slot, or an explicit
+// career/job-search-context word/recruiter role mention. Deliberately
+// excludes bare "hi"/"hey"/"hello" — those show up in the description of
+// almost any calendar invite regardless of topic (an auto-greeting, a
+// team-meeting blurb), so they'd corroborate nothing; same reasoning as
+// why THANK_YOU_BARE_SUBJECT-style bare-word matches elsewhere in this
+// codebase stay narrow and specific rather than generic.
 const NETWORKING_GENERIC_PATTERNS: RegExp[] = [
   /\bcoffee\b/i,
   /\blunch\b/i,
@@ -144,14 +159,19 @@ const NETWORKING_GENERIC_PATTERNS: RegExp[] = [
   /\bintro(duction)?\b/i,
   /\bconversation\b/i,
   /\bconnection\b/i,
+  /\bconnecting\b/i,
   /\bcatch[- ]?up\b/i,
+  /\bcall\b/i,
+  /\bzoom\b/i,
 ]
 
 const CAREER_CONTEXT_PATTERNS: RegExp[] = [
   /\bcareer\b/i,
   /\bjob search\b/i,
+  /\bjob\b/i,
   /\bopportunity\b/i,
   /\bhiring\b/i,
+  /\bresume\b/i,
 ]
 
 // Same reasoning as THANK_YOU_BARE_SUBJECT in ats-patterns.ts — a bare
@@ -171,7 +191,13 @@ export function classifyCalendarEvent(
   title: string,
   description = '',
   location = '',
-  context: CalendarEventContext = { durationMinutes: null, startHour: null, isWeekday: null, isRecurring: false }
+  context: CalendarEventContext = {
+    durationMinutes: null,
+    startHour: null,
+    isWeekday: null,
+    isRecurring: false,
+    hasOtherAttendees: false,
+  }
 ): CalendarClassificationResult {
   const text = `${title} ${description}`
   const textWithLocation = `${text} ${location}`
@@ -198,7 +224,7 @@ export function classifyCalendarEvent(
     return { eventType: 'NETWORKING_CALL', confidence: 'high' }
   }
   if (matchesAny(text, NETWORKING_GENERIC_PATTERNS)) {
-    if (isWeekdayBusinessHours(context) || hasCareerCorroboration(text)) {
+    if (context.hasOtherAttendees || isWeekdayBusinessHours(context) || hasCareerCorroboration(text)) {
       return { eventType: 'NETWORKING_CALL', confidence: 'high' }
     }
     return { eventType: 'NEEDS_REVIEW', confidence: 'low' }

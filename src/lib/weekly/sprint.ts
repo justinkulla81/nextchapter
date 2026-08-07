@@ -233,16 +233,25 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const suggestions = [...personalized]
   let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
 
-  // Internal testing only — surfaces the one-click combined Gmail +
-  // Calendar connect (see GoogleConnectPrompt) as a real suggested action
-  // instead of it only being discoverable on the Network/Find My Job pages.
+  // Internal testing only — surfaces the Gmail/Calendar connect (see
+  // GoogleConnectPrompt) as a real suggested action instead of it only
+  // being discoverable on the Network/Find My Job pages. Text names
+  // whichever service is actually still missing — each connects
+  // separately, so claiming "one click, both" was inaccurate for anyone
+  // who'd already connected one of the two.
   if (profile?.email && (await isGmailTrackingTester(profile.email)) && !usedTypes.has('GMAIL_CONNECTED')) {
     const [hasEmailConnection, hasCalendarConnection] = await Promise.all([
       prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
       prisma.calendarConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
     ])
     if (!hasEmailConnection || !hasCalendarConnection) {
-      suggestions.push({ text: 'Connect your Gmail & Calendar (one click, both)', actionType: 'GMAIL_CONNECTED' })
+      const text =
+        !hasEmailConnection && !hasCalendarConnection
+          ? 'Connect your Gmail and Calendar'
+          : !hasEmailConnection
+            ? 'Connect your Gmail'
+            : 'Connect your Calendar'
+      suggestions.push({ text, actionType: 'GMAIL_CONNECTED' })
       usedTypes.add('GMAIL_CONNECTED')
       total += estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).points
     }

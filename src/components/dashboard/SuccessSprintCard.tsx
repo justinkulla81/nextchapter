@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -9,6 +10,7 @@ import {
   getRecurringTargetCount,
   isRecurringActionType,
   navCategoryForActionType,
+  type NavCategory,
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
@@ -27,6 +29,33 @@ interface SuggestedAction extends SuggestedActionLike {
 // exact text (personalized, LLM-suggested items with no fixed type).
 function actionKey(a: { actionType?: string; text: string }): string {
   return a.actionType ?? a.text
+}
+
+// Building first, then Connecting, then Learning & Working, matching the
+// hamburger nav's own section order — "Other" catches personalized
+// LLM-suggested items with no fixed actionType to categorize by, and
+// deliberately sorts last since it's the least legible bucket. A group with
+// no items in it simply isn't rendered — Building is expected to empty out
+// entirely for most candidates once every one-time Building item has moved
+// to Complete Your Profile or been finished.
+const GROUP_ORDER: (NavCategory | 'Other')[] = ['Building', 'Connecting', 'Learning & Working', 'Other']
+
+function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Record<string, T[]> {
+  const groups: Record<string, T[]> = { Building: [], Connecting: [], 'Learning & Working': [], Other: [] }
+  for (const item of items) {
+    const category = navCategoryForActionType(item.actionType) ?? 'Other'
+    groups[category].push(item)
+  }
+  return groups
+}
+
+function ActionGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold text-foreground">{title}</p>
+      {children}
+    </div>
+  )
 }
 
 // Read-only summary row — marking an action done/started happens on the
@@ -51,7 +80,6 @@ function ActionRow({
   committed: boolean
 }) {
   const link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
-  const navCategory = navCategoryForActionType(actionType)
   // For recurring actions with a known weekly rep target, show the count as
   // a suggested pace, not a points multiplier — a category only ever pays
   // out `points` once per week (see autoCompleteEngagementAction's doc
@@ -67,8 +95,11 @@ function ActionRow({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        {completed && (
-          <span className={cn('shrink-0', recurring ? 'text-brand' : 'text-success')} aria-hidden>
+        {completed && recurring && (
+          <span className="shrink-0 text-xs font-semibold text-brand tabular-nums">✓ {points} pts this week</span>
+        )}
+        {completed && !recurring && (
+          <span className="shrink-0 text-success" aria-hidden>
             ✓
           </span>
         )}
@@ -84,11 +115,6 @@ function ActionRow({
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {recurring ? 'Recurring' : 'One-time'}
         </span>
-        {navCategory && (
-          <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {navCategory}
-          </span>
-        )}
         {!committed && (
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             Not committed
@@ -140,6 +166,12 @@ export function SuccessSprintCard({
   const availableCatalog = suggestedActions.filter(
     (sa) => !usedKeys.has(actionKey(sa)) && !isProfileChecklistActionType(sa.actionType)
   )
+
+  const committedGroups = groupByNavCategory(committedTier)
+  const availableGroups = {
+    extras: groupByNavCategory(loggedExtras),
+    catalog: groupByNavCategory(availableCatalog),
+  }
 
   const oneTimeTotal = realActions.filter((a) => !a.recurring).length
   const oneTimeDone = realActions.filter((a) => !a.recurring && a.completed).length
@@ -207,19 +239,27 @@ export function SuccessSprintCard({
                 One-time actions count once, ever. Recurring actions count once per week — do them
                 again next week to earn those points again.
               </p>
-              <div className="space-y-1.5">
-                {committedTier.map((action, i) => (
-                  <ActionRow
-                    key={i}
-                    text={action.text}
-                    points={action.points}
-                    estimatedMinutes={action.estimatedMinutes}
-                    actionType={action.actionType}
-                    completed={action.completed}
-                    recurring={action.recurring}
-                    committed
-                  />
-                ))}
+              <div className="space-y-4">
+                {GROUP_ORDER.map((group) => {
+                  const items = committedGroups[group]
+                  if (items.length === 0) return null
+                  return (
+                    <ActionGroup key={group} title={group}>
+                      {items.map((action, i) => (
+                        <ActionRow
+                          key={i}
+                          text={action.text}
+                          points={action.points}
+                          estimatedMinutes={action.estimatedMinutes}
+                          actionType={action.actionType}
+                          completed={action.completed}
+                          recurring={action.recurring}
+                          committed
+                        />
+                      ))}
+                    </ActionGroup>
+                  )
+                })}
               </div>
 
               {(loggedExtras.length > 0 || availableCatalog.length > 0) && (
@@ -231,32 +271,41 @@ export function SuccessSprintCard({
                     Not part of your official commitment, but completing any of these still adds to
                     this week&apos;s points.
                   </p>
-                  <div className="space-y-1.5">
-                    {loggedExtras.map((action, i) => (
-                      <ActionRow
-                        key={`extra-${i}`}
-                        text={action.text}
-                        points={action.points}
-                        estimatedMinutes={action.estimatedMinutes}
-                        actionType={action.actionType}
-                        completed={action.completed}
-                        recurring={action.recurring}
-                        committed={false}
-                      />
-                    ))}
-                    {availableCatalog.map((action, i) => {
-                      const effort = estimateActionEffort(action)
+                  <div className="space-y-4">
+                    {GROUP_ORDER.map((group) => {
+                      const extras = availableGroups.extras[group]
+                      const catalog = availableGroups.catalog[group]
+                      if (extras.length === 0 && catalog.length === 0) return null
                       return (
-                        <ActionRow
-                          key={`available-${i}`}
-                          text={action.text}
-                          points={effort.points}
-                          estimatedMinutes={effort.minutes}
-                          actionType={action.actionType}
-                          completed={false}
-                          recurring={isRecurringActionType(action.actionType)}
-                          committed={false}
-                        />
+                        <ActionGroup key={group} title={group}>
+                          {extras.map((action, i) => (
+                            <ActionRow
+                              key={`extra-${i}`}
+                              text={action.text}
+                              points={action.points}
+                              estimatedMinutes={action.estimatedMinutes}
+                              actionType={action.actionType}
+                              completed={action.completed}
+                              recurring={action.recurring}
+                              committed={false}
+                            />
+                          ))}
+                          {catalog.map((action, i) => {
+                            const effort = estimateActionEffort(action)
+                            return (
+                              <ActionRow
+                                key={`available-${i}`}
+                                text={action.text}
+                                points={effort.points}
+                                estimatedMinutes={effort.minutes}
+                                actionType={action.actionType}
+                                completed={false}
+                                recurring={isRecurringActionType(action.actionType)}
+                                committed={false}
+                              />
+                            )
+                          })}
+                        </ActionGroup>
                       )
                     })}
                   </div>

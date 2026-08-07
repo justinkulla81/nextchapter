@@ -164,6 +164,10 @@ async function processEvent(
     startHour,
     isWeekday,
     isRecurring: Boolean(event.recurringEventId),
+    // Guaranteed true here — attendeeCount >= 2 is already enforced above
+    // before an event reaches this point — but passed explicitly rather
+    // than assumed inside the classifier itself.
+    hasOtherAttendees: attendeeCount >= 2,
   })
   const eventText = `${title} ${description}`
   const isRecruiterContact = matchRecruiterRoleMention(eventText)
