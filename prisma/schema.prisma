@@ -767,6 +767,7 @@ model CandidateProfile {
   companyWatchlist             CompanyWatchlistEntry[]
   emailConnection              EmailConnection?
   trackedEmailActivities       TrackedEmailActivity[]
+  adminEmailLogs               AdminEmailLog[]
   calendarConnection           CalendarConnection?
   trackedCalendarEvents        TrackedCalendarEvent[]
 
@@ -2081,6 +2082,42 @@ model BountyClaim {
 // revisit if this ever needs to hold up to a real security review.
 enum EmailProvider {
   GMAIL
+}
+
+// The 9 admin-triggered "nudge" email choices on the candidate detail page —
+// each maps to a status snapshot + rationale computed from real candidate
+// data in src/lib/admin/nudge-content.ts, then rendered fully editable
+// before send.
+enum AdminNudgeType {
+  WEEKLY_TARGET
+  NETWORKING
+  LEARNING
+  INTERIM_JOB
+  CONNECT_GMAIL
+  UPDATE_PROFILE
+  COMMUNITY
+  RECRUITER_HELP
+  UPDATE_PRIVACY
+}
+
+// One row per admin-sent nudge email — the "email trail" shown on the
+// candidate detail page. Distinct from TrackedEmailActivity (which mirrors
+// the candidate's own Gmail activity) and DigestSend (an aggregate,
+// no-recipient-identity log for the batch Weekly Market Digest).
+model AdminEmailLog {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  nudgeType      AdminNudgeType
+  subject        String
+  body           String // final text actually sent, post-edit — kept for audit even if the underlying candidate data changes later
+  recipientEmail String
+  sentByEmail    String
+  status         String // 'sent' | 'failed'
+  errorMessage   String?
+  sentAt         DateTime         @default(now())
+
+  @@index([candidateId, sentAt])
 }
 
 model EmailConnection {

@@ -10,6 +10,49 @@ import { approveJobPosting } from '@/app/support/admin/(portal)/exclusive-jobs/a
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
+import { CandidateNudgeEmailPanel } from '@/components/admin/CandidateNudgeEmailPanel'
+import { PRIVACY_TIERS } from '@/lib/constants/privacy'
+import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
+
+const NUDGE_TYPE_LABEL: Record<string, string> = {
+  WEEKLY_TARGET: 'Weekly target',
+  NETWORKING: 'Networking',
+  LEARNING: 'Learning',
+  INTERIM_JOB: 'Interim job',
+  CONNECT_GMAIL: 'Connect Gmail',
+  UPDATE_PROFILE: 'Update profile',
+  COMMUNITY: 'Community',
+  RECRUITER_HELP: 'Recruiter/coach help',
+  UPDATE_PRIVACY: 'Update privacy',
+}
+
+async function loadPrivacyAndEmailTrail(candidateId: string) {
+  const [profile, emailLogs] = await Promise.all([
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: {
+        privacyTier: true,
+        notificationTier: true,
+        recruiterDatabaseOptIn: true,
+        resumeBookOptIn: true,
+        dailyEmailOptedOut: true,
+        weeklyReportOptedOut: true,
+        sprintGoalEmailsOptedOut: true,
+        marketDigestOptedOut: true,
+        reminderEmailsOptedOut: true,
+        weeklySprintTargetOptOut: true,
+        encouragementGivingOptIn: true,
+        smsConsentedAt: true,
+      },
+    }),
+    prisma.adminEmailLog.findMany({
+      where: { candidateId },
+      orderBy: { sentAt: 'desc' },
+      take: 25,
+    }),
+  ])
+  return { profile, emailLogs }
+}
 
 export const maxDuration = 30
 
@@ -59,7 +102,11 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   await requireAdmin()
   const { id } = await params
 
-  const [authUsers, jobRecommendations] = await Promise.all([listAllAuthUsers(), loadJobRecommendations(id)])
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }] = await Promise.all([
+    listAllAuthUsers(),
+    loadJobRecommendations(id),
+    loadPrivacyAndEmailTrail(id),
+  ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
 
@@ -356,6 +403,108 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </CardHeader>
         <CardContent>
           <MotivationChart baseline={null} history={detail.moodHistory} />
+        </CardContent>
+      </Card>
+
+      {privacyProfile && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Privacy &amp; notifications</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="text-muted-foreground">Privacy tier</dt>
+                <dd className="text-foreground">
+                  {PRIVACY_TIERS.find((t) => t.value === privacyProfile.privacyTier)?.label ??
+                    privacyProfile.privacyTier}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Notifications</dt>
+                <dd className="text-foreground">
+                  {NOTIFICATION_TIERS.find((t) => t.value === privacyProfile.notificationTier)?.label ??
+                    privacyProfile.notificationTier}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Recruiter Database</dt>
+                <dd className="text-foreground">{privacyProfile.recruiterDatabaseOptIn ? 'Opted in' : 'Not opted in'}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Resume Book</dt>
+                <dd className="text-foreground">{privacyProfile.resumeBookOptIn ? 'Opted in' : 'Not opted in'}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Encouragement notes</dt>
+                <dd className="text-foreground">
+                  {privacyProfile.encouragementGivingOptIn ? 'Opted in' : 'Not opted in'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">SMS</dt>
+                <dd className="text-foreground">
+                  {privacyProfile.smsConsentedAt ? 'Consented' : 'Not consented'}
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-muted-foreground">Opted out of</dt>
+                <dd className="text-foreground">
+                  {[
+                    privacyProfile.dailyEmailOptedOut && 'daily emails',
+                    privacyProfile.weeklyReportOptedOut && 'weekly report',
+                    privacyProfile.sprintGoalEmailsOptedOut && 'sprint goal emails',
+                    privacyProfile.marketDigestOptedOut && 'market digest',
+                    privacyProfile.reminderEmailsOptedOut && 'reminder emails',
+                    privacyProfile.weeklySprintTargetOptOut && 'weekly sprint target nudges',
+                  ]
+                    .filter(Boolean)
+                    .join(', ') || 'Nothing — full email cadence'}
+                </dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Send a nudge email</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CandidateNudgeEmailPanel candidateId={id} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Email trail</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {emailLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No admin emails sent to this candidate yet.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {emailLogs.map((log) => (
+                <li key={log.id} className="rounded-lg border border-border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-foreground">
+                      {NUDGE_TYPE_LABEL[log.nudgeType] ?? log.nudgeType} — {log.subject}
+                    </p>
+                    <span
+                      className={log.status === 'sent' ? 'text-xs text-success' : 'text-xs text-destructive'}
+                    >
+                      {log.status === 'sent' ? 'Sent' : 'Failed'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {log.sentAt.toLocaleString()} · by {log.sentByEmail} · to {log.recipientEmail}
+                  </p>
+                  {log.errorMessage && <p className="mt-1 text-xs text-destructive">{log.errorMessage}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>

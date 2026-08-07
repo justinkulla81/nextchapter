@@ -1,0 +1,78 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import type { AdminNudgeType } from '@prisma/client'
+import { requireAdmin } from '@/lib/admin/auth'
+import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { buildNudgeDraft, type NudgeDraft } from '@/lib/admin/nudge-content'
+import { sendAdminNudgeEmail } from '@/lib/email/send-admin-nudge'
+
+export async function generateNudgeDraft(
+  candidateId: string,
+  nudgeType: AdminNudgeType
+): Promise<{ draft: NudgeDraft } | { error: string }> {
+  await requireAdmin()
+  try {
+    const draft = await buildNudgeDraft(candidateId, nudgeType)
+    return { draft }
+  } catch (error) {
+    console.error('Failed to generate nudge draft:', error)
+    return { error: 'Could not generate a draft for this candidate — try again.' }
+  }
+}
+
+export async function sendCandidateNudgeEmail(
+  candidateId: string,
+  nudgeType: AdminNudgeType,
+  subject: string,
+  body: string,
+  ctaLabel: string,
+  ctaUrl: string
+): Promise<{ error?: string } | undefined> {
+  const admin = await requireAdmin()
+
+  const candidate = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: { userId: true },
+  })
+  if (!candidate) return { error: 'Candidate not found.' }
+
+  const authClient = createAdminClient()
+  const { data: userData } = await authClient.auth.admin.getUserById(candidate.userId)
+  const recipientEmail = userData.user?.email
+  if (!recipientEmail) return { error: "Could not find this candidate's account email." }
+
+  const result = await sendAdminNudgeEmail({
+    to: recipientEmail,
+    subject,
+    bodyText: body,
+    ctaLabel,
+    ctaUrl,
+  })
+
+  await prisma.adminEmailLog.create({
+    data: {
+      candidateId,
+      nudgeType,
+      subject,
+      body,
+      recipientEmail,
+      sentByEmail: admin.email ?? 'admin',
+      status: result.sent ? 'sent' : 'failed',
+      errorMessage: result.sent ? null : result.error,
+    },
+  })
+
+  captureServerEvent(candidateId, 'admin_nudge_email_sent', {
+    nudgeType,
+    sentByEmail: admin.email,
+    status: result.sent ? 'sent' : 'failed',
+  })
+
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
+
+  if (!result.sent) return { error: result.error }
+  return undefined
+}
