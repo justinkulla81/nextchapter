@@ -355,6 +355,23 @@ model CandidateProfile {
   // not opt-in, and isn't sufficient consent for a matching/ranking surface.
   recruiterDatabaseOptIn       Boolean   @default(false)
   recruiterDatabaseRequestedAt DateTime?
+  // Set when the "new great candidate" blast has been sent to recruiters for
+  // this candidate (auto or admin-triggered) — the admin Recruiter Database
+  // page's "requested" bucket. Distinct from recruiterDatabaseRequestedAt
+  // above, which is when the CANDIDATE opted in, not when recruiters were
+  // told about them.
+  recruiterNotifiedAt          DateTime?
+  // Throttle on the "you're A-grade — unlock the recruiter network" nudge
+  // email, so the weekly auto-nudge cron doesn't re-send every week forever.
+  recruiterUnlockNudgedAt      DateTime?
+
+  // Resume Book — separate consent from recruiterDatabaseOptIn above (Resume
+  // Book is scoped to resume + fit-matching only, not full profile access).
+  // Defaults false at the schema level so existing candidates aren't
+  // silently opted in; the resume-upload form itself renders the checkbox
+  // pre-checked for anyone who hasn't set a preference yet, matching the
+  // "checked automatically" product decision.
+  resumeBookOptIn Boolean @default(false)
 
   // Step 2: "Which of these sounds like you" persona picker — sets
   // currentJobStatus via SITUATION_TO_JOB_STATUS the same way a homepage
@@ -1309,14 +1326,18 @@ model EmployerProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  companyName     String
-  companyWebsite  String?
-  companySize     String? // "1-10" | "11-50" | "51-200" | "201-1000" | "1000+"
-  companyStage    String? // "startup" | "growth" | "enterprise" | "non-profit" | "government"
-  companyIndustry String?
-  logoUrl         String?
-  contactName     String?
-  isSampleData    Boolean @default(false)
+  companyName                String
+  companyWebsite             String?
+  companySize                String? // "1-10" | "11-50" | "51-200" | "201-1000" | "1000+"
+  companyStage               String? // "startup" | "growth" | "enterprise" | "non-profit" | "government"
+  companyIndustry            String?
+  // Set once the hiring manager has confirmed (or corrected) the
+  // LLM-suggested companyIndustry guessed from companyWebsite/companyName at
+  // signup — same shape as CandidateProfile's *ConfirmedAt fields.
+  companyIndustryConfirmedAt DateTime?
+  logoUrl                    String?
+  contactName                String?
+  isSampleData               Boolean   @default(false)
 
   // Personal profile picture for the hiring-manager user (distinct from the
   // company logoUrl above) — shown in messaging only, subject to
@@ -1406,11 +1427,16 @@ model RoleProfile {
   roleTitle           String
   roleLevel           String?
   primaryFunction     String?
+  // Extracted alongside roleTitle/roleLevel/primaryFunction by the same JD
+  // extraction LLM call (extract-role-from-jd.ts) — no additional cost since
+  // it rides the existing call. Editable/confirmable in RoleForm before the
+  // role is created, same as the other extracted fields.
+  requiredSkills      String[] @default([])
   locationRequirement String?
   remotePolicy        String?
   compMin             Int?
   compMax             Int?
-  equityOffered       Boolean @default(false)
+  equityOffered       Boolean  @default(false)
 
   // Role-specific work style requirements
   requiredPaceLevel     Int?
