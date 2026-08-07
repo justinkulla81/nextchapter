@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
-import { matchResumeShared } from './ats-patterns'
+import { matchResumeShared, matchCourseCompletion } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { extractEmailAddress, extractDisplayName, extractDomain } from './email-address'
 import { ATS_AND_JOB_BOARD_DOMAINS } from '@/lib/text/email-domain'
@@ -11,6 +11,8 @@ import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions'
+import { getAllCatalogTitles } from '@/lib/learning/catalog-titles'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
@@ -26,6 +28,45 @@ const MAX_MESSAGES_PER_LABEL = 50
 // well past any realistic phrase-matching need so a huge email can't blow
 // up regex evaluation time.
 const BODY_PREVIEW_MAX_CHARS = 4000
+
+// Course platforms whose own "congratulations, you completed X" emails are
+// safe to trust — deliberately narrow (just the two platforms this app's
+// catalog actually links out to) rather than reusing the broader
+// ATS_AND_JOB_BOARD_DOMAINS set, which serves a different purpose.
+const LEARNING_PLATFORM_DOMAINS = new Set(['coursera.org', 'edx.org'])
+
+// Cached once per module load — the catalog is static content, not
+// per-request data, so there's no reason to rebuild this list on every
+// email processed across every sync run.
+let catalogTitlesCache: string[] | null = null
+function findCompletedCatalogTitle(text: string): string | null {
+  if (!catalogTitlesCache) catalogTitlesCache = getAllCatalogTitles()
+  const lower = text.toLowerCase()
+  return catalogTitlesCache.find((title) => lower.includes(title.toLowerCase())) ?? null
+}
+
+// Mirrors markRecommendationCompleted's (learning/actions.ts) manual
+// "Mark done" click exactly — same LearningBadge shape, same downstream
+// rewrite call — so an email-detected completion is indistinguishable from
+// one a candidate clicked themselves. Guards against duplicate badges,
+// since the manual path only avoids re-showing the button but never
+// checks for an existing row itself.
+async function markCourseCompletedFromEmail(candidateId: string, title: string, provider: string): Promise<void> {
+  const existing = await prisma.learningBadge.findFirst({
+    where: { candidateId, title, badgeType: 'course_completed' },
+  })
+  if (existing) return
+
+  await prisma.learningBadge.create({
+    data: { candidateId, title, provider, badgeType: 'course_completed', completedAt: new Date() },
+  })
+  captureServerEvent(candidateId, 'learning_recommendation_completed', { title, provider, source: 'email' })
+  try {
+    await applyLearningClosesBarrierRewrite(candidateId)
+  } catch (error) {
+    console.error('Failed to apply learning-closes-barrier baseline rewrite:', error)
+  }
+}
 
 interface GmailHeader {
   name: string
@@ -229,6 +270,18 @@ async function processMessage(
           workHistoryCompanies,
         }).catch((error) => console.error('Failed to auto-add email contact to network list:', error))
       }
+    }
+  }
+
+  // Course-completion detection — independent of the primary classification
+  // above (a completion email doesn't fit any of those categories). Gated
+  // to mail from the platforms' own domains so "congratulations, you
+  // completed X" phrasing is never guessed from an arbitrary sender.
+  const senderPlatformDomain = direction === 'INBOUND' ? senderRootDomain : null
+  if (senderPlatformDomain && LEARNING_PLATFORM_DOMAINS.has(senderPlatformDomain) && matchCourseCompletion(subject, bodyPreview)) {
+    const completedTitle = findCompletedCatalogTitle(`${subject} ${bodyPreview}`)
+    if (completedTitle) {
+      await markCourseCompletedFromEmail(connection.candidateId, completedTitle, senderPlatformDomain)
     }
   }
 

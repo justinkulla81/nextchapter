@@ -98,3 +98,10 @@ export function getFunctionTraining(primaryFunction: string | null): LearningRes
     matchByFunction(primaryFunction, FUNCTION_TRAINING_BY_KEYWORD.map((g) => ({ keywords: g.keywords, value: g.courses }))) ?? []
   )
 }
+
+// Every function-training course across every function, regardless of the
+// candidate's own function — used by the email completion-detection
+// matcher, which needs to recognize a title no matter who took the course.
+export function getAllFunctionTrainingCourses(): LearningResource[] {
+  return FUNCTION_TRAINING_BY_KEYWORD.flatMap((g) => g.courses)
+}

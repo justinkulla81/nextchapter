@@ -311,3 +311,18 @@ export function matchNetworkingOutreach(subject: string, bodyPreview: string): P
   if (testAny(text, NETWORKING_OUTREACH_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
   return { matched: false, confidence: 'low' }
 }
+
+// Coursera/edX's own standardized completion-email phrasing — checked
+// only against mail from those platforms' own domains (sync-gmail.ts), so
+// this never has to guess at an arbitrary sender's "congratulations"
+// email being about a course.
+const COURSE_COMPLETION_PATTERNS = [
+  /congratulations[,!]?\s+you('ve| have)\s+(successfully\s+)?completed/i,
+  /you('ve| have)\s+successfully\s+completed/i,
+  /your\s+certificate\s+(is\s+ready|has\s+been\s+issued)/i,
+  /certificate\s+of\s+completion/i,
+]
+
+export function matchCourseCompletion(subject: string, bodyPreview: string): boolean {
+  return testAny(`${subject} ${bodyPreview}`, COURSE_COMPLETION_PATTERNS)
+}
