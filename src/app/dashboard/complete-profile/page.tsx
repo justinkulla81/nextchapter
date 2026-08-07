@@ -16,6 +16,8 @@ import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeade
 import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { SubstackSection } from '@/components/dashboard/SubstackSection'
+import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
+import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from '@/app/dashboard/actions'
 import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Complete Your Profile' }
@@ -187,6 +189,30 @@ export default async function CompleteProfilePage() {
         {isIncomplete('LINKEDIN_UNLOCK') && <LinkedInUnlockForm />}
 
         {isIncomplete('SUBSTACK_UNLOCK') && <SubstackSection hasAccount={null} url={null} critique={null} />}
+
+        {isIncomplete('PROFILE_PICTURE_UPLOADED') && (
+          <div className="rounded-lg border border-border p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">Add a profile picture</p>
+              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +5 pts, one time
+              </span>
+            </div>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Shown to your coach and recruiter/employer contacts in messaging, and in weekly
+              recognition. Never shown on your resume, dossier, or to hiring managers reviewing your
+              report.
+            </p>
+            <AvatarUploadForm
+              displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
+              currentUrl={profile.profilePictureUrl}
+              visible={profile.profilePictureVisible}
+              uploadAction={uploadMyProfilePicture}
+              removeAction={removeMyProfilePicture}
+              toggleVisibilityAction={toggleMyProfilePictureVisible}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

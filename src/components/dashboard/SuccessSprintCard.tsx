@@ -70,6 +70,7 @@ function ActionRow({
   completed,
   recurring,
   committed,
+  completionCount,
 }: {
   text: string
   points: number
@@ -78,15 +79,11 @@ function ActionRow({
   completed: boolean
   recurring: boolean
   committed: boolean
+  completionCount?: number
 }) {
   const link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
-  // For recurring actions with a known weekly rep target, show the count as
-  // a suggested pace, not a points multiplier — a category only ever pays
-  // out `points` once per week (see autoCompleteEngagementAction's doc
-  // comment: "posting twice never doubles them"), so showing "2 x 15 = 30"
-  // here would promise points the system doesn't actually award.
   const targetCount = recurring ? getRecurringTargetCount(actionType) : null
-  const timeLabel = targetCount ? `Aim for ${targetCount}× this week` : formatMinutes(estimatedMinutes)
+  const count = completionCount ?? (completed ? 1 : 0)
   return (
     <div
       className={cn(
@@ -95,14 +92,22 @@ function ActionRow({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        {completed && recurring && (
+        {recurring && targetCount ? (
+          <span
+            className={cn(
+              'shrink-0 text-xs font-semibold tabular-nums',
+              count >= targetCount ? 'text-brand' : 'text-muted-foreground'
+            )}
+          >
+            {count} of {targetCount} this week
+          </span>
+        ) : completed && recurring ? (
           <span className="shrink-0 text-xs font-semibold text-brand tabular-nums">✓ {points} pts this week</span>
-        )}
-        {completed && !recurring && (
+        ) : completed && !recurring ? (
           <span className="shrink-0 text-success" aria-hidden>
             ✓
           </span>
-        )}
+        ) : null}
         <Link
           href={link?.href ?? '/dashboard'}
           className={cn(
@@ -122,7 +127,7 @@ function ActionRow({
         )}
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
-        <span className="text-xs text-muted-foreground tabular-nums">{timeLabel}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">{formatMinutes(estimatedMinutes)}</span>
         <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
           {points} pts
         </span>
@@ -229,11 +234,7 @@ export function SuccessSprintCard({
           {actions && actions.length > 0 ? (
             <>
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Total Weekly Committed Actions
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Click into an action below to go mark it done or started — completion happens on
-                that page, not here.
+                Total Weekly Priority Actions
               </p>
               <p className="text-xs text-muted-foreground">
                 One-time actions count once, ever. Recurring actions count once per week — do them
@@ -254,6 +255,7 @@ export function SuccessSprintCard({
                           actionType={action.actionType}
                           completed={action.completed}
                           recurring={action.recurring}
+                          completionCount={action.completionCount}
                           committed
                         />
                       ))}
@@ -287,6 +289,7 @@ export function SuccessSprintCard({
                               actionType={action.actionType}
                               completed={action.completed}
                               recurring={action.recurring}
+                              completionCount={action.completionCount}
                               committed={false}
                             />
                           ))}

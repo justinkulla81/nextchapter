@@ -18,6 +18,7 @@ export const PROFILE_CHECKLIST_ACTION_TYPES = [
   'GIG_DIRECTORY_UNLOCK',
   'LINKEDIN_UNLOCK',
   'SUBSTACK_UNLOCK',
+  'PROFILE_PICTURE_UPLOADED',
 ] as const
 
 export type ProfileChecklistActionType = (typeof PROFILE_CHECKLIST_ACTION_TYPES)[number]

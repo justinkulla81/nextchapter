@@ -47,6 +47,7 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   GIG_DIRECTORY_UNLOCK: 'Unlock the Interim/Gig Directory',
   LINKEDIN_UNLOCK: 'Unlock the LinkedIn post generator',
   SUBSTACK_UNLOCK: 'Do you have a Substack?',
+  PROFILE_PICTURE_UPLOADED: 'Add a profile picture',
 }
 
 async function fetchCompletion(candidateId: string) {
@@ -74,6 +75,7 @@ async function fetchCompletion(candidateId: string) {
         gigDirectoryUnlockBonusAt: true,
         linkedinUnlockBonusAt: true,
         substackUnlockBonusAt: true,
+        profilePictureUrl: true,
       },
     }),
     prisma.candidateAssessmentResponse.count({ where: { candidateId } }),
@@ -106,6 +108,10 @@ async function fetchCompletion(candidateId: string) {
     GIG_DIRECTORY_UNLOCK: !!profile.gigDirectoryUnlockBonusAt,
     LINKEDIN_UNLOCK: !!profile.linkedinUnlockBonusAt,
     SUBSTACK_UNLOCK: !!profile.substackUnlockBonusAt,
+    // Live-checked against the field itself (not a separate one-time
+    // timestamp) — removing the photo later correctly reverts this to
+    // incomplete, same as it reverting the photo everywhere else it's shown.
+    PROFILE_PICTURE_UPLOADED: !!profile.profilePictureUrl,
   }
 
   return completion

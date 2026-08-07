@@ -30,7 +30,6 @@ import { getProfileChecklistStatus } from '@/lib/weekly/profile-checklist'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
-import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
@@ -225,17 +224,16 @@ export default async function DashboardPage() {
 
       {sentimentAlert.lowSentiment && <SentimentSupportCard hasCoach={!!profile.coachId} />}
 
-      {(showGotHiredCTA || showCoachingCTA || sessionImpact || needsCoachingForm) && (
+      {(showGotHiredCTA || sessionImpact || needsCoachingForm) && (
         <div className="space-y-4">
           {showGotHiredCTA && <GotHiredCTACard />}
-          {showCoachingCTA && <CoachingCTACard />}
           {sessionImpact && <SessionImpactCard report={sessionImpact} />}
           {needsCoachingForm && <CoachingFormReminderCard />}
         </div>
       )}
 
       <div className="space-y-4 border-t border-border pt-8">
-        <CoachChatCard initialMessages={conversation.messages} />
+        <CoachChatCard initialMessages={conversation.messages} showExecutiveCoachCta={showCoachingCTA} />
       </div>
     </div>
   )

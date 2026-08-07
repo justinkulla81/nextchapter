@@ -80,6 +80,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   WATCHLIST_ADD: { minutes: 2, points: 2 },
   WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
 
+  // Profile picture — small one-time bonus, same weight as the other
+  // one-time confirms. Live-checked against profilePictureUrl (see
+  // profile-checklist.ts) rather than a separate timestamp, so removing the
+  // photo later correctly reverts it to incomplete.
+  PROFILE_PICTURE_UPLOADED: { minutes: 3, points: 5 },
+
   // Prompt 76 — Gmail activity tracking. One-time connection bonus, same
   // weight as other one-time confirm bonuses. The four Sent-folder
   // categories are real, distinct networking actions — never merged into
@@ -202,6 +208,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PARTNER_CLICK_THROUGH: 'connecting',
   WATCHLIST_ADD: 'connecting',
   WATCHLIST_POSTING_VIEWED: 'connecting',
+  PROFILE_PICTURE_UPLOADED: 'connecting',
   GMAIL_CONNECTED: 'connecting',
   GMAIL_RECONNECTED: 'connecting',
   THANK_YOU_NOTE_SENT: 'connecting',
@@ -258,6 +265,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   WORK_AUTHORIZATION: 'Building',
   ANSWER_OPTIONAL_QUESTIONS: 'Building',
   COMFORT_CHECK_CONFIRM: 'Building',
+  PROFILE_PICTURE_UPLOADED: 'Building',
 
   NETWORKING_LIST: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
@@ -331,33 +339,44 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // more than one scheduled learning session in a week, same "no single
   // finish line" shape as the other calendar-detected types above.
   'LEARNING_SESSION_ATTENDED',
+  // Prompt 77 — Company Tracker. Adding another company is the same
+  // "ongoing habit, no single finish line" shape as the rest of this set.
+  'WATCHLIST_ADD',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
   return !!actionType && RECURRING_ACTION_TYPES.has(actionType)
 }
 
-// A suggested rep count per week for recurring types the candidate actively
-// plans (surfaced in the committed/catalog list) — lets the dashboard show
-// "2 x 15 pts = 30 pts" instead of a bare point value, so the target reads
-// as a concrete number of real-world actions, not just an abstract score.
-// Starting defaults, tuned to land near typical weekly point targets —
-// adjust freely per type. Deliberately excludes the five passively-detected
-// types below (THANK_YOU_NOTE_SENT, FOLLOW_UP_NOTE_SENT, CHECK_IN_NOTE_SENT,
-// INTRO_CONNECTION_REQUEST_SENT, INTERVIEW_ATTENDED) — those accrue from
-// Gmail/Calendar reconciliation, not a candidate-set goal, so a "target
-// count" wouldn't correspond to anything the candidate is planning. Also
-// excludes ENGAGE_PEER_SUPPORT (0 points, nothing to multiply).
+// A suggested rep count per week for every recurring type — lets the
+// dashboard show real progress ("1 of 2 this week") instead of a bare point
+// value, so the target reads as a concrete number of real-world actions,
+// not just an abstract score. For the passively-detected types
+// (THANK_YOU_NOTE_SENT, FOLLOW_UP_NOTE_SENT, CHECK_IN_NOTE_SENT,
+// INTRO_CONNECTION_REQUEST_SENT, INTERVIEW_ATTENDED, NETWORKING_LIST,
+// LEARNING_SESSION_ATTENDED) the count is a display goal only — it doesn't
+// gate anything, since those accrue from Gmail/Calendar/CSV detection, not
+// a candidate-picked commitment. Starting defaults, tuned to land near
+// typical weekly point targets — adjust freely per type.
 const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   OUTREACH_MESSAGE: 2,
   OUTREACH_CALL: 1,
+  NETWORKING_LIST: 1,
   ENGAGE_COMMENT: 3,
   ENGAGE_EVENT: 1,
   ENGAGE_POST_UPDATE: 1,
+  ENGAGE_PEER_SUPPORT: 1,
   LINKEDIN_POST_IDEA: 1,
   THOUGHT_LEADERSHIP_COMMENT: 3,
   THOUGHT_LEADERSHIP_SHARE: 2,
   INTERVIEW_BEHAVIORAL_PRACTICE: 2,
+  THANK_YOU_NOTE_SENT: 1,
+  FOLLOW_UP_NOTE_SENT: 1,
+  CHECK_IN_NOTE_SENT: 1,
+  INTRO_CONNECTION_REQUEST_SENT: 1,
+  INTERVIEW_ATTENDED: 1,
+  LEARNING_SESSION_ATTENDED: 1,
+  WATCHLIST_ADD: 3,
 }
 
 export function getRecurringTargetCount(actionType: string | undefined): number | null {
@@ -464,6 +483,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   CALENDAR_CONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Outreach Contacts' },
+  PROFILE_PICTURE_UPLOADED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
 }
 
 // actionTypes that represent real growth/stretch effort (networking,

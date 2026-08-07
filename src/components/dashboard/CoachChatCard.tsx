@@ -2,6 +2,7 @@
 
 import { useActionState, useOptimistic, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { UserRound } from 'lucide-react'
 import { sendCoachMessage } from '@/app/dashboard/coach/actions'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ interface CoachMessageItem {
 export function CoachChatCard({
   initialMessages,
   suggestedQuestions,
+  showExecutiveCoachCta,
 }: {
   initialMessages: CoachMessageItem[]
   // Shown as clickable chips above the input, only before the candidate has
@@ -32,6 +34,10 @@ export function CoachChatCard({
   // chat for the first time (e.g. on the Coaching page), not a permanent
   // fixture once they're actually mid-conversation.
   suggestedQuestions?: string[]
+  // Folds the former standalone "Want a real human in your corner too?"
+  // card into Victoria's own box as a small footer instead of a second,
+  // adjacent card making the same "here's a coach option" point twice.
+  showExecutiveCoachCta?: boolean
 }) {
   const [state, formAction, pending] = useActionState(sendCoachMessage, undefined)
   const formRef = useRef<HTMLFormElement>(null)
@@ -135,6 +141,24 @@ export function CoachChatCard({
           </Button>
         </form>
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+
+        {showExecutiveCoachCta && (
+          <div className="flex flex-col items-start gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground">
+              Want a more personalized, executive experience? Executive Coach adds a human career
+              coach on top of Victoria — mock interviews, resume review, a second opinion on hard
+              calls.
+            </p>
+            <Button
+              nativeButton={false}
+              render={<Link href="/coaching" />}
+              size="sm"
+              className="shrink-0 bg-orange text-white hover:bg-orange/90"
+            >
+              Get a human executive coach
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -24,24 +24,21 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   // points its frequency stops being clean evidence someone would do it
   // without incentive. Shown in the canonical menu anyway so it's a real,
   // selectable option, not just a point-table entry nobody can ever pick.
-  {
-    text: 'Substantively help a peer — answer a specific question, make an introduction, or support someone through a setback',
-    actionType: 'ENGAGE_PEER_SUPPORT',
-  },
+  { text: 'Help a peer in Support Network', actionType: 'ENGAGE_PEER_SUPPORT' },
 
   // Thought Leadership
   { text: 'Publish a LinkedIn post', actionType: 'LINKEDIN_POST_IDEA' },
   { text: 'Comment on an industry post', actionType: 'THOUGHT_LEADERSHIP_COMMENT' },
-  { text: 'Share or repost with a thoughtful comment', actionType: 'THOUGHT_LEADERSHIP_SHARE' },
+  { text: 'Share or repost a post', actionType: 'THOUGHT_LEADERSHIP_SHARE' },
 
   // Learning
   { text: 'Complete a course module', actionType: 'LEARNING_MODULE' },
   { text: 'Earn a certificate', actionType: 'LEARNING_CERTIFICATE' },
-  { text: 'Try a new AI tool relevant to your target role', actionType: 'LEARNING_NEW_TOOL' },
+  { text: 'Try a new AI tool', actionType: 'LEARNING_NEW_TOOL' },
 
   // Resume / Assets
-  { text: 'Update your resume with quantified achievements', actionType: 'RESUME_UPDATE' },
-  { text: 'Run your resume through the Skills Translator', actionType: 'SKILLS_TRANSLATOR' },
+  { text: 'Update your resume', actionType: 'RESUME_UPDATE' },
+  { text: 'Run the Skills Translator', actionType: 'SKILLS_TRANSLATOR' },
   { text: 'Optimize your LinkedIn profile', actionType: 'LINKEDIN_SETUP' },
 
   // Interview Prep
