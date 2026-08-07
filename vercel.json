@@ -59,6 +59,14 @@
     {
       "path": "/api/cron/backchannel-match",
       "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/notify-recruiters-new-candidates",
+      "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/nudge-recruiter-network-unlock",
+      "schedule": "0 18 * * 3"
     }
   ]
 }

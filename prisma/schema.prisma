@@ -702,19 +702,23 @@ model CandidateProfile {
   introCommittedAt      DateTime? // set once the candidate finishes the post-signup welcome/payoff page and clicks "I'm committed" — gates dashboard access, backs its 5-point Search Sprint bonus
 
   // Deferred signup (resume-first onboarding, account creation last)
-  email                     String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
-  resumeStepComplete        Boolean   @default(false)
-  registrationCompletedAt   DateTime? // set once the anonymous->permanent auth conversion completes
-  passwordSetAt             DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
-  duplicateEmailBlockedAt   DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
+  email                        String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
+  resumeStepComplete           Boolean   @default(false)
+  registrationCompletedAt      DateTime? // set once the anonymous->permanent auth conversion completes
+  passwordSetAt                DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
+  duplicateEmailBlockedAt      DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
   // Claims the "no report exists yet, go generate one" window in resolveLatestReport()
   // so two near-simultaneous /dashboard loads (or a registration load racing a later
   // load) can't both pass the check and each generate + email a duplicate report.
   // Treated as stale after REPORT_GENERATION_CLAIM_STALE_MS — see report-generation-lock.ts.
-  reportGenerationClaimedAt DateTime?
-  lastReminderSentAt        DateTime?
-  reminderEmailCount        Int       @default(0)
-  reminderEmailsOptedOut    Boolean   @default(false)
+  reportGenerationClaimedAt    DateTime?
+  lastReminderSentAt           DateTime?
+  reminderEmailCount           Int       @default(0)
+  reminderEmailsOptedOut       Boolean   @default(false)
+  // "You're A-grade, unlock the Recruiter Database" nudge — separate from
+  // reminderEmailsOptedOut above (account-setup reminders), a different
+  // email a candidate might want off independently.
+  recruiterUnlockNudgeOptedOut Boolean   @default(false)
 
   // Relations
   workHistory                  WorkHistoryEntry[]
@@ -2669,7 +2673,12 @@ model Recruiter {
   profilePictureUrl     String?
   profilePictureVisible Boolean @default(true)
 
-  marketDigestOptedOut Boolean @default(false)
+  marketDigestOptedOut       Boolean @default(false)
+  // Separate opt-out from marketDigestOptedOut above — "a new A-grade
+  // candidate is available" alerts are a distinct email type a recruiter
+  // might want even if they don't want the periodic market digest (or vice
+  // versa).
+  newCandidateAlertsOptedOut Boolean @default(false)
 
   jobBoardSubmissions ExclusiveJobPosting[]
   calibrationMemos    CalibrationMemo[]

@@ -15,7 +15,9 @@ export async function GET(
         ? { weeklyReportOptedOut: true }
         : type === 'sprintGoal'
           ? { sprintGoalEmailsOptedOut: true }
-          : { reminderEmailsOptedOut: true }
+          : type === 'recruiterUnlockNudge'
+            ? { recruiterUnlockNudgeOptedOut: true }
+            : { reminderEmailsOptedOut: true }
 
   await prisma.candidateProfile.update({ where: { id: candidateId }, data }).catch(() => {
     // Unknown/already-deleted candidate — nothing to do, still show the
