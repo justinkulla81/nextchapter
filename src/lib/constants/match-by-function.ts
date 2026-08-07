@@ -30,3 +30,38 @@ export const CUSTOMER_SUCCESS_KEYWORDS = ['customer success', 'customer support'
 export const DATA_ANALYTICS_KEYWORDS = ['data scientist', 'data analyst', 'analytics', 'business intelligence', 'bi analyst', 'machine learning engineer', 'ml engineer', 'data & analytics']
 export const EXECUTIVE_LEADERSHIP_KEYWORDS = ['chief executive', 'chief operating', 'chief financial', 'ceo', 'coo', 'cfo', 'cto', 'cmo', 'cpo', 'president', 'general manager', 'executive leadership']
 export const ADMINISTRATION_KEYWORDS = ['administrative assistant', 'office manager', 'executive assistant', 'administration']
+
+// Maps free text back to one of PRIMARY_FUNCTION_OPTIONS's canonical
+// values — reuses the same keyword groups every content file already
+// matches against, so a resolved name always round-trips correctly
+// through matchByFunction (e.g. "Finance" contains "finance").
+const CANONICAL_FUNCTION_KEYWORDS: { canonicalFunction: string; keywords: string[] }[] = [
+  { canonicalFunction: 'Finance', keywords: ['finance', 'accounting', 'cfo', 'controller', 'fp&a', 'treasury'] },
+  { canonicalFunction: 'Marketing', keywords: ['marketing', 'brand', 'growth', 'demand', 'cmo'] },
+  { canonicalFunction: 'Sales', keywords: SALES_KEYWORDS },
+  { canonicalFunction: 'Engineering', keywords: ['engineer', 'developer', 'software', 'technical', 'cto'] },
+  { canonicalFunction: 'Product', keywords: ['product manager', 'product management', 'cpo', 'head of product'] },
+  { canonicalFunction: 'Design', keywords: DESIGN_KEYWORDS },
+  { canonicalFunction: 'Human Resources', keywords: ['human resources', 'hr', 'talent', 'recruit', 'people', 'chro'] },
+  { canonicalFunction: 'Operations', keywords: ['operations', 'supply chain', 'logistics', 'coo'] },
+  { canonicalFunction: 'Legal', keywords: ['legal', 'counsel', 'compliance', 'general counsel'] },
+  { canonicalFunction: 'Customer Success', keywords: CUSTOMER_SUCCESS_KEYWORDS },
+  { canonicalFunction: 'Data & Analytics', keywords: DATA_ANALYTICS_KEYWORDS },
+  { canonicalFunction: 'Executive Leadership', keywords: EXECUTIVE_LEADERSHIP_KEYWORDS },
+  { canonicalFunction: 'Administration', keywords: ADMINISTRATION_KEYWORDS },
+]
+
+// Resolves which function bucket should drive AI tools/training/
+// certification content — prefers the role the candidate is TARGETING
+// over their own history, so a VP Finance targeting CFO sees CFO/Finance
+// (and Executive Leadership, if the title itself signals it) content
+// aimed at where they're headed, not just where they've been. Falls back
+// to primaryFunction when targetRoleType doesn't resolve to anything.
+export function resolveContentFunction(primaryFunction: string | null, targetRoleType: string | null): string | null {
+  if (targetRoleType) {
+    const normalized = targetRoleType.toLowerCase()
+    const match = CANONICAL_FUNCTION_KEYWORDS.find((g) => g.keywords.some((k) => normalized.includes(k)))
+    if (match) return match.canonicalFunction
+  }
+  return primaryFunction
+}

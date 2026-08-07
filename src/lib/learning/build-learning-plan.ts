@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { isExecutiveTargetRole } from '@/lib/constants/onboarding'
-import { matchByFunction, SALES_KEYWORDS } from '@/lib/constants/match-by-function'
+import { matchByFunction, resolveContentFunction, SALES_KEYWORDS } from '@/lib/constants/match-by-function'
 import { AI_TRAINING_COURSES, type AiTrainingTier } from '@/lib/constants/ai-training-tiers'
 import { CERTIFICATIONS_BY_FUNCTION } from '@/lib/constants/certifications-by-function'
 import { getExecEdProgram } from '@/lib/constants/exec-ed-by-school'
@@ -79,6 +79,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         skillsStillNeeded: true,
         activeJobDescription: true,
         storyComfort: true,
+        hasMBA: true,
       },
     }),
     prisma.hireabilityReport.findFirst({
@@ -96,6 +97,11 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   const primaryFunction = candidate.primaryFunction
   const skillsStillNeeded = candidate.skillsStillNeeded
+
+  // Prefers the role the candidate is TARGETING over their own history —
+  // a VP Finance targeting CFO sees CFO/Finance tools and training aimed
+  // at where they're headed, not just where they've been.
+  const contentFunction = resolveContentFunction(primaryFunction, candidate.targetRoleType)
 
   // Real management signal — any one of: confirmed people manager, a real
   // team managed, an already-senior title, or explicitly targeting an
@@ -127,13 +133,13 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     skillsStillNeeded,
     'AI fluency is fast becoming table stakes across every function.'
   )
-  const aiWorkflow = getAiWorkflowForFunction(primaryFunction)
-  const aiTools = getAiToolsForFunction(primaryFunction)
+  const aiWorkflow = getAiWorkflowForFunction(contentFunction)
+  const aiTools = getAiToolsForFunction(contentFunction)
 
   const sections: LearningPlanSection[] = []
 
-  const certifications = primaryFunction
-    ? CERTIFICATIONS_BY_FUNCTION[primaryFunction as keyof typeof CERTIFICATIONS_BY_FUNCTION]
+  const certifications = contentFunction
+    ? CERTIFICATIONS_BY_FUNCTION[contentFunction as keyof typeof CERTIFICATIONS_BY_FUNCTION]
     : undefined
   if (certifications && certifications.length > 0) {
     sections.push({
@@ -141,42 +147,49 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
       title: 'Certifications',
       items: withRationale(
         certifications,
-        primaryFunction ?? '',
+        contentFunction ?? '',
         gaps,
         skillsStillNeeded,
-        primaryFunction ? `A recognized credential for ${primaryFunction} roles.` : null
+        contentFunction ? `A recognized credential for ${contentFunction} roles.` : null
       ),
     })
   }
 
-  const businessSkillsItems: LearningResource[] = [...BUSINESS_SKILLS_GENERAL]
+  // A generic "intro to business" course/catalog is a step backward for
+  // someone who already holds an MBA — skip the general set (but not the
+  // leadership set, which is about a management skill, not a business
+  // fundamentals gap; and not exec-ed, which is alumni-specific, not
+  // remedial) for MBA holders.
+  const businessSkillsItems: LearningResource[] = candidate.hasMBA ? [] : [...BUSINESS_SKILLS_GENERAL]
   if (hasManagementSignal) businessSkillsItems.push(...BUSINESS_SKILLS_LEADERSHIP)
   const execEdProgram = primaryEducation ? getExecEdProgram(primaryEducation.schoolNameNormalized) : null
   if (execEdProgram) businessSkillsItems.push(execEdProgram)
-  businessSkillsItems.push(EMERITUS_CATALOG)
-  sections.push({
-    id: 'business-skills',
-    title: 'Business Skills',
-    items: withRationale(
-      businessSkillsItems,
-      'business',
-      gaps,
-      skillsStillNeeded,
-      execEdProgram ? `Because you studied at ${primaryEducation?.schoolName}.` : 'Core business skills that transfer across every function.'
-    ),
-  })
+  if (!candidate.hasMBA) businessSkillsItems.push(EMERITUS_CATALOG)
+  if (businessSkillsItems.length > 0) {
+    sections.push({
+      id: 'business-skills',
+      title: 'Business Skills',
+      items: withRationale(
+        businessSkillsItems,
+        'business',
+        gaps,
+        skillsStillNeeded,
+        execEdProgram ? `Because you studied at ${primaryEducation?.schoolName}.` : 'Core business skills that transfer across every function.'
+      ),
+    })
+  }
 
-  const functionTraining = getFunctionTraining(primaryFunction)
+  const functionTraining = getFunctionTraining(contentFunction)
   if (functionTraining.length > 0) {
     sections.push({
       id: 'function-training',
       title: 'Function Tools & Training',
       items: withRationale(
         functionTraining,
-        primaryFunction ?? '',
+        contentFunction ?? '',
         gaps,
         skillsStillNeeded,
-        primaryFunction ? `Common for ${primaryFunction} roles.` : null
+        contentFunction ? `Common for ${contentFunction} roles.` : null
       ),
     })
   }
