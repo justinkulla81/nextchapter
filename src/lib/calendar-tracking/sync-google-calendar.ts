@@ -174,6 +174,11 @@ async function processEvent(
   const isHiringManagerContact = matchHiringManagerRoleMention(eventText)
   const isCoachContact = matchCoachRoleMention(eventText)
 
+  // First non-self attendee with an email — lets the needs-follow-up list
+  // (see network/needs-follow-up.ts) know who a meeting was actually with,
+  // without a separate attendee table.
+  const counterpart = event.attendees?.find((a) => !a.self && a.email)
+
   await prisma.trackedCalendarEvent.create({
     data: {
       candidateId: connection.candidateId,
@@ -185,6 +190,8 @@ async function processEvent(
       durationMinutes,
       isRecruiterContact,
       startTime: new Date(event.start.dateTime),
+      counterpartEmail: counterpart?.email?.toLowerCase() ?? null,
+      counterpartName: counterpart?.displayName?.trim() || null,
     },
   })
 

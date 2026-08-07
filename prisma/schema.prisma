@@ -2203,6 +2203,13 @@ model TrackedCalendarEvent {
   detectedAt         DateTime           @default(now())
   reviewedAt         DateTime? // candidate confirmed/corrected a needs-review item
   dismissedAt        DateTime? // candidate marked this classification wrong — excluded from all stats/lists
+  // The first non-self attendee with an email, from the raw Google Calendar
+  // attendee list — lets "who did you meet with" surfaces (needs-follow-up
+  // list) resolve an identity without a new join table. Null for events
+  // with no attendee data (e.g. a solo blocked-off slot) or events synced
+  // before this field existed.
+  counterpartEmail   String?
+  counterpartName    String?
 
   @@unique([connectionId, externalEventId])
   @@index([candidateId, eventType])

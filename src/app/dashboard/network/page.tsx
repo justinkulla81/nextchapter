@@ -17,6 +17,8 @@ import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/Netwo
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
+import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
+import { NeedsFollowUpCard } from '@/components/dashboard/NeedsFollowUpCard'
 import { ContactRow } from '@/components/dashboard/ContactRow'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
@@ -125,7 +127,7 @@ export default async function NetworkPage({
       : null,
   ])
 
-  const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
+  const [emailActivities, calendarEvents, reconciliation, needsFollowUp] = await Promise.all([
     emailConnection
       ? prisma.trackedEmailActivity.findMany({
           where: { candidateId: profile.id, dismissedAt: null },
@@ -139,6 +141,7 @@ export default async function NetworkPage({
         })
       : Promise.resolve([]),
     emailConnection || calendarConnection ? getActivityReconciliation(profile.id) : Promise.resolve(null),
+    getNeedsFollowUpList(profile.id),
   ])
 
   // Job-application-related counts (confirmations, rejections, offers,
@@ -458,6 +461,8 @@ export default async function NetworkPage({
       </Card>
 
       <NetworkQuickActionsCard contacts={contacts} />
+
+      <NeedsFollowUpCard items={needsFollowUp} />
 
       <div className="space-y-4">
         <div>
