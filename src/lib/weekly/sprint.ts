@@ -6,6 +6,7 @@ import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
 import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export interface CommittedAction {
@@ -213,25 +214,25 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     }
   }
 
+  // Every one-time profile/gate confirmation (WORKING_STYLE_QUIZ,
+  // PROFILE_CONFIRM, SALARY_CONFIRM, COMFORT_CHECK_CONFIRM, etc.) now lives
+  // entirely on /dashboard/complete-profile — see profile-checklist.ts's
+  // doc comment for why. Stripped here regardless of source (a frozen LLM
+  // snapshot, the canonical menu) so none of them can reappear as a Sprint
+  // suggestion.
   const personalizedRaw = await getPersonalizedSuggestions(candidateId)
   const personalized = personalizedRaw.filter(
-    (a) => !a.actionType || (!verifiedDoneTypes.has(a.actionType) && !completedOneTimeTypes.has(a.actionType))
+    (a) =>
+      !a.actionType ||
+      (!verifiedDoneTypes.has(a.actionType) &&
+        !completedOneTimeTypes.has(a.actionType) &&
+        !isProfileChecklistActionType(a.actionType))
   )
 
   const usedTypes = new Set([...personalized.map((a) => a.actionType).filter(Boolean), ...completedOneTimeTypes])
   const suggestions = [...personalized]
   let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
 
-  if (profile && !profile.salaryConfirmedAt && !usedTypes.has('SALARY_CONFIRM')) {
-    suggestions.push({ text: 'Confirm your last salary', actionType: 'SALARY_CONFIRM' })
-    usedTypes.add('SALARY_CONFIRM')
-    total += estimateActionEffort({ actionType: 'SALARY_CONFIRM' }).points
-  }
-  if (profile && !profile.workAuthConfirmedAt && !usedTypes.has('WORK_AUTHORIZATION')) {
-    suggestions.push({ text: 'Confirm your work authorization status', actionType: 'WORK_AUTHORIZATION' })
-    usedTypes.add('WORK_AUTHORIZATION')
-    total += estimateActionEffort({ actionType: 'WORK_AUTHORIZATION' }).points
-  }
   // Internal testing only — surfaces the one-click combined Gmail +
   // Calendar connect (see GoogleConnectPrompt) as a real suggested action
   // instead of it only being discoverable on the Network/Find My Job pages.
@@ -245,47 +246,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
       usedTypes.add('GMAIL_CONNECTED')
       total += estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).points
     }
-  }
-  // Also the one-time unlock gate for the recurring INTERVIEW_BEHAVIORAL_PRACTICE
-  // action — see RECURRING_ACTION_TYPES / the week-1 gating below.
-  if (profile && !profile.comfortCheckBonusAt && !usedTypes.has('COMFORT_CHECK_CONFIRM')) {
-    suggestions.push({ text: 'Complete your Interview Prep Comfort Check', actionType: 'COMFORT_CHECK_CONFIRM' })
-    usedTypes.add('COMFORT_CHECK_CONFIRM')
-    total += estimateActionEffort({ actionType: 'COMFORT_CHECK_CONFIRM' }).points
-  }
-
-  // "How I Work Best" is a genuinely optional dashboard action, never part
-  // of mandatory onboarding — but it's valuable enough to nudge hard on,
-  // so unlike the two confirmations above (appended), this goes to the
-  // very front of the list, ahead of anything personalized, whenever it's
-  // still unfinished.
-  if (!usedTypes.has('WORKING_STYLE_QUIZ')) {
-    const hasCompletedWorkStyleQuiz = (await prisma.candidateAssessmentResponse.count({ where: { candidateId } })) > 0
-    if (!hasCompletedWorkStyleQuiz) {
-      suggestions.unshift({ text: 'Take the How I Work Best assessment', actionType: 'WORKING_STYLE_QUIZ' })
-      usedTypes.add('WORKING_STYLE_QUIZ')
-      total += estimateActionEffort({ actionType: 'WORKING_STYLE_QUIZ' }).points
-    }
-  }
-
-  const hasUnansweredOptionalQuestion =
-    profile &&
-    [
-      profile.jobsAppliedBucket,
-      profile.interviewsReceivedCount,
-      profile.networkingLevel,
-      profile.learnedNewSkillsLevel,
-      profile.triedPartTimeOrConsulting,
-      profile.triedExecutiveCoaching,
-      profile.connectedWithRecruiters,
-    ].some((f) => f === null)
-  if (hasUnansweredOptionalQuestion && !usedTypes.has('ANSWER_OPTIONAL_QUESTIONS')) {
-    suggestions.push({
-      text: 'Answer the remaining optional questions about your job search — improves your Detail-Orientedness score',
-      actionType: 'ANSWER_OPTIONAL_QUESTIONS',
-    })
-    usedTypes.add('ANSWER_OPTIONAL_QUESTIONS')
-    total += estimateActionEffort({ actionType: 'ANSWER_OPTIONAL_QUESTIONS' }).points
   }
 
   // Says they like being visible (content, networking) but recent weeks

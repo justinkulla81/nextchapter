@@ -25,6 +25,8 @@ import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
+import { ProfileChecklistCard } from '@/components/dashboard/ProfileChecklistCard'
+import { getProfileChecklistStatus } from '@/lib/weekly/profile-checklist'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
@@ -108,6 +110,7 @@ export default async function DashboardPage() {
     dashboardMessage,
     hasCoachingFormResponse,
     sentimentAlert,
+    profileChecklist,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -128,6 +131,7 @@ export default async function DashboardPage() {
       ? hasSubmittedCoachingOnboardingForm(profile.id)
       : Promise.resolve(true),
     getSentimentAlert(profile.id),
+    getProfileChecklistStatus(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -199,6 +203,11 @@ export default async function DashboardPage() {
         <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
 
         <ReconnectBanner candidateId={profile.id} variant="link" />
+
+        <ProfileChecklistCard
+          remainingCount={profileChecklist.remainingCount}
+          remainingPoints={profileChecklist.remainingPoints}
+        />
 
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}

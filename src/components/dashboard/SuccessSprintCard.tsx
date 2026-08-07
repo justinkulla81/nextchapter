@@ -12,6 +12,7 @@ import {
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
+import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import type { WeeklyEngine } from '@/lib/scoring/grade'
 import { WeeklyEngineChecklist } from '@/components/dashboard/WeeklyEngineChecklist'
@@ -127,14 +128,21 @@ export function SuccessSprintCard({
   weeklyVisibilityBonus: number
   onTrack: boolean
 }) {
-  const committedTier = actions?.filter((a) => !a.addedFromCatalog) ?? []
-  const loggedExtras = actions?.filter((a) => a.addedFromCatalog) ?? []
+  // Profile-checklist items (Confirm your industry, Privacy setting, etc.)
+  // still count toward weeklyPoints/oneTimePointsEarned below — only their
+  // rendered rows are excluded here, since they now live entirely on
+  // /dashboard/complete-profile (see ProfileChecklistCard).
+  const realActions = (actions ?? []).filter((a) => !isProfileChecklistActionType(a.actionType))
+  const committedTier = realActions.filter((a) => !a.addedFromCatalog)
+  const loggedExtras = realActions.filter((a) => a.addedFromCatalog)
 
   const usedKeys = new Set((actions ?? []).map(actionKey))
-  const availableCatalog = suggestedActions.filter((sa) => !usedKeys.has(actionKey(sa)))
+  const availableCatalog = suggestedActions.filter(
+    (sa) => !usedKeys.has(actionKey(sa)) && !isProfileChecklistActionType(sa.actionType)
+  )
 
-  const oneTimeTotal = (actions ?? []).filter((a) => !a.recurring).length
-  const oneTimeDone = (actions ?? []).filter((a) => !a.recurring && a.completed).length
+  const oneTimeTotal = realActions.filter((a) => !a.recurring).length
+  const oneTimeDone = realActions.filter((a) => !a.recurring && a.completed).length
   // Splits weeklyPoints by kind so the blended total doesn't obscure how much
   // came from a real finish line (one-time) vs a habit that resets next week
   // (recurring) — see the isRecurringActionType doc comment in CommittedAction.
