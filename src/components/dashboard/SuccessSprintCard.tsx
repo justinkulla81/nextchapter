@@ -62,6 +62,16 @@ function ActionGroup({ title, children }: { title: string; children: ReactNode }
 // real feature page it links to (see SprintActionCompletion), not here.
 // This card's job is to show status and route you to where the work
 // actually happens.
+// Where the real "one Google sign-in grants both scopes" combined route vs.
+// the single-service routes live — mirrors GoogleConnectPrompt's own
+// startPath logic so a Sprint row and the Network page's connect prompt
+// never disagree about which route to send someone to.
+function connectHref(hasEmailConnection: boolean, hasCalendarConnection: boolean): string {
+  if (!hasEmailConnection && !hasCalendarConnection) return '/api/auth/google-connect/start'
+  if (!hasCalendarConnection) return '/api/auth/calendar/start'
+  return '/api/auth/gmail/start'
+}
+
 function ActionRow({
   text,
   points,
@@ -71,6 +81,8 @@ function ActionRow({
   recurring,
   committed,
   completionCount,
+  hasEmailConnection,
+  hasCalendarConnection,
 }: {
   text: string
   points: number
@@ -80,15 +92,31 @@ function ActionRow({
   recurring: boolean
   committed: boolean
   completionCount?: number
+  hasEmailConnection: boolean
+  hasCalendarConnection: boolean
 }) {
-  const link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
+  let link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
+  // "Have a coffee chat or call" only pays out automatically once Calendar
+  // is connected — if it isn't, route straight to connecting it instead of
+  // the Network page, where the connect prompt is easy to miss.
+  if (actionType === 'OUTREACH_CALL' && !hasCalendarConnection) {
+    link = { href: connectHref(hasEmailConnection, hasCalendarConnection), label: 'Connect Calendar' }
+  }
+  // Connecting Gmail/Calendar unlocks earning points for most of the
+  // Connecting engine at once — flagged as a high-priority action the same
+  // way the hamburger nav flags Networking/Learning/Interim Work.
+  const isPriority = actionType === 'GMAIL_CONNECTED' && !completed
   const targetCount = recurring ? getRecurringTargetCount(actionType) : null
   const count = completionCount ?? (completed ? 1 : 0)
   return (
     <div
       className={cn(
         'flex items-center justify-between gap-3 rounded-lg border px-3 py-2',
-        committed ? 'border-border bg-off-white' : 'border-dashed border-muted-foreground/30 bg-transparent'
+        isPriority
+          ? 'border-orange/40 bg-orange/5'
+          : committed
+            ? 'border-border bg-off-white'
+            : 'border-dashed border-muted-foreground/30 bg-transparent'
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
@@ -120,6 +148,11 @@ function ActionRow({
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {recurring ? 'Recurring' : 'One-time'}
         </span>
+        {isPriority && (
+          <span className="shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+            High Priority
+          </span>
+        )}
         {!committed && (
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             Not committed
@@ -147,6 +180,8 @@ export function SuccessSprintCard({
   weeklyPointsTarget,
   weeklyVisibilityBonus,
   onTrack,
+  hasEmailConnection,
+  hasCalendarConnection,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -158,6 +193,8 @@ export function SuccessSprintCard({
   weeklyPointsTarget: number
   weeklyVisibilityBonus: number
   onTrack: boolean
+  hasEmailConnection: boolean
+  hasCalendarConnection: boolean
 }) {
   // Profile-checklist items (Confirm your industry, Privacy setting, etc.)
   // still count toward weeklyPoints/oneTimePointsEarned below — only their
@@ -256,6 +293,8 @@ export function SuccessSprintCard({
                           completed={action.completed}
                           recurring={action.recurring}
                           completionCount={action.completionCount}
+                          hasEmailConnection={hasEmailConnection}
+                          hasCalendarConnection={hasCalendarConnection}
                           committed
                         />
                       ))}
@@ -290,6 +329,8 @@ export function SuccessSprintCard({
                               completed={action.completed}
                               recurring={action.recurring}
                               completionCount={action.completionCount}
+                              hasEmailConnection={hasEmailConnection}
+                              hasCalendarConnection={hasCalendarConnection}
                               committed={false}
                             />
                           ))}
@@ -304,6 +345,8 @@ export function SuccessSprintCard({
                                 actionType={action.actionType}
                                 completed={false}
                                 recurring={isRecurringActionType(action.actionType)}
+                                hasEmailConnection={hasEmailConnection}
+                                hasCalendarConnection={hasCalendarConnection}
                                 committed={false}
                               />
                             )

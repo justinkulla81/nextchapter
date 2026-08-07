@@ -110,6 +110,8 @@ export default async function DashboardPage() {
     hasCoachingFormResponse,
     sentimentAlert,
     profileChecklist,
+    emailConnection,
+    calendarConnection,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -131,6 +133,8 @@ export default async function DashboardPage() {
       : Promise.resolve(true),
     getSentimentAlert(profile.id),
     getProfileChecklistStatus(profile.id),
+    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+    prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -219,6 +223,8 @@ export default async function DashboardPage() {
           weeklyPointsTarget={grade.weeklyPointsTarget}
           weeklyVisibilityBonus={grade.weeklyVisibilityBonus}
           onTrack={onTrack}
+          hasEmailConnection={!!emailConnection}
+          hasCalendarConnection={!!calendarConnection}
         />
       </div>
 
