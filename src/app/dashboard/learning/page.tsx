@@ -9,9 +9,9 @@ import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompl
 import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
-import { SkillsStillNeededForm } from '@/components/dashboard/learning/SkillsStillNeededForm'
 import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers'
-import { AiProofPointExercise } from '@/components/dashboard/learning/AiProofPointExercise'
+import { AiContextBanner } from '@/components/dashboard/learning/AiContextBanner'
+import { ToolsForRoleSection } from '@/components/dashboard/learning/ToolsForRoleSection'
 import { InterviewSkillsSection } from '@/components/dashboard/learning/InterviewSkillsSection'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
 
@@ -88,29 +88,30 @@ export default async function LearningPage() {
         )}
       </div>
 
-      <LearningSection
-        title="What do you still feel like you need?"
-        description="Tell us in your own words — it directly shapes why each recommendation below is here."
-      >
-        <SkillsStillNeededForm skillsStillNeeded={profile.skillsStillNeeded} />
-      </LearningSection>
+      <AiContextBanner
+        tier={plan.aiTrainingTier}
+        role={plan.contentFunction}
+        dismissedAlready={plan.aiContextBannerDismissed}
+      />
 
       <LearningSection
         title="AI Training"
         description="Working AI fluency is fast becoming table stakes across every function."
       >
-        <div className="space-y-4">
-          <AiTrainingTiers
-            defaultTier={plan.aiTrainingTier}
-            defaultCourses={plan.aiTrainingCourses}
-            completedTitles={completedTitles}
-          />
-          <AiProofPointExercise
-            primaryFunction={profile.primaryFunction}
-            aiTools={plan.aiTools}
-            aiWorkflow={plan.aiWorkflow}
-          />
-        </div>
+        <AiTrainingTiers
+          defaultTier={plan.aiTrainingTier}
+          defaultCourses={plan.aiTrainingCourses}
+          completedTitles={completedTitles}
+        />
+      </LearningSection>
+
+      <LearningSection title="Tools">
+        <ToolsForRoleSection
+          role={plan.contentFunction}
+          tools={plan.aiTools}
+          functionTraining={plan.functionTraining}
+          completedTitles={completedTitles}
+        />
       </LearningSection>
 
       {plan.sections.filter((s) => s.id !== 'speaking-leadership').map((s) => renderSection(s, completedTitles))}

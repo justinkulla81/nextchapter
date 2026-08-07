@@ -639,10 +639,11 @@ model CandidateProfile {
   // privacyOpenedUpBonusAt. This is also the one-time unlock gate for the
   // recurring INTERVIEW_BEHAVIORAL_PRACTICE action (guides.tsx already
   // treats storyComfort !== null as "interview-prep guide unlocked").
-  comfortCheckBonusAt       DateTime?
-  networkingConcerns        NetworkingAnxiety[] @default([])
-  networkConnectPreferences String[]            @default([])
-  outreachPlanDismissedAt   DateTime? // "Your outreach plan" banner's X was clicked on Outreach Contacts
+  comfortCheckBonusAt        DateTime?
+  networkingConcerns         NetworkingAnxiety[] @default([])
+  networkConnectPreferences  String[]            @default([])
+  outreachPlanDismissedAt    DateTime? // "Your outreach plan" banner's X was clicked on Outreach Contacts
+  aiContextBannerDismissedAt DateTime? // Learning page's AI-fluency-context banner X was clicked
 
   // Admin-managed Gmail/Calendar tracking allow-list (see
   // /support/admin/tracking-testers) — replaces the old env-var-only
@@ -709,6 +710,7 @@ model CandidateProfile {
   interviewResponses           InterviewResponse[]
   peerNominations              PeerNomination[]
   learningBadges               LearningBadge[]
+  aiToolFamiliarity            CandidateAiToolFamiliarity[]
   employerInteractions         CandidateInteraction[]
   approvedEmployers            ApprovedEmployer[]
   assessmentResults            AssessmentResult[]
@@ -1180,6 +1182,26 @@ model LearningBadge {
   verified        Boolean  @default(false)
   createdAt       DateTime @default(now())
 
+  @@index([candidateId])
+}
+
+// One row per tool a candidate has either marked "already familiar" (a
+// curated tool from ai-tools-by-function.ts, isCustom: false, toolUrl
+// null — the URL lives in the constants file) or added themselves
+// (isCustom: true, toolUrl required so it renders as a real link). Same
+// table for both since the Learning page's Tools section treats them as
+// one merged list.
+model CandidateAiToolFamiliarity {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  toolName String
+  toolUrl  String?
+  isCustom Boolean  @default(false)
+  addedAt  DateTime @default(now())
+
+  @@unique([candidateId, toolName])
   @@index([candidateId])
 }
 

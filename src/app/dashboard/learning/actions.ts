@@ -93,34 +93,91 @@ export async function logAiProject(
   revalidatePath('/dashboard/recruiter-report')
 }
 
-export type UpdateSkillsStillNeededState = { error?: string } | undefined
+export async function dismissAiContextBanner(): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
 
-// The same CandidateProfile.skillsStillNeeded field the Search Strategy
-// page edits — surfaced again here since it's the direct input to the
-// Learning page's personalization (see rationale.ts), not a separate
-// field. Revalidates both pages so neither shows a stale value.
-export async function updateSkillsStillNeeded(
-  _prevState: UpdateSkillsStillNeededState,
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { aiContextBannerDismissedAt: new Date() },
+  })
+
+  revalidatePath('/dashboard/learning')
+}
+
+// Marks a curated tool (from ai-tools-by-function.ts) as one the candidate
+// already knows — toggling off deletes the row. Curated tools carry no
+// toolUrl (the URL lives in the constants file, not the DB row).
+export async function toggleToolFamiliarity(toolName: string, isFamiliar: boolean): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  if (isFamiliar) {
+    await prisma.candidateAiToolFamiliarity.upsert({
+      where: { candidateId_toolName: { candidateId: profile.id, toolName } },
+      create: { candidateId: profile.id, toolName, isCustom: false },
+      update: {},
+    })
+  } else {
+    await prisma.candidateAiToolFamiliarity.deleteMany({
+      where: { candidateId: profile.id, toolName, isCustom: false },
+    })
+  }
+
+  captureServerEvent(profile.id, 'learning_tool_familiarity_toggled', { toolName, isFamiliar })
+
+  revalidatePath('/dashboard/learning')
+}
+
+export type AddCustomAiToolState = { error?: string } | undefined
+
+export async function addCustomAiTool(
+  _prevState: AddCustomAiToolState,
   formData: FormData
-): Promise<UpdateSkillsStillNeededState> {
+): Promise<AddCustomAiToolState> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { error: 'You need to be logged in to do this.' }
 
-  const skillsStillNeeded = (formData.get('skillsStillNeeded') as string | null)?.trim() || null
+  const toolName = (formData.get('toolName') as string | null)?.trim()
+  const toolUrl = (formData.get('toolUrl') as string | null)?.trim() || null
+  if (!toolName) return { error: 'Enter a tool name.' }
+
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { skillsStillNeeded },
+  await prisma.candidateAiToolFamiliarity.upsert({
+    where: { candidateId_toolName: { candidateId: profile.id, toolName } },
+    create: { candidateId: profile.id, toolName, toolUrl, isCustom: true },
+    update: { toolUrl, isCustom: true },
   })
 
-  captureServerEvent(profile.id, 'learning_skills_still_needed_updated', { hasContent: !!skillsStillNeeded })
+  captureServerEvent(profile.id, 'learning_custom_tool_added', { toolName })
 
   revalidatePath('/dashboard/learning')
-  revalidatePath('/dashboard/search-strategy')
+}
+
+export async function removeCustomAiTool(id: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await prisma.candidateAiToolFamiliarity.deleteMany({ where: { id, candidateId: profile.id } })
+
+  revalidatePath('/dashboard/learning')
 }
 
 export async function deleteLearningBadge(badgeId: string): Promise<void> {

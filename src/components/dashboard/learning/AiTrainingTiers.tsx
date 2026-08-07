@@ -25,7 +25,8 @@ export function AiTrainingTiers({
 }) {
   const [tier, setTier] = useState<AiTrainingTier>(defaultTier)
   const posthog = usePostHog()
-  const courses = tier === defaultTier ? defaultCourses : AI_TRAINING_COURSES[tier].map((c) => ({ ...c, rationale: null }))
+  const courses =
+    tier === defaultTier ? defaultCourses : AI_TRAINING_COURSES[tier].map((c) => ({ ...c, rationale: null, completionCount: 0 }))
 
   function selectTier(t: AiTrainingTier) {
     setTier(t)

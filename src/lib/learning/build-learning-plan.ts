@@ -9,13 +9,13 @@ import { BUSINESS_SKILLS_GENERAL, BUSINESS_SKILLS_LEADERSHIP, EMERITUS_CATALOG }
 import { getAiToolsForFunction, type AiToolRecommendation } from '@/lib/constants/ai-tools-by-function'
 import { getFunctionTraining } from '@/lib/constants/function-training'
 import { SPEAKING_RESOURCES, SPEAKING_LEADERSHIP_GATED } from '@/lib/constants/speaking-leadership'
-import { getAiWorkflowForFunction, type AiWorkflow } from '@/lib/constants/ai-fluency-workflows'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 import { rationaleForItem, truncate, type GapLike } from '@/lib/learning/rationale'
 import type { LearningResource } from '@/lib/constants/learning-partners'
 
 export interface LearningPlanItem extends LearningResource {
   rationale: string | null
+  completionCount: number
 }
 
 export interface LearningPlanSection {
@@ -31,11 +31,20 @@ export interface InterviewSkillsData {
   coreStatementExcerpt: string | null
 }
 
+export interface LearningPlanAiTool extends AiToolRecommendation {
+  id: string | null // set only for a candidate-added custom tool, for removal
+  isFamiliar: boolean
+  isCustom: boolean
+}
+
 export interface LearningPlan {
   aiTrainingTier: AiTrainingTier
   aiTrainingCourses: LearningPlanItem[]
-  aiWorkflow: AiWorkflow
-  aiTools: AiToolRecommendation[]
+  aiTools: LearningPlanAiTool[]
+  contentFunction: string | null
+  aiFlexibilityLevel: number | null
+  aiContextBannerDismissed: boolean
+  functionTraining: LearningPlanItem[]
   sections: LearningPlanSection[]
   interviewSkills: InterviewSkillsData
   hasManagementSignal: boolean
@@ -57,16 +66,18 @@ function withRationale(
   matchKey: string,
   gaps: GapLike[],
   skillsStillNeeded: string | null,
-  structuralFact: string | null
+  structuralFact: string | null,
+  completionCounts: Map<string, number>
 ): LearningPlanItem[] {
   return items.map((item) => ({
     ...item,
     rationale: rationaleForItem({ matchKey, gaps, skillsStillNeeded, structuralFact }),
+    completionCount: completionCounts.get(item.title) ?? 0,
   }))
 }
 
 export async function buildLearningPlan(candidateId: string): Promise<LearningPlan> {
-  const [candidate, latestReport, primaryEducation, narrative] = await Promise.all([
+  const [candidate, latestReport, primaryEducation, narrative, completionRows, toolFamiliarityRows] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -80,6 +91,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         activeJobDescription: true,
         storyComfort: true,
         hasMBA: true,
+        aiContextBannerDismissedAt: true,
       },
     }),
     prisma.hireabilityReport.findFirst({
@@ -89,7 +101,13 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     }),
     prisma.educationEntry.findFirst({ where: { candidateId, isPrimary: true } }),
     getDefaultNarrative(candidateId),
+    // Real "X candidates have completed this" counts — across ALL
+    // candidates, not just this one, so it reads as social proof.
+    prisma.learningBadge.groupBy({ by: ['title'], where: { badgeType: 'course_completed' }, _count: { _all: true } }),
+    prisma.candidateAiToolFamiliarity.findMany({ where: { candidateId } }),
   ])
+
+  const completionCounts = new Map(completionRows.map((r) => [r.title, r._count._all]))
 
   const gaps: GapLike[] = latestReport
     ? ((latestReport.gapAnalysis as unknown as GapAnalysisShape)?.gaps ?? []).map((g) => ({ area: g.area, why: g.why }))
@@ -131,10 +149,32 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     'ai',
     gaps,
     skillsStillNeeded,
-    'AI fluency is fast becoming table stakes across every function.'
+    'AI fluency is fast becoming table stakes across every function.',
+    completionCounts
   )
-  const aiWorkflow = getAiWorkflowForFunction(contentFunction)
-  const aiTools = getAiToolsForFunction(contentFunction)
+  // Curated tools merged with the candidate's own familiarity/custom
+  // additions — one list, so "already know this" and "added by me" tools
+  // sit alongside the curated recommendations instead of a separate list.
+  const curatedTools = getAiToolsForFunction(contentFunction)
+  const familiarToolNames = new Set(toolFamiliarityRows.filter((r) => !r.isCustom).map((r) => r.toolName))
+  const aiTools: LearningPlanAiTool[] = [
+    ...curatedTools.map((tool) => ({
+      ...tool,
+      id: null,
+      isFamiliar: familiarToolNames.has(tool.name),
+      isCustom: false,
+    })),
+    ...toolFamiliarityRows
+      .filter((r) => r.isCustom)
+      .map((r) => ({
+        name: r.toolName,
+        description: 'Added by you.',
+        url: r.toolUrl ?? '#',
+        id: r.id,
+        isFamiliar: true,
+        isCustom: true,
+      })),
+  ]
 
   const sections: LearningPlanSection[] = []
 
@@ -150,7 +190,8 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         contentFunction ?? '',
         gaps,
         skillsStillNeeded,
-        contentFunction ? `A recognized credential for ${contentFunction} roles.` : null
+        contentFunction ? `A recognized credential for ${contentFunction} roles.` : null,
+        completionCounts
       ),
     })
   }
@@ -174,25 +215,23 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         'business',
         gaps,
         skillsStillNeeded,
-        execEdProgram ? `Because you studied at ${primaryEducation?.schoolName}.` : 'Core business skills that transfer across every function.'
+        execEdProgram ? `Because you studied at ${primaryEducation?.schoolName}.` : 'Core business skills that transfer across every function.',
+        completionCounts
       ),
     })
   }
 
-  const functionTraining = getFunctionTraining(contentFunction)
-  if (functionTraining.length > 0) {
-    sections.push({
-      id: 'function-training',
-      title: 'Function Tools & Training',
-      items: withRationale(
-        functionTraining,
-        contentFunction ?? '',
-        gaps,
-        skillsStillNeeded,
-        contentFunction ? `Common for ${contentFunction} roles.` : null
-      ),
-    })
-  }
+  // Rendered inside the Tools section (page.tsx), not the generic
+  // sections loop — real courses/certs belong next to the AI tools for
+  // the same role, not a separate disconnected list further down.
+  const functionTraining = withRationale(
+    getFunctionTraining(contentFunction),
+    contentFunction ?? '',
+    gaps,
+    skillsStillNeeded,
+    contentFunction ? `Common for ${contentFunction} roles.` : null,
+    completionCounts
+  )
 
   const speakingLeadershipItems: LearningResource[] = [...SPEAKING_RESOURCES]
   if (hasManagementSignal) speakingLeadershipItems.push(...SPEAKING_LEADERSHIP_GATED)
@@ -204,7 +243,8 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
       'speaking',
       gaps,
       skillsStillNeeded,
-      'Communicating clearly under pressure is a skill hiring managers notice.'
+      'Communicating clearly under pressure is a skill hiring managers notice.',
+      completionCounts
     ),
   })
 
@@ -218,8 +258,11 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   return {
     aiTrainingTier,
     aiTrainingCourses,
-    aiWorkflow,
     aiTools,
+    contentFunction,
+    aiFlexibilityLevel: candidate.aiFlexibilityLevel,
+    aiContextBannerDismissed: !!candidate.aiContextBannerDismissedAt,
+    functionTraining,
     sections,
     interviewSkills,
     hasManagementSignal,

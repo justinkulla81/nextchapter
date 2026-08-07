@@ -67,6 +67,13 @@ export function LearningResourceCard({
       {item.rationale && <p className="text-xs italic text-foreground">{item.rationale}</p>}
       <p className="text-sm text-muted-foreground">{item.description}</p>
       {provider.designationNote && <p className="text-xs text-muted-foreground italic">{provider.designationNote}</p>}
+      {item.completionCount > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {item.completionCount === 1
+            ? '1 NextChapter candidate has completed this'
+            : `${item.completionCount} NextChapter candidates have completed this`}
+        </p>
+      )}
 
       {completed ? (
         <span className="flex items-center gap-1 text-xs font-medium text-success">
