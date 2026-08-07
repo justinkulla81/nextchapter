@@ -9,6 +9,7 @@ export interface CalendarEventContext {
   durationMinutes: number | null
   startHour: number | null // 0-23, in the calendar's own local time as Google encodes it
   isWeekday: boolean | null // Mon-Fri in the calendar's own local date
+  isRecurring: boolean // true for any instance of a recurring event (Google's recurringEventId)
 }
 
 // A title that's nothing but 2-4 short Title-Case name segments joined by a
@@ -170,7 +171,7 @@ export function classifyCalendarEvent(
   title: string,
   description = '',
   location = '',
-  context: CalendarEventContext = { durationMinutes: null, startHour: null, isWeekday: null }
+  context: CalendarEventContext = { durationMinutes: null, startHour: null, isWeekday: null, isRecurring: false }
 ): CalendarClassificationResult {
   const text = `${title} ${description}`
   const textWithLocation = `${text} ${location}`
@@ -202,7 +203,12 @@ export function classifyCalendarEvent(
     }
     return { eventType: 'NEEDS_REVIEW', confidence: 'low' }
   }
-  if (looksLikeNameToNameMeeting(title) && isBusinessHoursSlot(context)) {
+  // A recurring instance is excluded here — a standing weekly 1:1 or team
+  // sync between the same names looks identical to this heuristic (a
+  // name-shaped title in a normal business-hours slot), but has no real
+  // networking keyword to justify the guess. This bare fallback only fires
+  // for a one-off meeting someone actually set up.
+  if (looksLikeNameToNameMeeting(title) && isBusinessHoursSlot(context) && !context.isRecurring) {
     return { eventType: 'NETWORKING_CALL', confidence: 'high' }
   }
   return { eventType: 'NEEDS_REVIEW', confidence: 'low' }

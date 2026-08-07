@@ -17,10 +17,22 @@ const OFFER_CONGRATS = [
   "This is the moment. An offer, real and in your hands. However this next part goes, take today to actually celebrate it. — Vic",
 ]
 
-export function getRejectionReframe(seed: number): string {
-  return REJECTION_REFRAMES[seed % REJECTION_REFRAMES.length]
+// Cheap string hash (djb2) — callers pass a record id to deterministically
+// vary which message shows. Prisma cuids are all the same length, so
+// `id.length` alone (a past bug here) always hashes to the same variant;
+// hashing the full string actually varies per record.
+function hashString(value: string): number {
+  let hash = 5381
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 33) ^ value.charCodeAt(i)
+  }
+  return Math.abs(hash)
 }
 
-export function getOfferCongrats(seed: number): string {
-  return OFFER_CONGRATS[seed % OFFER_CONGRATS.length]
+export function getRejectionReframe(id: string): string {
+  return REJECTION_REFRAMES[hashString(id) % REJECTION_REFRAMES.length]
+}
+
+export function getOfferCongrats(id: string): string {
+  return OFFER_CONGRATS[hashString(id) % OFFER_CONGRATS.length]
 }

@@ -171,7 +171,13 @@ export default async function NetworkPage({
   const resumesSharedItems = emailActivities.filter((a) => a.direction === 'OUTBOUND' && a.hasResumeAttachment)
   const thankYouItems = emailActivities.filter((a) => a.activityType === 'THANK_YOU')
   const introRequestItems = emailActivities.filter((a) => a.activityType === 'INTRO_REQUEST')
-  const networkingOutreachItems = emailActivities.filter((a) => a.activityType === 'NETWORKING_OUTREACH')
+  // High-confidence only — NETWORKING_OUTREACH's low-confidence bucket is
+  // bare generic keywords ("help", "job", "next chapter") that show up in
+  // plenty of unrelated mail (including this app's own emails), so it's
+  // tracked internally but never surfaced as a confident detection here.
+  const networkingOutreachItems = emailActivities.filter(
+    (a) => a.activityType === 'NETWORKING_OUTREACH' && a.confidence === 'high'
+  )
   const networkingCallItems = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL')
 
   const networkingStatTiles = [

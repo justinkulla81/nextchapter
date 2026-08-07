@@ -29,7 +29,10 @@ const REJECTION_HIGH_CONFIDENCE = [
   /not selected for (this|the) (role|position)/i,
   /we will not be (proceeding|continuing) with your application/i,
 ]
-const REJECTION_LOW_CONFIDENCE = [/unfortunately/i, /other applicants/i, /keep your resume on file/i]
+// "Unfortunately" alone used to be in this list — dropped because it's a
+// single common English word that matches any unrelated marketing or
+// newsletter email that happens to use it, not just rejections.
+const REJECTION_LOW_CONFIDENCE = [/other applicants/i, /keep your resume on file/i]
 
 export function matchRejection(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`

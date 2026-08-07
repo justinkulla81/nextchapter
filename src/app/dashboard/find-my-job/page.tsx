@@ -808,8 +808,8 @@ export default async function JobFitPage() {
           <CardContent className="space-y-3 pt-6">
             <p className="text-sm text-foreground">
               {activity.activityType === 'REJECTION'
-                ? getRejectionReframe(activity.id.length)
-                : getOfferCongrats(activity.id.length)}
+                ? getRejectionReframe(activity.id)
+                : getOfferCongrats(activity.id)}
             </p>
             <EmailActivityAcknowledgeButton activityId={activity.id} />
           </CardContent>

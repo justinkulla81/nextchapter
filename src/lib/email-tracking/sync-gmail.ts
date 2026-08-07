@@ -4,7 +4,8 @@ import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
-import { extractEmailAddress, extractDisplayName } from './email-address'
+import { extractEmailAddress, extractDisplayName, extractDomain } from './email-address'
+import { ATS_AND_JOB_BOARD_DOMAINS } from '@/lib/text/email-domain'
 import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
 import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
@@ -177,10 +178,16 @@ async function processMessage(
   // role-title mention ("Senior Technical Recruiter", "Hiring Manager",
   // "Career Coach") is a real signal regardless of which direction the
   // email went or how the primary category above classified the message.
+  // Skipped entirely for inbound mail from an ATS/job-board's own domain —
+  // those are bulk automated notifications (job-posting tips, listing
+  // expiration reminders), not a real person, and their boilerplate copy
+  // routinely name-drops "recruiter" without one ever being on the email.
+  const senderRootDomain = extractDomain(from)?.split('.').slice(-2).join('.') ?? null
+  const isFromAtsOrJobBoard = direction === 'INBOUND' && !!senderRootDomain && ATS_AND_JOB_BOARD_DOMAINS.has(senderRootDomain)
   const roleText = `${subject} ${bodyPreview}`
-  const isRecruiterContact = matchRecruiterRoleMention(roleText)
-  const isHiringManagerContact = matchHiringManagerRoleMention(roleText)
-  const isCoachContact = matchCoachRoleMention(roleText)
+  const isRecruiterContact = !isFromAtsOrJobBoard && matchRecruiterRoleMention(roleText)
+  const isHiringManagerContact = !isFromAtsOrJobBoard && matchHiringManagerRoleMention(roleText)
+  const isCoachContact = !isFromAtsOrJobBoard && matchCoachRoleMention(roleText)
 
   await prisma.trackedEmailActivity.create({
     data: {

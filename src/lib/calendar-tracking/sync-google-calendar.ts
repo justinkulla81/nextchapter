@@ -28,6 +28,7 @@ interface GoogleCalendarEvent {
   start?: { dateTime?: string; date?: string }
   end?: { dateTime?: string; date?: string }
   attendees?: GoogleCalendarAttendee[]
+  recurringEventId?: string // present on every instance of a recurring event (singleEvents=true still sets this)
 }
 
 // Testing-mode refresh tokens expire ~7 days after issue — a refresh
@@ -158,7 +159,12 @@ async function processEvent(
     event.start.dateTime && event.end?.dateTime
       ? Math.round((new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000)
       : null
-  const classification = classifyCalendarEvent(title, description, location, { durationMinutes, startHour, isWeekday })
+  const classification = classifyCalendarEvent(title, description, location, {
+    durationMinutes,
+    startHour,
+    isWeekday,
+    isRecurring: Boolean(event.recurringEventId),
+  })
   const eventText = `${title} ${description}`
   const isRecruiterContact = matchRecruiterRoleMention(eventText)
   const isHiringManagerContact = matchHiringManagerRoleMention(eventText)

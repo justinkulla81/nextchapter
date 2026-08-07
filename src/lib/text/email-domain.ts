@@ -1,10 +1,20 @@
+// ATS and job-board platforms send bulk automated notifications (job-posting
+// performance tips, listing-expiration reminders, application-status pings)
+// under their own domain — never a real individual writing to the
+// candidate. Role-mention matchers (recruiter/hiring-manager/coach) exist to
+// catch a real person's title, so mail from these domains should never set
+// those flags no matter what boilerplate copy the notification contains.
+export const ATS_AND_JOB_BOARD_DOMAINS = new Set([
+  'greenhouse.io', 'lever.co', 'myworkday.com', 'ashbyhq.com', 'smartrecruiters.com',
+  'linkedin.com', 'indeed.com', 'workablemail.com',
+])
+
 // Shared consumer/ATS domain set — a match here means "this email address
 // tells us nothing about where the person works," so callers should not
 // guess a company (or, by extension, treat the domain as a real employer).
 export const NON_COMPANY_DOMAINS = new Set([
   'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',
-  'greenhouse.io', 'lever.co', 'myworkday.com', 'ashbyhq.com', 'smartrecruiters.com',
-  'linkedin.com', 'indeed.com', 'workablemail.com',
+  ...ATS_AND_JOB_BOARD_DOMAINS,
 ])
 
 function capitalize(word: string): string {
