@@ -6,7 +6,7 @@ import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'LinkedIn' }
 
@@ -17,13 +17,9 @@ export default async function LinkedInPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">LinkedIn</h1>
-        <p className="mt-1 text-muted-foreground">
-          Visibility compounds — recruiters and your network see consistent activity, not just a static
-          profile.
-        </p>
-        <SprintActionCompletion candidateId={profile.id} actionTypes={['LINKEDIN_SETUP']} />
+        <PageHeaderBoxes pageKey="linkedin" candidateId={profile.id} />
       </div>
 
       <Card>

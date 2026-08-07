@@ -4,7 +4,7 @@ import { InterviewPrepTabs } from '@/components/dashboard/interview-prep/Intervi
 import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDescriptionCard'
 import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 import { detectNarrativeWeaknesses } from '@/lib/narrative/detect-narrative-weaknesses'
 
@@ -20,16 +20,9 @@ export default async function InterviewPrepPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Interview Prep</h1>
-        <p className="mt-1 text-muted-foreground">
-          Your story, the tough questions, practice reps, and what to send afterward — all in one
-          place.
-        </p>
-        <SprintActionCompletion
-          candidateId={profile.id}
-          actionTypes={['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE']}
-        />
+        <PageHeaderBoxes pageKey="interview-prep" candidateId={profile.id} />
       </div>
 
       <JobDescriptionCard initialValue={profile.activeJobDescription} />

@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts",
-    "seed:dashboard-messages": "tsx --env-file=.env.local scripts/seed-dashboard-messages.ts",
+    "seed:page-content": "tsx --env-file=.env.local scripts/seed-page-content.ts",
     "seed:test-candidates": "tsx --env-file=.env.local scripts/seed-test-candidates.ts",
     "seed:portal-connections": "tsx --env-file=.env.local scripts/seed-portal-connections.ts",
     "seed:interim-listings": "tsx --env-file=.env.local scripts/seed-interim-listings.ts",

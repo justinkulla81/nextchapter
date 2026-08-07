@@ -18,7 +18,7 @@ export function NetworkQuickActionsCard({ contacts }: { contacts: SupportNetwork
           out to here.
         </p>
         <a
-          href="#import"
+          href="/dashboard/network/contacts#import"
           className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand/90"
         >
           Add your first contacts

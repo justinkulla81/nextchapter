@@ -824,7 +824,7 @@ model CandidateProfile {
   coachingOnboardingResponse CoachingOnboardingResponse?
 
   resumeSubmissionLeads ResumeSubmissionLead[]
-  messageDismissals     CandidateMessageDismissal[]
+  pageBoxDismissals     PageBoxDismissal[]
 
   // Support Network nav badge — "how many new things since I last opened
   // this" needs a baseline. Defaults to now() so existing candidates don't
@@ -2754,32 +2754,73 @@ model CalibrationMemo {
 // active, non-pinned message they haven't dismissed yet is shown next.
 // No scheduling/targeting here by design — that's more than the current
 // need (a simple rotating admin-authored feed) calls for.
-model DashboardMessage {
-  id            String   @id @default(cuid())
-  title         String
-  bullets       String[]
-  footer        String? // optional closing line, e.g. the "Start with this week's Sprint" nudge
-  isActive      Boolean  @default(true)
-  isPinned      Boolean  @default(false)
-  // Non-pinned messages with a sequenceOrder set are a curated first-login
-  // education sequence — shown in ascending order, before any message
-  // without one (which fall back to createdAt ordering, the original
-  // rotation behavior). Null for all pre-existing rotation content.
-  sequenceOrder Int?
-  createdAt     DateTime @default(now())
-
-  dismissals CandidateMessageDismissal[]
+// Sitewide 3-box page header system — replaces the old DashboardMessage
+// (global-only, one message for the whole app). PageContent is scoped per
+// page (pageKey) and per box type, with admin-manageable video/scheduling.
+// See src/lib/dashboard/page-content.ts.
+enum PageBoxType {
+  DAILY_MESSAGE
+  WHY_IT_MATTERS
 }
 
-model CandidateMessageDismissal {
+enum VideoProvider {
+  NC_HOSTED
+  YOUTUBE
+  OTHER // Instagram/TikTok/etc — link-out card unless useInlineEmbed is set
+}
+
+model PageContent {
+  id      String      @id @default(cuid())
+  pageKey String // e.g. "network", "dashboard" — see PAGE_KEYS constant
+  boxType PageBoxType
+  title   String
+  leadIn  String? // one-sentence "why it matters" framing (WHY_IT_MATTERS only)
+  bullets String[] // reminders (DAILY_MESSAGE) or pro-tips (WHY_IT_MATTERS)
+  footer  String?
+
+  videoProvider  VideoProvider?
+  videoUrl       String?
+  // YouTube/NC-hosted always render inline; for OTHER this is admin-chosen
+  // per entry — off by default (safe link-out card), on if the admin pastes
+  // a URL that's itself already embeddable (e.g. an Instagram post's own
+  // /embed URL) and wants it to render inline instead.
+  useInlineEmbed Boolean        @default(false)
+
+  isActive      Boolean @default(true)
+  // DAILY_MESSAGE only — a pinned message always wins over rotation, same
+  // semantics as the old DashboardMessage.isPinned.
+  isPinned      Boolean @default(false)
+  // Non-pinned DAILY_MESSAGE rows with this set rotate in ascending order
+  // before any row without one (which falls back to createdAt ordering).
+  sequenceOrder Int?
+
+  // Scheduling — hidden outside this window if set.
+  publishAt DateTime?
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageKey, boxType, isActive])
+}
+
+// Dismissal is keyed on (candidateId, pageKey, boxType) rather than a
+// specific PageContent row, so admin can rotate/update content without
+// silently resetting a candidate's dismissal. DAILY_MESSAGE dismissals are
+// treated as expired once dismissedAt is before today (see
+// getPageBoxContent) — the row is upserted with a fresh timestamp each time
+// it's re-dismissed, exactly like the old CandidateMessageDismissal.
+// WHY_IT_MATTERS dismissals are permanent until the candidate explicitly
+// re-enables (deletes this row) from /dashboard/privacy.
+model PageBoxDismissal {
   id          String           @id @default(cuid())
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  messageId   String
-  message     DashboardMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  pageKey     String
+  boxType     PageBoxType
   dismissedAt DateTime         @default(now())
 
-  @@unique([candidateId, messageId])
+  @@unique([candidateId, pageKey, boxType])
 }
 
 // Account-Based Job Search watchlist (Prompt 77) — a candidate names a

@@ -19,6 +19,7 @@ import {
   removeMyProfilePicture,
   toggleMyProfilePictureVisible,
 } from '@/app/dashboard/actions'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
@@ -37,11 +38,9 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="mt-1 text-muted-foreground">
-          Auto-filled from your resume where possible — correct anything that&apos;s off.
-        </p>
+        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>
 
       <Card>

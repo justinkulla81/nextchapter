@@ -24,7 +24,7 @@ import { MessageBubbles } from '@/components/messaging/MessageBubbles'
 import { MessageComposer } from '@/components/messaging/MessageComposer'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { cn } from '@/lib/utils'
 import type { Prisma, PrivacyTier } from '@prisma/client'
@@ -91,15 +91,9 @@ export default async function SupportNetworkPage({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Support network</h1>
-        <p className="mt-1 text-muted-foreground">
-          Peers going through it with you, and the people helping you land the job.
-        </p>
-        <SprintActionCompletion
-          candidateId={profile.id}
-          actionTypes={['ENGAGE_COMMENT', 'ENGAGE_EVENT', 'ENGAGE_POST_UPDATE', 'ENGAGE_PEER_SUPPORT']}
-        />
+        <PageHeaderBoxes pageKey="community" candidateId={profile.id} />
       </div>
 
       <div className="flex gap-6 border-b border-border">

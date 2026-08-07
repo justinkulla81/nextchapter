@@ -28,7 +28,6 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
 
   // Thought Leadership
   { text: 'Publish a LinkedIn post', actionType: 'LINKEDIN_POST_IDEA' },
-  { text: 'Comment on an industry post', actionType: 'THOUGHT_LEADERSHIP_COMMENT' },
   { text: 'Share or repost a post', actionType: 'THOUGHT_LEADERSHIP_SHARE' },
 
   // Learning

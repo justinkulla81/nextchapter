@@ -5,7 +5,7 @@ import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { ResumeFeedbackCard } from '@/components/dashboard/ResumeFeedbackCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
 
 export const metadata: Metadata = { title: 'My Resume' }
@@ -35,13 +35,9 @@ export default async function ResumePage({
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Resume</h1>
-        <p className="mt-1 text-muted-foreground">
-          A hiring-manager&apos;s-eye view of your resume for the level you&apos;re targeting next —
-          with a specific plan to fix what they&apos;d flag.
-        </p>
-        <SprintActionCompletion candidateId={profile.id} actionTypes={['RESUME_UPDATE', 'SKILLS_TRANSLATOR']} />
+        <PageHeaderBoxes pageKey="resume" candidateId={profile.id} />
       </div>
 
       <ResumeUploadForm />

@@ -5,7 +5,7 @@ import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { formatMinutes } from '@/lib/weekly/action-effort'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
@@ -63,16 +63,9 @@ export default async function LearningPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Learning &amp; Training</h1>
-        <p className="mt-1 text-muted-foreground">
-          Curated resources for closing a real skills gap — not a link dump. Personalized to your
-          background, goals, and Hireability Report.
-        </p>
-        <SprintActionCompletion
-          candidateId={profile.id}
-          actionTypes={['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED']}
-        />
+        <PageHeaderBoxes pageKey="learning" candidateId={profile.id} />
         {learningEvents.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
             {learningEventsThisWeek.length > 0 ? (

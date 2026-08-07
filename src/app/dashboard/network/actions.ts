@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache'
 import type {
-  ContactCategory,
   ContactWarmth,
   NetworkingAnxiety,
   NetworkComfortLevel,
@@ -96,6 +95,7 @@ export async function importConnectionsCsv(
   }
 
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
   return { imported: result.count }
 }
@@ -104,23 +104,18 @@ export async function updateContact(contactId: string, formData: FormData) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  const category = formData.get('category') as ContactCategory | null
   const warmth = formData.get('warmth') as ContactWarmth | null
   const relationshipTags = formData.getAll('relationshipTags') as RelationshipTag[]
-  const schoolName = (formData.get('schoolName') as string | null)?.trim() || null
 
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
     data: {
-      category: category || undefined,
       warmth: warmth || undefined,
       relationshipTags,
-      // Only stored when SAME_SCHOOL is actually selected — a stray value
-      // left over from an earlier save shouldn't linger once unchecked.
-      schoolName: relationshipTags.includes('SAME_SCHOOL') ? schoolName : null,
     },
   })
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
 }
 
 export async function deleteContact(contactId: string) {
@@ -129,6 +124,7 @@ export async function deleteContact(contactId: string) {
 
   await prisma.supportNetworkContact.deleteMany({ where: { id: contactId, candidateId: profile.id } })
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
 }
 
 export async function setNetworkingConcerns(concerns: NetworkingAnxiety[]) {
@@ -219,6 +215,7 @@ export async function logOutreach(contactId: string | null, channel: OutreachCha
 
   await prisma.outreachLog.create({ data: { candidateId: profile.id, contactId, channel } })
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
 }
 
@@ -232,5 +229,6 @@ export async function logMarketResponse(type: MarketResponseType) {
 
   await prisma.marketResponseLog.create({ data: { candidateId: profile.id, type } })
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
 }

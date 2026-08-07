@@ -46,7 +46,7 @@ import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -240,14 +240,14 @@ export default async function JobFitPage() {
 
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
-  // the same Gmail connection managed on the Outreach Contacts page.
+  // the same Gmail connection managed on the Live Conversations page.
   // Networking-shaped sent mail stays there; this page only shows the
   // job-outcome side of that same synced inbox.
   const emailConnection = await prisma.emailConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },
   })
   // This page previously only ever saw activity synced from a visit to
-  // Outreach Contacts (the only page that called syncGmailConnection) — a
+  // Live Conversations (the only page that called syncGmailConnection) — a
   // candidate who applied to a job and only checked this page would never
   // see the confirmation email until they happened to visit that other
   // page. Awaited inline (see sync-gmail.ts's batched-existence-check
@@ -315,9 +315,9 @@ export default async function JobFitPage() {
   return (
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
-        <SprintActionCompletion candidateId={profile.id} actionTypes={['NEGOTIATION_ADVICE']} />
+        <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
       </div>
 
       <ReconnectBanner candidateId={profile.id} />

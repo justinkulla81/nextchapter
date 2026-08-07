@@ -71,7 +71,7 @@ function buildSections(
         { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/network',
-          label: 'Networking',
+          label: 'Live Conversations',
           // A real "you know someone at a company you applied to" count
           // takes priority over the generic High Priority label — it's a
           // more specific, more actionable reason to visit right now.
@@ -118,6 +118,7 @@ function buildSections(
     {
       title: 'Misc',
       links: [
+        { href: '/dashboard/network/contacts', label: 'Contact Directory' },
         { href: '/dashboard/guides', label: 'Search Strategy Guides' },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
         { href: "/dashboard/support", label: "I'm Struggling" },
@@ -241,9 +242,10 @@ export function DashboardNav({
     newJobMatchesCount,
     newBackchannelCount
   )
-  const current = sections.flatMap((s) => s.links).find((link) =>
-    link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)
-  )
+  const current = sections
+    .flatMap((s) => s.links)
+    .filter((link) => (link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)))
+    .sort((a, b) => b.href.length - a.href.length)[0]
 
   return (
     <>

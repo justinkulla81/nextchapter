@@ -14,6 +14,7 @@ import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
 
@@ -80,12 +81,9 @@ export default async function PortfolioPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">My Portfolio</h1>
-        <p className="mt-1 text-muted-foreground">
-          Every artifact you&apos;ve built — your resume, story, reports, and dossiers — all in one
-          place.
-        </p>
+        <PageHeaderBoxes pageKey="portfolio" candidateId={profile.id} />
         <p className="mt-2 text-sm font-medium text-muted-foreground tabular-nums">
           {completedAssetCount} of {coreAssets.length} core assets built
           {missingAssets.length > 0 && (

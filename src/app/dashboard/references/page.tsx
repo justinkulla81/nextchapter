@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { ReferenceStatus } from '@prisma/client'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'My References' }
 
@@ -41,14 +42,9 @@ export default async function ReferencesPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">References</h1>
-        <p className="mt-1 text-muted-foreground">
-          Real relationship capital. A hiring manager trusts a former colleague&apos;s account of
-          how you work more than anything on your resume — and it&apos;s one of the few signals in
-          your Market Reality Grade that you can&apos;t inflate yourself. Request at least 3, ideally
-          5-10, from people who&apos;ve actually worked alongside you.
-        </p>
+        <PageHeaderBoxes pageKey="references" candidateId={profile.id} />
       </div>
 
       <ReferenceQuoteReview

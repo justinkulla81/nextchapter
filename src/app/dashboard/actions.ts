@@ -24,6 +24,7 @@ import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import { dismissPageBox, reenablePageBox, type PageKey } from '@/lib/dashboard/page-content'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -125,26 +126,42 @@ export async function checkInVisibilityComfort(comfort: PublicDisclosureComfort)
   revalidatePath('/dashboard')
 }
 
-export async function dismissDashboardMessage(messageId: string) {
+// Daily Message box's X — lasts through the rest of the day (see
+// startOfUTCDay in page-content.ts's getPageBoxContent), same reset
+// contract as dismissMoodCard below.
+export async function dismissDailyMessageBox(pageKey: PageKey) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  // Bumping dismissedAt on every dismiss (not just the first) matters here —
-  // getNextDashboardMessage only treats a dismissal as active for the rest
-  // of the day it happened, so re-dismissing after that day's reset needs a
-  // fresh timestamp, not the original one from days ago.
-  await prisma.candidateMessageDismissal.upsert({
-    where: { candidateId_messageId: { candidateId: profile.id, messageId } },
-    create: { candidateId: profile.id, messageId },
-    update: { dismissedAt: new Date() },
-  })
-  captureServerEvent(profile.id, 'dashboard_message_dismissed', { messageId })
-  revalidatePath('/dashboard')
+  await dismissPageBox(profile.id, pageKey, 'DAILY_MESSAGE')
+  captureServerEvent(profile.id, 'page_daily_message_dismissed', { pageKey })
+  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
+}
+
+// Why It Matters box's "Got it" — permanent until re-enabled from
+// /dashboard/privacy (see reenableWhyItMattersBox below).
+export async function dismissWhyItMattersBox(pageKey: PageKey) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await dismissPageBox(profile.id, pageKey, 'WHY_IT_MATTERS')
+  captureServerEvent(profile.id, 'page_why_it_matters_dismissed', { pageKey })
+  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
+}
+
+export async function reenableWhyItMattersBox(pageKey: PageKey) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await reenablePageBox(profile.id, pageKey)
+  captureServerEvent(profile.id, 'page_why_it_matters_reenabled', { pageKey })
+  revalidatePath('/dashboard/privacy')
+  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
 }
 
 // The "How motivated are you today?" card's X — dismissal only lasts through
 // the rest of the day (see startOfUTCDay in dashboard/page.tsx), same
-// contract as dismissDashboardMessage above.
+// contract as the Daily Message box above.
 export async function dismissMoodCard() {
   const profile = await getAuthedProfile()
   if (!profile) return

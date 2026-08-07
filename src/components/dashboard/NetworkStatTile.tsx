@@ -9,9 +9,8 @@ export interface StatTileItem {
   date: Date
 }
 
-// A <details> disclosure, not a link to another page — same pattern as
-// ContactRow's "View outreach script" — so a candidate can spot-check a
-// count without losing their place on the page. Each row's "X" tells us the
+// A <details> disclosure, not a link to another page, so a candidate can
+// spot-check a count without losing their place on the page. Each row's "X" tells us the
 // auto-detection was wrong for that one item (sets dismissedAt), which
 // every count/list consumer across Network, Jobs, and Learning now filters
 // out — it does not delete the underlying tracked row.

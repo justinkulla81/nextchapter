@@ -3,6 +3,8 @@
 // Action has a fixed point value; nothing is estimated or judgment-weighted
 // anymore.
 
+import type { PageKey } from '@/lib/dashboard/page-content'
+
 export interface SuggestedActionLike {
   actionType?: string
   isAStandard?: boolean
@@ -32,7 +34,6 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
 
   // Thought Leadership
   LINKEDIN_POST_IDEA: { minutes: 20, points: 20 },
-  THOUGHT_LEADERSHIP_COMMENT: { minutes: 5, points: 5 },
   THOUGHT_LEADERSHIP_SHARE: { minutes: 10, points: 10 },
 
   // Learning
@@ -185,7 +186,6 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   ENGAGE_PEER_SUPPORT: 'connecting',
 
   LINKEDIN_POST_IDEA: 'working',
-  THOUGHT_LEADERSHIP_COMMENT: 'working',
   THOUGHT_LEADERSHIP_SHARE: 'working',
   RESUME_UPDATE: 'working',
   SKILLS_TRANSLATOR: 'working',
@@ -282,7 +282,6 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   INTERVIEW_PREP: 'Building',
   INTERVIEW_BEHAVIORAL_PRACTICE: 'Building',
   LINKEDIN_POST_IDEA: 'Building',
-  THOUGHT_LEADERSHIP_COMMENT: 'Building',
   THOUGHT_LEADERSHIP_SHARE: 'Building',
   LINKEDIN_SETUP: 'Building',
 
@@ -336,7 +335,6 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   'ENGAGE_POST_UPDATE',
   'ENGAGE_PEER_SUPPORT',
   'LINKEDIN_POST_IDEA',
-  'THOUGHT_LEADERSHIP_COMMENT',
   'THOUGHT_LEADERSHIP_SHARE',
   'INTERVIEW_BEHAVIORAL_PRACTICE',
   // Prompt 76 — a candidate can send more than one thank-you/follow-up/
@@ -382,7 +380,6 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   ENGAGE_POST_UPDATE: 1,
   ENGAGE_PEER_SUPPORT: 1,
   LINKEDIN_POST_IDEA: 1,
-  THOUGHT_LEADERSHIP_COMMENT: 3,
   THOUGHT_LEADERSHIP_SHARE: 2,
   INTERVIEW_BEHAVIORAL_PRACTICE: 2,
   THANK_YOU_NOTE_SENT: 1,
@@ -458,7 +455,6 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   ENGAGE_PEER_SUPPORT: { href: '/dashboard/community', label: 'Support Network' },
   LINKEDIN_SETUP: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   LINKEDIN_POST_IDEA: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
-  THOUGHT_LEADERSHIP_COMMENT: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   THOUGHT_LEADERSHIP_SHARE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   LEARNING_MODULE: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_CERTIFICATE: { href: '/dashboard/learning', label: 'Learning' },
@@ -486,19 +482,19 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work', label: 'Interim Work' },
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
-  NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Outreach Contacts' },
+  NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Live Conversations' },
   SUBSTACK_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   WATCHLIST_ADD: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
-  GMAIL_CONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
-  GMAIL_RECONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
-  THANK_YOU_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Outreach Contacts' },
-  FOLLOW_UP_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Outreach Contacts' },
-  CHECK_IN_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Outreach Contacts' },
-  INTRO_CONNECTION_REQUEST_SENT: { href: '/dashboard/network', label: 'Outreach Contacts' },
-  CALENDAR_CONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
-  CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
-  INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Outreach Contacts' },
+  GMAIL_CONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
+  GMAIL_RECONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
+  THANK_YOU_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Live Conversations' },
+  FOLLOW_UP_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Live Conversations' },
+  CHECK_IN_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Live Conversations' },
+  INTRO_CONNECTION_REQUEST_SENT: { href: '/dashboard/network', label: 'Live Conversations' },
+  CALENDAR_CONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
+  CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
+  INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Live Conversations' },
   PROFILE_PICTURE_UPLOADED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
   LINKEDIN_PROFILE_ADDED: { href: '/dashboard/linkedin', label: 'LinkedIn' },
 }
@@ -624,4 +620,46 @@ export function gradeForWeeklyPoints(pointsEarned: number, pointsTarget: number)
   if (fraction >= 0.5) return 'C'
   if (fraction >= 0.25) return 'D'
   return 'F'
+}
+
+// Re-exported for convenience — pages importing PAGE_ACTION_TYPES usually
+// need the PageKey type too, and this is the file most page.tsx files
+// already import from.
+export type { PageKey } from '@/lib/dashboard/page-content'
+
+// Which actionTypes have a real, doable action on each page — grouped from
+// ACTION_TYPE_LINK above (each entry there already points at exactly one of
+// these pages). This is the single source of truth for the Action Plan
+// box's per-page bullet list (see ActionPlanBox.tsx) — a Sprint action type
+// belongs here only if there's a real feature on that page to do it with;
+// this is also why THOUGHT_LEADERSHIP_COMMENT was retired rather than
+// mapped anywhere (no dedicated "comment on an industry post" feature
+// exists, so it had no real page to live on).
+export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
+  network: [
+    'NETWORKING_LIST',
+    'OUTREACH_MESSAGE',
+    'OUTREACH_CALL',
+    'NETWORK_COMFORT_CONFIRMED',
+    'GMAIL_CONNECTED',
+    'GMAIL_RECONNECTED',
+    'THANK_YOU_NOTE_SENT',
+    'FOLLOW_UP_NOTE_SENT',
+    'CHECK_IN_NOTE_SENT',
+    'INTRO_CONNECTION_REQUEST_SENT',
+    'CALENDAR_CONNECTED',
+    'CALENDAR_RECONNECTED',
+    'INTERVIEW_ATTENDED',
+  ],
+  'find-my-job': ['NEGOTIATION_ADVICE', 'JOB_BOARD_USAGE_CONFIRMED', 'WATCHLIST_ADD', 'WATCHLIST_POSTING_VIEWED'],
+  resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
+  'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
+  'marketing-plan': ['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_SHARE', 'MARKETING_PLAN_UNLOCK', 'SUBSTACK_UNLOCK'],
+  learning: ['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED'],
+  linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK', 'LINKEDIN_PROFILE_ADDED'],
+  'interim-work': ['INTERIM_PROFILE_CREATED', 'GIG_DIRECTORY_UNLOCK'],
+  'work-samples': ['WORK_SAMPLE_TYPE_CONFIRMED'],
+  community: ['ENGAGE_COMMENT', 'ENGAGE_EVENT', 'ENGAGE_POST_UPDATE', 'ENGAGE_PEER_SUPPORT'],
+  profile: ['PROFILE_CONFIRM', 'INDUSTRY_CONFIRM', 'FUNCTION_CONFIRM', 'SALARY_CONFIRM', 'WORK_AUTHORIZATION'],
+  privacy: ['PRIVACY_CONFIRMED'],
 }

@@ -7,6 +7,7 @@ import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Work Samples' }
 
@@ -17,13 +18,9 @@ export default async function WorkSamplesPage() {
   if (!profile.workSampleType) {
     return (
       <div className="space-y-8">
-        <div>
+        <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
-          <p className="mt-1 text-muted-foreground">
-            Show, don&apos;t just tell. What you add here goes straight into your dossier — the
-            hiring manager sees it alongside your resume, and it adds directly to your execution
-            score.
-          </p>
+          <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
 
@@ -51,12 +48,9 @@ export default async function WorkSamplesPage() {
   if (profile.workSampleType === 'none') {
     return (
       <div className="space-y-4">
-        <div>
+        <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            You said there&apos;s nothing you&apos;d want to share here — nothing needed. If that
-            changes, pick a type below.
-          </p>
+          <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
 
@@ -83,13 +77,9 @@ export default async function WorkSamplesPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
-        <p className="mt-1 text-muted-foreground">
-          Show, don&apos;t just tell. What you add here goes straight into your dossier — the
-          hiring manager sees it alongside your resume, and it adds directly to your execution
-          score.
-        </p>
+        <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
       </div>
 
       <WorkSampleForm />

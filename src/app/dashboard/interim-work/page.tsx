@@ -10,6 +10,7 @@ import { getRelevantMarketplaceCategories } from '@/lib/interim-work/marketplace
 import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { hasLegalRestrictionFlag } from '@/lib/interim-work/expert-network-caution'
 import { getActiveListings, getSignedUpListingIds } from '@/lib/interim-work/listings'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { InterimListingCategory } from '@prisma/client'
 
 export const metadata: Metadata = { title: 'Interim Work' }
@@ -34,13 +35,9 @@ export default async function InterimWorkPage() {
 
   return (
     <div className="space-y-10">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Interim Work</h1>
-        <p className="mt-1 text-muted-foreground">
-          Fractional, interim, and consulting work is a real bridge while you search — a source of
-          income, a way to keep your resume current, and sometimes a path to a full-time offer in
-          its own right. This page covers five ways into it.
-        </p>
+        <PageHeaderBoxes pageKey="interim-work" candidateId={profile.id} />
       </div>
 
       {/* Section 1 — Set Up Your Own Consultancy */}

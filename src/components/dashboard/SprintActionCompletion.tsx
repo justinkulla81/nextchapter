@@ -95,10 +95,8 @@ export async function SprintActionCompletion({
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-border bg-off-white p-3">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        This week&apos;s Sprint
-      </p>
+    <div className="space-y-2 rounded-lg border border-success/20 bg-success/5 p-3">
+      <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Action Plan</p>
       <div className="space-y-1.5">
         {selfReportCommitted.map((action) => {
           const realIndex = committedActions.indexOf(action)

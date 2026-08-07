@@ -6,7 +6,7 @@ import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeade
 import { SubstackSection } from '@/components/dashboard/SubstackSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
-import { SprintActionCompletion } from '@/components/dashboard/SprintActionCompletion'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
 import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/AlternativeNarrativeTabs'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
@@ -53,23 +53,9 @@ export default async function MarketingPlanPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">My Marketing Plan</h1>
-        <p className="mt-1 text-muted-foreground">
-          You&apos;re the product right now — this is where you plan how you get in front of
-          people. Post ideas grounded in your actual background — pick one, get a draft, edit it so
-          it sounds like you, and post.
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Posting is one of the highest-leverage things you can do right now — it&apos;s how
-          recruiters and your network see you&apos;re active before you ever apply anywhere, and
-          consistent activity shows up on your Certified Executive Dossier as a real, visible signal, not a
-          resume claim.
-        </p>
-        <SprintActionCompletion
-          candidateId={profile.id}
-          actionTypes={['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_COMMENT', 'THOUGHT_LEADERSHIP_SHARE']}
-        />
+        <PageHeaderBoxes pageKey="marketing-plan" candidateId={profile.id} />
       </div>
 
       <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">

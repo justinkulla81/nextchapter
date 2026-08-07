@@ -21,14 +21,13 @@ import {
 } from '@/lib/weekly/sprint'
 import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
-import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
-import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
 import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
@@ -105,7 +104,6 @@ export default async function DashboardPage() {
     searchExecutionAvailable,
     existingBountyClaimCount,
     sessionImpact,
-    dashboardMessage,
     hasCoachingFormResponse,
     sentimentAlert,
     profileChecklistItems,
@@ -122,7 +120,6 @@ export default async function DashboardPage() {
     hasStartedSprint(profile.id),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
     getUnviewedSessionImpact(profile.id),
-    getNextDashboardMessage(profile.id),
     // Prompt 60 — passive fallback for candidates whose consent was granted
     // before this feature existed (or who navigated away before completing
     // the form); the explicit redirects at consent-grant time are the
@@ -187,7 +184,7 @@ export default async function DashboardPage() {
         suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
       />
 
-      <DashboardMessageCard message={dashboardMessage} />
+      <PageHeaderBoxes pageKey="dashboard" candidateId={profile.id} />
 
       <EmployerInterestSection candidateId={profile.id} />
 

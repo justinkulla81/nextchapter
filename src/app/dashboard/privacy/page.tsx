@@ -10,8 +10,11 @@ import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
+import { PageTipsSection } from '@/components/dashboard/PageTipsSection'
+import { listDismissedWhyItMattersBoxes } from '@/lib/dashboard/page-content'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
 
@@ -22,14 +25,13 @@ export default async function PrivacyPage() {
   const coach = profile.coachId
     ? await prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
     : null
+  const dismissedPageTips = await listDismissedWhyItMattersBoxes(profile.id)
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Privacy</h1>
-        <p className="mt-1 text-muted-foreground">
-          Control exactly what employers can see about you, and when.
-        </p>
+        <PageHeaderBoxes pageKey="privacy" candidateId={profile.id} />
       </div>
       <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
 
@@ -52,6 +54,17 @@ export default async function PrivacyPage() {
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
         <ActionWindowSelector current={profile.actionWindow} />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold">Page tips</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            &quot;Why it matters&quot; boxes you&apos;ve dismissed on other pages. Bring one back if you want the
+            reminder again.
+          </p>
+        </div>
+        <PageTipsSection dismissed={dismissedPageTips} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">
