@@ -18,6 +18,7 @@ import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { SubstackSection } from '@/components/dashboard/SubstackSection'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from '@/app/dashboard/actions'
+import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Complete Your Profile' }
@@ -211,6 +212,18 @@ export default async function CompleteProfilePage() {
               removeAction={removeMyProfilePicture}
               toggleVisibilityAction={toggleMyProfilePictureVisible}
             />
+          </div>
+        )}
+
+        {isIncomplete('LINKEDIN_PROFILE_ADDED') && (
+          <div className="rounded-lg border border-border p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">Add your LinkedIn profile</p>
+              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +25 pts, one time
+              </span>
+            </div>
+            <LinkedInConfirmForm />
           </div>
         )}
       </div>

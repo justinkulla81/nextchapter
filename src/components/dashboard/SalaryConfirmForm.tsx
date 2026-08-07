@@ -24,6 +24,7 @@ export function SalaryConfirmForm({
   const [salaryThousands, setSalaryThousands] = useState(initialSalaryThousands)
 
   const isConfirmed = !!confirmedAt
+  const isDeclined = isConfirmed && lastSalary === null
   const isDirty = salaryThousands !== initialSalaryThousands
   const canConfirm = !isConfirmed || isDirty
 
@@ -60,8 +61,13 @@ export function SalaryConfirmForm({
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm" variant={canConfirm ? 'outline' : 'ghost'} disabled={pending || !canConfirm}>
-          {pending ? 'Saving…' : isConfirmed ? (isDirty ? 'Reconfirm' : 'Confirmed') : 'Confirm'}
+          {pending ? 'Saving…' : isDeclined ? 'Declined' : isConfirmed ? (isDirty ? 'Reconfirm' : 'Confirmed') : 'Confirm'}
         </Button>
+        {!isConfirmed && (
+          <Button type="submit" name="declineToAnswer" value="1" size="sm" variant="ghost" disabled={pending}>
+            Prefer not to say
+          </Button>
+        )}
         {!isConfirmed && <span className="text-xs font-medium text-muted-foreground tabular-nums">+{POINTS} pts</span>}
       </div>
     </form>

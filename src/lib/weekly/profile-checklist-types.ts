@@ -19,6 +19,7 @@ export const PROFILE_CHECKLIST_ACTION_TYPES = [
   'LINKEDIN_UNLOCK',
   'SUBSTACK_UNLOCK',
   'PROFILE_PICTURE_UPLOADED',
+  'LINKEDIN_PROFILE_ADDED',
 ] as const
 
 export type ProfileChecklistActionType = (typeof PROFILE_CHECKLIST_ACTION_TYPES)[number]

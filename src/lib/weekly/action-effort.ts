@@ -85,6 +85,11 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // profile-checklist.ts) rather than a separate timestamp, so removing the
   // photo later correctly reverts it to incomplete.
   PROFILE_PICTURE_UPLOADED: { minutes: 3, points: 5 },
+  // Weighted well above the other one-time confirms — a real LinkedIn URL
+  // (or an explicit "I don't have one yet") on file matters for recruiter
+  // visibility and is referenced directly in the Hireability Report and
+  // Victoria's replies, unlike most other profile confirms.
+  LINKEDIN_PROFILE_ADDED: { minutes: 10, points: 25 },
 
   // Prompt 76 — Gmail activity tracking. One-time connection bonus, same
   // weight as other one-time confirm bonuses. The four Sent-folder
@@ -229,6 +234,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   WORK_SAMPLE_TYPE_CONFIRMED: 'working',
   NETWORK_COMFORT_CONFIRMED: 'connecting',
   SUBSTACK_UNLOCK: 'working',
+  LINKEDIN_PROFILE_ADDED: 'working',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -236,16 +242,41 @@ export function engineForActionType(actionType: string | undefined): SearchExecu
   return 'effort'
 }
 
-// Which top-level hamburger-nav section (Building / Connecting / Learning &
-// Working) each action type's real work happens under — a separate axis
-// from the four scoring engines above (engine = what it counts toward,
-// nav category = where you'd actually go do it). Kept as its own map
-// rather than derived from ACTION_TYPE_LINK's href so it stays correct
-// even for action types with no deep link.
-export type NavCategory = 'Building' | 'Connecting' | 'Learning & Working'
+// Which top-level Sprint section each action type's real work happens
+// under — a separate axis from the four scoring engines above (engine =
+// what it counts toward, nav category = where you'd actually go do it).
+// Kept as its own map rather than derived from ACTION_TYPE_LINK's href so
+// it stays correct even for action types with no deep link. "Personalize"
+// is lifetime one-time setup (profile/gate confirms, connecting Gmail &
+// Calendar) — deliberately excluded from the weekly point-pace math (see
+// SuccessSprintCard's oneTimeTotal/oneTimeDone), same as it always was when
+// this lived on a separate /dashboard/complete-profile page; only its
+// on-screen location changed.
+export type NavCategory = 'Personalize' | 'Building' | 'Connecting' | 'Learning & Working'
 
 const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
-  WORKING_STYLE_QUIZ: 'Building',
+  WORKING_STYLE_QUIZ: 'Personalize',
+  PROFILE_CONFIRM: 'Personalize',
+  INDUSTRY_CONFIRM: 'Personalize',
+  FUNCTION_CONFIRM: 'Personalize',
+  SALARY_CONFIRM: 'Personalize',
+  WORK_AUTHORIZATION: 'Personalize',
+  ANSWER_OPTIONAL_QUESTIONS: 'Personalize',
+  COMFORT_CHECK_CONFIRM: 'Personalize',
+  PRIVACY_CONFIRMED: 'Personalize',
+  NETWORK_COMFORT_CONFIRMED: 'Personalize',
+  WORK_SAMPLE_TYPE_CONFIRMED: 'Personalize',
+  MARKETING_PLAN_UNLOCK: 'Personalize',
+  GIG_DIRECTORY_UNLOCK: 'Personalize',
+  LINKEDIN_UNLOCK: 'Personalize',
+  SUBSTACK_UNLOCK: 'Personalize',
+  PROFILE_PICTURE_UPLOADED: 'Personalize',
+  LINKEDIN_PROFILE_ADDED: 'Personalize',
+  GMAIL_CONNECTED: 'Personalize',
+  GMAIL_RECONNECTED: 'Personalize',
+  CALENDAR_CONNECTED: 'Personalize',
+  CALENDAR_RECONNECTED: 'Personalize',
+
   RESUME_UPDATE: 'Building',
   SKILLS_TRANSLATOR: 'Building',
   INTERVIEW_PREP: 'Building',
@@ -253,39 +284,21 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   LINKEDIN_POST_IDEA: 'Building',
   THOUGHT_LEADERSHIP_COMMENT: 'Building',
   THOUGHT_LEADERSHIP_SHARE: 'Building',
-  MARKETING_PLAN_UNLOCK: 'Building',
-  SUBSTACK_UNLOCK: 'Building',
   LINKEDIN_SETUP: 'Building',
-  LINKEDIN_UNLOCK: 'Building',
-  WORK_SAMPLE_TYPE_CONFIRMED: 'Building',
-  PROFILE_CONFIRM: 'Building',
-  INDUSTRY_CONFIRM: 'Building',
-  FUNCTION_CONFIRM: 'Building',
-  SALARY_CONFIRM: 'Building',
-  WORK_AUTHORIZATION: 'Building',
-  ANSWER_OPTIONAL_QUESTIONS: 'Building',
-  COMFORT_CHECK_CONFIRM: 'Building',
-  PROFILE_PICTURE_UPLOADED: 'Building',
 
   NETWORKING_LIST: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
   OUTREACH_CALL: 'Connecting',
-  NETWORK_COMFORT_CONFIRMED: 'Connecting',
   ENGAGE_COMMENT: 'Connecting',
   ENGAGE_EVENT: 'Connecting',
   ENGAGE_POST_UPDATE: 'Connecting',
   ENGAGE_PEER_SUPPORT: 'Connecting',
   MOOD_CHECKIN: 'Connecting',
-  PRIVACY_CONFIRMED: 'Connecting',
   VISIBILITY_COMFORT_CHECKIN: 'Connecting',
-  GMAIL_CONNECTED: 'Connecting',
-  GMAIL_RECONNECTED: 'Connecting',
   THANK_YOU_NOTE_SENT: 'Connecting',
   FOLLOW_UP_NOTE_SENT: 'Connecting',
   CHECK_IN_NOTE_SENT: 'Connecting',
   INTRO_CONNECTION_REQUEST_SENT: 'Connecting',
-  CALENDAR_CONNECTED: 'Connecting',
-  CALENDAR_RECONNECTED: 'Connecting',
   INTERVIEW_ATTENDED: 'Connecting',
 
   LEARNING_MODULE: 'Learning & Working',
@@ -295,7 +308,6 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   NEGOTIATION_ADVICE: 'Learning & Working',
   JOB_BOARD_USAGE_CONFIRMED: 'Learning & Working',
   INTERIM_PROFILE_CREATED: 'Learning & Working',
-  GIG_DIRECTORY_UNLOCK: 'Learning & Working',
   PARTNER_CLICK_THROUGH: 'Learning & Working',
   WATCHLIST_ADD: 'Learning & Working',
   WATCHLIST_POSTING_VIEWED: 'Learning & Working',
@@ -342,6 +354,9 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // Prompt 77 — Company Tracker. Adding another company is the same
   // "ongoing habit, no single finish line" shape as the rest of this set.
   'WATCHLIST_ADD',
+  // Job searching itself has no single finish line either — you look for
+  // full-time jobs again next week, same shape as the rest of this set.
+  'JOB_BOARD_USAGE_CONFIRMED',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
@@ -377,6 +392,7 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   INTERVIEW_ATTENDED: 1,
   LEARNING_SESSION_ATTENDED: 1,
   WATCHLIST_ADD: 3,
+  JOB_BOARD_USAGE_CONFIRMED: 3,
 }
 
 export function getRecurringTargetCount(actionType: string | undefined): number | null {
@@ -484,6 +500,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Outreach Contacts' },
   PROFILE_PICTURE_UPLOADED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
+  LINKEDIN_PROFILE_ADDED: { href: '/dashboard/linkedin', label: 'LinkedIn' },
 }
 
 // actionTypes that represent real growth/stretch effort (networking,
@@ -533,6 +550,51 @@ export function getMoodCardIdeas<T extends { text: string; actionType?: string; 
   }
 
   return open.slice(0, max)
+}
+
+// LLM-personalized action-plan items are written as "short action — why it
+// matters" (see the HARD REQUIREMENT in hireability-report.ts) — this splits
+// that apart so a UI can hyperlink only the short action name instead of
+// underlining an entire explanatory sentence. Falls back to the whole string
+// as the label when there's no dash (every canonical catalog item, which is
+// already short with no reason baked in).
+export function splitActionText(text: string): { label: string; why: string | null } {
+  const idx = text.indexOf(' — ')
+  if (idx === -1) return { label: text, why: null }
+  return { label: text.slice(0, idx), why: text.slice(idx + 3) }
+}
+
+// One-line reasons for canonical catalog items, which (unlike LLM-authored
+// action-plan items) don't carry their own "why" — keeps every action row
+// showing a short reason without hand-writing one per nav category.
+const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
+  INTERIM_PROFILE_CREATED:
+    'fills the gap on your resume — a priority once you have been searching more than 3 months',
+  JOB_BOARD_USAGE_CONFIRMED: 'keeps new full-time openings coming to you every day',
+  OUTREACH_MESSAGE: 'networking is the single most important thing you can do to land your next role',
+  OUTREACH_CALL: 'a real conversation moves a relationship further than any message',
+  NETWORKING_LIST: 'the people who already know you are your fastest path to a warm introduction',
+  LEARNING_MODULE: 'a new skill makes you a stronger candidate for the roles you want',
+  LEARNING_CERTIFICATE: 'a credential you can point to strengthens your resume and LinkedIn',
+  LEARNING_NEW_TOOL: 'staying current on the tools employers use keeps you competitive',
+  RESUME_UPDATE: 'a sharper resume gets you past the first screen',
+  LINKEDIN_SETUP: 'most recruiters check LinkedIn before they ever call you',
+}
+
+const DEFAULT_WHY_BY_NAV_CATEGORY: Partial<Record<NavCategory, string>> = {
+  Personalize: 'personalizes your search so we can match you to the right jobs and skills',
+  Connecting: 'networking is the single most important thing you can do to find your next role',
+  Building: 'gets you noticed by recruiters and ready for the interview',
+  'Learning & Working': 'makes you a more employable candidate',
+}
+
+// Resolves the short reason shown next to an action row — an LLM-authored
+// one (from splitActionText) always wins over these generic fallbacks.
+export function getActionWhy(actionType: string | undefined, authoredWhy: string | null): string | null {
+  if (authoredWhy) return authoredWhy
+  if (actionType && WHY_OVERRIDE_BY_ACTION_TYPE[actionType]) return WHY_OVERRIDE_BY_ACTION_TYPE[actionType]!
+  const category = navCategoryForActionType(actionType)
+  return category ? (DEFAULT_WHY_BY_NAV_CATEGORY[category] ?? null) : null
 }
 
 export function formatMinutes(minutes: number): string {

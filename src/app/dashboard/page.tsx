@@ -25,8 +25,7 @@ import { getNextDashboardMessage } from '@/lib/dashboard/messages'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
-import { ProfileChecklistCard } from '@/components/dashboard/ProfileChecklistCard'
-import { getProfileChecklistStatus } from '@/lib/weekly/profile-checklist'
+import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { DashboardMessageCard } from '@/components/dashboard/DashboardMessageCard'
@@ -109,7 +108,7 @@ export default async function DashboardPage() {
     dashboardMessage,
     hasCoachingFormResponse,
     sentimentAlert,
-    profileChecklist,
+    profileChecklistItems,
     emailConnection,
     calendarConnection,
   ] = await Promise.all([
@@ -132,7 +131,7 @@ export default async function DashboardPage() {
       ? hasSubmittedCoachingOnboardingForm(profile.id)
       : Promise.resolve(true),
     getSentimentAlert(profile.id),
-    getProfileChecklistStatus(profile.id),
+    getProfileChecklistItems(profile.id),
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
   ])
@@ -207,11 +206,6 @@ export default async function DashboardPage() {
 
         <ReconnectBanner candidateId={profile.id} variant="link" />
 
-        <ProfileChecklistCard
-          remainingCount={profileChecklist.remainingCount}
-          remainingPoints={profileChecklist.remainingPoints}
-        />
-
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
@@ -225,6 +219,7 @@ export default async function DashboardPage() {
           onTrack={onTrack}
           hasEmailConnection={!!emailConnection}
           hasCalendarConnection={!!calendarConnection}
+          profileChecklistItems={profileChecklistItems}
         />
       </div>
 

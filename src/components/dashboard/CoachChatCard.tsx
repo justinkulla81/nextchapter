@@ -145,16 +145,14 @@ export function CoachChatCard({
         {showExecutiveCoachCta && (
           <div className="flex flex-col items-start gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
+              <span className="mr-1.5 shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+                Premium
+              </span>
               Want a more personalized, executive experience? Executive Coach adds a human career
               coach on top of Victoria — mock interviews, resume review, a second opinion on hard
               calls.
             </p>
-            <Button
-              nativeButton={false}
-              render={<Link href="/coaching" />}
-              size="sm"
-              className="shrink-0 bg-orange text-white hover:bg-orange/90"
-            >
+            <Button nativeButton={false} render={<Link href="/coaching" />} size="sm" variant="success" className="shrink-0">
               Get a human executive coach
             </Button>
           </div>

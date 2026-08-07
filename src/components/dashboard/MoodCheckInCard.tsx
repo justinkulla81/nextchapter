@@ -7,7 +7,7 @@ import { TrendingDown, Minus, TrendingUp, Zap, X, type LucideIcon } from 'lucide
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { checkInMood, dismissMoodCard } from '@/app/dashboard/actions'
 import { MOOD_ORDER, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
-import { ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
+import { ACTION_TYPE_LINK, splitActionText, getActionWhy } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 
 const MOOD_ICON: Record<Mood, LucideIcon> = {
@@ -121,15 +121,18 @@ export function MoodCheckInCard({
                 <ul className="list-disc space-y-1 pl-4 text-sm text-muted-foreground">
                   {todaysIdeas.map((idea, i) => {
                     const link = idea.actionType ? ACTION_TYPE_LINK[idea.actionType] : undefined
+                    const { label, why: authoredWhy } = splitActionText(idea.text)
+                    const why = getActionWhy(idea.actionType, authoredWhy)
                     return (
                       <li key={i}>
                         {link ? (
                           <Link href={link.href} className="text-primary underline underline-offset-4">
-                            {idea.text}
+                            {label}
                           </Link>
                         ) : (
-                          idea.text
+                          <span className="text-foreground">{label}</span>
                         )}
+                        {why && <span> — {why}</span>}
                       </li>
                     )
                   })}

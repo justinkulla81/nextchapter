@@ -48,6 +48,7 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   LINKEDIN_UNLOCK: 'Unlock the LinkedIn post generator',
   SUBSTACK_UNLOCK: 'Do you have a Substack?',
   PROFILE_PICTURE_UPLOADED: 'Add a profile picture',
+  LINKEDIN_PROFILE_ADDED: 'Add your LinkedIn profile',
 }
 
 async function fetchCompletion(candidateId: string) {
@@ -76,6 +77,7 @@ async function fetchCompletion(candidateId: string) {
         linkedinUnlockBonusAt: true,
         substackUnlockBonusAt: true,
         profilePictureUrl: true,
+        linkedInConfirmedAt: true,
       },
     }),
     prisma.candidateAssessmentResponse.count({ where: { candidateId } }),
@@ -112,6 +114,11 @@ async function fetchCompletion(candidateId: string) {
     // timestamp) — removing the photo later correctly reverts this to
     // incomplete, same as it reverting the photo everywhere else it's shown.
     PROFILE_PICTURE_UPLOADED: !!profile.profilePictureUrl,
+    // Confirmed either way — a candidate who explicitly says they don't
+    // have a LinkedIn yet (see confirmLinkedIn's noLinkedIn checkbox) still
+    // earns this, same as other confirm-type items reward answering the
+    // question, not any particular answer.
+    LINKEDIN_PROFILE_ADDED: !!profile.linkedInConfirmedAt,
   }
 
   return completion
@@ -128,28 +135,4 @@ export async function getProfileChecklistItems(candidateId: string): Promise<Pro
     points: estimateActionEffort({ actionType }).points,
     complete: completion[actionType],
   }))
-}
-
-export interface ProfileChecklistStatus {
-  remainingCount: number
-  remainingPoints: number
-  allComplete: boolean
-}
-
-// Lightweight rollup — used by the Weekly Sprint card, which only needs to
-// know whether to show "Complete your profile" and how many points remain,
-// not the full item list.
-export async function getProfileChecklistStatus(candidateId: string): Promise<ProfileChecklistStatus> {
-  const completion = await fetchCompletion(candidateId)
-  if (!completion) return { remainingCount: 0, remainingPoints: 0, allComplete: true }
-
-  let remainingCount = 0
-  let remainingPoints = 0
-  for (const actionType of PROFILE_CHECKLIST_ACTION_TYPES) {
-    if (!completion[actionType]) {
-      remainingCount++
-      remainingPoints += estimateActionEffort({ actionType }).points
-    }
-  }
-  return { remainingCount, remainingPoints, allComplete: remainingCount === 0 }
 }

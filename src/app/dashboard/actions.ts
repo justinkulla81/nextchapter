@@ -336,8 +336,25 @@ export async function confirmSalary(_prevState: ConfirmFormState, formData: Form
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
+  const declineToAnswer = formData.get('declineToAnswer') === '1'
   const lastSalaryThousandsRaw = formData.get('lastSalaryThousands')
-  if (!lastSalaryThousandsRaw) return { error: 'Enter your last salary.' }
+
+  // Declining still confirms the item — same reasoning as confirmLinkedIn's
+  // noLinkedIn checkbox: answering the question (even "I'd rather not say")
+  // is the real signal, not any particular answer.
+  if (declineToAnswer) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { lastSalary: null, salaryConfirmedAt: new Date() },
+    })
+    captureServerEvent(profile.id, 'salary_confirmed', { declined: true })
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/profile')
+    revalidatePath('/dashboard/hireability-report')
+    return
+  }
+
+  if (!lastSalaryThousandsRaw) return { error: 'Enter your last salary, or choose to decline.' }
 
   const lastSalaryThousandsEntered = Number(lastSalaryThousandsRaw)
   // Auto-correct if someone enters the full dollar amount instead of thousands.
@@ -350,6 +367,7 @@ export async function confirmSalary(_prevState: ConfirmFormState, formData: Form
     where: { id: profile.id },
     data: { lastSalary, salaryConfirmedAt: new Date() },
   })
+  captureServerEvent(profile.id, 'salary_confirmed', { declined: false })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')

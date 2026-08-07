@@ -7,14 +7,16 @@ import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
   formatMinutes,
+  getActionWhy,
   getRecurringTargetCount,
   isRecurringActionType,
   navCategoryForActionType,
+  splitActionText,
   type NavCategory,
   type SuggestedActionLike,
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
-import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
+import type { ProfileChecklistItem } from '@/lib/weekly/profile-checklist'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import type { WeeklyEngine } from '@/lib/scoring/grade'
 import { WeeklyEngineChecklist } from '@/components/dashboard/WeeklyEngineChecklist'
@@ -24,6 +26,28 @@ interface SuggestedAction extends SuggestedActionLike {
   text: string
 }
 
+// A single row's shape, regardless of which of the three underlying sources
+// it came from (a committed/logged CommittedAction, a not-yet-done
+// suggestion, or a profile-checklist item) — one list, one row shape, no
+// "committed vs. available" visual split anymore.
+interface Row {
+  text: string
+  points: number
+  estimatedMinutes: number
+  actionType?: string
+  completed: boolean
+  recurring: boolean
+  completionCount?: number
+  priority?: boolean
+}
+
+// No field tracks a literal "date last employed" (see the same tradeoff
+// documented in directness-level.ts) — weekNumber (weeklySprintsCount) is
+// this codebase's established stand-in for how long a search has been going.
+// 13 weeks ~= 3 months, the same cutover directness-level.ts uses for its
+// most direct "reckoning" tier.
+const LONG_SEARCH_WEEK_THRESHOLD = 13
+
 // A committed action's identity for de-duplication against the catalog —
 // actionType when there is one (canonical Search Actions), otherwise the
 // exact text (personalized, LLM-suggested items with no fixed type).
@@ -31,22 +55,31 @@ function actionKey(a: { actionType?: string; text: string }): string {
   return a.actionType ?? a.text
 }
 
-// Building first, then Connecting, then Learning & Working, matching the
-// hamburger nav's own section order — "Other" catches personalized
+// Personalize first (lifetime setup — flagged as priority when incomplete,
+// see ActionRow), then Building, Connecting, Learning & Working, matching
+// the hamburger nav's own section order — "Other" catches personalized
 // LLM-suggested items with no fixed actionType to categorize by, and
 // deliberately sorts last since it's the least legible bucket. A group with
-// no items in it simply isn't rendered — Building is expected to empty out
-// entirely for most candidates once every one-time Building item has moved
-// to Complete Your Profile or been finished.
-const GROUP_ORDER: (NavCategory | 'Other')[] = ['Building', 'Connecting', 'Learning & Working', 'Other']
+// no items in it simply isn't rendered.
+const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Building', 'Connecting', 'Learning & Working', 'Other']
 
 function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Record<string, T[]> {
-  const groups: Record<string, T[]> = { Building: [], Connecting: [], 'Learning & Working': [], Other: [] }
+  const groups: Record<string, T[]> = {
+    Personalize: [],
+    Building: [],
+    Connecting: [],
+    'Learning & Working': [],
+    Other: [],
+  }
   for (const item of items) {
     const category = navCategoryForActionType(item.actionType) ?? 'Other'
     groups[category].push(item)
   }
   return groups
+}
+
+function isPersonalizeType(actionType: string | undefined): boolean {
+  return navCategoryForActionType(actionType) === 'Personalize'
 }
 
 function ActionGroup({ title, children }: { title: string; children: ReactNode }) {
@@ -58,10 +91,6 @@ function ActionGroup({ title, children }: { title: string; children: ReactNode }
   )
 }
 
-// Read-only summary row — marking an action done/started happens on the
-// real feature page it links to (see SprintActionCompletion), not here.
-// This card's job is to show status and route you to where the work
-// actually happens.
 // Where the real "one Google sign-in grants both scopes" combined route vs.
 // the single-service routes live — mirrors GoogleConnectPrompt's own
 // startPath logic so a Sprint row and the Network page's connect prompt
@@ -72,6 +101,10 @@ function connectHref(hasEmailConnection: boolean, hasCalendarConnection: boolean
   return '/api/auth/gmail/start'
 }
 
+// Read-only summary row — marking an action done/started happens on the
+// real feature page it links to (see SprintActionCompletion), not here.
+// This card's job is to show status and route you to where the work
+// actually happens.
 function ActionRow({
   text,
   points,
@@ -79,22 +112,11 @@ function ActionRow({
   actionType,
   completed,
   recurring,
-  committed,
   completionCount,
+  priority,
   hasEmailConnection,
   hasCalendarConnection,
-}: {
-  text: string
-  points: number
-  estimatedMinutes: number
-  actionType?: string
-  completed: boolean
-  recurring: boolean
-  committed: boolean
-  completionCount?: number
-  hasEmailConnection: boolean
-  hasCalendarConnection: boolean
-}) {
+}: Row & { hasEmailConnection: boolean; hasCalendarConnection: boolean }) {
   let link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
   // "Have a coffee chat or call" only pays out automatically once Calendar
   // is connected — if it isn't, route straight to connecting it instead of
@@ -102,21 +124,19 @@ function ActionRow({
   if (actionType === 'OUTREACH_CALL' && !hasCalendarConnection) {
     link = { href: connectHref(hasEmailConnection, hasCalendarConnection), label: 'Connect Calendar' }
   }
-  // Connecting Gmail/Calendar unlocks earning points for most of the
-  // Connecting engine at once — flagged as a high-priority action the same
-  // way the hamburger nav flags Networking/Learning/Interim Work.
-  const isPriority = actionType === 'GMAIL_CONNECTED' && !completed
+  const isPriority = !!priority && !completed
+  // "Action name — why it matters," never the whole sentence underlined —
+  // hyperlink only the short label; the reason renders as plain text next to
+  // it. See splitActionText/getActionWhy for where each half comes from.
+  const { label, why: authoredWhy } = splitActionText(text)
+  const why = getActionWhy(actionType, authoredWhy)
   const targetCount = recurring ? getRecurringTargetCount(actionType) : null
   const count = completionCount ?? (completed ? 1 : 0)
   return (
     <div
       className={cn(
         'flex items-center justify-between gap-3 rounded-lg border px-3 py-2',
-        isPriority
-          ? 'border-orange/40 bg-orange/5'
-          : committed
-            ? 'border-border bg-off-white'
-            : 'border-dashed border-muted-foreground/30 bg-transparent'
+        isPriority ? 'border-orange/40 bg-orange/5' : 'border-border bg-off-white'
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
@@ -139,23 +159,19 @@ function ActionRow({
         <Link
           href={link?.href ?? '/dashboard'}
           className={cn(
-            'truncate text-sm hover:underline',
+            'shrink-0 text-sm hover:underline',
             completed && !recurring ? 'text-muted-foreground line-through' : 'text-foreground'
           )}
         >
-          {text}
+          {label}
         </Link>
+        {why && <span className="truncate text-xs text-muted-foreground">— {why}</span>}
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {recurring ? 'Recurring' : 'One-time'}
         </span>
         {isPriority && (
           <span className="shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
             High Priority
-          </span>
-        )}
-        {!committed && (
-          <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-            Not committed
           </span>
         )}
       </div>
@@ -182,6 +198,7 @@ export function SuccessSprintCard({
   onTrack,
   hasEmailConnection,
   hasCalendarConnection,
+  profileChecklistItems,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -195,35 +212,27 @@ export function SuccessSprintCard({
   onTrack: boolean
   hasEmailConnection: boolean
   hasCalendarConnection: boolean
+  profileChecklistItems: ProfileChecklistItem[]
 }) {
-  // Profile-checklist items (Confirm your industry, Privacy setting, etc.)
-  // still count toward weeklyPoints/oneTimePointsEarned below — only their
-  // rendered rows are excluded here, since they now live entirely on
-  // /dashboard/complete-profile (see ProfileChecklistCard).
-  const realActions = (actions ?? []).filter((a) => !isProfileChecklistActionType(a.actionType))
-  const committedTier = realActions.filter((a) => !a.addedFromCatalog)
-  const loggedExtras = realActions.filter((a) => a.addedFromCatalog)
+  const realActions = actions ?? []
+  const usedKeys = new Set(realActions.map(actionKey))
+  const availableCatalog = suggestedActions.filter((sa) => !usedKeys.has(actionKey(sa)))
 
-  const usedKeys = new Set((actions ?? []).map(actionKey))
-  const availableCatalog = suggestedActions.filter(
-    (sa) => !usedKeys.has(actionKey(sa)) && !isProfileChecklistActionType(sa.actionType)
-  )
-
-  const committedGroups = groupByNavCategory(committedTier)
-  const availableGroups = {
-    extras: groupByNavCategory(loggedExtras),
-    catalog: groupByNavCategory(availableCatalog),
-  }
-
-  const oneTimeTotal = realActions.filter((a) => !a.recurring).length
-  const oneTimeDone = realActions.filter((a) => !a.recurring && a.completed).length
+  // Personalize items (profile/gate confirms, connecting Gmail & Calendar)
+  // still count toward weeklyPoints/oneTimePointsEarned below — the
+  // "doesn't count toward this week's pace" split is about the math, not
+  // about hiding them in a separate section anymore; they render in this
+  // same unified list, just flagged as priority when undone (see ActionRow).
+  const nonPersonalizeActions = realActions.filter((a) => !isPersonalizeType(a.actionType))
+  const oneTimeTotal = nonPersonalizeActions.filter((a) => !a.recurring).length
+  const oneTimeDone = nonPersonalizeActions.filter((a) => !a.recurring && a.completed).length
   // Splits weeklyPoints by kind so the blended total doesn't obscure how much
   // came from a real finish line (one-time) vs a habit that resets next week
   // (recurring) — see the isRecurringActionType doc comment in CommittedAction.
-  const oneTimePointsEarned = (actions ?? [])
+  const oneTimePointsEarned = realActions
     .filter((a) => !a.recurring && a.completed)
     .reduce((sum, a) => sum + a.points, 0)
-  const recurringPointsEarned = (actions ?? [])
+  const recurringPointsEarned = realActions
     .filter((a) => a.recurring && a.completed)
     .reduce((sum, a) => sum + a.points, 0)
   // These three should always sum to weeklyPoints — breaking it out here
@@ -234,6 +243,58 @@ export function SuccessSprintCard({
     recurringPointsEarned > 0 ? `${recurringPointsEarned} pts recurring` : null,
     weeklyVisibilityBonus > 0 ? `${weeklyVisibilityBonus} pts for being publicly visible` : null,
   ].filter(Boolean)
+
+  // Every incomplete Personalize item (connecting Gmail/Calendar, any undone
+  // profile/gate confirm) is flagged as a high-priority action, same visual
+  // treatment as the hamburger nav's High Priority badge — foundational
+  // setup that unlocks or improves everything else. Getting an interim job
+  // joins that flag, but only once the search has run long enough that
+  // bridging the gap becomes the priority (see LONG_SEARCH_WEEK_THRESHOLD).
+  function isPriorityActionType(actionType: string | undefined): boolean {
+    if (isPersonalizeType(actionType)) return true
+    if (actionType === 'INTERIM_PROFILE_CREATED') return weeklySprintsCount >= LONG_SEARCH_WEEK_THRESHOLD
+    return false
+  }
+
+  // One combined list: every committed/logged action, every not-yet-done
+  // suggestion, and every profile-checklist item (a completely separate
+  // data source — DB timestamps, not committedActions JSON) — merged and
+  // grouped by nav category, with no other distinction drawn between them.
+  const allRows: Row[] = [
+    ...realActions.map((a) => ({
+      text: a.text,
+      points: a.points,
+      estimatedMinutes: a.estimatedMinutes,
+      actionType: a.actionType,
+      completed: a.completed,
+      recurring: a.recurring,
+      completionCount: a.completionCount,
+      priority: isPriorityActionType(a.actionType),
+    })),
+    ...availableCatalog.map((sa) => {
+      const effort = estimateActionEffort(sa)
+      return {
+        text: sa.text,
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+        actionType: sa.actionType,
+        completed: false,
+        recurring: isRecurringActionType(sa.actionType),
+        priority: isPriorityActionType(sa.actionType),
+      }
+    }),
+    ...profileChecklistItems.map((item) => ({
+      text: item.label,
+      points: item.points,
+      estimatedMinutes: estimateActionEffort({ actionType: item.actionType }).minutes,
+      actionType: item.actionType,
+      completed: item.complete,
+      recurring: false,
+      priority: isPriorityActionType(item.actionType),
+    })),
+  ]
+
+  const groups = groupByNavCategory(allRows)
 
   return (
     <Card>
@@ -268,95 +329,30 @@ export function SuccessSprintCard({
             </p>
           </div>
 
-          {actions && actions.length > 0 ? (
+          {allRows.length > 0 ? (
             <>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Total Weekly Priority Actions
-              </p>
               <p className="text-xs text-muted-foreground">
                 One-time actions count once, ever. Recurring actions count once per week — do them
                 again next week to earn those points again.
               </p>
               <div className="space-y-4">
                 {GROUP_ORDER.map((group) => {
-                  const items = committedGroups[group]
+                  const items = groups[group]
                   if (items.length === 0) return null
                   return (
                     <ActionGroup key={group} title={group}>
-                      {items.map((action, i) => (
+                      {items.map((row, i) => (
                         <ActionRow
                           key={i}
-                          text={action.text}
-                          points={action.points}
-                          estimatedMinutes={action.estimatedMinutes}
-                          actionType={action.actionType}
-                          completed={action.completed}
-                          recurring={action.recurring}
-                          completionCount={action.completionCount}
+                          {...row}
                           hasEmailConnection={hasEmailConnection}
                           hasCalendarConnection={hasCalendarConnection}
-                          committed
                         />
                       ))}
                     </ActionGroup>
                   )
                 })}
               </div>
-
-              {(loggedExtras.length > 0 || availableCatalog.length > 0) && (
-                <>
-                  <p className="pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    More Actions Available
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Not part of your official commitment, but completing any of these still adds to
-                    this week&apos;s points.
-                  </p>
-                  <div className="space-y-4">
-                    {GROUP_ORDER.map((group) => {
-                      const extras = availableGroups.extras[group]
-                      const catalog = availableGroups.catalog[group]
-                      if (extras.length === 0 && catalog.length === 0) return null
-                      return (
-                        <ActionGroup key={group} title={group}>
-                          {extras.map((action, i) => (
-                            <ActionRow
-                              key={`extra-${i}`}
-                              text={action.text}
-                              points={action.points}
-                              estimatedMinutes={action.estimatedMinutes}
-                              actionType={action.actionType}
-                              completed={action.completed}
-                              recurring={action.recurring}
-                              completionCount={action.completionCount}
-                              hasEmailConnection={hasEmailConnection}
-                              hasCalendarConnection={hasCalendarConnection}
-                              committed={false}
-                            />
-                          ))}
-                          {catalog.map((action, i) => {
-                            const effort = estimateActionEffort(action)
-                            return (
-                              <ActionRow
-                                key={`available-${i}`}
-                                text={action.text}
-                                points={effort.points}
-                                estimatedMinutes={effort.minutes}
-                                actionType={action.actionType}
-                                completed={false}
-                                recurring={isRecurringActionType(action.actionType)}
-                                hasEmailConnection={hasEmailConnection}
-                                hasCalendarConnection={hasCalendarConnection}
-                                committed={false}
-                              />
-                            )
-                          })}
-                        </ActionGroup>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
             </>
           ) : (
             <p className="text-sm text-muted-foreground">

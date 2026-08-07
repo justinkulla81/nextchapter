@@ -44,4 +44,9 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   // Interview Prep
   { text: 'Complete a mock interview', actionType: 'INTERVIEW_PREP' },
   { text: 'Practice answers to 3 behavioral questions', actionType: 'INTERVIEW_BEHAVIORAL_PRACTICE' },
+
+  // Job search itself — the two ways to close the income gap: the target
+  // role, and something to bridge the time until you land it.
+  { text: 'Look for full-time jobs', actionType: 'JOB_BOARD_USAGE_CONFIRMED' },
+  { text: 'Get an interim job to fill the gap', actionType: 'INTERIM_PROFILE_CREATED' },
 ]
