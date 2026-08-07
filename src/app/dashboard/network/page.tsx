@@ -459,6 +459,43 @@ export default async function NetworkPage({
 
       <NetworkQuickActionsCard contacts={contacts} />
 
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Your contacts</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every contact you add and outreach you log counts toward the connecting signal in your
+            Market Reality Grade.
+          </p>
+        </div>
+        {contacts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No contacts yet — import your LinkedIn connections below to get started.
+          </p>
+        ) : (
+          CATEGORY_ORDER.map((category) => {
+            const categoryContacts = contacts.filter((c) => c.category === category)
+            if (categoryContacts.length === 0) return null
+            return (
+              <div key={category ?? 'uncategorized'} className="space-y-3">
+                <h3 className="text-base font-medium text-foreground">
+                  {category ? CATEGORY_LABEL[category] : 'Uncategorized — sort these into a category'}
+                </h3>
+                <div className="space-y-3">
+                  {categoryContacts.map((contact) => (
+                    <ContactRow
+                      key={contact.id}
+                      contact={contact}
+                      networkingConcerns={profile.networkingConcerns}
+                      scriptContext={scriptContext}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
       <OutreachPlanCard
@@ -532,43 +569,6 @@ export default async function NetworkPage({
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold">Your contacts</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Every contact you add and outreach you log counts toward the connecting signal in your
-            Market Reality Grade.
-          </p>
-        </div>
-        {contacts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No contacts yet — import your LinkedIn connections above to get started.
-          </p>
-        ) : (
-          CATEGORY_ORDER.map((category) => {
-            const categoryContacts = contacts.filter((c) => c.category === category)
-            if (categoryContacts.length === 0) return null
-            return (
-              <div key={category ?? 'uncategorized'} className="space-y-3">
-                <h3 className="text-base font-medium text-foreground">
-                  {category ? CATEGORY_LABEL[category] : 'Uncategorized — sort these into a category'}
-                </h3>
-                <div className="space-y-3">
-                  {categoryContacts.map((contact) => (
-                    <ContactRow
-                      key={contact.id}
-                      contact={contact}
-                      networkingConcerns={profile.networkingConcerns}
-                      scriptContext={scriptContext}
-                    />
-                  ))}
-                </div>
-              </div>
-            )
-          })
-        )}
       </div>
 
       <div className="space-y-3">
