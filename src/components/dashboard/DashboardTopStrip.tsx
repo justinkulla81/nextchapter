@@ -1,14 +1,19 @@
 import Link from 'next/link'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
 import { GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
+import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
 
-function Divider() {
-  return <div className="h-6 w-px bg-border" />
+// The grade color tokens (text-success/text-brand/text-warning/text-error)
+// double as StatTile accent keys — stripping the "text-" prefix reuses the
+// one source of truth in grade.ts instead of a second grade->color map.
+function gradeAccent(grade: HireabilityGrade['grade']): StatTileAccent {
+  return GRADE_TEXT_COLOR[grade].replace('text-', '') as StatTileAccent
 }
 
 // Small, Duolingo-style summary strip — the "at a glance" read on where you
 // stand, kept deliberately compact so it doesn't compete with the primary
-// action below it for attention.
+// action below it for attention. Shares the StatTile component with the
+// Network page's stats grid so both read as the same "stats" pattern.
 export function DashboardTopStrip({
   grade,
   searchExecutionAvailable,
@@ -27,55 +32,33 @@ export function DashboardTopStrip({
   // not actually racing, so we drop it rather than manufacture urgency.
   suppressUrgency?: boolean
 }) {
+  const overDelivering = searchExecutionAvailable && grade.weeklyPoints > grade.weeklyPointsTarget
+
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-white px-5 py-3">
-      {!suppressUrgency && (
-        <>
-          <span className="text-xs font-medium text-muted-foreground tabular-nums">
-            Week {weekNumber}, Day {dayNumber}
-          </span>
-
-          <Divider />
-        </>
-      )}
-
-      <div className="flex items-center gap-1.5">
-        <span aria-hidden>🔥</span>
-        <span className="text-sm font-semibold text-foreground tabular-nums">{currentStreak}</span>
-        <span className="text-xs text-muted-foreground">day streak</span>
-      </div>
-
-      <Divider />
-
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Current Market Reality</span>
-        <span className={`text-lg font-bold ${GRADE_TEXT_COLOR[grade.grade]}`}>{grade.grade}</span>
-      </div>
-
-      <Divider />
-
-      <div
-        className="flex items-center gap-1.5"
-        title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
-      >
-        <span className="text-xs font-medium text-muted-foreground">Weekly A Target</span>
-        {searchExecutionAvailable ? (
-          <span className="text-sm font-semibold text-foreground tabular-nums">
-            {grade.weeklyPoints} / {grade.weeklyPointsTarget}
-          </span>
-        ) : (
-          <span className="text-sm font-semibold text-muted-foreground">N/A</span>
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {!suppressUrgency && (
+          <StatTile value={`Wk ${weekNumber} · Day ${dayNumber}`} label="Search week" accent="neutral" />
         )}
-        {searchExecutionAvailable && grade.weeklyPoints > grade.weeklyPointsTarget && (
-          <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-            Over-delivering
-          </span>
-        )}
+
+        <StatTile value={`🔥 ${currentStreak}`} label="Day streak" accent={currentStreak > 0 ? 'brand' : 'neutral'} />
+
+        <StatTile value={grade.grade} label="Current Market Reality" accent={gradeAccent(grade.grade)} />
+
+        <StatTile
+          value={searchExecutionAvailable ? `${grade.weeklyPoints} / ${grade.weeklyPointsTarget}` : 'N/A'}
+          label="Weekly A target"
+          accent={!searchExecutionAvailable ? 'neutral' : overDelivering ? 'success' : 'brand'}
+          statusText={overDelivering ? 'Over-delivering' : undefined}
+          title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
+        />
       </div>
 
-      <Link href="/dashboard/stats" className="ml-auto text-xs font-medium text-primary underline underline-offset-4">
-        View My Stats & Reports →
-      </Link>
+      <div className="text-right">
+        <Link href="/dashboard/stats" className="text-xs font-medium text-primary underline underline-offset-4">
+          View My Stats & Reports →
+        </Link>
+      </div>
     </div>
   )
 }
