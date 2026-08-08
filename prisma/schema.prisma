@@ -2200,6 +2200,7 @@ enum AdminNudgeType {
   COMMUNITY
   RECRUITER_HELP
   UPDATE_PRIVACY
+  DID_YOU_GET_AN_OFFER
 }
 
 // One row per admin-sent nudge email — the "email trail" shown on the

@@ -22,6 +22,7 @@ const NUDGE_TYPE_OPTIONS: { value: AdminNudgeType; label: string }[] = [
   { value: 'COMMUNITY', label: 'Engage in NC Support Network' },
   { value: 'RECRUITER_HELP', label: 'Consider recruiter/coach help' },
   { value: 'UPDATE_PRIVACY', label: 'Review privacy settings' },
+  { value: 'DID_YOU_GET_AN_OFFER', label: 'Check in on offer status' },
 ]
 
 export function CandidateNudgeEmailPanel({ candidateId }: { candidateId: string }) {

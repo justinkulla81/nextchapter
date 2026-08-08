@@ -17,6 +17,7 @@ export const NUDGE_TYPES: { value: AdminNudgeType; label: string }[] = [
   { value: 'COMMUNITY', label: 'Engage in NC Support Network' },
   { value: 'RECRUITER_HELP', label: 'Consider recruiter/coach help' },
   { value: 'UPDATE_PRIVACY', label: 'Review privacy settings' },
+  { value: 'DID_YOU_GET_AN_OFFER', label: 'Check in on offer status' },
 ]
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -301,6 +302,44 @@ async function buildUpdatePrivacyDraft(candidateId: string, firstName: string): 
   }
 }
 
+// Admin sends this manually — there's no automated "just interviewed"
+// trigger — but we surface what we already know (logged interview, any
+// existing bounty claim) so the admin isn't sending it blind.
+async function buildDidYouGetAnOfferDraft(candidateId: string, firstName: string): Promise<NudgeDraft> {
+  const [mostRecentInterview, existingClaim] = await Promise.all([
+    prisma.jobPosting.findFirst({
+      where: { candidateId, interviewLandedAt: { not: null } },
+      orderBy: { interviewLandedAt: 'desc' },
+      select: { companyName: true },
+    }),
+    prisma.bountyClaim.findFirst({
+      where: { candidateId, status: { in: ['PENDING', 'APPROVED'] } },
+      orderBy: { createdAt: 'desc' },
+      select: { status: true },
+    }),
+  ])
+
+  const statusLine = existingClaim
+    ? `Looks like you may have already told us about an offer — if that's still where things stand, no need to do anything further; if your situation has changed, this is a good time to update us.`
+    : mostRecentInterview
+      ? `We saw you landed an interview${mostRecentInterview.companyName ? ` with ${mostRecentInterview.companyName}` : ''} — congratulations on getting that far!`
+      : `Congratulations on the work you've put into your search so far.`
+
+  const body = [
+    `Hi ${firstName},`,
+    statusLine,
+    `We wanted to check in — did you get an offer? If so, congratulations! NextChapter gives every candidate who lands a role while actively using the platform a $500 "You Got Hired" bonus. Just share a few quick details and a copy of your offer letter, and we'll take it from there.`,
+    `If you haven't heard back yet, no worries at all — just let us know how it's going.`,
+  ].join('\n\n')
+
+  return {
+    subject: `${firstName}, did you get the offer?`,
+    body,
+    ctaLabel: 'Tell us — claim your $500 bonus',
+    ctaUrl: `${APP_URL}/dashboard/got-hired`,
+  }
+}
+
 export async function buildNudgeDraft(candidateId: string, nudgeType: AdminNudgeType): Promise<NudgeDraft> {
   const profile = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
@@ -327,5 +366,7 @@ export async function buildNudgeDraft(candidateId: string, nudgeType: AdminNudge
       return buildRecruiterHelpDraft(candidateId, firstName)
     case 'UPDATE_PRIVACY':
       return buildUpdatePrivacyDraft(candidateId, firstName)
+    case 'DID_YOU_GET_AN_OFFER':
+      return buildDidYouGetAnOfferDraft(candidateId, firstName)
   }
 }
