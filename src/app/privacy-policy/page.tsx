@@ -5,6 +5,7 @@ import { Logo } from '@/components/Logo'
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'How NextChapter collects, uses, and protects your information.',
+  alternates: { canonical: '/privacy-policy' },
 }
 
 const EFFECTIVE_DATE = 'July 13, 2026'

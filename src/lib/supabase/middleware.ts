@@ -47,8 +47,19 @@ export async function updateSession(request: NextRequest) {
   // teammate with no NextChapter account yet must be able to view the
   // invite and create one; the page itself handles the logged-in-vs-not
   // branching once loaded.
+  // /talent/login and /talent/forgot-password are public auth pages by
+  // definition — a signed-out visitor (including Googlebot) must be able
+  // to load them without being redirected to /auth/login first. Missing
+  // these two caused a real "Page with redirect" indexing issue: Google
+  // discovered /talent/login via the public /for-organizations page and
+  // got redirected every time it crawled.
   const protectedPaths = ['/dashboard', '/talent']
-  const publicExceptions = ['/talent/signup', '/talent/seats/accept']
+  const publicExceptions = [
+    '/talent/signup',
+    '/talent/seats/accept',
+    '/talent/login',
+    '/talent/forgot-password',
+  ]
   const isProtected =
     protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
     !publicExceptions.some((path) => request.nextUrl.pathname.startsWith(path))
