@@ -222,14 +222,29 @@ function DossierSectionBlock({
         </section>
       )
 
-    case 'fit':
-      if (!dossier.fit.patternSummary) return null
+    case 'fit': {
+      const { patternSummary, targetPreferences: tp } = dossier.fit
+      const preferenceLines = [
+        tp.targetRoleType,
+        tp.targetIndustries.length > 0 ? `Open to: ${tp.targetIndustries.join(', ')}` : null,
+        [tp.companySizeLabel, tp.companyStageLabel].filter(Boolean).join(' · ') || null,
+        tp.locationPreferenceLabel,
+      ].filter((line): line is string => Boolean(line))
+      if (!patternSummary && preferenceLines.length === 0) return null
       return (
         <section>
           <SectionHeading>{title}</SectionHeading>
-          <p className="mt-2 text-sm text-foreground">{dossier.fit.patternSummary}</p>
+          {patternSummary && <p className="mt-2 text-sm text-foreground">{patternSummary}</p>}
+          {preferenceLines.length > 0 && (
+            <ul className="mt-2 space-y-1 text-sm text-foreground">
+              {preferenceLines.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          )}
         </section>
       )
+    }
 
     case 'proofPoints':
       if (dossier.proofPoints.length === 0) return null

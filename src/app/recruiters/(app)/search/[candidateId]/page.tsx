@@ -3,7 +3,11 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { generateHiringManagerReport } from '@/lib/reports/hiring-manager-report'
+import { getDossierSections } from '@/lib/reports/dossier-sections'
+import { DossierSectionsView } from '@/components/dashboard/DossierSections'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { requestPortfolioAccess, startConversationWithCandidate, getPoolCandidateResumeSignedUrl } from './actions'
 
 export const maxDuration = 30
 
@@ -31,8 +35,27 @@ export default async function RecruiterCandidateBriefPage({
     notFound()
   }
 
-  const brief = await generateHiringManagerReport(candidateId)
+  const [brief, dossier, resume, resumeSignedUrl, portfolioAccess] = await Promise.all([
+    generateHiringManagerReport(candidateId),
+    getDossierSections(candidateId),
+    prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' }, select: { fileName: true } }),
+    getPoolCandidateResumeSignedUrl(candidateId),
+    prisma.portfolioAccessRequest.findUnique({
+      where: { candidateId_recruiterId: { candidateId, recruiterId: recruiter.id } },
+    }),
+  ])
   captureServerEvent(recruiter.id, 'recruiter_candidate_brief_viewed', { candidateId })
+
+  // Work Samples/Narrative are gated on an APPROVED request — only pull
+  // them from the DB when they'll actually be rendered below, instead of
+  // fetching on every page load regardless of access.
+  const [workSamples, narratives] =
+    portfolioAccess?.status === 'APPROVED'
+      ? await Promise.all([
+          prisma.workSample.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
+          prisma.candidateNarrative.findMany({ where: { candidateId }, orderBy: { generatedAt: 'asc' }, take: 1 }),
+        ])
+      : [[], []]
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -40,9 +63,26 @@ export default async function RecruiterCandidateBriefPage({
         ← Back to search
       </Link>
 
-      <div className="mt-4 mb-8 space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">Candidate Brief</p>
-        <h1 className="text-2xl font-semibold tracking-tight">{brief.candidateName}</h1>
+      <div className="mt-4 mb-8 space-y-3">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Candidate Brief</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{brief.candidateName}</h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <form action={startConversationWithCandidate.bind(null, candidateId)}>
+            <SubmitButton size="sm">Message this candidate</SubmitButton>
+          </form>
+          {resumeSignedUrl && (
+            <a
+              href={resumeSignedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium text-foreground"
+            >
+              {resume ? `View resume — ${resume.fileName}` : 'View resume'}
+            </a>
+          )}
+        </div>
       </div>
 
       <div className="space-y-5">
@@ -104,6 +144,63 @@ export default async function RecruiterCandidateBriefPage({
               : 'Not enough reference data yet to assess.'}
           </p>
         </div>
+      </div>
+
+      <div className="mt-10 space-y-5">
+        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Executive Dossier
+        </h2>
+        <DossierSectionsView dossier={dossier} readOnly />
+      </div>
+
+      <div className="mt-10 space-y-3">
+        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Portfolio</h2>
+        {portfolioAccess?.status === 'APPROVED' ? (
+          <div className="space-y-4">
+            {narratives[0] && (
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-sm font-medium text-foreground">{narratives[0].label}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{narratives[0].coreStatement}</p>
+              </div>
+            )}
+            {workSamples.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No work samples uploaded yet.</p>
+            ) : (
+              workSamples.map((sample) => (
+                <div key={sample.id} className="rounded-lg border border-border p-4">
+                  <p className="text-sm font-medium text-foreground">{sample.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{sample.description}</p>
+                  {(sample.fileUrl || sample.externalUrl) && (
+                    <a
+                      href={sample.fileUrl ?? sample.externalUrl ?? undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block text-sm underline underline-offset-4"
+                    >
+                      View sample →
+                    </a>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        ) : portfolioAccess?.status === 'REQUESTED' ? (
+          <p className="text-sm text-muted-foreground">
+            Portfolio access requested — you&apos;ll be able to view it here once the candidate approves.
+          </p>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border p-4">
+            <p className="text-sm text-muted-foreground">
+              This candidate&apos;s work samples and narrative are one step more personal than the Dossier
+              and resume above — ask them for access.
+            </p>
+            <form action={requestPortfolioAccess.bind(null, candidateId)} className="mt-3">
+              <SubmitButton size="sm" variant="outline">
+                Ask to see portfolio
+              </SubmitButton>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   )

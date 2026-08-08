@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewMessageNotification } from '@/lib/email/send-new-message-notification'
+import { isRecruiterDatabaseUnlocked } from '@/lib/admin/recruiter-database'
 import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
 
 // This module is the ONLY place allowed to query CandidateProfile for
@@ -46,8 +47,11 @@ function partnerWhere(partnerType: ThreadPartnerType, partnerId: string): Partne
 // created):
 //   - COACH: any coach-candidate pair with coachId already set may message —
 //     matches the existing coach-client relationship, no extra gate needed.
-//   - RECRUITER: only once a SourcedCandidate for this pair has SIGNED_UP
-//     (has a candidateId) — never before signup.
+//   - RECRUITER: either a SourcedCandidate for this pair has SIGNED_UP (has a
+//     candidateId), OR the candidate is unlocked in the Recruiter Database
+//     (opted in + most-recently-generated report grades A) — a recruiter can
+//     reach out to any pool candidate they've been given visibility into,
+//     not just their own sourced book.
 //   - EMPLOYER: only once an ApprovedEmployer row exists for this pair (the
 //     candidate-controlled reveal gate from approveEmployerInterest) —
 //     messaging must never become a side channel to reach an unrevealed
@@ -63,8 +67,9 @@ async function assertThreadAllowed(candidateId: string, partnerType: ThreadPartn
       where: { recruiterId: partnerId, candidateId, status: 'SIGNED_UP' },
       select: { id: true },
     })
-    if (!match) throw new Error('This candidate has not signed up through this recruiter yet.')
-    return
+    if (match) return
+    if (await isRecruiterDatabaseUnlocked(candidateId)) return
+    throw new Error('This candidate has not signed up through this recruiter yet.')
   }
   const approved = await prisma.approvedEmployer.findUnique({
     where: { candidateId_employerId: { candidateId, employerId: partnerId } },

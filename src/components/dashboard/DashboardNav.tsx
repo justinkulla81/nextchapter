@@ -119,7 +119,6 @@ function buildSections(
       title: 'Misc',
       links: [
         { href: '/dashboard/network/contacts', label: 'Contact Directory' },
-        { href: '/dashboard/guides', label: 'Search Strategy Guides' },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
         { href: "/dashboard/support", label: "I'm Struggling" },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },

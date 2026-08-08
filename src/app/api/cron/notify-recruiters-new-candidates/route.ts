@@ -1,13 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterDatabaseRows, bucketRecruiterDatabaseRows } from '@/lib/admin/recruiter-database'
-import { sendRecruiterNewCandidateAlertEmail } from '@/lib/email/send-recruiter-new-candidate-alert'
+import { getRecruiterDigestAdminEmail } from '@/lib/admin/auth'
+import { sendRecruiterDailyDigestEmail } from '@/lib/email/send-recruiter-daily-digest'
+import { sendAdminRecruiterDigestEmail } from '@/lib/email/send-admin-recruiter-digest'
+import { captureServerEvent } from '@/lib/posthog/server'
 
-// Daily — for every candidate who's opted in AND holds an A Exec Dossier
-// Grade but recruiters haven't been told yet (pendingNotify bucket), blasts
-// every opted-in recruiter and marks recruiterNotifiedAt so it only ever
-// fires once per candidate. Mirrors the admin page's manual "Notify
-// recruiters" button (same underlying send) for the ones nobody clicks.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -16,34 +14,73 @@ export async function GET(request: NextRequest) {
 
   const { pendingNotify } = bucketRecruiterDatabaseRows(await getRecruiterDatabaseRows())
   if (pendingNotify.length === 0) {
-    return NextResponse.json({ candidates: 0, recruitersNotified: 0 })
+    return NextResponse.json({ candidates: 0, recruitersNotified: 0, adminNotified: false })
   }
 
   const recruiters = await prisma.recruiter.findMany({
-    where: { newCandidateAlertsOptedOut: false, userId: { not: null } },
+    where: { newCandidateAlertsOptedOut: false, userId: { not: null }, isSampleData: false },
     select: { id: true, fullName: true, workEmail: true },
   })
 
-  let sentCount = 0
-  for (const row of pendingNotify) {
-    try {
-      const results = await Promise.all(
-        recruiters.map((r) =>
-          sendRecruiterNewCandidateAlertEmail(r, {
-            primaryFunction: row.primaryFunction,
-            level: row.level,
-            targetRoleType: row.targetRoleType,
-            industry: row.industry,
-            geo: row.geo,
-          })
-        )
-      )
-      sentCount += results.filter((r) => r.sent).length
-      await prisma.candidateProfile.update({ where: { id: row.id }, data: { recruiterNotifiedAt: new Date() } })
-    } catch (error) {
-      console.error('Failed to notify recruiters for candidate', row.id, error)
+  const digestCandidates = pendingNotify.map((row) => ({
+    primaryFunction: row.primaryFunction,
+    level: row.level,
+    targetRoleType: row.targetRoleType,
+    industry: row.industry,
+    geo: row.geo,
+  }))
+
+  // Stamped before sending, not after — a crash or timeout partway through
+  // the sends below must never leave these candidates eligible for another
+  // full re-send (to every recruiter) on the next cron run. Worst case here
+  // is a rare missed digest mention for one day, not a repeated blast.
+  await prisma.candidateProfile.updateMany({
+    where: { id: { in: pendingNotify.map((row) => row.id) } },
+    data: { recruiterNotifiedAt: new Date() },
+  })
+
+  let recruitersNotified = 0
+  const results = await Promise.all(
+    recruiters.map((r) =>
+      sendRecruiterDailyDigestEmail(r, digestCandidates).then((result) => {
+        if (result.sent) {
+          captureServerEvent(r.id, 'recruiter_daily_digest_sent', { candidateCount: digestCandidates.length })
+        }
+        return result
+      })
+    )
+  )
+  recruitersNotified = results.filter((r) => r.sent).length
+
+  let adminNotified = false
+  const adminEmail = getRecruiterDigestAdminEmail()
+  if (adminEmail) {
+    const result = await sendAdminRecruiterDigestEmail(
+      adminEmail,
+      pendingNotify.map((row) => ({
+        name: row.name,
+        email: row.email,
+        primaryFunction: row.primaryFunction,
+        level: row.level,
+        targetRoleType: row.targetRoleType,
+        industry: row.industry,
+        geo: row.geo,
+      })),
+      recruiters.length
+    )
+    adminNotified = result.sent
+    if (adminNotified) {
+      captureServerEvent(adminEmail, 'admin_recruiter_digest_sent', {
+        candidateCount: pendingNotify.length,
+        recruiterCount: recruiters.length,
+      })
     }
   }
 
-  return NextResponse.json({ candidates: pendingNotify.length, recruitersNotified: sentCount })
+  await prisma.candidateProfile.updateMany({
+    where: { id: { in: pendingNotify.map((row) => row.id) } },
+    data: { recruiterNotifiedAt: new Date() },
+  })
+
+  return NextResponse.json({ candidates: pendingNotify.length, recruitersNotified, adminNotified })
 }

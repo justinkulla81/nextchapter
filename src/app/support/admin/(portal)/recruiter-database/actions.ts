@@ -17,7 +17,7 @@ export async function notifyRecruitersForCandidate(candidateId: string): Promise
   if (!row) return
 
   const recruiters = await prisma.recruiter.findMany({
-    where: { newCandidateAlertsOptedOut: false, userId: { not: null } },
+    where: { newCandidateAlertsOptedOut: false, userId: { not: null }, isSampleData: false },
     select: { id: true, fullName: true, workEmail: true },
   })
 

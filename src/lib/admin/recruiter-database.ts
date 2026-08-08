@@ -100,6 +100,23 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
   })
 }
 
+// Same unlock condition as bucketRecruiterDatabaseRows' "notified"/"pendingNotify"
+// buckets (opted-in AND most-recently-generated report grades A), but for a single
+// candidate — used to gate recruiter messaging access to pool candidates outside
+// a recruiter's own sourced book.
+export async function isRecruiterDatabaseUnlocked(candidateId: string): Promise<boolean> {
+  const candidate = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: {
+      recruiterDatabaseOptIn: true,
+      hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1, select: { hireabilityGradeAtGeneration: true } },
+    },
+  })
+  if (!candidate?.recruiterDatabaseOptIn) return false
+  const grade = normalizeGradeSnapshot(candidate.hireabilityReports[0]?.hireabilityGradeAtGeneration)
+  return grade?.grade === 'A'
+}
+
 export interface RecruiterDatabaseBuckets {
   notified: RecruiterDatabaseRow[] // unlocked, A-grade, recruiters already told
   pendingNotify: RecruiterDatabaseRow[] // unlocked, A-grade, recruiters not yet told

@@ -15,7 +15,6 @@ import {
   type ReferralRecency,
 } from '@prisma/client'
 import {
-  TRADEOFF_PRIORITIES,
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   SITUATION_TO_JOB_STATUS,
   type SituationKey,
@@ -395,22 +394,6 @@ export async function updateExperience(
 export async function updateGoals(_prevState: FormState, formData: FormData): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
-  const rankedOrder = formData.getAll('tradeoffOrder').map(String) as Array<
-    (typeof TRADEOFF_PRIORITIES)[number]['key']
-  >
-
-  if (rankedOrder.length !== TRADEOFF_PRIORITIES.length) {
-    return { error: `Please rank all ${TRADEOFF_PRIORITIES.length} priorities.` }
-  }
-
-  const rankValues: Record<(typeof TRADEOFF_PRIORITIES)[number]['key'], number> = {} as Record<
-    (typeof TRADEOFF_PRIORITIES)[number]['key'],
-    number
-  >
-  rankedOrder.forEach((key, index) => {
-    rankValues[key] = index + 1
-  })
-
   const openToRelocation = formData.get('openToRelocation') === 'on'
 
   try {
@@ -430,14 +413,12 @@ export async function updateGoals(_prevState: FormState, formData: FormData): Pr
         isPivoting: formData.get('isPivoting') === 'on',
         openToRelocation,
         relocationNotes: openToRelocation ? (formData.get('relocationNotes') as string) || null : null,
-        dealBreakers: (formData.get('dealBreakers') as string) || null,
         publicDisclosureComfort: (formData.get('publicDisclosureComfort') as PublicDisclosureComfort) || null,
         hasBeenReferredBefore: formData.get('hasBeenReferredBefore') === 'on',
         referralRecency:
           formData.get('hasBeenReferredBefore') === 'on'
             ? (formData.get('referralRecency') as ReferralRecency) || null
             : null,
-        ...rankValues,
         part4Complete: true,
         assessmentComplete: true,
         assessmentCompletedAt: new Date(),

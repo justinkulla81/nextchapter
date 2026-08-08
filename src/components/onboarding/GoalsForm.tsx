@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TagInput } from './TagInput'
-import { TradeoffRanking } from './TradeoffRanking'
 import { ChoiceButtons } from './ChoiceButtons'
 import {
   COMPANY_SIZE_OPTIONS,
@@ -261,26 +260,6 @@ export function GoalsForm({
             rows={2}
           />
         )}
-      </div>
-
-      <div className="space-y-2">
-        <Label>
-          Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
-        </Label>
-        <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
-        <TradeoffRanking profile={profile} />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="dealBreakers">
-          Are there any other important considerations for your next job? (optional)
-        </Label>
-        <Textarea
-          id="dealBreakers"
-          name="dealBreakers"
-          rows={2}
-          defaultValue={profile.dealBreakers ?? ''}
-        />
       </div>
 
       <div className="space-y-2">

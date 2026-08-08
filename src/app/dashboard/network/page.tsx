@@ -16,6 +16,7 @@ import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActi
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { NeedsFollowUpCard } from '@/components/dashboard/NeedsFollowUpCard'
@@ -445,6 +446,8 @@ export default async function NetworkPage({
           />
         </div>
       )}
+
+      <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

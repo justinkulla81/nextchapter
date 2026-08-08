@@ -47,6 +47,7 @@ import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -901,6 +902,7 @@ export default async function JobFitPage() {
         </Card>
       </div>
 
+      <GuideCallout pageSlot="find-my-job" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

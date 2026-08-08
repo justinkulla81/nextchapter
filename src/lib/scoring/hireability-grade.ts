@@ -37,6 +37,7 @@ import type {
   CandidateAssessmentResponse,
   CandidateProfile,
   CoachingFocus,
+  CompanySizeBand,
   JobPosting,
   LinkedInActivityLog,
   PrivacyTier,
@@ -48,6 +49,7 @@ import type {
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
+import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
 import { computeReferenceWeights } from '@/lib/references/collusion-check'
@@ -109,6 +111,58 @@ function looselyMatches(a: string | null, b: string | null): boolean {
   const wordsA = new Set(na.split(/\s+/).filter((w) => w.length > 3))
   const wordsB = nb.split(/\s+/).filter((w) => w.length > 3)
   return wordsB.some((w) => wordsA.has(w))
+}
+
+// CompanySizeBand is an 8-tier employee-headcount scale (see company-size.ts);
+// the candidate-facing COMPANY_SIZE_OPTIONS is a coarser 3-bucket version of
+// the same scale. Ordinals below place both on one line so a candidate's
+// most recent employer can be compared against their stated target — bucket
+// ordinals are the midpoint of the bands they span.
+const COMPANY_SIZE_BAND_ORDINAL: Record<CompanySizeBand, number> = {
+  MICRO: 0,
+  SMALL: 1,
+  SMALL_MID: 2,
+  MID: 3,
+  MID_LARGE: 4,
+  LARGE: 5,
+  ENTERPRISE: 6,
+  MEGA: 7,
+}
+const TARGET_COMPANY_SIZE_ORDINAL: Record<string, number> = {
+  '1-50': 0.5, // spans MICRO-SMALL
+  '50-500': 2.5, // spans SMALL_MID-MID
+  '500+': 5.5, // spans MID_LARGE-MEGA
+}
+
+// A company-size jump is a real thing a hiring manager weighs, and the two
+// directions aren't symmetric: going from a large, structured company to a
+// small one is the harder sell (different, scrappier operating muscle —
+// less process, less specialization, more generalist), while small-to-large
+// reads more as resourcefulness than risk. Same-size-ish moves are free.
+// Silent no-op whenever either side can't be resolved (no target
+// preference, or the most recent employer's name doesn't resolve to a
+// band) — this is a real-world estimate, never a guess from a null.
+async function computeCompanySizeTransitionAdjustment(
+  workHistory: WorkHistoryEntry[],
+  targetCompanySize: string | null
+): Promise<number> {
+  if (!targetCompanySize) return 0
+  const targetOrdinal = TARGET_COMPANY_SIZE_ORDINAL[targetCompanySize]
+  if (targetOrdinal === undefined) return 0
+
+  const mostRecent = [...workHistory].sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1
+    return b.startDate.getTime() - a.startDate.getTime()
+  })[0]
+  if (!mostRecent) return 0
+
+  const { band } = await resolveCompanySizeBand(mostRecent.companyName)
+  if (!band) return 0
+
+  const distance = COMPANY_SIZE_BAND_ORDINAL[band] - targetOrdinal // positive = moving to something smaller
+  if (distance >= 3) return -8
+  if (distance <= -4) return -3
+  return 0
 }
 
 // Average of a reference BARS field (1-5) across completed references,
@@ -178,7 +232,11 @@ function getCategoryConfidence(
   }
 }
 
-export async function computeCategoryGrades(candidate: CandidateWithGradeRelations): Promise<CategoryGrade[]> {
+export async function computeCategoryGrades(
+  candidate: CandidateWithGradeRelations,
+  options?: { includeFlexibilitySignal?: boolean }
+): Promise<CategoryGrade[]> {
+  const includeFlexibilitySignal = options?.includeFlexibilitySignal ?? true
   const jobReactionsCount = candidate.surfacedJobs.filter((j) => j.reaction !== null).length
   const refs = candidate.references
   const latestVectors = candidate.assessmentResponses[0]?.dimensionVectors as
@@ -224,6 +282,14 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
       marketPosition += Math.max(-20, Math.min(marketConditions.blsYoyChangePct * 4, 20))
     }
   }
+  // Being locked to on-site with no willingness to relocate only matters
+  // because it removes the escape valve a remote/hybrid/relocating candidate
+  // has — it's not a penalty on its own, only when the local market (already
+  // reflected in marketPosition above, itself now scoped to a 50-mile
+  // radius — see searchAdzunaJobs) is already thin.
+  if (candidate.remotePreference === 'onsite' && !candidate.openToRelocation && marketPosition < 50) {
+    marketPosition -= 10
+  }
   marketPosition = clamp(marketPosition)
 
   let targetComplexity: number
@@ -242,14 +308,21 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   targetComplexity = clamp(targetComplexity)
 
   const focus = isVagueTargetRole(candidate.targetRoleType) ? 35 : 90
+  const companySizeTransitionAdjustment = await computeCompanySizeTransitionAdjustment(
+    candidate.workHistory,
+    candidate.targetCompanySize
+  )
   // Pedigree/prestige bonus (elite institution, prestige employer, high-
   // demand function, promotion velocity) — persisted by computeStructuralFlags
   // (see pedigree-bonus.ts), applied additively here rather than folded into
   // the four-way average above, same treatment as the real-event bumps in
   // rewrite-actions.ts. A candidate with no matching signal gets +0 and is
-  // otherwise unaffected.
+  // otherwise unaffected. companySizeTransitionAdjustment (see above) is the
+  // same kind of additive structural term.
   const targetFitScore = clamp(
-    (experienceMatch + marketPosition + targetComplexity + focus) / 4 + (candidate.pedigreeBonus ?? 0)
+    (experienceMatch + marketPosition + targetComplexity + focus) / 4 +
+      (candidate.pedigreeBonus ?? 0) +
+      companySizeTransitionAdjustment
   )
 
   // ---- Leadership & Management — resume scope (isPeopleManager,
@@ -307,10 +380,19 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   // with real preparation (learning activity — read at report-generation
   // time, not here, so this stays a pure/no-extra-query function); blended
   // with the reference growth-mindset rating.
+  //
+  // includeFlexibilitySignal=false (used only by the Hireability Grade path)
+  // holds the self-report at a neutral midpoint instead — candidates
+  // shouldn't be able to move their Hireability Grade by how flexible they
+  // say they are on comp/level/location/pivoting. Market Reality, Coaching
+  // Notes, and the Dossier's self-awareness read all keep the real signal
+  // via the default.
   const flexibilityCount = [candidate.willingToStartLower, candidate.compFlexible, candidate.openToRelocation].filter(
     Boolean
   ).length
-  const adaptabilitySelfReport = clamp(40 + flexibilityCount * 15 + (candidate.isPivoting ? 10 : 0))
+  const adaptabilitySelfReport = includeFlexibilitySignal
+    ? clamp(40 + flexibilityCount * 15 + (candidate.isPivoting ? 10 : 0))
+    : clamp(50)
   const adaptabilityRefRating = averageReferenceRating(refs, 'traitAdaptabilityRating')
   const adaptabilityScore =
     adaptabilityRefRating !== null
@@ -396,7 +478,10 @@ export async function getCategoryBaseline(
   const stored = candidate.categoryBaselineScores as Record<CategoryKey, number> | null
   if (stored) return stored
 
-  const categories = await computeCategoryGrades(candidate)
+  // The baseline feeds the Hireability Grade (see computeHireabilityGrade
+  // below), so it's seeded without the flexibility signal — see the
+  // includeFlexibilitySignal comment in computeCategoryGrades.
+  const categories = await computeCategoryGrades(candidate, { includeFlexibilitySignal: false })
   const baseline = Object.fromEntries(categories.map((c) => [c.key, c.score])) as Record<CategoryKey, number>
   await prisma.candidateProfile.update({
     where: { id: candidate.id },

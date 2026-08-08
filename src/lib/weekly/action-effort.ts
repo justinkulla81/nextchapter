@@ -88,6 +88,15 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   WATCHLIST_ADD: { minutes: 2, points: 2 },
   WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
 
+  // Applying itself — wherever the posting actually came from (LinkedIn,
+  // Indeed, a company site) — is the real job-search work; this fires when
+  // a candidate marks a tracked posting Applied, same weight as
+  // NETWORKING_LIST/RESUME_UPDATE for a comparable real-world time cost.
+  JOB_APPLICATION_SUBMITTED: { minutes: 25, points: 25 },
+  // Reacting "Interested" to a surfaced/board posting is a single click,
+  // not real search work yet — same weight as WATCHLIST_POSTING_VIEWED.
+  JOB_INTERESTED_REACTION: { minutes: 2, points: 2 },
+
   // Profile picture — small one-time bonus, same weight as the other
   // one-time confirms. Live-checked against profilePictureUrl (see
   // profile-checklist.ts) rather than a separate timestamp, so removing the
@@ -221,6 +230,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PARTNER_CLICK_THROUGH: 'connecting',
   WATCHLIST_ADD: 'connecting',
   WATCHLIST_POSTING_VIEWED: 'connecting',
+  JOB_APPLICATION_SUBMITTED: 'effort',
+  JOB_INTERESTED_REACTION: 'connecting',
   PROFILE_PICTURE_UPLOADED: 'connecting',
   GMAIL_CONNECTED: 'connecting',
   GMAIL_RECONNECTED: 'connecting',
@@ -318,6 +329,8 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   PARTNER_CLICK_THROUGH: 'Learning & Working',
   WATCHLIST_ADD: 'Learning & Working',
   WATCHLIST_POSTING_VIEWED: 'Learning & Working',
+  JOB_APPLICATION_SUBMITTED: 'Learning & Working',
+  JOB_INTERESTED_REACTION: 'Learning & Working',
 }
 
 export function navCategoryForActionType(actionType: string | undefined): NavCategory | undefined {
@@ -363,6 +376,11 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // Job searching itself has no single finish line either — you look for
   // full-time jobs again next week, same shape as the rest of this set.
   'JOB_BOARD_USAGE_CONFIRMED',
+  // Applying to jobs and reacting to new matches are both ongoing —
+  // there's always another posting next week, same shape as the rest of
+  // this set.
+  'JOB_APPLICATION_SUBMITTED',
+  'JOB_INTERESTED_REACTION',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
@@ -398,6 +416,8 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   LEARNING_SESSION_ATTENDED: 1,
   WATCHLIST_ADD: 3,
   JOB_BOARD_USAGE_CONFIRMED: 3,
+  JOB_APPLICATION_SUBMITTED: 3,
+  JOB_INTERESTED_REACTION: 3,
 }
 
 export function getRecurringTargetCount(actionType: string | undefined): number | null {
@@ -495,6 +515,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Live Conversations' },
   WATCHLIST_ADD: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
+  JOB_APPLICATION_SUBMITTED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
+  JOB_INTERESTED_REACTION: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   GMAIL_CONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
   GMAIL_RECONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
   THANK_YOU_NOTE_SENT: { href: '/dashboard/network#needs-follow-up', label: 'Live Conversations' },
@@ -612,7 +634,14 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'CALENDAR_RECONNECTED',
     'INTERVIEW_ATTENDED',
   ],
-  'find-my-job': ['NEGOTIATION_ADVICE', 'JOB_BOARD_USAGE_CONFIRMED', 'WATCHLIST_ADD', 'WATCHLIST_POSTING_VIEWED'],
+  'find-my-job': [
+    'JOB_APPLICATION_SUBMITTED',
+    'JOB_INTERESTED_REACTION',
+    'WATCHLIST_ADD',
+    'NEGOTIATION_ADVICE',
+    'JOB_BOARD_USAGE_CONFIRMED',
+    'WATCHLIST_POSTING_VIEWED',
+  ],
   resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
   'marketing-plan': ['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_SHARE', 'MARKETING_PLAN_UNLOCK'],

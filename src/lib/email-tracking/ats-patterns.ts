@@ -7,7 +7,7 @@
 // the easiest (most standardized phrasing) and the one with the most value
 // attached, since it's what triggers Victoria's supportive reframe.
 
-import { extractDomain } from './email-address'
+import { extractDomain, extractEmailAddress } from './email-address'
 
 export interface PatternMatch {
   matched: boolean
@@ -16,6 +16,50 @@ export interface PatternMatch {
 
 function testAny(text: string, patterns: RegExp[]): boolean {
   return patterns.some((p) => p.test(text))
+}
+
+// --- BULK / PROMOTIONAL PRE-FILTER ---
+//
+// A real rejection, offer, interview invite, or recruiter/ATS message is
+// individual correspondence about one candidate's application — it never
+// carries the machinery of bulk marketing mail. But plenty of unrelated bulk
+// mail (retail promos, newsletters, lead-gen ad follow-ups, financial
+// solicitations) happens to use phrasing that looks identical to the
+// category patterns below on its own ("schedule a call", "decided to move
+// forward", "would you be interested in learning more", "keep your resume
+// on file" showing up in some unrelated blurb) — that's what let a CB2
+// rewards promo classify as a REJECTION and a Force Management sales email
+// classify as an INTERVIEW_INVITE. Gmail/Yahoo's 2024 bulk-sender rules
+// require a List-Unsubscribe header on essentially all commercial bulk
+// mail, and real hiring correspondence never has one, so that header (when
+// Gmail exposes it) is the primary, most reliable signal; subject/body/
+// sender heuristics below are a fallback for mail that omits it.
+const BULK_MAIL_BODY_SIGNALS = [
+  /unsubscribe/i,
+  /view (this|it) (email|newsletter)? ?(in|as a) (your )?browser/i,
+  /update your (email )?preferences/i,
+  /you('re| are) receiving this (email|newsletter) because/i,
+  /no longer wish to receive/i,
+]
+const PROMOTIONAL_SUBJECT_SIGNALS = [
+  /exclusive offer/i,
+  /\$\d+\s*(bonus|off|reward|credit)/i,
+  /\d+%\s*off/i,
+  /limited time/i,
+]
+const BULK_SENDER_LOCAL_PART = /^(no-?reply|newsletter|news|deals?|offers?|promos?|promotions?|marketing|updates?)@/i
+
+export function isLikelyBulkOrPromotional(
+  subject: string,
+  bodyPreview: string,
+  fromAddress: string,
+  hasListUnsubscribeHeader: boolean
+): boolean {
+  if (hasListUnsubscribeHeader) return true
+  if (testAny(bodyPreview, BULK_MAIL_BODY_SIGNALS)) return true
+  if (testAny(subject, PROMOTIONAL_SUBJECT_SIGNALS)) return true
+  if (BULK_SENDER_LOCAL_PART.test(extractEmailAddress(fromAddress))) return true
+  return false
 }
 
 // --- INBOUND ---

@@ -2,13 +2,10 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { isExecutiveTargetRole } from '@/lib/constants/onboarding'
 import { matchByFunction, resolveContentFunction, SALES_KEYWORDS } from '@/lib/constants/match-by-function'
-import { AI_TRAINING_COURSES, type AiTrainingTier } from '@/lib/constants/ai-training-tiers'
-import { CERTIFICATIONS_BY_FUNCTION } from '@/lib/constants/certifications-by-function'
+import type { Course, CourseSkillLevel } from '@prisma/client'
+import { getActiveCourses, toLearningResource, defaultSkillLevel, COURSE_SKILL_LEVELS } from '@/lib/learning/courses'
 import { getExecEdProgram } from '@/lib/constants/exec-ed-by-school'
-import { BUSINESS_SKILLS_GENERAL, BUSINESS_SKILLS_LEADERSHIP, EMERITUS_CATALOG } from '@/lib/constants/business-skills-learning'
 import { getAiToolsForFunction, type AiToolRecommendation } from '@/lib/constants/ai-tools-by-function'
-import { getFunctionTraining } from '@/lib/constants/function-training'
-import { SPEAKING_RESOURCES, SPEAKING_LEADERSHIP_GATED } from '@/lib/constants/speaking-leadership'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 import { rationaleForItem, truncate, type GapLike } from '@/lib/learning/rationale'
 import type { LearningResource } from '@/lib/constants/learning-partners'
@@ -16,6 +13,11 @@ import type { LearningResource } from '@/lib/constants/learning-partners'
 export interface LearningPlanItem extends LearningResource {
   rationale: string | null
   completionCount: number
+  // True when this item's title matches a certification the candidate's
+  // resume already lists (CandidateProfile.certifications) — only ever set
+  // for certification-flavored sections; every other section leaves this
+  // false rather than guessing.
+  alreadyHeld: boolean
 }
 
 export interface LearningPlanSection {
@@ -38,8 +40,8 @@ export interface LearningPlanAiTool extends AiToolRecommendation {
 }
 
 export interface LearningPlan {
-  aiTrainingTier: AiTrainingTier
-  aiTrainingCourses: LearningPlanItem[]
+  aiTrainingTier: CourseSkillLevel
+  aiTrainingCoursesByLevel: Record<CourseSkillLevel, LearningPlanItem[]>
   aiTools: LearningPlanAiTool[]
   contentFunction: string | null
   aiFlexibilityLevel: number | null
@@ -55,10 +57,15 @@ interface GapAnalysisShape {
   gaps?: { area: string; why: string; remediation: string; remediationType: string }[]
 }
 
-function defaultAiTier(aiFlexibilityLevel: number | null): AiTrainingTier {
-  if (aiFlexibilityLevel === null || aiFlexibilityLevel <= 25) return 'foundational'
-  if (aiFlexibilityLevel <= 75) return 'practical'
-  return 'technical'
+// Loose bidirectional substring match — a resume-extracted certification
+// like "PMP" should match a course titled "PMP Certification Prep", and a
+// verbose course title should still match a verbose certification name.
+function matchesCertification(courseTitle: string, certifications: string[]): boolean {
+  const normalizedTitle = courseTitle.toLowerCase()
+  return certifications.some((cert) => {
+    const normalizedCert = cert.toLowerCase()
+    return normalizedTitle.includes(normalizedCert) || normalizedCert.includes(normalizedTitle)
+  })
 }
 
 function withRationale(
@@ -67,17 +74,19 @@ function withRationale(
   gaps: GapLike[],
   skillsStillNeeded: string | null,
   structuralFact: string | null,
-  completionCounts: Map<string, number>
+  completionCounts: Map<string, number>,
+  certifications: string[] = []
 ): LearningPlanItem[] {
   return items.map((item) => ({
     ...item,
     rationale: rationaleForItem({ matchKey, gaps, skillsStillNeeded, structuralFact }),
     completionCount: completionCounts.get(item.title) ?? 0,
+    alreadyHeld: matchesCertification(item.title, certifications),
   }))
 }
 
 export async function buildLearningPlan(candidateId: string): Promise<LearningPlan> {
-  const [candidate, latestReport, primaryEducation, narrative, completionRows, toolFamiliarityRows] = await Promise.all([
+  const [candidate, latestReport, primaryEducation, narrative, completionRows, toolFamiliarityRows, allCourses] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -92,6 +101,8 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         storyComfort: true,
         hasMBA: true,
         aiContextBannerDismissedAt: true,
+        certifications: true,
+        industryContext: true,
       },
     }),
     prisma.hireabilityReport.findFirst({
@@ -105,6 +116,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     // candidates, not just this one, so it reads as social proof.
     prisma.learningBadge.groupBy({ by: ['title'], where: { badgeType: 'course_completed' }, _count: { _all: true } }),
     prisma.candidateAiToolFamiliarity.findMany({ where: { candidateId } }),
+    getActiveCourses(),
   ])
 
   const completionCounts = new Map(completionRows.map((r) => [r.title, r._count._all]))
@@ -116,10 +128,25 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   const primaryFunction = candidate.primaryFunction
   const skillsStillNeeded = candidate.skillsStillNeeded
 
+  // Current/past role and target role, kept distinct — the Certifications
+  // section shows one block per role instead of collapsing them into a
+  // single guess. currentFunction falls straight through to primaryFunction
+  // (resolveContentFunction's fallback is already an identity return when
+  // there's no targetRoleType to resolve), and targetFunction is null
+  // whenever it resolves to the same canonical bucket as currentFunction —
+  // no point in showing the same section twice under two headings.
+  const currentFunction = primaryFunction
+  const targetFunctionResolved = candidate.targetRoleType
+    ? resolveContentFunction(null, candidate.targetRoleType)
+    : null
+  const targetFunction = targetFunctionResolved && targetFunctionResolved !== currentFunction ? targetFunctionResolved : null
+
   // Prefers the role the candidate is TARGETING over their own history —
   // a VP Finance targeting CFO sees CFO/Finance tools and training aimed
-  // at where they're headed, not just where they've been.
-  const contentFunction = resolveContentFunction(primaryFunction, candidate.targetRoleType)
+  // at where they're headed, not just where they've been. Still used for
+  // the Tools section (AI tools + function training), which isn't split
+  // by role the way Certifications now is.
+  const contentFunction = targetFunctionResolved ?? currentFunction
 
   // Real management signal — any one of: confirmed people manager, a real
   // team managed, an already-senior title, or explicitly targeting an
@@ -143,15 +170,34 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   )
   void isSalesFunction // reserved for when real sales-training content exists
 
-  const aiTrainingTier = defaultAiTier(candidate.aiFlexibilityLevel)
-  const aiTrainingCourses = withRationale(
-    AI_TRAINING_COURSES[aiTrainingTier],
-    'ai',
-    gaps,
-    skillsStillNeeded,
-    'AI fluency is fast becoming table stakes across every function.',
-    completionCounts
-  )
+  const aiCourses = allCourses.filter((c) => c.category === 'AI_TRAINING')
+  const businessSkillsCourses = allCourses.filter((c) => c.category === 'BUSINESS_SKILLS')
+  const certificationCourses = allCourses.filter((c) => c.category === 'CERTIFICATION')
+  const functionTrainingCourses = allCourses.filter((c) => c.category === 'FUNCTION_TRAINING')
+  const speakingCourses = allCourses.filter((c) => c.category === 'SPEAKING')
+
+  // Self-report (aiFlexibilityLevel) always wins when it exists. Only when
+  // a candidate hasn't answered that question yet do resume-confirmed
+  // certifications nudge the default up one tier — real credentials are a
+  // reasonable prior for "this person can handle more than Beginner," but
+  // shouldn't override an actual self-report either direction.
+  const aiTrainingTier =
+    candidate.aiFlexibilityLevel === null && candidate.certifications.length > 0
+      ? 'INTERMEDIATE'
+      : defaultSkillLevel(candidate.aiFlexibilityLevel)
+  const aiTrainingCoursesByLevel = Object.fromEntries(
+    COURSE_SKILL_LEVELS.map((level) => [
+      level,
+      withRationale(
+        aiCourses.filter((c) => c.skillLevel === level).map(toLearningResource),
+        'ai',
+        gaps,
+        skillsStillNeeded,
+        'AI fluency is fast becoming table stakes across every function.',
+        completionCounts
+      ),
+    ])
+  ) as Record<CourseSkillLevel, LearningPlanItem[]>
   // Curated tools merged with the candidate's own familiarity/custom
   // additions — one list, so "already know this" and "added by me" tools
   // sit alongside the curated recommendations instead of a separate list.
@@ -178,40 +224,89 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   const sections: LearningPlanSection[] = []
 
-  const certifications = contentFunction
-    ? CERTIFICATIONS_BY_FUNCTION[contentFunction as keyof typeof CERTIFICATIONS_BY_FUNCTION]
-    : undefined
-  if (certifications && certifications.length > 0) {
+  const certificationsForCurrent = currentFunction
+    ? certificationCourses.filter((c) => c.targetFunctions.includes(currentFunction))
+    : []
+  if (certificationsForCurrent.length > 0) {
     sections.push({
-      id: 'certifications',
-      title: 'Certifications',
+      id: 'certifications-current',
+      title: 'Certifications For Your Background',
       items: withRationale(
-        certifications,
-        contentFunction ?? '',
+        certificationsForCurrent.map(toLearningResource),
+        currentFunction ?? '',
         gaps,
         skillsStillNeeded,
-        contentFunction ? `A recognized credential for ${contentFunction} roles.` : null,
-        completionCounts
+        currentFunction ? `A recognized credential for ${currentFunction} roles.` : null,
+        completionCounts,
+        candidate.certifications
+      ),
+    })
+  }
+
+  const certificationsForTarget = targetFunction
+    ? certificationCourses.filter((c) => c.targetFunctions.includes(targetFunction))
+    : []
+  if (certificationsForTarget.length > 0) {
+    sections.push({
+      id: 'certifications-target',
+      title: "Certifications For Where You're Headed",
+      items: withRationale(
+        certificationsForTarget.map(toLearningResource),
+        targetFunction ?? '',
+        gaps,
+        skillsStillNeeded,
+        `A recognized credential for ${targetFunction} roles.`,
+        completionCounts,
+        candidate.certifications
+      ),
+    })
+  }
+
+  // Admin-tagged, opt-in — Course.industries starts empty until an admin
+  // tags content, so this section legitimately renders nothing for most
+  // candidates today. Matched loosely (bidirectional substring) against the
+  // candidate's free-text industryContext, same tolerance as the
+  // certification match above.
+  const normalizedIndustry = candidate.industryContext?.toLowerCase() ?? null
+  const industryCourses = normalizedIndustry
+    ? allCourses.filter((c) =>
+        c.industries.some((i) => normalizedIndustry.includes(i.toLowerCase()) || i.toLowerCase().includes(normalizedIndustry))
+      )
+    : []
+  if (industryCourses.length > 0) {
+    sections.push({
+      id: 'industry',
+      title: `For The ${candidate.industryContext} Industry`,
+      items: withRationale(
+        industryCourses.map(toLearningResource),
+        'industry',
+        gaps,
+        skillsStillNeeded,
+        `Tagged as relevant for the ${candidate.industryContext} industry.`,
+        completionCounts,
+        candidate.certifications
       ),
     })
   }
 
   // A generic "intro to business" course/catalog is a step backward for
-  // someone who already holds an MBA — skip the general set (but not the
-  // leadership set, which is about a management skill, not a business
-  // fundamentals gap; and not exec-ed, which is alumni-specific, not
-  // remedial) for MBA holders.
-  const businessSkillsItems: LearningResource[] = candidate.hasMBA ? [] : [...BUSINESS_SKILLS_GENERAL]
-  if (hasManagementSignal) businessSkillsItems.push(...BUSINESS_SKILLS_LEADERSHIP)
+  // someone who already holds an MBA — excludeIfHasMBA rows (general
+  // business-skills courses + the Emeritus catalog card) drop out for MBA
+  // holders, but leadership content (requiresManagementSignal) is about a
+  // management skill, not a business-fundamentals gap, so it's unaffected;
+  // same for exec-ed, which is alumni-specific, not remedial.
+  const businessSkillsItems: Course[] = businessSkillsCourses.filter(
+    (c) => (!c.requiresManagementSignal || hasManagementSignal) && !(candidate.hasMBA && c.excludeIfHasMBA)
+  )
+  const businessSkillsResources: LearningResource[] = businessSkillsItems.map(toLearningResource)
   const execEdProgram = primaryEducation ? getExecEdProgram(primaryEducation.schoolNameNormalized) : null
-  if (execEdProgram) businessSkillsItems.push(execEdProgram)
-  if (!candidate.hasMBA) businessSkillsItems.push(EMERITUS_CATALOG)
-  if (businessSkillsItems.length > 0) {
+  if (execEdProgram) businessSkillsResources.push(execEdProgram)
+  if (businessSkillsResources.length > 0) {
     sections.push({
       id: 'business-skills',
       title: 'Business Skills',
       items: withRationale(
-        businessSkillsItems,
+        businessSkillsResources,
         'business',
         gaps,
         skillsStillNeeded,
@@ -223,9 +318,15 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   // Rendered inside the Tools section (page.tsx), not the generic
   // sections loop — real courses/certs belong next to the AI tools for
-  // the same role, not a separate disconnected list further down.
+  // the same role, not a separate disconnected list further down. Matched
+  // as a case-insensitive substring, same semantics as the old
+  // matchByFunction-based getFunctionTraining helper.
+  const normalizedContentFunction = contentFunction?.toLowerCase() ?? null
+  const relevantFunctionTraining = normalizedContentFunction
+    ? functionTrainingCourses.filter((c) => c.keywords.some((k) => normalizedContentFunction.includes(k.toLowerCase())))
+    : []
   const functionTraining = withRationale(
-    getFunctionTraining(contentFunction),
+    relevantFunctionTraining.map(toLearningResource),
     contentFunction ?? '',
     gaps,
     skillsStillNeeded,
@@ -233,20 +334,23 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     completionCounts
   )
 
-  const speakingLeadershipItems: LearningResource[] = [...SPEAKING_RESOURCES]
-  if (hasManagementSignal) speakingLeadershipItems.push(...SPEAKING_LEADERSHIP_GATED)
-  sections.push({
-    id: 'speaking-leadership',
-    title: hasManagementSignal ? 'Public Speaking & Leadership' : 'Public Speaking',
-    items: withRationale(
-      speakingLeadershipItems,
-      'speaking',
-      gaps,
-      skillsStillNeeded,
-      'Communicating clearly under pressure is a skill hiring managers notice.',
-      completionCounts
-    ),
-  })
+  const speakingLeadershipItems: LearningResource[] = speakingCourses
+    .filter((c) => !c.requiresManagementSignal || hasManagementSignal)
+    .map(toLearningResource)
+  if (speakingLeadershipItems.length > 0) {
+    sections.push({
+      id: 'speaking-leadership',
+      title: hasManagementSignal ? 'Public Speaking & Leadership' : 'Public Speaking',
+      items: withRationale(
+        speakingLeadershipItems,
+        'speaking',
+        gaps,
+        skillsStillNeeded,
+        'Communicating clearly under pressure is a skill hiring managers notice.',
+        completionCounts
+      ),
+    })
+  }
 
   const interviewSkills: InterviewSkillsData = {
     hasNarrative: !!narrative,
@@ -257,7 +361,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   return {
     aiTrainingTier,
-    aiTrainingCourses,
+    aiTrainingCoursesByLevel,
     aiTools,
     contentFunction,
     aiFlexibilityLevel: candidate.aiFlexibilityLevel,

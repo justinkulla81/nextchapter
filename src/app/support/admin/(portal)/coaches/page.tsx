@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 
 export const maxDuration = 30
@@ -14,25 +15,37 @@ interface Row {
   hasLogin: boolean
   clients: number
   createdAt: Date
+  isTestAccount: boolean
 }
 
-export default async function AdminCoachesPage() {
+export default async function AdminCoachesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
   await requireAdmin()
+  const rawParams = await searchParams
+  const params = parseListParams(rawParams, [], 25)
 
-  const coaches = await prisma.coach.findMany({
-    where: { isSampleData: false },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      fullName: true,
-      workEmail: true,
-      firmName: true,
-      focus: true,
-      userId: true,
-      createdAt: true,
-      _count: { select: { clients: true } },
-    },
-  })
+  const [coaches, total] = await Promise.all([
+    prisma.coach.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: params.skip,
+      take: params.take,
+      select: {
+        id: true,
+        fullName: true,
+        workEmail: true,
+        firmName: true,
+        focus: true,
+        userId: true,
+        createdAt: true,
+        isSampleData: true,
+        _count: { select: { clients: true } },
+      },
+    }),
+    prisma.coach.count(),
+  ])
 
   const rows: Row[] = coaches.map((c) => ({
     id: c.id,
@@ -43,15 +56,23 @@ export default async function AdminCoachesPage() {
     hasLogin: c.userId !== null,
     clients: c._count.clients,
     createdAt: c.createdAt,
+    isTestAccount: c.isSampleData,
   }))
 
   const columns: AdminColumn<Row>[] = [
     {
       header: 'Name',
       render: (r) => (
-        <Link href={`/support/admin/coaches/${r.id}`} className="text-primary underline underline-offset-4">
-          {r.fullName}
-        </Link>
+        <span className="flex items-center gap-2">
+          <Link href={`/support/admin/coaches/${r.id}`} className="text-primary underline underline-offset-4">
+            {r.fullName}
+          </Link>
+          {r.isTestAccount && (
+            <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+              Test account
+            </span>
+          )}
+        </span>
       ),
     },
     { header: 'Firm', render: (r) => r.firmName ?? '—' },
@@ -62,13 +83,27 @@ export default async function AdminCoachesPage() {
     { header: 'Joined', className: 'px-3 py-2 font-medium tabular-nums', render: (r) => r.createdAt.toLocaleDateString() },
   ]
 
+  const result = paginatedResult(rows, total, params)
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Coaches</h1>
-        <p className="mt-1 text-muted-foreground">{rows.length} coach accounts.</p>
+        <p className="mt-1 text-muted-foreground">{total} coach accounts.</p>
       </div>
-      <AdminDataTable columns={columns} rows={rows} rowKey={(r) => r.id} emptyMessage="No coaches yet." />
+      <AdminDataTable
+        columns={columns}
+        rows={result.rows}
+        rowKey={(r) => r.id}
+        emptyMessage="No coaches yet."
+        pagination={{
+          page: result.page,
+          totalPages: result.totalPages,
+          total: result.total,
+          basePath: '/support/admin/coaches',
+          baseParams: {},
+        }}
+      />
     </div>
   )
 }

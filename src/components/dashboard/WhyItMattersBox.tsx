@@ -31,7 +31,7 @@ export function WhyItMattersBox({ pageKey, content }: { pageKey: PageKey; conten
           type="button"
           onClick={dismiss}
           aria-label="Got it, don't show this again"
-          className="absolute top-0 right-0 text-muted-foreground hover:text-foreground"
+          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
         >
           <X className="size-4" />
         </button>

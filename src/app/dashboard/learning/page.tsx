@@ -6,6 +6,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { formatMinutes } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { AssessmentLinkCard } from '@/components/dashboard/learning/AssessmentLinkCard'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
@@ -38,7 +40,7 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 export default async function LearningPage() {
   const profile = await getDashboardData()
   const weekStart = getMondayOfWeek(new Date())
-  const [plan, badges, learningEvents] = await Promise.all([
+  const [plan, badges, learningEvents, assessmentResponseCount] = await Promise.all([
     buildLearningPlan(profile.id),
     prisma.learningBadge.findMany({
       where: { candidateId: profile.id },
@@ -48,7 +50,9 @@ export default async function LearningPage() {
       where: { candidateId: profile.id, eventType: 'LEARNING', dismissedAt: null },
       select: { startTime: true, durationMinutes: true },
     }),
+    prisma.candidateAssessmentResponse.count({ where: { candidateId: profile.id } }),
   ])
+  const hasTakenAssessment = assessmentResponseCount > 0
 
   const completedTitles = new Set(badges.map((b) => b.title))
   const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
@@ -56,7 +60,8 @@ export default async function LearningPage() {
 
   captureServerEvent(profile.id, 'learning_plan_rendered', {
     sectionCount: plan.sections.length,
-    itemCount: plan.sections.reduce((sum, s) => sum + s.items.length, 0) + plan.aiTrainingCourses.length,
+    itemCount:
+      plan.sections.reduce((sum, s) => sum + s.items.length, 0) + plan.aiTrainingCoursesByLevel[plan.aiTrainingTier].length,
     aiTierDefault: plan.aiTrainingTier,
     hasGapRationale: plan.sections.some((s) => s.items.some((i) => !!i.rationale)),
   })
@@ -81,6 +86,8 @@ export default async function LearningPage() {
         )}
       </div>
 
+      <AssessmentLinkCard hasTakenAssessment={hasTakenAssessment} />
+
       <AiContextBanner
         tier={plan.aiTrainingTier}
         role={plan.contentFunction}
@@ -93,7 +100,7 @@ export default async function LearningPage() {
       >
         <AiTrainingTiers
           defaultTier={plan.aiTrainingTier}
-          defaultCourses={plan.aiTrainingCourses}
+          coursesByLevel={plan.aiTrainingCoursesByLevel}
           completedTitles={completedTitles}
         />
       </LearningSection>
@@ -121,6 +128,8 @@ export default async function LearningPage() {
           <LearningBadgeList badges={badges} />
         </div>
       )}
+
+      <GuideCallout currentJobStatus={profile.currentJobStatus} title="Guides for your situation" />
     </div>
   )
 }

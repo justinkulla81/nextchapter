@@ -3,17 +3,19 @@
 import { useState, useTransition } from 'react'
 import { X } from 'lucide-react'
 import { dismissAiContextBanner } from '@/app/dashboard/learning/actions'
-import { AI_TRAINING_TIER_LABELS, type AiTrainingTier } from '@/lib/constants/ai-training-tiers'
+import type { CourseSkillLevel } from '@prisma/client'
+import { COURSE_SKILL_LEVEL_LABELS } from '@/lib/constants/course-skill-level'
 
 // One line naming what we already know about the candidate's own AI
 // comfort (from the aiFlexibilityLevel question in onboarding — the same
-// signal that picks the default AI Training tier below), and one line on
-// why it matters for the specific role they're targeting, not a generic
-// "AI is important" statement every candidate would get regardless of fit.
-const COMFORT_SUMMARY: Record<AiTrainingTier, string> = {
-  foundational: "you told us you're still getting comfortable with AI day to day",
-  practical: "you told us you're comfortable using AI tools for real work",
-  technical: "you told us you're already building with AI, not just using it",
+// signal that picks the default AI Training skill level below), and one
+// line on why it matters for the specific role they're targeting, not a
+// generic "AI is important" statement every candidate would get regardless
+// of fit.
+const COMFORT_SUMMARY: Record<CourseSkillLevel, string> = {
+  BEGINNER: "you told us you're still getting comfortable with AI day to day",
+  INTERMEDIATE: "you told us you're comfortable using AI tools for real work",
+  ADVANCED: "you told us you're already building with AI, not just using it",
 }
 
 export function AiContextBanner({
@@ -21,7 +23,7 @@ export function AiContextBanner({
   role,
   dismissedAlready,
 }: {
-  tier: AiTrainingTier
+  tier: CourseSkillLevel
   role: string | null
   dismissedAlready: boolean
 }) {
@@ -49,7 +51,7 @@ export function AiContextBanner({
       </button>
       <h2 className="pr-6 text-sm font-medium text-foreground">Where you stand with AI</h2>
       <p className="text-sm text-foreground">
-        Based on {COMFORT_SUMMARY[tier]} — that&apos;s why {AI_TRAINING_TIER_LABELS[tier]} is your starting tier
+        Based on {COMFORT_SUMMARY[tier]} — that&apos;s why {COURSE_SKILL_LEVEL_LABELS[tier]} is your starting level
         below, though all three stay open to try.
       </p>
       <p className="text-sm text-foreground">

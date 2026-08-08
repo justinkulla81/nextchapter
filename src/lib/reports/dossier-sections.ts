@@ -12,7 +12,7 @@ import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { TOP_STRENGTH_OPTIONS } from '@/lib/constants/onboarding'
+import { TOP_STRENGTH_OPTIONS, LOCATION_PREFERENCE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
@@ -109,6 +109,16 @@ export interface DossierCareerStep {
   startDate: Date
 }
 
+// What they're targeting, not how they'd negotiate — see the fit field
+// comment on DossierData for the full exclusion list.
+export interface DossierTargetPreferences {
+  targetRoleType: string | null
+  targetIndustries: string[]
+  companySizeLabel: string | null
+  companyStageLabel: string | null
+  locationPreferenceLabel: string | null
+}
+
 export interface DossierCategoryStrength {
   category: CategoryKey
   label: string
@@ -140,7 +150,13 @@ export interface DossierData {
   }
   selfAwareness: { growthEdges: string[] }
   learningGrowth: { items: { title: string; closedGapArea: string | null }[] }
-  fit: { patternSummary: string | null }
+  // targetPreferences is deliberately narrow — what they're targeting, not
+  // how they'd negotiate. compFlexible, equityImportant, willingToStartLower
+  // (+rationale), targetCompMin, dealBreakers, applicationVolumeGoal,
+  // skillsStillNeeded, interimConsultingInterest, and the 5 tradeoff-priority
+  // rankings never appear here — those are negotiating-sensitive and stay in
+  // Coaching Notes only. See buildDossierTargetPreferences.
+  fit: { patternSummary: string | null; targetPreferences: DossierTargetPreferences }
   proofPoints: DossierProofPoint[]
   // Only ever populated when careerTrajectory === 'PROMOTED' — mirrors the
   // rest of this document's evidence-first-positives-only convention (a
@@ -190,6 +206,33 @@ async function getCareerTrajectorySteps(candidateId: string, careerTrajectory: s
     .map((entry) => ({ companyName: entry.companyName, roleTitle: entry.roleTitle, startDate: entry.startDate }))
 
   return steps.length > 0 ? steps : null
+}
+
+// What they're targeting, surfaced for a recruiter's benefit — deliberately
+// excludes anything negotiating-sensitive (comp flexibility, willingness to
+// start lower, deal breakers, priority rankings). Those stay in Coaching
+// Notes only; see the DossierData.fit comment.
+function buildDossierTargetPreferences(candidate: {
+  targetRoleType: string | null
+  isPivoting: boolean
+  targetIndustries: string[]
+  targetCompanySize: string | null
+  targetCompanyStage: string | null
+  remotePreference: string | null
+}): DossierTargetPreferences {
+  return {
+    targetRoleType: candidate.targetRoleType && candidate.targetRoleType !== 'Flexible' ? candidate.targetRoleType : null,
+    targetIndustries: candidate.isPivoting ? candidate.targetIndustries : [],
+    companySizeLabel:
+      candidate.targetCompanySize && candidate.targetCompanySize !== 'Any' ? candidate.targetCompanySize : null,
+    companyStageLabel:
+      candidate.targetCompanyStage && candidate.targetCompanyStage !== 'any'
+        ? (COMPANY_STAGE_OPTIONS.find((o) => o.value === candidate.targetCompanyStage)?.label ?? null)
+        : null,
+    locationPreferenceLabel: candidate.remotePreference
+      ? (LOCATION_PREFERENCE_OPTIONS.find((o) => o.value === candidate.remotePreference)?.label ?? null)
+      : null,
+  }
 }
 
 function closedLoopCallouts(namedReasons: NamedReason[]): ClosedLoopCallout[] {
@@ -518,7 +561,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     },
     selfAwareness: gatedSelfAwareness,
     learningGrowth,
-    fit: { patternSummary },
+    fit: { patternSummary, targetPreferences: buildDossierTargetPreferences(candidate) },
     proofPoints,
     careerTrajectory: careerTrajectorySteps,
   }
@@ -562,9 +605,17 @@ export function getDossierSectionCompleteness(
       case 'learningGrowth':
         hasContent = dossier.learningGrowth.items.length > 0
         break
-      case 'fit':
-        hasContent = !!dossier.fit.patternSummary
+      case 'fit': {
+        const tp = dossier.fit.targetPreferences
+        hasContent =
+          !!dossier.fit.patternSummary ||
+          !!tp.targetRoleType ||
+          tp.targetIndustries.length > 0 ||
+          !!tp.companySizeLabel ||
+          !!tp.companyStageLabel ||
+          !!tp.locationPreferenceLabel
         break
+      }
       case 'proofPoints':
         hasContent = dossier.proofPoints.length > 0
         break

@@ -6,6 +6,7 @@ import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeade
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
 import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/AlternativeNarrativeTabs'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
@@ -125,6 +126,8 @@ export default async function MarketingPlanPage() {
       )}
 
       <ThoughtLeadershipStudio venues={profile.contentVenues} />
+
+      <GuideCallout pageSlot="marketing-plan" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

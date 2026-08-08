@@ -25,6 +25,9 @@ export default async function SearchStrategyPage() {
     return b.startDate.getTime() - a.startDate.getTime()
   })
   const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
+  // Same "more of the same" default as onboarding/goals/page.tsx — a guess at
+  // the pivot target, not a separate inference pass. Editable right there.
+  const inferredFunction = profile.primaryFunction ?? null
 
   return (
     <div className="space-y-8">
@@ -82,6 +85,7 @@ export default async function SearchStrategyPage() {
             profile={profile}
             showSkillsNeeded={showSkillsNeeded}
             inferredIndustries={inferredIndustries}
+            inferredFunction={inferredFunction}
           />
         </CardContent>
       </Card>

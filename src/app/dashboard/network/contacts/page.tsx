@@ -144,7 +144,7 @@ export default async function ContactDirectoryPage() {
           <AccordionTrigger>Scripts &amp; templates</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-3">
-              {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} unlocked />}
+              {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} />}
               <OutreachCheatSheetCard />
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-foreground">Ready-to-send templates</h3>

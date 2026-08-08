@@ -15,10 +15,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TagInput } from '@/components/onboarding/TagInput'
+import { TradeoffRanking } from '@/components/onboarding/TradeoffRanking'
 import {
   COMPANY_SIZE_OPTIONS,
   COMPANY_STAGE_OPTIONS,
   PRIMARY_FUNCTION_OPTIONS,
+  LOCATION_PREFERENCE_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
@@ -27,10 +29,12 @@ export function SearchStrategyForm({
   profile,
   showSkillsNeeded,
   inferredIndustries,
+  inferredFunction,
 }: {
   profile: CandidateProfile
   showSkillsNeeded: boolean
   inferredIndustries: string[]
+  inferredFunction: string | null
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
@@ -40,6 +44,9 @@ export function SearchStrategyForm({
       ? profile.targetRoleType
       : profile.resumeLatestJobTitle ?? ''
   )
+  const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
+  const [isPivoting, setIsPivoting] = useState(profile.isPivoting)
+  const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
 
   return (
     <form
@@ -104,6 +111,27 @@ export function SearchStrategyForm({
           placeholder="e.g. Healthcare, Fintech"
         />
       </div>
+
+      {isPivoting && (
+        <div className="space-y-2">
+          <Label htmlFor="targetFunction">Target job function</Label>
+          <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
+            <SelectTrigger id="targetFunction" className="w-full">
+              <SelectValue placeholder="Select one" />
+            </SelectTrigger>
+            <SelectContent>
+              {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+                <SelectItem key={fn} value={fn}>
+                  {fn}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            The function you want to be doing next — it can differ from your background.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="secondaryFunction">
@@ -189,6 +217,30 @@ export function SearchStrategyForm({
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="remotePreference">Location preference</Label>
+        <Select
+          name="remotePreference"
+          value={remotePreference}
+          onValueChange={(value) => setRemotePreference(value ?? '')}
+        >
+          <SelectTrigger id="remotePreference" className="w-full">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) =>
+                LOCATION_PREFERENCE_OPTIONS.find((opt) => opt.value === value)?.label ?? 'Select one'
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {LOCATION_PREFERENCE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
@@ -286,21 +338,47 @@ export function SearchStrategyForm({
       )}
 
       <div className="flex items-start gap-2">
-        <Checkbox id="isPivoting" name="isPivoting" defaultChecked={profile.isPivoting} />
+        <Checkbox
+          id="isPivoting"
+          name="isPivoting"
+          value="on"
+          checked={isPivoting}
+          onCheckedChange={(checked) => setIsPivoting(checked === true)}
+        />
         <Label htmlFor="isPivoting" className="font-normal">
           I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
         </Label>
       </div>
 
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="openToRelocation"
-          name="openToRelocation"
-          defaultChecked={profile.openToRelocation}
-        />
-        <Label htmlFor="openToRelocation" className="font-normal">
-          I&apos;m open to relocating for the right role
+      <div className="space-y-3">
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="openToRelocation"
+            name="openToRelocation"
+            value="on"
+            checked={openToRelocation}
+            onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
+          />
+          <Label htmlFor="openToRelocation" className="font-normal">
+            I&apos;m open to relocating for the right role
+          </Label>
+        </div>
+        {openToRelocation && (
+          <Textarea
+            name="relocationNotes"
+            placeholder="Relocation notes (optional)"
+            defaultValue={profile.relocationNotes ?? ''}
+            rows={2}
+          />
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
         </Label>
+        <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
+        <TradeoffRanking profile={profile} />
       </div>
 
       <div className="flex items-start gap-2">

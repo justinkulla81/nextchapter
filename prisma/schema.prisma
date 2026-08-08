@@ -355,6 +355,15 @@ model CandidateProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Captured once, at the very first CandidateProfile row creation
+  // (including anonymous pre-registration profiles) — a simple bot signal
+  // for admin: many accounts sharing one IP in a short window is suspicious
+  // in a way no single-account field can show. Never updated after create,
+  // so it reflects signup origin, not most-recent activity.
+  signupIp String?
+
+  loginEvents CandidateLoginEvent[]
+
   // Privacy & Visibility
   privacyTier            PrivacyTier @default(LOCKED)
   // One-time bonus marker for confirming a privacy tier choice at all — same
@@ -450,6 +459,15 @@ model CandidateProfile {
   // for Community industry grouping. industryContext stays the source of truth.
   industryBucket           String?
   resumeKeywords           String[] @default([]) // resume-derived, read-only in UI — refreshed automatically on resume re-upload, not candidate-editable
+  // Real professional certifications/credentials pulled from the resume
+  // (e.g. "PMP", "CFA", "AWS Certified Solutions Architect") — distinct
+  // from resumeKeywords (which mixes skills/tools/certs for job matching).
+  // Additive-only across resume re-uploads, same reasoning as
+  // hasMBA/hasJD/hasMD/hasDO below: a less-detailed later resume shouldn't
+  // erase a credential already confirmed. Feeds Learning-page
+  // recommendation gating and the Coaching Notes openness-to-learning
+  // signal (src/lib/coach/coaching-notes.ts).
+  certifications           String[] @default([])
   isPeopleManager          Boolean? // gates teamSizeManaged + managementSkillConfidence questions
   teamSizeManaged          Int? // 0 = IC, otherwise largest team managed
   topStrengths             String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
@@ -764,6 +782,7 @@ model CandidateProfile {
   aiToolFamiliarity            CandidateAiToolFamiliarity[]
   employerInteractions         CandidateInteraction[]
   approvedEmployers            ApprovedEmployer[]
+  portfolioAccessRequests      PortfolioAccessRequest[]
   assessmentResults            AssessmentResult[]
   assessmentResponses          CandidateAssessmentResponse[]
   resumes                      Resume[]
@@ -913,6 +932,50 @@ model CandidateProfile {
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
+}
+
+// One row per real login "sitting" — recordCandidateLoginIfDue (called from
+// getDashboardData, the shared per-request candidate loader) collapses
+// repeated page loads within LOGIN_DEDUPE_WINDOW_MS into a single row rather
+// than logging every request, so this approximates session starts across all
+// three sign-in paths (password, magic link, Google OAuth) without needing
+// to hook each one separately. Admin-facing: a login history with shifting
+// IPs/user agents is a stronger signal than a single lastLoginAt field.
+model CandidateLoginEvent {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+enum HomepageVisitEventType {
+  PAGE_VIEW
+  LINK_CLICK
+}
+
+// Lightweight self-hosted visitor tracking for the public homepage —
+// deliberately NOT candidate/coach/recruiter/admin app usage (that's
+// CandidateLoginEvent's job). Recorded via a client-side beacon
+// (HomepageVisitTracker) so the homepage itself stays statically
+// renderable — no per-request IP lookup inside the page's own render path.
+// IPs in TRUSTED_OWNER_IPS (the site owner's own devices) are never
+// recorded at all, not just filtered from display, so they can't leak into
+// the daily digest even by accident.
+model HomepageVisitEvent {
+  id        String                 @id @default(cuid())
+  ip        String?
+  eventType HomepageVisitEventType
+  href      String? // LINK_CLICK only — the destination the visitor clicked
+  referrer  String? // PAGE_VIEW only — where the visitor came from
+  userAgent String?
+  createdAt DateTime               @default(now())
+
+  @@index([ip, createdAt])
+  @@index([createdAt])
 }
 
 // Prompt: Portfolio — a candidate can hold several distinct narratives (e.g.
@@ -2835,11 +2898,12 @@ model Recruiter {
   // versa).
   newCandidateAlertsOptedOut Boolean @default(false)
 
-  jobBoardSubmissions ExclusiveJobPosting[]
-  calibrationMemos    CalibrationMemo[]
-  sourcedCandidates   SourcedCandidate[]
-  sourcedProfiles     CandidateProfile[]
-  messageThreads      MessageThread[]
+  jobBoardSubmissions     ExclusiveJobPosting[]
+  calibrationMemos        CalibrationMemo[]
+  sourcedCandidates       SourcedCandidate[]
+  sourcedProfiles         CandidateProfile[]
+  messageThreads          MessageThread[]
+  portfolioAccessRequests PortfolioAccessRequest[]
 }
 
 enum SourcedCandidateStatus {
@@ -2879,6 +2943,33 @@ model SourcedCandidate {
 
   @@unique([recruiterId, email])
   @@index([recruiterId, status])
+}
+
+enum PortfolioAccessStatus {
+  REQUESTED
+  APPROVED
+  DECLINED
+}
+
+// A recruiter viewing an unlocked (opted-in, A-grade) pool candidate can see
+// their Dossier and resume directly, but Work Samples/Narrative ("My
+// Portfolio") are a step more personal, so they're gated behind an explicit
+// per-recruiter request the candidate approves or declines — same shape as
+// ApprovedEmployer/CandidateInteraction's reveal gate, just scoped to
+// portfolio content instead of identity. A DECLINED row can be
+// re-requested (status flips back to REQUESTED); APPROVED never expires.
+model PortfolioAccessRequest {
+  id          String                @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  recruiterId String
+  recruiter   Recruiter             @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  status      PortfolioAccessStatus @default(REQUESTED)
+  requestedAt DateTime              @default(now())
+  respondedAt DateTime?
+
+  @@unique([candidateId, recruiterId])
+  @@index([candidateId, status])
 }
 
 // Persists what used to be a stateless one-shot Calibration Memo generation
@@ -2969,6 +3060,88 @@ model PageBoxDismissal {
   dismissedAt DateTime         @default(now())
 
   @@unique([candidateId, pageKey, boxType])
+}
+
+// Admin-managed AI Training catalog — replaces the static
+// AI_TRAINING_COURSES constant (src/lib/constants/ai-training-tiers.ts) so
+// an admin can edit/add/retire courses without a code deploy. skillLevel
+// replaces the old foundational/practical/technical tier naming with
+// plain beginner/intermediate/advanced, aligned to CandidateProfile.
+// aiFlexibilityLevel the same way the old tiers were (see defaultSkillLevel
+// in src/lib/learning/courses.ts) — a candidate with low AI-skill
+// confidence defaults to Beginner content, etc. Other Learning-page
+// sections (certifications, business skills, function training, speaking)
+// stay on the static-constants system for now — this only covers AI
+// Training, deliberately scoped down from a full catalog migration.
+enum CourseSkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// Mirrors the Learning page's former static-constants collections
+// (src/lib/constants/{business-skills-learning,certifications-by-function,
+// function-training,speaking-leadership}.ts, now deleted) — each category
+// keeps that file's original gating shape via the fields below rather than
+// forcing every collection into one generic shape:
+//   AI_TRAINING       — gated by skillLevel vs. CandidateProfile.aiFlexibilityLevel
+//   BUSINESS_SKILLS   — requiresManagementSignal splits general vs. leadership;
+//                       excludeIfHasMBA hides a row from MBA holders
+//   CERTIFICATION     — targetFunctions gates by PRIMARY_FUNCTION_OPTIONS
+//   FUNCTION_TRAINING — keywords gates by substring match against the
+//                       candidate's resolved content function
+//   SPEAKING          — requiresManagementSignal splits general vs. gated
+// Exec-ed-by-school (school-alias-keyed, one item per school) and AI tools
+// (a distinct name/description/url shape with no provider/free/skillLevel)
+// are deliberately NOT part of this model — different enough shapes that
+// folding them in would force awkward blank fields on every other category.
+enum CourseCategory {
+  AI_TRAINING
+  BUSINESS_SKILLS
+  CERTIFICATION
+  FUNCTION_TRAINING
+  SPEAKING
+}
+
+model Course {
+  id          String           @id @default(cuid())
+  category    CourseCategory   @default(AI_TRAINING)
+  title       String
+  description String
+  url         String
+  logoUrl     String?
+  sponsor     String? // issuing institution (Wharton, Google, IBM...) shown above the title
+  provider    String           @default("coursera") // hosting platform slug — keys into LEARNING_PROVIDERS
+  skillLevel  CourseSkillLevel
+  free        Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  sortOrder   Int?
+
+  // CERTIFICATION only — PRIMARY_FUNCTION_OPTIONS values this cert applies to.
+  targetFunctions          String[] @default([])
+  // FUNCTION_TRAINING only — matched as a case-insensitive substring against
+  // the candidate's resolved content function (see resolveContentFunction).
+  keywords                 String[] @default([])
+  // BUSINESS_SKILLS / SPEAKING only — true means this row only shows once
+  // hasManagementSignal is true (see build-learning-plan.ts).
+  requiresManagementSignal Boolean  @default(false)
+  // BUSINESS_SKILLS only — true hides this row from candidates with hasMBA set.
+  excludeIfHasMBA          Boolean  @default(false)
+  // Any category — optional admin tagging against CandidateProfile.industryContext
+  // (case-insensitive substring match), surfaced in the Learning page's "For
+  // your industry" section. Empty by default; starts empty until an admin
+  // tags content, which is expected, not a bug.
+  industries               String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([skillLevel, isActive])
+  @@index([category, isActive])
+  // getActiveCourses() (src/lib/learning/courses.ts) filters on isActive
+  // alone with no category/skillLevel predicate — neither composite index
+  // above has isActive leading, so this is the one that actually backs it.
+  @@index([isActive])
 }
 
 // Account-Based Job Search watchlist (Prompt 77) — a candidate names a

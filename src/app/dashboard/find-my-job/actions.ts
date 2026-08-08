@@ -167,6 +167,18 @@ export async function markApplied(jobPostingId: string, formData: FormData) {
   })
   captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
 
+  // Real, verified signal — a specific tracked posting just moved to
+  // Applied — so this earns the Search Action directly rather than relying
+  // on a disconnected self-report click (same pattern as the negotiation
+  // counter-offer practice below).
+  const effort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
+  await autoCompleteEngagementAction(profile.id, {
+    actionType: 'JOB_APPLICATION_SUBMITTED',
+    text: 'Applied to a job',
+    points: effort.points,
+    estimatedMinutes: effort.minutes,
+  })
+
   revalidatePath('/dashboard/find-my-job')
 }
 
@@ -541,6 +553,20 @@ export async function reactToSurfacedJob(
     data: { reaction, reactionReason: reason, reactedAt: new Date() },
   })
   captureServerEvent(profile.id, 'job_rated', { jobId, source: 'suggested', reaction })
+
+  // Reacting Interested to a specific surfaced posting is a real, if small,
+  // signal — earns the Search Action directly, same as the Applied signal
+  // above, rather than a disconnected self-report click.
+  if (reaction === 'INTERESTED') {
+    const effort = estimateActionEffort({ actionType: 'JOB_INTERESTED_REACTION' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'JOB_INTERESTED_REACTION',
+      text: 'Expressed interest in a job listing',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+
   revalidatePath('/dashboard/find-my-job')
 }
 

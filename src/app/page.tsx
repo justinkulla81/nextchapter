@@ -3,8 +3,10 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
+import { HomepageVisitTracker } from '@/components/marketing/HomepageVisitTracker'
 import { StatCallouts } from '@/components/StatCallouts'
 import { PERSONAS } from '@/lib/constants/personas'
+import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 
 // Exactly the three facts that are true of the product today, no usage/
 // traction numbers — see the roadmap note on this component for why those
@@ -61,6 +63,7 @@ export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
+      <HomepageVisitTracker />
       {/* Section 1 — Hero */}
       <section className="relative bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
@@ -257,6 +260,25 @@ export default function Home() {
       <section className="bg-off-white py-16">
         <div className="mx-auto max-w-3xl px-6">
           <StatCallouts stats={HOMEPAGE_STATS} />
+        </div>
+      </section>
+
+      {/* Section 5c — guide links, deliberately low-key (SEO/GEO surface area,
+          not a marketing CTA) */}
+      <section className="bg-white py-10">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Guides</h2>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+            {GUIDE_LANDING_CONTENT.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/resources/${guide.slug}`}
+                className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                {guide.title}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

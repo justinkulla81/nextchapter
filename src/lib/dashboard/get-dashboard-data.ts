@@ -7,6 +7,7 @@ import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
+import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
 
 export async function getDashboardData() {
   const supabase = await createClient()
@@ -56,6 +57,8 @@ export async function getDashboardData() {
   if (!profile.introCommittedAt) {
     redirect('/onboarding/welcome')
   }
+
+  after(() => recordCandidateLoginIfDue(profile.id))
 
   // First dashboard load after finishing registration — generate and email
   // the candidate's first Hireability Report now that we have a real,

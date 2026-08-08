@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { toggleCoachTestAccount } from './actions'
 
 export const maxDuration = 30
 
@@ -32,13 +34,25 @@ export default async function AdminCoachDetailPage({ params }: { params: Promise
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{coach.fullName}</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
+          {coach.fullName}
+          {coach.isSampleData && (
+            <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+              Test account
+            </span>
+          )}
+        </h1>
         <p className="mt-1 text-muted-foreground">
           {coach.firmName ?? 'No firm'} · {coach.workEmail} · {coach.focus}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {coach.userId ? 'Has a real login' : 'Token-only access (no login)'}
         </p>
+        <form action={toggleCoachTestAccount.bind(null, coach.id, coach.isSampleData)} className="mt-3">
+          <SubmitButton size="sm" variant="outline">
+            {coach.isSampleData ? 'Unmark as test account' : 'Mark as test account'}
+          </SubmitButton>
+        </form>
       </div>
 
       <Card>

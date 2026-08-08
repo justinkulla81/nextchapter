@@ -5,6 +5,7 @@ import { JobDescriptionCard } from '@/components/dashboard/interview-prep/JobDes
 import { WeaknessGuidanceCard } from '@/components/dashboard/portfolio/WeaknessGuidanceCard'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 import { detectNarrativeWeaknesses } from '@/lib/narrative/detect-narrative-weaknesses'
 
@@ -70,6 +71,8 @@ export default async function InterviewPrepPage() {
         gapExplanation={profile.gapExplanation}
         includeGapExplanationInDossier={profile.includeGapExplanationInDossier}
       />
+
+      <GuideCallout pageSlot="interview-prep" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

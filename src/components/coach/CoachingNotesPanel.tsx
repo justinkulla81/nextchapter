@@ -78,6 +78,16 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </dl>
       </div>
 
+      {notes.opennessToLearning && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Openness to learning</p>
+          <p className="mt-1 text-sm text-foreground">
+            <span className="font-medium">{notes.opennessToLearning.label}.</span>{' '}
+            {notes.opennessToLearning.detail}
+          </p>
+        </div>
+      )}
+
       <div>
         <p className="text-sm font-medium text-muted-foreground">Compensation</p>
         <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -95,6 +105,135 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
           </div>
         </dl>
       </div>
+
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">Flexibility</p>
+        <dl className="mt-2 grid gap-3 sm:grid-cols-2 text-sm">
+          <div>
+            <dt className="text-muted-foreground">Title / level</dt>
+            <dd className="text-foreground">
+              {notes.flexibility.titleLevel.current ?? 'Not specified'}
+              {notes.flexibility.titleLevel.willingToStartLower && (
+                <span className="block text-xs text-muted-foreground">
+                  Willing to start at a lower level/title
+                  {notes.flexibility.titleLevel.startLowerRationale
+                    ? ` — ${notes.flexibility.titleLevel.startLowerRationale}`
+                    : ''}
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Job function</dt>
+            <dd className="text-foreground">
+              {notes.flexibility.jobFunction.primary ?? 'Not specified'}
+              {notes.flexibility.jobFunction.target &&
+                notes.flexibility.jobFunction.target !== notes.flexibility.jobFunction.primary &&
+                ` → targeting ${notes.flexibility.jobFunction.target}`}
+              {notes.flexibility.jobFunction.isPivoting && (
+                <span className="block text-xs text-muted-foreground">Considering a pivot to a different function</span>
+              )}
+              {notes.flexibility.jobFunction.secondary && (
+                <span className="block text-xs text-muted-foreground">
+                  Also relevant: {notes.flexibility.jobFunction.secondary}
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Industry</dt>
+            <dd className="text-foreground">
+              {notes.flexibility.industry.primary ?? 'Not specified'}
+              {notes.flexibility.industry.secondary && `, ${notes.flexibility.industry.secondary}`}
+              {notes.flexibility.industry.targetIndustries.length > 0 && (
+                <span className="block text-xs text-muted-foreground">
+                  Open to: {notes.flexibility.industry.targetIndustries.join(', ')}
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Location</dt>
+            <dd className="text-foreground">
+              {notes.flexibility.location.preferenceLabel ?? 'Not specified'}
+              <span className="block text-xs text-muted-foreground">
+                {notes.flexibility.location.openToRelocation ? 'Open to relocating' : 'Not open to relocating'}
+                {notes.flexibility.location.relocationNotes ? ` — ${notes.flexibility.location.relocationNotes}` : ''}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Compensation</dt>
+            <dd className="text-foreground">
+              {notes.flexibility.compensation.flexible ? 'Flexible on comp' : 'Not flexible on comp'}
+              {notes.flexibility.compensation.equityImportant && (
+                <span className="block text-xs text-muted-foreground">Equity matters to them</span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Company</dt>
+            <dd className="text-foreground">
+              {notes.flexibility.company.sizeLabel ?? 'Any size'}
+              {notes.flexibility.company.stageLabel ? ` · ${notes.flexibility.company.stageLabel}` : ''}
+            </dd>
+          </div>
+        </dl>
+        {notes.flexibility.priorityRanking.length > 0 && (
+          <div className="mt-3">
+            <dt className="text-sm text-muted-foreground">What matters most to them, in order</dt>
+            <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-sm text-foreground">
+              {notes.flexibility.priorityRanking.map((p) => (
+                <li key={p.label}>{p.label}</li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
+
+      {notes.redLines.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Red lines</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Non-negotiables worth knowing before spending time on a role that was never going to work.
+          </p>
+          <ul className="mt-2 space-y-2">
+            {notes.redLines.map((r, i) => (
+              <li key={i} className="rounded-md border border-border p-2 text-sm">
+                <p className="font-medium text-foreground">{r.label}</p>
+                <p className="text-muted-foreground">{r.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {(notes.searchPlan.applicationVolumeGoal !== null ||
+        notes.searchPlan.skillsStillNeeded ||
+        notes.searchPlan.interimConsultingInterest) && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Search plan</p>
+          <dl className="mt-2 space-y-2 text-sm">
+            {notes.searchPlan.applicationVolumeGoal !== null && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Applications/week goal</dt>
+                <dd className="text-foreground">{notes.searchPlan.applicationVolumeGoal}</dd>
+              </div>
+            )}
+            {notes.searchPlan.skillsStillNeeded && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Skills they say they still need</dt>
+                <dd className="text-foreground">{notes.searchPlan.skillsStillNeeded}</dd>
+              </div>
+            )}
+            {notes.searchPlan.interimConsultingInterest && (
+              <div>
+                <dd className="text-foreground">Open to fractional/interim consulting work while searching</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
 
       {notes.financialPressureContext && (
         <div>

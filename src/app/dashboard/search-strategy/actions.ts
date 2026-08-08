@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 
 export type FormState = { error?: string } | undefined
 
@@ -23,19 +24,36 @@ export async function updateSearchStrategy(
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
+  const rankedOrder = formData.getAll('tradeoffOrder').map(String) as Array<
+    (typeof TRADEOFF_PRIORITIES)[number]['key']
+  >
+  if (rankedOrder.length !== TRADEOFF_PRIORITIES.length) {
+    return { error: `Please rank all ${TRADEOFF_PRIORITIES.length} priorities.` }
+  }
+  const rankValues: Record<(typeof TRADEOFF_PRIORITIES)[number]['key'], number> = {} as Record<
+    (typeof TRADEOFF_PRIORITIES)[number]['key'],
+    number
+  >
+  rankedOrder.forEach((key, index) => {
+    rankValues[key] = index + 1
+  })
+
   const targetRoleType = (formData.get('targetRoleType') as string | null)?.trim() || null
   const targetIndustries = formData.getAll('targetIndustries') as string[]
   const primaryFunction = (formData.get('primaryFunction') as string | null) || null
+  const targetFunction = (formData.get('targetFunction') as string | null) || null
   const secondaryFunctionRaw = (formData.get('secondaryFunction') as string | null) || null
   const secondaryFunction = secondaryFunctionRaw === 'none' ? null : secondaryFunctionRaw
   const secondaryIndustryContext = (formData.get('secondaryIndustryContext') as string | null)?.trim() || null
   const targetCompanySize = (formData.get('targetCompanySize') as string | null) || null
   const targetCompanyStage = (formData.get('targetCompanyStage') as string | null) || null
+  const remotePreference = (formData.get('remotePreference') as string | null) || null
   const applicationVolumeGoalRaw = formData.get('applicationVolumeGoal') as string | null
   const applicationVolumeGoal = applicationVolumeGoalRaw ? Number(applicationVolumeGoalRaw) : null
   const skillsStillNeeded = (formData.get('skillsStillNeeded') as string | null)?.trim() || null
   const isPivoting = formData.get('isPivoting') === 'on'
   const openToRelocation = formData.get('openToRelocation') === 'on'
+  const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
   const interimConsultingInterest = formData.get('interimConsultingInterest') === 'on'
   const compFlexible = formData.get('compFlexible') === 'on'
   const equityImportant = formData.get('equityImportant') === 'on'
@@ -61,10 +79,12 @@ export async function updateSearchStrategy(
       targetRoleType,
       targetIndustries,
       primaryFunction,
+      targetFunction,
       secondaryFunction,
       secondaryIndustryContext,
       targetCompanySize,
       targetCompanyStage,
+      remotePreference,
       targetCompMin: targetCompMinThousands ? targetCompMinThousands * 1000 : null,
       compFlexible,
       equityImportant,
@@ -75,7 +95,9 @@ export async function updateSearchStrategy(
       skillsStillNeeded,
       isPivoting,
       openToRelocation,
+      relocationNotes,
       interimConsultingInterest,
+      ...rankValues,
       searchStrategyConfirmedAt: new Date(),
       // Every input above is a direct input to the Search Strategy Guidance
       // paragraph (search-strategy-guidance.ts) — null it out so the next

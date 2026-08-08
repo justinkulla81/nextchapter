@@ -65,6 +65,9 @@ export interface LearningResource {
   provider: keyof typeof LEARNING_PROVIDERS
   free: boolean
   actionType: string
+  // Admin-uploaded course logo (Course.logoUrl) — undefined for every
+  // static-constants resource, which never had one.
+  logoUrl?: string | null
 }
 
 // Point mapping — all reusing the existing action-effort.ts point scale, no

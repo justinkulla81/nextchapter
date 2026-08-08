@@ -16,6 +16,8 @@ import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
 import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/lib/scoring/rewrite-actions'
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
+import { sendAdminResumeUploadedEmail } from '@/lib/email/send-admin-resume-uploaded'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -83,6 +85,12 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
       extractionError,
     },
   })
+
+  const adminEmail = getAccountActivityAdminEmail()
+  if (adminEmail) {
+    const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Unnamed'
+    sendAdminResumeUploadedEmail(adminEmail, profile.id, candidateName, file.name).catch(() => {})
+  }
 
   // Independent calls (analyzeResume writes Resume score/feedback fields,
   // extractProfileFieldsFromResume writes CandidateProfile fields — neither

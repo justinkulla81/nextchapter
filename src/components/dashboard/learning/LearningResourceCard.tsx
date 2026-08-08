@@ -27,13 +27,29 @@ export function LearningResourceCard({
   section: string
   completed: boolean
 }) {
-  const provider = LEARNING_PROVIDERS[item.provider]
+  // Admin-managed courses (Course.provider) aren't limited to the known
+  // platform slugs above — fall back to a plain, unbranded "included for
+  // quality" pill using the admin's own text instead of crashing on an
+  // unrecognized provider string.
+  const provider = LEARNING_PROVIDERS[item.provider] ?? {
+    name: item.provider,
+    designation: 'INCLUDED_FOR_QUALITY' as const,
+    designationNote: null,
+  }
   const points = estimateActionEffort({ actionType: item.actionType }).points
 
   return (
     <div className="space-y-2 rounded-lg border border-border p-4">
-      {item.sponsor && (
-        <p className="text-xs font-semibold tracking-wide text-foreground uppercase">{item.sponsor}</p>
+      {(item.logoUrl || item.sponsor) && (
+        <div className="flex items-center gap-2">
+          {item.logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- admin-provided external URL, not a local asset
+            <img src={item.logoUrl} alt="" className="size-6 shrink-0 rounded object-contain" />
+          )}
+          {item.sponsor && (
+            <p className="text-xs font-semibold tracking-wide text-foreground uppercase">{item.sponsor}</p>
+          )}
+        </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
         <OutboundPartnerLink
@@ -61,6 +77,11 @@ export function LearningResourceCard({
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {item.free ? 'Free' : 'Paid'}
         </span>
+        {item.alreadyHeld && (
+          <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+            You already have this
+          </span>
+        )}
         <span className="text-xs font-medium tabular-nums text-muted-foreground">+{points} pts</span>
       </div>
 

@@ -55,8 +55,11 @@ const ROWS: SeedRow[] = [
   {
     pageKey: 'find-my-job',
     boxType: 'DAILY_MESSAGE',
-    title: 'New matches today',
-    bullets: ['Check for new job recommendations and rate a few.'],
+    title: '30–60 minutes a day is plenty',
+    bullets: [
+      'Looking and applying for 30 minutes to an hour a day is good to stay current on the market — check new matches and apply to a few.',
+      'Beyond that, your time is better spent elsewhere: networking is the highest-ROI activity, along with learning new skills and lining up interim work.',
+    ],
   },
   {
     pageKey: 'resume',

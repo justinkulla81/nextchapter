@@ -6,6 +6,7 @@ import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPla
 import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
 import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 
 export const metadata: Metadata = { title: 'Benefits & Financial Bridge' }
 
@@ -215,6 +216,8 @@ export default async function BenefitsPage() {
           </div>
         </>
       )}
+
+      <GuideCallout pageSlot="benefits" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

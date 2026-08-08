@@ -1,6 +1,9 @@
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getClientIp } from '@/lib/http/client-ip'
+import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
+import { sendAdminNewCandidateAccountEmail } from '@/lib/email/send-admin-new-candidate-account'
 
 // Prisma's upsert isn't atomic against a concurrent upsert for the same row
 // (both can see "no row" and both attempt create), so a duplicate request —
@@ -19,12 +22,22 @@ export interface NewCandidateProfileLinks {
 
 export const getOrCreateCandidateProfile = cache(
   async (userId: string, links?: NewCandidateProfileLinks) => {
+    const existing = await prisma.candidateProfile.findUnique({ where: { userId } })
+    if (existing) return existing
+
     try {
-      return await prisma.candidateProfile.upsert({
-        where: { userId },
-        update: {},
-        create: { userId, coachId: links?.coachId, sourcingRecruiterId: links?.sourcingRecruiterId },
+      const signupIp = await getClientIp()
+      const profile = await prisma.candidateProfile.create({
+        data: { userId, coachId: links?.coachId, sourcingRecruiterId: links?.sourcingRecruiterId, signupIp },
       })
+
+      const adminEmail = getAccountActivityAdminEmail()
+      if (adminEmail) {
+        const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Unnamed'
+        sendAdminNewCandidateAccountEmail(adminEmail, profile.id, name, signupIp).catch(() => {})
+      }
+
+      return profile
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return prisma.candidateProfile.findUniqueOrThrow({ where: { userId } })

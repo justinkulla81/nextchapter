@@ -66,7 +66,11 @@ export async function searchAdzunaJobListings(
   }
 }
 
-export async function searchAdzunaJobs(what: string, where: string | null): Promise<AdzunaResult> {
+export async function searchAdzunaJobs(
+  what: string,
+  where: string | null,
+  distanceMiles = 50
+): Promise<AdzunaResult> {
   const appId = process.env.ADZUNA_APP_ID
   const appKey = process.env.ADZUNA_APP_KEY
 
@@ -80,7 +84,13 @@ export async function searchAdzunaJobs(what: string, where: string | null): Prom
     what,
     results_per_page: '1',
   })
-  if (where) params.set('where', where)
+  if (where) {
+    params.set('where', where)
+    // "How many jobs are near me" should mean a real commutable radius, not
+    // Adzuna's much tighter default — this is what marketPosition's local-
+    // market-strength read (hireability-grade.ts) is actually describing.
+    params.set('distance', String(distanceMiles))
+  }
 
   try {
     const response = await fetch(

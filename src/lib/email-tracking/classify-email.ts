@@ -10,6 +10,7 @@ import {
   matchIntroRequest,
   matchNetworkingOutreach,
   guessCompanyFromConfirmationSubject,
+  isLikelyBulkOrPromotional,
 } from './ats-patterns'
 import { extractEmailAddress } from './email-address'
 import { NON_COMPANY_DOMAINS } from '@/lib/text/email-domain'
@@ -45,8 +46,21 @@ function guessCompanyFromDomain(fromAddress: string): string | null {
   return name.charAt(0).toUpperCase() + name.slice(1)
 }
 
-export function classifyInboundEmail(subject: string, bodyPreview: string, fromAddress: string): ClassificationResult {
+export function classifyInboundEmail(
+  subject: string,
+  bodyPreview: string,
+  fromAddress: string,
+  hasListUnsubscribeHeader = false
+): ClassificationResult {
   const companyName = guessCompanyFromDomain(fromAddress)
+
+  // Bulk/promotional mail (retail promos, newsletters, lead-gen follow-ups,
+  // financial solicitations) gets ruled out before any category matcher
+  // runs — see isLikelyBulkOrPromotional's comment in ats-patterns.ts for
+  // why this has to come first rather than being folded into each pattern.
+  if (isLikelyBulkOrPromotional(subject, bodyPreview, fromAddress, hasListUnsubscribeHeader)) {
+    return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName }
+  }
 
   // Rejections first and given priority — the easiest to detect (most
   // standardized ATS phrasing) and the one with the most downstream value,

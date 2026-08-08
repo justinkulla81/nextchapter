@@ -58,6 +58,10 @@ const profileFieldsSchema = z.object({
   aiReadinessScore: z.number().int().min(0).max(100).nullable(),
   aiReadinessNotes: z.string().nullable(),
   resumeKeywords: z.array(z.string()).max(15),
+  // Non-nullable array, like resumeKeywords/education/employers above — does
+  // NOT count against the nullable/union-type cap that forced
+  // secondaryFunctionIndustrySchema into its own call below.
+  certifications: z.array(z.string()).max(10),
 })
 
 // Kept as its own call rather than folded into profileFieldsSchema above —
@@ -90,6 +94,7 @@ const PROMPT_PREFIX = `Extract the following fields from this resume. Only extra
 - primaryFunction: their primary functional area (the one that describes the bulk of their career), constrained to one of the provided categories.
 - aiReadinessScore (0-100) and aiReadinessNotes: assess how "AI-ready" this resume signals the candidate is — mentions of AI tools, automation, LLM usage, building with AI, etc. This is being captured for future use, not for immediate scoring — be honest and specific in the notes.
 - resumeKeywords: up to 15 concrete skills, tools, technologies, certifications, and role-specific terms pulled directly from the resume text (e.g. "Salesforce", "P&L management", "Six Sigma", "Python") — used to match this candidate against job postings. Prefer specific, searchable terms over generic ones (skip words like "communication" or "teamwork").
+- certifications: up to 10 real professional certifications/credentials explicitly listed (e.g. "PMP", "CFA", "Six Sigma Black Belt", "SHRM-CP", "AWS Certified Solutions Architect", "CPA"). Only named, earned credentials — not degrees (those go in education) and not generic skills or tools. Empty array if none are listed.
 
 Resume text:
 `
@@ -149,6 +154,15 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     const yearsExperience = computeYearsExperienceFromResume(graduationDate, firstJobStartDate)
     const credentials = inferCredentials(data.education)
 
+    // Merged, not overwritten — same additive reasoning as the hasMBA/hasJD/
+    // hasMD/hasDO flags above: a later resume that's less detailed about
+    // credentials shouldn't erase one already confirmed.
+    const existingProfile = await prisma.candidateProfile.findUnique({
+      where: { id: resume.candidateId },
+      select: { certifications: true },
+    })
+    const mergedCertifications = Array.from(new Set([...(existingProfile?.certifications ?? []), ...data.certifications]))
+
     await prisma.candidateProfile.update({
       where: { id: resume.candidateId },
       data: {
@@ -181,6 +195,7 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
         resumeAiReadinessScore: data.aiReadinessScore,
         resumeAiReadinessNotes: data.aiReadinessNotes,
         resumeKeywords: data.resumeKeywords,
+        certifications: mergedCertifications,
       },
     })
 

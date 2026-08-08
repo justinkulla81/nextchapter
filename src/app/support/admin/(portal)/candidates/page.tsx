@@ -29,6 +29,7 @@ interface Row {
   level: string | null
   grade: string | null
   optedIn: boolean
+  signupIp: string | null
 }
 
 export default async function AdminCandidatesPage({
@@ -70,6 +71,7 @@ export default async function AdminCandidatesPage({
         primaryFunction: true,
         highestLevelReached: true,
         recruiterDatabaseOptIn: true,
+        signupIp: true,
         hireabilityReports: {
           orderBy: { generatedAt: 'desc' },
           take: 1,
@@ -93,6 +95,7 @@ export default async function AdminCandidatesPage({
       level: c.highestLevelReached,
       grade: grade?.grade ?? null,
       optedIn: c.recruiterDatabaseOptIn,
+      signupIp: c.signupIp,
     }
   })
 
@@ -114,6 +117,7 @@ export default async function AdminCandidatesPage({
     { header: 'Level', render: (r) => r.level ?? '—' },
     { header: 'Grade', render: (r) => r.grade ?? 'Not graded' },
     { header: 'Recruiter opt-in', render: (r) => (r.optedIn ? 'Yes' : 'No') },
+    { header: 'Signup IP', render: (r) => r.signupIp ?? '—' },
   ]
 
   return (

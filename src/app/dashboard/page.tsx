@@ -36,6 +36,8 @@ import { CoachingFormReminderCard } from '@/components/dashboard/CoachingFormRem
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { PendingEmployerReferenceBanner } from '@/components/dashboard/PendingEmployerReferenceBanner'
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
+import { PortfolioAccessRequestSection } from '@/components/dashboard/PortfolioAccessRequestSection'
+import { GuideCallout } from '@/components/dashboard/GuideCallout'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -180,6 +182,7 @@ export default async function DashboardPage() {
       <PageHeaderBoxes pageKey="dashboard" candidateId={profile.id} />
 
       <EmployerInterestSection candidateId={profile.id} />
+      <PortfolioAccessRequestSection candidateId={profile.id} />
 
       <div className="space-y-3">
         <MoodCheckInCard
@@ -223,6 +226,8 @@ export default async function DashboardPage() {
       <div className="space-y-4 border-t border-border pt-8">
         <CoachChatCard initialMessages={conversation.messages} showExecutiveCoachCta={showCoachingCTA} />
       </div>
+
+      <GuideCallout pageSlot="dashboard" currentJobStatus={profile.currentJobStatus} />
     </div>
   )
 }

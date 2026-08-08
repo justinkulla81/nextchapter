@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { listAllAuthUsers } from '@/lib/admin/auth-users'
 import { getAdminCandidateDetail } from '@/lib/admin/candidate-detail'
 import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { rankPendingPostingsForCandidate, type AdminFitCandidate } from '@/lib/jobs/job-fit-bucket'
 import { displayJobLocation } from '@/lib/jobs/us-location'
 import { approveJobPosting } from '@/app/support/admin/(portal)/exclusive-jobs/actions'
@@ -64,6 +65,31 @@ async function loadPrivacyAndEmailTrail(candidateId: string) {
 
 export const maxDuration = 30
 
+async function loadIpAndResume(candidateId: string) {
+  const [profile, resume] = await Promise.all([
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { signupIp: true } }),
+    prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' } }),
+  ])
+
+  let resumeSignedUrl: string | null = null
+  if (resume) {
+    const admin = createAdminClient()
+    const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
+    resumeSignedUrl = data?.signedUrl ?? null
+  }
+
+  return { signupIp: profile?.signupIp ?? null, resumeFileName: resume?.fileName ?? null, resumeSignedUrl }
+}
+
+async function loadLoginHistory(candidateId: string) {
+  return prisma.candidateLoginEvent.findMany({
+    where: { candidateId },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    select: { id: true, ip: true, userAgent: true, createdAt: true },
+  })
+}
+
 async function loadJobRecommendations(candidateId: string) {
   const [candidate, pendingPostings] = await Promise.all([
     prisma.candidateProfile.findUnique({
@@ -110,11 +136,14 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   await requireAdmin()
   const { id } = await params
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }] = await Promise.all([
-    listAllAuthUsers(),
-    loadJobRecommendations(id),
-    loadPrivacyAndEmailTrail(id),
-  ])
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory] =
+    await Promise.all([
+      listAllAuthUsers(),
+      loadJobRecommendations(id),
+      loadPrivacyAndEmailTrail(id),
+      loadIpAndResume(id),
+      loadLoginHistory(id),
+    ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
 
@@ -133,6 +162,29 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
           {view.weekNumber !== null && ` · Week ${view.weekNumber} in search`}
           {view.statusLabel && ` · ${view.statusLabel}`}
         </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Signup IP: {ipAndResume.signupIp ?? 'unknown'}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-3 text-sm">
+          <Link
+            href={`/support/admin/candidates/${id}/profile`}
+            className="text-primary underline underline-offset-4"
+          >
+            View profile / Executive Dossier
+          </Link>
+          {ipAndResume.resumeSignedUrl ? (
+            <a
+              href={ipAndResume.resumeSignedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4"
+            >
+              View resume{ipAndResume.resumeFileName ? ` — ${ipAndResume.resumeFileName}` : ''}
+            </a>
+          ) : (
+            <span className="text-muted-foreground">No resume uploaded</span>
+          )}
+        </div>
       </div>
 
       {detail.sentimentAlert.lowSentiment && (
@@ -144,6 +196,29 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
           </p>
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Login history ({loginHistory.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loginHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No logins recorded yet.</p>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {loginHistory.map((event) => (
+                <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-x-3 text-foreground">
+                  <span>{event.createdAt.toLocaleString()}</span>
+                  <span className="text-muted-foreground">
+                    {event.ip ?? 'unknown IP'}
+                    {event.userAgent && ` · ${event.userAgent}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

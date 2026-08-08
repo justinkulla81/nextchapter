@@ -12,7 +12,7 @@ import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions'
-import { getAllCatalogTitles } from '@/lib/learning/catalog-titles'
+import { getAllCourseTitles } from '@/lib/learning/courses'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
@@ -35,14 +35,15 @@ const BODY_PREVIEW_MAX_CHARS = 4000
 // ATS_AND_JOB_BOARD_DOMAINS set, which serves a different purpose.
 const LEARNING_PLATFORM_DOMAINS = new Set(['coursera.org', 'edx.org'])
 
-// Cached once per module load — the catalog is static content, not
-// per-request data, so there's no reason to rebuild this list on every
-// email processed across every sync run.
-let catalogTitlesCache: string[] | null = null
-function findCompletedCatalogTitle(text: string): string | null {
-  if (!catalogTitlesCache) catalogTitlesCache = getAllCatalogTitles()
+// Course titles are admin-editable now (the Course table), so this always
+// re-fetches rather than caching across the module's lifetime — this only
+// runs for the rare inbound email that already matched course-completion
+// phrasing from a known learning-platform domain, so the extra query is
+// cheap relative to how infrequently it's called.
+async function findCompletedCatalogTitle(text: string): Promise<string | null> {
+  const catalogTitles = await getAllCourseTitles()
   const lower = text.toLowerCase()
-  return catalogTitlesCache.find((title) => lower.includes(title.toLowerCase())) ?? null
+  return catalogTitles.find((title) => lower.includes(title.toLowerCase())) ?? null
 }
 
 // Mirrors markRecommendationCompleted's (learning/actions.ts) manual
@@ -205,9 +206,11 @@ async function processMessage(
   const parsedDate = dateHeader ? new Date(dateHeader) : null
   const emailDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date()
 
+  const listUnsubscribe = getHeader(message.payload?.headers, 'List-Unsubscribe')
+
   const classification =
     direction === 'INBOUND'
-      ? classifyInboundEmail(subject, bodyPreview, from)
+      ? classifyInboundEmail(subject, bodyPreview, from, !!listUnsubscribe)
       : classifyOutboundEmail(subject, bodyPreview, to)
 
   // Resume-sharing is tracked independently of the primary category — a
@@ -279,7 +282,7 @@ async function processMessage(
   // completed X" phrasing is never guessed from an arbitrary sender.
   const senderPlatformDomain = direction === 'INBOUND' ? senderRootDomain : null
   if (senderPlatformDomain && LEARNING_PLATFORM_DOMAINS.has(senderPlatformDomain) && matchCourseCompletion(subject, bodyPreview)) {
-    const completedTitle = findCompletedCatalogTitle(`${subject} ${bodyPreview}`)
+    const completedTitle = await findCompletedCatalogTitle(`${subject} ${bodyPreview}`)
     if (completedTitle) {
       await markCourseCompletedFromEmail(connection.candidateId, completedTitle, senderPlatformDomain)
     }
