@@ -25,7 +25,7 @@ const heroStats = [
 ]
 
 const STUCK_TO_FIX = [
-  { stuck: "You don't know where you actually stand", fix: 'Market Reality Grade' },
+  { stuck: "You don't know where you actually stand", fix: 'Current Market Reality' },
   { stuck: "You're overwhelmed and don't know what to do next", fix: 'Search Sprint' },
   { stuck: "You're isolated and don't have anyone to talk to about it", fix: 'Support Network' },
   { stuck: "You're applying and hearing nothing back", fix: 'Job Fit + recruiter matching' },
@@ -39,7 +39,7 @@ const STUCK_TO_FIX = [
 ]
 
 const HOW_IT_WORKS_STEPS = [
-  { title: 'Market Reality Grade', description: 'A clearer view of where you stand and what to do next.' },
+  { title: 'Current Market Reality', description: 'A clearer view of where you stand and what to do next.' },
   { title: 'Search Sprint', description: 'A clear weekly plan, not a guessing game.' },
   { title: 'Weekly Search Score', description: 'Momentum you can actually see, points that never feel abstract.' },
   { title: 'Executive Dossier', description: 'Helps employers see what your résumé leaves out.' },
@@ -51,7 +51,7 @@ const jsonLd = {
   name: 'NextChapter',
   url: 'https://launchyournextchapter.com',
   description:
-    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Grade with a personalized action plan.',
+    'NextChapter is a candidate-first hiring platform. Upload your resume, build a profile that shows how you actually work, and get a free Current Market Reality with a personalized action plan.',
   publisher: {
     '@type': 'Organization',
     name: 'NextChapter',
@@ -224,7 +224,7 @@ export default function Home() {
           <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
             <Image
               src="/marketing/success-dashboard.png"
-              alt="NextChapter Success Dashboard showing a Market Reality Grade of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
+              alt="NextChapter Success Dashboard showing a Current Market Reality of B, an A Weekly Search Score, a 12-day streak, and completed Search Actions with their point values"
               width={1040}
               height={815}
               className="w-full"

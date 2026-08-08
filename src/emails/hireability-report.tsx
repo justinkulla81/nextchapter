@@ -74,7 +74,7 @@ export default function HireabilityReportEmail({
 
       <p style={{ fontWeight: 600, marginTop: '24px' }}>How NextChapter works</p>
       <p>
-        Your <strong>Market Reality Grade</strong> — what you just saw above — is an honest read on
+        Your <strong>Current Market Reality</strong> — what you just saw above — is an honest read on
         where you stand today. It only moves when you re-assess, not from weekly activity.
       </p>
       <p>

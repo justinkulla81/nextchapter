@@ -11,7 +11,7 @@ import { isDossierComplete } from '@/lib/reports/dossier-sections'
 // that can be earned more than once — see `count` on MilestoneBadgeStatus.
 //
 // NAMING RULE: none of these may use "A-List" — that name is reserved for
-// the real, multi-week Market Reality Grade A tier, never the weekly
+// the real, multi-week Current Market Reality A tier, never the weekly
 // WEEKLY_SPRINT_TARGET_HIT badge (see weekly-badges.ts).
 export type MilestoneBadgeKey =
   | 'SEVEN_DAY_STREAK'

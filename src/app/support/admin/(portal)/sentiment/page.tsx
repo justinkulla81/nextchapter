@@ -60,7 +60,7 @@ export default async function SentimentAdminPage({
           </span>
         ),
     },
-    { header: 'Recent Market Reality Grade', sortKey: 'grade', render: (r) => r.recentGrade ?? '—' },
+    { header: 'Recent Current Market Reality', sortKey: 'grade', render: (r) => r.recentGrade ?? '—' },
     {
       header: 'Jobs Applied',
       sortKey: 'jobsApplied',

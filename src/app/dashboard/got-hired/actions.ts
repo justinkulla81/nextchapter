@@ -25,7 +25,7 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
   if (currentGrade !== 'A') {
     return {
       error:
-        'The Offer Bonus requires an A Market Reality Grade to submit. Get your grade to an A this week and come back to claim it.',
+        'The Offer Bonus requires an A Current Market Reality to submit. Get your grade to an A this week and come back to claim it.',
     }
   }
 

@@ -12,7 +12,7 @@ import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/
 // hallucination risk in a document a third party reads as an attestation of
 // effort. Never includes comp expectations (this document, once downloaded,
 // can't be revoked the way a What They See link can) or the Market Reality
-// Grade or Market Reality Grade (grades never appear outside the product).
+// Grade or Current Market Reality (grades never appear outside the product).
 
 export interface RecruiterReportData {
   candidateName: string

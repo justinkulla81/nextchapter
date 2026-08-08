@@ -43,7 +43,7 @@ export default async function ContactDirectoryPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
         <p className="mt-1 text-muted-foreground">
           Every contact you&apos;ve added, warmest first. Every outreach you log here counts toward
-          the connecting signal in your Market Reality Grade.
+          the connecting signal in your Current Market Reality.
         </p>
       </div>
 

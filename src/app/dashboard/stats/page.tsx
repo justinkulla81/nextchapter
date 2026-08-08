@@ -127,7 +127,7 @@ export default async function YourStatsPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Grade</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Current Market Reality</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
@@ -167,7 +167,7 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Grade trend</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Current Market Reality trend</CardTitle>
         </CardHeader>
         <CardContent>
           <MarketRealityTrendChart

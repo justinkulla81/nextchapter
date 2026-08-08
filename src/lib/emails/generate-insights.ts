@@ -15,7 +15,7 @@ Rules:
   1. If today's planned action is set, open by genuinely encouraging them on that specific action — why it's the right move today. Do not restate the action verbatim (the CTA button already names it) — encourage the reasoning or payoff behind it. If no action is set yet, instead remind them in one sentence what they're actually working toward and why that's worth showing up for today.
   2. Take the one opportunity area in the data below and frame it as something they already know matters and now have a clear, doable way to move on — never as a deficiency, gap, or weakness, and never as a citation of their history.
   3. A short line making clear Victoria/NextChapter is in this with them — we're here to help, not just tracking them.
-- Never mention any letter grade, numeric score, percentage, or the name of a scoring dimension/engine (e.g. never say "Market Reality Grade", "Working Engine", "Connecting Engine", or similar).
+- Never mention any letter grade, numeric score, percentage, or the name of a scoring dimension/engine (e.g. never say "Current Market Reality", "Working Engine", "Connecting Engine", or similar).
 
 Candidate data:
 `

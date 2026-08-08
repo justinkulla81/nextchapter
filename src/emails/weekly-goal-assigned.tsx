@@ -109,7 +109,7 @@ export default function WeeklyGoalAssignedEmail({
       {grade === 'A' ? (
         <>
           <p style={{ marginTop: '20px', fontWeight: 600 }}>
-            Your Market Reality Grade is an A. That unlocks:
+            Your Current Market Reality is an A. That unlocks:
           </p>
           <ul style={benefitsList}>
             {A_GRADE_BENEFITS.map((benefit) => (
@@ -120,7 +120,7 @@ export default function WeeklyGoalAssignedEmail({
       ) : (
         gapSummary && (
           <p style={{ marginTop: '20px' }}>
-            <strong>Market Reality Grade: {grade}.</strong> {gapSummary}
+            <strong>Current Market Reality: {grade}.</strong> {gapSummary}
           </p>
         )
       )}

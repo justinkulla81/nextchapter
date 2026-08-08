@@ -62,7 +62,7 @@ export default async function ReferencesPage() {
         <EmptyState
           icon={Users}
           title="No references requested yet"
-          description="Use the form above to request your first one — even 1-2 real references make a real difference to your Market Reality Grade."
+          description="Use the form above to request your first one — even 1-2 real references make a real difference to your Current Market Reality."
         />
       )}
 

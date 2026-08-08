@@ -15,7 +15,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Is NextChapter really free for me?',
         answer:
-          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Market Reality Grade and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
+          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Current Market Reality and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
       },
       {
         question: "Then what's the catch? How do you actually make money?",
@@ -33,7 +33,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     category: 'Your grades & assessment',
     items: [
       {
-        question: 'What is the Market Reality Grade?',
+        question: 'What is the Current Market Reality?',
         answer:
           "One letter grade, A through F — not a number. It's built from six categories: Target Fit (real hiring demand plus how well-matched and focused your target is) and five hiring-manager categories — Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, and Ownership & Reliability. After you finish the assessment you get an honest first read; from there, your weekly effort — networking, learning, and working your search — nudges the grade up or down each week, without ever resetting your baseline. It's meant to be useful to you first, not just a number for employers.",
       },
@@ -65,7 +65,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Can I retake the assessment or improve my Grade?',
         answer:
-          'You don’t retake the quiz itself — instead, your Market Reality Grade updates automatically as you take real steps: adding references and work samples, confirming your details, logging networking activity, landing an interview. The more of your action plan you complete, the more it reflects it. Your Market Reality Grade can shift too, as you round out your profile with more experience, references, and work samples.',
+          'You don’t retake the quiz itself — instead, your Current Market Reality updates automatically as you take real steps: adding references and work samples, confirming your details, logging networking activity, landing an interview. The more of your action plan you complete, the more it reflects it. Your Current Market Reality can shift too, as you round out your profile with more experience, references, and work samples.',
       },
     ],
   },
@@ -105,7 +105,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'What happens once I finish?',
         answer:
-          "You get your Market Reality Grade and a personalized action plan immediately — the grade keeps moving as you take real action each week. From there, your profile becomes visible to employers according to the privacy setting you've chosen — you don't have to fire off dozens of applications into the void.",
+          "You get your Current Market Reality and a personalized action plan immediately — the grade keeps moving as you take real action each week. From there, your profile becomes visible to employers according to the privacy setting you've chosen — you don't have to fire off dozens of applications into the void.",
       },
       {
         question: 'What does an A unlock?',

@@ -75,7 +75,7 @@ function GradeRing({ grade }: { grade: Grade | null }) {
           )}
         </div>
       </div>
-      <p className="text-sm font-medium text-muted-foreground">Market Reality Grade</p>
+      <p className="text-sm font-medium text-muted-foreground">Current Market Reality</p>
     </div>
   )
 }

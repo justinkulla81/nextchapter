@@ -47,7 +47,7 @@ export default async function BiasDetectionAdminPage() {
                       </p>
                       <div className="grid gap-3 text-sm sm:grid-cols-2">
                         <div>
-                          <p className="text-muted-foreground">Market Reality Grade distribution</p>
+                          <p className="text-muted-foreground">Current Market Reality distribution</p>
                           <p className="font-mono tabular-nums">
                             A {cohort.gradeDistribution.A}% · B {cohort.gradeDistribution.B}% · C{' '}
                             {cohort.gradeDistribution.C}% · D {cohort.gradeDistribution.D}% · F{' '}

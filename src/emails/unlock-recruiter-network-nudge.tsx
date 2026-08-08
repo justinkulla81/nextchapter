@@ -51,7 +51,7 @@ export default function UnlockRecruiterNetworkNudgeEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'},</p>
       <p>
-        Your Market Reality Grade just hit an A — that puts you in range for the Recruiter Database, where vetted
+        Your Current Market Reality just hit an A — that puts you in range for the Recruiter Database, where vetted
         recruiters browse for candidates who&apos;ve already proven real search execution.
       </p>
       <p>You haven&apos;t opted in yet. It&apos;s one toggle on your Privacy page, and you can turn it back off anytime.</p>

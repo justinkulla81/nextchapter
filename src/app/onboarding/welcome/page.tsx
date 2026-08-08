@@ -32,7 +32,7 @@ export default async function WelcomePage() {
             You already know what getting hired actually takes: outreach, applications, interview
             prep, networking — done consistently, not in bursts. NextChapter turns that into a{' '}
             <strong>Search Sprint</strong> you commit to before each week starts, and tracks your
-            progress as your <strong>Market Reality Grade</strong> — how competitive you look to
+            progress as your <strong>Current Market Reality</strong> — how competitive you look to
             employers right now.
           </p>
           <ul className="list-disc space-y-1.5 pl-5">

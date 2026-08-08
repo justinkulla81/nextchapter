@@ -14,7 +14,7 @@ import {
 
 export { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
 
-// Market Reality Grade's structured, individually-referenceable named
+// Current Market Reality's structured, individually-referenceable named
 // reasons — short, specific, labeled gaps/strengths (not a paragraph of
 // prose), each with a stable id so the Executive Dossier can reference
 // "which named reason does this section address" and drive its dynamic

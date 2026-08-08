@@ -1,5 +1,5 @@
 // Pure types for the Market Response Funnel — tracked separately from
-// Market Reality Grade. Market Reality Grade measures whether the candidate is
+// Current Market Reality. Current Market Reality measures whether the candidate is
 // doing the work; this measures whether the market is actually responding to it.
 // Deliberately no raw percentages implied beyond a simple reply-rate — see
 // MarketResponseFunnel.tsx for how this renders.

@@ -48,7 +48,7 @@ export function GradeSystemExplainer() {
           One grade, six categories
         </h3>
         <p className="mt-2 text-muted-foreground">
-          Your Market Reality Grade is one number, built from six categories — a stable baseline
+          Your Current Market Reality is one number, built from six categories — a stable baseline
           that only moves when something real changes (a reference lands, an interview happens, a
           title changes), plus how this week&apos;s effort is going. Nothing here is scored on your
           How I Work Best results directly — those describe your style, not a right or wrong way to

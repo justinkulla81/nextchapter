@@ -9,7 +9,7 @@ import { pointsNeededForA } from '@/lib/weekly/action-effort'
 // LearningBadge, EncouragementNote, JobPosting), same "compute live, don't
 // store a duplicate" approach already used for src/lib/community/badges.ts.
 //
-// NAMING RULE: "A-List" means the real, multi-week Market Reality Grade A
+// NAMING RULE: "A-List" means the real, multi-week Current Market Reality A
 // tier (job board unlock, Executive Dossier, Offer Bonus, recruiter
 // visibility — see find-my-job/page.tsx, portfolio/page.tsx). It must never
 // be used for WEEKLY_SPRINT_TARGET_HIT, which is a much easier weekly bar

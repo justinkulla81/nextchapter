@@ -61,7 +61,7 @@ export async function getActivityReconciliation(candidateId: string): Promise<Ac
     interviewGap,
     networkingGap,
     interviewNote: interviewGap
-      ? `Your calendar shows ${detectedInterviewCount} interviews, but your profile still says you haven't had any — worth updating so your Market Reality Grade reflects it.`
+      ? `Your calendar shows ${detectedInterviewCount} interviews, but your profile still says you haven't had any — worth updating so your Current Market Reality reflects it.`
       : null,
     networkingNote: networkingGap
       ? `We've detected ${detectedNetworkingCount} networking notes and calls, more than "not much" — worth updating your networking answer so it reflects what's actually happening.`

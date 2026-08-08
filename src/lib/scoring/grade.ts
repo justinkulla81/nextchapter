@@ -1,4 +1,4 @@
-// Pure types/values for the single Market Reality Grade — no server-only
+// Pure types/values for the single Current Market Reality — no server-only
 // dependencies, so client components (e.g. the animated score-reveal ring)
 // can import these directly without pulling in the Prisma/market-data
 // computation in hireability-grade.ts.

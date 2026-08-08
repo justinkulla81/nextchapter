@@ -49,7 +49,7 @@ export default async function Image() {
             padding: '0 120px',
           }}
         >
-          Get your free Market Reality Grade
+          Get your free Current Market Reality
         </div>
         <div
           style={{

@@ -202,7 +202,7 @@ async function buildUpdateProfileDraft(candidateId: string, firstName: string): 
   const body = [
     `Hi ${firstName},`,
     statusLine,
-    `An accurate, confirmed profile is what personalizes which jobs and skills get matched to you and feeds directly into your Market Reality Grade — an outdated one quietly costs you both without you noticing.`,
+    `An accurate, confirmed profile is what personalizes which jobs and skills get matched to you and feeds directly into your Current Market Reality — an outdated one quietly costs you both without you noticing.`,
     `It only takes a couple of minutes to confirm what's left.`,
   ].join('\n\n')
 

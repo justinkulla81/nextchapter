@@ -48,7 +48,7 @@ export function DashboardTopStrip({
       <Divider />
 
       <div className="flex items-center gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Market Reality Grade</span>
+        <span className="text-xs font-medium text-muted-foreground">Current Market Reality</span>
         <span className={`text-lg font-bold ${GRADE_TEXT_COLOR[grade.grade]}`}>{grade.grade}</span>
       </div>
 

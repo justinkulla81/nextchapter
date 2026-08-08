@@ -13,7 +13,7 @@ function clamp(n: number): number {
   return Math.max(0, Math.min(100, Math.round(n)))
 }
 
-// Generates and archives this week's Market Reality Grade + named-reasons
+// Generates and archives this week's Current Market Reality + named-reasons
 // snapshot for one candidate. Idempotent per (candidateId, weekStartDate) —
 // safe to re-run the cron without creating duplicate weeks. Never
 // overwrites a prior week's snapshot; only ever creates the current week's

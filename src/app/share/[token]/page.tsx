@@ -202,7 +202,7 @@ export default async function SharedProfilePage({
             </h2>
             <div className="mt-2 flex gap-6">
               <div>
-                <p className="text-xs text-muted-foreground">Market Reality Grade</p>
+                <p className="text-xs text-muted-foreground">Current Market Reality</p>
                 <p className="text-lg font-semibold">
                   {view.hireabilityGrade.grade}{' '}
                   <span className="text-sm font-normal text-muted-foreground">

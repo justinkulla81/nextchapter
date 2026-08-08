@@ -307,7 +307,7 @@ export function GoalsForm({
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <Button type="submit" disabled={pending}>
-        {pending ? 'Calculating your score…' : 'See my Market Reality Grade'}
+        {pending ? 'Calculating your score…' : 'See my Current Market Reality'}
       </Button>
     </form>
   )

@@ -1,7 +1,7 @@
 import type { Grade } from '@/lib/scoring/grade'
 
 // Same hand-rolled SVG pattern as MotivationChart — no charting library in
-// this project. Plots Market Reality Grade (the "Hireability Score" trend,
+// this project. Plots Current Market Reality (the "Hireability Score" trend,
 // per Prompt 50) over the archived weekly snapshots from Prompt 46. Grades
 // are ordinal (A-F), not a raw score — this reads them onto a 0-4 axis
 // purely for line position, never displays a numeric score anywhere.
@@ -35,8 +35,8 @@ const TREND_COPY: Record<'up' | 'down' | 'flat', { icon: string; label: string }
 
 export function MarketRealityTrendChart({
   snapshots,
-  emptyStateText = 'Your Market Reality Grade trend will show up here once a few weekly snapshots have been archived.',
-  ariaLabel = 'Market Reality Grade over time',
+  emptyStateText = 'Your Current Market Reality trend will show up here once a few weekly snapshots have been archived.',
+  ariaLabel = 'Current Market Reality over time',
 }: {
   snapshots: TrendSnapshot[]
   emptyStateText?: string

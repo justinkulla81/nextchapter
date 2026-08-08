@@ -33,7 +33,7 @@ export default async function ScorePage() {
     <div className="flex flex-col items-center gap-8 text-center">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Market Reality Grade'}
+          {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Current Market Reality'}
         </h1>
         <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground italic">
           &ldquo;Your initial grade is based on what you&apos;ve told me. The confidence level on

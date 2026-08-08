@@ -5,7 +5,7 @@ import { generateMarketRealitySnapshot } from '@/lib/scoring/market-reality-snap
 
 // Fires Monday afternoon (see vercel.json) — well after auto-assign-sprint's
 // ~5am ET run, so every candidate already has this week's Search Actions
-// auto-assigned before this week's Market Reality Grade snapshot is
+// auto-assigned before this week's Current Market Reality snapshot is
 // generated and archived. Idempotent per (candidateId, weekStartDate).
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')

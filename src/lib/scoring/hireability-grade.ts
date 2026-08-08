@@ -1,4 +1,4 @@
-// Scoring Model 2.0 — one Market Reality Grade, built from six categories:
+// Scoring Model 2.0 — one Current Market Reality, built from six categories:
 //
 //   Target Fit                      — real hiring demand + how well matched
 //                                      and focused the candidate's target is.
@@ -381,12 +381,13 @@ export async function computeCategoryGrades(
   // time, not here, so this stays a pure/no-extra-query function); blended
   // with the reference growth-mindset rating.
   //
-  // includeFlexibilitySignal=false (used only by the Hireability Grade path)
-  // holds the self-report at a neutral midpoint instead — candidates
-  // shouldn't be able to move their Hireability Grade by how flexible they
-  // say they are on comp/level/location/pivoting. Market Reality, Coaching
-  // Notes, and the Dossier's self-awareness read all keep the real signal
-  // via the default.
+  // includeFlexibilitySignal=false (used only by the displayed Current
+  // Market Reality path, via computeHireabilityGrade) holds the self-report
+  // at a neutral midpoint instead — candidates shouldn't be able to move
+  // their Current Market Reality by how flexible they say they are on
+  // comp/level/location/pivoting. The archival snapshot, Coaching Notes,
+  // and the Dossier's self-awareness read all keep the real signal via the
+  // default.
   const flexibilityCount = [candidate.willingToStartLower, candidate.compFlexible, candidate.openToRelocation].filter(
     Boolean
   ).length
@@ -478,9 +479,10 @@ export async function getCategoryBaseline(
   const stored = candidate.categoryBaselineScores as Record<CategoryKey, number> | null
   if (stored) return stored
 
-  // The baseline feeds the Hireability Grade (see computeHireabilityGrade
-  // below), so it's seeded without the flexibility signal — see the
-  // includeFlexibilitySignal comment in computeCategoryGrades.
+  // The baseline feeds the displayed Current Market Reality (see
+  // computeHireabilityGrade below), so it's seeded without the flexibility
+  // signal — see the includeFlexibilitySignal comment in
+  // computeCategoryGrades.
   const categories = await computeCategoryGrades(candidate, { includeFlexibilitySignal: false })
   const baseline = Object.fromEntries(categories.map((c) => [c.key, c.score])) as Record<CategoryKey, number>
   await prisma.candidateProfile.update({
