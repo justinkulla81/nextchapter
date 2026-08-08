@@ -7,6 +7,7 @@ import {
   type WorkHistoryEntryInput,
   type EducationDateRange,
 } from '@/lib/resume/work-history-facts'
+import { computePedigreeBonus } from '@/lib/scoring/pedigree-bonus'
 
 // Recomputes the Market Reality structural flags (jobHoppingFlag,
 // shortTenureCount, careerTrajectory) from a candidate's current
@@ -36,6 +37,7 @@ export async function computeStructuralFlags(candidateId: string): Promise<void>
 
   const { shortTenureCount } = computeWorkHistoryFacts(workHistoryInputs, educationRanges)
   const careerTrajectory = detectCareerTrajectory(workHistoryInputs)
+  const pedigree = await computePedigreeBonus(candidateId)
 
   await prisma.candidateProfile.update({
     where: { id: candidateId },
@@ -43,6 +45,9 @@ export async function computeStructuralFlags(candidateId: string): Promise<void>
       shortTenureCount,
       jobHoppingFlag: shortTenureCount >= JOB_HOPPING_SHORT_TENURE_THRESHOLD,
       careerTrajectory,
+      promotionVelocity: pedigree.promotionVelocity,
+      pedigreeBonus: pedigree.bonus,
+      pedigreeSignals: JSON.parse(JSON.stringify(pedigree.signals)),
     },
   })
 }

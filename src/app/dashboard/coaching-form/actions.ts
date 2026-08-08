@@ -11,6 +11,7 @@ import {
   validateAnswers,
   type CoachingOnboardingAnswers,
 } from '@/lib/coach/onboarding-form'
+import { submitConfidentialDisclosure } from '@/lib/coach/confidential-disclosure'
 
 // Prompt 60 — dashboard-side entry point, for existing candidates who grant
 // coach consent later via /dashboard/privacy rather than during onboarding.
@@ -40,5 +41,21 @@ export async function submitCoachingOnboardingFormDashboard(
   await submitCoachingOnboardingForm(profile.id, profile.coachId, answers)
   captureServerEvent(profile.id, 'coaching_onboarding_form_submitted', { source: 'dashboard' })
 
-  redirect('/dashboard')
+  // Stay on this page rather than /dashboard — the optional confidential
+  // disclosure step renders next, once the main kickoff form is done.
+  redirect('/dashboard/coaching-form')
+}
+
+export async function submitConfidentialDisclosureDashboard(hasDisclosure: boolean, disclosureText: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  if (!profile.coachId) return
+
+  await submitConfidentialDisclosure(profile.id, profile.coachId, hasDisclosure, disclosureText)
+  captureServerEvent(profile.id, 'coaching_confidential_disclosure_submitted', { hasDisclosure })
 }

@@ -2,9 +2,11 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getCoachTemplate, hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
+import { hasSubmittedConfidentialDisclosure } from '@/lib/coach/confidential-disclosure'
 import { prisma } from '@/lib/prisma'
 import { CoachingOnboardingForm } from '@/components/onboarding/CoachingOnboardingForm'
-import { submitCoachingOnboardingFormDashboard } from '@/app/dashboard/coaching-form/actions'
+import { ConfidentialDisclosureForm } from '@/components/onboarding/ConfidentialDisclosureForm'
+import { submitCoachingOnboardingFormDashboard, submitConfidentialDisclosureDashboard } from '@/app/dashboard/coaching-form/actions'
 
 export const metadata: Metadata = { title: 'Coaching Intake Form' }
 
@@ -15,11 +17,23 @@ export default async function DashboardCoachingFormPage() {
   if (!profile.coachId || !profile.coachDossierConsentedAt) {
     redirect('/dashboard')
   }
-  if (await hasSubmittedCoachingOnboardingForm(profile.id)) {
+
+  const mainFormDone = await hasSubmittedCoachingOnboardingForm(profile.id)
+  const disclosureDone = await hasSubmittedConfidentialDisclosure(profile.id)
+  if (mainFormDone && disclosureDone) {
     redirect('/dashboard')
   }
 
   const coach = await prisma.coach.findUniqueOrThrow({ where: { id: profile.coachId }, select: { fullName: true } })
+
+  if (mainFormDone) {
+    return (
+      <div className="mx-auto max-w-lg space-y-6">
+        <ConfidentialDisclosureForm coachFirstName={coach.fullName.split(' ')[0]} onSubmit={submitConfidentialDisclosureDashboard} />
+      </div>
+    )
+  }
+
   const template = (await getCoachTemplate(profile.coachId)).filter((q) => q.enabled)
 
   return (
@@ -36,7 +50,7 @@ export default async function DashboardCoachingFormPage() {
       <CoachingOnboardingForm
         template={template}
         onSubmit={submitCoachingOnboardingFormDashboard}
-        submitLabel="Continue to my dashboard"
+        submitLabel="Continue"
       />
     </div>
   )

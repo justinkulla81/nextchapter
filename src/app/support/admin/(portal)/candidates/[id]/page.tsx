@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { CandidateNudgeEmailPanel } from '@/components/admin/CandidateNudgeEmailPanel'
+import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGradeOverridePanel'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 
@@ -43,6 +44,13 @@ async function loadPrivacyAndEmailTrail(candidateId: string) {
         weeklySprintTargetOptOut: true,
         encouragementGivingOptIn: true,
         smsConsentedAt: true,
+        pedigreeBonus: true,
+        pedigreeSignals: true,
+        promotionVelocity: true,
+        exceptionalGradeOverride: true,
+        exceptionalGradeOverrideReason: true,
+        exceptionalGradeOverrideBy: true,
+        exceptionalGradeOverrideAt: true,
       },
     }),
     prisma.adminEmailLog.findMany({
@@ -466,6 +474,42 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pedigree & Exceptional Profile</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <dl className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <dt className="text-muted-foreground">Target Fit pedigree bonus</dt>
+              <dd className="text-foreground">+{privacyProfile?.pedigreeBonus ?? 0} pts</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Promotion velocity</dt>
+              <dd className="text-foreground">{privacyProfile?.promotionVelocity ?? 'None detected'}</dd>
+            </div>
+            {privacyProfile?.pedigreeSignals != null && (
+              <div className="col-span-2">
+                <dt className="text-muted-foreground">Matched signals</dt>
+                <dd className="text-foreground">
+                  {Object.entries(privacyProfile.pedigreeSignals as Record<string, string | null>)
+                    .filter(([, v]) => v)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(' · ') || 'None'}
+                </dd>
+              </div>
+            )}
+          </dl>
+          <ExceptionalGradeOverridePanel
+            candidateId={id}
+            active={privacyProfile?.exceptionalGradeOverride ?? false}
+            reason={privacyProfile?.exceptionalGradeOverrideReason ?? null}
+            by={privacyProfile?.exceptionalGradeOverrideBy ?? null}
+            at={privacyProfile?.exceptionalGradeOverrideAt ?? null}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

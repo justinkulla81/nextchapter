@@ -170,6 +170,22 @@ export default async function CoachingPage() {
                   </p>
                 </div>
                 <CoachingWaitlistForm source="coaching_page" knownContact={knownContact} />
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                    Optional add-ons, opt-in only
+                  </p>
+                  <p className="text-sm text-foreground">Public Presence & Visibility Coaching</p>
+                  <p className="text-xs text-muted-foreground">
+                    We look at your existing public footprint — press, podcasts, talks — and your coach helps
+                    you decide how visible to be in your search. You&apos;ll always be asked directly before
+                    anything is looked at.
+                  </p>
+                  <p className="mt-2 text-sm text-foreground">Background Check (via Checkr)</p>
+                  <p className="text-xs text-muted-foreground">
+                    For candidates who want a pre-verified profile ready to show recruiters. Requires a
+                    separate written disclosure and authorization before anything runs — coming soon.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 

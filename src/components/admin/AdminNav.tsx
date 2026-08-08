@@ -84,6 +84,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/action-counts', label: 'Action Counts' },
         { href: '/support/admin/metrics', label: 'Site Metrics' },
         { href: '/support/admin/page-content', label: 'Page Content' },
+        { href: '/support/admin/pedigree-signals', label: 'Pedigree Signals' },
         { href: '/support/admin/interim-listings', label: 'Interim Work Listings' },
         { href: '/support/admin/bias-detection', label: 'Bias Detection' },
         { href: '/support/admin/research', label: 'Research Library' },

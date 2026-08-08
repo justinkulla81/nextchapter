@@ -58,6 +58,18 @@ enum CareerTrajectory {
   DEMOTED
 }
 
+enum PromotionVelocity {
+  STEADY
+  RAPID
+  EXCEPTIONAL
+}
+
+enum PedigreeSignalCategory {
+  FUNCTION
+  INDUSTRY
+  ROLE_TITLE
+}
+
 // Company-size band used ONLY by the level-rank calibration system
 // (CompanySizeLookup, the static tier list, and the calibration math in
 // src/lib/scoring/level-rank.ts). Deliberately more granular than
@@ -560,6 +572,30 @@ model CandidateProfile {
   shortTenureCount Int               @default(0)
   careerTrajectory CareerTrajectory? // null = not enough work history yet to judge
 
+  // Pedigree/prestige signal — same recompute hook as the structural flags
+  // above (computeStructuralFlags), matched against the admin-curated
+  // EliteInstitution/PrestigeEmployer/HighDemandSignal lists plus a
+  // promotion-velocity read (see pedigree-bonus.ts). Applied as an additive
+  // bump to the Target Fit category baseline — same treatment as the real-
+  // event bumps in rewrite-actions.ts (interview landed, offer, etc.) —
+  // never as a divisor change, so a candidate with no matching signal is
+  // simply unaffected rather than dragged toward a "no signal" penalty.
+  promotionVelocity PromotionVelocity?
+  pedigreeBonus     Int                @default(0)
+  pedigreeSignals   Json? // breakdown for admin/coach display: which institution/employer/signal matched
+
+  // Manual, human-reviewed A-grade bypass for the rare, obviously-exceptional
+  // profile (sitting C-suite of a known company, etc.) where making them
+  // wait for a live Search Sprint week to clear the normal weekly-activity
+  // gate would be absurd. Deliberately NOT algorithmic — see
+  // computeHireabilityGrade() in hireability-grade.ts, which forces the
+  // top-line grade to A when this is set but leaves the six category scores
+  // computed normally underneath (for report/Dossier narrative accuracy).
+  exceptionalGradeOverride       Boolean   @default(false)
+  exceptionalGradeOverrideReason String?   @db.Text
+  exceptionalGradeOverrideBy     String? // admin email
+  exceptionalGradeOverrideAt     DateTime?
+
   // A single free-text explanation the candidate can write for a real
   // employment gap ("what I learned/accomplished, why I haven't gone
   // stale") — one field, not per-gap, since most candidates have one gap
@@ -823,6 +859,15 @@ model CandidateProfile {
   // Prompt 60 — set once the candidate completes the Coaching Onboarding
   // Form; its mere existence is the "already submitted" check everywhere.
   coachingOnboardingResponse CoachingOnboardingResponse?
+
+  // Deliberately separate from CoachingOnboardingResponse — that form is
+  // explicitly documented as "never add a sensitive-topics question here."
+  // This is the sensitive-topics form that comment was reserving room for:
+  // coach-only visibility, never surfaced in the Dossier/reports/anywhere
+  // a recruiter or employer could see it.
+  coachingConfidentialDisclosure CoachingConfidentialDisclosure?
+
+  backgroundCheckConsent BackgroundCheckConsent?
 
   resumeSubmissionLeads ResumeSubmissionLead[]
   pageBoxDismissals     PageBoxDismissal[]
@@ -2621,11 +2666,12 @@ model Coach {
   languages          String[]
   timezone           String?
 
-  clients                     CandidateProfile[]
-  sessions                    CoachSession[]
-  coachingOnboardingResponses CoachingOnboardingResponse[]
-  clientInvites               CoachClientInvite[]
-  messageThreads              MessageThread[]
+  clients                         CandidateProfile[]
+  sessions                        CoachSession[]
+  coachingOnboardingResponses     CoachingOnboardingResponse[]
+  coachingConfidentialDisclosures CoachingConfidentialDisclosure[]
+  clientInvites                   CoachClientInvite[]
+  messageThreads                  MessageThread[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -2693,6 +2739,77 @@ model CoachingOnboardingResponse {
   coach       Coach            @relation(fields: [coachId], references: [id])
   answers     Json // keyed by question id -> string | string[] | number
   submittedAt DateTime         @default(now())
+}
+
+// A short, optional, coach-only-visible disclosure form — separate from
+// CoachingOnboardingResponse on purpose (see that model's comment forbidding
+// sensitive-topics questions there). Candidate answers once per coaching
+// relationship; the coach sees it in Coaching Notes/Pre-Session Brief only —
+// never in the Dossier, a report, or anywhere a recruiter/employer/other
+// candidate could see it.
+model CoachingConfidentialDisclosure {
+  id             String           @id @default(cuid())
+  candidateId    String           @unique
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  coachId        String
+  coach          Coach            @relation(fields: [coachId], references: [id])
+  hasDisclosure  Boolean // did the candidate indicate there's something to share, before free text
+  disclosureText String?          @db.Text
+  submittedAt    DateTime         @default(now())
+}
+
+// Premium-coaching add-on scaffold (opt-in, purchased alongside Executive
+// Coaching — see CoachingWaitlist). The actual Checkr API call is gated
+// behind CHECKR_API_KEY (same pattern as RESEND_API_KEY) — this model and
+// its consent flow work today; live report retrieval activates once that
+// key is added. disclosureText/authorizationText snapshot the exact FCRA-
+// required language shown at consent time, for audit purposes — required
+// regardless of provider, not a NextChapter-specific choice.
+model BackgroundCheckConsent {
+  id                      String           @id @default(cuid())
+  candidateId             String           @unique
+  candidate               CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  disclosureText          String           @db.Text
+  authorizationText       String           @db.Text
+  disclosureAcceptedAt    DateTime
+  authorizationAcceptedAt DateTime
+  checkrCandidateId       String?
+  checkrReportId          String?
+  status                  String           @default("consent_recorded") // consent_recorded | invited | pending | complete | disputed
+  requestedAt             DateTime?
+  completedAt             DateTime?
+  createdAt               DateTime         @default(now())
+}
+
+// Admin-curated pedigree/prestige signals (Batch: "is an A achievable"
+// follow-up) — feeds computePedigreeBonus() in
+// src/lib/scoring/pedigree-bonus.ts, applied additively to the Target Fit
+// category baseline. Deliberately three separate small lists rather than
+// one generic table, mirroring the existing curated-company-list pattern
+// from the ATS integration — each has a distinct match target.
+model EliteInstitution {
+  id             String   @id @default(cuid())
+  name           String
+  nameNormalized String   @unique // matched against EducationEntry.schoolNameNormalized
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model PrestigeEmployer {
+  id             String   @id @default(cuid())
+  name           String
+  nameNormalized String   @unique // matched against WorkHistoryEntry.companyName (normalized)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model HighDemandSignal {
+  id        String                 @id @default(cuid())
+  label     String // e.g. "Chief AI Officer", "AI/ML Leadership"
+  category  PedigreeSignalCategory
+  keywords  String[] // loose-match tokens against primaryFunction/targetRoleType/resumeLatestJobTitle
+  isActive  Boolean                @default(true)
+  createdAt DateTime               @default(now())
 }
 
 // Recruiter P0-lite — the smallest possible entry point for the Instant

@@ -242,7 +242,15 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   targetComplexity = clamp(targetComplexity)
 
   const focus = isVagueTargetRole(candidate.targetRoleType) ? 35 : 90
-  const targetFitScore = clamp((experienceMatch + marketPosition + targetComplexity + focus) / 4)
+  // Pedigree/prestige bonus (elite institution, prestige employer, high-
+  // demand function, promotion velocity) — persisted by computeStructuralFlags
+  // (see pedigree-bonus.ts), applied additively here rather than folded into
+  // the four-way average above, same treatment as the real-event bumps in
+  // rewrite-actions.ts. A candidate with no matching signal gets +0 and is
+  // otherwise unaffected.
+  const targetFitScore = clamp(
+    (experienceMatch + marketPosition + targetComplexity + focus) / 4 + (candidate.pedigreeBonus ?? 0)
+  )
 
   // ---- Leadership & Management — resume scope (isPeopleManager,
   // teamSizeManaged) + self-rated management confidence, blended with the
@@ -502,6 +510,15 @@ export async function computeHireabilityGrade(candidate: CandidateWithGradeRelat
   if (!categoryMinimumsMet && overallGrade === 'A') {
     overallGrade = 'B'
     overallScore = Math.min(overallScore, 89)
+  }
+
+  // Manual, human-reviewed bypass for the rare, obviously-exceptional
+  // profile — see CandidateProfile.exceptionalGradeOverride. Applied last,
+  // after the weekly-activity gate above, and deliberately doesn't touch
+  // overallScore or the six category scores underneath, so report/Dossier
+  // narrative text still reflects the candidate's real computed standing.
+  if (candidate.exceptionalGradeOverride) {
+    overallGrade = 'A'
   }
 
   return {
