@@ -16,6 +16,7 @@ export function AvatarUploadForm({
   uploadAction,
   removeAction,
   toggleVisibilityAction,
+  points,
 }: {
   displayName: string
   currentUrl: string | null
@@ -23,6 +24,9 @@ export function AvatarUploadForm({
   uploadAction: (prevState: AvatarUploadState, formData: FormData) => Promise<AvatarUploadState>
   removeAction: () => Promise<void>
   toggleVisibilityAction: (currentlyVisible: boolean) => Promise<void>
+  // Only the candidate portal earns Weekly Search Sprint points for this —
+  // coach/recruiter/employer settings pages simply omit this prop.
+  points?: number
 }) {
   const [state, formAction, isPending] = useActionState(uploadAction, undefined)
   const formRef = useRef<HTMLFormElement>(null)
@@ -50,6 +54,10 @@ export function AvatarUploadForm({
               />
             </label>
           </form>
+
+          {!currentUrl && points && (
+            <span className="text-xs font-medium text-muted-foreground tabular-nums">+{points} pts</span>
+          )}
 
           {currentUrl && (
             <form action={removeAction}>

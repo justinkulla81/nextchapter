@@ -1,6 +1,7 @@
 import 'server-only'
 import type { CareerTrajectory } from '@prisma/client'
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
+import type { GapDurationBucket } from '@prisma/client'
 import {
   AI_FLUENCY_GAP_ID,
   JOB_HOPPING_GAP_ID,
@@ -8,6 +9,7 @@ import {
   CAREER_TRAJECTORY_STRENGTH_ID,
   CAREER_TRAJECTORY_GAP_ID,
   VISIBILITY_CALIBRATION_GAP_ID,
+  EMPLOYMENT_GAP_GAP_ID,
 } from '@/lib/scoring/named-reason-ids'
 
 export { isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
@@ -72,6 +74,8 @@ export interface StructuralFlags {
   averageTenureMonths?: number | null
   /** From getVisibilityCalibration — says they want more visibility than they're showing. */
   visibilityGap?: boolean
+  /** Self-reported onboarding field — how long since their last job. */
+  gapDuration?: GapDurationBucket | null
 }
 
 // The bar for claiming stability as a strength, deliberately stricter than
@@ -181,6 +185,29 @@ export function computeNamedReasons(
       kind: 'gap',
       text: "You've said you're open to being visible — posting, networking — but recent weeks show little of it. A recruiter or your network can only notice activity that actually happens.",
       category: 'communication',
+    })
+  }
+
+  // Longer gaps read as a bigger question mark to a hiring manager — the
+  // recommendation gets more specific (not just "close it") the longer it's
+  // been, since a 4-6 month gap is explainable on its own but a year-plus
+  // gap needs something concrete to point to.
+  if (structuralFlags?.gapDuration === 'THREE_TO_SIX_MONTHS') {
+    reasons.push({
+      id: EMPLOYMENT_GAP_GAP_ID,
+      kind: 'gap',
+      text: 'A hiring manager will ask about the time since your last role — have a clear, specific answer ready, and consider interim work or a new skill now so the gap keeps closing while you search.',
+      category: 'ownership',
+    })
+  } else if (
+    structuralFlags?.gapDuration === 'SIX_TO_TWELVE_MONTHS' ||
+    structuralFlags?.gapDuration === 'TWELVE_PLUS_MONTHS'
+  ) {
+    reasons.push({
+      id: EMPLOYMENT_GAP_GAP_ID,
+      kind: 'gap',
+      text: "A gap this long is a real red flag to a hiring manager if there's nothing to point to during it. Fill it now — take on interim or fractional work and learn a new skill — so you have something concrete to show, not just an explanation.",
+      category: 'ownership',
     })
   }
 

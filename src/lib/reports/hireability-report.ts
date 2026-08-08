@@ -253,6 +253,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
   const namedReasons = computeNamedReasons(grade.categories, latestAiProject?.judgmentCall ?? null, {
     jobHoppingFlag: candidate.jobHoppingFlag,
     careerTrajectory: candidate.careerTrajectory,
+    gapDuration: candidate.gapDuration,
   })
 
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))

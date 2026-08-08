@@ -63,6 +63,47 @@ function actionKey(a: { actionType?: string; text: string }): string {
 // no items in it simply isn't rendered.
 const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Building', 'Connecting', 'Learning & Working', 'Other']
 
+// The "confirm your data" cluster of Personalize items — all six live on
+// the same /dashboard/profile page (see ACTION_TYPE_LINK), so listing them
+// as six separate Sprint rows read as scattered busywork rather than "one
+// page to go fill out." Collapsed into a single row with a running point
+// total that counts down as each sub-item completes (see
+// consolidateProfileDataRows below).
+const PROFILE_DATA_ACTION_TYPES = new Set([
+  'PROFILE_CONFIRM',
+  'INDUSTRY_CONFIRM',
+  'FUNCTION_CONFIRM',
+  'SALARY_CONFIRM',
+  'WORK_AUTHORIZATION',
+  'ANSWER_OPTIONAL_QUESTIONS',
+])
+
+// Replaces every row whose actionType is in PROFILE_DATA_ACTION_TYPES with
+// one combined row. Points shown are what's still earnable (0 once every
+// sub-item is done) rather than the lifetime total, so the number on
+// screen always answers "how many more points is this worth me finishing."
+function consolidateProfileDataRows(rows: Row[]): Row[] {
+  const profileDataRows = rows.filter((r) => r.actionType && PROFILE_DATA_ACTION_TYPES.has(r.actionType))
+  if (profileDataRows.length === 0) return rows
+
+  const otherRows = rows.filter((r) => !(r.actionType && PROFILE_DATA_ACTION_TYPES.has(r.actionType)))
+  const remaining = profileDataRows.filter((r) => !r.completed)
+  const allDone = remaining.length === 0
+
+  const consolidated: Row = {
+    text:
+      'Complete your profile to personalize coaching, jobs and skills — confirms your basics, industry, role, salary, and work authorization',
+    points: remaining.reduce((sum, r) => sum + r.points, 0),
+    estimatedMinutes: remaining.reduce((sum, r) => sum + r.estimatedMinutes, 0),
+    actionType: 'PROFILE_CONFIRM',
+    completed: allDone,
+    recurring: false,
+    priority: true,
+  }
+
+  return [consolidated, ...otherRows]
+}
+
 function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Record<string, T[]> {
   const groups: Record<string, T[]> = {
     Personalize: [],
@@ -214,9 +255,14 @@ export function SuccessSprintCard({
   hasCalendarConnection: boolean
   profileChecklistItems: ProfileChecklistItem[]
 }) {
-  const realActions = actions ?? []
+  // isGoalBonus rows (the one-time welcome/commitment credit) are a
+  // historical point award, not a real action to show in this list — their
+  // points already flow into weeklyPoints via the props passed in, so
+  // dropping them here only removes the stale row, never the credit.
+  const realActions = (actions ?? []).filter((a) => !a.isGoalBonus)
   const usedKeys = new Set(realActions.map(actionKey))
   const availableCatalog = suggestedActions.filter((sa) => !usedKeys.has(actionKey(sa)))
+  const catalogKeys = new Set(availableCatalog.map(actionKey))
 
   // Personalize items (profile/gate confirms, connecting Gmail & Calendar)
   // still count toward weeklyPoints/oneTimePointsEarned below — the
@@ -283,18 +329,26 @@ export function SuccessSprintCard({
         priority: isPriorityActionType(sa.actionType),
       }
     }),
-    ...profileChecklistItems.map((item) => ({
-      text: item.label,
-      points: item.points,
-      estimatedMinutes: estimateActionEffort({ actionType: item.actionType }).minutes,
-      actionType: item.actionType,
-      completed: item.complete,
-      recurring: false,
-      priority: isPriorityActionType(item.actionType),
-    })),
+    // Excludes anything already represented by a committed or suggested
+    // row above — profileChecklistItems is a separate data source (DB
+    // timestamps) with no awareness of committedActions/suggestedActions,
+    // so without this a type like WORKING_STYLE_QUIZ or PROFILE_CONFIRM
+    // could render twice: once with its personalized "why" text, once with
+    // this catalog's generic label.
+    ...profileChecklistItems
+      .filter((item) => !usedKeys.has(item.actionType) && !catalogKeys.has(item.actionType))
+      .map((item) => ({
+        text: item.label,
+        points: item.points,
+        estimatedMinutes: estimateActionEffort({ actionType: item.actionType }).minutes,
+        actionType: item.actionType,
+        completed: item.complete,
+        recurring: false,
+        priority: isPriorityActionType(item.actionType),
+      })),
   ]
 
-  const groups = groupByNavCategory(allRows)
+  const groups = groupByNavCategory(consolidateProfileDataRows(allRows))
 
   return (
     <Card>

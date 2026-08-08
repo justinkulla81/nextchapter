@@ -474,6 +474,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
   const namedReasons = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null, {
     jobHoppingFlag: candidate.jobHoppingFlag,
     careerTrajectory: candidate.careerTrajectory,
+    gapDuration: candidate.gapDuration,
   })
 
   const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated, careerTrajectorySteps] =

@@ -44,6 +44,7 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
     jobHoppingFlag: candidate.jobHoppingFlag,
     careerTrajectory: candidate.careerTrajectory,
     visibilityGap: visibilityCalibration.gap === 'wants_more_visibility',
+    gapDuration: candidate.gapDuration,
   })
 
   await prisma.marketRealitySnapshot.create({

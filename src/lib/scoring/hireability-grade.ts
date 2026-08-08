@@ -266,8 +266,22 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   // with the reference "work ethic" rating.
   const skillsSelfReport = candidate.functionSkillConfidence ?? 50
   const skillsRefRating = averageReferenceRating(refs, 'overallRating')
-  const skillsExecutionScore =
+  const skillsExecutionBase =
     skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : clamp(skillsSelfReport)
+
+  // Self-reported AI-skill confidence (onboarding Experience Q5) is a real
+  // ding for the bottom stop, not just a narrative aside — a candidate who
+  // says they're "just getting started" with AI is a genuine hiring-manager
+  // concern in a function being reshaped by it. Never a bonus (this stays
+  // separate from the concrete-evidence AI_FLUENCY_STRENGTH_ID narrative
+  // reason in named-reasons.ts, which is about a real example, not a
+  // self-report slider) — only a penalty, and only at the two weakest stops.
+  let aiSkillsAdjustment = 0
+  if (candidate.aiFlexibilityLevel != null) {
+    if (candidate.aiFlexibilityLevel <= 25) aiSkillsAdjustment = -10
+    else if (candidate.aiFlexibilityLevel <= 50) aiSkillsAdjustment = -5
+  }
+  const skillsExecutionScore = clamp(skillsExecutionBase + aiSkillsAdjustment)
 
   // ---- Communication & Collaboration — self-rated communicator
   // confidence blended with how clearly the resume itself communicates
@@ -325,6 +339,23 @@ export async function computeCategoryGrades(candidate: CandidateWithGradeRelatio
   if (candidate.jobHoppingFlag) ownershipStructuralAdjustment -= 15
   if (candidate.careerTrajectory === 'PROMOTED') ownershipStructuralAdjustment += 10
   if (candidate.careerTrajectory === 'DEMOTED') ownershipStructuralAdjustment -= 10
+
+  // A real employment gap is a legitimate hiring-manager concern, and it
+  // compounds the longer it runs — graduated rather than a single flat
+  // penalty so a fresh gap barely registers but a year-plus gap dings as
+  // hard as job-hopping. ZERO_TO_THREE_MONTHS gets no penalty at all: that's
+  // a normal transition window, not a red flag.
+  switch (candidate.gapDuration) {
+    case 'THREE_TO_SIX_MONTHS':
+      ownershipStructuralAdjustment -= 5
+      break
+    case 'SIX_TO_TWELVE_MONTHS':
+      ownershipStructuralAdjustment -= 10
+      break
+    case 'TWELVE_PLUS_MONTHS':
+      ownershipStructuralAdjustment -= 15
+      break
+  }
 
   const ownershipScore = clamp(ownershipBase + ownershipStructuralAdjustment)
 

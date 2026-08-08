@@ -1,17 +1,21 @@
 import type { HighestEducationLevel } from '@prisma/client'
 
-// Deliberately just these 8 — collapsed from the old dropdown-plus-checkbox
-// hybrid (which listed MBA/MPH/DO/PharmD/DDS/DVM/PsyD/Other) into one
-// multiselect, since almost no candidates here hold those niche credentials
-// and JD/MD/PhD already cover the ones that matter for job-credential
-// gating (see src/lib/jobs/credential-gate.ts). The older enum values still
-// exist in the schema for backward compatibility with already-stored data.
+// Collapsed from the old dropdown-plus-checkbox hybrid (which listed
+// MBA/MPH/DO/PharmD/DDS/DVM/PsyD/Other) into one multiselect, since almost
+// no candidates here hold those niche credentials and JD/MD/PhD already
+// cover the ones that matter for job-credential gating (see
+// src/lib/jobs/credential-gate.ts). MBA is broken out from the generic
+// Master's bucket since it's a distinct, commonly-held credential worth
+// naming explicitly rather than folding into "Other Masters" — both still
+// rank equally in LEVEL_RANK below. The older enum values still exist in
+// the schema for backward compatibility with already-stored data.
 export const DEGREE_OPTIONS: { value: HighestEducationLevel; label: string }[] = [
   { value: 'HIGH_SCHOOL', label: 'High school' },
   { value: 'SOME_COLLEGE', label: 'Some college, no degree' },
   { value: 'ASSOCIATE', label: "Associate's degree" },
   { value: 'BACHELORS', label: "Bachelor's degree" },
-  { value: 'MASTERS', label: "Master's degree" },
+  { value: 'MBA', label: 'MBA' },
+  { value: 'MASTERS', label: 'Other Masters' },
   { value: 'JD', label: 'JD (law degree)' },
   { value: 'MD', label: 'MD' },
   { value: 'PHD', label: 'PhD' },
