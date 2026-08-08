@@ -24,6 +24,8 @@ import {
   retryJobFetch,
   markApplied,
   markInterviewLanded,
+  markInterviewLandedFromForm,
+  addInterviewJob,
   markOfferReceived,
   markDeclined,
   updateApplicationDetails,
@@ -227,6 +229,23 @@ export default async function JobFitPage() {
   const weekStart = getMondayOfWeek(new Date())
   const applicationsThisWeek = allApplications.filter((j) => j.appliedAt! >= weekStart).length
 
+  // Interview Tracking section — a top-level rollup of everything already
+  // marked interviewLandedAt, so a candidate doesn't have to dig into a
+  // collapsed application card to see where they stand or jump to prep.
+  const interviewingPostings = profile.jobPostings
+    .filter((j) => j.interviewLandedAt !== null)
+    .sort((a, b) => b.interviewLandedAt!.getTime() - a.interviewLandedAt!.getTime())
+  // Postings a candidate could plausibly say "I have an interview for this"
+  // about — already applied (or an email-detected row, which is assumed
+  // applied) and not already interviewing/declined/offered.
+  const eligibleForInterview = profile.jobPostings.filter(
+    (j) =>
+      j.interviewLandedAt === null &&
+      j.declinedAt === null &&
+      j.offerReceivedAt === null &&
+      (j.source === 'EMAIL_DETECTED' || j.appliedAt !== null)
+  )
+
   // Open board postings per company, keyed by normalized name — surfaced
   // next to each application so a candidate sees "3 open roles at Foo in
   // our job board" right where they're tracking that application.
@@ -337,6 +356,99 @@ export default async function JobFitPage() {
           <NetworkStatTile key={type} label={label} items={jobStatTileItems[type] ?? []} />
         ))}
         <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
+      </div>
+
+      <div className="space-y-4 rounded-lg border border-border p-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Interview Tracking</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every interview you&apos;ve landed, in one place — plus a fast way to log a new one and
+            jump straight to prep.
+          </p>
+        </div>
+
+        {interviewingPostings.length > 0 && (
+          <div className="divide-y divide-border rounded-lg border border-border">
+            {interviewingPostings.map((posting) => (
+              <div key={posting.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {posting.companyName ?? 'Unknown company'}
+                    {posting.title ? ` — ${posting.title}` : ''}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Interview landed {posting.interviewLandedAt!.toLocaleDateString()}
+                    {posting.interviewCompleteAt ? ' · Completed' : ''}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <form action={prepForPhoneScreen.bind(null, posting.id)}>
+                    <SubmitButton variant="outline" size="sm">
+                      Interview prep →
+                    </SubmitButton>
+                  </form>
+                  {!posting.interviewCompleteAt && (
+                    <form action={markInterviewComplete.bind(null, posting.id)}>
+                      <SubmitButton variant="outline" size="sm">
+                        Mark complete
+                      </SubmitButton>
+                    </form>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-3 border-t border-border pt-4">
+          <p className="text-sm font-medium text-foreground">Got an interview?</p>
+
+          {eligibleForInterview.length > 0 && (
+            <form action={markInterviewLandedFromForm} className="flex flex-wrap items-center gap-2">
+              <select
+                name="jobPostingId"
+                required
+                defaultValue=""
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              >
+                <option value="" disabled>
+                  Which job?
+                </option>
+                {eligibleForInterview.map((posting) => (
+                  <option key={posting.id} value={posting.id}>
+                    {posting.companyName ?? 'Unknown company'}
+                    {posting.title ? ` — ${posting.title}` : ''}
+                  </option>
+                ))}
+              </select>
+              <SubmitButton variant="outline" size="sm">
+                I have an interview for this job
+              </SubmitButton>
+            </form>
+          )}
+
+          <details>
+            <summary className="cursor-pointer text-sm text-primary underline underline-offset-4">
+              Add a job link for this interview
+            </summary>
+            <div className="mt-3">
+              {atCap ? (
+                <p className="text-sm text-muted-foreground">
+                  You have 5 job postings tracked — remove one below to add another.
+                </p>
+              ) : (
+                <JobUrlForm action={addInterviewJob} submitLabel="I'm interviewing — add job" />
+              )}
+            </div>
+          </details>
+
+          <Link
+            href="/dashboard/interview-prep"
+            className="block text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Just want interview prep, no specific job? →
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-4">

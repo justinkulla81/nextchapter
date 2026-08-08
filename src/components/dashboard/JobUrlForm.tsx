@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useActionState } from 'react'
-import { submitJobUrl } from '@/app/dashboard/find-my-job/actions'
+import { submitJobUrl, type FormState } from '@/app/dashboard/find-my-job/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,8 +11,14 @@ import { getBlockedJobHost } from '@/lib/jobs/blocked-job-hosts'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 
-export function JobUrlForm() {
-  const [state, formAction, pending] = useActionState(submitJobUrl, undefined)
+export function JobUrlForm({
+  action = submitJobUrl,
+  submitLabel = 'Add job',
+}: {
+  action?: (prevState: FormState, formData: FormData) => Promise<FormState>
+  submitLabel?: string
+}) {
+  const [state, formAction, pending] = useActionState(action, undefined)
   const [url, setUrl] = useState('')
   const blocked = getBlockedJobHost(url)
 
@@ -57,7 +63,7 @@ export function JobUrlForm() {
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <Button type="submit" disabled={pending}>
-        {pending ? 'Analyzing…' : blocked ? 'Analyze pasted text' : 'Add job'}
+        {pending ? 'Analyzing…' : blocked ? 'Analyze pasted text' : submitLabel}
       </Button>
       {pending && <InlineLoadingState label="Fetching the posting and analyzing your fit…" />}
     </form>

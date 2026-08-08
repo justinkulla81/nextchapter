@@ -5,7 +5,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { NarrativeManager, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
+import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import type { Grade } from '@/lib/scoring/grade'
@@ -147,14 +147,21 @@ export default async function PortfolioPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">My Narrative</h3>
-          <p className="text-sm text-muted-foreground">
-            Your core story, adapted for LinkedIn, resumes, and interviews — and, if you need it, a
-            separate version for a specific scenario.
-          </p>
-          <NarrativeManager narratives={narratives} />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">My Narrative</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {narratives.length > 0
+                ? `${narratives.length} narrative${narratives.length === 1 ? '' : 's'} drafted — your core story, adapted for LinkedIn, resumes, and interviews.`
+                : "Your core story, adapted for LinkedIn, resumes, and interviews — not drafted yet."}
+            </p>
+            <Button nativeButton={false} render={<Link href="/dashboard/marketing-plan" />} size="sm">
+              {narratives.length > 0 ? 'Manage' : 'Draft it'}
+            </Button>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

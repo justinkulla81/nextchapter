@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
@@ -126,6 +127,19 @@ export default async function MarketingPlanPage() {
       )}
 
       <ThoughtLeadershipStudio venues={profile.contentVenues} />
+
+      <div className="rounded-lg border border-border p-4">
+        <p className="text-sm text-foreground">
+          Have an interview coming up? Your narrative above is the raw material — Interview Prep
+          adapts it into likely questions, talking points, and practice for a specific role.
+        </p>
+        <Link
+          href="/dashboard/interview-prep"
+          className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Go to Interview Prep →
+        </Link>
+      </div>
 
       <GuideCallout pageSlot="marketing-plan" currentJobStatus={profile.currentJobStatus} />
     </div>

@@ -111,7 +111,6 @@ function buildSections(
           // jobs waiting to rate).
           badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
         },
-        { href: '/dashboard/interview-prep', label: 'Interview Prep' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
       ],
     },

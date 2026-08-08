@@ -90,6 +90,95 @@ export async function submitJobUrl(_prevState: FormState, formData: FormData): P
   revalidatePath('/dashboard/find-my-job')
 }
 
+// Same shape as submitJobUrl, but for the Interview Tracking section's
+// "add a job link for this interview" quick-add — the posting is created
+// already applied-and-interviewing rather than needing the normal
+// applied -> "I got an interview" click sequence, since the candidate is
+// telling us about an interview they already have, not a job they just
+// found.
+export async function addInterviewJob(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'You need to be logged in to do this.' }
+  }
+
+  const url = (formData.get('url') as string | null)?.trim()
+  if (!url) {
+    return { error: 'Please enter a job posting URL.' }
+  }
+
+  try {
+    new URL(url)
+  } catch {
+    return { error: 'Please enter a valid URL.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const existingCount = await prisma.jobPosting.count({
+    where: { candidateId: profile.id, interviewLandedAt: null, offerReceivedAt: null },
+  })
+  if (existingCount >= MAX_ACTIVE_FIT_CHECK_SLOTS) {
+    return { error: 'You can track up to 5 active job postings at a time — remove one to add another.' }
+  }
+
+  const jobPosting = await prisma.jobPosting.create({
+    data: {
+      candidateId: profile.id,
+      url,
+      fetchStatus: 'pending',
+      appliedAt: new Date(),
+      interviewLandedAt: new Date(),
+    },
+  })
+
+  captureServerEvent(profile.id, 'job_added', { jobId: jobPosting.id, viaInterviewTracking: true })
+
+  const pastedText = (formData.get('text') as string | null)?.trim()
+
+  if (pastedText) {
+    await prisma.jobPosting.update({
+      where: { id: jobPosting.id },
+      data: { fetchStatus: 'success', fetchError: null, extractedText: pastedText.slice(0, 8000) },
+    })
+    await analyzeJobFit(jobPosting.id, profile.id)
+  } else {
+    const result = await fetchJobPosting(url)
+
+    await prisma.jobPosting.update({
+      where: { id: jobPosting.id },
+      data: { fetchStatus: result.status, fetchError: result.error, extractedText: result.text },
+    })
+
+    if (result.status === 'success') {
+      await analyzeJobFit(jobPosting.id, profile.id)
+    }
+  }
+
+  await applyInterviewLandedRewrite(profile.id)
+  await applyInterviewPatternConfirmedRewrite(profile.id)
+  await generateInterviewPrep(jobPosting.id, profile.id)
+
+  captureServerEvent(profile.id, 'interview_landed', { jobId: jobPosting.id, source: 'interview_tracking_quick_add' })
+
+  revalidatePath('/dashboard/find-my-job')
+}
+
+// The Interview Tracking section's "which job?" dropdown can't bind a
+// server action to a jobPostingId chosen at submit time the way every
+// other per-posting button here does (.bind(null, posting.id) needs the id
+// up front) — this reads it from the submitted <select> instead and
+// delegates to the exact same markInterviewLanded logic.
+export async function markInterviewLandedFromForm(formData: FormData) {
+  const jobPostingId = formData.get('jobPostingId') as string | null
+  if (!jobPostingId) return
+  await markInterviewLanded(jobPostingId)
+}
+
 export async function retryJobFetch(jobPostingId: string) {
   const supabase = await createClient()
   const {
