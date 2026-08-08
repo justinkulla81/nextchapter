@@ -79,6 +79,23 @@ export default async function TrackingTestersPage({
         </p>
       </div>
 
+      <div className="rounded-lg border border-brand/30 bg-brand/5 p-4 text-sm text-foreground">
+        <p className="font-medium">Pro tip: enabling here isn&apos;t enough on its own.</p>
+        <p className="mt-1 text-muted-foreground">
+          Our Google OAuth app is still in Testing mode, so Google will also block the consent screen
+          for anyone not added as a test user there — separately from this allow-list. After enabling a
+          candidate below, add their email as a test user too.
+        </p>
+        <a
+          href="https://console.cloud.google.com/apis/credentials/consent"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block font-medium text-brand underline underline-offset-4"
+        >
+          Add test users in Google Cloud Console →
+        </a>
+      </div>
+
       <div className="space-y-3 rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">Manually added emails</h2>
         <form action={addManualTesterEmail} className="flex flex-wrap items-center gap-2">
