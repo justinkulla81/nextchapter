@@ -30,10 +30,13 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: 'Publish a LinkedIn post', actionType: 'LINKEDIN_POST_IDEA' },
   { text: 'Share or repost a post', actionType: 'THOUGHT_LEADERSHIP_SHARE' },
 
-  // Learning
+  // Learning — "start" is the only one offered by default; "complete" only
+  // ever gets suggested once the matching start is on record (see
+  // getSuggestedActions in sprint.ts), so nobody can claim the full 40/15pt
+  // award for a course or certificate they never actually began.
   { text: 'Complete a course module', actionType: 'LEARNING_MODULE' },
-  { text: 'Earn a certificate', actionType: 'LEARNING_CERTIFICATE' },
-  { text: 'Try a new AI tool', actionType: 'LEARNING_NEW_TOOL' },
+  { text: 'Start a certificate program', actionType: 'LEARNING_CERTIFICATE_STARTED' },
+  { text: 'Start learning a new tool', actionType: 'LEARNING_NEW_TOOL_STARTED' },
 
   // Resume / Assets
   { text: 'Update your resume', actionType: 'RESUME_UPDATE' },

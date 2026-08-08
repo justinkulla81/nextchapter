@@ -38,7 +38,14 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
 
   // Learning
   LEARNING_MODULE: { minutes: 20, points: 20 },
+  // Split into a small "started" click (self-reported, no verification —
+  // real risk of "earn 40 pts for saying you did it" with a single click)
+  // and a separate "complete" step below, only ever suggested once started
+  // is on record (see getSuggestedActions in sprint.ts). Same split for
+  // LEARNING_NEW_TOOL.
+  LEARNING_CERTIFICATE_STARTED: { minutes: 3, points: 5 },
   LEARNING_CERTIFICATE: { minutes: 40, points: 40 },
+  LEARNING_NEW_TOOL_STARTED: { minutes: 3, points: 5 },
   LEARNING_NEW_TOOL: { minutes: 15, points: 15 },
   // Calendar-detected — a scheduled course/webinar/training block that
   // actually happened. Same weight as LEARNING_MODULE, the closest
@@ -155,7 +162,6 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   LINKEDIN_UNLOCK: { minutes: 3, points: 5 },
   WORK_SAMPLE_TYPE_CONFIRMED: { minutes: 3, points: 5 },
   NETWORK_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
-  SUBSTACK_UNLOCK: { minutes: 3, points: 5 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -192,7 +198,9 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   LINKEDIN_SETUP: 'working',
 
   LEARNING_MODULE: 'learning',
+  LEARNING_CERTIFICATE_STARTED: 'learning',
   LEARNING_CERTIFICATE: 'learning',
+  LEARNING_NEW_TOOL_STARTED: 'learning',
   LEARNING_NEW_TOOL: 'learning',
   LEARNING_SESSION_ATTENDED: 'learning',
 
@@ -233,7 +241,6 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   LINKEDIN_UNLOCK: 'working',
   WORK_SAMPLE_TYPE_CONFIRMED: 'working',
   NETWORK_COMFORT_CONFIRMED: 'connecting',
-  SUBSTACK_UNLOCK: 'working',
   LINKEDIN_PROFILE_ADDED: 'working',
 }
 
@@ -269,7 +276,6 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   MARKETING_PLAN_UNLOCK: 'Personalize',
   GIG_DIRECTORY_UNLOCK: 'Personalize',
   LINKEDIN_UNLOCK: 'Personalize',
-  SUBSTACK_UNLOCK: 'Personalize',
   PROFILE_PICTURE_UPLOADED: 'Personalize',
   LINKEDIN_PROFILE_ADDED: 'Personalize',
   GMAIL_CONNECTED: 'Personalize',
@@ -301,7 +307,9 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   INTERVIEW_ATTENDED: 'Connecting',
 
   LEARNING_MODULE: 'Learning & Working',
+  LEARNING_CERTIFICATE_STARTED: 'Learning & Working',
   LEARNING_CERTIFICATE: 'Learning & Working',
+  LEARNING_NEW_TOOL_STARTED: 'Learning & Working',
   LEARNING_NEW_TOOL: 'Learning & Working',
   LEARNING_SESSION_ATTENDED: 'Learning & Working',
   NEGOTIATION_ADVICE: 'Learning & Working',
@@ -457,7 +465,9 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LINKEDIN_POST_IDEA: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   THOUGHT_LEADERSHIP_SHARE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   LEARNING_MODULE: { href: '/dashboard/learning', label: 'Learning' },
+  LEARNING_CERTIFICATE_STARTED: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_CERTIFICATE: { href: '/dashboard/learning', label: 'Learning' },
+  LEARNING_NEW_TOOL_STARTED: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_NEW_TOOL: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_SESSION_ATTENDED: { href: '/dashboard/learning', label: 'Learning' },
   RESUME_UPDATE: { href: '/dashboard/resume', label: 'Resume' },
@@ -483,7 +493,6 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Live Conversations' },
-  SUBSTACK_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   WATCHLIST_ADD: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job', label: 'Find My Job' },
   GMAIL_CONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
@@ -495,58 +504,10 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   CALENDAR_CONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
   CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
   INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Live Conversations' },
-  PROFILE_PICTURE_UPLOADED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
-  LINKEDIN_PROFILE_ADDED: { href: '/dashboard/linkedin', label: 'LinkedIn' },
+  PROFILE_PICTURE_UPLOADED: { href: '/dashboard/profile#profile-picture', label: 'Profile' },
+  LINKEDIN_PROFILE_ADDED: { href: '/dashboard/profile#linkedin', label: 'Profile' },
 }
 
-// actionTypes that represent real growth/stretch effort (networking,
-// learning, and starting an interim-work search) — the ones worth pushing
-// on specifically when a candidate says they're feeling motivated, per the
-// "capitalize on it" framing rather than just "give them the biggest number."
-const GROWTH_ACTION_TYPES = new Set([
-  'OUTREACH_MESSAGE',
-  'OUTREACH_CALL',
-  'NETWORKING_LIST',
-  'LEARNING_MODULE',
-  'LEARNING_CERTIFICATE',
-  'LEARNING_NEW_TOOL',
-  'INTERIM_PROFILE_CREATED',
-])
-
-// The Mood Check-In card's "here's some ideas for today" list — the
-// current week's Sprint is the one real source of "what should I do today,"
-// so this just filters it down to what's left, capped to a short scannable
-// list. When today's mood is known, the order is tilted by it: feeling
-// motivated (MOVING/FIRED_UP) surfaces the higher-effort, higher-point
-// growth actions (networking, learning, starting an interim-work search)
-// first so the candidate capitalizes on the momentum; feeling low
-// (STUCK/GETTING_THERE) surfaces the cheapest already-open actions first,
-// so there's an easy win available rather than the biggest ask in the list.
-export function getMoodCardIdeas<T extends { text: string; actionType?: string; completed: boolean }>(
-  committedActions: T[] | null | undefined,
-  max = 3,
-  mood?: import('@prisma/client').Mood | null
-): T[] {
-  if (!committedActions) return []
-  const open = committedActions.filter((a) => !a.completed)
-
-  if (mood === 'MOVING' || mood === 'FIRED_UP') {
-    return [...open]
-      .sort((a, b) => {
-        const aGrowth = a.actionType && GROWTH_ACTION_TYPES.has(a.actionType) ? 1 : 0
-        const bGrowth = b.actionType && GROWTH_ACTION_TYPES.has(b.actionType) ? 1 : 0
-        if (aGrowth !== bGrowth) return bGrowth - aGrowth
-        return estimateActionEffort(b).points - estimateActionEffort(a).points
-      })
-      .slice(0, max)
-  }
-
-  if (mood === 'STUCK' || mood === 'GETTING_THERE') {
-    return [...open].sort((a, b) => estimateActionEffort(a).points - estimateActionEffort(b).points).slice(0, max)
-  }
-
-  return open.slice(0, max)
-}
 
 // LLM-personalized action-plan items are written as "short action — why it
 // matters" (see the HARD REQUIREMENT in hireability-report.ts) — this splits
@@ -654,12 +615,21 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   'find-my-job': ['NEGOTIATION_ADVICE', 'JOB_BOARD_USAGE_CONFIRMED', 'WATCHLIST_ADD', 'WATCHLIST_POSTING_VIEWED'],
   resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
-  'marketing-plan': ['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_SHARE', 'MARKETING_PLAN_UNLOCK', 'SUBSTACK_UNLOCK'],
+  'marketing-plan': ['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_SHARE', 'MARKETING_PLAN_UNLOCK'],
   learning: ['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED'],
-  linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK', 'LINKEDIN_PROFILE_ADDED'],
+  linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK'],
   'interim-work': ['INTERIM_PROFILE_CREATED', 'GIG_DIRECTORY_UNLOCK'],
   'work-samples': ['WORK_SAMPLE_TYPE_CONFIRMED'],
   community: ['ENGAGE_COMMENT', 'ENGAGE_EVENT', 'ENGAGE_POST_UPDATE', 'ENGAGE_PEER_SUPPORT'],
-  profile: ['PROFILE_CONFIRM', 'INDUSTRY_CONFIRM', 'FUNCTION_CONFIRM', 'SALARY_CONFIRM', 'WORK_AUTHORIZATION'],
+  profile: [
+    'PROFILE_CONFIRM',
+    'INDUSTRY_CONFIRM',
+    'FUNCTION_CONFIRM',
+    'SALARY_CONFIRM',
+    'WORK_AUTHORIZATION',
+    'ANSWER_OPTIONAL_QUESTIONS',
+    'PROFILE_PICTURE_UPLOADED',
+    'LINKEDIN_PROFILE_ADDED',
+  ],
   privacy: ['PRIVACY_CONFIRMED'],
 }

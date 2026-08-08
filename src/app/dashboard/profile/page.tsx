@@ -8,6 +8,8 @@ import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
 import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthorizationConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
+import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
+import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,6 +38,19 @@ export default async function ProfilePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Mirrors fetchCompletion's optionalQuestionsAnswered check in
+  // profile-checklist.ts — kept in sync manually since this page reads the
+  // fields directly off the already-fetched profile instead of a second query.
+  const optionalQuestionsAnswered = [
+    profile.jobsAppliedBucket,
+    profile.interviewsReceivedCount,
+    profile.networkingLevel,
+    profile.learnedNewSkillsLevel,
+    profile.triedPartTimeOrConsulting,
+    profile.triedExecutiveCoaching,
+    profile.connectedWithRecruiters,
+  ].every((f) => f !== null)
 
   return (
     <div className="space-y-8">
@@ -72,7 +87,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="profile-picture" className="scroll-mt-4">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Profile picture (optional)
@@ -159,6 +174,69 @@ export default async function ProfilePage() {
               visaStatus={profile.visaStatus}
               confirmedAt={profile.workAuthConfirmedAt}
             />
+          </CardContent>
+        </Card>
+
+        <Card id="linkedin" className="scroll-mt-4">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">LinkedIn</CardTitle>
+              {!profile.linkedInConfirmedAt && (
+                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                  +25 pts
+                </span>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {profile.linkedInConfirmedAt ? (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+                {profile.linkedInUrl ? (
+                  <a
+                    href={profile.linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-4"
+                  >
+                    {profile.linkedInUrl}
+                  </a>
+                ) : (
+                  'Confirmed — no LinkedIn profile yet'
+                )}
+              </p>
+            ) : (
+              <LinkedInConfirmForm />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card id="optional-questions" className="scroll-mt-4">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Optional search questions
+              </CardTitle>
+              {!optionalQuestionsAnswered && (
+                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                  +5 pts
+                </span>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {optionalQuestionsAnswered ? (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+                Answered
+              </p>
+            ) : (
+              <OptionalQuestionsForm />
+            )}
           </CardContent>
         </Card>
       </div>

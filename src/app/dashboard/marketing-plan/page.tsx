@@ -3,7 +3,6 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeadershipUnlockForm'
-import { SubstackSection } from '@/components/dashboard/SubstackSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -125,28 +124,7 @@ export default async function MarketingPlanPage() {
         </div>
       )}
 
-      {profile.contentVenues.includes('SUBSTACK') && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Substack</h2>
-          <SubstackSection
-            hasAccount={profile.substackHasAccount}
-            url={profile.substackUrl}
-            critique={profile.substackCritique as unknown as SubstackCritique | null}
-          />
-        </div>
-      )}
-
-      <ThoughtLeadershipStudio
-        venues={profile.contentVenues}
-        substackUnlocked={profile.substackHasAccount !== null}
-      />
+      <ThoughtLeadershipStudio venues={profile.contentVenues} />
     </div>
   )
-}
-
-interface SubstackCritique {
-  relevanceToBackground: string
-  noveltyOfIdeas: string
-  cadence: string
-  overallAssessment: string
 }

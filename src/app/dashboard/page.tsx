@@ -19,7 +19,6 @@ import {
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
-import { getMoodCardIdeas } from '@/lib/weekly/action-effort'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
@@ -134,12 +133,6 @@ export default async function DashboardPage() {
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
-  const todaysIdeas = getMoodCardIdeas(
-    currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null,
-    3,
-    todaysMood
-  )
-
   // Prompt 45 §8: on_track is measured against the system's points_target
   // (the ramp), never against whatever the candidate personally committed
   // to — those are different numbers and only points_target should decide
@@ -191,10 +184,7 @@ export default async function DashboardPage() {
       <div className="space-y-3">
         <MoodCheckInCard
           todaysMood={todaysMood}
-          currentStreak={checkInSummary.streak}
           checkInsLast7Days={checkInSummary.checkInsLast7Days}
-          isConsecutive={checkInSummary.isConsecutive}
-          todaysIdeas={todaysIdeas}
           firstName={profile.firstName}
           dismissedToday={moodCardDismissedToday}
         />

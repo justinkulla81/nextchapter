@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { generatePostIdeas, draftPost, type PostIdea } from '@/lib/network/thought-leadership'
-import { analyzeSubstack } from '@/lib/network/analyze-substack'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -117,68 +116,3 @@ export async function generateArticleAction(
   return { draft }
 }
 
-export type SubstackAnswerState = { error?: string } | undefined
-
-// One-time bonus for answering the Substack yes/no gate at all — same
-// shape as contentUnlockBonusAt/privacyOpenedUpBonusAt. Called from both
-// answer paths (submitSubstackNo and submitSubstackUrl) so it fires
-// whichever way the candidate answers first.
-async function awardSubstackUnlockBonus(profile: { id: string; substackUnlockBonusAt: Date | null }) {
-  if (profile.substackUnlockBonusAt) return
-  const sprint = await getCurrentWeekSprint(profile.id)
-  if (!sprint) return
-
-  const effort = estimateActionEffort({ actionType: 'SUBSTACK_UNLOCK' })
-  await autoCompleteEngagementAction(profile.id, {
-    actionType: 'SUBSTACK_UNLOCK',
-    text: 'Answered the Substack question',
-    points: effort.points,
-    estimatedMinutes: effort.minutes,
-  })
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { substackUnlockBonusAt: new Date() },
-  })
-}
-
-export async function submitSubstackNo(): Promise<void> {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { substackHasAccount: false },
-  })
-
-  await awardSubstackUnlockBonus(profile)
-
-  revalidatePath('/dashboard/marketing-plan')
-}
-
-export async function submitSubstackUrl(
-  _prevState: SubstackAnswerState,
-  formData: FormData
-): Promise<SubstackAnswerState> {
-  const profile = await getAuthedProfile()
-  if (!profile) return { error: 'You need to be logged in to do this.' }
-
-  const url = (formData.get('url') as string | null)?.trim()
-  if (!url) return { error: 'Enter your Substack URL.' }
-
-  try {
-    new URL(url)
-  } catch {
-    return { error: 'Enter a valid URL.' }
-  }
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { substackHasAccount: true },
-  })
-
-  await awardSubstackUnlockBonus(profile)
-
-  await analyzeSubstack(profile.id, url)
-
-  revalidatePath('/dashboard/marketing-plan')
-}

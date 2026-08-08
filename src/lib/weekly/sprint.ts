@@ -329,6 +329,25 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     }
   }
 
+  // Learning's certificate/new-tool actions are split into a "started"
+  // step (in the canonical menu, self-report, small) and a "complete" step
+  // (the real point award) — the complete step only ever gets suggested
+  // once its matching started type is on record, so the big award always
+  // has a real "start" behind it rather than being a single unverified
+  // click. completedOneTimeTypes already tracks "started" for life once
+  // marked done, same mechanism as every other one-time action type here.
+  const LEARNING_COMPLETE_GATES: [string, string, string][] = [
+    ['LEARNING_CERTIFICATE_STARTED', 'LEARNING_CERTIFICATE', 'Complete your certificate'],
+    ['LEARNING_NEW_TOOL_STARTED', 'LEARNING_NEW_TOOL', 'Finish learning the new tool'],
+  ]
+  for (const [startedType, completeType, text] of LEARNING_COMPLETE_GATES) {
+    if (completedOneTimeTypes.has(startedType) && !usedTypes.has(completeType) && !completedOneTimeTypes.has(completeType)) {
+      suggestions.push({ text, actionType: completeType })
+      usedTypes.add(completeType)
+      total += estimateActionEffort({ actionType: completeType }).points
+    }
+  }
+
   // Says they like being visible (content, networking) but recent weeks
   // show none of it — surface the specific gap as its own suggestion
   // rather than leaving it implicit in the canonical menu below.

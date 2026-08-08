@@ -652,12 +652,6 @@ model CandidateProfile {
   workSampleType                   String? // "writing" | "code" | "design" | "other" | "none" — portfolio-type gate; "none" hides the Work Samples section/nav entirely
   // One-time points award for answering the work-sample-type gate — mirrors privacyOpenedUpBonusAt
   workSampleTypeBonusAt            DateTime?
-  substackHasAccount               Boolean? // null = not asked yet; gates the Substack Article/White Paper generator either way once answered
-  substackUrl                      String?
-  substackCritique                 Json? // { relevanceToBackground, noveltyOfIdeas, cadence, overallAssessment }
-  substackAnalyzedAt               DateTime?
-  // One-time points award for answering the Substack yes/no gate — mirrors privacyOpenedUpBonusAt
-  substackUnlockBonusAt            DateTime?
 
   // Daily loop — mood check-in + daily Victoria email
   actionWindow             ActionWindow     @default(VARIABLE) // "When are you most ready to take action?" — controls daily email send timing

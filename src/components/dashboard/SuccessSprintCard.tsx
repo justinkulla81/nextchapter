@@ -76,7 +76,23 @@ const PROFILE_DATA_ACTION_TYPES = new Set([
   'SALARY_CONFIRM',
   'WORK_AUTHORIZATION',
   'ANSWER_OPTIONAL_QUESTIONS',
+  'PROFILE_PICTURE_UPLOADED',
+  'LINKEDIN_PROFILE_ADDED',
 ])
+
+// Within a group, undone high-priority rows read first, then undone regular
+// rows, then completed (crossed-out) rows last — otherwise a finished item
+// sitting above an unfinished one reads as "what do I still need to do?"
+// confusion. Array.prototype.sort is stable in every engine this app runs
+// on, so rows within the same tier keep their original relative order.
+function sortForDisplay(rows: Row[]): Row[] {
+  function tier(row: Row): number {
+    if (row.completed && !row.recurring) return 2
+    if (row.priority) return 0
+    return 1
+  }
+  return [...rows].sort((a, b) => tier(a) - tier(b))
+}
 
 // Replaces every row whose actionType is in PROFILE_DATA_ACTION_TYPES with
 // one combined row. Points shown are what's still earnable (0 once every
@@ -184,8 +200,8 @@ function ActionRow({
         {recurring && targetCount ? (
           <span
             className={cn(
-              'shrink-0 text-xs font-semibold tabular-nums',
-              count >= targetCount ? 'text-brand' : 'text-muted-foreground'
+              'shrink-0 rounded-full text-xs font-semibold tabular-nums',
+              count >= targetCount ? 'bg-success/10 px-2 py-0.5 text-success' : 'text-muted-foreground'
             )}
           >
             {count} of {targetCount} this week
@@ -296,7 +312,12 @@ export function SuccessSprintCard({
   // setup that unlocks or improves everything else. Getting an interim job
   // joins that flag, but only once the search has run long enough that
   // bridging the gap becomes the priority (see LONG_SEARCH_WEEK_THRESHOLD).
+  // The Interview Prep Comfort Check is deliberately excluded — it's a
+  // real Personalize item but not foundational the way the others are, so
+  // it shouldn't compete for attention with things that unlock the rest of
+  // the app.
   function isPriorityActionType(actionType: string | undefined): boolean {
+    if (actionType === 'COMFORT_CHECK_CONFIRM') return false
     if (isPersonalizeType(actionType)) return true
     if (actionType === 'INTERIM_PROFILE_CREATED') return weeklySprintsCount >= LONG_SEARCH_WEEK_THRESHOLD
     return false
@@ -391,7 +412,7 @@ export function SuccessSprintCard({
               </p>
               <div className="space-y-4">
                 {GROUP_ORDER.map((group) => {
-                  const items = groups[group]
+                  const items = sortForDisplay(groups[group])
                   if (items.length === 0) return null
                   return (
                     <ActionGroup key={group} title={group}>

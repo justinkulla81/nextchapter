@@ -15,7 +15,6 @@ import { WorkSampleTypeGateForm } from '@/components/dashboard/WorkSampleTypeGat
 import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeadershipUnlockForm'
 import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
-import { SubstackSection } from '@/components/dashboard/SubstackSection'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from '@/app/dashboard/actions'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
@@ -188,8 +187,6 @@ export default async function CompleteProfilePage() {
         {isIncomplete('GIG_DIRECTORY_UNLOCK') && <GigDirectoryUnlockForm />}
 
         {isIncomplete('LINKEDIN_UNLOCK') && <LinkedInUnlockForm />}
-
-        {isIncomplete('SUBSTACK_UNLOCK') && <SubstackSection hasAccount={null} url={null} critique={null} />}
 
         {isIncomplete('PROFILE_PICTURE_UPLOADED') && (
           <div className="rounded-lg border border-border p-4">

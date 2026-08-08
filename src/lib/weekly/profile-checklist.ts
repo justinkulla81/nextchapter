@@ -46,7 +46,6 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   MARKETING_PLAN_UNLOCK: 'Set up your Marketing Plan',
   GIG_DIRECTORY_UNLOCK: 'Unlock the Interim/Gig Directory',
   LINKEDIN_UNLOCK: 'Unlock the LinkedIn post generator',
-  SUBSTACK_UNLOCK: 'Do you have a Substack?',
   PROFILE_PICTURE_UPLOADED: 'Add a profile picture',
   LINKEDIN_PROFILE_ADDED: 'Add your LinkedIn profile',
 }
@@ -75,7 +74,6 @@ async function fetchCompletion(candidateId: string) {
         contentUnlockBonusAt: true,
         gigDirectoryUnlockBonusAt: true,
         linkedinUnlockBonusAt: true,
-        substackUnlockBonusAt: true,
         profilePictureUrl: true,
         linkedInConfirmedAt: true,
       },
@@ -109,7 +107,6 @@ async function fetchCompletion(candidateId: string) {
     MARKETING_PLAN_UNLOCK: !!profile.contentUnlockBonusAt,
     GIG_DIRECTORY_UNLOCK: !!profile.gigDirectoryUnlockBonusAt,
     LINKEDIN_UNLOCK: !!profile.linkedinUnlockBonusAt,
-    SUBSTACK_UNLOCK: !!profile.substackUnlockBonusAt,
     // Live-checked against the field itself (not a separate one-time
     // timestamp) — removing the photo later correctly reverts this to
     // incomplete, same as it reverting the photo everywhere else it's shown.
