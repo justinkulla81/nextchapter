@@ -17,7 +17,8 @@
     "seed:remaining-learning-courses": "tsx --env-file=.env.local scripts/seed-remaining-learning-courses.ts",
     "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts",
     "backfill:profile-buckets": "tsx --env-file=.env.local scripts/backfill-profile-buckets.ts",
-    "backfill:resume-detection": "tsx --env-file=.env.local scripts/backfill-resume-attachment-detection.ts"
+    "backfill:resume-detection": "tsx --env-file=.env.local scripts/backfill-resume-attachment-detection.ts",
+    "backfill:dismiss-selfmail": "tsx --env-file=.env.local scripts/backfill-dismiss-nextchapter-selfmail.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

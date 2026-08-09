@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -45,7 +46,8 @@ import { Input } from '@/components/ui/input'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
+import { scoreToGrade, GRADE_LABEL, type Grade } from '@/lib/scoring/grade'
+import { Spinner } from '@/components/ui/spinner'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
@@ -101,15 +103,34 @@ const STATUS_LABELS: Record<string, string> = {
   blocked: "This site can't be fetched automatically",
 }
 
-export default async function JobFitPage() {
-  const profile = await getDashboardData()
-  // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
-  // analyzed, so they shouldn't block adding a URL-based one.
-  const activeCount = profile.jobPostings.filter(
-    (j) => j.source !== 'EMAIL_DETECTED' && j.interviewLandedAt === null && j.offerReceivedAt === null
-  ).length
-  const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
+function JobRecommendationsSkeleton() {
+  return (
+    <div id="job-recommendations" className="scroll-mt-4 space-y-4">
+      <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
+      <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+        <Spinner size={16} />
+        Finding jobs that fit you…
+      </div>
+    </div>
+  )
+}
 
+// Carries the two heaviest calls on this page — surfaceNewJobs (a
+// sequential external job-board API waterfall) and resolveCompanySizeBand
+// (a live LLM call for any company name seen here for the first time) — in
+// its own Suspense boundary so the rest of the page (stats, Interview
+// Tracking, Application Tracker, Company Tracker) never blocks on them.
+async function JobRecommendationsSection({
+  profile,
+  isAList,
+  gradeLetter,
+  boardPostings,
+}: {
+  profile: Awaited<ReturnType<typeof getDashboardData>>
+  isAList: boolean
+  gradeLetter: Grade
+  boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
+}) {
   // Auto-backfill the surfaced-job queue server-side so the list always
   // stays topped up at SURFACED_JOB_LIST_SIZE — reacting to one immediately
   // makes room for a fresh one rather than shrinking the list.
@@ -120,7 +141,7 @@ export default async function JobFitPage() {
     await surfaceNewJobs(profile.id, SURFACED_JOB_POOL_TARGET - unreactedCount)
   }
 
-  const [surfacedJobs, totalUnreactedCount, interestedJobs, grade, boardPostings] = await Promise.all([
+  const [surfacedJobs, totalUnreactedCount, interestedJobs] = await Promise.all([
     prisma.surfacedJob.findMany({
       where: { candidateId: profile.id, reaction: null },
       orderBy: { surfacedAt: 'desc' },
@@ -135,6 +156,150 @@ export default async function JobFitPage() {
       where: { candidateId: profile.id, reaction: 'INTERESTED' },
       orderBy: { reactedAt: 'desc' },
     }),
+  ])
+
+  // Free candidates only ever see the first SURFACED_JOB_FREE_PREVIEW
+  // matches — the rest stay locked until an A grade, folded into the same
+  // unlock count as the locked job-board postings below so there's one
+  // combined "unlock at an A grade" number for the whole Discover list.
+  const visibleSurfacedJobs = isAList ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
+  const lockedSurfacedCount = isAList ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
+  const openBoardPostings = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isAList)
+  const lockedBoardPostings = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isAList)
+
+  // computeBoardListingFitBucket/computeSurfacedJobFitBucket are synchronous
+  // (called inline in the JSX below), but resolveCompanySizeBand isn't —
+  // resolve every distinct company name shown in this section once, up
+  // front, into a normalizeOrgName-keyed map so each card looks its band up
+  // synchronously instead of awaiting per-card.
+  const companyNames = [...openBoardPostings.map((p) => p.companyName), ...surfacedJobs.map((j) => j.companyName)].filter(
+    (name): name is string => !!name
+  )
+  const distinctCompanyNames = [...new Set(companyNames)]
+  const resolvedBands = await Promise.all(distinctCompanyNames.map((name) => resolveCompanySizeBand(name)))
+  const companySizeBandByName = new Map(
+    distinctCompanyNames.map((name, i) => [normalizeOrgName(name), resolvedBands[i].band])
+  )
+  const companySizeBandFor = (companyName: string | null) =>
+    companyName ? (companySizeBandByName.get(normalizeOrgName(companyName)) ?? null) : null
+
+  // A Targeted listing is only shown to candidates who actually fit it —
+  // an Open one is shown to everyone regardless of fit (the bucket badge
+  // still tells them how good a match it is).
+  const visibleBoardPostings = openBoardPostings.filter((p) => {
+    if (p.distribution !== 'TARGETED') return true
+    return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
+  })
+
+  return (
+    <div id="job-recommendations" className="scroll-mt-4 space-y-4">
+      <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
+
+      {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No jobs surfaced yet — set a target role in your Goals to get started.
+        </p>
+      ) : (
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            {surfacedJobs.length > 0 && (
+              <p className="text-xs font-medium text-muted-foreground">
+                {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
+                automated search partners
+                {totalUnreactedCount > visibleSurfacedJobs.length &&
+                  ` — showing ${visibleSurfacedJobs.length} below`}
+              </p>
+            )}
+
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {visibleBoardPostings.map((posting) => (
+                <DiscoverJobCard
+                  key={posting.id}
+                  posting={posting}
+                  fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                />
+              ))}
+
+              {visibleSurfacedJobs.map((job) => (
+                <NextSurfacedJobCard
+                  key={job.id}
+                  job={job}
+                  fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                />
+              ))}
+            </div>
+
+            {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
+              <>
+                <UnlockAListCallout
+                  grade={gradeLetter}
+                  lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
+                />
+
+                <div className="divide-y divide-border rounded-lg border border-border">
+                  {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
+                    <LockedDiscoverJobCard key={posting.id} posting={posting} />
+                  ))}
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  {lockedSurfacedCount > 0 &&
+                    `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
+                  {boardPostings.length} total jobs in our ATS.
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <InterestedJobsList jobs={interestedJobs} />
+    </div>
+  )
+}
+
+export default async function JobFitPage() {
+  const profile = await getDashboardData()
+
+  // Job-application-related email activity (confirmations, recruiter
+  // outreach, interview invites, rejections, offers) — auto-detected via
+  // the same Gmail connection managed on the Live Conversations page.
+  // Networking-shaped sent mail stays there; this page only shows the
+  // job-outcome side of that same synced inbox.
+  //
+  // Run before anything below reads profile.jobPostings — this used to run
+  // much later in the function, after every jobPostings-derived stat had
+  // already been computed from the pre-sync snapshot fetched by
+  // getDashboardData() above. The sync wrote its new rows to the database
+  // correctly, but this render's already-fetched `profile` object never
+  // picked them up, so a reload right after applying to a job wouldn't show
+  // it until the *next* reload. Refetching jobPostings immediately after
+  // the sync fixes every consumer below (the stats tile, Interview
+  // Tracking, and Application Tracker) in one place.
+  const emailConnection = await prisma.emailConnection.findFirst({
+    where: { candidateId: profile.id, disconnectedAt: null },
+  })
+  if (emailConnection) {
+    await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+    profile.jobPostings = await prisma.jobPosting.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
+  // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
+  // analyzed, so they shouldn't block adding a URL-based one.
+  const activeCount = profile.jobPostings.filter(
+    (j) => j.source !== 'EMAIL_DETECTED' && j.interviewLandedAt === null && j.offerReceivedAt === null
+  ).length
+  const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
+
+  // The two heaviest calls on this page — surfaceNewJobs (a sequential
+  // external job-board API waterfall) and resolveCompanySizeBand (a live
+  // LLM call for any company name seen for the first time) — both live
+  // entirely inside JobRecommendationsSection below now, wrapped in
+  // Suspense, so the rest of the page never blocks on them.
+  const [grade, boardPostings] = await Promise.all([
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
     prisma.exclusiveJobPosting.findMany({
       where: {
@@ -148,37 +313,19 @@ export default async function JobFitPage() {
   ])
 
   const isAList = grade.grade === 'A'
-  // Free candidates only ever see the first SURFACED_JOB_FREE_PREVIEW
-  // matches — the rest stay locked until an A grade, folded into the same
-  // unlock count as the locked job-board postings below so there's one
-  // combined "unlock at an A grade" number for the whole Discover list.
-  const visibleSurfacedJobs = isAList ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
-  const lockedSurfacedCount = isAList ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
   // Needs isAList to decide which A_LIST_ONLY postings this candidate can
   // actually open — can't join the barrier above since grade isn't known
   // until it resolves.
   const watchlistView = await getWatchlistView(profile.id, isAList)
-  const openBoardPostings = boardPostings.filter(
-    (p) => p.audienceTier === 'ALL_CANDIDATES' || isAList
-  )
-  const lockedBoardPostings = boardPostings.filter(
-    (p) => p.audienceTier === 'A_LIST_ONLY' && !isAList
-  )
 
-  // computeBoardListingFitBucket/computeSurfacedJobFitBucket are synchronous
-  // (called inline in JSX below), but resolveCompanySizeBand isn't — resolve
-  // every distinct company name shown on this page once, up front, into a
-  // normalizeOrgName-keyed map so each render call can look its band up
-  // synchronously instead of awaiting per-card.
-  const companyNames = [
-    ...openBoardPostings.map((p) => p.companyName),
-    ...surfacedJobs.map((j) => j.companyName),
-    ...profile.jobPostings.map((j) => j.companyName),
-  ].filter((name): name is string => !!name)
-  const distinctCompanyNames = [...new Set(companyNames)]
-  const resolvedBands = await Promise.all(distinctCompanyNames.map((name) => resolveCompanySizeBand(name)))
+  // Scoped to just the companies already-applied-to postings mention — the
+  // separate, larger set of companies from board/surfaced listings is
+  // resolved independently inside JobRecommendationsSection so that slower
+  // lookup never blocks this page's main render.
+  const appliedCompanyNames = [...new Set(profile.jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
+  const appliedCompanyBands = await Promise.all(appliedCompanyNames.map((name) => resolveCompanySizeBand(name)))
   const companySizeBandByName = new Map(
-    distinctCompanyNames.map((name, i) => [normalizeOrgName(name), resolvedBands[i].band])
+    appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
   )
   const companySizeBandFor = (companyName: string | null) =>
     companyName ? (companySizeBandByName.get(normalizeOrgName(companyName)) ?? null) : null
@@ -213,14 +360,6 @@ export default async function JobFitPage() {
       .map((c) => ({ id: c.id, name: c.name }))
     return { linkedContacts, suggestedContacts }
   }
-
-  // A Targeted listing is only shown to candidates who actually fit it —
-  // an Open one is shown to everyone regardless of fit (the bucket badge
-  // still tells them how good a match it is).
-  const visibleBoardPostings = openBoardPostings.filter((p) => {
-    if (p.distribution !== 'TARGETED') return true
-    return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
-  })
 
   // Every posting with appliedAt set is "My Applications", regardless of
   // whether it was pasted in manually or auto-detected from email.
@@ -259,24 +398,6 @@ export default async function JobFitPage() {
   const boardPostingCountFor = (companyName: string | null) =>
     companyName ? (boardPostingCountByCompany.get(normalizeOrgName(companyName)) ?? 0) : 0
 
-  // Job-application-related email activity (confirmations, recruiter
-  // outreach, interview invites, rejections, offers) — auto-detected via
-  // the same Gmail connection managed on the Live Conversations page.
-  // Networking-shaped sent mail stays there; this page only shows the
-  // job-outcome side of that same synced inbox.
-  const emailConnection = await prisma.emailConnection.findFirst({
-    where: { candidateId: profile.id, disconnectedAt: null },
-  })
-  // This page previously only ever saw activity synced from a visit to
-  // Live Conversations (the only page that called syncGmailConnection) — a
-  // candidate who applied to a job and only checked this page would never
-  // see the confirmation email until they happened to visit that other
-  // page. Awaited inline (see sync-gmail.ts's batched-existence-check
-  // comment) so a real application confirmation shows up on the very next
-  // refresh here too.
-  if (emailConnection) {
-    await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
-  }
   const [jobEmailActivities, resumesSharedItems, emailRecruiterContactItems, calendarRecruiterContactItems] =
     emailConnection
       ? await Promise.all([
@@ -390,71 +511,14 @@ export default async function JobFitPage() {
         </div>
       </div>
 
-      <div id="job-recommendations" className="scroll-mt-4 space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
-
-        {visibleBoardPostings.length === 0 &&
-        lockedBoardPostings.length === 0 &&
-        surfacedJobs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No jobs surfaced yet — set a target role in your Goals to get started.
-          </p>
-        ) : (
-          <Card>
-            <CardContent className="space-y-3 pt-6">
-              {surfacedJobs.length > 0 && (
-                <p className="text-xs font-medium text-muted-foreground">
-                  {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
-                  automated search partners
-                  {totalUnreactedCount > visibleSurfacedJobs.length &&
-                    ` — showing ${visibleSurfacedJobs.length} below`}
-                </p>
-              )}
-
-              <div className="divide-y divide-border rounded-lg border border-border">
-                {visibleBoardPostings.map((posting) => (
-                  <DiscoverJobCard
-                    key={posting.id}
-                    posting={posting}
-                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-                  />
-                ))}
-
-                {visibleSurfacedJobs.map((job) => (
-                  <NextSurfacedJobCard
-                    key={job.id}
-                    job={job}
-                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                  />
-                ))}
-              </div>
-
-              {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-                <>
-                  <UnlockAListCallout
-                    grade={grade.grade}
-                    lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
-                  />
-
-                  <div className="divide-y divide-border rounded-lg border border-border">
-                    {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
-                      <LockedDiscoverJobCard key={posting.id} posting={posting} />
-                    ))}
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    {lockedSurfacedCount > 0 &&
-                      `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
-                    {boardPostings.length} total jobs in our ATS.
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <InterestedJobsList jobs={interestedJobs} />
-      </div>
+      <Suspense fallback={<JobRecommendationsSkeleton />}>
+        <JobRecommendationsSection
+          profile={profile}
+          isAList={isAList}
+          gradeLetter={grade.grade}
+          boardPostings={boardPostings}
+        />
+      </Suspense>
 
       <div id="interview-tracking" className="scroll-mt-4 space-y-4 rounded-lg border border-border p-4">
         <div>
