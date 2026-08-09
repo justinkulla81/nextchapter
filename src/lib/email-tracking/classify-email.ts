@@ -12,8 +12,8 @@ import {
   guessCompanyFromConfirmationSubject,
   isLikelyBulkOrPromotional,
 } from './ats-patterns'
-import { extractEmailAddress } from './email-address'
-import { NON_COMPANY_DOMAINS } from '@/lib/text/email-domain'
+import { extractDomain, extractEmailAddress } from './email-address'
+import { NON_COMPANY_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
 
 export interface ClassificationResult {
   activityType:
@@ -53,6 +53,15 @@ export function classifyInboundEmail(
   hasListUnsubscribeHeader = false
 ): ClassificationResult {
   const companyName = guessCompanyFromDomain(fromAddress)
+
+  // NextChapter's own transactional/admin mail — never a real job-search
+  // signal, and its own copy ("your offer bonus," "a new A-grade candidate")
+  // can otherwise trip REJECTION/OFFER/RECRUITER_OUTREACH matchers below.
+  // Ruled out before any category matcher runs, same as bulk/promotional.
+  const senderDomain = extractDomain(fromAddress)?.split('.').slice(-2).join('.') ?? null
+  if (senderDomain && NEXTCHAPTER_SENDING_DOMAINS.has(senderDomain)) {
+    return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName: null }
+  }
 
   // Bulk/promotional mail (retail promos, newsletters, lead-gen follow-ups,
   // financial solicitations) gets ruled out before any category matcher

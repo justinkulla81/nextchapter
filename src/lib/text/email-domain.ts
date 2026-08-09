@@ -17,6 +17,15 @@ export const NON_COMPANY_DOMAINS = new Set([
   ...ATS_AND_JOB_BOARD_DOMAINS,
 ])
 
+// Every transactional/admin email NextChapter itself sends — recruiter
+// digests, candidate nudges, offer-bonus notices, etc. A candidate whose
+// connected inbox also receives one of these (e.g. their Gmail is also a
+// recruiter account's work email) must never have it misread as an actual
+// recruiter/hiring-manager/coach contacting them, no matter what the
+// boilerplate copy inside says ("...unlocked visibility in the Recruiter
+// Database" trivially matches a bare \brecruiter\b pattern).
+export const NEXTCHAPTER_SENDING_DOMAINS = new Set(['launchyournextchapter.com'])
+
 function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1)
 }

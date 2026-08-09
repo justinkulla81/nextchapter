@@ -5,7 +5,7 @@ import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared, matchCourseCompletion } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { extractEmailAddress, extractDisplayName, extractDomain } from './email-address'
-import { ATS_AND_JOB_BOARD_DOMAINS } from '@/lib/text/email-domain'
+import { ATS_AND_JOB_BOARD_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
 import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
 import { syncJobPostingFromEmail } from './sync-job-postings'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
@@ -228,10 +228,18 @@ async function processMessage(
   // routinely name-drops "recruiter" without one ever being on the email.
   const senderRootDomain = extractDomain(from)?.split('.').slice(-2).join('.') ?? null
   const isFromAtsOrJobBoard = direction === 'INBOUND' && !!senderRootDomain && ATS_AND_JOB_BOARD_DOMAINS.has(senderRootDomain)
+  // NextChapter's own transactional/admin mail (a recruiter digest, an
+  // offer-bonus nudge, etc.) can land in a candidate's own connected inbox —
+  // e.g. their Gmail is also a recruiter account's work email — and its
+  // boilerplate copy routinely name-drops "recruiter" without one ever
+  // actually contacting them. Never a real person, so this is skipped the
+  // same way ATS/job-board bulk mail already is.
+  const isFromNextChapterItself = direction === 'INBOUND' && !!senderRootDomain && NEXTCHAPTER_SENDING_DOMAINS.has(senderRootDomain)
+  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself
   const roleText = `${subject} ${bodyPreview}`
-  const isRecruiterContact = !isFromAtsOrJobBoard && matchRecruiterRoleMention(roleText)
-  const isHiringManagerContact = !isFromAtsOrJobBoard && matchHiringManagerRoleMention(roleText)
-  const isCoachContact = !isFromAtsOrJobBoard && matchCoachRoleMention(roleText)
+  const isRecruiterContact = !skipRoleMatching && matchRecruiterRoleMention(roleText)
+  const isHiringManagerContact = !skipRoleMatching && matchHiringManagerRoleMention(roleText)
+  const isCoachContact = !skipRoleMatching && matchCoachRoleMention(roleText)
 
   await prisma.trackedEmailActivity.create({
     data: {

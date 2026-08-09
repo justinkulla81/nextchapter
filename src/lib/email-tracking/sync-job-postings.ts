@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { guessTitleFromConfirmationSubject } from './ats-patterns'
 import { applyInterviewLandedRewrite, applyInterviewPatternConfirmedRewrite } from '@/lib/scoring/rewrite-actions'
 import type { EmailActivityType } from '@prisma/client'
@@ -24,6 +24,26 @@ export async function syncJobPostingFromEmail(
   if (!normalized) return
 
   if (activityType === 'APPLICATION_CONFIRMATION') {
+    // Before recording this as a new application, check whether the
+    // candidate already has *any* tracked posting for this company —
+    // most commonly a manually URL-pasted row they added before applying.
+    // Without this check, a confirmation email always created a second,
+    // separate "My Applications" card even when the candidate was already
+    // tracking that exact job — the manual row's appliedAt just never got
+    // set, and the actual application looked untracked.
+    const existingForCompany = await prisma.jobPosting.findMany({
+      where: { candidateId, companyName: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, companyName: true, appliedAt: true },
+    })
+    const existingMatch = existingForCompany.find((p) => orgNamesMatch(p.companyName ?? '', companyName))
+    if (existingMatch) {
+      if (!existingMatch.appliedAt) {
+        await prisma.jobPosting.update({ where: { id: existingMatch.id }, data: { appliedAt: emailDate } })
+      }
+      return
+    }
+
     // A single application commonly triggers two confirmation emails (the
     // ATS's own receipt plus LinkedIn's separate notification) — dedupe by
     // company + calendar day so it isn't recorded as two applications.
@@ -39,7 +59,7 @@ export async function syncJobPostingFromEmail(
       },
       select: { companyName: true },
     })
-    if (sameDayRows.some((r) => normalizeOrgName(r.companyName ?? '') === normalized)) return
+    if (sameDayRows.some((r) => orgNamesMatch(r.companyName ?? '', companyName))) return
 
     await prisma.jobPosting.create({
       data: {
@@ -63,7 +83,7 @@ export async function syncJobPostingFromEmail(
     where: { candidateId, companyName: { not: null }, appliedAt: { not: null } },
     orderBy: { appliedAt: 'desc' },
   })
-  const match = candidates.find((p) => p.companyName && normalizeOrgName(p.companyName) === normalized)
+  const match = candidates.find((p) => p.companyName && orgNamesMatch(p.companyName, companyName))
   if (!match) return
 
   if (activityType === 'INTERVIEW_INVITE' && !match.interviewLandedAt) {

@@ -56,7 +56,18 @@ export function orgNamesMatch(a: string, b: string): boolean {
   const normA = normalizeOrgName(a)
   const normB = normalizeOrgName(b)
   if (!normA || !normB) return false
-  if (normA.length < 4 || normB.length < 4) return normA === normB
+  if (normA === normB) return true
+
+  // Some sources squash a multi-word name together with no space at all —
+  // e.g. a LinkedIn application-confirmation subject naming the company
+  // "CarterPierce" vs a candidate's own manually typed "Carter Pierce".
+  // Comparing with internal spaces stripped catches this without the
+  // false-positive risk plain containment below would add for short names.
+  const tightA = normA.replace(/\s+/g, '')
+  const tightB = normB.replace(/\s+/g, '')
+  if (tightA.length >= 4 && tightA === tightB) return true
+
+  if (normA.length < 4 || normB.length < 4) return false
   return normA.includes(normB) || normB.includes(normA)
 }
 
