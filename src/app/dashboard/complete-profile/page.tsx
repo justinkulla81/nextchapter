@@ -117,7 +117,6 @@ export default async function CompleteProfilePage() {
               primaryFunction={profile.primaryFunction}
               resumeLatestJobTitle={profile.resumeLatestJobTitle}
               yearsExperience={profile.yearsExperience}
-              highestLevelReached={profile.highestLevelReached}
               confirmedAt={profile.functionConfirmedAt}
             />
           </div>

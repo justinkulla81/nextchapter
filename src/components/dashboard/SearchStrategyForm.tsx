@@ -21,6 +21,8 @@ import {
   COMPANY_STAGE_OPTIONS,
   PRIMARY_FUNCTION_OPTIONS,
   LOCATION_PREFERENCE_OPTIONS,
+  GAP_DURATION_LABELS,
+  HIGHEST_LEVEL_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
@@ -54,6 +56,49 @@ export function SearchStrategyForm({
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <div className="space-y-2">
+        <Label htmlFor="gapDuration">How long have you been searching?</Label>
+        <p className="text-xs text-muted-foreground">
+          Keep this current as your search goes on — it&apos;s a real input to how your Market
+          Reality grade reads a longer search.
+        </p>
+        <Select name="gapDuration" defaultValue={profile.gapDuration ?? 'none'}>
+          <SelectTrigger id="gapDuration" className="w-full">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) =>
+                value && value !== 'none'
+                  ? GAP_DURATION_LABELS[value as keyof typeof GAP_DURATION_LABELS]
+                  : 'Not set'
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Not set</SelectItem>
+            {Object.entries(GAP_DURATION_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        {inferredIndustries.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            Your past industries included:{' '}
+            <span className="font-medium text-foreground">{inferredIndustries.join(', ')}</span>.
+            We&apos;ve added these below — remove any that don&apos;t apply, or add more.
+          </p>
+        )}
+        <Label>Target industries</Label>
+        <TagInput
+          name="targetIndustries"
+          defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
+          placeholder="e.g. Healthcare, Fintech"
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="primaryFunction">Your primary job function</Label>
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
           <SelectTrigger id="primaryFunction" className="w-full">
@@ -63,6 +108,47 @@ export function SearchStrategyForm({
             {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
               <SelectItem key={fn} value={fn}>
                 {fn}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="secondaryFunction">Add a second job function</Label>
+        <p className="text-xs text-muted-foreground">
+          Only set this if your most recent role(s) are in a different function than the bulk of
+          your career — we&apos;ll match jobs against both. Leave as &quot;None&quot; otherwise.
+        </p>
+        <Select name="secondaryFunction" defaultValue={profile.secondaryFunction ?? 'none'}>
+          <SelectTrigger id="secondaryFunction" className="w-full">
+            <SelectValue placeholder="None" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">None</SelectItem>
+            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
+              <SelectItem key={fn} value={fn}>
+                {fn}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="highestLevelReached">Seniority — highest level reached</Label>
+        <p className="text-xs text-muted-foreground">Drives how jobs are matched to you.</p>
+        <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
+          <SelectTrigger id="highestLevelReached" className="w-full">
+            <SelectValue placeholder="Select one">
+              {(value: string | null) => (value && value !== 'none' ? value : 'Not set')}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Not set</SelectItem>
+            {HIGHEST_LEVEL_OPTIONS.map((level) => (
+              <SelectItem key={level} value={level}>
+                {level}
               </SelectItem>
             ))}
           </SelectContent>
@@ -92,24 +178,17 @@ export function SearchStrategyForm({
         </div>
       </div>
 
-      <div className="space-y-2">
-        {inferredIndustries.length > 0 && profile.targetIndustries.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Your past industries included:{' '}
-            <span className="font-medium text-foreground">{inferredIndustries.join(', ')}</span>.
-            We&apos;ve added these below — remove any that don&apos;t apply, or add more.
-          </p>
-        )}
-        <Label>Target industries</Label>
-        <p className="text-xs text-muted-foreground">
-          Industries you&apos;d like to move into — separate from the industry your background is
-          actually in ({profile.industryContext || 'not set on your Profile yet'}).
-        </p>
-        <TagInput
-          name="targetIndustries"
-          defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
-          placeholder="e.g. Healthcare, Fintech"
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="isPivoting"
+          name="isPivoting"
+          value="on"
+          checked={isPivoting}
+          onCheckedChange={(checked) => setIsPivoting(checked === true)}
         />
+        <Label htmlFor="isPivoting" className="font-normal">
+          I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
+        </Label>
       </div>
 
       {isPivoting && (
@@ -134,48 +213,26 @@ export function SearchStrategyForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="secondaryFunction">
-          Also relevant: a recent function that&apos;s different from your primary
-        </Label>
-        <p className="text-xs text-muted-foreground">
-          Only set this if your most recent role(s) are in a different function than the bulk of
-          your career — we&apos;ll match jobs against both. Leave as &quot;None&quot; otherwise.
-        </p>
-        <Select name="secondaryFunction" defaultValue={profile.secondaryFunction ?? 'none'}>
-          <SelectTrigger id="secondaryFunction" className="w-full">
-            <SelectValue placeholder="None" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">None</SelectItem>
-            {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
-              <SelectItem key={fn} value={fn}>
-                {fn}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="secondaryIndustryContext">
-          Also relevant: a second industry your background spans, different from your primary
-          {profile.industryContext ? ` (${profile.industryContext})` : ''}
-        </Label>
-        <p className="text-xs text-muted-foreground">
-          Only set this if your actual work history spans two industries (e.g. a recent pivot) —
-          we&apos;ll match jobs against both. Leave blank otherwise. Your primary industry itself is
-          set on your{' '}
-          <a href="/dashboard/profile#industry" className="underline">
-            Profile page
-          </a>
-          .
-        </p>
-        <Input
-          id="secondaryIndustryContext"
-          name="secondaryIndustryContext"
-          defaultValue={profile.secondaryIndustryContext ?? ''}
-          placeholder="e.g. Fintech"
-        />
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="willingToStartLower"
+            name="willingToStartLower"
+            value="on"
+            defaultChecked={profile.willingToStartLower}
+            onCheckedChange={setWillingToStartLower}
+          />
+          <Label htmlFor="willingToStartLower" className="font-normal">
+            I&apos;m willing to start at a lower level or title
+          </Label>
+        </div>
+        {willingToStartLower && (
+          <Textarea
+            name="startLowerRationale"
+            placeholder="Why? (optional, but helps employers understand the offer)"
+            rows={2}
+            defaultValue={profile.startLowerRationale ?? ''}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -266,142 +323,109 @@ export function SearchStrategyForm({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Checkbox id="compFlexible" name="compFlexible" value="on" defaultChecked={profile.compFlexible} />
-          <Label htmlFor="compFlexible" className="font-normal">
-            I have flexibility on compensation
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="equityImportant"
-            name="equityImportant"
-            value="on"
-            defaultChecked={profile.equityImportant}
-          />
-          <Label htmlFor="equityImportant" className="font-normal">
-            Equity matters to me
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="willingToStartLower"
-            name="willingToStartLower"
-            value="on"
-            defaultChecked={profile.willingToStartLower}
-            onCheckedChange={setWillingToStartLower}
-          />
-          <Label htmlFor="willingToStartLower" className="font-normal">
-            I&apos;m willing to start at a lower level or title
-          </Label>
-        </div>
-        {willingToStartLower && (
-          <Textarea
-            name="startLowerRationale"
-            placeholder="Why? (optional, but helps employers understand the offer)"
-            rows={2}
-            defaultValue={profile.startLowerRationale ?? ''}
-          />
-        )}
-      </div>
+      <div className="space-y-4 rounded-lg border border-border p-4">
+        <Label className="text-sm font-semibold">Search Goals and Red Lines</Label>
 
-      <div className="space-y-2">
-        <Label htmlFor="applicationVolumeGoal">
-          Applications per week you&apos;re aiming for{' '}
-          <span className="font-normal text-muted-foreground">(optional)</span>
-        </Label>
-        <Input
-          id="applicationVolumeGoal"
-          name="applicationVolumeGoal"
-          type="number"
-          min={0}
-          defaultValue={profile.applicationVolumeGoal ?? ''}
-          className="w-32"
-        />
-      </div>
-
-      {showSkillsNeeded && (
         <div className="space-y-2">
-          <Label htmlFor="skillsStillNeeded">
-            Skills you need to build to get and do your next job{' '}
+          <Label htmlFor="applicationVolumeGoal">
+            Applications per week you&apos;re aiming for{' '}
             <span className="font-normal text-muted-foreground">(optional)</span>
           </Label>
-          <Textarea
-            id="skillsStillNeeded"
-            name="skillsStillNeeded"
-            rows={2}
-            defaultValue={profile.skillsStillNeeded ?? ''}
-            placeholder="e.g. AI, public speaking, P&L skills, new AI tools for my job function"
+          <Input
+            id="applicationVolumeGoal"
+            name="applicationVolumeGoal"
+            type="number"
+            min={0}
+            defaultValue={profile.applicationVolumeGoal ?? 15}
+            className="w-32"
           />
         </div>
-      )}
 
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="isPivoting"
-          name="isPivoting"
-          value="on"
-          checked={isPivoting}
-          onCheckedChange={(checked) => setIsPivoting(checked === true)}
-        />
-        <Label htmlFor="isPivoting" className="font-normal">
-          I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
-        </Label>
-      </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Checkbox id="compFlexible" name="compFlexible" value="on" defaultChecked={profile.compFlexible} />
+            <Label htmlFor="compFlexible" className="font-normal">
+              I have flexibility on compensation
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="equityImportant"
+              name="equityImportant"
+              value="on"
+              defaultChecked={profile.equityImportant}
+            />
+            <Label htmlFor="equityImportant" className="font-normal">
+              Equity matters to me
+            </Label>
+          </div>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="openToRelocation"
+              name="openToRelocation"
+              value="on"
+              checked={openToRelocation}
+              onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
+            />
+            <Label htmlFor="openToRelocation" className="font-normal">
+              I&apos;m open to relocating for the right role
+            </Label>
+          </div>
+          {openToRelocation && (
+            <Textarea
+              name="relocationNotes"
+              placeholder="Relocation notes (optional)"
+              defaultValue={profile.relocationNotes ?? ''}
+              rows={2}
+            />
+          )}
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="interimConsultingInterest"
+              name="interimConsultingInterest"
+              defaultChecked={profile.interimConsultingInterest}
+            />
+            <Label htmlFor="interimConsultingInterest" className="font-normal">
+              I&apos;d consider fractional or interim consulting work while I search
+            </Label>
+          </div>
+        </div>
 
-      <div className="space-y-3">
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="openToRelocation"
-            name="openToRelocation"
-            value="on"
-            checked={openToRelocation}
-            onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
-          />
-          <Label htmlFor="openToRelocation" className="font-normal">
-            I&apos;m open to relocating for the right role
+        <div className="space-y-2">
+          <Label>
+            Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
           </Label>
+          <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
+          <TradeoffRanking profile={profile} />
         </div>
-        {openToRelocation && (
-          <Textarea
-            name="relocationNotes"
-            placeholder="Relocation notes (optional)"
-            defaultValue={profile.relocationNotes ?? ''}
-            rows={2}
-          />
+
+        {showSkillsNeeded && (
+          <div className="space-y-2">
+            <Label htmlFor="skillsStillNeeded">
+              Skills you need to build to get and do your next job{' '}
+              <span className="font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <Textarea
+              id="skillsStillNeeded"
+              name="skillsStillNeeded"
+              rows={2}
+              defaultValue={profile.skillsStillNeeded ?? ''}
+              placeholder="e.g. AI, public speaking, P&L skills, new AI tools for my job function"
+            />
+          </div>
         )}
-      </div>
 
-      <div className="space-y-2">
-        <Label>
-          Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
-        </Label>
-        <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
-        <TradeoffRanking profile={profile} />
-      </div>
-
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="interimConsultingInterest"
-          name="interimConsultingInterest"
-          defaultChecked={profile.interimConsultingInterest}
-        />
-        <Label htmlFor="interimConsultingInterest" className="font-normal">
-          I&apos;d consider fractional or interim consulting work while I search
-        </Label>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="dealBreakers">
-          Are there any other important considerations for your next job? (optional)
-        </Label>
-        <Textarea
-          id="dealBreakers"
-          name="dealBreakers"
-          rows={2}
-          defaultValue={profile.dealBreakers ?? ''}
-        />
+        <div className="space-y-2">
+          <Label htmlFor="dealBreakers">
+            Are there any other important considerations for your next job? (optional)
+          </Label>
+          <Textarea
+            id="dealBreakers"
+            name="dealBreakers"
+            rows={2}
+            defaultValue={profile.dealBreakers ?? ''}
+          />
+        </div>
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

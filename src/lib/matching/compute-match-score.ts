@@ -67,6 +67,7 @@ export function computeMatchScore(
     // penalty.
     isPeopleManager?: boolean | null
     currentState?: string | null
+    secondaryFunction?: string | null
   },
   role: Pick<RoleProfile, 'primaryFunction' | 'roleLevel' | 'remotePolicy' | 'locationRequirement' | 'compMin' | 'compMax'> & {
     // Resolved separately by the caller — RoleProfile callers pass
@@ -78,9 +79,15 @@ export function computeMatchScore(
 ): MatchResult {
   let score = 0
 
-  // Function match — largest single weight (40 pts)
+  // Function match — largest single weight (40 pts). A match against the
+  // candidate's secondary function (their most recent function, when it
+  // differs from their career-long primary) still counts as real signal —
+  // just not as strong as a primary match, since it's a narrower slice of
+  // their background.
   if (role.primaryFunction && candidate.primaryFunction === role.primaryFunction) {
     score += 40
+  } else if (role.primaryFunction && candidate.secondaryFunction === role.primaryFunction) {
+    score += 28
   } else if (!role.primaryFunction) {
     score += 20 // role didn't specify — neutral credit rather than penalizing
   }

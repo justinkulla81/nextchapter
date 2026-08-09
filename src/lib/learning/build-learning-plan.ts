@@ -91,6 +91,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
       where: { id: candidateId },
       select: {
         primaryFunction: true,
+        secondaryFunction: true,
         targetRoleType: true,
         aiFlexibilityLevel: true,
         isPeopleManager: true,
@@ -103,6 +104,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         aiContextBannerDismissedAt: true,
         certifications: true,
         industryContext: true,
+        targetIndustries: true,
       },
     }),
     prisma.hireabilityReport.findFirst({
@@ -147,6 +149,19 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   // the Tools section (AI tools + function training), which isn't split
   // by role the way Certifications now is.
   const contentFunction = targetFunctionResolved ?? currentFunction
+
+  // A candidate's most recent role(s) can be in a different function than
+  // the bulk of their career (secondaryFunction) — treated as part of
+  // "your background" alongside currentFunction, not a replacement for it.
+  const backgroundFunctions = Array.from(new Set([currentFunction, candidate.secondaryFunction].filter((f): f is string => !!f)))
+  const contentFunctions = Array.from(new Set([contentFunction, candidate.secondaryFunction].filter((f): f is string => !!f)))
+
+  // Full target-industries list, plus the candidate's actual background
+  // industry — either can drive industry-tagged content, not just the
+  // single industryContext value.
+  const industryNames = Array.from(
+    new Set([candidate.industryContext, ...candidate.targetIndustries].filter((i): i is string => !!i))
+  )
 
   // Real management signal — any one of: confirmed people manager, a real
   // team managed, an already-senior title, or explicitly targeting an
@@ -201,7 +216,12 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   // Curated tools merged with the candidate's own familiarity/custom
   // additions — one list, so "already know this" and "added by me" tools
   // sit alongside the curated recommendations instead of a separate list.
-  const curatedTools = getAiToolsForFunction(contentFunction)
+  const curatedTools =
+    contentFunctions.length > 0
+      ? Array.from(
+          new Map(contentFunctions.flatMap((fn) => getAiToolsForFunction(fn)).map((tool) => [tool.name, tool])).values()
+        )
+      : getAiToolsForFunction(null)
   const familiarToolNames = new Set(toolFamiliarityRows.filter((r) => !r.isCustom).map((r) => r.toolName))
   const aiTools: LearningPlanAiTool[] = [
     ...curatedTools.map((tool) => ({
@@ -224,9 +244,10 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   const sections: LearningPlanSection[] = []
 
-  const certificationsForCurrent = currentFunction
-    ? certificationCourses.filter((c) => c.targetFunctions.includes(currentFunction))
-    : []
+  const certificationsForCurrent =
+    backgroundFunctions.length > 0
+      ? certificationCourses.filter((c) => backgroundFunctions.some((fn) => c.targetFunctions.includes(fn)))
+      : []
   if (certificationsForCurrent.length > 0) {
     sections.push({
       id: 'certifications-current',
@@ -264,25 +285,30 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   // Admin-tagged, opt-in — Course.industries starts empty until an admin
   // tags content, so this section legitimately renders nothing for most
-  // candidates today. Matched loosely (bidirectional substring) against the
-  // candidate's free-text industryContext, same tolerance as the
-  // certification match above.
-  const normalizedIndustry = candidate.industryContext?.toLowerCase() ?? null
-  const industryCourses = normalizedIndustry
-    ? allCourses.filter((c) =>
-        c.industries.some((i) => normalizedIndustry.includes(i.toLowerCase()) || i.toLowerCase().includes(normalizedIndustry))
-      )
-    : []
+  // candidates today. Matched loosely (bidirectional substring) against
+  // every industry the candidate cares about — their actual background
+  // (industryContext) plus the full multi-select targetIndustries list, not
+  // just a single value.
+  const normalizedIndustries = industryNames.map((i) => i.toLowerCase())
+  const industryCourses =
+    normalizedIndustries.length > 0
+      ? allCourses.filter((c) =>
+          c.industries.some((i) =>
+            normalizedIndustries.some((ni) => ni.includes(i.toLowerCase()) || i.toLowerCase().includes(ni))
+          )
+        )
+      : []
   if (industryCourses.length > 0) {
+    const industryLabel = industryNames.length === 1 ? industryNames[0] : industryNames.join(', ')
     sections.push({
       id: 'industry',
-      title: `For The ${candidate.industryContext} Industry`,
+      title: industryNames.length === 1 ? `For The ${industryLabel} Industry` : 'For Your Target Industries',
       items: withRationale(
         industryCourses.map(toLearningResource),
         'industry',
         gaps,
         skillsStillNeeded,
-        `Tagged as relevant for the ${candidate.industryContext} industry.`,
+        `Tagged as relevant for ${industryLabel}.`,
         completionCounts,
         candidate.certifications
       ),
@@ -321,10 +347,13 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   // the same role, not a separate disconnected list further down. Matched
   // as a case-insensitive substring, same semantics as the old
   // matchByFunction-based getFunctionTraining helper.
-  const normalizedContentFunction = contentFunction?.toLowerCase() ?? null
-  const relevantFunctionTraining = normalizedContentFunction
-    ? functionTrainingCourses.filter((c) => c.keywords.some((k) => normalizedContentFunction.includes(k.toLowerCase())))
-    : []
+  const normalizedContentFunctions = contentFunctions.map((f) => f.toLowerCase())
+  const relevantFunctionTraining =
+    normalizedContentFunctions.length > 0
+      ? functionTrainingCourses.filter((c) =>
+          c.keywords.some((k) => normalizedContentFunctions.some((ncf) => ncf.includes(k.toLowerCase())))
+        )
+      : []
   const functionTraining = withRationale(
     relevantFunctionTraining.map(toLearningResource),
     contentFunction ?? '',

@@ -147,7 +147,6 @@ export default async function ProfilePage() {
               primaryFunction={profile.primaryFunction}
               resumeLatestJobTitle={profile.resumeLatestJobTitle}
               yearsExperience={profile.yearsExperience}
-              highestLevelReached={profile.highestLevelReached}
               confirmedAt={profile.functionConfirmedAt}
             />
           </CardContent>

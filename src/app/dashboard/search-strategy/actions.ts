@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
+import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import type { GapDurationBucket } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
@@ -44,7 +46,10 @@ export async function updateSearchStrategy(
   const targetFunction = (formData.get('targetFunction') as string | null) || null
   const secondaryFunctionRaw = (formData.get('secondaryFunction') as string | null) || null
   const secondaryFunction = secondaryFunctionRaw === 'none' ? null : secondaryFunctionRaw
-  const secondaryIndustryContext = (formData.get('secondaryIndustryContext') as string | null)?.trim() || null
+  const gapDurationRaw = (formData.get('gapDuration') as string | null) || null
+  const gapDuration = gapDurationRaw === 'none' ? null : (gapDurationRaw as GapDurationBucket | null)
+  const highestLevelReachedRaw = (formData.get('highestLevelReached') as string | null) || null
+  const highestLevelReached = highestLevelReachedRaw === 'none' ? null : highestLevelReachedRaw
   const targetCompanySize = (formData.get('targetCompanySize') as string | null) || null
   const targetCompanyStage = (formData.get('targetCompanyStage') as string | null) || null
   const remotePreference = (formData.get('remotePreference') as string | null) || null
@@ -81,7 +86,8 @@ export async function updateSearchStrategy(
       primaryFunction,
       targetFunction,
       secondaryFunction,
-      secondaryIndustryContext,
+      gapDuration,
+      highestLevelReached,
       targetCompanySize,
       targetCompanyStage,
       remotePreference,
@@ -111,7 +117,17 @@ export async function updateSearchStrategy(
 
   captureServerEvent(profile.id, 'search_strategy_updated', {})
 
+  // highestLevelReached feeds levelRankScore (job-fit matching sitewide) —
+  // same recompute FunctionConfirmForm's confirm action triggers.
+  try {
+    await recomputeCandidateLevelRank(profile.id)
+  } catch (error) {
+    console.error('Failed to recompute level rank after search strategy update:', error)
+  }
+
   revalidatePath('/dashboard/search-strategy')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/hireability-report')
 }
 
 // Explicit refresh for the self-caching Search Strategy Guidance paragraph —

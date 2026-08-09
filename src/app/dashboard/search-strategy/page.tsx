@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getSearchStage, SEARCH_STAGE_MESSAGE } from '@/lib/search-strategy'
-import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
+import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { regenerateSearchStrategyGuidance } from '@/app/dashboard/search-strategy/actions'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
@@ -92,7 +93,12 @@ export default async function SearchStrategyPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Strategy Guidance</CardTitle>
+          <div className="flex items-center gap-3">
+            <VictoriaAvatar size={36} />
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Strategy Guidance from Victoria
+            </CardTitle>
+          </div>
           {strategyGuidance && (
             <form action={regenerateSearchStrategyGuidance}>
               <SubmitButton variant="outline" size="sm" pendingLabel="Regenerating…">
@@ -103,7 +109,42 @@ export default async function SearchStrategyPage() {
         </CardHeader>
         <CardContent>
           {strategyGuidance ? (
-            <p className="text-foreground">{strategyGuidance}</p>
+            <div className="space-y-4">
+              <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
+                <div>
+                  <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    What&apos;s working
+                  </p>
+                  <p className="mt-1 text-foreground">{strategyGuidance.pros}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    What to watch
+                  </p>
+                  <p className="mt-1 text-foreground">{strategyGuidance.cons}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    What I&apos;d change
+                  </p>
+                  <p className="mt-1 text-foreground">{strategyGuidance.suggestedChanges}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  {getSearchStrategyActions(profile).map((action) => (
+                    <Link
+                      key={action.href}
+                      href={action.href}
+                      className="rounded-full border border-border bg-white px-3 py-1 text-xs text-foreground transition-colors hover:border-brand/40 hover:text-brand"
+                    >
+                      {action.label} →
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">
               Fill in your target role or function above in Your Search Goals, then come back — we&apos;ll
