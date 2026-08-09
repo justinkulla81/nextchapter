@@ -294,6 +294,11 @@ enum ApplicationChannel {
   OTHER
 }
 
+enum DeclineParty {
+  COMPANY // they passed on the candidate — rejection, real or auto-detected
+  CANDIDATE // the candidate withdrew or passed on the opportunity
+}
+
 enum NotificationTier {
   FULL // daily nudge every day
   ESSENTIALS // daily nudge twice a week (Mon/Thu) instead of daily
@@ -1738,6 +1743,7 @@ model JobPosting {
   appliedAt              DateTime? // gates "I got an interview" — applying is a prerequisite, not just landing one
   channel                ApplicationChannel? // captured at the moment of marking applied; null on rows logged before this field existed
   declinedAt             DateTime? // rejection — set manually or auto via a detected REJECTION email for the same company
+  declinedBy             DeclineParty? // who ended it — COMPANY ("they passed") or CANDIDATE ("I passed"); null on rows logged before this field existed
   backchannelEmailSentAt DateTime? // dedupes the one-off "you might know someone at this company" email to once per application
   coverLetter            String?             @db.Text
   coverLetterError       String?

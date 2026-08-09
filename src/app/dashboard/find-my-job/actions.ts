@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import type { ApplicationChannel, JobReactionType, NotInterestedReason } from '@prisma/client'
+import type { ApplicationChannel, DeclineParty, JobReactionType, NotInterestedReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -456,7 +456,7 @@ export async function markOfferReceived(jobPostingId: string) {
   revalidatePath('/dashboard/find-my-job')
 }
 
-export async function markDeclined(jobPostingId: string) {
+export async function markDeclined(jobPostingId: string, declinedBy: DeclineParty) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -471,10 +471,10 @@ export async function markDeclined(jobPostingId: string) {
 
   await prisma.jobPosting.update({
     where: { id: jobPostingId },
-    data: { declinedAt: new Date() },
+    data: { declinedAt: new Date(), declinedBy },
   })
 
-  captureServerEvent(profile.id, 'application_declined', { jobId: jobPostingId })
+  captureServerEvent(profile.id, 'application_declined', { jobId: jobPostingId, declinedBy })
 
   revalidatePath('/dashboard/find-my-job')
 }

@@ -461,7 +461,9 @@ export default async function JobFitPage() {
                 const status = posting.offerReceivedAt
                   ? 'Offer received'
                   : posting.declinedAt
-                    ? 'Declined'
+                    ? posting.declinedBy === 'CANDIDATE'
+                      ? 'I passed'
+                      : 'They passed'
                     : posting.interviewLandedAt
                       ? 'Interview'
                       : 'Applied'
@@ -532,11 +534,18 @@ export default async function JobFitPage() {
                           </form>
                         )}
                         {!posting.declinedAt && !posting.offerReceivedAt && (
-                          <form action={markDeclined.bind(null, posting.id)}>
-                            <SubmitButton variant="outline" size="sm">
-                              Declined
-                            </SubmitButton>
-                          </form>
+                          <>
+                            <form action={markDeclined.bind(null, posting.id, 'COMPANY')}>
+                              <SubmitButton variant="outline" size="sm">
+                                They passed on me
+                              </SubmitButton>
+                            </form>
+                            <form action={markDeclined.bind(null, posting.id, 'CANDIDATE')}>
+                              <SubmitButton variant="outline" size="sm">
+                                I passed on them
+                              </SubmitButton>
+                            </form>
+                          </>
                         )}
                         {!posting.offerReceivedAt && !posting.declinedAt && (
                           <form action={markOfferReceived.bind(null, posting.id)}>
@@ -603,7 +612,9 @@ export default async function JobFitPage() {
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {posting.declinedAt
-                      ? 'Declined'
+                      ? posting.declinedBy === 'CANDIDATE'
+                        ? 'I passed'
+                        : 'They passed'
                       : posting.offerReceivedAt
                         ? 'Offer received'
                         : posting.interviewLandedAt
@@ -718,7 +729,9 @@ export default async function JobFitPage() {
                   )}
 
                   {posting.declinedAt && (
-                    <p className="text-sm font-medium text-muted-foreground">Declined</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {posting.declinedBy === 'CANDIDATE' ? 'I passed' : 'They passed'}
+                    </p>
                   )}
 
                   {posting.fitScore !== null && !posting.declinedAt && (
@@ -755,11 +768,18 @@ export default async function JobFitPage() {
                         </form>
                       )}
                       {posting.appliedAt && !posting.offerReceivedAt && (
-                        <form action={markDeclined.bind(null, posting.id)}>
-                          <SubmitButton variant="outline" size="sm">
-                            Declined
-                          </SubmitButton>
-                        </form>
+                        <>
+                          <form action={markDeclined.bind(null, posting.id, 'COMPANY')}>
+                            <SubmitButton variant="outline" size="sm">
+                              They passed on me
+                            </SubmitButton>
+                          </form>
+                          <form action={markDeclined.bind(null, posting.id, 'CANDIDATE')}>
+                            <SubmitButton variant="outline" size="sm">
+                              I passed on them
+                            </SubmitButton>
+                          </form>
+                        </>
                       )}
                       {posting.offerReceivedAt && (
                         <Button nativeButton={false} render={<Link href="/dashboard/got-hired" />} size="sm">

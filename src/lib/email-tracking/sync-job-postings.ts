@@ -93,6 +93,9 @@ export async function syncJobPostingFromEmail(
   }
 
   if (activityType === 'REJECTION' && !match.declinedAt && !match.offerReceivedAt) {
-    await prisma.jobPosting.update({ where: { id: match.id }, data: { declinedAt: emailDate } })
+    await prisma.jobPosting.update({
+      where: { id: match.id },
+      data: { declinedAt: emailDate, declinedBy: 'COMPANY' },
+    })
   }
 }
