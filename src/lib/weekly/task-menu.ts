@@ -47,8 +47,16 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: 'Complete a mock interview', actionType: 'INTERVIEW_PREP' },
   { text: 'Practice answers to 3 behavioral questions', actionType: 'INTERVIEW_BEHAVIORAL_PRACTICE' },
 
-  // Job search itself — the two ways to close the income gap: the target
-  // role, and something to bridge the time until you land it.
-  { text: 'Look for full-time jobs', actionType: 'JOB_BOARD_USAGE_CONFIRMED' },
+  // Job search itself — applying, reacting to what's recommended, and
+  // tracking companies you want to work for, plus something to bridge the
+  // time until you land it. (Previously listed 'Look for full-time jobs'
+  // against JOB_BOARD_USAGE_CONFIRMED, but that action type's own check-in
+  // UI was removed with nothing rebuilt in its place — see
+  // profile-checklist.ts's "dead" comment on the same type — so it could
+  // never actually be completed. Replaced with the three real, verified
+  // job-search actions below.)
+  { text: 'Apply to a new job', actionType: 'JOB_APPLICATION_SUBMITTED' },
+  { text: 'React to a job recommendation', actionType: 'JOB_INTERESTED_REACTION' },
+  { text: 'Add a company to your tracker', actionType: 'WATCHLIST_ADD' },
   { text: 'Get an interim job to fill the gap', actionType: 'INTERIM_PROFILE_CREATED' },
 ]

@@ -27,6 +27,9 @@ const AUTO_DETECTED_SIGNAL: Partial<Record<string, string>> = {
   INTRO_CONNECTION_REQUEST_SENT: 'Detected automatically when you ask for an introduction from your connected Gmail.',
   INTERVIEW_ATTENDED: 'Detected automatically from an interview on your connected Calendar.',
   LEARNING_SESSION_ATTENDED: 'Detected automatically from a course/webinar/training block on your connected Calendar.',
+  JOB_APPLICATION_SUBMITTED: 'Detected automatically when you mark a tracked job Applied on the Jobs page.',
+  JOB_INTERESTED_REACTION: "Detected automatically when you react Interested to a job recommendation on the Jobs page.",
+  WATCHLIST_ADD: 'Detected automatically when you add a company to your tracker on the Jobs page.',
 }
 
 // Marking a Weekly Search Sprint action done/started now only happens here
@@ -59,7 +62,18 @@ export async function SprintActionCompletion({
   const relevantCommitted = committedActions.filter(
     (a) => a.actionType && actionTypes.includes(a.actionType) && !isVerifiedActionType(a.actionType)
   )
-  const selfReportCommitted = relevantCommitted.filter((a) => !isAutoDetectedActionType(a.actionType))
+  // A completed one-time item used to stay visible, struck through, for the
+  // rest of the week it was done in (only hidden starting the following
+  // week) — meant as a small "yes, you did this" acknowledgment. In
+  // practice it just left stale, unclickable rows cluttering a box meant to
+  // show what's left to do, so a completed one-time item now drops out of
+  // the Action Plan immediately, same week or not. Recurring items are
+  // unaffected — those never render struck through in the first place (see
+  // the "Started" pill below), since there's no single finish line to
+  // cross off.
+  const selfReportCommitted = relevantCommitted.filter(
+    (a) => !isAutoDetectedActionType(a.actionType) && !(a.completed && !a.recurring)
+  )
 
   const usedKeys = new Set(committedActions.map((a) => a.actionType ?? a.text))
   const suggestedActions = await getSuggestedActions(candidateId, weeklySprintsCount + 1)
@@ -102,15 +116,8 @@ export async function SprintActionCompletion({
           const realIndex = committedActions.indexOf(action)
           return (
             <div key={realIndex} className="flex items-center justify-between gap-3">
-              <span
-                className={cn(
-                  'text-sm',
-                  action.completed && !action.recurring ? 'text-muted-foreground line-through' : 'text-foreground'
-                )}
-              >
-                {action.completed && !action.recurring ? '✓ ' : ''}
-                {action.text}{' '}
-                <span className="text-xs text-muted-foreground">({action.points} pts)</span>
+              <span className="text-sm text-foreground">
+                {action.text} <span className="text-xs text-muted-foreground">({action.points} pts)</span>
               </span>
               {action.recurring ? (
                 action.completed ? (
@@ -125,9 +132,13 @@ export async function SprintActionCompletion({
                   </form>
                 )
               ) : (
+                // A completed non-recurring action is filtered out of
+                // selfReportCommitted above (see that filter's comment) —
+                // so by the time an item reaches this branch it's always
+                // still open, never done.
                 <form action={toggleSprintAction.bind(null, realIndex)} className="shrink-0">
-                  <SubmitButton variant={action.completed ? 'ghost' : 'outline'} size="sm">
-                    {action.completed ? 'Edit' : 'Mark done'}
+                  <SubmitButton variant="outline" size="sm">
+                    Mark done
                   </SubmitButton>
                 </form>
               )}

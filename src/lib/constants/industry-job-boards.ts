@@ -10,24 +10,6 @@ export const GENERAL_JOB_BOARDS: JobBoardRecommendation[] = [
   { name: 'TheLadders', url: 'https://www.theladders.com' },
 ]
 
-// Voluntary, opt-in browsing categories — never shown, hidden, or matched
-// based on a candidate's own EEOC self-ID answers (CandidateProfile's
-// eeocGenderIdentity/eeocRaceEthnicity exist solely for aggregate
-// bias-detection reporting — see src/lib/admin/bias-detection.ts — and are
-// never used to change what any individual candidate sees). Every
-// candidate can open either list; nothing here is auto-personalized.
-export const WOMEN_FOCUSED_JOB_BOARDS: JobBoardRecommendation[] = [
-  { name: 'Fairygodboss', url: 'https://fairygodboss.com' },
-  { name: 'PowerToFly', url: 'https://powertofly.com' },
-  { name: 'Elpha', url: 'https://elpha.com' },
-]
-
-export const DIVERSITY_FOCUSED_JOB_BOARDS: JobBoardRecommendation[] = [
-  { name: 'Jopwell', url: 'https://www.jopwell.com' },
-  { name: 'DiversityJobs.com', url: 'https://www.diversityjobs.com' },
-  { name: 'Prospanica', url: 'https://www.prospanica.org' },
-]
-
 // Keyed by loose keyword match against a candidate's target industries —
 // only includes boards well-known enough to be confident they're real and
 // still operating. Deliberately a small starting set, not exhaustive —

@@ -446,14 +446,16 @@ export function isVerifiedActionType(actionType: string | undefined): boolean {
   return !!actionType && VERIFIED_ACTION_TYPES.has(actionType)
 }
 
-// Action types with a real automatic detector (Gmail sync, Calendar sync,
-// or CSV import) — distinct from VERIFIED_ACTION_TYPES above, which feeds
-// reconcileVerifiedActions's DB-column override for an unrelated set of
-// onboarding confirms. This Set exists so SprintActionCompletion can render
-// a plain status readout instead of a self-report "Mark done" button for
-// anything the app can already verify — no self-report, no partial-trust
-// fallback, for any candidate, per the product rule that a self-report
-// click is not evidence.
+// Action types with a real detector elsewhere in the app — Gmail sync,
+// Calendar sync, CSV import, or a genuine feature click on the page itself
+// (applying to a tracked posting, reacting to a recommendation, adding a
+// company to the tracker) — distinct from VERIFIED_ACTION_TYPES above,
+// which feeds reconcileVerifiedActions's DB-column override for an
+// unrelated set of onboarding confirms. This Set exists so
+// SprintActionCompletion can render a plain status readout instead of a
+// self-report "Mark done" button for anything the app can already verify —
+// no self-report, no partial-trust fallback, for any candidate, per the
+// product rule that a self-report click is not evidence.
 export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'OUTREACH_MESSAGE',
   'OUTREACH_CALL',
@@ -464,6 +466,12 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'INTRO_CONNECTION_REQUEST_SENT',
   'INTERVIEW_ATTENDED',
   'LEARNING_SESSION_ATTENDED',
+  // Verified via markApplied/reactToSurfacedJob/the Company Tracker form —
+  // see autoCompleteEngagementAction's call sites in find-my-job/actions.ts
+  // and company-tracker/actions.ts.
+  'JOB_APPLICATION_SUBMITTED',
+  'JOB_INTERESTED_REACTION',
+  'WATCHLIST_ADD',
 ])
 
 export function isAutoDetectedActionType(actionType: string | undefined): boolean {

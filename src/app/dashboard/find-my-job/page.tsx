@@ -20,12 +20,7 @@ import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { WhoCanHelpSection } from '@/components/dashboard/WhoCanHelpSection'
 import { JobBoardLinkList } from '@/components/dashboard/JobBoardLinkList'
-import {
-  GENERAL_JOB_BOARDS,
-  WOMEN_FOCUSED_JOB_BOARDS,
-  DIVERSITY_FOCUSED_JOB_BOARDS,
-  getIndustryJobBoards,
-} from '@/lib/constants/industry-job-boards'
+import { GENERAL_JOB_BOARDS, getIndustryJobBoards } from '@/lib/constants/industry-job-boards'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -58,7 +53,6 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
-import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
 
@@ -335,14 +329,11 @@ export default async function JobFitPage() {
     OFFER: 'Offers',
   }
 
-  // Apply to New Jobs section — job-board recommendations plus the point
-  // values for the three real actions doable across this page, pulled from
-  // the same effort table the Action Plan box uses so the numbers can never
-  // drift out of sync with what a candidate actually earns.
+  // Apply to New Jobs section — general + industry-tailored job boards.
+  // Applying/reacting/tracking now show for real in the Action Plan box
+  // itself (see PAGE_ACTION_TYPES + AUTO_DETECTED_ACTION_TYPES in
+  // action-effort.ts) rather than being duplicated as a static list here.
   const industryBoards = getIndustryJobBoards(profile.targetIndustries)
-  const applyEffort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
-  const interestEffort = estimateActionEffort({ actionType: 'JOB_INTERESTED_REACTION' })
-  const watchlistEffort = estimateActionEffort({ actionType: 'WATCHLIST_ADD' })
 
   return (
     <div className="space-y-10">
@@ -380,36 +371,7 @@ export default async function JobFitPage() {
           </p>
         </div>
 
-        <JobBoardLinkList boards={GENERAL_JOB_BOARDS} category="general" />
-
-        {industryBoards.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Tailored to your industry
-            </p>
-            <JobBoardLinkList boards={industryBoards} category="industry" />
-          </div>
-        )}
-
-        <details className="text-sm">
-          <summary className="cursor-pointer font-medium text-primary underline underline-offset-4">
-            More job boards
-          </summary>
-          <div className="mt-3 space-y-3">
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Boards focused on women in the workforce
-              </p>
-              <JobBoardLinkList boards={WOMEN_FOCUSED_JOB_BOARDS} category="women_focused" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Boards focused on underrepresented groups
-              </p>
-              <JobBoardLinkList boards={DIVERSITY_FOCUSED_JOB_BOARDS} category="diversity_focused" />
-            </div>
-          </div>
-        </details>
+        <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
 
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm font-medium text-foreground">Executive Recruiters</p>
@@ -424,34 +386,6 @@ export default async function JobFitPage() {
           >
             Manage recruiter visibility →
           </Link>
-        </div>
-
-        <div className="space-y-2 rounded-lg border border-border p-4">
-          <p className="text-sm font-medium text-foreground">Ways to earn points here</p>
-          <ul className="space-y-1.5 text-sm">
-            <li>
-              <Link href="#jobs-applied" className="text-primary underline underline-offset-4">
-                Apply to a new job
-              </Link>{' '}
-              <span className="text-muted-foreground">
-                (on LinkedIn, Indeed, etc.) — track it below once you apply · +{applyEffort.points} pts
-              </span>
-            </li>
-            <li>
-              <Link href="#job-recommendations" className="text-primary underline underline-offset-4">
-                Express interest
-              </Link>{' '}
-              <span className="text-muted-foreground">
-                in a job we&apos;ve listed for you · +{interestEffort.points} pts
-              </span>
-            </li>
-            <li>
-              <Link href="#company-tracker" className="text-primary underline underline-offset-4">
-                Add a new company
-              </Link>{' '}
-              <span className="text-muted-foreground">to your tracker · +{watchlistEffort.points} pts</span>
-            </li>
-          </ul>
         </div>
       </div>
 
