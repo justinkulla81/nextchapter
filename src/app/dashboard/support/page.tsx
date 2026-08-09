@@ -1,14 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = { title: 'Support During Transition' }
 
 
-export default function SupportDuringTransitionPage() {
+export default async function SupportDuringTransitionPage() {
+  const profile = await getDashboardData()
+
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Support During Transition</h1>
         <p className="mt-1 text-muted-foreground">
           Losing a job — or leaving one, or just not knowing what&apos;s next — is genuinely
@@ -16,6 +20,7 @@ export default function SupportDuringTransitionPage() {
           triggered by your activity on the platform; you&apos;re the only one who decides to come
           here.
         </p>
+        <PageHeaderBoxes pageKey="support" candidateId={profile.id} />
       </div>
 
       <Card className="border-destructive/30 bg-destructive/5">

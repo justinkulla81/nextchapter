@@ -5,6 +5,7 @@ import { BountyClaimForm } from '@/components/dashboard/BountyClaimForm'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
 
@@ -37,12 +38,13 @@ export default async function GotHiredPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Got An Offer? 🎉</h1>
         <p className="mt-1 text-muted-foreground">
           Landed a job through NextChapter? Tell us about it and claim your $500 Offer Bonus —
           we verify offer letters before paying out.
         </p>
+        <PageHeaderBoxes pageKey="got-hired" candidateId={profile.id} />
       </div>
 
       {latestClaim && latestClaim.status !== 'REJECTED' ? (

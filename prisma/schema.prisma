@@ -639,6 +639,11 @@ model CandidateProfile {
   functionConfirmedAt DateTime?
   salaryConfirmedAt   DateTime?
   workAuthConfirmedAt DateTime?
+  // One-time Weekly Sprint bonus gate for the standalone Skills Assessment
+  // (functionSkillConfidence/aiFlexibilityLevel/etc. below) — the quiz
+  // itself is retakeable any time to keep personalization current, but the
+  // points only award once.
+  skillsAssessmentCompletedAt DateTime?
 
   // LinkedIn & job-search behaviors
   linkedInUrl               String?

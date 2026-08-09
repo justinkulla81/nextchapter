@@ -22,6 +22,12 @@ export const PAGE_KEYS = [
   'privacy',
   'portfolio',
   'references',
+  'skills-assessments',
+  'search-strategy',
+  'stats',
+  'got-hired',
+  'benefits',
+  'support',
 ] as const
 
 export type PageKey = (typeof PAGE_KEYS)[number]

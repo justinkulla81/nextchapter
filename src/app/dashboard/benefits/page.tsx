@@ -7,6 +7,7 @@ import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
 import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Benefits & Financial Bridge' }
 
@@ -140,13 +141,14 @@ export default async function BenefitsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Benefits &amp; Financial Bridge</h1>
         <p className="mt-1 text-muted-foreground">
           Practical starting points for the money side of a job search — unemployment, health
           coverage, funded training, and budgeting. General information, not personalized financial
           or legal advice; program details vary by state.
         </p>
+        <PageHeaderBoxes pageKey="benefits" candidateId={profile.id} />
       </div>
 
       {profile.benefitsPressures.length === 0 ? (

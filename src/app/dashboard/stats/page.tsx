@@ -25,6 +25,7 @@ import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
 
@@ -114,12 +115,13 @@ export default async function YourStatsPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Your Stats</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           The full detail behind your dashboard summary — grade history, points by category, and
           your Weekly A List.
         </p>
+        <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
       </div>
 
       <StreakHeroBanner currentStreak={profile.currentStreak} activeDays={activeDays} />

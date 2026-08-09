@@ -202,6 +202,57 @@ const ROWS: SeedRow[] = [
     leadIn: 'A specific, credible reference carries more weight than almost anything else in your search.',
     bullets: ['Ask people who can speak to specifics, not just "great to work with."'],
   },
+  {
+    pageKey: 'skills-assessments',
+    boxType: 'WHY_IT_MATTERS',
+    title: 'These personalize everything else on the platform',
+    leadIn: 'Your Job Recommendations, Skills Recommendations, and Hireability Report all read straight from these two quizzes.',
+    bullets: [
+      'How I Work Best drives coaching notes and how your fit is described to recruiters.',
+      'Skills Assessment drives which jobs and courses get matched to you — keep it current.',
+    ],
+  },
+  {
+    pageKey: 'skills-assessments',
+    boxType: 'DAILY_MESSAGE',
+    title: 'Still accurate?',
+    bullets: ['If your confidence in a skill has changed, retake the Skills Assessment — it only takes a few minutes.'],
+  },
+  {
+    pageKey: 'search-strategy',
+    boxType: 'WHY_IT_MATTERS',
+    title: 'This is what everything else is aimed at',
+    leadIn: 'Your target role, industries, and comp expectations here are what job matching, guidance, and coaching notes are calibrated against.',
+    bullets: ['Revisit it whenever your situation or targets change — it is not a one-time form.'],
+  },
+  {
+    pageKey: 'stats',
+    boxType: 'WHY_IT_MATTERS',
+    title: 'Progress you can actually see',
+    leadIn: 'Your grade history and weekly points are the clearest read on whether your search is moving forward.',
+    bullets: ['A flat week is useful information too — it is a prompt to change something, not just a number.'],
+  },
+  {
+    pageKey: 'got-hired',
+    boxType: 'WHY_IT_MATTERS',
+    title: 'Tell us the moment it happens',
+    leadIn: 'Claiming your Offer Bonus here is quick, and it helps us understand what is actually working across the platform.',
+    bullets: ['We verify offer letters before paying out — have that ready.'],
+  },
+  {
+    pageKey: 'benefits',
+    boxType: 'WHY_IT_MATTERS',
+    title: 'The money side matters as much as the job search',
+    leadIn: 'Unemployment benefits, health coverage, and funded training programs have real deadlines — worth knowing before you need them.',
+    bullets: ['Program details vary by state — use this as a starting point, not the final word.'],
+  },
+  {
+    pageKey: 'support',
+    boxType: 'WHY_IT_MATTERS',
+    title: "You don't have to be in crisis to use this page",
+    leadIn: 'A career transition is a real, recognized stressor on its own — this page is here whenever you want it, no strings attached.',
+    bullets: ['Nothing here is triggered by your activity, and it never affects your grade.'],
+  },
 ]
 
 async function main() {

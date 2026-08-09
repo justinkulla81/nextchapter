@@ -8,6 +8,7 @@ import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
@@ -32,11 +33,12 @@ export default async function SearchStrategyPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Search Strategy</h1>
         <p className="mt-1 text-muted-foreground">
           A one-time setup for your Search Goals — editable any time your situation changes.
         </p>
+        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
       </div>
 
       {stage && (

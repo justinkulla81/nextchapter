@@ -54,7 +54,7 @@ function buildSections(
       links: [
         { href: '/dashboard/profile', label: 'My Profile' },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
-        { href: '/dashboard/retake-assessment', label: 'Behavioral Assessments' },
+        { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments' },
         { href: '/dashboard/resume', label: 'My Resume' },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
         { href: '/dashboard/stats', label: 'My Stats & Reports' },

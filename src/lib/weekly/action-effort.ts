@@ -64,6 +64,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
 
   // One-time items
   WORKING_STYLE_QUIZ: { minutes: 25, points: 25 },
+  SKILLS_ASSESSMENT_COMPLETED: { minutes: 15, points: 20 },
 
   // Prompt 68 — Interim Work page. Signing up for a fractional/talent
   // marketplace is a real, if small, step; deliberately smaller than
@@ -218,6 +219,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   NEGOTIATION_ADVICE: 'effort',
   ASSESSMENT_COMPLETE: 'effort',
   WORKING_STYLE_QUIZ: 'effort',
+  SKILLS_ASSESSMENT_COMPLETED: 'effort',
   REFERENCE_ADDED: 'effort',
   RESUME_BOOK_UPLOAD: 'effort',
   PROFILE_CONFIRM: 'effort',
@@ -274,6 +276,7 @@ export type NavCategory = 'Personalize' | 'Building' | 'Connecting' | 'Learning 
 
 const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   WORKING_STYLE_QUIZ: 'Personalize',
+  SKILLS_ASSESSMENT_COMPLETED: 'Personalize',
   PROFILE_CONFIRM: 'Personalize',
   INDUSTRY_CONFIRM: 'Personalize',
   FUNCTION_CONFIRM: 'Personalize',
@@ -438,6 +441,7 @@ export const VERIFIED_ACTION_TYPES = new Set<string>([
   'SALARY_CONFIRM',
   'WORK_AUTHORIZATION',
   'WORKING_STYLE_QUIZ',
+  'SKILLS_ASSESSMENT_COMPLETED',
   'ANSWER_OPTIONAL_QUESTIONS',
   'COMFORT_CHECK_CONFIRM',
 ])
@@ -512,6 +516,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   SALARY_CONFIRM: { href: '/dashboard/profile#salary', label: 'Profile' },
   WORK_AUTHORIZATION: { href: '/dashboard/profile#work-authorization', label: 'Profile' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
+  SKILLS_ASSESSMENT_COMPLETED: { href: '/dashboard/skills-assessment', label: 'Skills Assessment' },
   COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
@@ -680,4 +685,14 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'LINKEDIN_PROFILE_ADDED',
   ],
   privacy: ['PRIVACY_CONFIRMED'],
+  'skills-assessments': ['WORKING_STYLE_QUIZ', 'SKILLS_ASSESSMENT_COMPLETED'],
+  'search-strategy': [],
+  stats: [],
+  'got-hired': [],
+  benefits: [],
+  // No Action Plan on this page by design — it's private, optional, and
+  // never activity-triggered (see the page's own copy); an empty array
+  // means PageHeaderBoxes still renders Daily Message/Why It Matters here,
+  // just no third box.
+  support: [],
 }
