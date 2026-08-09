@@ -31,16 +31,6 @@ export async function disconnectGmail(): Promise<void> {
   revalidatePath('/dashboard/network')
 }
 
-export async function acknowledgeEmailActivity(activityId: string): Promise<void> {
-  const profile = await getProfile()
-  if (!profile) return
-  await prisma.trackedEmailActivity.updateMany({
-    where: { id: activityId, candidateId: profile.id, reviewedAt: null },
-    data: { reviewedAt: new Date() },
-  })
-  revalidatePath('/dashboard/network')
-}
-
 // The candidate is telling us the auto-detected classification was wrong —
 // excludes it from every stat count and detail list going forward. Points
 // already awarded for it are not clawed back (mirrors disconnectGmail's

@@ -39,9 +39,7 @@ import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagn
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { getRejectionReframe, getOfferCongrats } from '@/lib/email-tracking/victoria-reactions'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
-import { EmailActivityAcknowledgeButton } from '@/components/dashboard/EmailActivityControls'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
@@ -280,7 +278,7 @@ export default async function JobFitPage() {
     emailConnection
       ? await Promise.all([
           prisma.trackedEmailActivity.findMany({
-            where: { candidateId: profile.id, direction: 'INBOUND', dismissedAt: null },
+            where: { candidateId: profile.id, direction: 'INBOUND', dismissedAt: null, confidence: 'high' },
           }),
           prisma.trackedEmailActivity.findMany({
             where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true, dismissedAt: null },
@@ -322,9 +320,6 @@ export default async function JobFitPage() {
     REJECTION: jobEmailActivities.filter((a) => a.activityType === 'REJECTION').map(jobEmailItem),
     OFFER: jobEmailActivities.filter((a) => a.activityType === 'OFFER').map(jobEmailItem),
   }
-  const unacknowledgedReactions = jobEmailActivities.filter(
-    (a) => (a.activityType === 'REJECTION' || a.activityType === 'OFFER') && !a.reviewedAt
-  )
   const JOB_EMAIL_LABEL: Record<string, string> = {
     RECRUITER_OUTREACH: 'Recruiter contact',
     INTERVIEW_INVITE: 'Interview invites',
@@ -358,7 +353,7 @@ export default async function JobFitPage() {
         <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
       </div>
 
-      <div className="space-y-4 rounded-lg border border-border p-4">
+      <div id="interview-tracking" className="scroll-mt-4 space-y-4 rounded-lg border border-border p-4">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Interview Tracking</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -451,7 +446,7 @@ export default async function JobFitPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div id="jobs-applied" className="scroll-mt-4 space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Jobs I&apos;ve Applied To</h2>
 
         <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
@@ -916,20 +911,7 @@ export default async function JobFitPage() {
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
-      {unacknowledgedReactions.map((activity) => (
-        <Card key={activity.id} className={activity.activityType === 'OFFER' ? 'border-success/40' : ''}>
-          <CardContent className="space-y-3 pt-6">
-            <p className="text-sm text-foreground">
-              {activity.activityType === 'REJECTION'
-                ? getRejectionReframe(activity.id)
-                : getOfferCongrats(activity.id)}
-            </p>
-            <EmailActivityAcknowledgeButton activityId={activity.id} />
-          </CardContent>
-        </Card>
-      ))}
-
-      <div className="space-y-4">
+      <div id="job-recommendations" className="scroll-mt-4 space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
 
         {visibleBoardPostings.length === 0 &&
@@ -995,7 +977,7 @@ export default async function JobFitPage() {
         <InterestedJobsList jobs={interestedJobs} />
       </div>
 
-      <div className="space-y-4 border-t border-border pt-8">
+      <div id="company-tracker" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Company Tracker</h2>
           <p className="mt-1 text-sm text-muted-foreground">
