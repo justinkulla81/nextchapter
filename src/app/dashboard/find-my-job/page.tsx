@@ -9,6 +9,7 @@ import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistFor
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
+import { InterviewJobPicker } from '@/components/dashboard/InterviewJobPicker'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
 import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
@@ -500,44 +501,14 @@ export default async function JobFitPage() {
         <div className="space-y-3 border-t border-border pt-4">
           <p className="text-sm font-medium text-foreground">Got an interview?</p>
 
-          {eligibleForInterview.length > 0 && (
-            <form action={markInterviewLandedFromForm} className="flex flex-wrap items-center gap-2">
-              <select
-                name="jobPostingId"
-                required
-                defaultValue=""
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-              >
-                <option value="" disabled>
-                  Which job?
-                </option>
-                {eligibleForInterview.map((posting) => (
-                  <option key={posting.id} value={posting.id}>
-                    {posting.companyName ?? 'Unknown company'}
-                    {posting.title ? ` — ${posting.title}` : ''}
-                  </option>
-                ))}
-              </select>
-              <SubmitButton variant="outline" size="sm">
-                I have an interview for this job
-              </SubmitButton>
-            </form>
-          )}
+          <InterviewJobPicker
+            eligibleForInterview={eligibleForInterview}
+            atCap={atCap}
+            markInterviewLandedFromForm={markInterviewLandedFromForm}
+            addInterviewJob={addInterviewJob}
+          />
 
-          <details>
-            <summary className="cursor-pointer text-sm text-primary underline underline-offset-4">
-              Add a job link for this interview
-            </summary>
-            <div className="mt-3">
-              {atCap ? (
-                <p className="text-sm text-muted-foreground">
-                  You have 5 job postings tracked — remove one below to add another.
-                </p>
-              ) : (
-                <JobUrlForm action={addInterviewJob} submitLabel="I'm interviewing — add job" />
-              )}
-            </div>
-          </details>
+          <hr className="border-border" />
 
           <Link
             href="/dashboard/interview-prep"
@@ -549,7 +520,7 @@ export default async function JobFitPage() {
       </div>
 
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Jobs I&apos;ve Applied To</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Application Tracker</h2>
 
         <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
 

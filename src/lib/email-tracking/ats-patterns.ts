@@ -141,6 +141,23 @@ export function guessCompanyFromConfirmationSubject(subject: string): string | n
   return match ? match[1].trim() : null
 }
 
+// Same phrasing as the subject-based guess above, but scanning the body
+// instead — the subject-only version misses any confirmation whose subject
+// never names the company at all, e.g. Indeed Apply's "Indeed Application:
+// <Job Title>" (the company only appears in the body: "...were sent to
+// BioUrja Advisors, LLC. Good luck!"). Bodies rarely end right after the
+// company name the way subject lines do, so this stops at the next
+// sentence/clause boundary instead of requiring end-of-string.
+const CONFIRMATION_COMPANY_MENTION_IN_BODY =
+  /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to|items? were sent to)\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,6}?)(?:\.\s|,\s|\s+—|\s+-\s|\s*$)/
+
+export function guessCompanyFromConfirmationText(subject: string, bodyPreview: string): string | null {
+  const fromSubject = guessCompanyFromConfirmationSubject(subject)
+  if (fromSubject) return fromSubject
+  const match = bodyPreview.match(CONFIRMATION_COMPANY_MENTION_IN_BODY)
+  return match ? match[1].trim().replace(/[.,]+$/, '') : null
+}
+
 // Best-effort only — most confirmation subjects never name the role
 // ("Thanks for applying to Foo"), so this only fires on the shapes that
 // do ("...for the Senior PM role at Foo", "application for Product

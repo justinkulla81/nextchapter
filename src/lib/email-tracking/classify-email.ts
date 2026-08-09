@@ -9,7 +9,7 @@ import {
   matchFollowUp,
   matchIntroRequest,
   matchNetworkingOutreach,
-  guessCompanyFromConfirmationSubject,
+  guessCompanyFromConfirmationText,
   isLikelyBulkOrPromotional,
 } from './ats-patterns'
 import { extractDomain, extractEmailAddress } from './email-address'
@@ -88,7 +88,7 @@ export function classifyInboundEmail(
     return {
       activityType: 'APPLICATION_CONFIRMATION',
       confidence: confirmation.confidence,
-      companyName: companyName ?? guessCompanyFromConfirmationSubject(subject),
+      companyName: companyName ?? guessCompanyFromConfirmationText(subject, bodyPreview),
     }
   }
 
