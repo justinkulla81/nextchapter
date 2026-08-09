@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
@@ -15,23 +16,36 @@ function asFeedbackItems(value: unknown): ResumeFeedbackItem[] {
   return value as unknown as ResumeFeedbackItem[]
 }
 
+// Resolving a signed URL is a live Supabase Storage API call per resume —
+// previously awaited for every resume before the page could render at all.
+// Isolated per-link in its own Suspense boundary (fallback: nothing) so the
+// actual analysis content (scores, feedback) renders immediately and each
+// "View" link just pops in once its own signed URL resolves.
+async function ResumeViewLink({ filePath }: { filePath: string }) {
+  const admin = createAdminClient()
+  const { data } = await admin.storage.from('resumes').createSignedUrl(filePath, 60 * 10)
+  if (!data?.signedUrl) return null
+  return (
+    <a
+      href={data.signedUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-sm text-primary underline underline-offset-4"
+    >
+      View
+    </a>
+  )
+}
+
 export default async function ResumePage({
   searchParams,
 }: {
   searchParams: Promise<{ fromGap?: string }>
 }) {
   const profile = await getDashboardData()
-  const admin = createAdminClient()
   const { fromGap } = await searchParams
 
-  const resumesWithLinks = await Promise.all(
-    profile.resumes.map(async (resume) => {
-      const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
-      return { resume, signedUrl: data?.signedUrl ?? null }
-    })
-  )
-
-  const latest = resumesWithLinks[0]
+  const latest = profile.resumes[0]
 
   return (
     <div className="space-y-8">
@@ -48,61 +62,54 @@ export default async function ResumePage({
           <Card>
             <CardContent className="space-y-5 pt-6">
               <div className="flex items-center justify-between">
-                <p className="font-medium">{latest.resume.fileName}</p>
-                {latest.signedUrl && (
-                  <a
-                    href={latest.signedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary underline underline-offset-4"
-                  >
-                    View
-                  </a>
-                )}
+                <p className="font-medium">{latest.fileName}</p>
+                <Suspense fallback={null}>
+                  <ResumeViewLink filePath={latest.filePath} />
+                </Suspense>
               </div>
 
-              {latest.resume.analysisError && (
-                <p className="text-sm text-destructive">{latest.resume.analysisError}</p>
+              {latest.analysisError && (
+                <p className="text-sm text-destructive">{latest.analysisError}</p>
               )}
 
-              {latest.resume.atsScore !== null && (
+              {latest.atsScore !== null && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">
-                    ATS readability: {scoreToGrade(latest.resume.atsScore)}{' '}
+                    ATS readability: {scoreToGrade(latest.atsScore)}{' '}
                     <span className="text-muted-foreground">
-                      ({GRADE_LABEL[scoreToGrade(latest.resume.atsScore)]})
+                      ({GRADE_LABEL[scoreToGrade(latest.atsScore)]})
                     </span>
                   </p>
                   <div className="space-y-2">
-                    {asFeedbackItems(latest.resume.atsFeedback).map((item, i) => (
+                    {asFeedbackItems(latest.atsFeedback).map((item, i) => (
                       <ResumeFeedbackCard key={i} item={item} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {latest.resume.resultsScore !== null && (
+              {latest.resultsScore !== null && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">
-                    Results orientation: {scoreToGrade(latest.resume.resultsScore)}{' '}
+                    Results orientation: {scoreToGrade(latest.resultsScore)}{' '}
                     <span className="text-muted-foreground">
-                      ({GRADE_LABEL[scoreToGrade(latest.resume.resultsScore)]})
+                      ({GRADE_LABEL[scoreToGrade(latest.resultsScore)]})
                     </span>
                   </p>
                   <div className="space-y-2">
-                    {asFeedbackItems(latest.resume.resultsFeedback).map((item, i) => (
+                    {asFeedbackItems(latest.resultsFeedback).map((item, i) => (
                       <ResumeFeedbackCard key={i} item={item} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {latest.resume.experienceScore !== null && (
+              {latest.experienceScore !== null && (
                 <div id="action-plan" className="space-y-2">
                   <p className="text-sm font-medium">
-                    Experience evaluation: {scoreToGrade(latest.resume.experienceScore)}{' '}
+                    Experience evaluation: {scoreToGrade(latest.experienceScore)}{' '}
                     <span className="text-muted-foreground">
-                      ({GRADE_LABEL[scoreToGrade(latest.resume.experienceScore)]})
+                      ({GRADE_LABEL[scoreToGrade(latest.experienceScore)]})
                     </span>
                   </p>
                   {fromGap && (
@@ -112,14 +119,14 @@ export default async function ResumePage({
                     </p>
                   )}
                   <div className="space-y-2">
-                    {asFeedbackItems(latest.resume.experienceFeedback).map((item, i) => (
+                    {asFeedbackItems(latest.experienceFeedback).map((item, i) => (
                       <ResumeFeedbackCard key={i} item={item} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {!latest.resume.atsScore && !latest.resume.analysisError && (
+              {!latest.atsScore && !latest.analysisError && (
                 <p className="text-sm text-muted-foreground">Analyzing…</p>
               )}
             </CardContent>
@@ -161,10 +168,10 @@ export default async function ResumePage({
         </div>
       </div>
 
-      {resumesWithLinks.length > 1 && (
+      {profile.resumes.length > 1 && (
         <div className="space-y-4">
           <h2 className="text-sm font-medium text-muted-foreground">Previous uploads</h2>
-          {resumesWithLinks.slice(1).map(({ resume, signedUrl }) => (
+          {profile.resumes.slice(1).map((resume) => (
             <Card key={resume.id}>
               <CardContent className="flex items-center justify-between pt-6">
                 <div>
@@ -173,16 +180,9 @@ export default async function ResumePage({
                     {resume.uploadedAt.toLocaleDateString()}
                   </p>
                 </div>
-                {signedUrl && (
-                  <a
-                    href={signedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary underline underline-offset-4"
-                  >
-                    View
-                  </a>
-                )}
+                <Suspense fallback={null}>
+                  <ResumeViewLink filePath={resume.filePath} />
+                </Suspense>
               </CardContent>
             </Card>
           ))}

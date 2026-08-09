@@ -1,4 +1,5 @@
 import type { HireabilityReport } from '@prisma/client'
+import { Suspense } from 'react'
 import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -70,6 +71,19 @@ async function resolveLatestReport(
   return latestReport
 }
 
+// getUnviewedSessionImpact makes a live, uncached Anthropic call (unlike
+// computeHireabilityGrade's market/company-size lookups, this one has no
+// self-cache — it's a genuine "show this exact summary once" read, gated on
+// marking the session viewed in the same call) whenever a candidate has an
+// unviewed coach session from the last 7 days. Isolated in its own Suspense
+// boundary so it never blocks the rest of the dashboard, which is otherwise
+// all fast Prisma reads.
+async function SessionImpactSection({ candidateId }: { candidateId: string }) {
+  const sessionImpact = await getUnviewedSessionImpact(candidateId)
+  if (!sessionImpact) return null
+  return <SessionImpactCard report={sessionImpact} />
+}
+
 export default async function DashboardPage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
@@ -104,7 +118,6 @@ export default async function DashboardPage() {
     suggestedActions,
     searchExecutionAvailable,
     existingBountyClaimCount,
-    sessionImpact,
     hasCoachingFormResponse,
     sentimentAlert,
     profileChecklistItems,
@@ -120,7 +133,6 @@ export default async function DashboardPage() {
     getSuggestedActions(profile.id, weekNumber),
     hasStartedSprint(profile.id),
     prisma.bountyClaim.count({ where: { candidateId: profile.id } }),
-    getUnviewedSessionImpact(profile.id),
     // Prompt 60 — passive fallback for candidates whose consent was granted
     // before this feature existed (or who navigated away before completing
     // the form); the explicit redirects at consent-grant time are the
@@ -215,13 +227,16 @@ export default async function DashboardPage() {
 
       {sentimentAlert.lowSentiment && <SentimentSupportCard hasCoach={!!profile.coachId} />}
 
-      {(showGotHiredCTA || sessionImpact || needsCoachingForm) && (
+      {(showGotHiredCTA || needsCoachingForm) && (
         <div className="space-y-4">
           {showGotHiredCTA && <GotHiredCTACard />}
-          {sessionImpact && <SessionImpactCard report={sessionImpact} />}
           {needsCoachingForm && <CoachingFormReminderCard />}
         </div>
       )}
+
+      <Suspense fallback={null}>
+        <SessionImpactSection candidateId={profile.id} />
+      </Suspense>
 
       <div className="space-y-4 border-t border-border pt-8">
         <CoachChatCard initialMessages={conversation.messages} showExecutiveCoachCta={showCoachingCTA} />

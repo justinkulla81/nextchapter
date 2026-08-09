@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import type { EmailActivityType } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -9,6 +10,7 @@ import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
@@ -61,32 +63,47 @@ function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' 
   )
 }
 
-export default async function NetworkPage({
-  searchParams,
+type NetworkSearchParams = {
+  gmailConnected?: string
+  gmailError?: string
+  calendarConnected?: string
+  calendarError?: string
+}
+
+function AutomaticTrackingSkeleton() {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Checking your connected Gmail and Calendar…
+    </div>
+  )
+}
+
+// Carries the two heaviest calls on this page — syncGmailConnection and
+// syncGoogleCalendarConnection, each a live paginated Gmail/Calendar API
+// call with a sequential per-new-item loop inside — in their own Suspense
+// boundary. Both self-throttle to once per 5 minutes and batch their
+// "already tracked?" check into one query, so the common case (0-2 new
+// items) is fast, but a candidate returning after a while with several new
+// messages/events used to block the ENTIRE page (contacts, backchannel
+// matches, quick actions, needs-follow-up) behind this. Now only the
+// Networking Stats + Automatic Tracking sections themselves wait on it.
+async function AutomaticTrackingSection({
+  profile,
+  params,
 }: {
-  searchParams: Promise<{ gmailConnected?: string; gmailError?: string; calendarConnected?: string; calendarError?: string }>
+  profile: Awaited<ReturnType<typeof getDashboardData>>
+  params: NetworkSearchParams
 }) {
-  const profile = await getDashboardData()
-  const params = await searchParams
-  const [contacts, emailConnection, calendarConnection, emailTester, calendarTester, backchannelMatches] =
-    await Promise.all([
-      prisma.supportNetworkContact.findMany({
-        where: { candidateId: profile.id },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-      prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-      profile.email ? isGmailTrackingTester(profile.email) : false,
-      profile.email ? isCalendarTrackingTester(profile.email) : false,
-      getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
-    ])
+  const [emailConnection, calendarConnection, emailTester, calendarTester] = await Promise.all([
+    prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+    prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+    profile.email ? isGmailTrackingTester(profile.email) : false,
+    profile.email ? isCalendarTrackingTester(profile.email) : false,
+  ])
 
   // Auto-syncs on every visit instead of requiring the manual buttons below —
-  // both sync functions self-throttle to once per 5 minutes. Awaited
-  // inline (not deferred) so a real send/meeting shows up on the very next
-  // refresh — both sync functions now batch their "already tracked?" check
-  // into one query instead of one per message/event, so the common case
-  // (0-2 genuinely new items) stays fast even though this blocks render.
+  // both sync functions self-throttle to once per 5 minutes.
   await Promise.all([
     emailConnection
       ? syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
@@ -98,7 +115,7 @@ export default async function NetworkPage({
       : null,
   ])
 
-  const [emailActivities, calendarEvents, reconciliation, needsFollowUp] = await Promise.all([
+  const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
       ? prisma.trackedEmailActivity.findMany({
           where: { candidateId: profile.id, dismissedAt: null },
@@ -112,7 +129,6 @@ export default async function NetworkPage({
         })
       : Promise.resolve([]),
     emailConnection || calendarConnection ? getActivityReconciliation(profile.id) : Promise.resolve(null),
-    getNeedsFollowUpList(profile.id),
   ])
 
   // Job-application-related counts (confirmations, rejections, offers,
@@ -162,20 +178,6 @@ export default async function NetworkPage({
     { label: 'Resumes shared', items: resumesSharedItems.map(emailItem) },
     { label: 'Coffees, lunches & meetings scheduled', items: networkingCallItems.map(calendarItem) },
   ]
-
-  if (!profile.networkComfortLevel) {
-    return (
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Live Conversations</h1>
-          <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
-        </div>
-        <div className="rounded-lg border border-border p-4">
-          <NetworkComfortCheck />
-        </div>
-      </div>
-    )
-  }
 
   // Deliberately excludes needsReview counts — most unclassified inbox mail
   // and calendar events are just everyday noise (newsletters, personal
@@ -390,6 +392,68 @@ export default async function NetworkPage({
   )
 
   return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Networking Stats</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {networkingStatTiles.map((tile) => (
+            <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
+          ))}
+        </CardContent>
+      </Card>
+
+      {(emailConnection || calendarConnection) && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Automatic tracking</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            What your connected Gmail and Calendar have picked up automatically.
+          </p>
+          <TrackingTabs
+            emailContent={emailContent}
+            calendarContent={calendarContent}
+            emailAlertCount={emailAlertCount}
+            calendarAlertCount={calendarAlertCount}
+            defaultTab={emailAlertCount >= calendarAlertCount ? 'email' : 'calendar'}
+          />
+        </div>
+      )}
+    </>
+  )
+}
+
+export default async function NetworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<NetworkSearchParams>
+}) {
+  const profile = await getDashboardData()
+  const params = await searchParams
+  const [contacts, backchannelMatches, needsFollowUp] = await Promise.all([
+    prisma.supportNetworkContact.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+    getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
+    getNeedsFollowUpList(profile.id),
+  ])
+
+  if (!profile.networkComfortLevel) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Live Conversations</h1>
+          <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <NetworkComfortCheck />
+        </div>
+      </div>
+    )
+  }
+
+  return (
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Live Conversations</h1>
@@ -415,38 +479,15 @@ export default async function NetworkPage({
 
       <BackchannelMatchesCard matches={backchannelMatches} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Networking Stats</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {networkingStatTiles.map((tile) => (
-            <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
-          ))}
-        </CardContent>
-      </Card>
-
       <NetworkQuickActionsCard contacts={contacts} />
 
       <NeedsFollowUpCard items={needsFollowUp} />
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
-      {(emailConnection || calendarConnection) && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Automatic tracking</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            What your connected Gmail and Calendar have picked up automatically.
-          </p>
-          <TrackingTabs
-            emailContent={emailContent}
-            calendarContent={calendarContent}
-            emailAlertCount={emailAlertCount}
-            calendarAlertCount={calendarAlertCount}
-            defaultTab={emailAlertCount >= calendarAlertCount ? 'email' : 'calendar'}
-          />
-        </div>
-      )}
+      <Suspense fallback={<AutomaticTrackingSkeleton />}>
+        <AutomaticTrackingSection profile={profile} params={params} />
+      </Suspense>
 
       <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
     </div>

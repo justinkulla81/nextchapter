@@ -1,11 +1,54 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateCoachShortlist } from '@/lib/coach/matching'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { Spinner } from '@/components/ui/spinner'
 import { submitCoachPreferences, selectCoach } from './actions'
 
 export const metadata: Metadata = { title: 'Coach Matching' }
+
+// generateCoachShortlist calls getCandidateLevelRank, which on a candidate's
+// first-ever match request walks their work history through
+// resolveCompanySizeBand per employer — isolated in its own Suspense
+// boundary so the page header renders immediately either way.
+async function CoachShortlist({ candidateId }: { candidateId: string }) {
+  const shortlist = await generateCoachShortlist(candidateId)
+
+  if (shortlist.length === 0) {
+    return <p className="text-sm text-muted-foreground">No coaches are available to match right now — check back soon.</p>
+  }
+  return (
+    <div className="space-y-3">
+      {shortlist.map((coach) => (
+        <div key={coach.id} className="rounded-lg border border-border p-4">
+          <p className="font-medium text-foreground">{coach.fullName}</p>
+          <p className="text-sm text-muted-foreground">
+            {coach.firmName ?? 'Independent'} · {coach.focus}
+          </p>
+          {coach.industries.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">Industries: {coach.industries.join(', ')}</p>
+          )}
+          <form action={selectCoach.bind(null, coach.id)} className="mt-3">
+            <SubmitButton size="sm" pendingLabel="Confirming…">
+              Choose {coach.fullName.split(' ')[0]}
+            </SubmitButton>
+          </form>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CoachShortlistSkeleton() {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Finding your best coach matches…
+    </div>
+  )
+}
 
 
 const selectClass =
@@ -97,36 +140,15 @@ export default async function CoachingMatchPage({
     )
   }
 
-  const shortlist = await generateCoachShortlist(profile.id)
-
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div className="space-y-1">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Your coach matches</h1>
         <p className="text-muted-foreground">Based on your target role, level, and preferences.</p>
       </div>
-      {shortlist.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No coaches are available to match right now — check back soon.</p>
-      ) : (
-        <div className="space-y-3">
-          {shortlist.map((coach) => (
-            <div key={coach.id} className="rounded-lg border border-border p-4">
-              <p className="font-medium text-foreground">{coach.fullName}</p>
-              <p className="text-sm text-muted-foreground">
-                {coach.firmName ?? 'Independent'} · {coach.focus}
-              </p>
-              {coach.industries.length > 0 && (
-                <p className="mt-1 text-xs text-muted-foreground">Industries: {coach.industries.join(', ')}</p>
-              )}
-              <form action={selectCoach.bind(null, coach.id)} className="mt-3">
-                <SubmitButton size="sm" pendingLabel="Confirming…">
-                  Choose {coach.fullName.split(' ')[0]}
-                </SubmitButton>
-              </form>
-            </div>
-          ))}
-        </div>
-      )}
+      <Suspense fallback={<CoachShortlistSkeleton />}>
+        <CoachShortlist candidateId={profile.id} />
+      </Suspense>
     </div>
   )
 }

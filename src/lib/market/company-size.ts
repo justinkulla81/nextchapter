@@ -1,4 +1,5 @@
 import 'server-only'
+import { after } from 'next/server'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import type { CompanySizeBand } from '@prisma/client'
@@ -63,29 +64,10 @@ If "${companyName}" isn't a real, identifiable company (e.g. it's a placeholder,
   }
 }
 
-// Resolves a company name to an approximate employee-count band: static
-// curated list first (free, no DB/LLM), then the permanent shared cache,
-// then one Claude call whose result is cached forever so it's never
-// re-queried for this company name again — see CompanySizeLookup in
-// prisma/schema.prisma for why this makes the LLM cost one-time-per-
-// distinct-company-name-ever-seen-platform-wide, never per-candidate and
-// never recurring. Any failure (LLM error, unrecognized company) returns
-// { band: null }, non-fatal — callers treat null as "no adjustment," never
-// as a penalty or a block.
-export async function resolveCompanySizeBand(companyName: string): Promise<ResolvedCompanySize> {
-  const normalized = normalizeOrgName(companyName)
-  if (!normalized) return { band: null, source: 'unknown' }
-
-  const staticMatch = COMPANY_SIZE_TIERS.find((tier) => normalizeOrgName(tier.name) === normalized)
-  if (staticMatch) return { band: staticMatch.sizeBand, source: 'static' }
-
-  const cached = await prisma.companySizeLookup.findUnique({ where: { companyNameNormalized: normalized } })
-  if (cached) return { band: cached.sizeBand, source: cached.source as 'static' | 'llm' }
-
+async function classifyAndCacheCompanySize(companyName: string, normalized: string): Promise<void> {
   const classified = await classifyCompanySizeViaLLM(companyName)
-  if (!classified) return { band: null, source: 'unknown' }
-
-  const saved = await prisma.companySizeLookup.upsert({
+  if (!classified) return
+  await prisma.companySizeLookup.upsert({
     where: { companyNameNormalized: normalized },
     create: {
       companyNameNormalized: normalized,
@@ -97,5 +79,28 @@ export async function resolveCompanySizeBand(companyName: string): Promise<Resol
     },
     update: {},
   })
-  return { band: saved.sizeBand, source: 'llm' }
+}
+
+// Resolves a company name to an approximate employee-count band: static
+// curated list first (free, no DB/LLM), then the permanent shared cache.
+// On a genuine cache miss (this company name has never been seen platform-
+// wide), the LLM classification is deferred to after() rather than awaited
+// — every candidate landing on a brand-new company name used to pay for a
+// live, synchronous Claude call before their page could render at all. This
+// returns { band: null } for that one render (never a penalty — callers
+// already treat null as "no adjustment") and the after() call populates the
+// permanent cache, so the very next time anyone sees this company name
+// (including a re-render/reload of this same page) it resolves instantly.
+export async function resolveCompanySizeBand(companyName: string): Promise<ResolvedCompanySize> {
+  const normalized = normalizeOrgName(companyName)
+  if (!normalized) return { band: null, source: 'unknown' }
+
+  const staticMatch = COMPANY_SIZE_TIERS.find((tier) => normalizeOrgName(tier.name) === normalized)
+  if (staticMatch) return { band: staticMatch.sizeBand, source: 'static' }
+
+  const cached = await prisma.companySizeLookup.findUnique({ where: { companyNameNormalized: normalized } })
+  if (cached) return { band: cached.sizeBand, source: cached.source as 'static' | 'llm' }
+
+  after(() => classifyAndCacheCompanySize(companyName, normalized))
+  return { band: null, source: 'unknown' }
 }

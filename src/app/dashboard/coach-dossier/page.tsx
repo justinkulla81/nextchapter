@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -6,9 +7,30 @@ import { getDossierSections } from '@/lib/reports/dossier-sections'
 import { getCoachingNotes } from '@/lib/coach/coaching-notes'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
+import { Spinner } from '@/components/ui/spinner'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export const metadata: Metadata = { title: 'Coach Dossier & Notes' }
+
+// getDossierSections chains up to 4 live Anthropic calls (positioning
+// statement, job pattern, proof points) plus an LLM-per-employer loop via
+// getCandidateLevelRank/resolveCompanySizeBand — all self-caching after the
+// first successful generation, but a real cost on first view or after a
+// regenerate. Isolated in its own Suspense boundary so the page header and
+// Coaching Notes (all fast Prisma reads/pure compute) render immediately.
+async function DossierSection({ candidateId }: { candidateId: string }) {
+  const dossier = await getDossierSections(candidateId)
+  return <DossierSectionsView dossier={dossier} readOnly />
+}
+
+function DossierSkeleton() {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Putting together your dossier…
+    </div>
+  )
+}
 
 
 export default async function CoachDossierPage() {
@@ -49,10 +71,7 @@ export default async function CoachDossierPage() {
     )
   }
 
-  const [dossier, coachingNotes] = await Promise.all([
-    getDossierSections(profile.id),
-    getCoachingNotes(profile.id),
-  ])
+  const coachingNotes = await getCoachingNotes(profile.id)
 
   captureServerEvent(profile.id, 'coach_dossier_self_viewed')
 
@@ -67,7 +86,9 @@ export default async function CoachDossierPage() {
       </div>
 
       <div className="space-y-5">
-        <DossierSectionsView dossier={dossier} readOnly />
+        <Suspense fallback={<DossierSkeleton />}>
+          <DossierSection candidateId={profile.id} />
+        </Suspense>
       </div>
 
       <div className="border-t border-border pt-6">

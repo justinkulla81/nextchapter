@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
@@ -499,7 +500,10 @@ async function getCachedGenerations(
   return { patternSummary, proofPoints }
 }
 
-export async function getDossierSections(candidateId: string): Promise<DossierData> {
+// Wrapped in React's cache() so multiple call sites within the same render
+// (e.g. a completeness summary and the full dossier view on the same page)
+// share one execution instead of re-running this LLM chain twice.
+export const getDossierSections = cache(async function getDossierSections(candidateId: string): Promise<DossierData> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: GRADE_RELATIONS_INCLUDE,
@@ -565,7 +569,7 @@ export async function getDossierSections(candidateId: string): Promise<DossierDa
     proofPoints,
     careerTrajectory: careerTrajectorySteps,
   }
-}
+})
 
 // Prompt 67 — the Dossier completeness ring's per-section read, mirroring
 // the exact same null-check each case in DossierSectionBlock (components/

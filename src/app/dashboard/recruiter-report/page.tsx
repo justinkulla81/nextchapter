@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { FileText } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
@@ -6,6 +7,7 @@ import { getRecruiterReportData } from '@/lib/reports/recruiter-report'
 import { getDossierSections, getDossierSectionCompleteness } from '@/lib/reports/dossier-sections'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { Spinner } from '@/components/ui/spinner'
 import { regenerateDossierSections } from './actions'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { DossierCompletenessRing } from '@/components/dashboard/DossierCompletenessRing'
@@ -17,17 +19,58 @@ import { Logo } from '@/components/Logo'
 
 export const metadata: Metadata = { title: 'Certified Executive Dossier' }
 
+// getDossierSections (cached per-request via React's cache(), see
+// dossier-sections.ts) chains up to 4 live Anthropic calls plus an
+// LLM-per-employer loop — both the completeness summary near the top of the
+// page and the full dossier view further down need it, so each gets its own
+// Suspense boundary rather than blocking the rest of this page (candidate
+// name, effort summary, references, etc., all from the fast
+// getRecruiterReportData call) on either one.
+async function DossierCompletenessSection({ candidateId }: { candidateId: string }) {
+  const dossier = await getDossierSections(candidateId)
+  const sectionCompleteness = getDossierSectionCompleteness(dossier)
+  const completedCount = sectionCompleteness.filter((s) => s.hasContent).length
+
+  if (completedCount === 0) {
+    return (
+      <EmptyState
+        icon={FileText}
+        title="Your Dossier doesn't have much yet"
+        description="Add references, log a work sample, or complete How I Work Best — each one fills in a section below. Nothing here is fabricated; sections stay blank until there's something real to show."
+      />
+    )
+  }
+  return (
+    <div className="space-y-3 rounded-lg border border-border p-4">
+      <DossierCompletenessRing completed={completedCount} total={sectionCompleteness.length} />
+      <div className="grid gap-x-6 gap-y-1.5 border-t border-border pt-3 sm:grid-cols-2">
+        {sectionCompleteness.map((s) => (
+          <StatusRow key={s.id} status={s.hasContent ? 'success' : 'locked'} label={s.title} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+async function DossierContentSection({ candidateId }: { candidateId: string }) {
+  const dossier = await getDossierSections(candidateId)
+  return <DossierSectionsView dossier={dossier} />
+}
+
+function DossierSkeleton() {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Putting together your dossier…
+    </div>
+  )
+}
 
 export default async function RecruiterReportPage() {
   const profile = await getDashboardData()
-  const [data, dossier] = await Promise.all([
-    getRecruiterReportData(profile.id),
-    getDossierSections(profile.id),
-  ])
+  const data = await getRecruiterReportData(profile.id)
 
   const hasEffort = data.effortSummaryLines.length > 0
-  const sectionCompleteness = getDossierSectionCompleteness(dossier)
-  const completedCount = sectionCompleteness.filter((s) => s.hasContent).length
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -55,22 +98,9 @@ export default async function RecruiterReportPage() {
       </div>
 
       <div className="print:hidden">
-        {completedCount === 0 ? (
-          <EmptyState
-            icon={FileText}
-            title="Your Dossier doesn't have much yet"
-            description="Add references, log a work sample, or complete How I Work Best — each one fills in a section below. Nothing here is fabricated; sections stay blank until there's something real to show."
-          />
-        ) : (
-          <div className="space-y-3 rounded-lg border border-border p-4">
-            <DossierCompletenessRing completed={completedCount} total={sectionCompleteness.length} />
-            <div className="grid gap-x-6 gap-y-1.5 border-t border-border pt-3 sm:grid-cols-2">
-              {sectionCompleteness.map((s) => (
-                <StatusRow key={s.id} status={s.hasContent ? 'success' : 'locked'} label={s.title} />
-              ))}
-            </div>
-          </div>
-        )}
+        <Suspense fallback={<DossierSkeleton />}>
+          <DossierCompletenessSection candidateId={profile.id} />
+        </Suspense>
       </div>
 
       <div className="space-y-8 rounded-xl border border-border p-8 print:border-0 print:p-0">
@@ -88,7 +118,9 @@ export default async function RecruiterReportPage() {
           )}
         </div>
 
-        <DossierSectionsView dossier={dossier} />
+        <Suspense fallback={<DossierSkeleton />}>
+          <DossierContentSection candidateId={profile.id} />
+        </Suspense>
 
         <section>
           <div className="flex items-center gap-2">

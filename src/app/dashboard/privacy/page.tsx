@@ -21,11 +21,13 @@ export const metadata: Metadata = { title: 'Privacy Settings' }
 
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
-  const grade = await computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations)
-  const coach = profile.coachId
-    ? await prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
-    : null
-  const dismissedPageTips = await listDismissedWhyItMattersBoxes(profile.id)
+  const [grade, coach, dismissedPageTips] = await Promise.all([
+    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    profile.coachId
+      ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
+      : Promise.resolve(null),
+    listDismissedWhyItMattersBoxes(profile.id),
+  ])
 
   return (
     <div className="space-y-8">

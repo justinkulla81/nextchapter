@@ -138,21 +138,42 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
     include: { candidate: true },
     orderBy: { interviewLandedAt: 'asc' },
   })
+  // The earliest-in-window posting per candidate (ascending sort + first-seen
+  // wins) — a candidate for a "comeback" nomination if that posting also
+  // turns out to be their first interview ever, checked in bulk below.
   const seenComebackCandidates = new Set<string>()
+  const firstInWindowByCandidate = new Map<string, (typeof recentInterviews)[number]>()
   for (const jobPosting of recentInterviews) {
     if (!jobPosting.interviewLandedAt) continue
     if (jobPosting.candidate.privacyTier === 'LOCKED') continue
     if (seenComebackCandidates.has(jobPosting.candidateId)) continue
     seenComebackCandidates.add(jobPosting.candidateId)
+    firstInWindowByCandidate.set(jobPosting.candidateId, jobPosting)
+  }
 
-    const priorInterviewCount = await prisma.jobPosting.count({
-      where: { candidateId: jobPosting.candidateId, interviewLandedAt: { lt: jobPosting.interviewLandedAt } },
-    })
-    if (priorInterviewCount > 0) continue // not their first interview
+  // One grouped query instead of one `count` per candidate — the group's
+  // minimum interviewLandedAt across ALL of a candidate's postings (not just
+  // ones in this window) tells us whether their earliest-in-window posting
+  // really is their first interview ever, or just their first in the last
+  // 14 days.
+  const candidateIds = [...firstInWindowByCandidate.keys()]
+  const earliestEverByCandidate =
+    candidateIds.length > 0
+      ? await prisma.jobPosting.groupBy({
+          by: ['candidateId'],
+          where: { candidateId: { in: candidateIds }, interviewLandedAt: { not: null } },
+          _min: { interviewLandedAt: true },
+        })
+      : []
+  const earliestEverMap = new Map(earliestEverByCandidate.map((e) => [e.candidateId, e._min.interviewLandedAt]))
+
+  for (const [candidateId, jobPosting] of firstInWindowByCandidate) {
+    const earliestEver = earliestEverMap.get(candidateId)
+    if (!earliestEver || earliestEver.getTime() !== jobPosting.interviewLandedAt!.getTime()) continue // not their first interview
 
     const joinedAt = jobPosting.candidate.registrationCompletedAt ?? jobPosting.candidate.createdAt
     const daysSinceJoin =
-      (jobPosting.interviewLandedAt.getTime() - joinedAt.getTime()) / (1000 * 60 * 60 * 24)
+      (jobPosting.interviewLandedAt!.getTime() - joinedAt.getTime()) / (1000 * 60 * 60 * 24)
     if (daysSinceJoin < COMEBACK_MIN_DAYS_SINCE_JOIN) continue // too fast to read as a turnaround
 
     const name = anonymize(jobPosting.candidate.firstName, jobPosting.candidate.lastName)
@@ -163,7 +184,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       displayName: name,
       avatarUrl: visibleAvatarUrl(jobPosting.candidate),
       detail: 'landed their first interview after a slow start',
-      occurredAt: jobPosting.interviewLandedAt,
+      occurredAt: jobPosting.interviewLandedAt!,
     })
   }
 
