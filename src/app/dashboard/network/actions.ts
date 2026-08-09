@@ -106,13 +106,37 @@ export async function updateContact(contactId: string, formData: FormData) {
 
   const warmth = formData.get('warmth') as ContactWarmth | null
   const relationshipTags = formData.getAll('relationshipTags') as RelationshipTag[]
+  const name = (formData.get('name') as string | null)?.trim()
+  const company = (formData.get('company') as string | null)?.trim() || null
+  const title = (formData.get('title') as string | null)?.trim() || null
+  const email = (formData.get('email') as string | null)?.trim() || null
+  const phone = (formData.get('phone') as string | null)?.trim() || null
+  const linkedinUrl = (formData.get('linkedinUrl') as string | null)?.trim() || null
 
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
     data: {
       warmth: warmth || undefined,
       relationshipTags,
+      ...(name ? { name } : {}),
+      company,
+      title,
+      email,
+      phone,
+      linkedinUrl,
     },
+  })
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+}
+
+export async function toggleContactPriority(contactId: string, isPriority: boolean) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.supportNetworkContact.updateMany({
+    where: { id: contactId, candidateId: profile.id },
+    data: { isPriority },
   })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
@@ -123,6 +147,32 @@ export async function deleteContact(contactId: string) {
   if (!profile) return
 
   await prisma.supportNetworkContact.deleteMany({ where: { id: contactId, candidateId: profile.id } })
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+}
+
+// Undo for the above — deletion is real and immediate (see deleteContact),
+// so "undo" means recreating the row from a client-held snapshot of what
+// was just deleted, not reversing a soft-delete flag. Only usable while the
+// candidate is still on the page holding that snapshot in memory; once they
+// navigate away, the snapshot is gone and the delete is permanent.
+export async function restoreContact(snapshot: {
+  name: string
+  company: string | null
+  title: string | null
+  email: string | null
+  phone: string | null
+  linkedinUrl: string | null
+  warmth: ContactWarmth
+  relationshipTags: RelationshipTag[]
+  isPriority: boolean
+}) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.supportNetworkContact.create({
+    data: { ...snapshot, candidateId: profile.id, source: 'MANUAL' },
+  })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
 }

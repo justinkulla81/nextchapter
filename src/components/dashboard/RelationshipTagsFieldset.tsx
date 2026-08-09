@@ -1,6 +1,6 @@
 import type { RelationshipTag } from '@prisma/client'
 
-const RELATIONSHIP_TAG_OPTIONS: { value: RelationshipTag; label: string }[] = [
+export const RELATIONSHIP_TAG_OPTIONS: { value: RelationshipTag; label: string }[] = [
   { value: 'HIRING_MANAGER', label: 'Hiring manager' },
   { value: 'RECRUITER', label: 'Recruiter' },
   { value: 'PROFESSIONAL_CONTACT', label: 'Professional contact' },

@@ -15,7 +15,13 @@ import {
 import { RELATIONSHIP_TYPE_LABELS, RELATIONSHIP_TYPE_HELP } from '@/lib/constants/references'
 import { cn } from '@/lib/utils'
 
-export function ReferenceRequestForm() {
+export function ReferenceRequestForm({
+  initialName,
+  initialEmail,
+}: {
+  initialName?: string
+  initialEmail?: string
+} = {}) {
   const [state, formAction, pending] = useActionState(requestReference, undefined)
 
   return (
@@ -29,11 +35,11 @@ export function ReferenceRequestForm() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="refereeName">Their name</Label>
-          <Input id="refereeName" name="refereeName" required />
+          <Input id="refereeName" name="refereeName" defaultValue={initialName} required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="refereeEmail">Their email</Label>
-          <Input id="refereeEmail" name="refereeEmail" type="email" required />
+          <Input id="refereeEmail" name="refereeEmail" type="email" defaultValue={initialEmail} required />
         </div>
       </div>
 

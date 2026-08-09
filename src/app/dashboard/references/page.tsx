@@ -31,8 +31,13 @@ const STATUS_LABELS: Record<ReferenceStatus, string> = {
   EXPIRED: 'Expired',
 }
 
-export default async function ReferencesPage() {
+export default async function ReferencesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ name?: string; email?: string }>
+}) {
   const profile = await getDashboardData()
+  const params = await searchParams
 
   const pendingQuotes = await prisma.referenceQuote.findMany({
     where: { candidateId: profile.id, approvedByCandidateAt: null, rejectedAt: null },
@@ -56,7 +61,7 @@ export default async function ReferencesPage() {
         }))}
       />
 
-      <ReferenceRequestForm />
+      <ReferenceRequestForm initialName={params.name} initialEmail={params.email} />
 
       {profile.references.length === 0 && (
         <EmptyState

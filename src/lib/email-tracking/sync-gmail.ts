@@ -288,7 +288,12 @@ async function processMessage(
   // points below: only high-confidence classifications, so a NEEDS_REVIEW
   // guess never creates a noise contact.
   if (classification.confidence === 'high') {
-    const isRecruiterOutreach = direction === 'INBOUND' && classification.activityType === 'RECRUITER_OUTREACH'
+    // !skipRoleMatching excludes ATS/job-board and NextChapter's own domains
+    // — without it, an automated LinkedIn notification ("New message from X
+    // on LinkedIn") classifies as RECRUITER_OUTREACH and gets auto-added as
+    // a contact named after the notification sender (e.g. "LinkedIn Job
+    // Alerts"), which isn't a person at all.
+    const isRecruiterOutreach = direction === 'INBOUND' && !skipRoleMatching && classification.activityType === 'RECRUITER_OUTREACH'
     const isNetworkingOutbound = direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.has(classification.activityType)
     const autoTags: RelationshipTag[] = []
     if (isRecruiterOutreach || isRecruiterContact) autoTags.push('RECRUITER')
@@ -305,6 +310,26 @@ async function processMessage(
           autoTags,
           workHistoryCompanies,
         }).catch((error) => console.error('Failed to auto-add email contact to network list:', error))
+      }
+    }
+  }
+
+  // "How did you reach out?" auto-fills to Emailed the moment the candidate
+  // emails someone already on their Contact Directory — no separate "Log
+  // email" click needed, same philosophy as JOB_APPLICATION_SUBMITTED etc.
+  // being detected rather than self-reported. Independent of the
+  // classification/confidence above: any outbound email to a tracked
+  // contact counts, not just ones that happen to match a networking pattern.
+  if (direction === 'OUTBOUND') {
+    const recipientEmail = extractEmailAddress(to).toLowerCase()
+    if (recipientEmail.includes('@')) {
+      const matchedContact = await prisma.supportNetworkContact.findFirst({
+        where: { candidateId: connection.candidateId, email: recipientEmail },
+      })
+      if (matchedContact) {
+        await prisma.outreachLog
+          .create({ data: { candidateId: connection.candidateId, contactId: matchedContact.id, channel: 'EMAIL' } })
+          .catch((error) => console.error('Failed to auto-log email outreach:', error))
       }
     }
   }

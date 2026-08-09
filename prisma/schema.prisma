@@ -2398,6 +2398,12 @@ model SupportNetworkContact {
   company             String?
   title               String?
   email               String?
+  phone               String?
+  linkedinUrl         String?
+  // Candidate-flagged "this person matters most" — independent of
+  // relationshipTags, which capture *what* they are (recruiter, hiring
+  // manager, ...), not whether the candidate has decided to prioritize them.
+  isPriority          Boolean                    @default(false)
   category            ContactCategory?
   warmth              ContactWarmth              @default(WARM)
   source              ContactSource              @default(MANUAL)

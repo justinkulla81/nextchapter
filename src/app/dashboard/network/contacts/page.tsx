@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { ContactRow } from '@/components/dashboard/ContactRow'
+import { ContactDirectoryTable } from '@/components/dashboard/ContactDirectoryTable'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { OutreachCheatSheetCard } from '@/components/dashboard/OutreachCheatSheetCard'
@@ -16,24 +16,20 @@ import {
   fillGoodWordTemplate,
   fillCheckingInTemplate,
 } from '@/lib/constants/network-email-templates'
-import type { ContactWarmth } from '@prisma/client'
-
 export const metadata: Metadata = { title: 'Contact Directory' }
-
-const WARMTH_ORDER: ContactWarmth[] = ['HOT', 'WARM', 'COLD']
-
-const WARMTH_LABEL: Record<ContactWarmth, string> = {
-  HOT: 'Hot',
-  WARM: 'Warm',
-  COLD: 'Cold',
-}
 
 export default async function ContactDirectoryPage() {
   const profile = await getDashboardData()
-  const contacts = await prisma.supportNetworkContact.findMany({
+  const rawContacts = await prisma.supportNetworkContact.findMany({
     where: { candidateId: profile.id },
     orderBy: { createdAt: 'desc' },
+    include: { outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 } },
   })
+  const contacts = rawContacts.map((c) => ({
+    ...c,
+    hasReachedOut: c.outreachLogs.length > 0,
+    lastOutreachChannel: c.outreachLogs[0]?.channel ?? null,
+  }))
 
   const networkScriptsGuide = GUIDES.find((g) => g.slug === 'network-scripts')
 
@@ -47,28 +43,7 @@ export default async function ContactDirectoryPage() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        {contacts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No contacts yet — import your LinkedIn connections below to get started.
-          </p>
-        ) : (
-          WARMTH_ORDER.map((warmth) => {
-            const warmthContacts = contacts.filter((c) => c.warmth === warmth)
-            if (warmthContacts.length === 0) return null
-            return (
-              <div key={warmth} className="space-y-3">
-                <h2 className="text-base font-medium text-foreground">{WARMTH_LABEL[warmth]}</h2>
-                <div className="space-y-3">
-                  {warmthContacts.map((contact) => (
-                    <ContactRow key={contact.id} contact={contact} />
-                  ))}
-                </div>
-              </div>
-            )
-          })
-        )}
-      </div>
+      <ContactDirectoryTable contacts={contacts} />
 
       <Accordion>
         <AccordionItem value="build-list">
