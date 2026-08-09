@@ -24,7 +24,7 @@ import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { TrackingTabs } from '@/components/dashboard/TrackingTabs'
-import { EmailActivitySyncButton } from '@/components/dashboard/EmailActivityControls'
+import { EmailActivitySyncButton, EmailActivityForceResyncButton } from '@/components/dashboard/EmailActivityControls'
 import { CalendarActivitySyncButton } from '@/components/dashboard/CalendarActivityControls'
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
@@ -264,8 +264,9 @@ export default async function NetworkPage({
           </p>
           <details className="text-sm">
             <summary className="cursor-pointer font-medium text-primary">Manage</summary>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               <EmailActivitySyncButton />
+              <EmailActivityForceResyncButton />
               <form action={disconnectGmail}>
                 <Button type="submit" variant="outline" size="sm">
                   Disconnect
