@@ -19,6 +19,13 @@ import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { WhoCanHelpSection } from '@/components/dashboard/WhoCanHelpSection'
+import { JobBoardLinkList } from '@/components/dashboard/JobBoardLinkList'
+import {
+  GENERAL_JOB_BOARDS,
+  WOMEN_FOCUSED_JOB_BOARDS,
+  DIVERSITY_FOCUSED_JOB_BOARDS,
+  getIndustryJobBoards,
+} from '@/lib/constants/industry-job-boards'
 import {
   deleteJobPosting,
   retryJobFetch,
@@ -51,6 +58,7 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
 
@@ -327,6 +335,15 @@ export default async function JobFitPage() {
     OFFER: 'Offers',
   }
 
+  // Apply to New Jobs section — job-board recommendations plus the point
+  // values for the three real actions doable across this page, pulled from
+  // the same effort table the Action Plan box uses so the numbers can never
+  // drift out of sync with what a candidate actually earns.
+  const industryBoards = getIndustryJobBoards(profile.targetIndustries)
+  const applyEffort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
+  const interestEffort = estimateActionEffort({ actionType: 'JOB_INTERESTED_REACTION' })
+  const watchlistEffort = estimateActionEffort({ actionType: 'WATCHLIST_ADD' })
+
   return (
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
@@ -336,6 +353,7 @@ export default async function JobFitPage() {
       </div>
 
       <ReconnectBanner candidateId={profile.id} />
+      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border p-3">
@@ -351,6 +369,156 @@ export default async function JobFitPage() {
           <NetworkStatTile key={type} label={label} items={jobStatTileItems[type] ?? []} />
         ))}
         <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
+      </div>
+
+      <div id="apply-new-jobs" className="scroll-mt-4 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Apply to New Jobs</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Search broadly, then check the boards tailored to you below — then come back and log
+            what you applied to.
+          </p>
+        </div>
+
+        <JobBoardLinkList boards={GENERAL_JOB_BOARDS} category="general" />
+
+        {industryBoards.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Tailored to your industry
+            </p>
+            <JobBoardLinkList boards={industryBoards} category="industry" />
+          </div>
+        )}
+
+        <details className="text-sm">
+          <summary className="cursor-pointer font-medium text-primary underline underline-offset-4">
+            More job boards
+          </summary>
+          <div className="mt-3 space-y-3">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Boards focused on women in the workforce
+              </p>
+              <JobBoardLinkList boards={WOMEN_FOCUSED_JOB_BOARDS} category="women_focused" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Boards focused on underrepresented groups
+              </p>
+              <JobBoardLinkList boards={DIVERSITY_FOCUSED_JOB_BOARDS} category="diversity_focused" />
+            </div>
+          </div>
+        </details>
+
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-foreground">Executive Recruiters</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isAList
+              ? "You're an A — recruiters can already find you."
+              : "Recruiters can find and reach out to you directly once you hit an A grade — you can opt in any time so you're ready."}
+          </p>
+          <Link
+            href="/dashboard/privacy"
+            className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Manage recruiter visibility →
+          </Link>
+        </div>
+
+        <div className="space-y-2 rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-foreground">Ways to earn points here</p>
+          <ul className="space-y-1.5 text-sm">
+            <li>
+              <Link href="#jobs-applied" className="text-primary underline underline-offset-4">
+                Apply to a new job
+              </Link>{' '}
+              <span className="text-muted-foreground">
+                (on LinkedIn, Indeed, etc.) — track it below once you apply · +{applyEffort.points} pts
+              </span>
+            </li>
+            <li>
+              <Link href="#job-recommendations" className="text-primary underline underline-offset-4">
+                Express interest
+              </Link>{' '}
+              <span className="text-muted-foreground">
+                in a job we&apos;ve listed for you · +{interestEffort.points} pts
+              </span>
+            </li>
+            <li>
+              <Link href="#company-tracker" className="text-primary underline underline-offset-4">
+                Add a new company
+              </Link>{' '}
+              <span className="text-muted-foreground">to your tracker · +{watchlistEffort.points} pts</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="job-recommendations" className="scroll-mt-4 space-y-4">
+        <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
+
+        {visibleBoardPostings.length === 0 &&
+        lockedBoardPostings.length === 0 &&
+        surfacedJobs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No jobs surfaced yet — set a target role in your Goals to get started.
+          </p>
+        ) : (
+          <Card>
+            <CardContent className="space-y-3 pt-6">
+              {surfacedJobs.length > 0 && (
+                <p className="text-xs font-medium text-muted-foreground">
+                  {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
+                  automated search partners
+                  {totalUnreactedCount > visibleSurfacedJobs.length &&
+                    ` — showing ${visibleSurfacedJobs.length} below`}
+                </p>
+              )}
+
+              <div className="divide-y divide-border rounded-lg border border-border">
+                {visibleBoardPostings.map((posting) => (
+                  <DiscoverJobCard
+                    key={posting.id}
+                    posting={posting}
+                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                  />
+                ))}
+
+                {visibleSurfacedJobs.map((job) => (
+                  <NextSurfacedJobCard
+                    key={job.id}
+                    job={job}
+                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                  />
+                ))}
+              </div>
+
+              {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
+                <>
+                  <UnlockAListCallout
+                    grade={grade.grade}
+                    lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
+                  />
+
+                  <div className="divide-y divide-border rounded-lg border border-border">
+                    {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
+                      <LockedDiscoverJobCard key={posting.id} posting={posting} />
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    {lockedSurfacedCount > 0 &&
+                      `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
+                    {boardPostings.length} total jobs in our ATS.
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <InterestedJobsList jobs={interestedJobs} />
       </div>
 
       <div id="interview-tracking" className="scroll-mt-4 space-y-4 rounded-lg border border-border p-4">
@@ -927,74 +1095,6 @@ export default async function JobFitPage() {
             </div>
           </details>
         )}
-      </div>
-
-      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
-
-      <div id="job-recommendations" className="scroll-mt-4 space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
-
-        {visibleBoardPostings.length === 0 &&
-        lockedBoardPostings.length === 0 &&
-        surfacedJobs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No jobs surfaced yet — set a target role in your Goals to get started.
-          </p>
-        ) : (
-          <Card>
-            <CardContent className="space-y-3 pt-6">
-              {surfacedJobs.length > 0 && (
-                <p className="text-xs font-medium text-muted-foreground">
-                  {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
-                  automated search partners
-                  {totalUnreactedCount > visibleSurfacedJobs.length &&
-                    ` — showing ${visibleSurfacedJobs.length} below`}
-                </p>
-              )}
-
-              <div className="divide-y divide-border rounded-lg border border-border">
-                {visibleBoardPostings.map((posting) => (
-                  <DiscoverJobCard
-                    key={posting.id}
-                    posting={posting}
-                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-                  />
-                ))}
-
-                {visibleSurfacedJobs.map((job) => (
-                  <NextSurfacedJobCard
-                    key={job.id}
-                    job={job}
-                    fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                  />
-                ))}
-              </div>
-
-              {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-                <>
-                  <UnlockAListCallout
-                    grade={grade.grade}
-                    lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
-                  />
-
-                  <div className="divide-y divide-border rounded-lg border border-border">
-                    {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
-                      <LockedDiscoverJobCard key={posting.id} posting={posting} />
-                    ))}
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    {lockedSurfacedCount > 0 &&
-                      `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
-                    {boardPostings.length} total jobs in our ATS.
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <InterestedJobsList jobs={interestedJobs} />
       </div>
 
       <div id="company-tracker" className="scroll-mt-4 space-y-4 border-t border-border pt-8">

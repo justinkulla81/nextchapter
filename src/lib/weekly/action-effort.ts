@@ -634,14 +634,24 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'CALENDAR_RECONNECTED',
     'INTERVIEW_ATTENDED',
   ],
+  // Order matches the page's own section order (see find-my-job/page.tsx):
+  // Apply to New Jobs, Job Recommendations, Interview Tracking, Jobs I've
+  // Applied To, Company Tracker. JOB_BOARD_USAGE_CONFIRMED intentionally
+  // omitted — its UI (JobBoardUsageCheckIn) was removed and never rebuilt,
+  // so it has no reachable action to complete (see profile-checklist.ts's
+  // "dead" comment on the same action type). GMAIL_CONNECTED/RECONNECTED
+  // also listed under `network` (their real home) — duplicated here too
+  // since a candidate on this page needs their inbox connected for
+  // interview/application auto-detection to work at all.
   'find-my-job': [
     'JOB_APPLICATION_SUBMITTED',
     'JOB_INTERESTED_REACTION',
-    'WATCHLIST_ADD',
-    'NEGOTIATION_ADVICE',
-    'JOB_BOARD_USAGE_CONFIRMED',
-    'WATCHLIST_POSTING_VIEWED',
     'INTERVIEW_PREP',
+    'WATCHLIST_ADD',
+    'WATCHLIST_POSTING_VIEWED',
+    'NEGOTIATION_ADVICE',
+    'GMAIL_CONNECTED',
+    'GMAIL_RECONNECTED',
   ],
   resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
