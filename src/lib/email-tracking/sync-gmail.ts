@@ -17,13 +17,23 @@ import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/c
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const THROTTLE_MS = 5 * 60 * 1000 // don't re-sync more than once per 5 minutes
-// Per-label cap instead of a date-range query — kept simple even though
-// gmail.readonly (unlike the old gmail.metadata scope) does support the `q`
-// search parameter now. messages.list without `q` returns each label
-// newest-first, so capping maxResults already gives "the most recent N per
-// folder"; the existing per-message dedup below (skip if already tracked)
-// keeps repeat syncs cheap without needing a time window.
-const MAX_MESSAGES_PER_LABEL = 50
+// messages.list without a `q` filter returns each label's most recent N —
+// so on an active inbox, an old message can get pushed out of that window
+// by newer mail between syncs and never be fetched at all (this is how a
+// real application confirmation went permanently unseen — not misclassified,
+// never even reached the classifier). Fixed by bounding every fetch with
+// `q=after:<date>` anchored to the last successful sync (or, for a brand
+// new connection, a fixed backfill window) and paginating within that
+// window instead of relying on a flat maxResults cap.
+const MESSAGES_PAGE_SIZE = 100
+const MAX_PAGES_PER_LABEL = 10 // sanity bound: up to 1,000 messages/label/sync
+const FIRST_SYNC_BACKFILL_MS = 90 * 24 * 60 * 60 * 1000 // 90 days
+// Gmail's `after:` filter is date-granularity, not time-of-day — back off an
+// extra day from the true cutoff so a message from earlier the same day as
+// the last sync is never dropped by rounding. Reprocessing overlap is free:
+// the per-message dedup (existingIds check below) skips anything already
+// tracked.
+const QUERY_OVERLAP_MS = 24 * 60 * 60 * 1000
 // Body text is only used for regex keyword matching, never stored — cap it
 // well past any realistic phrase-matching need so a huge email can't blow
 // up regex evaluation time.
@@ -143,15 +153,30 @@ async function ensureFreshAccessToken(connection: EmailConnection): Promise<stri
   }
 }
 
-async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT'): Promise<string[]> {
-  const url = `${GMAIL_API}/messages?labelIds=${labelId}&maxResults=${MAX_MESSAGES_PER_LABEL}`
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (!response.ok) {
-    console.error(`Gmail messages.list (${labelId}) failed: ${response.status} ${await response.text()}`)
-    return []
-  }
-  const data = (await response.json()) as { messages?: { id: string }[] }
-  return (data.messages ?? []).map((m) => m.id)
+async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT', afterUnixSeconds: number): Promise<string[]> {
+  const ids: string[] = []
+  let pageToken: string | undefined
+  let page = 0
+  do {
+    const params = new URLSearchParams({
+      labelIds: labelId,
+      maxResults: String(MESSAGES_PAGE_SIZE),
+      q: `after:${afterUnixSeconds}`,
+    })
+    if (pageToken) params.set('pageToken', pageToken)
+    const response = await fetch(`${GMAIL_API}/messages?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!response.ok) {
+      console.error(`Gmail messages.list (${labelId}) failed: ${response.status} ${await response.text()}`)
+      break
+    }
+    const data = (await response.json()) as { messages?: { id: string }[]; nextPageToken?: string }
+    ids.push(...(data.messages ?? []).map((m) => m.id))
+    pageToken = data.nextPageToken
+    page++
+  } while (pageToken && page < MAX_PAGES_PER_LABEL)
+  return ids
 }
 
 // format=full (not metadata) so classification can read the body and check
@@ -364,9 +389,11 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   const accessToken = await ensureFreshAccessToken(connection)
   if (!accessToken) return null
 
+  const sinceDate = connection.lastSyncAt ?? new Date(Date.now() - FIRST_SYNC_BACKFILL_MS)
+  const afterUnixSeconds = Math.floor((sinceDate.getTime() - QUERY_OVERLAP_MS) / 1000)
   const [inboxIds, sentIds] = await Promise.all([
-    listMessageIds(accessToken, 'INBOX'),
-    listMessageIds(accessToken, 'SENT'),
+    listMessageIds(accessToken, 'INBOX', afterUnixSeconds),
+    listMessageIds(accessToken, 'SENT', afterUnixSeconds),
   ])
 
   // A single batched existence check replaces up to 100 sequential
