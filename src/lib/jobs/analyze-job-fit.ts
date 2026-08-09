@@ -13,6 +13,10 @@ const jobFitSchema = z.object({
   // state one.
   title: z.string().nullable(),
   companyName: z.string().nullable(),
+  // Free-text as stated in the posting (e.g. "Remote", "New York, NY",
+  // "Austin, TX (hybrid)") — feeds the application-trends geography signal.
+  // Null when the posting doesn't clearly state one, never guessed.
+  location: z.string().nullable(),
   fitScore: z.number().int().min(0).max(100),
   fitFeedback: z.array(z.string()).min(1).max(5),
   keywords: z.array(z.string()).min(3).max(10),
@@ -24,7 +28,7 @@ const jobFitSchema = z.object({
 
 const PROMPT_PREFIX = `You are giving a candidate honest, specific feedback about how well they fit a job posting. Do not be generically encouraging — if the fit is weak, say so plainly and explain why. Consider their stated experience level, function, industry background, and target role against what the posting actually asks for.
 
-First, extract the job title and hiring company name stated in the posting text itself (title/companyName — null if genuinely not stated, never guessed).
+First, extract the job title, hiring company name, and location stated in the posting text itself (title/companyName/location — null if genuinely not stated, never guessed). Location should be short and as stated (e.g. "Remote", "New York, NY", "Austin, TX (hybrid)").
 
 Return fitFeedback as no more than 5 short, scannable bullets (each one sentence, plain language) — not a paragraph. Lead with the most decision-relevant point (the biggest strength or the biggest gap).
 
@@ -88,6 +92,7 @@ ${
       data: {
         title: data.title,
         companyName: data.companyName,
+        location: data.location,
         fitScore: data.fitScore,
         fitFeedback: data.fitFeedback,
         keywords: data.keywords,

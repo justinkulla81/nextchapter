@@ -1096,6 +1096,30 @@ model CompanySizeLookup {
   @@index([sizeBand])
 }
 
+// Mirrors CompanySizeLookup above — permanent, platform-wide cache so a
+// company's industry is classified by the LLM at most once ever, not
+// per-candidate and not on every report view. Feeds the application-trends
+// industry-consistency signal (src/lib/network/application-trends.ts).
+model CompanyIndustryLookup {
+  id String @id @default(cuid())
+
+  companyNameNormalized String @unique
+  companyNameOriginal   String
+  // One of INDUSTRY_BUCKET_NAMES (src/lib/constants/industry-buckets.ts) —
+  // a plain string, not a Prisma enum, since that bucket list lives in
+  // admin-editable TS rather than the schema.
+  industryBucket String
+
+  source      String // 'llm' only for now — no curated static list exists yet (unlike company size)
+  confidence  Float?
+  llmRawNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([industryBucket])
+}
+
 // Structured, one-row-per-degree education history — mirrors WorkHistoryEntry's
 // conventions exactly. Supports multiple degrees per candidate (undergrad +
 // MBA at different schools, etc.); isPrimary marks the one that represents
@@ -1723,6 +1747,7 @@ model JobPosting {
   // any other candidate.
   title       String?
   companyName String?
+  location    String? // extracted by analyzeJobFit alongside title/companyName; null for EMAIL_DETECTED rows or postings never analyzed
 
   fitScore        Int? // 0-100
   fitFeedback     String[]  @default([]) // short, scannable bullets — no more than 5

@@ -55,10 +55,46 @@ interface MarketConditions {
   narrative: string[]
 }
 
+interface TrendBreakdownEntry {
+  label: string
+  count: number
+}
+
+type FocusLabel = 'focused' | 'mixed' | 'scattered'
+type VolumeAssessment = 'too_few' | 'on_track' | 'too_many'
+
+interface ApplicationTrendsData {
+  eligible: boolean
+  minRequired: number
+  totalApplications: number
+  functionBreakdown: TrendBreakdownEntry[] | null
+  functionFocus: FocusLabel | null
+  industryBreakdown: TrendBreakdownEntry[] | null
+  industryFocus: FocusLabel | null
+  geographyBreakdown: TrendBreakdownEntry[] | null
+  geographyFocus: FocusLabel | null
+  applicationsPerWeek: number | null
+  volumeGoalPerWeek: number | null
+  volumeAssessment: VolumeAssessment | null
+}
+
+const FOCUS_LABEL: Record<FocusLabel, string> = {
+  focused: 'Focused',
+  mixed: 'A mix',
+  scattered: 'Scattered',
+}
+
+const VOLUME_ASSESSMENT_LABEL: Record<VolumeAssessment, string> = {
+  too_few: 'Below a healthy pace',
+  on_track: 'On pace',
+  too_many: 'Very high volume',
+}
+
 interface JobSearchPatternData {
   summary: string | null
   signalCount: number
   minRequired: number
+  applicationTrends: ApplicationTrendsData | null
 }
 
 interface HillToClimb {
@@ -473,6 +509,94 @@ export default async function HireabilityReportPage() {
                   helps us train Victoria to get to know what you&apos;re really looking for.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Application Trends — focused vs. scattered across function,
+              industry, and geography, plus whether the application pace is
+              too slow, healthy, or spray-and-pray. */}
+          {(report.jobSearchPattern as unknown as JobSearchPatternData | null)?.applicationTrends && (
+            <div className="mt-10 border-t border-border pt-8">
+              <SectionHeading>Application Trends</SectionHeading>
+              {(() => {
+                const trends = (report.jobSearchPattern as unknown as JobSearchPatternData).applicationTrends!
+                if (!trends.eligible) {
+                  return (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Not enough applications yet to spot a trend — once you&apos;ve applied to{' '}
+                      {trends.minRequired} or more jobs, this will show whether you&apos;re staying
+                      focused and applying at a healthy pace.
+                    </p>
+                  )
+                }
+                return (
+                  <div className="mt-4 space-y-3">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {trends.functionFocus && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Job function
+                          </p>
+                          <p className="mt-1 text-sm text-foreground">{FOCUS_LABEL[trends.functionFocus]}</p>
+                          {trends.functionBreakdown && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {trends.functionBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {trends.industryFocus && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Industry
+                          </p>
+                          <p className="mt-1 text-sm text-foreground">{FOCUS_LABEL[trends.industryFocus]}</p>
+                          {trends.industryBreakdown && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {trends.industryBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {trends.geographyFocus && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Geography
+                          </p>
+                          <p className="mt-1 text-sm text-foreground">{FOCUS_LABEL[trends.geographyFocus]}</p>
+                          {trends.geographyBreakdown && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {trends.geographyBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {trends.volumeAssessment && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Application pace
+                          </p>
+                          <p className="mt-1 text-sm text-foreground">
+                            {VOLUME_ASSESSMENT_LABEL[trends.volumeAssessment]}
+                            {trends.applicationsPerWeek !== null && ` — ${trends.applicationsPerWeek}/week`}
+                          </p>
+                          {trends.volumeGoalPerWeek && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              Your goal: {trends.volumeGoalPerWeek}/week
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {(!trends.industryBreakdown || !trends.geographyBreakdown) && (
+                      <p className="text-xs text-muted-foreground">
+                        Industry and geography need more of your applications to have a company name or
+                        a fit check run — they&apos;ll fill in as you add more.
+                      </p>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
           )}
         </div>

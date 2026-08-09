@@ -1,6 +1,19 @@
 import type { CoachingNotes } from '@/lib/coach/coaching-notes'
+import type { FocusLabel, VolumeAssessment } from '@/lib/network/application-trends'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { MarketRealityTrendChart } from '@/components/dashboard/MarketRealityTrendChart'
+
+const FOCUS_LABEL: Record<FocusLabel, string> = {
+  focused: 'Focused',
+  mixed: 'A mix',
+  scattered: 'Scattered',
+}
+
+const VOLUME_ASSESSMENT_LABEL: Record<VolumeAssessment, string> = {
+  too_few: 'Below a healthy pace',
+  on_track: 'On pace',
+  too_many: 'Very high volume',
+}
 
 const SENTIMENT_ALERT_REASON_TEXT: Record<'low_average' | 'declining_trend', string> = {
   low_average: "their mood check-ins have run mostly \"Stuck\" over the last two weeks",
@@ -316,6 +329,59 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         <div>
           <p className="text-sm font-medium text-muted-foreground">What&apos;s My Pattern</p>
           <p className="mt-2 text-sm text-foreground">{notes.jobSearchPatternSummary}</p>
+        </div>
+      )}
+
+      {notes.applicationTrends?.eligible && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Application trends</p>
+          <dl className="mt-2 grid gap-3 sm:grid-cols-2 text-sm">
+            {notes.applicationTrends.functionFocus && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Job function</dt>
+                <dd className="text-foreground">{FOCUS_LABEL[notes.applicationTrends.functionFocus]}</dd>
+                {notes.applicationTrends.functionBreakdown && (
+                  <dd className="text-xs text-muted-foreground">
+                    {notes.applicationTrends.functionBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+                  </dd>
+                )}
+              </div>
+            )}
+            {notes.applicationTrends.industryFocus && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Industry</dt>
+                <dd className="text-foreground">{FOCUS_LABEL[notes.applicationTrends.industryFocus]}</dd>
+                {notes.applicationTrends.industryBreakdown && (
+                  <dd className="text-xs text-muted-foreground">
+                    {notes.applicationTrends.industryBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+                  </dd>
+                )}
+              </div>
+            )}
+            {notes.applicationTrends.geographyFocus && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Geography</dt>
+                <dd className="text-foreground">{FOCUS_LABEL[notes.applicationTrends.geographyFocus]}</dd>
+                {notes.applicationTrends.geographyBreakdown && (
+                  <dd className="text-xs text-muted-foreground">
+                    {notes.applicationTrends.geographyBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+                  </dd>
+                )}
+              </div>
+            )}
+            {notes.applicationTrends.volumeAssessment && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Application pace</dt>
+                <dd className="text-foreground">
+                  {VOLUME_ASSESSMENT_LABEL[notes.applicationTrends.volumeAssessment]}
+                  {notes.applicationTrends.applicationsPerWeek !== null &&
+                    ` — ${notes.applicationTrends.applicationsPerWeek}/week`}
+                  {notes.applicationTrends.volumeGoalPerWeek &&
+                    ` (goal: ${notes.applicationTrends.volumeGoalPerWeek}/week)`}
+                </dd>
+              </div>
+            )}
+          </dl>
         </div>
       )}
 

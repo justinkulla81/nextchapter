@@ -24,6 +24,7 @@ import {
 } from '@/lib/scoring/hireability-grade'
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coach/visibility-calibration'
+import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
 
 export interface GapAnalysisGap {
   area: string
@@ -321,6 +322,10 @@ export interface CoachingNotes {
   // opened often and shouldn't trigger its own LLM call. Null until a
   // report has been generated, or until the candidate has enough signal.
   jobSearchPatternSummary: string | null
+  // Same "read from the persisted report, don't recompute" rule as
+  // jobSearchPatternSummary above — see application-trends.ts. Null until a
+  // report has been generated with enough applications to be eligible.
+  applicationTrends: ApplicationTrendsResult | null
   // Prompt 60 — the candidate's Coaching Onboarding Form answers, once
   // submitted. Null until they've completed it.
   coachingOnboardingAnswers: CoachingOnboardingAnswerDisplay[] | null
@@ -466,6 +471,10 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     watchedCompanies: watchlistEntries.map((e) => e.companyName),
     jobSearchPatternSummary: latestReport
       ? ((latestReport.jobSearchPattern as unknown as { summary: string | null } | null)?.summary ?? null)
+      : null,
+    applicationTrends: latestReport
+      ? ((latestReport.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
+          ?.applicationTrends ?? null)
       : null,
     coachingOnboardingAnswers,
     visibilityCalibration,

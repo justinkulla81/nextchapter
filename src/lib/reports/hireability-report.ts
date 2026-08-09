@@ -19,6 +19,7 @@ import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
+import { computeApplicationTrends } from '@/lib/network/application-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -235,7 +236,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     candidate.targetRoleType
   )
 
-  const [grade, startedSprint, latestAiProject, jobPattern] = await Promise.all([
+  const [grade, startedSprint, latestAiProject, jobPattern, applicationTrends] = await Promise.all([
     computeHireabilityGrade(candidate),
     hasStartedSprint(candidateId),
     prisma.learningBadge.findFirst({
@@ -243,6 +244,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
       orderBy: { completedAt: 'desc' },
     }),
     generateJobPattern(candidateId),
+    computeApplicationTrends(candidateId),
   ])
 
   // Same structured gap list the Market Reality Report UI and Executive
@@ -437,6 +439,7 @@ Openings matching their target function + industry: ${industrySpecificCount !== 
         summary: jobPattern.summary,
         signalCount: jobPattern.signalCount,
         minRequired: MIN_SIGNALS_FOR_PATTERN,
+        applicationTrends,
       } as unknown as Prisma.InputJsonValue,
     },
   })
