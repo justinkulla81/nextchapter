@@ -13,3 +13,13 @@ export function isTrustedOwnerIp(ip: string | null): boolean {
     .filter(Boolean)
   return trusted.includes(ip)
 }
+
+// Local dev traffic (running the app on your own machine) resolves to the
+// loopback address, never a real visitor — always excluded, unlike
+// isTrustedOwnerIp above which depends on an env var being kept current.
+const LOOPBACK_IPS = new Set(['::1', '127.0.0.1', '::ffff:127.0.0.1'])
+
+export function isLoopbackIp(ip: string | null): boolean {
+  if (!ip) return false
+  return LOOPBACK_IPS.has(ip)
+}

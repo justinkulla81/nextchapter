@@ -2,6 +2,7 @@ import { emailStyles } from '@/lib/email/email-styles'
 
 interface VisitorSummary {
   ip: string
+  location: string | null
   visitCount: number
   firstSeen: string
   links: { href: string; label: string }[]
@@ -63,6 +64,9 @@ export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }:
           <p style={{ margin: 0, fontWeight: 600 }}>
             {v.ip} — {v.visitCount} visit{v.visitCount === 1 ? '' : 's'}, first at {v.firstSeen}
           </p>
+          {v.location && (
+            <p style={{ margin: '4px 0 0', color: '#555' }}>📍 {v.location}</p>
+          )}
           {v.referrer && (
             <p style={{ margin: '4px 0 0', color: '#555' }}>Came from: {v.referrer}</p>
           )}

@@ -4,6 +4,7 @@ import HomepageVisitorDigestEmail from '@/emails/homepage-visitor-digest'
 
 interface VisitorSummary {
   ip: string
+  location: string | null
   visitCount: number
   firstSeen: string
   links: { href: string; label: string }[]

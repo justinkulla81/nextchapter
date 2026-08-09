@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
-import { isTrustedOwnerIp } from '@/lib/http/trusted-ips'
+import { isTrustedOwnerIp, isLoopbackIp } from '@/lib/http/trusted-ips'
 
 // Hit by the client-side HomepageVisitTracker beacon — never blocks
 // navigation (fire-and-forget from the browser), so failures here are
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const href = typeof body?.href === 'string' ? body.href.slice(0, 500) : null
 
     const ip = await getClientIp()
-    if (isTrustedOwnerIp(ip)) {
+    if (isTrustedOwnerIp(ip) || isLoopbackIp(ip)) {
       return NextResponse.json({ recorded: false })
     }
 

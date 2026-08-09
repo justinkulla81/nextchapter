@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { startOfUTCDay } from '@/lib/daily/mood'
 import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { sendHomepageVisitorDigestEmail } from '@/lib/email/send-homepage-visitor-digest'
+import { isLoopbackIp } from '@/lib/http/trusted-ips'
+import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -37,6 +39,10 @@ export async function GET(request: NextRequest) {
   >()
 
   for (const event of events) {
+    // Belt-and-suspenders — the beacon route already refuses to record
+    // loopback traffic, but this also covers any rows written before that
+    // filter existed.
+    if (isLoopbackIp(event.ip)) continue
     const ip = event.ip ?? 'unknown'
     let entry = byIp.get(ip)
     if (!entry) {
@@ -52,8 +58,22 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  if (byIp.size === 0) {
+    return NextResponse.json({ visitors: 0, sent: false, reason: 'no non-loopback visits' })
+  }
+
+  // One lookup per unique IP (not per event) — a busy visitor doesn't cost
+  // more than a quiet one, and this comfortably stays under ip-api.com's
+  // free-tier rate limit for a daily digest.
+  const locationsByIp = new Map(
+    await Promise.all(
+      Array.from(byIp.keys()).map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const)
+    )
+  )
+
   const visitors = Array.from(byIp.entries()).map(([ip, entry]) => ({
     ip,
+    location: locationsByIp.get(ip) ?? null,
     visitCount: entry.visitCount,
     firstSeen: entry.firstSeen.toLocaleTimeString(),
     links: Array.from(entry.links.entries()).map(([href, label]) => ({ href, label })),
