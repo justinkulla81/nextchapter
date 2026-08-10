@@ -6,7 +6,6 @@ export const maxDuration = 30
 
 type SortKey =
   | 'name'
-  | 'sentiment'
   | 'grade'
   | 'jobsApplied'
   | 'networking'
@@ -57,10 +56,8 @@ export default async function PerformanceAdminPage({
       case 'checkInsPastWeek':
         return a.checkInsPastWeek - b.checkInsPastWeek
       case 'status':
-        return PERFORMANCE_STATUS_RANK[a.status] - PERFORMANCE_STATUS_RANK[b.status]
-      case 'sentiment':
       default:
-        return (a.sentimentScore ?? -1) - (b.sentimentScore ?? -1)
+        return PERFORMANCE_STATUS_RANK[a.status] - PERFORMANCE_STATUS_RANK[b.status]
     }
   }
   rows.sort((a, b) => (dir === 'asc' ? compare(a, b) : compare(b, a)))
@@ -78,7 +75,15 @@ export default async function PerformanceAdminPage({
         </Link>
       ),
     },
-    { header: 'Email', render: (r) => r.email },
+    {
+      header: 'Email',
+      className: 'max-w-[160px] truncate',
+      render: (r) => (
+        <span className="block max-w-[160px] truncate" title={r.email}>
+          {r.email}
+        </span>
+      ),
+    },
     {
       header: 'Status',
       sortKey: 'status',
@@ -90,43 +95,7 @@ export default async function PerformanceAdminPage({
       ),
     },
     {
-      header: 'Sentiment',
-      sortKey: 'sentiment',
-      render: (r) =>
-        r.sentimentScore === null ? (
-          <span className="text-muted-foreground">No check-ins</span>
-        ) : (
-          <span className={r.lowSentiment ? 'font-semibold text-warning' : 'text-foreground'}>
-            {r.sentimentScore}/100{r.lowSentiment ? ' — alert' : ''}
-          </span>
-        ),
-    },
-    { header: 'Recent Current Market Reality', sortKey: 'grade', render: (r) => r.recentGrade ?? '—' },
-    {
-      header: 'Actions Done',
-      sortKey: 'actionsDone',
-      className: 'px-3 py-2 font-medium tabular-nums',
-      render: (r) => r.actionsDoneCount,
-    },
-    {
-      header: 'Jobs Applied',
-      sortKey: 'jobsApplied',
-      className: 'px-3 py-2 font-medium tabular-nums',
-      render: (r) => r.jobsAppliedCount,
-    },
-    {
-      header: 'Networking Done',
-      sortKey: 'networking',
-      className: 'px-3 py-2 font-medium tabular-nums',
-      render: (r) => r.networkingCount,
-    },
-    {
-      header: 'Connected Gmail',
-      sortKey: 'gmailConnected',
-      render: (r) => (r.gmailConnected ? 'Yes' : 'No'),
-    },
-    {
-      header: 'Days Since Registration',
+      header: 'Days Since',
       sortKey: 'daysSinceRegistration',
       className: 'px-3 py-2 tabular-nums',
       render: (r) => r.daysSinceRegistration ?? '—',
@@ -142,6 +111,30 @@ export default async function PerformanceAdminPage({
       sortKey: 'checkInsPastWeek',
       className: 'px-3 py-2 tabular-nums',
       render: (r) => r.checkInsPastWeek,
+    },
+    { header: 'Market Reality', sortKey: 'grade', render: (r) => r.recentGrade ?? '—' },
+    {
+      header: 'Gmail',
+      sortKey: 'gmailConnected',
+      render: (r) => (r.gmailConnected ? 'Yes' : 'No'),
+    },
+    {
+      header: 'Actions',
+      sortKey: 'actionsDone',
+      className: 'px-3 py-2 font-medium tabular-nums',
+      render: (r) => r.actionsDoneCount,
+    },
+    {
+      header: 'Jobs',
+      sortKey: 'jobsApplied',
+      className: 'px-3 py-2 font-medium tabular-nums',
+      render: (r) => r.jobsAppliedCount,
+    },
+    {
+      header: 'Networking',
+      sortKey: 'networking',
+      className: 'px-3 py-2 font-medium tabular-nums',
+      render: (r) => r.networkingCount,
     },
   ]
 

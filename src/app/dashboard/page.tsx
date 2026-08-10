@@ -184,6 +184,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      <PageHeaderBoxes pageKey="dashboard" candidateId={profile.id} />
+
       <DashboardTopStrip
         grade={grade}
         searchExecutionAvailable={searchExecutionAvailable}
@@ -192,8 +194,6 @@ export default async function DashboardPage() {
         dayNumber={dayNumber}
         suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
       />
-
-      <PageHeaderBoxes pageKey="dashboard" candidateId={profile.id} />
 
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />

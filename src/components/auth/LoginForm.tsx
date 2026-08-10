@@ -47,6 +47,10 @@ export function LoginForm({
       return
     }
 
+    // Fire-and-forget — a failed log shouldn't block getting the user into
+    // the app, and there's no UI here that reflects login-history state.
+    fetch('/api/auth/log-login', { method: 'POST' }).catch(() => {})
+
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
     router.push(searchParams.get('next') ?? defaultNext)

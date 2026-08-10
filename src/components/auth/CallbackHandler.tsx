@@ -48,6 +48,12 @@ export function CallbackHandler() {
   })
 
   async function finish() {
+    // Fire-and-forget, same as LoginForm's password-sign-in path — a valid
+    // session already exists by the time finish() runs, whether this was a
+    // magic-link login or an OAuth/PKCE callback, so this is the equivalent
+    // hook point for those flows.
+    fetch('/api/auth/log-login', { method: 'POST' }).catch(() => {})
+
     // Single-use — clear it now so a later, unrelated /auth/callback visit
     // (e.g. a plain login magic link) never inherits a stale role.
     clearPendingSignupRoleCookie()

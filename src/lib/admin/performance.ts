@@ -1,8 +1,10 @@
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { MOOD_SCORE } from '@/lib/daily/mood-labels'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import type { Grade } from '@/lib/scoring/grade'
+import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
 
 const TRAILING_WINDOW_DAYS = 14
 
@@ -57,6 +59,90 @@ function computeStatus(params: {
   return 'red'
 }
 
+const CANDIDATE_PERFORMANCE_SELECT = {
+  id: true,
+  userId: true,
+  firstName: true,
+  lastName: true,
+  createdAt: true,
+  registrationCompletedAt: true,
+  dailyCheckIns: {
+    select: { mood: true, checkedInAt: true },
+  },
+  hireabilityReports: {
+    orderBy: { generatedAt: 'desc' },
+    take: 1,
+    select: { hireabilityGradeAtGeneration: true },
+  },
+  jobPostings: { where: { appliedAt: { not: null } }, select: { id: true } },
+  outreachLogs: { select: { id: true } },
+  weeklySprints: { select: { committedActions: true } },
+  emailConnection: { select: { disconnectedAt: true } },
+} as const
+
+type CandidateForPerformance = {
+  id: string
+  userId: string
+  firstName: string | null
+  lastName: string | null
+  createdAt: Date
+  registrationCompletedAt: Date | null
+  dailyCheckIns: { mood: string; checkedInAt: Date }[]
+  hireabilityReports: { hireabilityGradeAtGeneration: Prisma.JsonValue }[]
+  jobPostings: { id: string }[]
+  outreachLogs: { id: string }[]
+  weeklySprints: { committedActions: unknown }[]
+  emailConnection: { disconnectedAt: Date | null } | null
+}
+
+function buildPerformanceRow(c: CandidateForPerformance, email: string, now: Date): CandidatePerformanceRow {
+  const windowStart = new Date(now)
+  windowStart.setUTCDate(windowStart.getUTCDate() - (TRAILING_WINDOW_DAYS - 1))
+  windowStart.setUTCHours(0, 0, 0, 0)
+  const pastWeekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const checkInsInWindow = c.dailyCheckIns.filter((ci) => ci.checkedInAt >= windowStart)
+  const sentimentScore =
+    checkInsInWindow.length === 0
+      ? null
+      : Math.round(
+          checkInsInWindow.reduce((sum, ci) => sum + MOOD_SCORE[ci.mood as keyof typeof MOOD_SCORE], 0) /
+            checkInsInWindow.length
+        )
+  const lowSentiment = sentimentScore !== null && sentimentScore < 30
+  const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
+
+  const jobsAppliedCount = c.jobPostings.length
+  const networkingCount = c.outreachLogs.length
+  const actionsDoneCount = c.weeklySprints.reduce((sum, s) => {
+    const actions = (s.committedActions as unknown as CommittedActionLike[]) ?? []
+    return sum + actions.filter((a) => a.completed).length
+  }, 0)
+  const gmailConnected = !!c.emailConnection && !c.emailConnection.disconnectedAt
+
+  const registeredAt = c.registrationCompletedAt ?? c.createdAt
+  const daysSinceRegistration = registeredAt
+    ? Math.max(0, Math.floor((now.getTime() - registeredAt.getTime()) / 86_400_000))
+    : null
+
+  return {
+    id: c.id,
+    name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
+    email,
+    sentimentScore,
+    lowSentiment,
+    recentGrade: grade?.grade ?? null,
+    jobsAppliedCount,
+    networkingCount,
+    actionsDoneCount,
+    gmailConnected,
+    daysSinceRegistration,
+    totalCheckIns: c.dailyCheckIns.length,
+    checkInsPastWeek: c.dailyCheckIns.filter((ci) => ci.checkedInAt >= pastWeekStart).length,
+    status: computeStatus({ lowSentiment, actionsDoneCount, jobsAppliedCount, networkingCount, gmailConnected }),
+  }
+}
+
 // One pass over every candidate's trailing check-ins, latest report, and
 // applied/outreach/action counts — same "don't over-engineer for volume you
 // don't have" call as getCoachCaseload's per-client loop, since this
@@ -64,74 +150,24 @@ function computeStatus(params: {
 // beats building a single mega-aggregate query.
 export async function getAllCandidatePerformance(): Promise<CandidatePerformanceRow[]> {
   const now = new Date()
-  const windowStart = new Date(now)
-  windowStart.setUTCDate(windowStart.getUTCDate() - (TRAILING_WINDOW_DAYS - 1))
-  windowStart.setUTCHours(0, 0, 0, 0)
-  const pastWeekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-
-  const candidates = await prisma.candidateProfile.findMany({
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      createdAt: true,
-      registrationCompletedAt: true,
-      dailyCheckIns: {
-        select: { mood: true, checkedInAt: true },
-      },
-      hireabilityReports: {
-        orderBy: { generatedAt: 'desc' },
-        take: 1,
-        select: { hireabilityGradeAtGeneration: true },
-      },
-      jobPostings: { where: { appliedAt: { not: null } }, select: { id: true } },
-      outreachLogs: { select: { id: true } },
-      weeklySprints: { select: { committedActions: true } },
-      emailConnection: { select: { disconnectedAt: true } },
-    },
-  })
-
+  const candidates = await prisma.candidateProfile.findMany({ select: CANDIDATE_PERFORMANCE_SELECT })
   const authEmails = await getEmailsFor(candidates.map((c) => c.id))
+  return candidates.map((c) => buildPerformanceRow(c, authEmails.get(c.id) ?? '—', now))
+}
 
-  return candidates.map((c) => {
-    const checkInsInWindow = c.dailyCheckIns.filter((ci) => ci.checkedInAt >= windowStart)
-    const sentimentScore =
-      checkInsInWindow.length === 0
-        ? null
-        : Math.round(checkInsInWindow.reduce((sum, ci) => sum + MOOD_SCORE[ci.mood], 0) / checkInsInWindow.length)
-    const lowSentiment = sentimentScore !== null && sentimentScore < 30
-    const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
-
-    const jobsAppliedCount = c.jobPostings.length
-    const networkingCount = c.outreachLogs.length
-    const actionsDoneCount = c.weeklySprints.reduce((sum, s) => {
-      const actions = (s.committedActions as unknown as CommittedActionLike[]) ?? []
-      return sum + actions.filter((a) => a.completed).length
-    }, 0)
-    const gmailConnected = !!c.emailConnection && !c.emailConnection.disconnectedAt
-
-    const registeredAt = c.registrationCompletedAt ?? c.createdAt
-    const daysSinceRegistration = registeredAt
-      ? Math.max(0, Math.floor((now.getTime() - registeredAt.getTime()) / 86_400_000))
-      : null
-
-    return {
-      id: c.id,
-      name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
-      email: authEmails.get(c.id) ?? '—',
-      sentimentScore,
-      lowSentiment,
-      recentGrade: grade?.grade ?? null,
-      jobsAppliedCount,
-      networkingCount,
-      actionsDoneCount,
-      gmailConnected,
-      daysSinceRegistration,
-      totalCheckIns: c.dailyCheckIns.length,
-      checkInsPastWeek: c.dailyCheckIns.filter((ci) => ci.checkedInAt >= pastWeekStart).length,
-      status: computeStatus({ lowSentiment, actionsDoneCount, jobsAppliedCount, networkingCount, gmailConnected }),
-    }
+// Single-candidate variant for the admin candidate detail page's stats row —
+// same computation, reusing the authUsers map that page already loads
+// rather than re-fetching every auth user just for one email.
+export async function getCandidatePerformance(
+  candidateId: string,
+  authUsers: Map<string, AuthUserSummary>
+): Promise<CandidatePerformanceRow | null> {
+  const c = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: CANDIDATE_PERFORMANCE_SELECT,
   })
+  if (!c) return null
+  return buildPerformanceRow(c, getAuthEmail(authUsers, c.userId), new Date())
 }
 
 async function getEmailsFor(candidateIds: string[]): Promise<Map<string, string>> {
