@@ -89,6 +89,11 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   WATCHLIST_ADD: { minutes: 2, points: 2 },
   WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
 
+  // Requesting a reference — real placement-logging, weighted close to
+  // RESUME_UPDATE/NETWORKING_LIST for a comparable time cost (finding the
+  // right person, writing a real ask, not just clicking a button).
+  REFERENCE_ADDED: { minutes: 20, points: 30 },
+
   // Applying itself — wherever the posting actually came from (LinkedIn,
   // Indeed, a company site) — is the real job-search work; this fires when
   // a candidate marks a tracked posting Applied, same weight as
@@ -308,6 +313,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   NETWORKING_LIST: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
   OUTREACH_CALL: 'Connecting',
+  REFERENCE_ADDED: 'Connecting',
   ENGAGE_COMMENT: 'Connecting',
   ENGAGE_EVENT: 'Connecting',
   ENGAGE_POST_UPDATE: 'Connecting',
@@ -376,6 +382,10 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // Prompt 77 — Company Tracker. Adding another company is the same
   // "ongoing habit, no single finish line" shape as the rest of this set.
   'WATCHLIST_ADD',
+  // A candidate can add more than one reference over the course of a
+  // search — same "ongoing habit, no single finish line" shape as the rest
+  // of this set.
+  'REFERENCE_ADDED',
   // Job searching itself has no single finish line either — you look for
   // full-time jobs again next week, same shape as the rest of this set.
   'JOB_BOARD_USAGE_CONFIRMED',
@@ -404,6 +414,7 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   OUTREACH_MESSAGE: 2,
   OUTREACH_CALL: 1,
   NETWORKING_LIST: 1,
+  REFERENCE_ADDED: 1,
   ENGAGE_COMMENT: 3,
   ENGAGE_EVENT: 1,
   ENGAGE_POST_UPDATE: 1,
@@ -464,6 +475,7 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'OUTREACH_MESSAGE',
   'OUTREACH_CALL',
   'NETWORKING_LIST',
+  'REFERENCE_ADDED',
   'FOLLOW_UP_NOTE_SENT',
   'THANK_YOU_NOTE_SENT',
   'CHECK_IN_NOTE_SENT',
@@ -489,6 +501,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   NETWORKING_LIST: { href: '/dashboard/network#import', label: 'My Network' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
+  REFERENCE_ADDED: { href: '/dashboard/references', label: 'My References' },
   ENGAGE_COMMENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_EVENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_POST_UPDATE: { href: '/dashboard/community', label: 'Support Network' },
@@ -566,6 +579,7 @@ const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
   OUTREACH_MESSAGE: 'networking is the single most important thing you can do to land your next role',
   OUTREACH_CALL: 'a real conversation moves a relationship further than any message',
   NETWORKING_LIST: 'the people who already know you are your fastest path to a warm introduction',
+  REFERENCE_ADDED: 'a strong reference is real proof for a hiring manager, not just your word',
   LEARNING_MODULE: 'a new skill makes you a stronger candidate for the roles you want',
   LEARNING_CERTIFICATE: 'a credential you can point to strengthens your resume and LinkedIn',
   LEARNING_NEW_TOOL: 'staying current on the tools employers use keeps you competitive',
@@ -685,6 +699,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'LINKEDIN_PROFILE_ADDED',
   ],
   privacy: ['PRIVACY_CONFIRMED'],
+  references: ['REFERENCE_ADDED'],
   'skills-assessments': ['WORKING_STYLE_QUIZ', 'SKILLS_ASSESSMENT_COMPLETED'],
   'search-strategy': [],
   stats: [],

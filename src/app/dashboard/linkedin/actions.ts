@@ -61,8 +61,14 @@ export async function submitLinkedInUnlock(
   captureServerEvent(profile.id, 'linkedin_tool_unlocked', { usageFrequency })
 
   // One-time bonus for answering the unlock gate at all — same shape as
-  // privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  // privacyOpenedUpBonusAt/jobBoardUsageBonusAt. The completion flag is set
+  // unconditionally, not nested inside the sprint-exists check — see the
+  // comment on the equivalent block in network/actions.ts for why.
   if (!profile.linkedinUnlockBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { linkedinUnlockBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'LINKEDIN_UNLOCK' })
@@ -71,10 +77,6 @@ export async function submitLinkedInUnlock(
         text: 'Unlocked the LinkedIn post generator',
         points: effort.points,
         estimatedMinutes: effort.minutes,
-      })
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { linkedinUnlockBonusAt: new Date() },
       })
     }
   }

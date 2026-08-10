@@ -4,10 +4,12 @@ import { useActionState } from 'react'
 import { importConnectionsCsv } from '@/app/dashboard/network/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
 
 export function CsvImportForm() {
   const [state, formAction, pending] = useActionState(importConnectionsCsv, undefined)
+  const points = estimateActionEffort({ actionType: 'NETWORKING_LIST' }).points
 
   return (
     <form
@@ -23,9 +25,14 @@ export function CsvImportForm() {
             : "No new connections in that file — you've already added everyone in it."}
         </p>
       )}
-      <Button type="submit" variant="outline" disabled={pending}>
-        {pending ? 'Importing…' : 'Import LinkedIn connections'}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button type="submit" variant="outline" disabled={pending}>
+          {pending ? 'Importing…' : 'Import LinkedIn connections'}
+        </Button>
+        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+          +{points} pts for new contacts
+        </span>
+      </div>
     </form>
   )
 }

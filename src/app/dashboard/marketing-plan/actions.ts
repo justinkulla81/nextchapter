@@ -46,8 +46,15 @@ export async function submitThoughtLeadershipUnlock(
   captureServerEvent(profile.id, 'thought_leadership_unlocked')
 
   // One-time bonus for answering the unlock question at all — same
-  // shape as privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  // shape as privacyOpenedUpBonusAt/jobBoardUsageBonusAt. The completion
+  // flag is set unconditionally, not nested inside the sprint-exists
+  // check — see the comment on the equivalent block in network/actions.ts
+  // for why.
   if (!profile.contentUnlockBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { contentUnlockBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'MARKETING_PLAN_UNLOCK' })
@@ -56,10 +63,6 @@ export async function submitThoughtLeadershipUnlock(
         text: 'Set up your Marketing Plan',
         points: effort.points,
         estimatedMinutes: effort.minutes,
-      })
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { contentUnlockBonusAt: new Date() },
       })
     }
   }

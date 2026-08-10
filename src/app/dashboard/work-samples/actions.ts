@@ -34,8 +34,14 @@ export async function submitWorkSampleType(_prevState: FormState, formData: Form
   })
 
   // One-time bonus for answering the gate at all — same shape as
-  // privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  // privacyOpenedUpBonusAt/jobBoardUsageBonusAt. The completion flag is set
+  // unconditionally, not nested inside the sprint-exists check — see the
+  // comment on the equivalent block in network/actions.ts for why.
   if (!profile.workSampleTypeBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { workSampleTypeBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'WORK_SAMPLE_TYPE_CONFIRMED' })
@@ -44,10 +50,6 @@ export async function submitWorkSampleType(_prevState: FormState, formData: Form
         text: 'Confirmed your work sample type',
         points: effort.points,
         estimatedMinutes: effort.minutes,
-      })
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { workSampleTypeBonusAt: new Date() },
       })
     }
   }

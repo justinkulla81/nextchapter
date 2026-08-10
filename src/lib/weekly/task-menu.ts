@@ -15,6 +15,7 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: 'Have a coffee chat or call', actionType: 'OUTREACH_CALL' },
   { text: 'Follow up on a previous outreach', actionType: 'FOLLOW_UP_NOTE_SENT' },
   { text: 'Add new contacts to your networking list', actionType: 'NETWORKING_LIST' },
+  { text: 'Add a reference', actionType: 'REFERENCE_ADDED' },
 
   // Engage
   { text: "Comment thoughtfully on a peer's post", actionType: 'ENGAGE_COMMENT' },

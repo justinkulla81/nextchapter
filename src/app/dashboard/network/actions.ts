@@ -194,8 +194,20 @@ export async function setNetworkComfortLevel(level: NetworkComfortLevel) {
   captureServerEvent(profile.id, 'network_page_unlocked')
 
   // One-time points award for answering the network comfort gate — mirrors
-  // gigDirectoryUnlockBonusAt/privacyOpenedUpBonusAt.
+  // gigDirectoryUnlockBonusAt/privacyOpenedUpBonusAt. The completion flag
+  // itself is set unconditionally (not nested inside the sprint-exists
+  // check) — this used to only get recorded when a current-week sprint
+  // happened to already exist, which silently dropped the flag forever for
+  // anyone who answered in the gap between a week rolling over and that
+  // week's auto-assign cron actually running. The points credit is still
+  // genuinely best-effort (no sprint to log them against means no points
+  // this specific time), but "did you answer this, ever" must never depend
+  // on that timing.
   if (!profile.networkComfortBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { networkComfortBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'NETWORK_COMFORT_CONFIRMED' })
@@ -204,10 +216,6 @@ export async function setNetworkComfortLevel(level: NetworkComfortLevel) {
         text: 'Answered the network comfort check-in',
         points: effort.points,
         estimatedMinutes: effort.minutes,
-      })
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { networkComfortBonusAt: new Date() },
       })
     }
   }

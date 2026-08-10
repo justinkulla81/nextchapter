@@ -143,8 +143,15 @@ export async function updateComfortCheck(fields: {
 
   // One-time points award for the first Comfort Check submission — mirrors
   // networkComfortBonusAt. Also the one-time unlock gate for the recurring
-  // INTERVIEW_BEHAVIORAL_PRACTICE action (see RECURRING_ACTION_TYPES).
+  // INTERVIEW_BEHAVIORAL_PRACTICE action (see RECURRING_ACTION_TYPES). The
+  // completion flag is set unconditionally, not nested inside the
+  // sprint-exists check — see the comment on the equivalent block in
+  // network/actions.ts for why.
   if (!profile.comfortCheckBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { comfortCheckBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'COMFORT_CHECK_CONFIRM' })
@@ -155,10 +162,6 @@ export async function updateComfortCheck(fields: {
         estimatedMinutes: effort.minutes,
       })
     }
-    await prisma.candidateProfile.update({
-      where: { id: profile.id },
-      data: { comfortCheckBonusAt: new Date() },
-    })
   }
 
   revalidatePath('/dashboard/interview-prep')

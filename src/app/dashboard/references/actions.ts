@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { sendReferenceRequestEmail } from '@/lib/email/send-reference-request'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import type { ReferenceType } from '@prisma/client'
 
 export type FormState = { error?: string; sent?: boolean } | undefined
@@ -101,6 +103,21 @@ export async function requestReference(
   })
 
   captureServerEvent(profile.id, 'reference_requested', { referenceId: reference.id, relationshipType })
+
+  // Weekly Sprint credit for real placement-logging — best-effort, same
+  // shape as NETWORKING_LIST's CSV-import credit: no current-week sprint
+  // to log it against just means no points this specific time, not a
+  // reason to fail the request itself.
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'REFERENCE_ADDED' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'REFERENCE_ADDED',
+      text: 'Requested a reference',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    }).catch((error) => console.error('Failed to auto-complete REFERENCE_ADDED action:', error))
+  }
 
   revalidatePath('/dashboard/references')
 }

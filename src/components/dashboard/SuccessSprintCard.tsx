@@ -312,13 +312,34 @@ export function SuccessSprintCard({
   // setup that unlocks or improves everything else. Getting an interim job
   // joins that flag, but only once the search has run long enough that
   // bridging the gap becomes the priority (see LONG_SEARCH_WEEK_THRESHOLD).
-  // The Interview Prep Comfort Check is deliberately excluded — it's a
-  // real Personalize item but not foundational the way the others are, so
-  // it shouldn't compete for attention with things that unlock the rest of
-  // the app.
+  // A few Personalize items are deliberately excluded — real one-time
+  // setup, but not foundational the way the others are, so they shouldn't
+  // compete for attention with things that unlock the rest of the app:
+  // the Interview Prep Comfort Check, and the three content/marketplace
+  // unlock gates (work samples, Interim/Gig Directory, LinkedIn post
+  // generator) — each is a nice-to-have unlock, not a blocker for anything
+  // else.
+  const DEPRIORITIZED_PERSONALIZE_TYPES = new Set([
+    'COMFORT_CHECK_CONFIRM',
+    'WORK_SAMPLE_TYPE_CONFIRMED',
+    'GIG_DIRECTORY_UNLOCK',
+    'LINKEDIN_UNLOCK',
+  ])
+  // The core, always-available job-search actions — applying, networking
+  // outreach, adding contacts, and lining up references — carry real weekly
+  // point value and are never blocked on anything else being done first, so
+  // they get the same priority visual as foundational Personalize setup.
+  const CORE_SEARCH_ACTION_TYPES = new Set([
+    'JOB_APPLICATION_SUBMITTED',
+    'OUTREACH_MESSAGE',
+    'NETWORKING_LIST',
+    'REFERENCE_ADDED',
+  ])
   function isPriorityActionType(actionType: string | undefined): boolean {
-    if (actionType === 'COMFORT_CHECK_CONFIRM') return false
+    if (!actionType) return false
+    if (DEPRIORITIZED_PERSONALIZE_TYPES.has(actionType)) return false
     if (isPersonalizeType(actionType)) return true
+    if (CORE_SEARCH_ACTION_TYPES.has(actionType)) return true
     if (actionType === 'INTERIM_PROFILE_CREATED') return weeklySprintsCount >= LONG_SEARCH_WEEK_THRESHOLD
     return false
   }

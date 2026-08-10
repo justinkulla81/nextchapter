@@ -34,8 +34,14 @@ export async function submitGigDirectoryUnlock(_prevState: FormState, formData: 
   captureServerEvent(profile.id, 'interim_launch_phase_completed', { phase: 1 })
 
   // One-time bonus for answering the unlock question at all — same shape
-  // as privacyOpenedUpBonusAt/jobBoardUsageBonusAt.
+  // as privacyOpenedUpBonusAt/jobBoardUsageBonusAt. The completion flag is
+  // set unconditionally, not nested inside the sprint-exists check — see
+  // the comment on the equivalent block in network/actions.ts for why.
   if (!profile.gigDirectoryUnlockBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { gigDirectoryUnlockBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'GIG_DIRECTORY_UNLOCK' })
@@ -44,10 +50,6 @@ export async function submitGigDirectoryUnlock(_prevState: FormState, formData: 
         text: 'Unlocked the Interim/Gig Directory',
         points: effort.points,
         estimatedMinutes: effort.minutes,
-      })
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { gigDirectoryUnlockBonusAt: new Date() },
       })
     }
   }

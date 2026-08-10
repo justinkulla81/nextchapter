@@ -44,11 +44,20 @@ export async function updatePrivacyTier(
 
   captureServerEvent(profile.id, 'privacy_tier_updated', { tier, previousTier: profile.privacyTier })
 
-  // One-time bonus for confirming any explicit privacy tier choice at all —
-  // only awarded once per candidate, and only if a current-week sprint
-  // exists to record it against (same accepted gap ENGAGE_POST_UPDATE lives
-  // with for brand-new candidates without a first sprint yet).
+  // One-time bonus for confirming any explicit privacy tier choice at
+  // all — only awarded once per candidate. The completion flag is set
+  // unconditionally, not nested inside the sprint-exists check — this used
+  // to require a current-week sprint to already exist before it would
+  // record anything, which silently dropped the flag forever for anyone
+  // who confirmed in the gap between a week rolling over and that week's
+  // auto-assign cron actually running (a real, demonstrated case, not just
+  // the brand-new-candidate edge case this comment used to describe). The
+  // points credit is still genuinely best-effort.
   if (!profile.privacyOpenedUpBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { privacyOpenedUpBonusAt: new Date() },
+    })
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'PRIVACY_CONFIRMED' })
@@ -57,10 +66,6 @@ export async function updatePrivacyTier(
         text: 'Confirmed your privacy setting',
         points: effort.points,
         estimatedMinutes: effort.minutes,
-      })
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { privacyOpenedUpBonusAt: new Date() },
       })
       captureServerEvent(profile.id, 'privacy_confirmed_bonus_awarded', { points: effort.points })
     }

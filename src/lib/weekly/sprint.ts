@@ -210,12 +210,15 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 
 // Personalized suggestions alone (capped at 5) can fall short of later
 // weeks' point targets — the ramp reaches 120 points by week 5, which a
-// 5-item shortlist can't reliably cover. Tops up with canonical Search
-// Actions (skipping any actionType already suggested) until the
-// available point total comfortably clears this week's target.
+// 5-item shortlist can't reliably cover. Tops up with every remaining
+// canonical Search Action (skipping any actionType already suggested or
+// already completed) rather than stopping once some point buffer is
+// cleared — a candidate should be able to see and pick from every
+// point-eligible action still open to them, not just enough to hit this
+// week's target. Previously capped at 1.5x the week's ramp target, which
+// silently hid real, still-open actions (e.g. "Apply to a new job") behind
+// whichever items happened to round-robin in first.
 export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
-  const target = pointsNeededForA(weekNumber)
-  const buffer = Math.ceil(target * 1.5)
 
   // The two work-status confirmations are real, unfinished one-time setup
   // steps (see SalaryConfirmForm / WorkAuthorizationConfirmForm) — surface them until
@@ -303,7 +306,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
 
   const usedTypes = new Set([...personalized.map((a) => a.actionType).filter(Boolean), ...completedOneTimeTypes])
   const suggestions = [...personalized]
-  let total = suggestions.reduce((sum, a) => sum + estimateActionEffort(a).points, 0)
 
   // Internal testing only — surfaces the Gmail/Calendar connect (see
   // GoogleConnectPrompt) as a real suggested action instead of it only
@@ -325,7 +327,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
             : 'Connect your Calendar'
       suggestions.push({ text, actionType: 'GMAIL_CONNECTED' })
       usedTypes.add('GMAIL_CONNECTED')
-      total += estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).points
     }
   }
 
@@ -344,7 +345,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     if (completedOneTimeTypes.has(startedType) && !usedTypes.has(completeType) && !completedOneTimeTypes.has(completeType)) {
       suggestions.push({ text, actionType: completeType })
       usedTypes.add(completeType)
-      total += estimateActionEffort({ actionType: completeType }).points
     }
   }
 
@@ -363,7 +363,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
         actionType: 'LINKEDIN_POST_IDEA',
       })
       usedTypes.add('LINKEDIN_POST_IDEA')
-      total += estimateActionEffort({ actionType: 'LINKEDIN_POST_IDEA' }).points
     }
     if (!usedTypes.has('OUTREACH_MESSAGE') && visibilityCalibration.networkingLevel === 2) {
       suggestions.push({
@@ -371,7 +370,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
         actionType: 'OUTREACH_MESSAGE',
       })
       usedTypes.add('OUTREACH_MESSAGE')
-      total += estimateActionEffort({ actionType: 'OUTREACH_MESSAGE' }).points
     }
   }
 
@@ -400,10 +398,9 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   }
   const queues = [...categoryQueues.values()]
   let anyLeft = true
-  while (anyLeft && total < buffer) {
+  while (anyLeft) {
     anyLeft = false
     for (const queue of queues) {
-      if (total >= buffer) break
       const task = queue.shift()
       if (!task) continue
       anyLeft = true
@@ -411,7 +408,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
       if (suppressRecurringForWeek1 && isRecurringActionType(task.actionType)) continue
       suggestions.push({ text: task.text, actionType: task.actionType })
       if (task.actionType) usedTypes.add(task.actionType)
-      total += estimateActionEffort(task).points
     }
   }
 
