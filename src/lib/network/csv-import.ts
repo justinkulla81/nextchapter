@@ -9,6 +9,7 @@ export interface ImportedContact {
   company: string | null
   title: string | null
   email: string | null
+  linkedinUrl: string | null
 }
 
 // Lower-trimmed "name|company" dedup key — used both to stop re-uploading
@@ -60,6 +61,7 @@ export function parseLinkedInConnectionsCsv(csvText: string): ImportedContact[] 
   const emailIdx = headers.indexOf('Email Address')
   const companyIdx = headers.indexOf('Company')
   const positionIdx = headers.indexOf('Position')
+  const urlIdx = headers.indexOf('URL')
 
   const contacts: ImportedContact[] = []
   for (const line of lines.slice(headerIndex + 1)) {
@@ -73,6 +75,7 @@ export function parseLinkedInConnectionsCsv(csvText: string): ImportedContact[] 
       email: emailIdx >= 0 ? fields[emailIdx]?.trim() || null : null,
       company: companyIdx >= 0 ? fields[companyIdx]?.trim() || null : null,
       title: positionIdx >= 0 ? fields[positionIdx]?.trim() || null : null,
+      linkedinUrl: urlIdx >= 0 ? fields[urlIdx]?.trim() || null : null,
     })
   }
   return contacts

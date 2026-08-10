@@ -2,20 +2,13 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { SupportNetworkContact, ContactWarmth, RelationshipTag } from '@prisma/client'
+import type { SupportNetworkContact, RelationshipTag } from '@prisma/client'
 import { Star } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
-import {
-  updateContact,
-  deleteContact,
-  restoreContact,
-  toggleContactPriority,
-  logOutreach,
-} from '@/app/dashboard/network/actions'
+import { updateContact, deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
 import { cn } from '@/lib/utils'
 
 const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
@@ -29,7 +22,7 @@ export interface ContactRowData extends SupportNetworkContact {
 
 type SortKey = 'name' | 'company' | 'relationship' | 'date' | 'reachedOut' | 'priority'
 
-const WARMTH_LABEL: Record<ContactWarmth, string> = { HOT: 'Hot', WARM: 'Warm', COLD: 'Cold' }
+const PAGE_SIZE = 100
 
 function relationshipSummary(tags: RelationshipTag[]): string {
   if (tags.length === 0) return '—'
@@ -40,11 +33,13 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [search, setSearch] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('date')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [sortKey, setSortKey] = useState<SortKey>('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [priorityPin, setPriorityPin] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
   const [undo, setUndo] = useState<ContactRowData | null>(null)
+  const [rawPage, setPage] = useState(0)
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -53,6 +48,7 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
       setSortKey(key)
       setSortDir('asc')
     }
+    setPage(0)
   }
 
   const visible = useMemo(() => {
@@ -68,6 +64,10 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
     }
     const dir = sortDir === 'asc' ? 1 : -1
     return [...list].sort((a, b) => {
+      if (priorityPin) {
+        const priorityDiff = Number(b.isPriority) - Number(a.isPriority)
+        if (priorityDiff !== 0) return priorityDiff
+      }
       switch (sortKey) {
         case 'name':
           return dir * a.name.localeCompare(b.name)
@@ -84,7 +84,15 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
           return dir * (a.createdAt.getTime() - b.createdAt.getTime())
       }
     })
-  }, [contacts, removedIds, search, sortKey, sortDir])
+  }, [contacts, removedIds, search, sortKey, sortDir, priorityPin])
+
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
+  // Clamp at render time rather than in an effect — the underlying list can
+  // shrink (removals) or narrow (search/sort) between renders, and a stale
+  // page index would otherwise point past the end and render nothing.
+  const page = Math.min(rawPage, pageCount - 1)
+
+  const pageItems = useMemo(() => visible.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE), [visible, page])
 
   function handleRemove(contact: ContactRowData) {
     setRemovedIds((prev) => new Set(prev).add(contact.id))
@@ -125,13 +133,24 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(0)
+          }}
           placeholder="Search by name, company, or email…"
           className="max-w-sm"
         />
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={priorityPin}
+            onChange={(e) => setPriorityPin(e.target.checked)}
+          />
+          Priority contacts on top
+        </label>
         {undo && (
           <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-sm">
             <span className="text-muted-foreground">Removed {undo.name}.</span>
@@ -158,18 +177,17 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
                   </button>
                 </th>
               ))}
-              <th className="px-3 py-2" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {visible.length === 0 && (
+            {pageItems.length === 0 && (
               <tr>
-                <td colSpan={columns.length + 1} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={columns.length} className="px-3 py-6 text-center text-sm text-muted-foreground">
                   {search ? 'No contacts match your search.' : 'No contacts yet.'}
                 </td>
               </tr>
             )}
-            {visible.map((contact) => (
+            {pageItems.map((contact) => (
               <ContactRowExpandable
                 key={contact.id}
                 contact={contact}
@@ -181,6 +199,31 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
           </tbody>
         </table>
       </div>
+
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+          <span>
+            Showing {page * PAGE_SIZE + 1}–{Math.min(visible.length, (page + 1) * PAGE_SIZE)} of {visible.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <span className="tabular-nums">
+              Page {page + 1} of {pageCount}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= pageCount - 1}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -209,19 +252,32 @@ function ContactRowExpandable({
 
   return (
     <>
-      <tr className={cn('cursor-pointer hover:bg-muted/30', isExpanded && 'bg-muted/30')} onClick={onToggleExpand}>
+      <tr className={cn(isExpanded && 'bg-muted/30')}>
         <td className="px-3 py-2">
-          <button
-            type="button"
-            aria-label={isPriority ? 'Unmark as priority' : 'Mark as priority'}
-            onClick={(e) => {
-              e.stopPropagation()
-              handlePriorityClick()
-            }}
-            className="text-muted-foreground hover:text-orange"
-          >
-            <Star className={cn('size-4', isPriority && 'fill-orange text-orange')} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label={isPriority ? 'Unmark as priority' : 'Mark as priority'}
+              onClick={handlePriorityClick}
+              className="text-muted-foreground hover:text-orange"
+            >
+              <Star className={cn('size-4', isPriority && 'fill-orange text-orange')} />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              {isExpanded ? 'Hide' : 'Edit'}
+            </button>
+            <button
+              type="button"
+              onClick={onRemove}
+              className="text-xs font-medium text-muted-foreground hover:text-destructive"
+            >
+              Remove
+            </button>
+          </div>
         </td>
         <td className="px-3 py-2 font-medium text-foreground">{contact.name}</td>
         <td className="px-3 py-2 text-muted-foreground">{contact.company ?? '—'}</td>
@@ -234,12 +290,11 @@ function ContactRowExpandable({
             <span className="text-muted-foreground">—</span>
           )}
         </td>
-        <td className="px-3 py-2 text-right text-xs text-muted-foreground">{isExpanded ? 'Hide ▲' : 'Details ▼'}</td>
       </tr>
       {isExpanded && (
         <tr>
-          <td colSpan={7} className="bg-muted/20 px-4 py-4">
-            <ContactDetailPanel contact={contact} onRemove={onRemove} />
+          <td colSpan={6} className="bg-muted/20 px-4 py-4">
+            <ContactDetailPanel contact={contact} />
           </td>
         </tr>
       )}
@@ -247,17 +302,17 @@ function ContactRowExpandable({
   )
 }
 
-function ContactDetailPanel({ contact, onRemove }: { contact: ContactRowData; onRemove: () => void }) {
+function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
   const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(
     contact.email ?? ''
   )}`
 
   return (
-    <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
+    <div className="space-y-4">
       <form action={updateContact.bind(null, contact.id)} className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2">
-          <LabeledInput name="name" label="Name" defaultValue={contact.name} required />
-          <LabeledInput name="company" label="Company" defaultValue={contact.company ?? ''} />
+          <LabeledInput name="name" label="Name" defaultValue={contact.name} required className="max-w-[220px]" />
+          <LabeledInput name="company" label="Company" defaultValue={contact.company ?? ''} className="max-w-[220px]" />
           <LabeledInput name="title" label="Title" defaultValue={contact.title ?? ''} />
           <LabeledInput name="email" label="Email" type="email" defaultValue={contact.email ?? ''} />
           <LabeledInput name="phone" label="Phone" type="tel" defaultValue={contact.phone ?? ''} />
@@ -270,61 +325,17 @@ function ContactDetailPanel({ contact, onRemove }: { contact: ContactRowData; on
             inferredCompany={contact.inferredCompany}
             inferredSchool={contact.inferredSchool}
           />
-          <div className="space-y-1">
-            <label htmlFor={`warmth-${contact.id}`} className="text-xs font-medium text-muted-foreground">
-              Warmth
-            </label>
-            <Select name="warmth" defaultValue={contact.warmth}>
-              <SelectTrigger id={`warmth-${contact.id}`} className="h-8 w-28 text-xs">
-                <SelectValue>{(v: string | null) => (v ? WARMTH_LABEL[v as ContactWarmth] : 'Warmth')}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="HOT">Hot</SelectItem>
-                <SelectItem value="WARM">Warm</SelectItem>
-                <SelectItem value="COLD">Cold</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <input type="hidden" name="warmth" value={contact.warmth} />
           <SubmitButton size="sm" variant="outline">
             Save
           </SubmitButton>
         </div>
       </form>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-        <p className="w-full text-xs font-medium text-muted-foreground">How did you reach out?</p>
-        <form action={logOutreach.bind(null, contact.id, 'LINKEDIN')}>
-          <SubmitButton size="sm" variant="ghost">
-            Log LinkedIn outreach
-          </SubmitButton>
-        </form>
-        <form action={logOutreach.bind(null, contact.id, 'EMAIL')}>
-          <SubmitButton size="sm" variant="ghost">
-            Log email
-          </SubmitButton>
-        </form>
-        <form action={logOutreach.bind(null, contact.id, 'PHONE')}>
-          <SubmitButton size="sm" variant="ghost">
-            Log call
-          </SubmitButton>
-        </form>
-        <form action={logOutreach.bind(null, contact.id, 'TEXT')}>
-          <SubmitButton size="sm" variant="ghost">
-            Log text
-          </SubmitButton>
-        </form>
-        <p className="w-full text-xs text-muted-foreground">
-          Emails you send from your connected Gmail to this address are logged here automatically.
-        </p>
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
         <a href={referenceHref} className="text-sm font-medium text-primary underline underline-offset-4">
           Request a reference from {contact.name} →
         </a>
-        <Button type="button" size="sm" variant="ghost" onClick={onRemove}>
-          Remove
-        </Button>
       </div>
     </div>
   )
@@ -336,19 +347,28 @@ function LabeledInput({
   defaultValue,
   type = 'text',
   required,
+  className,
 }: {
   name: string
   label: string
   defaultValue?: string
   type?: string
   required?: boolean
+  className?: string
 }) {
   return (
     <div className="space-y-1">
       <label htmlFor={name} className="text-xs font-medium text-muted-foreground">
         {label}
       </label>
-      <Input id={name} name={name} type={type} defaultValue={defaultValue} required={required} className="h-8 text-sm" />
+      <Input
+        id={name}
+        name={name}
+        type={type}
+        defaultValue={defaultValue}
+        required={required}
+        className={cn('h-8 text-sm', className)}
+      />
     </div>
   )
 }

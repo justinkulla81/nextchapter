@@ -9,6 +9,7 @@ import type { PageBoxType, VideoProvider } from '@prisma/client'
 export const PAGE_KEYS = [
   'dashboard',
   'network',
+  'network-contacts',
   'find-my-job',
   'resume',
   'interview-prep',

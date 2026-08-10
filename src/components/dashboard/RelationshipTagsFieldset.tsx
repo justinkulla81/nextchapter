@@ -7,8 +7,8 @@ export const RELATIONSHIP_TAG_OPTIONS: { value: RelationshipTag; label: string }
   { value: 'FORMER_COLLEAGUE', label: 'Former colleague' },
   { value: 'HELPING_ME', label: 'Helping me' },
   { value: 'COACH', label: 'Coach' },
-  { value: 'PERSONAL_FRIEND', label: 'Personal friend' },
-  { value: 'SAME_SCHOOL', label: 'Went to my school' },
+  { value: 'PERSONAL_FRIEND', label: 'Friend' },
+  { value: 'SAME_SCHOOL', label: 'Classmate' },
   { value: 'OTHER', label: 'Other' },
 ]
 

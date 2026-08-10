@@ -69,6 +69,7 @@ export async function importConnectionsCsv(
       company: c.company,
       title: c.title,
       email: c.email,
+      linkedinUrl: c.linkedinUrl,
       source: 'CSV_IMPORT' as const,
       normalizedKey: normalizeContactKey(c.name, c.company),
     })),

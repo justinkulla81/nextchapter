@@ -43,6 +43,16 @@ const ROWS: SeedRow[] = [
     bullets: ['Even one outreach message keeps your search moving.'],
   },
   {
+    pageKey: 'network-contacts',
+    boxType: 'WHY_IT_MATTERS',
+    title: 'Email vs. LinkedIn — quick cheat sheet',
+    bullets: [
+      'Email — best for people you already have an address for. Feels more personal and less "networking-app," and it’s easy for them to reply from their phone later.',
+      'LinkedIn message — best for people you’re only connected to on LinkedIn. Keep it shorter than an email — people skim there.',
+      'Best times to send — Tuesday through Thursday, mid-morning or early afternoon. Avoid Monday (inbox pileup) and Friday afternoon (already checked out).',
+    ],
+  },
+  {
     pageKey: 'find-my-job',
     boxType: 'WHY_IT_MATTERS',
     title: 'Consistent searching is the job right now',
