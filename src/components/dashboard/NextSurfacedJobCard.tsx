@@ -30,7 +30,20 @@ const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
 // One-at-a-time surfaced job — Interested/Not Interested only (no "Unsure").
 // Reacting removes it from the unreacted queue server-side, and the next
 // render naturally shows whatever's next — no client-side "advance" state.
-export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitBucket?: FitBucket }) {
+export function NextSurfacedJobCard({
+  job,
+  fitBucket,
+  worksHereContacts,
+}: {
+  job: SurfacedJob
+  fitBucket?: FitBucket
+  // Read-only company-name match against the candidate's own contact list —
+  // unlike WhoCanHelpSection (used on applied jobs), there's no JobPosting
+  // row here to link a contact to, so this is informational only: a warm
+  // intro is the biggest differentiator among hundreds of applicants, so
+  // it's worth surfacing even before the candidate has applied.
+  worksHereContacts?: { id: string; name: string }[]
+}) {
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
 
@@ -64,6 +77,12 @@ export function NextSurfacedJobCard({ job, fitBucket }: { job: SurfacedJob; fitB
           )}
           {job.description && (
             <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{job.description}</p>
+          )}
+          {worksHereContacts && worksHereContacts.length > 0 && (
+            <p className="mt-1 text-xs font-medium text-brand">
+              🔗 {worksHereContacts.map((c) => c.name).join(', ')} works there — a warm intro beats a cold
+              application
+            </p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">

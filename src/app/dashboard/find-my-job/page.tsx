@@ -142,12 +142,24 @@ async function JobRecommendationsSection({
   isAList,
   gradeLetter,
   boardPostings,
+  contacts,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   isAList: boolean
   gradeLetter: Grade
   boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
+  contacts: { id: string; name: string; company: string | null; inferredCompany: string | null }[]
 }) {
+  const worksHereFor = (companyName: string | null) => {
+    if (!companyName) return []
+    return contacts
+      .filter(
+        (c) =>
+          (c.company && orgNamesMatch(c.company, companyName)) ||
+          (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName))
+      )
+      .map((c) => ({ id: c.id, name: c.name }))
+  }
   // Auto-backfill the surfaced-job queue server-side so the list always
   // stays topped up at SURFACED_JOB_LIST_SIZE — reacting to one immediately
   // makes room for a fresh one rather than shrinking the list.
@@ -237,6 +249,7 @@ async function JobRecommendationsSection({
                 key={job.id}
                 job={job}
                 fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                worksHereContacts={worksHereFor(job.companyName)}
               />
             ))}
           </div>
@@ -532,7 +545,12 @@ async function FindMyJobBody({
 
         <div className="space-y-6 rounded-lg border border-border bg-card p-4">
           <div>
-            <p className="text-base font-semibold text-foreground">Job Boards</p>
+            <p className="text-base font-semibold text-foreground">
+              Job Boards <span className="font-normal text-muted-foreground">
+                — applying directly still matters. Networking is the fastest path in, but a strong
+                application to a live posting is real signal too — do both.
+              </span>
+            </p>
             <div className="mt-2">
               <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
             </div>
@@ -574,6 +592,7 @@ async function FindMyJobBody({
                   isAList={isAList}
                   gradeLetter={grade.grade}
                   boardPostings={boardPostings}
+                  contacts={contacts}
                 />
               </Suspense>
             </div>
@@ -581,76 +600,12 @@ async function FindMyJobBody({
         </div>
       </div>
 
-      <div id="interview-tracking" className="scroll-mt-4 space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Interview Tracking</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Every interview you&apos;ve landed, in one place — plus a fast way to log a new one and
-            jump straight to prep.
-          </p>
-        </div>
-
-        <div className="space-y-4 rounded-lg border border-border p-4">
-          {interviewingPostings.length > 0 && (
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {interviewingPostings.map((posting) => (
-                <div key={posting.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {posting.companyName ?? 'Unknown company'}
-                      {posting.title ? ` — ${posting.title}` : ''}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Interview landed {posting.interviewLandedAt!.toLocaleDateString()}
-                      {posting.interviewCompleteAt ? ' · Completed' : ''}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <form action={prepForPhoneScreen.bind(null, posting.id)}>
-                      <SubmitButton variant="outline" size="sm">
-                        Interview prep →
-                      </SubmitButton>
-                    </form>
-                    {!posting.interviewCompleteAt && (
-                      <form action={markInterviewComplete.bind(null, posting.id)}>
-                        <SubmitButton variant="outline" size="sm">
-                          Mark complete
-                        </SubmitButton>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="space-y-3 border-t border-border pt-4">
-            <p className="text-sm font-medium text-foreground">Got an interview?</p>
-
-            <InterviewJobPicker
-              eligibleForInterview={eligibleForInterview}
-              atCap={atCap}
-              markInterviewLandedFromForm={markInterviewLandedFromForm}
-              addInterviewJob={addInterviewJob}
-            />
-
-            <hr className="border-border" />
-
-            <Link
-              href="/dashboard/interview-prep"
-              className="block text-sm font-medium text-primary underline underline-offset-4"
-            >
-              Just want interview prep, no specific job? →
-            </Link>
-          </div>
-        </div>
-      </div>
-
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Application Tracker</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Jobs Applied</h2>
 
         <ConversionDiagnosticCard jobPostings={jobPostings} />
 
+        <div className="space-y-6 rounded-lg border border-border bg-card p-4">
         {jobPostings.length > 0 && (
           <div className="space-y-3">
             <ShowMoreList initialCount={10} totalCount={jobPostings.length}>
@@ -681,23 +636,21 @@ async function FindMyJobBody({
                   : null
                 return (
                   <details key={posting.id}>
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-                      <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-                        <span className="text-sm font-medium text-foreground">
-                          {posting.companyName ?? 'Unknown company'}
+                    <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {posting.title || posting.companyName || 'Unknown role'}
+                        </p>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {posting.title && posting.companyName ? `${posting.companyName} — ` : ''}
+                          {status} · {posting.appliedAt?.toLocaleDateString()}
+                        </p>
+                      </div>
+                      {fitBucket && (
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                          {FIT_BUCKET_LABEL[fitBucket]}
                         </span>
-                        {posting.title && (
-                          <span className="text-sm text-muted-foreground">— {posting.title}</span>
-                        )}
-                        {fitBucket && (
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                            {FIT_BUCKET_LABEL[fitBucket]}
-                          </span>
-                        )}
-                      </span>
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {status} · {posting.appliedAt?.toLocaleDateString()}
-                      </span>
+                      )}
                     </summary>
                     <div className="space-y-3 px-4 pb-4">
                       <div className="flex items-start justify-between gap-4">
@@ -769,35 +722,36 @@ async function FindMyJobBody({
 
               return (
               <details key={posting.id}>
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-                  <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className="truncate text-sm font-medium text-foreground">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
                       {posting.title || posting.companyName || posting.url}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {posting.title && posting.companyName ? `${posting.companyName} — ` : ''}
+                      {posting.declinedAt
+                        ? posting.declinedBy === 'CANDIDATE'
+                          ? 'I passed'
+                          : 'They passed'
+                        : posting.offerReceivedAt
+                          ? 'Offer received'
+                          : posting.interviewLandedAt
+                            ? 'Interview'
+                            : posting.appliedAt
+                              ? 'Applied'
+                              : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
+                    </p>
+                  </div>
+                  {posting.fitScore !== null && (
+                    <span
+                      className={cn(
+                        'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+                        FIT_SCORE_BADGE_CLASS[fitScoreToLabel(posting.fitScore)]
+                      )}
+                    >
+                      {fitScoreToLabel(posting.fitScore)}
                     </span>
-                    {posting.fitScore !== null && (
-                      <span
-                        className={cn(
-                          'rounded-full px-2 py-0.5 text-xs font-medium',
-                          FIT_SCORE_BADGE_CLASS[fitScoreToLabel(posting.fitScore)]
-                        )}
-                      >
-                        {fitScoreToLabel(posting.fitScore)}
-                      </span>
-                    )}
-                  </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {posting.declinedAt
-                      ? posting.declinedBy === 'CANDIDATE'
-                        ? 'I passed'
-                        : 'They passed'
-                      : posting.offerReceivedAt
-                        ? 'Offer received'
-                        : posting.interviewLandedAt
-                          ? 'Interview'
-                          : posting.appliedAt
-                            ? 'Applied'
-                            : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
-                  </span>
+                  )}
                 </summary>
                 <div className="space-y-3 px-4 pb-4">
                   <div className="flex items-start justify-between gap-4">
@@ -1099,6 +1053,68 @@ async function FindMyJobBody({
             </div>
           </details>
         )}
+
+        <div id="interview-tracking" className="scroll-mt-4 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Interview Tracker</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Every interview you&apos;ve landed, in one place — plus a fast way to log a new one
+              and jump straight to prep.
+            </p>
+          </div>
+
+          {interviewingPostings.length > 0 && (
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {interviewingPostings.map((posting) => (
+                <div key={posting.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {posting.companyName ?? 'Unknown company'}
+                      {posting.title ? ` — ${posting.title}` : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Interview landed {posting.interviewLandedAt!.toLocaleDateString()}
+                      {posting.interviewCompleteAt ? ' · Completed' : ''}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <form action={prepForPhoneScreen.bind(null, posting.id)}>
+                      <SubmitButton variant="outline" size="sm">
+                        Interview prep →
+                      </SubmitButton>
+                    </form>
+                    {!posting.interviewCompleteAt && (
+                      <form action={markInterviewComplete.bind(null, posting.id)}>
+                        <SubmitButton variant="outline" size="sm">
+                          Mark complete
+                        </SubmitButton>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Got an interview?</p>
+
+            <InterviewJobPicker
+              eligibleForInterview={eligibleForInterview}
+              atCap={atCap}
+              markInterviewLandedFromForm={markInterviewLandedFromForm}
+              addInterviewJob={addInterviewJob}
+            />
+
+            <Link
+              href="/dashboard/interview-prep"
+              className="block text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Just want interview prep, no specific job? →
+            </Link>
+          </div>
+        </div>
+        </div>
       </div>
 
       <div id="company-tracker" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
@@ -1134,6 +1150,24 @@ async function FindMyJobBody({
           className="inline-block text-sm font-medium text-primary underline underline-offset-4"
         >
           Start Networking →
+        </Link>
+      </div>
+
+      <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Spot Warm Intros</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Knowing someone inside is the single biggest way to stand out among hundreds of other
+            applicants. Add people to your contact list with where they work, and we&apos;ll flag
+            it automatically whenever a job you&apos;ve applied to or a recommendation matches
+            their company.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/network/contacts"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Add contacts →
         </Link>
       </div>
 

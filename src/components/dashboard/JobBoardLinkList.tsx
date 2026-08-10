@@ -21,7 +21,7 @@ export function JobBoardLinkList({
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => posthog?.capture('job_board_link_clicked', { name: board.name, url: board.url, category })}
-            className="text-sm font-medium text-foreground underline underline-offset-4 transition-colors hover:text-brand"
+            className="text-sm text-foreground underline underline-offset-4 transition-colors hover:text-brand"
           >
             {board.name}
           </a>

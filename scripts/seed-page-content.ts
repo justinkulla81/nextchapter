@@ -55,10 +55,10 @@ const ROWS: SeedRow[] = [
   {
     pageKey: 'find-my-job',
     boxType: 'DAILY_MESSAGE',
-    title: '30–60 minutes a day is plenty',
+    title: 'This is one of the most important things you can do',
     bullets: [
-      'Looking and applying for 30 minutes to an hour a day is good to stay current on the market — check new matches and apply to a few.',
-      'Beyond that, your time is better spent elsewhere: networking is the highest-ROI activity, along with learning new skills and lining up interim work.',
+      "Check what's new, find roles that fit, and apply.",
+      'Then see if anyone in your network can help you get in the door.',
     ],
   },
   {
