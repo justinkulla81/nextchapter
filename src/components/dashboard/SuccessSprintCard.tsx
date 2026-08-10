@@ -17,6 +17,7 @@ import {
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { ProfileChecklistItem } from '@/lib/weekly/profile-checklist'
+import type { SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import type { WeeklyEngine } from '@/lib/scoring/grade'
 import { WeeklyEngineChecklist } from '@/components/dashboard/WeeklyEngineChecklist'
@@ -255,6 +256,7 @@ export function SuccessSprintCard({
   hasEmailConnection,
   hasCalendarConnection,
   profileChecklistItems,
+  searchStrategyChecklist,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -269,6 +271,7 @@ export function SuccessSprintCard({
   hasEmailConnection: boolean
   hasCalendarConnection: boolean
   profileChecklistItems: ProfileChecklistItem[]
+  searchStrategyChecklist: SearchStrategyChecklist
 }) {
   // isGoalBonus rows (the one-time welcome/commitment credit) are a
   // historical point award, not a real action to show in this list — their
@@ -387,6 +390,24 @@ export function SuccessSprintCard({
         recurring: false,
         priority: isPriorityActionType(item.actionType),
       })),
+    // Search Strategy's own completeness checklist — a separate data source
+    // (CandidateProfile fields, not committedActions/DB timestamps) with its
+    // own points scale that never feeds weeklyPoints/weeklyPointsTarget (see
+    // search-strategy-checklist.ts doc comment). Only rendered while
+    // something's unanswered; disappears once the last field is filled in.
+    ...(searchStrategyChecklist.incomplete.length > 0
+      ? [
+          {
+            text: `Finish your Search Strategy setup — ${searchStrategyChecklist.incomplete.length} question${searchStrategyChecklist.incomplete.length === 1 ? '' : 's'} left`,
+            points: searchStrategyChecklist.totalPointsRemaining,
+            estimatedMinutes: searchStrategyChecklist.incomplete.length * 2,
+            actionType: 'SEARCH_STRATEGY_CHECKLIST',
+            completed: false,
+            recurring: false,
+            priority: true,
+          },
+        ]
+      : []),
   ]
 
   // A completed one-time row drops out of the list immediately — same

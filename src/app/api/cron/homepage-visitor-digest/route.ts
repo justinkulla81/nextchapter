@@ -5,6 +5,7 @@ import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { sendHomepageVisitorDigestEmail } from '@/lib/email/send-homepage-visitor-digest'
 import { isLoopbackIp } from '@/lib/http/trusted-ips'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
+import { classifyUserAgent, USER_AGENT_CLASS_SORT_ORDER } from '@/lib/http/user-agent'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -71,15 +72,17 @@ export async function GET(request: NextRequest) {
     )
   )
 
-  const visitors = Array.from(byIp.entries()).map(([ip, entry]) => ({
-    ip,
-    location: locationsByIp.get(ip) ?? null,
-    visitCount: entry.visitCount,
-    firstSeen: entry.firstSeen.toLocaleTimeString(),
-    links: Array.from(entry.links.entries()).map(([href, label]) => ({ href, label })),
-    referrer: entry.referrer,
-    userAgent: entry.userAgent,
-  }))
+  const visitors = Array.from(byIp.entries())
+    .map(([ip, entry]) => ({
+      ip,
+      location: locationsByIp.get(ip) ?? null,
+      visitCount: entry.visitCount,
+      firstSeen: entry.firstSeen.toLocaleTimeString(),
+      links: Array.from(entry.links.entries()).map(([href, label]) => ({ href, label })),
+      referrer: entry.referrer,
+      userAgentClass: classifyUserAgent(entry.userAgent),
+    }))
+    .sort((a, b) => USER_AGENT_CLASS_SORT_ORDER[a.userAgentClass] - USER_AGENT_CLASS_SORT_ORDER[b.userAgentClass])
 
   const dateLabel = yesterdayStart.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
   const result = await sendHomepageVisitorDigestEmail(adminEmail, dateLabel, visitors)

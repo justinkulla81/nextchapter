@@ -1,6 +1,7 @@
 import 'server-only'
 import { Resend } from 'resend'
 import HomepageVisitorDigestEmail from '@/emails/homepage-visitor-digest'
+import type { UserAgentClass } from '@/lib/http/user-agent'
 
 interface VisitorSummary {
   ip: string
@@ -9,7 +10,7 @@ interface VisitorSummary {
   firstSeen: string
   links: { href: string; label: string }[]
   referrer: string | null
-  userAgent: string | null
+  userAgentClass: UserAgentClass
 }
 
 export async function sendHomepageVisitorDigestEmail(adminEmail: string, date: string, visitors: VisitorSummary[]) {

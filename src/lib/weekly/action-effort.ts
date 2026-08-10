@@ -280,6 +280,12 @@ export function engineForActionType(actionType: string | undefined): SearchExecu
 export type NavCategory = 'Personalize' | 'Building' | 'Connecting' | 'Learning & Working'
 
 const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
+  // Display-only sentinel for the Search Strategy completeness checklist
+  // (see search-strategy-checklist.ts) — deliberately absent from
+  // ACTION_TYPE_EFFORT/PAGE_ACTION_TYPES so it never enters the Sprint
+  // grading economy; this map and ACTION_TYPE_LINK below are purely
+  // presentational (which nav group a row sorts into, where it links).
+  SEARCH_STRATEGY_CHECKLIST: 'Personalize',
   WORKING_STYLE_QUIZ: 'Personalize',
   SKILLS_ASSESSMENT_COMPLETED: 'Personalize',
   PROFILE_CONFIRM: 'Personalize',
@@ -498,6 +504,7 @@ export function isAutoDetectedActionType(actionType: string | undefined): boolea
 // committed Sprint items click through to the page where you do the work,
 // instead of just toggling a checkbox in place.
 export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: string }>> = {
+  SEARCH_STRATEGY_CHECKLIST: { href: '/dashboard/search-strategy', label: 'Search Strategy' },
   NETWORKING_LIST: { href: '/dashboard/network#import', label: 'My Network' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },

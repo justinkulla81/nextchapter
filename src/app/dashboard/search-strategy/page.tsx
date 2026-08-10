@@ -3,9 +3,10 @@ import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { getSearchStage, SEARCH_STAGE_MESSAGE } from '@/lib/search-strategy'
+import { getSearchStage } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { regenerateSearchStrategyGuidance } from '@/app/dashboard/search-strategy/actions'
+import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -127,6 +128,7 @@ export default async function SearchStrategyPage() {
   // Same "more of the same" default as onboarding/goals/page.tsx — a guess at
   // the pivot target, not a separate inference pass. Editable right there.
   const inferredFunction = profile.primaryFunction ?? null
+  const checklist = computeSearchStrategyChecklist(profile)
 
   return (
     <div className="space-y-8">
@@ -138,40 +140,32 @@ export default async function SearchStrategyPage() {
         <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
       </div>
 
-      {stage && (
+      <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
+        <SearchStrategyGuidanceCard profile={profile} />
+      </Suspense>
+
+      {checklist.incomplete.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Search Stage</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Action Plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-foreground">{SEARCH_STAGE_MESSAGE[stage]}</p>
-            {stage === 'QUIETLY_LOOKING' && (
-              <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4 text-sm">
-                <div>
-                  <p className="font-medium text-foreground">Being a Good Leaver</p>
-                  <p className="mt-1 text-muted-foreground">
-                    Give proper notice, document your work, and stay professional through the
-                    exit. Ask for a reference or recommendation while goodwill is highest — a
-                    good exit is what makes a strong reference possible later.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Pre-Departure Benefits Checklist</p>
-                  <p className="mt-1 text-muted-foreground">
-                    While you&apos;re still employed: FSA spend-down deadlines, 401(k)
-                    match/vesting timing, PTO payout rules, stock option exercise windows,
-                    requesting documentation while you still can, and COBRA timing. General
-                    information, not personalized advice.
-                  </p>
-                </div>
-                <Link
-                  href="/resources/pre-exit"
-                  className="inline-block text-sm text-primary underline underline-offset-4"
-                >
-                  Read the full Before You Go guide →
-                </Link>
-              </div>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {checklist.totalPointsRemaining} points left to complete — answer these below to
+              sharpen your matches and guidance.
+            </p>
+            <ul className="space-y-1.5">
+              {checklist.incomplete.map((item) => (
+                <li key={item.key} className="flex items-center justify-between gap-3">
+                  <Link href={item.href} className="text-sm text-primary underline underline-offset-4">
+                    {item.label}
+                  </Link>
+                  <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+                    {item.points} pts
+                  </span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       )}
@@ -190,9 +184,38 @@ export default async function SearchStrategyPage() {
         </CardContent>
       </Card>
 
-      <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
-        <SearchStrategyGuidanceCard profile={profile} />
-      </Suspense>
+      {stage === 'QUIETLY_LOOKING' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div>
+              <p className="font-medium text-foreground">Being a Good Leaver</p>
+              <p className="mt-1 text-muted-foreground">
+                Give proper notice, document your work, and stay professional through the exit.
+                Ask for a reference or recommendation while goodwill is highest — a good exit is
+                what makes a strong reference possible later.
+              </p>
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Pre-Departure Benefits Checklist</p>
+              <p className="mt-1 text-muted-foreground">
+                While you&apos;re still employed: FSA spend-down deadlines, 401(k) match/vesting
+                timing, PTO payout rules, stock option exercise windows, requesting documentation
+                while you still can, and COBRA timing. General information, not personalized
+                advice.
+              </p>
+            </div>
+            <Link
+              href="/resources/pre-exit"
+              className="inline-block text-sm text-primary underline underline-offset-4"
+            >
+              Read the full Before You Go guide →
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
+import { classifyUserAgent } from '@/lib/http/user-agent'
 
 export const maxDuration = 30
 
@@ -58,7 +59,13 @@ export default async function AdminVisitorsPage({
       render: (r) =>
         r.eventType === 'LINK_CLICK' ? r.href ?? '—' : r.referrer ? `from ${r.referrer}` : 'direct / no referrer',
     },
-    { header: 'User agent', className: 'max-w-xs truncate', render: (r) => r.userAgent ?? '—' },
+    {
+      header: 'Visitor',
+      render: (r) => {
+        const cls = classifyUserAgent(r.userAgent)
+        return cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'
+      },
+    },
   ]
 
   return (

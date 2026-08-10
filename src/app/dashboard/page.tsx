@@ -25,6 +25,7 @@ import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
+import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -146,6 +147,7 @@ export default async function DashboardPage() {
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
+  const searchStrategyChecklist = computeSearchStrategyChecklist(profile)
 
   // Prompt 45 §8: on_track is measured against the system's points_target
   // (the ramp), never against whatever the candidate personally committed
@@ -222,6 +224,7 @@ export default async function DashboardPage() {
           hasEmailConnection={!!emailConnection}
           hasCalendarConnection={!!calendarConnection}
           profileChecklistItems={profileChecklistItems}
+          searchStrategyChecklist={searchStrategyChecklist}
         />
       </div>
 

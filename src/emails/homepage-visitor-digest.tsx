@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import type { UserAgentClass } from '@/lib/http/user-agent'
 
 interface VisitorSummary {
   ip: string
@@ -7,7 +8,7 @@ interface VisitorSummary {
   firstSeen: string
   links: { href: string; label: string }[]
   referrer: string | null
-  userAgent: string | null
+  userAgentClass: UserAgentClass
 }
 
 interface HomepageVisitorDigestEmailProps {
@@ -62,7 +63,16 @@ export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }:
       {visitors.map((v, i) => (
         <div key={i} style={card}>
           <p style={{ margin: 0, fontWeight: 600 }}>
-            {v.ip} — {v.visitCount} visit{v.visitCount === 1 ? '' : 's'}, first at {v.firstSeen}
+            {v.ip} — {v.visitCount} visit{v.visitCount === 1 ? '' : 's'}, first at {v.firstSeen}{' '}
+            <span
+              style={{
+                fontWeight: 400,
+                fontSize: '12px',
+                color: v.userAgentClass === 'bot' ? '#b45309' : '#6b7280',
+              }}
+            >
+              {v.userAgentClass === 'bot' ? '🤖 Bot' : v.userAgentClass === 'human' ? '🧑 Human' : '❓ Unknown'}
+            </span>
           </p>
           {v.location && (
             <p style={{ margin: '4px 0 0', color: '#555' }}>📍 {v.location}</p>
@@ -70,7 +80,6 @@ export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }:
           {v.referrer && (
             <p style={{ margin: '4px 0 0', color: '#555' }}>Came from: {v.referrer}</p>
           )}
-          {v.userAgent && <p style={{ margin: '4px 0 0', color: '#555' }}>{v.userAgent}</p>}
           {v.links.length > 0 && (
             <p style={{ margin: '8px 0 0' }}>
               Clicked:{' '}

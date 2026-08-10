@@ -62,7 +62,7 @@ export function SearchStrategyForm({
           Reality grade reads a longer search.
         </p>
         <Select name="gapDuration" defaultValue={profile.gapDuration ?? 'none'}>
-          <SelectTrigger id="gapDuration" className="w-full">
+          <SelectTrigger id="gapDuration" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one">
               {(value: string | null) =>
                 value && value !== 'none'
@@ -91,17 +91,19 @@ export function SearchStrategyForm({
           </p>
         )}
         <Label>Target industries</Label>
-        <TagInput
-          name="targetIndustries"
-          defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
-          placeholder="e.g. Healthcare, Fintech"
-        />
+        <div id="targetIndustries" className="scroll-mt-4">
+          <TagInput
+            name="targetIndustries"
+            defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
+            placeholder="e.g. Healthcare, Fintech"
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="primaryFunction">Your primary job function</Label>
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
-          <SelectTrigger id="primaryFunction" className="w-full">
+          <SelectTrigger id="primaryFunction" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one" />
           </SelectTrigger>
           <SelectContent>
@@ -139,7 +141,7 @@ export function SearchStrategyForm({
         <Label htmlFor="highestLevelReached">Seniority — highest level reached</Label>
         <p className="text-xs text-muted-foreground">Drives how jobs are matched to you.</p>
         <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
-          <SelectTrigger id="highestLevelReached" className="w-full">
+          <SelectTrigger id="highestLevelReached" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one">
               {(value: string | null) => (value && value !== 'none' ? value : 'Not set')}
             </SelectValue>
@@ -162,6 +164,7 @@ export function SearchStrategyForm({
         <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
         <Input
           id="targetRoleType"
+          className="scroll-mt-4"
           value={isTargetFlexible ? 'Flexible' : targetRoleType}
           onChange={(e) => setTargetRoleType(e.target.value)}
           disabled={isTargetFlexible}
@@ -283,7 +286,7 @@ export function SearchStrategyForm({
           value={remotePreference}
           onValueChange={(value) => setRemotePreference(value ?? '')}
         >
-          <SelectTrigger id="remotePreference" className="w-full">
+          <SelectTrigger id="remotePreference" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one">
               {(value: string | null) =>
                 LOCATION_PREFERENCE_OPTIONS.find((opt) => opt.value === value)?.label ?? 'Select one'

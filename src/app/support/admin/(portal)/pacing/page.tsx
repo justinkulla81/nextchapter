@@ -48,10 +48,19 @@ interface PacingRow {
   weekNumber: number
   weeklyPoints: number
   weeklyPointsTarget: number
-  pointsNeeded: number
+  currentRatio: number
+  lastWeekRatio: number | null
+  pacingRatio: number
 }
 
-type PacingSortKey = 'name' | 'employmentStatus' | 'industry' | 'geo' | 'weeklyPoints' | 'weeklyPointsTarget' | 'pointsNeeded'
+type PacingSortKey =
+  | 'name'
+  | 'employmentStatus'
+  | 'industry'
+  | 'geo'
+  | 'currentRatio'
+  | 'lastWeekRatio'
+  | 'pacingRatio'
 
 function comparePacingRows(a: PacingRow, b: PacingRow, sort: PacingSortKey): number {
   switch (sort) {
@@ -63,13 +72,25 @@ function comparePacingRows(a: PacingRow, b: PacingRow, sort: PacingSortKey): num
       return a.industry.localeCompare(b.industry)
     case 'geo':
       return a.geo.localeCompare(b.geo)
-    case 'weeklyPoints':
-      return a.weeklyPoints - b.weeklyPoints
-    case 'weeklyPointsTarget':
-      return a.weeklyPointsTarget - b.weeklyPointsTarget
-    case 'pointsNeeded':
-      return a.pointsNeeded - b.pointsNeeded
+    case 'currentRatio':
+      return a.currentRatio - b.currentRatio
+    case 'lastWeekRatio':
+      return (a.lastWeekRatio ?? -1) - (b.lastWeekRatio ?? -1)
+    case 'pacingRatio':
+      return a.pacingRatio - b.pacingRatio
   }
+}
+
+// Same three-tier read used for both percentage columns — on/ahead of pace
+// (>90%), falling a bit behind (>75%), or a real gap (<=75%).
+function pacingColorClass(ratio: number): string {
+  if (ratio > 0.9) return 'text-success'
+  if (ratio > 0.75) return 'text-warning'
+  return 'text-destructive'
+}
+
+function formatPercent(ratio: number): string {
+  return `${Math.round(ratio * 100)}%`
 }
 
 // Human labels for every action type this bulk view might tally — the
@@ -118,12 +139,16 @@ export default async function AdminPacingPage({
   const params = await searchParams
   const q = (params.q ?? '').toLowerCase().trim()
   const segment = params.segment ?? ''
-  const sort = (params.sort as PacingSortKey | undefined) ?? 'pointsNeeded'
+  const sort = (params.sort as PacingSortKey | undefined) ?? 'pacingRatio'
   const dir = params.dir === 'desc' ? 'desc' : 'asc'
   const statSort = (params.statSort as StatSortKey | undefined) ?? 'allTime'
   const statDir = params.statDir === 'asc' ? 'asc' : 'desc'
 
   const thisMonday = getMondayOfWeek(new Date())
+  const lastMonday = new Date(thisMonday.getTime() - 7 * 24 * 60 * 60 * 1000)
+  // How far into the current week we are, 1 (just started Monday) through 7
+  // (all of Sunday has elapsed) — the denominator for the pacing ratio.
+  const daysElapsed = Math.min(7, Math.floor((new Date().getTime() - thisMonday.getTime()) / 86_400_000) + 1)
 
   const [candidates, allSprints] = await Promise.all([
     prisma.candidateProfile.findMany({
@@ -144,8 +169,8 @@ export default async function AdminPacingPage({
         workAuthConfirmedAt: true,
         _count: { select: { weeklySprints: true } },
         weeklySprints: {
-          where: { weekStartDate: thisMonday },
-          select: { committedActions: true },
+          where: { weekStartDate: { in: [thisMonday, lastMonday] } },
+          select: { weekStartDate: true, committedActions: true },
         },
       },
     }),
@@ -154,21 +179,38 @@ export default async function AdminPacingPage({
     }),
   ])
 
+  const confirmedFlagsFor = (c: (typeof candidates)[number]) => ({
+    PROFILE_CONFIRM: !!c.profileConfirmedAt,
+    INDUSTRY_CONFIRM: !!c.industryConfirmedAt,
+    FUNCTION_CONFIRM: !!c.functionConfirmedAt,
+    SALARY_CONFIRM: !!c.salaryConfirmedAt,
+    WORK_AUTHORIZATION: !!c.workAuthConfirmedAt,
+  })
+
   let rows: PacingRow[] = candidates.map((c) => {
+    const thisWeekSprint = c.weeklySprints.find((s) => s.weekStartDate.getTime() === thisMonday.getTime())
+    const lastWeekSprint = c.weeklySprints.find((s) => s.weekStartDate.getTime() === lastMonday.getTime())
+
     // _count.weeklySprints already includes this week's row once it exists
-    // (weeklySprints[0], fetched above filtered to thisMonday) — only add
-    // the +1 when it doesn't exist yet. See getCandidateWeekNumber in
-    // sprint.ts for the general-purpose version of this same fix.
-    const weekNumber = c.weeklySprints[0] ? c._count.weeklySprints : c._count.weeklySprints + 1
+    // (thisWeekSprint, fetched above) — only add the +1 when it doesn't
+    // exist yet. See getCandidateWeekNumber in sprint.ts for the
+    // general-purpose version of this same fix.
+    const weekNumber = thisWeekSprint ? c._count.weeklySprints : c._count.weeklySprints + 1
     const weeklyPointsTarget = pointsNeededForA(weekNumber)
-    const actions = (c.weeklySprints[0]?.committedActions as unknown as CommittedActionLike[]) ?? []
-    const weeklyPoints = reconciledWeeklyPoints(actions, {
-      PROFILE_CONFIRM: !!c.profileConfirmedAt,
-      INDUSTRY_CONFIRM: !!c.industryConfirmedAt,
-      FUNCTION_CONFIRM: !!c.functionConfirmedAt,
-      SALARY_CONFIRM: !!c.salaryConfirmedAt,
-      WORK_AUTHORIZATION: !!c.workAuthConfirmedAt,
-    })
+    const actions = (thisWeekSprint?.committedActions as unknown as CommittedActionLike[]) ?? []
+    const weeklyPoints = reconciledWeeklyPoints(actions, confirmedFlagsFor(c))
+    const currentRatio = weeklyPointsTarget > 0 ? weeklyPoints / weeklyPointsTarget : 0
+    const pacingRatio = weeklyPointsTarget > 0 ? weeklyPoints / (weeklyPointsTarget * (daysElapsed / 7)) : 0
+
+    // No prior week (this is week 1) means "last week" isn't a meaningful
+    // comparison yet — surfaced as "—", not a misleading 0%.
+    let lastWeekRatio: number | null = null
+    if (weekNumber > 1) {
+      const lastWeekTarget = pointsNeededForA(weekNumber - 1)
+      const lastWeekActions = (lastWeekSprint?.committedActions as unknown as CommittedActionLike[]) ?? []
+      const lastWeekPoints = reconciledWeeklyPoints(lastWeekActions, confirmedFlagsFor(c))
+      lastWeekRatio = lastWeekTarget > 0 ? lastWeekPoints / lastWeekTarget : 0
+    }
 
     return {
       id: c.id,
@@ -180,7 +222,9 @@ export default async function AdminPacingPage({
       weekNumber,
       weeklyPoints,
       weeklyPointsTarget,
-      pointsNeeded: weeklyPointsTarget - weeklyPoints,
+      currentRatio,
+      lastWeekRatio,
+      pacingRatio,
     }
   })
 
@@ -247,26 +291,31 @@ export default async function AdminPacingPage({
       render: (r) => r.weekNumber,
     },
     {
-      header: 'Points earned',
-      sortKey: 'weeklyPoints',
-      className: 'px-3 py-2 font-medium tabular-nums',
-      render: (r) => r.weeklyPoints,
-    },
-    {
-      header: 'Points target',
-      sortKey: 'weeklyPointsTarget',
-      className: 'px-3 py-2 tabular-nums',
-      render: (r) => r.weeklyPointsTarget,
-    },
-    {
-      header: 'Points needed',
-      sortKey: 'pointsNeeded',
+      header: 'Points earned / target',
+      sortKey: 'currentRatio',
       className: 'px-3 py-2 font-medium tabular-nums',
       render: (r) => (
-        <span className={r.pointsNeeded <= 0 ? 'text-success' : 'text-foreground'}>
-          {r.pointsNeeded <= 0 ? `+${-r.pointsNeeded} over` : r.pointsNeeded}
+        <span>
+          {r.weeklyPoints} / {r.weeklyPointsTarget}
         </span>
       ),
+    },
+    {
+      header: 'Last week',
+      sortKey: 'lastWeekRatio',
+      className: 'px-3 py-2 font-medium tabular-nums',
+      render: (r) =>
+        r.lastWeekRatio === null ? (
+          <span className="text-muted-foreground">—</span>
+        ) : (
+          <span className={pacingColorClass(r.lastWeekRatio)}>{formatPercent(r.lastWeekRatio)}</span>
+        ),
+    },
+    {
+      header: 'Current pacing',
+      sortKey: 'pacingRatio',
+      className: 'px-3 py-2 font-medium tabular-nums',
+      render: (r) => <span className={pacingColorClass(r.pacingRatio)}>{formatPercent(r.pacingRatio)}</span>,
     },
   ]
 
@@ -275,9 +324,9 @@ export default async function AdminPacingPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Pacing</h1>
         <p className="mt-1 text-muted-foreground">
-          {rows.length} candidate{rows.length === 1 ? '' : 's'} this week. Sorted by points still needed to hit
-          this week&apos;s goal — negative (shown as &quot;over&quot;) means they&apos;ve already cleared it.
-          Click a column header to sort.
+          {rows.length} candidate{rows.length === 1 ? '' : 's'}. Current pacing compares points earned so far
+          against a prorated goal for how much of the week has elapsed — green is on/ahead of pace (&gt;90%),
+          yellow is slipping (&gt;75%), red is a real gap. Click a column header to sort.
         </p>
       </div>
 
