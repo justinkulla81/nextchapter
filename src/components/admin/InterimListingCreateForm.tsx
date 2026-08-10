@@ -26,6 +26,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   NONPROFIT_BOARD: 'Nonprofit board',
 }
 
+const DESIGNATION_LABELS: Record<string, string> = {
+  PARTNER: 'Partner',
+  INCLUDED_FOR_QUALITY: 'Included for quality',
+}
+
 export function InterimListingCreateForm({
   action,
 }: {
@@ -47,7 +52,9 @@ export function InterimListingCreateForm({
           <Label htmlFor="category">Category</Label>
           <Select name="category">
             <SelectTrigger id="category">
-              <SelectValue placeholder="Choose a category" />
+              <SelectValue placeholder="Choose a category">
+                {(v: string | null) => (v ? CATEGORY_LABELS[v] : 'Choose a category')}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
@@ -62,7 +69,7 @@ export function InterimListingCreateForm({
           <Label htmlFor="designation">Designation</Label>
           <Select name="designation" defaultValue="INCLUDED_FOR_QUALITY">
             <SelectTrigger id="designation">
-              <SelectValue />
+              <SelectValue>{(v: string | null) => (v ? DESIGNATION_LABELS[v] : undefined)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="PARTNER">Partner</SelectItem>

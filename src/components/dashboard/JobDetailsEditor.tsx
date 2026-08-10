@@ -34,7 +34,7 @@ export function JobDetailsEditor({
   const narrativeHref = `/dashboard/marketing-plan?${new URLSearchParams({
     label: companyName ?? 'This job',
     scenario: `Applying for ${initialTitle || 'a role'} at ${companyName ?? 'this company'} — tailor my story for it.`,
-  }).toString()}`
+  }).toString()}#tailored-narratives`
 
   return (
     <details

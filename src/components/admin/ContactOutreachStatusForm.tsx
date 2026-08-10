@@ -11,6 +11,8 @@ const OPTIONS: { value: ContactAdminOutreachStatus; label: string }[] = [
   { value: 'NOT_INTERESTED', label: 'Not interested' },
 ]
 
+const LABELS: Record<string, string> = Object.fromEntries(OPTIONS.map((opt) => [opt.value, opt.label]))
+
 export function ContactOutreachStatusForm({
   contactId,
   status,
@@ -27,7 +29,7 @@ export function ContactOutreachStatusForm({
       }}
     >
       <SelectTrigger className="h-8 w-[140px] text-xs">
-        <SelectValue />
+        <SelectValue>{(v: string | null) => (v ? LABELS[v] : undefined)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {OPTIONS.map((opt) => (

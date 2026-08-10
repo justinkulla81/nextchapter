@@ -553,7 +553,10 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Live Conversations' },
   WATCHLIST_ADD: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
-  JOB_APPLICATION_SUBMITTED: { href: '/dashboard/find-my-job#jobs-applied', label: 'Find My Job' },
+  // Points at where you'd go DO this (the job boards), not where you'd log
+  // it afterward (#jobs-applied) — the Action Plan bullet is "apply to a new
+  // job," an instruction to act, not a review of past applications.
+  JOB_APPLICATION_SUBMITTED: { href: '/dashboard/find-my-job#apply-new-jobs', label: 'Find My Job' },
   JOB_INTERESTED_REACTION: { href: '/dashboard/find-my-job#job-recommendations', label: 'Find My Job' },
   GMAIL_CONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },
   GMAIL_RECONNECTED: { href: '/dashboard/network', label: 'Live Conversations' },

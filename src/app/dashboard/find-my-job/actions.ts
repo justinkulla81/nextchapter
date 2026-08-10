@@ -158,6 +158,18 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
 
   captureServerEvent(profile.id, 'job_added', { jobId: jobPosting.id, viaInterviewTracking: true })
 
+  // This posting is created already-applied (see appliedAt above) — same
+  // real signal as markApplied, so it earns the same Search Action rather
+  // than silently never crediting an application logged through this entry
+  // point.
+  const applyEffort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
+  await autoCompleteEngagementAction(profile.id, {
+    actionType: 'JOB_APPLICATION_SUBMITTED',
+    text: 'Applied to a job',
+    points: applyEffort.points,
+    estimatedMinutes: applyEffort.minutes,
+  })
+
   const pastedText = (formData.get('text') as string | null)?.trim()
 
   if (pastedText) {

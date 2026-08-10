@@ -3,7 +3,24 @@ import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { guessTitleFromConfirmationSubject } from './ats-patterns'
 import { applyInterviewLandedRewrite, applyInterviewPatternConfirmedRewrite } from '@/lib/scoring/rewrite-actions'
+import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import type { EmailActivityType } from '@prisma/client'
+
+// Real, verified signal — a Gmail-detected application confirmation is
+// exactly as real as clicking "Mark Applied" on a tracked posting (see
+// markApplied in find-my-job/actions.ts) — so it earns the same Search
+// Action rather than silently never crediting a candidate who applies
+// straight from a job board and never opens NextChapter to log it.
+async function creditApplicationSubmitted(candidateId: string) {
+  const effort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
+  await autoCompleteEngagementAction(candidateId, {
+    actionType: 'JOB_APPLICATION_SUBMITTED',
+    text: 'Applied to a job',
+    points: effort.points,
+    estimatedMinutes: effort.minutes,
+  })
+}
 
 // Mirrors an email-detected application/outcome into the candidate's
 // JobPosting list (the same list the URL-paste fit-check flow uses — see
@@ -40,6 +57,7 @@ export async function syncJobPostingFromEmail(
     if (existingMatch) {
       if (!existingMatch.appliedAt) {
         await prisma.jobPosting.update({ where: { id: existingMatch.id }, data: { appliedAt: emailDate } })
+        await creditApplicationSubmitted(candidateId)
       }
       return
     }
@@ -71,6 +89,7 @@ export async function syncJobPostingFromEmail(
         appliedAt: emailDate,
       },
     })
+    await creditApplicationSubmitted(candidateId)
     return
   }
 

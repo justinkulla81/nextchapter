@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updateResumeBookOptIn } from '@/app/dashboard/find-my-job/actions'
+import { setRecruiterDatabaseOptIn } from '@/app/dashboard/privacy/actions'
 import {
   Select,
   SelectContent,
@@ -12,13 +12,13 @@ import {
 import { cn } from '@/lib/utils'
 
 const OPTIONS = [
-  { value: 'yes', label: 'Yes, include my resume' },
-  { value: 'no', label: "No, don't include me" },
+  { value: 'yes', label: 'Yes, list me for recruiters' },
+  { value: 'no', label: "No, don't list me" },
 ] as const
 
 const LABELS: Record<string, string> = Object.fromEntries(OPTIONS.map((opt) => [opt.value, opt.label]))
 
-export function ResumeBookOptInForm({ optedIn }: { optedIn: boolean }) {
+export function RecruiterVisibilityOptInForm({ optedIn }: { optedIn: boolean }) {
   const [isPending, startTransition] = useTransition()
   const [value, setValue] = useState<'yes' | 'no'>(optedIn ? 'yes' : 'no')
 
@@ -26,7 +26,7 @@ export function ResumeBookOptInForm({ optedIn }: { optedIn: boolean }) {
     const optedInNext = next === 'yes'
     setValue(optedInNext ? 'yes' : 'no')
     startTransition(async () => {
-      await updateResumeBookOptIn(optedInNext)
+      await setRecruiterDatabaseOptIn(optedInNext)
     })
   }
 

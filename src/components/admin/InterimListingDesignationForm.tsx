@@ -10,6 +10,11 @@ import {
 } from '@/components/ui/select'
 import type { InterimListingDesignation } from '@prisma/client'
 
+const LABELS: Record<string, string> = {
+  PARTNER: 'Partner',
+  INCLUDED_FOR_QUALITY: 'Included for quality',
+}
+
 export function InterimListingDesignationForm({
   listingId,
   designation,
@@ -26,7 +31,7 @@ export function InterimListingDesignationForm({
       }}
     >
       <SelectTrigger className="h-8 w-[180px] text-xs">
-        <SelectValue />
+        <SelectValue>{(v: string | null) => (v ? LABELS[v] : undefined)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="PARTNER">Partner</SelectItem>

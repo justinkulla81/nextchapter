@@ -71,9 +71,10 @@ export default async function MarketingPlanPage({
           your LinkedIn headline, resume summary, and email openings.
         </p>
         <p>
-          <span className="font-medium text-foreground">Alternative narratives</span> let you tell
-          a different version of your story for a specific scenario — a layoff, a pivot, a return
-          after time off — each with its own email opening, 30-second verbal pitch, and more.
+          <span className="font-medium text-foreground">Tailored narratives</span> let you tell
+          a different version of your story for a specific scenario — a specific job, a layoff, a
+          pivot, a return after time off — each with its own email opening, 30-second verbal
+          pitch, and more.
         </p>
         <p>
           <span className="font-medium text-foreground">Tutorials</span> below are matched to the
@@ -90,11 +91,11 @@ export default async function MarketingPlanPage({
         />
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Alternative Narratives</h2>
+      <div id="tailored-narratives" className="scroll-mt-4 space-y-3">
+        <h2 className="text-lg font-semibold">Tailored Narratives</h2>
         <p className="text-sm text-muted-foreground">
-          Need a different story for a specific scenario? Draft as many alternative narratives as
-          you need, each in its own tab below.
+          Need a different story for a specific scenario — a specific job, a layoff, a pivot?
+          Draft as many tailored narratives as you need, each in its own tab below.
         </p>
         <AlternativeNarrativeTabs
           alternatives={alternativeNarratives}

@@ -13,6 +13,7 @@ import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlist
 import { EmailSyncWatcher } from '@/components/dashboard/EmailSyncWatcher'
 import { JobDetailsEditor } from '@/components/dashboard/JobDetailsEditor'
 import { ResumeBookOptInForm } from '@/components/dashboard/ResumeBookOptInForm'
+import { RecruiterVisibilityOptInForm } from '@/components/dashboard/RecruiterVisibilityOptInForm'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { InterviewJobPicker } from '@/components/dashboard/InterviewJobPicker'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
@@ -503,7 +504,7 @@ async function FindMyJobBody({
           <p className="text-2xl font-bold text-foreground tabular-nums">
             {allApplications.length}
             <span className="ml-1.5 text-sm font-normal text-muted-foreground">
-              · {applicationsThisWeek} this week
+              ({applicationsThisWeek} job{applicationsThisWeek === 1 ? '' : 's'} this week)
             </span>
           </p>
           <p className="text-xs text-muted-foreground">Applications sent</p>
@@ -527,8 +528,7 @@ async function FindMyJobBody({
           <div>
             <p className="text-sm font-medium text-foreground">Resume Book</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Opt in and your resume is included in the Next Chapter Resume Book, where recruiters
-              and hiring managers browsing by role can find it.
+              Recruiters and hiring managers browsing by role can find your resume here.
             </p>
             <div className="mt-2">
               <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
@@ -544,17 +544,19 @@ async function FindMyJobBody({
 
           <div>
             <p className="text-sm font-medium text-foreground">Executive Recruiters</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isAList
-                ? "You're an A — recruiters can already find you."
-                : "Recruiters can find and reach out to you directly once you hit an A grade — you can opt in any time so you're ready."}
-            </p>
-            <Link
-              href="/dashboard/privacy"
-              className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
-            >
-              Manage recruiter visibility →
-            </Link>
+            {isAList && profile.recruiterDatabaseOptIn ? (
+              <p className="mt-1 text-sm text-muted-foreground">You&apos;re an A — recruiters can already find you.</p>
+            ) : (
+              <>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Recruiters can find and reach out to you directly once you hit an A grade — opt in any
+                  time so you&apos;re ready.
+                </p>
+                <div className="mt-2">
+                  <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
+                </div>
+              </>
+            )}
           </div>
 
           <div id="job-recommendations" className="scroll-mt-4">
@@ -573,7 +575,7 @@ async function FindMyJobBody({
         </div>
       </div>
 
-      <div id="interview-tracking" className="scroll-mt-4 space-y-4 rounded-lg border border-border p-4">
+      <div id="interview-tracking" className="scroll-mt-4 space-y-4">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Interview Tracking</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -582,57 +584,59 @@ async function FindMyJobBody({
           </p>
         </div>
 
-        {interviewingPostings.length > 0 && (
-          <div className="divide-y divide-border rounded-lg border border-border">
-            {interviewingPostings.map((posting) => (
-              <div key={posting.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {posting.companyName ?? 'Unknown company'}
-                    {posting.title ? ` — ${posting.title}` : ''}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Interview landed {posting.interviewLandedAt!.toLocaleDateString()}
-                    {posting.interviewCompleteAt ? ' · Completed' : ''}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <form action={prepForPhoneScreen.bind(null, posting.id)}>
-                    <SubmitButton variant="outline" size="sm">
-                      Interview prep →
-                    </SubmitButton>
-                  </form>
-                  {!posting.interviewCompleteAt && (
-                    <form action={markInterviewComplete.bind(null, posting.id)}>
+        <div className="space-y-4 rounded-lg border border-border p-4">
+          {interviewingPostings.length > 0 && (
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {interviewingPostings.map((posting) => (
+                <div key={posting.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {posting.companyName ?? 'Unknown company'}
+                      {posting.title ? ` — ${posting.title}` : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Interview landed {posting.interviewLandedAt!.toLocaleDateString()}
+                      {posting.interviewCompleteAt ? ' · Completed' : ''}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <form action={prepForPhoneScreen.bind(null, posting.id)}>
                       <SubmitButton variant="outline" size="sm">
-                        Mark complete
+                        Interview prep →
                       </SubmitButton>
                     </form>
-                  )}
+                    {!posting.interviewCompleteAt && (
+                      <form action={markInterviewComplete.bind(null, posting.id)}>
+                        <SubmitButton variant="outline" size="sm">
+                          Mark complete
+                        </SubmitButton>
+                      </form>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-3 border-t border-border pt-4">
+            <p className="text-sm font-medium text-foreground">Got an interview?</p>
+
+            <InterviewJobPicker
+              eligibleForInterview={eligibleForInterview}
+              atCap={atCap}
+              markInterviewLandedFromForm={markInterviewLandedFromForm}
+              addInterviewJob={addInterviewJob}
+            />
+
+            <hr className="border-border" />
+
+            <Link
+              href="/dashboard/interview-prep"
+              className="block text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Just want interview prep, no specific job? →
+            </Link>
           </div>
-        )}
-
-        <div className="space-y-3 border-t border-border pt-4">
-          <p className="text-sm font-medium text-foreground">Got an interview?</p>
-
-          <InterviewJobPicker
-            eligibleForInterview={eligibleForInterview}
-            atCap={atCap}
-            markInterviewLandedFromForm={markInterviewLandedFromForm}
-            addInterviewJob={addInterviewJob}
-          />
-
-          <hr className="border-border" />
-
-          <Link
-            href="/dashboard/interview-prep"
-            className="block text-sm font-medium text-primary underline underline-offset-4"
-          >
-            Just want interview prep, no specific job? →
-          </Link>
         </div>
       </div>
 
@@ -1121,7 +1125,7 @@ async function FindMyJobBody({
           href="/dashboard/network"
           className="inline-block text-sm font-medium text-primary underline underline-offset-4"
         >
-          Go to My Network →
+          Start Networking →
         </Link>
       </div>
 

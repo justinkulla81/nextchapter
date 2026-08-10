@@ -161,6 +161,7 @@ export async function setRecruiterDatabaseOptIn(optIn: boolean): Promise<void> {
   captureServerEvent(profile.id, optIn ? 'recruiter_database_opt_in' : 'recruiter_database_opt_out')
 
   revalidatePath('/dashboard/privacy')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 export type DeleteAccountFormState = { error?: string } | undefined
