@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getPageBoxContent } from '@/lib/dashboard/page-content'
 import { WhyItMattersBox } from '@/components/dashboard/WhyItMattersBox'
 import { ContactDirectoryTable } from '@/components/dashboard/ContactDirectoryTable'
+import { lookupNextChapterMemberships } from '@/lib/network/member-lookup'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
@@ -21,15 +23,20 @@ export const metadata: Metadata = { title: 'Contact Directory' }
 
 export default async function ContactDirectoryPage() {
   const profile = await getDashboardData()
-  const rawContacts = await prisma.supportNetworkContact.findMany({
-    where: { candidateId: profile.id },
-    orderBy: { createdAt: 'desc' },
-    include: { outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 } },
-  })
+  const [rawContacts, removedCount] = await Promise.all([
+    prisma.supportNetworkContact.findMany({
+      where: { candidateId: profile.id, removedAt: null },
+      orderBy: { createdAt: 'desc' },
+      include: { outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 } },
+    }),
+    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: { not: null } } }),
+  ])
+  const memberships = await lookupNextChapterMemberships(rawContacts.map((c) => c.email))
   const contacts = rawContacts.map((c) => ({
     ...c,
     hasReachedOut: c.outreachLogs.length > 0,
     lastOutreachChannel: c.outreachLogs[0]?.channel ?? null,
+    membership: c.email ? (memberships.get(c.email.toLowerCase()) ?? null) : null,
   }))
 
   const networkScriptsGuide = GUIDES.find((g) => g.slug === 'network-scripts')
@@ -37,12 +44,22 @@ export default async function ContactDirectoryPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
-        <p className="mt-1 text-muted-foreground">
-          Every contact you&apos;ve added, warmest first. Every outreach you log here counts toward
-          the connecting signal in your Current Market Reality.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
+          <p className="mt-1 text-muted-foreground">
+            Every contact you&apos;ve added, warmest first. Every outreach you log here counts toward
+            the connecting signal in your Current Market Reality.
+          </p>
+        </div>
+        {removedCount > 0 && (
+          <Link
+            href="/dashboard/network/contacts/removed"
+            className="mt-1 shrink-0 text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Removed contacts ({removedCount})
+          </Link>
+        )}
       </div>
 
       <WhyItMattersBox pageKey="network-contacts" content={proTips} />
@@ -58,9 +75,9 @@ export default async function ContactDirectoryPage() {
                 <h3 className="text-sm font-medium text-foreground">Import your LinkedIn connections</h3>
                 <CsvImportForm />
                 <p className="text-xs text-muted-foreground">
-                  What happens: contacts already on your list are skipped automatically (safe to
-                  re-upload anytime), and any genuinely new ones are added above so you can tag
-                  them.
+                  What happens: safe to re-upload anytime. New people are added, and any blank
+                  fields on people already on your list get filled in. Anyone you&apos;ve removed
+                  stays removed.
                 </p>
               </div>
 

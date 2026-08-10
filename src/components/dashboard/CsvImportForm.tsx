@@ -21,8 +21,11 @@ export function CsvImportForm() {
       {state?.imported !== undefined && (
         <p className="text-sm text-success">
           {state.imported > 0
-            ? `Added ${state.imported} new connection${state.imported === 1 ? '' : 's'} — sort them into categories below.`
-            : "No new connections in that file — you've already added everyone in it."}
+            ? `Added ${state.imported} new connection${state.imported === 1 ? '' : 's'}`
+            : 'No new connections in that file'}
+          {!!state.updated && ` — filled in missing details on ${state.updated} existing contact${state.updated === 1 ? '' : 's'}`}
+          {!!state.skippedRemoved && ` (${state.skippedRemoved} left off — you removed them before)`}
+          .
         </p>
       )}
       <div className="flex items-center gap-2">

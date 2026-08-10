@@ -4,6 +4,8 @@
 // LinkedIn's export has no embedded newlines, so a small quoted-field-aware
 // splitter is enough.
 
+import { sanitizeContactName } from './sanitize-contact-name'
+
 export interface ImportedContact {
   name: string
   company: string | null
@@ -70,8 +72,11 @@ export function parseLinkedInConnectionsCsv(csvText: string): ImportedContact[] 
     const lastName = fields[lastNameIdx]?.trim()
     if (!firstName && !lastName) continue
 
+    const name = sanitizeContactName([firstName, lastName].filter(Boolean).join(' '))
+    if (!name) continue
+
     contacts.push({
-      name: [firstName, lastName].filter(Boolean).join(' '),
+      name,
       email: emailIdx >= 0 ? fields[emailIdx]?.trim() || null : null,
       company: companyIdx >= 0 ? fields[companyIdx]?.trim() || null : null,
       title: positionIdx >= 0 ? fields[positionIdx]?.trim() || null : null,

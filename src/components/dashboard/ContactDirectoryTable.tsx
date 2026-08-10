@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
 import { updateContact, deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
+import { MEMBERSHIP_LABEL, type NextChapterMembership } from '@/lib/network/next-chapter-membership'
 import { cn } from '@/lib/utils'
 
 const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
@@ -18,9 +19,10 @@ const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
 export interface ContactRowData extends SupportNetworkContact {
   hasReachedOut: boolean
   lastOutreachChannel: string | null
+  membership: NextChapterMembership | null
 }
 
-type SortKey = 'name' | 'company' | 'relationship' | 'date' | 'reachedOut' | 'priority'
+type SortKey = 'name' | 'company' | 'relationship' | 'date' | 'reachedOut' | 'priority' | 'membership'
 
 const PAGE_SIZE = 100
 
@@ -79,6 +81,8 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
           return dir * (Number(a.hasReachedOut) - Number(b.hasReachedOut))
         case 'priority':
           return dir * (Number(a.isPriority) - Number(b.isPriority))
+        case 'membership':
+          return dir * (Number(!!a.membership) - Number(!!b.membership))
         case 'date':
         default:
           return dir * (a.createdAt.getTime() - b.createdAt.getTime())
@@ -104,20 +108,10 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
 
   function handleUndo() {
     if (!undo) return
-    const snapshot = undo
+    const contactId = undo.id
     setUndo(null)
     startTransition(async () => {
-      await restoreContact({
-        name: snapshot.name,
-        company: snapshot.company,
-        title: snapshot.title,
-        email: snapshot.email,
-        phone: snapshot.phone,
-        linkedinUrl: snapshot.linkedinUrl,
-        warmth: snapshot.warmth,
-        relationshipTags: snapshot.relationshipTags,
-        isPriority: snapshot.isPriority,
-      })
+      await restoreContact(contactId)
       router.refresh()
     })
   }
@@ -129,6 +123,7 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
     { key: 'relationship', label: 'Relationship' },
     { key: 'date', label: 'Date connected' },
     { key: 'reachedOut', label: 'Reached out' },
+    { key: 'membership', label: 'On NextChapter' },
   ]
 
   return (
@@ -279,7 +274,9 @@ function ContactRowExpandable({
             </button>
           </div>
         </td>
-        <td className="px-3 py-2 font-medium text-foreground">{contact.name}</td>
+        <td className="px-3 py-2 font-medium text-foreground">
+          <ContactNameLink contact={contact} />
+        </td>
         <td className="px-3 py-2 text-muted-foreground">{contact.company ?? '—'}</td>
         <td className="px-3 py-2 text-muted-foreground">{relationshipSummary(contact.relationshipTags)}</td>
         <td className="px-3 py-2 text-muted-foreground">{contact.createdAt.toLocaleDateString()}</td>
@@ -290,15 +287,33 @@ function ContactRowExpandable({
             <span className="text-muted-foreground">—</span>
           )}
         </td>
+        <td className="px-3 py-2">
+          {contact.membership ? (
+            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+              {MEMBERSHIP_LABEL[contact.membership]}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </td>
       </tr>
       {isExpanded && (
         <tr>
-          <td colSpan={6} className="bg-muted/20 px-4 py-4">
+          <td colSpan={7} className="bg-muted/20 px-4 py-4">
             <ContactDetailPanel contact={contact} />
           </td>
         </tr>
       )}
     </>
+  )
+}
+
+function ContactNameLink({ contact }: { contact: ContactRowData }) {
+  if (!contact.linkedinUrl) return <>{contact.name}</>
+  return (
+    <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+      {contact.name}
+    </a>
   )
 }
 

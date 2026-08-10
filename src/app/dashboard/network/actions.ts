@@ -8,6 +8,7 @@ import type {
   OutreachChannel,
   MarketResponseType,
   RelationshipTag,
+  Prisma,
 } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -44,7 +45,11 @@ async function markNetworkingListSubmittedIfThresholdMet(candidateId: string) {
   })
 }
 
-export type NetworkFormState = { error?: string; imported?: number } | undefined
+export type NetworkFormState =
+  | { error?: string; imported?: number; updated?: number; skippedRemoved?: number }
+  | undefined
+
+const FILLABLE_FIELDS = ['company', 'title', 'email', 'linkedinUrl'] as const
 
 export async function importConnectionsCsv(
   _prevState: NetworkFormState,
@@ -62,8 +67,67 @@ export async function importConnectionsCsv(
     return { error: "Couldn't find any connections in that file — make sure it's LinkedIn's Connections.csv export." }
   }
 
-  const result = await prisma.supportNetworkContact.createMany({
-    data: contacts.map((c) => ({
+  // Re-uploading the same export (or a refreshed one) must never resurrect
+  // someone the candidate deliberately removed, and should only fill in
+  // blanks on people already on the list — never overwrite a field the
+  // candidate already has a value for. skipDuplicates alone can't express
+  // either of those, so this fetches every existing row up front and
+  // decides create/update/skip per contact in memory instead.
+  const existing = await prisma.supportNetworkContact.findMany({
+    where: { candidateId: profile.id },
+    select: { id: true, name: true, normalizedKey: true, removedAt: true, company: true, title: true, email: true, linkedinUrl: true },
+  })
+  const existingByKey = new Map(existing.filter((e) => e.normalizedKey).map((e) => [e.normalizedKey as string, e]))
+  // Name-only fallback index — the primary key is name+company, but company
+  // is exactly one of the fields this import is meant to fill in. A contact
+  // added with no company on file would otherwise never match a later CSV
+  // row that does have their company, since the keys ("name|" vs.
+  // "name|acme") differ — this "fill in blanks" step would then silently
+  // create a duplicate instead of completing the existing row.
+  const existingByName = new Map<string, (typeof existing)[number][]>()
+  for (const e of existing) {
+    const nameKey = e.name.trim().toLowerCase()
+    const bucket = existingByName.get(nameKey)
+    if (bucket) bucket.push(e)
+    else existingByName.set(nameKey, [e])
+  }
+
+  const toCreate: Prisma.SupportNetworkContactCreateManyInput[] = []
+  const updates: { id: string; data: Record<string, string> }[] = []
+  let skippedRemoved = 0
+
+  for (const c of contacts) {
+    const key = normalizeContactKey(c.name, c.company)
+    let match = existingByKey.get(key)
+
+    if (!match) {
+      // Only fall back when the name is unambiguous (exactly one existing
+      // contact with it) and that contact's company is blank — otherwise
+      // this could silently merge two different people who share a name.
+      const sameName = existingByName.get(c.name.trim().toLowerCase())
+      if (sameName?.length === 1 && !sameName[0].company) {
+        match = sameName[0]
+      }
+    }
+
+    if (match) {
+      if (match.removedAt) {
+        skippedRemoved++
+        continue
+      }
+      const fresh: Record<string, string | null> = { company: c.company, title: c.title, email: c.email, linkedinUrl: c.linkedinUrl }
+      const fill: Record<string, string> = {}
+      for (const field of FILLABLE_FIELDS) {
+        if (!match[field] && fresh[field]) fill[field] = fresh[field] as string
+      }
+      // Matched via the name-only fallback — refresh normalizedKey to the
+      // strict name+company key so future imports match it directly too.
+      if (match.normalizedKey !== key) fill.normalizedKey = key
+      if (Object.keys(fill).length > 0) updates.push({ id: match.id, data: fill })
+      continue
+    }
+
+    toCreate.push({
       candidateId: profile.id,
       name: c.name,
       company: c.company,
@@ -71,18 +135,22 @@ export async function importConnectionsCsv(
       email: c.email,
       linkedinUrl: c.linkedinUrl,
       source: 'CSV_IMPORT' as const,
-      normalizedKey: normalizeContactKey(c.name, c.company),
-    })),
-    skipDuplicates: true,
-  })
+      normalizedKey: key,
+    })
+  }
+
+  const created = toCreate.length > 0 ? await prisma.supportNetworkContact.createMany({ data: toCreate }) : { count: 0 }
+  if (updates.length > 0) {
+    await prisma.$transaction(updates.map((u) => prisma.supportNetworkContact.update({ where: { id: u.id }, data: u.data })))
+  }
 
   await markNetworkingListSubmittedIfThresholdMet(profile.id)
 
-  // Weekly Sprint credit only for genuinely new contacts — result.count is
-  // the real inserted-row count after dedup, so re-uploading the same
-  // export (or one with no new names) fires zero credit, not a re-award of
-  // the same one-time flag markNetworkingListSubmittedIfThresholdMet uses.
-  if (result.count > 0) {
+  // Weekly Sprint credit only for genuinely new contacts — re-uploading the
+  // same export (or one with no new names) fires zero credit, not a
+  // re-award of the same one-time flag
+  // markNetworkingListSubmittedIfThresholdMet uses.
+  if (created.count > 0) {
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'NETWORKING_LIST' })
@@ -98,7 +166,7 @@ export async function importConnectionsCsv(
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
-  return { imported: result.count }
+  return { imported: created.count, updated: updates.length, skippedRemoved }
 }
 
 export async function updateContact(contactId: string, formData: FormData) {
@@ -143,39 +211,37 @@ export async function toggleContactPriority(contactId: string, isPriority: boole
   revalidatePath('/dashboard/network/contacts')
 }
 
+// Soft delete — sets removedAt instead of actually deleting the row, so a
+// later LinkedIn re-import can tell "removed on purpose" apart from "never
+// imported" and skip resurrecting this person (see importConnectionsCsv).
+// The row is filtered out of the main directory and surfaced on its own
+// Removed Contacts page instead.
 export async function deleteContact(contactId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  await prisma.supportNetworkContact.deleteMany({ where: { id: contactId, candidateId: profile.id } })
+  await prisma.supportNetworkContact.updateMany({
+    where: { id: contactId, candidateId: profile.id },
+    data: { removedAt: new Date() },
+  })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
 }
 
-// Undo for the above — deletion is real and immediate (see deleteContact),
-// so "undo" means recreating the row from a client-held snapshot of what
-// was just deleted, not reversing a soft-delete flag. Only usable while the
-// candidate is still on the page holding that snapshot in memory; once they
-// navigate away, the snapshot is gone and the delete is permanent.
-export async function restoreContact(snapshot: {
-  name: string
-  company: string | null
-  title: string | null
-  email: string | null
-  phone: string | null
-  linkedinUrl: string | null
-  warmth: ContactWarmth
-  relationshipTags: RelationshipTag[]
-  isPriority: boolean
-}) {
+// Undo for the above — just clears removedAt on the same row. Used both by
+// the in-page "Undo" toast right after a removal and by the Restore button
+// on the Removed Contacts page.
+export async function restoreContact(contactId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  await prisma.supportNetworkContact.create({
-    data: { ...snapshot, candidateId: profile.id, source: 'MANUAL' },
+  await prisma.supportNetworkContact.updateMany({
+    where: { id: contactId, candidateId: profile.id },
+    data: { removedAt: null },
   })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
+  revalidatePath('/dashboard/network/contacts/removed')
 }
 
 export async function setNetworkingConcerns(concerns: NetworkingAnxiety[]) {

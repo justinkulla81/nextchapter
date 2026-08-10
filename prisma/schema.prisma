@@ -2438,6 +2438,12 @@ model SupportNetworkContact {
   // credit. Nullable so pre-migration rows are unaffected — Postgres treats
   // each NULL as distinct in a unique index, so legacy rows never collide.
   normalizedKey       String?
+  // Soft-delete — set instead of a real delete so a later CSV re-import can
+  // tell "this person was never imported" apart from "the candidate removed
+  // this person on purpose" and skip resurrecting them. Filtered out of the
+  // main directory list; surfaced on its own Removed Contacts page with a
+  // restore action that just clears this field.
+  removedAt           DateTime?
   // NextChapter admin's own outreach tracking for recruiters/coaches/hiring
   // managers surfaced through candidates' networks — a business-development
   // lead list, entirely separate from the candidate's own relationship to
