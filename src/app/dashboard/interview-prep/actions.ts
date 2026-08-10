@@ -74,6 +74,7 @@ export async function requestToughAnswerFeedback(
 
   const evaluation = await evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
   captureServerEvent(profile.id, 'tough_question_answered', { redraftCount })
+  await creditInterviewPrepAction(profile.id)
   return evaluation
 }
 
@@ -88,7 +89,26 @@ export async function requestPracticeEvaluation(
 
   const evaluation = await evaluatePracticeAnswer(question, answerText, profile.activeJobDescription)
   captureServerEvent(profile.id, 'interview_response_submitted', { redraftCount })
+  await creditInterviewPrepAction(profile.id)
   return evaluation
+}
+
+// Real signal behind the "Complete a mock interview" Action Plan item —
+// answering an actual practice or tough question, not a self-report "Mark
+// done" click (see INTERVIEW_PREP in AUTO_DETECTED_ACTION_TYPES). Called
+// from both answer-evaluation paths above; autoCompleteEngagementAction
+// itself is the idempotency guard (one credit per week no matter how many
+// questions are answered).
+async function creditInterviewPrepAction(candidateId: string) {
+  const sprint = await getCurrentWeekSprint(candidateId)
+  if (!sprint) return
+  const effort = estimateActionEffort({ actionType: 'INTERVIEW_PREP' })
+  await autoCompleteEngagementAction(candidateId, {
+    actionType: 'INTERVIEW_PREP',
+    text: 'Complete a mock interview',
+    points: effort.points,
+    estimatedMinutes: effort.minutes,
+  })
 }
 
 export async function requestThankYouEmail(input: ThankYouEmailInput): Promise<string | null> {

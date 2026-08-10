@@ -494,6 +494,11 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'JOB_APPLICATION_SUBMITTED',
   'JOB_INTERESTED_REACTION',
   'WATCHLIST_ADD',
+  // Verified via requestPracticeEvaluation/requestToughAnswerFeedback in
+  // interview-prep/actions.ts — a candidate answering a real practice or
+  // tough question is the actual "mock interview" work; a self-report
+  // "Mark done" click on this bullet was not evidence of that.
+  'INTERVIEW_PREP',
 ])
 
 export function isAutoDetectedActionType(actionType: string | undefined): boolean {

@@ -28,6 +28,7 @@ const AUTO_DETECTED_SIGNAL: Partial<Record<string, string>> = {
   JOB_APPLICATION_SUBMITTED: 'Detected automatically when you mark a tracked job Applied on the Jobs page.',
   JOB_INTERESTED_REACTION: "Detected automatically when you react Interested to a job recommendation on the Jobs page.",
   WATCHLIST_ADD: 'Detected automatically when you add a company to your tracker on the Jobs page.',
+  INTERVIEW_PREP: 'Detected automatically when you answer a practice or tough interview question in Interview Prep.',
 }
 
 // THANK_YOU_NOTE_SENT, FOLLOW_UP_NOTE_SENT, and CHECK_IN_NOTE_SENT are the
