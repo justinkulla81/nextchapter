@@ -69,6 +69,11 @@ export function EmailCadenceForm({
             required
             defaultValue={existing.sendHourUtc}
           />
+          <p className="text-xs text-muted-foreground">
+            Informational only right now — our Vercel plan only allows one dispatch run per day
+            (around 13:00 UTC), so every email currently goes out around that time regardless of
+            this value. Upgrading to Vercel Pro would restore per-email hour precision.
+          </p>
         </div>
         <div className="flex items-end pb-2">
           <label className="flex items-center gap-2 text-sm">

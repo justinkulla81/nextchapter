@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/candidate-email-dispatch",
-      "schedule": "0 * * * *"
+      "schedule": "0 13 * * *"
     },
     {
       "path": "/api/cron/week1-kickoff",
