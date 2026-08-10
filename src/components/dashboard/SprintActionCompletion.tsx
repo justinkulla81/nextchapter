@@ -61,9 +61,16 @@ const MERGED_AUTO_DETECTED_GROUPS: { types: string[]; label: string }[] = [
 export async function SprintActionCompletion({
   candidateId,
   actionTypes,
+  lifetimeProgress,
 }: {
   candidateId: string
   actionTypes: string[]
+  // Optional "N of target" readout for an actionType with a real lifetime
+  // goal (e.g. references: aim for 5) — distinct from the weekly recurring
+  // target count (getRecurringTargetCount), which resets every week. Pass
+  // per-page since the target is page-specific, not a property of the
+  // actionType itself.
+  lifetimeProgress?: Partial<Record<string, { current: number; target: number }>>
 }) {
   const [sprint, weeklySprintsCount] = await Promise.all([
     getCurrentWeekSprint(candidateId),
@@ -199,26 +206,34 @@ export async function SprintActionCompletion({
             </div>
           )
         })}
-        {autoDetectedRows.map((action) => (
-          <div key={action.actionType} className="space-y-0.5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-foreground">
-                {action.text} <span className="text-xs text-muted-foreground">({action.points} pts)</span>
-              </span>
-              <span
-                className={cn(
-                  'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                  action.completed ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
-                )}
-              >
-                {action.completed ? 'Detected ✓' : 'Not yet this week'}
-              </span>
+        {autoDetectedRows.map((action) => {
+          const progress = lifetimeProgress?.[action.actionType!]
+          return (
+            <div key={action.actionType} className="space-y-0.5">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-foreground">
+                  {action.text} <span className="text-xs text-muted-foreground">({action.points} pts)</span>
+                  {progress && (
+                    <span className="ml-1.5 text-xs font-medium text-muted-foreground tabular-nums">
+                      · {progress.current} of {progress.target}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
+                    action.completed ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {action.completed ? 'Detected ✓' : 'Not yet this week'}
+                </span>
+              </div>
+              {AUTO_DETECTED_SIGNAL[action.actionType!] && (
+                <p className="text-xs text-muted-foreground">{AUTO_DETECTED_SIGNAL[action.actionType!]}</p>
+              )}
             </div>
-            {AUTO_DETECTED_SIGNAL[action.actionType!] && (
-              <p className="text-xs text-muted-foreground">{AUTO_DETECTED_SIGNAL[action.actionType!]}</p>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

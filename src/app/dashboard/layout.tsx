@@ -30,7 +30,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     learningBadgeCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
-    newJobMatchesCount,
     backchannelMatches,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
@@ -38,11 +37,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     prisma.learningBadge.count({ where: { candidateId: profile.id } }),
     getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
     getCandidateUnreadCount(profile.id),
-    // Unreacted automated-search-partner matches waiting for the candidate
-    // to rate — the same queue find-my-job/page.tsx tops up to 5 on every
-    // visit, so this is a real, already-tracked "new matches" signal
-    // rather than a separate read/unread marker.
-    prisma.surfacedJob.count({ where: { candidateId: profile.id, reaction: null } }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
   ])
   const newBackchannelCount = backchannelMatches.filter((m) => m.isNew).length
@@ -68,7 +62,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         portfolioAssetCount={portfolioAssetCount}
         supportNetworkUnreadCount={supportNetworkUnreadCount}
         messagesUnreadCount={messagesUnreadCount}
-        newJobMatchesCount={newJobMatchesCount}
         newBackchannelCount={newBackchannelCount}
       />
       <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">

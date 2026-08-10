@@ -11,9 +11,15 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import type { ReferenceStatus } from '@prisma/client'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 
 export const metadata: Metadata = { title: 'My References' }
 
+// Real testimony is one of the strongest signals a hiring manager sees —
+// 3-5 solid references reads as a strong pattern, not a one-off, so that's
+// the lifetime target shown next to "Add a reference" in the Action Plan
+// box (see SprintActionCompletion's lifetimeProgress prop).
+const REFERENCE_TARGET_COUNT = 5
 
 const STATUS_STYLES: Record<ReferenceStatus, string> = {
   REQUESTED: 'bg-muted text-muted-foreground',
@@ -31,6 +37,10 @@ const STATUS_LABELS: Record<ReferenceStatus, string> = {
   EXPIRED: 'Expired',
 }
 
+// Only these two statuses are still realistically awaiting a response —
+// DECLINED/EXPIRED have nothing left to follow up on.
+const AWAITING_RESPONSE_STATUSES: ReferenceStatus[] = ['REQUESTED', 'REMINDER_SENT']
+
 export default async function ReferencesPage({
   searchParams,
 }: {
@@ -45,11 +55,21 @@ export default async function ReferencesPage({
     orderBy: { createdAt: 'asc' },
   })
 
+  const candidateName = profile.displayName || 'me'
+  const providedReferences = profile.references.filter((r) => r.status === 'COMPLETED')
+  const requestedReferences = profile.references.filter((r) => r.status !== 'COMPLETED')
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">References</h1>
-        <PageHeaderBoxes pageKey="references" candidateId={profile.id} />
+        <PageHeaderBoxes
+          pageKey="references"
+          candidateId={profile.id}
+          lifetimeProgress={{
+            REFERENCE_ADDED: { current: providedReferences.length, target: REFERENCE_TARGET_COUNT },
+          }}
+        />
       </div>
 
       <ReferenceQuoteReview
@@ -71,10 +91,57 @@ export default async function ReferencesPage({
         />
       )}
 
-      {profile.references.length > 0 && (
+      {requestedReferences.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Requested references</h2>
-          {profile.references.map((ref) => (
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Requested ({requestedReferences.length})
+          </h2>
+          {requestedReferences.map((ref) => (
+            <Card key={ref.id}>
+              <CardContent className="flex items-center justify-between gap-4 pt-6">
+                <div className="space-y-1">
+                  <p className="font-medium">{ref.refereeName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
+                    {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
+                    <a
+                      href={gmailComposeHref(
+                        ref.refereeEmail,
+                        `Following up on your reference for ${candidateName}`,
+                        `Hi ${ref.refereeName},\n\nJust following up on the reference request I sent — would really appreciate it whenever you have a few minutes!\n\nThanks,\n${candidateName}`
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-primary underline underline-offset-4"
+                    >
+                      Follow up
+                    </a>
+                  )}
+                  <span
+                    className={cn(
+                      'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
+                      STATUS_STYLES[ref.status]
+                    )}
+                  >
+                    {STATUS_LABELS[ref.status]}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {providedReferences.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Provided ({providedReferences.length})
+          </h2>
+          {providedReferences.map((ref) => (
             <Card key={ref.id}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between gap-4">
@@ -85,23 +152,16 @@ export default async function ReferencesPage({
                       {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
                     </p>
                   </div>
-                  <span
-                    className={cn(
-                      'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                      STATUS_STYLES[ref.status]
-                    )}
-                  >
-                    {STATUS_LABELS[ref.status]}
+                  <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-medium', STATUS_STYLES.COMPLETED)}>
+                    {STATUS_LABELS.COMPLETED}
                   </span>
                 </div>
-                {ref.status === 'COMPLETED' && (
-                  <ReferenceDisputeControl
-                    referenceId={ref.id}
-                    disputeNote={ref.candidateDisputeNote}
-                    disputedAt={ref.candidateDisputedAt}
-                    resolvedAt={ref.disputeResolvedAt}
-                  />
-                )}
+                <ReferenceDisputeControl
+                  referenceId={ref.id}
+                  disputeNote={ref.candidateDisputeNote}
+                  disputedAt={ref.candidateDisputedAt}
+                  resolvedAt={ref.disputeResolvedAt}
+                />
               </CardContent>
             </Card>
           ))}

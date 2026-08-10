@@ -6,8 +6,18 @@ import { PAGE_ACTION_TYPES, type PageKey } from '@/lib/weekly/action-effort'
 // truth for "what real, doable action lives on this page." Renders nothing
 // if the page has no action types mapped (e.g. Portfolio, References) or
 // none are currently committed/suggested.
-export function ActionPlanBox({ pageKey, candidateId }: { pageKey: PageKey; candidateId: string }) {
+export function ActionPlanBox({
+  pageKey,
+  candidateId,
+  lifetimeProgress,
+}: {
+  pageKey: PageKey
+  candidateId: string
+  lifetimeProgress?: Partial<Record<string, { current: number; target: number }>>
+}) {
   const actionTypes = PAGE_ACTION_TYPES[pageKey]
   if (!actionTypes || actionTypes.length === 0) return null
-  return <SprintActionCompletion candidateId={candidateId} actionTypes={actionTypes} />
+  return (
+    <SprintActionCompletion candidateId={candidateId} actionTypes={actionTypes} lifetimeProgress={lifetimeProgress} />
+  )
 }

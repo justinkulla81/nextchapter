@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 
 // How far back a meeting/inbound email still counts as "needs a follow-up"
 // — older than this and surfacing it would read as nagging about something
@@ -15,16 +16,6 @@ export interface NeedsFollowUpItem {
   date: Date
   subject: string
   gmailHref: string
-}
-
-// Opens Gmail's own web compose (not a bare mailto:, which hands off to
-// whatever mail client the OS has set as default — often not Gmail even
-// though the connected inbox this list is built from always is) prefilled
-// with the recipient and a subject line referencing what prompted the
-// follow-up.
-function gmailComposeHref(to: string, subject: string): string {
-  const params = new URLSearchParams({ view: 'cm', fs: '1', to, su: `Re: ${subject}` })
-  return `https://mail.google.com/mail/?${params.toString()}`
 }
 
 // Two real, verifiable "you owe someone something" signals, joined without
@@ -100,7 +91,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         contactEmail: address,
         date: meeting.startTime,
         subject,
-        gmailHref: gmailComposeHref(address, `Thank you — ${subject}`),
+        gmailHref: gmailComposeHref(address, `Re: Thank you — ${subject}`),
       }
     })
 

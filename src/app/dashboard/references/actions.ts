@@ -113,7 +113,7 @@ export async function requestReference(
     const effort = estimateActionEffort({ actionType: 'REFERENCE_ADDED' })
     await autoCompleteEngagementAction(profile.id, {
       actionType: 'REFERENCE_ADDED',
-      text: 'Requested a reference',
+      text: 'Add a reference',
       points: effort.points,
       estimatedMinutes: effort.minutes,
     }).catch((error) => console.error('Failed to auto-complete REFERENCE_ADDED action:', error))

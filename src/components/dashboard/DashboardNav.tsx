@@ -41,7 +41,6 @@ function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
   messagesUnreadCount: number,
-  newJobMatchesCount: number,
   newBackchannelCount: number
 ): NavSection[] {
   return [
@@ -100,17 +99,7 @@ function buildSections(
       links: [
         { href: '/dashboard/learning', label: 'Learn New Skills', badge: 'High Priority' },
         { href: '/dashboard/interim-work', label: 'Find Interim Work', badge: 'High Priority' },
-        {
-          href: '/dashboard/find-my-job',
-          label: 'Find Full-Time Jobs',
-          // Deliberately just this one count, not summed with the
-          // watchlist notification count — the watchlist already has its
-          // own on-page indicator (and clears itself on visit), so folding
-          // it in here silently produced a number that didn't match
-          // anything visible on the page (e.g. nav shows 10, page shows 5
-          // jobs waiting to rate).
-          badge: newJobMatchesCount > 0 ? String(newJobMatchesCount) : undefined,
-        },
+        { href: '/dashboard/find-my-job', label: 'Find Full-Time Jobs', badge: 'High Priority' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
       ],
     },
@@ -133,7 +122,6 @@ function NavContent({
   portfolioAssetCount,
   supportNetworkUnreadCount,
   messagesUnreadCount,
-  newJobMatchesCount,
   newBackchannelCount,
 }: {
   pathname: string
@@ -141,17 +129,10 @@ function NavContent({
   portfolioAssetCount: number
   supportNetworkUnreadCount: number
   messagesUnreadCount: number
-  newJobMatchesCount: number
   newBackchannelCount: number
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(
-    portfolioAssetCount,
-    supportNetworkUnreadCount,
-    messagesUnreadCount,
-    newJobMatchesCount,
-    newBackchannelCount
-  )
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, messagesUnreadCount, newBackchannelCount)
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -222,24 +203,16 @@ export function DashboardNav({
   portfolioAssetCount = 0,
   supportNetworkUnreadCount = 0,
   messagesUnreadCount = 0,
-  newJobMatchesCount = 0,
   newBackchannelCount = 0,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   messagesUnreadCount?: number
-  newJobMatchesCount?: number
   newBackchannelCount?: number
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const sections = buildSections(
-    portfolioAssetCount,
-    supportNetworkUnreadCount,
-    messagesUnreadCount,
-    newJobMatchesCount,
-    newBackchannelCount
-  )
+  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, messagesUnreadCount, newBackchannelCount)
   const current = sections
     .flatMap((s) => s.links)
     .filter((link) => (link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)))
@@ -254,7 +227,6 @@ export function DashboardNav({
           portfolioAssetCount={portfolioAssetCount}
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           messagesUnreadCount={messagesUnreadCount}
-          newJobMatchesCount={newJobMatchesCount}
           newBackchannelCount={newBackchannelCount}
         />
       </aside>
@@ -288,7 +260,6 @@ export function DashboardNav({
               portfolioAssetCount={portfolioAssetCount}
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               messagesUnreadCount={messagesUnreadCount}
-              newJobMatchesCount={newJobMatchesCount}
               newBackchannelCount={newBackchannelCount}
             />
           </div>
