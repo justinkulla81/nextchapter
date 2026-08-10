@@ -59,32 +59,39 @@
 }
 
 /* NextChapter's branded loading spinner (see src/components/ui/spinner.tsx)
- * — one fixed, deterministic loop, not random per-play, but long enough
- * (8.64s) and varied enough (two plain N<->C flips, then a third that ends
- * in a full clockwise spin, then a fourth that ends in two counterclockwise
- * spins, then it recycles) that it doesn't read as a metronome. rotateY
- * only ever increases or decreases within a single continuous keyframe
- * timeline, never resets mid-animation, so every segment — including the
- * counterclockwise ones — animates in the intended direction with no
- * "snap back": CSS interpolates a transform function's raw angle, not the
- * shortest visual path, and the loop point (720deg -> 0deg) is a silent,
- * seamless wrap because both are multiples of 360 (the same "N" face). */
+ * — two fixed, deterministic loops on nested layers, both 10.6s so they
+ * stay in lockstep.
+ *
+ * nc-flip is the Y-axis card-turn between the "N"/"C" faces: 3 full
+ * flip-cycles (N->C->N each), holding on each face before the next flip.
+ * rotateY only ever increases within the timeline, never resets mid-loop,
+ * so every flip turns the same direction with no snap-back — CSS
+ * interpolates a transform function's raw angle, not the shortest visual
+ * path — and the loop point (1080deg -> 0deg) is a silent, seamless wrap
+ * because both are multiples of 360 (the same "N" face).
+ *
+ * nc-spin is a separate Z-axis (in-plane) rotation on the layer wrapping
+ * the flip, so it reads as the whole tile cartwheeling flat against the
+ * screen rather than another card-turn. It stays put at 0deg through the
+ * first flip-cycle, does one clockwise 360deg spin once the 2nd cycle
+ * settles back on "N", holds, then does a counterclockwise 720deg (double)
+ * spin once the 3rd cycle settles — same "never reset, wrap on a multiple
+ * of 360" trick (360deg -> -360deg is the same visual angle) keeps the loop
+ * point seamless. */
 @keyframes nc-flip {
-  0%, 10.19% { transform: rotateY(0deg); }
-  12.73%, 22.92% { transform: rotateY(180deg); }
-  25.46%, 35.65% { transform: rotateY(360deg); }
-  38.19%, 48.38% { transform: rotateY(540deg); }
-  50.93% { transform: rotateY(720deg); }
-  /* animation-timing-function set on a keyframe governs its OUTGOING
-   * segment (this stop to the next) — placed here, not on the 59.95%
-   * stop, so it actually paces the clockwise spin rather than the hold
-   * that follows it. */
-  54.4% { transform: rotateY(720deg); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
-  59.95%, 70.14% { transform: rotateY(1080deg); }
-  72.69%, 82.87% { transform: rotateY(1260deg); }
-  85.42% { transform: rotateY(1440deg); }
-  88.89% { transform: rotateY(1440deg); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
-  100% { transform: rotateY(720deg); }
+  0%, 11.32% { transform: rotateY(0deg); }
+  14.15%, 25.47% { transform: rotateY(180deg); }
+  28.3%, 39.62% { transform: rotateY(360deg); }
+  42.45%, 53.77% { transform: rotateY(540deg); }
+  56.6%, 67.92% { transform: rotateY(720deg); }
+  70.75%, 82.08% { transform: rotateY(900deg); }
+  84.91%, 100% { transform: rotateY(1080deg); }
+}
+
+@keyframes nc-spin {
+  0%, 59.43% { transform: rotateZ(0deg); }
+  65.09%, 87.74% { transform: rotateZ(360deg); }
+  97.17%, 100% { transform: rotateZ(-360deg); }
 }
 
 :root {
