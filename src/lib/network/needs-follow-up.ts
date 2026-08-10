@@ -118,7 +118,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         contactEmail: address,
         date: activity.detectedAt,
         subject,
-        gmailHref: gmailComposeHref(address, subject),
+        gmailHref: gmailComposeHref(address, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
       }
     })
 

@@ -10,6 +10,7 @@ import { FIT_BUCKET_LABEL, isWeakFit } from '@/lib/jobs/fit-bucket-types'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
+import { EmailSyncWatcher } from '@/components/dashboard/EmailSyncWatcher'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { InterviewJobPicker } from '@/components/dashboard/InterviewJobPicker'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
@@ -323,6 +324,7 @@ async function FindMyJobBody({
     )
   }
   const jobPostings = profile.jobPostings
+  const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
 
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
@@ -496,6 +498,7 @@ async function FindMyJobBody({
 
   return (
     <>
+      {emailConnection && <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />}
       <ReconnectBanner candidateId={profile.id} />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 

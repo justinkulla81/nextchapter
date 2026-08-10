@@ -26,6 +26,26 @@ import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export type FormState = { error?: string } | undefined
 
+// Polled client-side by EmailSyncWatcher — the Gmail sync that populates the
+// Application Tracker is backgrounded via after() (see find-my-job/page.tsx)
+// so a just-applied email never shows up on the page load that triggered its
+// own sync. This is how the client learns the background sync actually
+// finished so it knows to refresh.
+export async function getEmailSyncLastSyncAt(): Promise<string | null> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const connection = await prisma.emailConnection.findFirst({
+    where: { candidateId: profile.id, disconnectedAt: null },
+    select: { lastSyncAt: true },
+  })
+  return connection?.lastSyncAt?.toISOString() ?? null
+}
+
 export async function submitJobUrl(_prevState: FormState, formData: FormData): Promise<FormState> {
   const supabase = await createClient()
   const {
