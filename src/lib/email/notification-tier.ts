@@ -6,10 +6,14 @@ import type { NotificationTier } from '@prisma/client'
 // email cadence plan.
 export function shouldSendDailyEmailForTier(tier: NotificationTier, date: Date): boolean {
   if (tier === 'MINIMAL') return false
-  if (tier === 'FULL') return true
-  // ESSENTIALS: Monday and Thursday only (UTC day-of-week: 1 = Mon, 4 = Thu).
   const day = date.getUTCDay()
-  return day === 1 || day === 4
+  // Monday already carries the weekly kickoff email ("Your new week is set")
+  // from auto-assign-sprint — the daily nudge would be a same-morning
+  // duplicate touchpoint on top of it, for every tier.
+  if (day === 1) return false
+  if (tier === 'FULL') return true
+  // ESSENTIALS: Tuesday and Thursday (UTC day-of-week: 2 = Tue, 4 = Thu).
+  return day === 2 || day === 4
 }
 
 // Gates the two once-a-week extras (the Friday gap nudge, the Community &
