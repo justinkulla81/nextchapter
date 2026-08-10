@@ -18,6 +18,11 @@ export function ActionPlanBox({
   const actionTypes = PAGE_ACTION_TYPES[pageKey]
   if (!actionTypes || actionTypes.length === 0) return null
   return (
-    <SprintActionCompletion candidateId={candidateId} actionTypes={actionTypes} lifetimeProgress={lifetimeProgress} />
+    <SprintActionCompletion
+      candidateId={candidateId}
+      actionTypes={actionTypes}
+      lifetimeProgress={lifetimeProgress}
+      pageKey={pageKey}
+    />
   )
 }

@@ -1108,6 +1108,40 @@ async function FindMyJobBody({
         </Card>
       </div>
 
+      <div id="find-through-network" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Find Jobs Through Network</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Most roles are filled through a referral before they&apos;re ever posted — the people
+            who already know you are your fastest path to hearing about one. Adding contacts and
+            reaching out counts here, whether or not it turns into a specific job lead.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/network"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Go to My Network →
+        </Link>
+      </div>
+
+      <div id="mock-interview" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Complete a Mock Interview</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Practicing out loud before the real thing is what actually builds confidence — reading
+            a good answer isn&apos;t the same as saying one. This is detected automatically the
+            moment you answer a practice or tough interview question, not a box you check yourself.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/interview-prep"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Go to Interview Prep →
+        </Link>
+      </div>
+
       <GuideCallout pageSlot="find-my-job" currentJobStatus={profile.currentJobStatus} />
     </>
   )

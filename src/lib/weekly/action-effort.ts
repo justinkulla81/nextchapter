@@ -673,20 +673,25 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'CALENDAR_RECONNECTED',
     'INTERVIEW_ATTENDED',
   ],
-  // Order matches the page's own section order (see find-my-job/page.tsx):
-  // Apply to New Jobs, Job Recommendations, Interview Tracking, Jobs I've
-  // Applied To, Company Tracker. JOB_BOARD_USAGE_CONFIRMED intentionally
+  // Order matches the Action Plan box's own display order: Apply to a new
+  // job, React to a job recommendation, Add a company to your tracker, Find
+  // jobs through your network, Complete a mock interview — the last two
+  // link to new #find-through-network/#mock-interview sections built at the
+  // bottom of find-my-job/page.tsx specifically for this box, via
+  // PAGE_ACTION_TYPE_OVERRIDE below. JOB_BOARD_USAGE_CONFIRMED intentionally
   // omitted — its UI (JobBoardUsageCheckIn) was removed and never rebuilt,
   // so it has no reachable action to complete (see profile-checklist.ts's
-  // "dead" comment on the same action type). GMAIL_CONNECTED/RECONNECTED
-  // also listed under `network` (their real home) — duplicated here too
-  // since a candidate on this page needs their inbox connected for
-  // interview/application auto-detection to work at all.
+  // "dead" comment on the same action type). NETWORKING_LIST/GMAIL_CONNECTED/
+  // RECONNECTED also listed under `network` (their real home) — duplicated
+  // here too since building your network is real job-search work, and a
+  // candidate on this page needs their inbox connected for interview/
+  // application auto-detection to work at all.
   'find-my-job': [
     'JOB_APPLICATION_SUBMITTED',
     'JOB_INTERESTED_REACTION',
-    'INTERVIEW_PREP',
     'WATCHLIST_ADD',
+    'NETWORKING_LIST',
+    'INTERVIEW_PREP',
     'WATCHLIST_POSTING_VIEWED',
     'NEGOTIATION_ADVICE',
     'GMAIL_CONNECTED',
@@ -722,4 +727,26 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   // means PageHeaderBoxes still renders Daily Message/Why It Matters here,
   // just no third box.
   support: [],
+}
+
+// Per-page overrides for a handful of action types whose canonical
+// text/link (used everywhere else this actionType shows up — the Network
+// page's own Action Plan, the dashboard Sprint card, stats page) doesn't
+// fit a specific page's Action Plan box context. find-my-job links
+// NETWORKING_LIST/INTERVIEW_PREP into two sections built at the bottom of
+// find-my-job/page.tsx specifically for this box, rather than jumping
+// straight off the page, and reframes the networking bullet in job-search
+// terms — the underlying real action and points are unchanged, only how
+// this one box presents and links it.
+export const PAGE_ACTION_TYPE_OVERRIDE: Partial<
+  Record<PageKey, Partial<Record<string, { text?: string; href: string; label: string }>>>
+> = {
+  'find-my-job': {
+    NETWORKING_LIST: {
+      text: 'Find jobs through your network',
+      href: '/dashboard/find-my-job#find-through-network',
+      label: 'Find My Job',
+    },
+    INTERVIEW_PREP: { href: '/dashboard/find-my-job#mock-interview', label: 'Find My Job' },
+  },
 }

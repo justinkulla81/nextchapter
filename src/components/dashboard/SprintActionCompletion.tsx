@@ -1,4 +1,5 @@
 import 'server-only'
+import Link from 'next/link'
 import {
   getCurrentWeekSprint,
   getSuggestedActions,
@@ -11,6 +12,10 @@ import {
   isAutoDetectedActionType,
   isRecurringActionType,
   estimateActionEffort,
+  getRecurringTargetCount,
+  ACTION_TYPE_LINK,
+  PAGE_ACTION_TYPE_OVERRIDE,
+  type PageKey,
 } from '@/lib/weekly/action-effort'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
@@ -59,10 +64,23 @@ const MERGED_AUTO_DETECTED_GROUPS: { types: string[]; label: string }[] = [
 // already verify (isAutoDetectedActionType) shows a plain status readout
 // instead, for every candidate, with no partial-trust fallback. A
 // self-report click is not evidence.
+// Resolves where a row's real work happens — a page-specific override (see
+// PAGE_ACTION_TYPE_OVERRIDE) wins over the actionType's global link, since a
+// handful of types (NETWORKING_LIST, INTERVIEW_PREP) need to route into a
+// section built specifically for this box rather than the page they
+// otherwise live on. Returns null for actionTypes with no reachable link
+// (row still renders, just as plain text).
+function resolveRowLink(actionType: string | undefined, pageKey: PageKey | undefined) {
+  if (!actionType) return null
+  const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[actionType] : undefined
+  return override ?? ACTION_TYPE_LINK[actionType] ?? null
+}
+
 export async function SprintActionCompletion({
   candidateId,
   actionTypes,
   lifetimeProgress,
+  pageKey,
 }: {
   candidateId: string
   actionTypes: string[]
@@ -72,6 +90,9 @@ export async function SprintActionCompletion({
   // per-page since the target is page-specific, not a property of the
   // actionType itself.
   lifetimeProgress?: Partial<Record<string, { current: number; target: number }>>
+  // Which page rendered this box — used only to resolve PAGE_ACTION_TYPE_OVERRIDE
+  // link/text overrides; omit and every row falls back to its global link.
+  pageKey?: PageKey
 }) {
   const [sprint, weeklySprintsCount] = await Promise.all([
     getCurrentWeekSprint(candidateId),
@@ -158,10 +179,20 @@ export async function SprintActionCompletion({
       <div className="space-y-1.5">
         {selfReportCommitted.map((action) => {
           const realIndex = committedActions.indexOf(action)
+          const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[action.actionType!] : undefined
+          const link = resolveRowLink(action.actionType, pageKey)
+          const label = override?.text ?? action.text
           return (
             <div key={realIndex} className="flex items-center justify-between gap-3">
               <span className="text-sm text-foreground">
-                {action.text} <span className="text-xs text-muted-foreground">({action.points} pts)</span>
+                {link ? (
+                  <Link href={link.href} className="underline underline-offset-4 hover:text-brand">
+                    {label}
+                  </Link>
+                ) : (
+                  label
+                )}{' '}
+                <span className="text-xs text-muted-foreground">({action.points} pts)</span>
               </span>
               {action.recurring ? (
                 action.completed ? (
@@ -192,10 +223,20 @@ export async function SprintActionCompletion({
         {selfReportSuggested.map((action) => {
           const effort = estimateActionEffort(action)
           const recurring = isRecurringActionType(action.actionType)
+          const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[action.actionType!] : undefined
+          const link = resolveRowLink(action.actionType, pageKey)
+          const label = override?.text ?? action.text
           return (
             <div key={action.actionType} className="flex items-center justify-between gap-3">
               <span className="text-sm text-foreground">
-                {action.text} <span className="text-xs text-muted-foreground">({effort.points} pts)</span>
+                {link ? (
+                  <Link href={link.href} className="underline underline-offset-4 hover:text-brand">
+                    {label}
+                  </Link>
+                ) : (
+                  label
+                )}{' '}
+                <span className="text-xs text-muted-foreground">({effort.points} pts)</span>
               </span>
               <form action={completeCatalogAction} className="shrink-0">
                 <input type="hidden" name="text" value={action.text} />
@@ -209,11 +250,32 @@ export async function SprintActionCompletion({
         })}
         {autoDetectedRows.map((action) => {
           const progress = lifetimeProgress?.[action.actionType!]
+          const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[action.actionType!] : undefined
+          const link = resolveRowLink(action.actionType, pageKey)
+          const label = override?.text ?? action.text
+          // Weekly (not lifetime) rep count — X of Y this week — for
+          // recurring types with a real target (getRecurringTargetCount).
+          // Distinct from `progress` above, which is a lifetime goal passed
+          // in per-page (e.g. references: aim for 5 total, ever).
+          const weeklyTarget = getRecurringTargetCount(action.actionType)
+          const weeklyDone = action.completionCount ?? (action.completed ? 1 : 0)
           return (
             <div key={action.actionType} className="space-y-0.5">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm text-foreground">
-                  {action.text} <span className="text-xs text-muted-foreground">({action.points} pts)</span>
+                  {link ? (
+                    <Link href={link.href} className="underline underline-offset-4 hover:text-brand">
+                      {label}
+                    </Link>
+                  ) : (
+                    label
+                  )}{' '}
+                  <span className="text-xs text-muted-foreground">({action.points} pts)</span>
+                  {weeklyTarget != null && (
+                    <span className="ml-1.5 text-xs font-medium text-muted-foreground tabular-nums">
+                      · {weeklyDone} / {weeklyTarget} this week
+                    </span>
+                  )}
                   {progress && (
                     <span className="ml-1.5 text-xs font-medium text-muted-foreground tabular-nums">
                       · {progress.current} of {progress.target}
