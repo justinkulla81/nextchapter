@@ -61,7 +61,7 @@ import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 
-export const metadata: Metadata = { title: 'Find Full-Time Jobs' }
+export const metadata: Metadata = { title: 'Find a Full-time Job' }
 
 const SURFACED_JOB_LIST_SIZE = 5
 // Free candidates only ever see the first 3 automated-search-partner
@@ -199,57 +199,47 @@ async function JobRecommendationsSection({
           No jobs surfaced yet — set a target role in your Goals to get started.
         </p>
       ) : (
-        <Card>
-          <CardContent className="space-y-3 pt-6">
-            {surfacedJobs.length > 0 && (
-              <p className="text-xs font-medium text-muted-foreground">
-                {totalUnreactedCount} match{totalUnreactedCount === 1 ? '' : 'es'} from your
-                automated search partners
-                {totalUnreactedCount > visibleSurfacedJobs.length &&
-                  ` — showing ${visibleSurfacedJobs.length} below`}
-              </p>
-            )}
+        <div className="space-y-3">
+          {surfacedJobs.length > 0 && (
+            <p className="text-xs font-medium text-muted-foreground">
+              Showing {visibleSurfacedJobs.length} of {totalUnreactedCount} match
+              {totalUnreactedCount === 1 ? '' : 'es'} from your automated search partners
+            </p>
+          )}
 
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {visibleBoardPostings.map((posting) => (
-                <DiscoverJobCard
-                  key={posting.id}
-                  posting={posting}
-                  fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-                />
-              ))}
+          <div className="space-y-3">
+            {visibleBoardPostings.map((posting) => (
+              <DiscoverJobCard
+                key={posting.id}
+                posting={posting}
+                fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+              />
+            ))}
 
-              {visibleSurfacedJobs.map((job) => (
-                <NextSurfacedJobCard
-                  key={job.id}
-                  job={job}
-                  fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                />
-              ))}
-            </div>
+            {visibleSurfacedJobs.map((job) => (
+              <NextSurfacedJobCard
+                key={job.id}
+                job={job}
+                fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+              />
+            ))}
+          </div>
 
-            {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-              <>
-                <UnlockAListCallout
-                  grade={gradeLetter}
-                  lockedCount={lockedBoardPostings.length + lockedSurfacedCount}
-                />
+          {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
+            <>
+              <UnlockAListCallout
+                grade={gradeLetter}
+                lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
+              />
 
-                <div className="divide-y divide-border rounded-lg border border-border">
-                  {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
-                    <LockedDiscoverJobCard key={posting.id} posting={posting} />
-                  ))}
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  {lockedSurfacedCount > 0 &&
-                    `${lockedSurfacedCount} more recommendation${lockedSurfacedCount === 1 ? '' : 's'} for you unlock at an A grade. `}
-                  {boardPostings.length} total jobs in our ATS.
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              <div className="space-y-3">
+                {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
+                  <LockedDiscoverJobCard key={posting.id} posting={posting} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       <InterestedJobsList jobs={interestedJobs} />
@@ -264,7 +254,7 @@ export default async function JobFitPage() {
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Find a Full-time Job</h1>
         <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
       </div>
 
@@ -297,7 +287,7 @@ async function FindMyJobBody({
 }) {
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
-  // the same Gmail connection managed on the Live Conversations page.
+  // the same Gmail connection managed on the Network with My Contacts page.
   // Networking-shaped sent mail stays there; this page only shows the
   // job-outcome side of that same synced inbox.
   //
@@ -526,7 +516,14 @@ async function FindMyJobBody({
 
         <div className="space-y-6 rounded-lg border border-border bg-card p-4">
           <div>
-            <p className="text-sm font-medium text-foreground">Resume Book</p>
+            <p className="text-base font-semibold text-foreground">Job Boards</p>
+            <div className="mt-2">
+              <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
+            </div>
+          </div>
+
+          <div>
+            <p className="text-base font-semibold text-foreground">Resume Book</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Recruiters and hiring managers browsing by role can find your resume here.
             </p>
@@ -536,14 +533,7 @@ async function FindMyJobBody({
           </div>
 
           <div>
-            <p className="text-sm font-medium text-foreground">Job Boards</p>
-            <div className="mt-2">
-              <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium text-foreground">Executive Recruiters</p>
+            <p className="text-base font-semibold text-foreground">Executive Recruiters</p>
             {isAList && profile.recruiterDatabaseOptIn ? (
               <p className="mt-1 text-sm text-muted-foreground">You&apos;re an A — recruiters can already find you.</p>
             ) : (
@@ -560,7 +550,7 @@ async function FindMyJobBody({
           </div>
 
           <div id="job-recommendations" className="scroll-mt-4">
-            <p className="text-sm font-medium text-foreground">Job Recommendations For You</p>
+            <p className="text-base font-semibold text-foreground">Job Recommendations For You</p>
             <div className="mt-2">
               <Suspense fallback={<JobRecommendationsSkeleton />}>
                 <JobRecommendationsSection
@@ -646,7 +636,7 @@ async function FindMyJobBody({
         <ConversionDiagnosticCard jobPostings={jobPostings} />
 
         {jobPostings.length > 0 && (
-          <div className="divide-y divide-border rounded-lg border border-border">
+          <div className="space-y-3">
             <ShowMoreList initialCount={10} totalCount={jobPostings.length}>
             {jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)

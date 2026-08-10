@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 
 // One-time Gmail + Calendar connect callout — surfaced inline on the pages
-// where the payoff is obvious (Live Conversations, Find Full-Time Jobs)
+// where the payoff is obvious (Network with My Contacts, Find Full-Time Jobs)
 // rather than living as its own permanent nav destination. Internal
 // testing only (isGmailTrackingTester gate). Three states: neither
 // connected (full combined pitch), exactly one connected (a much smaller

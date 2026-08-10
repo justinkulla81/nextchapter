@@ -31,7 +31,7 @@ import { CalendarActivitySyncButton } from '@/components/dashboard/CalendarActiv
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
 
-export const metadata: Metadata = { title: 'Live Conversations' }
+export const metadata: Metadata = { title: 'Network with My Contacts' }
 
 // Mirrors activity-reconciliation.ts's NETWORKING_EMAIL_TYPES.
 const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
@@ -446,7 +446,7 @@ export default async function NetworkPage({
     return (
       <div className="space-y-6">
         <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Live Conversations</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Network with My Contacts</h1>
           <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
         </div>
         <div className="rounded-lg border border-border p-4">
@@ -459,7 +459,7 @@ export default async function NetworkPage({
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Live Conversations</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Network with My Contacts</h1>
         <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
       </div>
 

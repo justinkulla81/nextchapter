@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-// Merged into the Live Conversations page's "Automatic Tracking" section —
+// Merged into the Network with My Contacts page's "Automatic Tracking" section —
 // this stub just carries forward the OAuth-callback query params (?gmailConnected=1
 // etc.) for any bookmarks or in-flight redirects still pointing here.
 export default async function EmailActivityRedirect({

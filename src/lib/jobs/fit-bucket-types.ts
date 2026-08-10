@@ -15,12 +15,20 @@
 // job-fit-bucket.ts for the direction check.
 export type FitBucket = 'strong' | 'good' | 'stretch' | 'below_level' | 'overqualified'
 
+// Labels frame the seniority relationship between the candidate and the
+// role rather than a generic "quality of match" — 'strong' and 'good' both
+// clear the "real recommendation" bar (see isWeakFit below) but differ in
+// how closely the role's function/industry lines up at the same level,
+// hence "On Target" vs "Lateral." 'below_level' and 'overqualified' share
+// one label — the distinction between a mild vs. extreme step down isn't
+// worth a second badge string, just the underlying bucket used elsewhere
+// (isWeakFit, sort order).
 export const FIT_BUCKET_LABEL: Record<FitBucket, string> = {
-  strong: 'Strong fit',
-  good: 'Good fit',
-  stretch: 'Stretch',
-  below_level: 'A step down',
-  overqualified: 'Below your level',
+  strong: 'On Target',
+  good: 'Lateral',
+  stretch: 'Step Up',
+  below_level: 'Step Down',
+  overqualified: 'Step Down',
 }
 
 // None of these buckets clears the "good fit" score threshold — used

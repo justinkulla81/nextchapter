@@ -9,7 +9,7 @@ export function UnlockAListCallout({ grade, lockedCount }: { grade: Grade; locke
   return (
     <div className="rounded-lg border border-orange/30 bg-orange/5 p-4">
       <p className="text-sm font-medium text-foreground">
-        {lockedCount} A-List-exclusive {opportunityWord} unlock at an A grade — you&apos;re currently a {grade}.
+        There are {lockedCount} exclusive {opportunityWord} unlock at an A grade — you&apos;re currently a {grade}.
       </p>
     </div>
   )

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 
 const PAGE_LABELS: Partial<Record<PageKey, string>> = {
   dashboard: 'Success Dashboard',
-  network: 'Live Conversations',
+  network: 'Network with My Contacts',
   'find-my-job': 'Find My Job',
   resume: 'Resume',
   'interview-prep': 'Interview Prep',

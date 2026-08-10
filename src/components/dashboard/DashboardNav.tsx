@@ -70,7 +70,7 @@ function buildSections(
         { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/network',
-          label: 'Live Conversations',
+          label: 'Network with My Contacts',
           // A real "you know someone at a company you applied to" count
           // takes priority over the generic High Priority label — it's a
           // more specific, more actionable reason to visit right now.
@@ -99,7 +99,7 @@ function buildSections(
       links: [
         { href: '/dashboard/learning', label: 'Learn New Skills', badge: 'High Priority' },
         { href: '/dashboard/interim-work', label: 'Find Interim Work', badge: 'High Priority' },
-        { href: '/dashboard/find-my-job', label: 'Find Full-Time Jobs', badge: 'High Priority' },
+        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', badge: 'High Priority' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
       ],
     },

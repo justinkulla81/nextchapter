@@ -176,15 +176,15 @@ export async function SprintActionCompletion({
   return (
     <div className="space-y-2 rounded-lg border border-success/20 bg-success/5 p-3">
       <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Action Plan</p>
-      <div className="space-y-1.5">
+      <ul className="list-disc space-y-1.5 pl-5 marker:text-muted-foreground">
         {selfReportCommitted.map((action) => {
           const realIndex = committedActions.indexOf(action)
           const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[action.actionType!] : undefined
           const link = resolveRowLink(action.actionType, pageKey)
           const label = override?.text ?? action.text
           return (
-            <div key={realIndex} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-foreground">
+            <li key={realIndex} className="flex items-center justify-between gap-3">
+              <span className="min-w-0 truncate text-sm text-foreground">
                 {link ? (
                   <Link href={link.href} className="underline underline-offset-4 hover:text-brand">
                     {label}
@@ -217,7 +217,7 @@ export async function SprintActionCompletion({
                   </SubmitButton>
                 </form>
               )}
-            </div>
+            </li>
           )
         })}
         {selfReportSuggested.map((action) => {
@@ -227,8 +227,8 @@ export async function SprintActionCompletion({
           const link = resolveRowLink(action.actionType, pageKey)
           const label = override?.text ?? action.text
           return (
-            <div key={action.actionType} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-foreground">
+            <li key={action.actionType} className="flex items-center justify-between gap-3">
+              <span className="min-w-0 truncate text-sm text-foreground">
                 {link ? (
                   <Link href={link.href} className="underline underline-offset-4 hover:text-brand">
                     {label}
@@ -245,7 +245,7 @@ export async function SprintActionCompletion({
                   {recurring ? 'Mark started' : 'Mark done'}
                 </SubmitButton>
               </form>
-            </div>
+            </li>
           )
         })}
         {autoDetectedRows.map((action) => {
@@ -253,14 +253,18 @@ export async function SprintActionCompletion({
           const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[action.actionType!] : undefined
           const link = resolveRowLink(action.actionType, pageKey)
           const label = override?.text ?? action.text
-          // Weekly (not lifetime) rep count — X of Y this week — for
-          // recurring types with a real target (getRecurringTargetCount).
-          // Distinct from `progress` above, which is a lifetime goal passed
+          // Weekly (not lifetime) rep count — for recurring types with a
+          // real target (getRecurringTargetCount), the badge shows real
+          // progress toward it (X / Y). One-time types have no such target;
+          // treated as a 1-rep goal so the same "X / Y, green once met"
+          // badge still applies instead of a separate done/not-done label.
+          // Distinct from `progress` below, which is a lifetime goal passed
           // in per-page (e.g. references: aim for 5 total, ever).
-          const weeklyTarget = getRecurringTargetCount(action.actionType)
+          const weeklyTarget = getRecurringTargetCount(action.actionType) ?? 1
           const weeklyDone = action.completionCount ?? (action.completed ? 1 : 0)
+          const achieved = weeklyDone >= weeklyTarget
           return (
-            <div key={action.actionType} className="space-y-0.5">
+            <li key={action.actionType} className="space-y-0.5">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm text-foreground">
                   {link ? (
@@ -271,11 +275,6 @@ export async function SprintActionCompletion({
                     label
                   )}{' '}
                   <span className="text-xs text-muted-foreground">({action.points} pts)</span>
-                  {weeklyTarget != null && (
-                    <span className="ml-1.5 text-xs font-medium text-muted-foreground tabular-nums">
-                      · {weeklyDone} / {weeklyTarget} this week
-                    </span>
-                  )}
                   {progress && (
                     <span className="ml-1.5 text-xs font-medium text-muted-foreground tabular-nums">
                       · {progress.current} of {progress.target}
@@ -284,20 +283,20 @@ export async function SprintActionCompletion({
                 </span>
                 <span
                   className={cn(
-                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                    action.completed ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
+                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium tabular-nums',
+                    achieved ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
                   )}
                 >
-                  {action.completed ? 'Detected ✓' : 'Not yet this week'}
+                  {weeklyDone} / {weeklyTarget}
                 </span>
               </div>
               {AUTO_DETECTED_SIGNAL[action.actionType!] && (
                 <p className="text-xs text-muted-foreground">{AUTO_DETECTED_SIGNAL[action.actionType!]}</p>
               )}
-            </div>
+            </li>
           )
         })}
-      </div>
+      </ul>
     </div>
   )
 }

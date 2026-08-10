@@ -87,7 +87,7 @@ async function buildNetworkingDraft(candidateId: string, firstName: string): Pro
   return {
     subject: `${firstName}, one conversation could move things forward`,
     body,
-    ctaLabel: 'Go to Live Conversations',
+    ctaLabel: 'Go to Network with My Contacts',
     ctaUrl: `${APP_URL}/dashboard/network`,
   }
 }
@@ -169,7 +169,7 @@ async function buildConnectGmailDraft(candidateId: string, firstName: string): P
   return {
     subject: `${firstName}, skip the manual logging — connect Gmail`,
     body,
-    ctaLabel: 'Go to Live Conversations',
+    ctaLabel: 'Go to Network with My Contacts',
     ctaUrl: `${APP_URL}/dashboard/network`,
   }
 }
