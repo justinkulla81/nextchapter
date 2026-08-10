@@ -80,16 +80,15 @@ const PROFILE_DATA_ACTION_TYPES = new Set([
   'LINKEDIN_PROFILE_ADDED',
 ])
 
-// Within a group, undone high-priority rows read first, then undone regular
-// rows, then completed (crossed-out) rows last — otherwise a finished item
-// sitting above an unfinished one reads as "what do I still need to do?"
-// confusion. Array.prototype.sort is stable in every engine this app runs
-// on, so rows within the same tier keep their original relative order.
+// Within a group, high-priority rows read first, then everything else —
+// a completed one-time row never reaches this function at all (see
+// openRows below, which drops those before grouping/sorting ever runs), so
+// there's no "completed rows last" tier to account for here anymore.
+// Array.prototype.sort is stable in every engine this app runs on, so rows
+// within the same tier keep their original relative order.
 function sortForDisplay(rows: Row[]): Row[] {
   function tier(row: Row): number {
-    if (row.completed && !row.recurring) return 2
-    if (row.priority) return 0
-    return 1
+    return row.priority ? 0 : 1
   }
   return [...rows].sort((a, b) => tier(a) - tier(b))
 }
@@ -390,7 +389,25 @@ export function SuccessSprintCard({
       })),
   ]
 
-  const groups = groupByNavCategory(consolidateProfileDataRows(allRows))
+  // A completed one-time row drops out of the list immediately — same
+  // rule SprintActionCompletion already applies, and for the same reason:
+  // a struck-through row that's already done isn't "what's left to do,"
+  // it's stale clutter, and it read as confusing/wrong at the start of a
+  // fresh week (a one-time item completed weeks ago has no relationship to
+  // "this week" and shouldn't visually compete with what's actually still
+  // open). Recurring rows are unaffected — those still render "done this
+  // week" as a real, current signal, not a stale leftover.
+  const openRows = allRows.filter((r) => !(r.completed && !r.recurring))
+
+  // Every still-open high-priority row, regardless of which nav category
+  // it belongs to, surfaced as its own group above the rest — so the most
+  // important things to do are visible without scanning every section.
+  // Deliberately not removed from its own category below: a candidate
+  // browsing Connecting should still see "Send a personalized outreach
+  // message" there even though it's also called out up top.
+  const priorityRows = sortForDisplay(openRows.filter((r) => r.priority))
+
+  const groups = groupByNavCategory(consolidateProfileDataRows(openRows))
 
   return (
     <Card>
@@ -432,6 +449,18 @@ export function SuccessSprintCard({
                 again next week to earn those points again.
               </p>
               <div className="space-y-4">
+                {priorityRows.length > 0 && (
+                  <ActionGroup title="Priority">
+                    {priorityRows.map((row, i) => (
+                      <ActionRow
+                        key={i}
+                        {...row}
+                        hasEmailConnection={hasEmailConnection}
+                        hasCalendarConnection={hasCalendarConnection}
+                      />
+                    ))}
+                  </ActionGroup>
+                )}
                 {GROUP_ORDER.map((group) => {
                   const items = sortForDisplay(groups[group])
                   if (items.length === 0) return null
