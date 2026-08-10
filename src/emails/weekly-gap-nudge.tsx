@@ -2,6 +2,7 @@ import { emailStyles } from '@/lib/email/email-styles'
 
 interface WeeklyGapNudgeEmailProps {
   firstName: string | null
+  introCopy?: string | null
   weeklyPoints: number
   weeklyPointsTarget: number
   dashboardUrl: string
@@ -46,6 +47,7 @@ const footer: React.CSSProperties = {
 
 export default function WeeklyGapNudgeEmail({
   firstName,
+  introCopy,
   weeklyPoints,
   weeklyPointsTarget,
   dashboardUrl,
@@ -60,6 +62,7 @@ export default function WeeklyGapNudgeEmail({
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
         {pointsToGo} points from an A this week.
       </p>
+      {introCopy && <p>{introCopy}</p>}
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
         you&apos;re at <strong>{weeklyPoints} of {weeklyPointsTarget}</strong> points for this

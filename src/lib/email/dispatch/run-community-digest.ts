@@ -1,24 +1,23 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import 'server-only'
+import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendCommunityCoachingDigestEmail } from '@/lib/email/send-community-coaching-digest'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
-// Fires Saturday morning — a quiet weekly digest of encouragement notes
-// received and any coaching session logged in the last 7 days. Skips
-// silently for anyone with nothing to report rather than sending an empty
-// "nothing happened" email.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+// Saturday — "Your Week in Review." Skips silently for anyone with nothing
+// to report rather than sending an empty digest.
+export async function runCommunityDigest(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
   const windowStart = new Date(Date.now() - SEVEN_DAYS_MS)
 
   const eligible = await prisma.candidateProfile.findMany({
-    where: { registrationCompletedAt: { not: null }, weeklyReportOptedOut: false },
+    where: {
+      registrationCompletedAt: { not: null },
+      weeklyReportOptedOut: false,
+      ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
+    },
     select: { id: true, userId: true, firstName: true, notificationTier: true },
   })
 
@@ -26,6 +25,7 @@ export async function GET(request: NextRequest) {
   for (const candidate of eligible) {
     try {
       if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (await hasAlreadySentToday(candidate.id, 'COMMUNITY_DIGEST')) continue
 
       const [encouragementCount, coachSessionCount] = await Promise.all([
         prisma.encouragementNote.count({
@@ -38,12 +38,17 @@ export async function GET(request: NextRequest) {
 
       if (encouragementCount === 0 && coachSessionCount === 0) continue
 
-      const result = await sendCommunityCoachingDigestEmail(candidate, encouragementCount, coachSessionCount > 0)
+      const result = await sendCommunityCoachingDigestEmail(
+        candidate,
+        encouragementCount,
+        coachSessionCount > 0,
+        introCopy
+      )
       if (result.sent) sentCount += 1
     } catch (error) {
-      console.error('Community & coaching digest failed for candidate', candidate.id, error)
+      console.error('Community Digest failed for candidate', candidate.id, error)
     }
   }
 
-  return NextResponse.json({ checked: eligible.length, sent: sentCount })
+  return { checked: eligible.length, sent: sentCount }
 }

@@ -2,12 +2,14 @@ import 'server-only'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
+import { recordCandidateEmailSent } from '@/lib/email/send-log'
 
 export async function sendWeeklyGapNudgeEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   weeklyPoints: number,
   weeklyPointsTarget: number,
-  visibilityCheckedIn: boolean
+  visibilityCheckedIn: boolean,
+  introCopy?: string | null
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping weekly gap nudge email.')
@@ -35,6 +37,7 @@ export async function sendWeeklyGapNudgeEmail(
       : `${pointsToGo} points from an A this week`,
     react: WeeklyGapNudgeEmail({
       firstName: candidate.firstName,
+      introCopy: introCopy ?? null,
       weeklyPoints,
       weeklyPointsTarget,
       dashboardUrl,
@@ -47,6 +50,8 @@ export async function sendWeeklyGapNudgeEmail(
     console.error('Failed to send weekly gap nudge email:', error)
     return { sent: false as const }
   }
+
+  await recordCandidateEmailSent(candidate.id, 'GAP_NUDGE')
 
   return { sent: true as const }
 }

@@ -1,22 +1,20 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import 'server-only'
+import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCandidateEmail } from '@/lib/email/send-market-digest-candidate'
 import { recordDigestSend, getDigestNugget } from '@/lib/admin/digest-composer'
 
-// Weekly market-conditions email — separate day from community-coaching-digest
-// (Saturday) to avoid inbox pile-up. Reuses the same per-candidate
-// getMarketConditions() call already used inline in Hireability Report
-// generation, rather than recomputing anything new.
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+// Tuesday — "Market Update."
+export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
   const eligible = await prisma.candidateProfile.findMany({
-    where: { registrationCompletedAt: { not: null }, marketDigestOptedOut: false },
+    where: {
+      registrationCompletedAt: { not: null },
+      marketDigestOptedOut: false,
+      ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
+    },
     select: {
       id: true,
       userId: true,
@@ -29,15 +27,14 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  // One shared persona nugget for this run — not per-candidate matched
-  // (no per-candidate persona field exists yet); a simple, honest scope
-  // trim rather than building new candidate-persona classification.
+  // One shared persona nugget for this run, same as the old cron.
   const nugget = await getDigestNugget('PERSONA_RESEARCH')
 
   let sentCount = 0
   for (const candidate of eligible) {
     try {
       if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (await hasAlreadySentToday(candidate.id, 'MARKET_UPDATE')) continue
 
       const marketConditions = await getMarketConditions({
         roleType: candidate.targetRoleType,
@@ -48,10 +45,10 @@ export async function GET(request: NextRequest) {
 
       if (!marketConditions.dataAvailable && !nugget) continue
 
-      const result = await sendMarketDigestCandidateEmail(candidate, marketConditions, nugget)
+      const result = await sendMarketDigestCandidateEmail(candidate, marketConditions, nugget, introCopy)
       if (result.sent) sentCount += 1
     } catch (error) {
-      console.error('Candidate market digest failed for candidate', candidate.id, error)
+      console.error('Market Update failed for candidate', candidate.id, error)
     }
   }
 
@@ -59,5 +56,5 @@ export async function GET(request: NextRequest) {
     await recordDigestSend('candidate', sentCount, nugget ? [nugget.id] : [])
   }
 
-  return NextResponse.json({ checked: eligible.length, sent: sentCount })
+  return { checked: eligible.length, sent: sentCount }
 }

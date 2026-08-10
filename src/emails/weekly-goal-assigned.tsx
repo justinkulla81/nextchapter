@@ -3,6 +3,7 @@ import type { Grade } from '@/lib/scoring/grade'
 
 interface WeeklyGoalAssignedEmailProps {
   firstName: string | null
+  introCopy?: string | null
   lastWeekPoints: number
   lastWeekTarget: number
   hitLastWeekTarget: boolean
@@ -67,6 +68,7 @@ const A_GRADE_BENEFITS = [
 
 export default function WeeklyGoalAssignedEmail({
   firstName,
+  introCopy,
   lastWeekPoints,
   lastWeekTarget,
   hitLastWeekTarget,
@@ -90,6 +92,8 @@ export default function WeeklyGoalAssignedEmail({
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
         {firstName ? `Hi ${firstName} — ` : ''}your new week is set.
       </p>
+
+      {introCopy && <p style={{ marginTop: '12px' }}>{introCopy}</p>}
 
       <div style={statBox}>
         <p style={{ margin: 0, fontWeight: 600 }}>

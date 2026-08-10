@@ -2,11 +2,13 @@ import 'server-only'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
 import CommunityCoachingDigestEmail from '@/emails/community-coaching-digest'
+import { recordCandidateEmailSent } from '@/lib/email/send-log'
 
 export async function sendCommunityCoachingDigestEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   encouragementCount: number,
-  hadCoachSession: boolean
+  hadCoachSession: boolean,
+  introCopy?: string | null
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping community & coaching digest email.')
@@ -30,6 +32,7 @@ export async function sendCommunityCoachingDigestEmail(
     subject: candidate.firstName ? `Your week in review, ${candidate.firstName}` : 'Your week in review',
     react: CommunityCoachingDigestEmail({
       firstName: candidate.firstName,
+      introCopy: introCopy ?? null,
       encouragementCount,
       hadCoachSession,
       dashboardUrl,
@@ -41,6 +44,8 @@ export async function sendCommunityCoachingDigestEmail(
     console.error('Failed to send community & coaching digest email:', error)
     return { sent: false as const }
   }
+
+  await recordCandidateEmailSent(candidate.id, 'COMMUNITY_DIGEST')
 
   return { sent: true as const }
 }

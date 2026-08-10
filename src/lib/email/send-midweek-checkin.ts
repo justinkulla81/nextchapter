@@ -7,7 +7,7 @@ import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
-import DailyActionEmail from '@/emails/daily-action'
+import MidweekCheckinEmail from '@/emails/midweek-checkin'
 
 const QUIET_THRESHOLD_DAYS = 3
 
@@ -16,24 +16,16 @@ interface Strength {
   detail: string
 }
 
-// Wednesday's "Daily Nudge" — the generic one-thing-today email. Sunday
-// (Finish Line) and Thursday (Midweek Check-in) have their own senders now;
-// Week 1's onboarding kickoff is its own daily cron entirely. Day-of-week
-// and notification-tier eligibility are the caller's responsibility (the
-// candidate-email-dispatch cron's eligibility query + hasAlreadySentToday).
-export async function sendDailyActionEmail(candidateId: string, introCopy?: string | null) {
+export async function sendMidweekCheckin(candidateId: string, introCopy?: string | null) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is not set — skipping daily action email.')
+    console.warn('RESEND_API_KEY is not set — skipping Midweek Check-in email.')
     return { sent: false as const }
   }
 
   try {
     const [candidate, report] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.hireabilityReport.findFirst({
-        where: { candidateId },
-        orderBy: { generatedAt: 'desc' },
-      }),
+      prisma.hireabilityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
     ])
 
     const admin = createAdminClient()
@@ -58,9 +50,6 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
           )
         : null
 
-    // Runs even with no primaryAction (e.g. before the week's actions are
-    // assigned) — the prompt falls back to reminding them what they're
-    // working toward instead of restating a task that doesn't exist yet.
     const insights = !isReset
       ? await generateDailyInsights({
           firstName: candidate.firstName,
@@ -73,9 +62,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
 
     const subject =
       insights?.subject ??
-      (candidate.firstName && primaryAction
-        ? `Your one thing for today, ${candidate.firstName}.`
-        : 'Your one thing for today')
+      (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in')
 
     const weeklyRecap = !isReset ? await buildWeeklyRecap(candidateId) : null
 
@@ -85,7 +72,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
       replyTo: 'support@launchyournextchapter.com',
       to: email,
       subject,
-      react: DailyActionEmail({
+      react: MidweekCheckinEmail({
         firstName: candidate.firstName,
         victoriaName,
         introCopy: introCopy ?? null,
@@ -98,19 +85,16 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
     })
 
     if (error) {
-      console.error('Failed to send daily action email:', error)
+      console.error('Failed to send Midweek Check-in email:', error)
       return { sent: false as const }
     }
 
-    await recordCandidateEmailSent(candidateId, 'DAILY_NUDGE')
-    await prisma.candidateProfile.update({
-      where: { id: candidateId },
-      data: { lastDailyEmailSentAt: new Date() },
-    })
+    await recordCandidateEmailSent(candidateId, 'MIDWEEK_CHECKIN')
+    await prisma.candidateProfile.update({ where: { id: candidateId }, data: { lastDailyEmailSentAt: new Date() } })
 
     return { sent: true as const }
   } catch (error) {
-    console.error('Failed to send daily action email:', error)
+    console.error('Failed to send Midweek Check-in email:', error)
     return { sent: false as const }
   }
 }

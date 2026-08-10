@@ -2,6 +2,7 @@ import { emailStyles } from '@/lib/email/email-styles'
 
 interface CommunityCoachingDigestEmailProps {
   firstName: string | null
+  introCopy?: string | null
   encouragementCount: number
   hadCoachSession: boolean
   dashboardUrl: string
@@ -42,6 +43,7 @@ const footer: React.CSSProperties = {
 
 export default function CommunityCoachingDigestEmail({
   firstName,
+  introCopy,
   encouragementCount,
   hadCoachSession,
   dashboardUrl,
@@ -52,6 +54,7 @@ export default function CommunityCoachingDigestEmail({
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>Your week in review.</p>
       <p>{firstName ? `Hi ${firstName}, ` : ''}here&apos;s what happened this week:</p>
+      {introCopy && <p>{introCopy}</p>}
 
       {encouragementCount > 0 && (
         <p>

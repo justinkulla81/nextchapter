@@ -1,18 +1,10 @@
 import { emailStyles } from '@/lib/email/email-styles'
 
-interface WeeklyRecap {
-  pointsEarned: number
-  pointsTarget: number
-  completedTexts: string[]
-}
-
-interface DailyActionEmailProps {
+interface FinishLineEmailProps {
   firstName: string | null
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
-  introCopy?: string | null
-  isReset: boolean
-  bullets: string[] | null
-  weeklyRecap: WeeklyRecap | null
+  introCopy: string | null
+  bullets: string[]
   appUrl: string
   unsubscribeUrl: string
 }
@@ -60,37 +52,14 @@ const footer: React.CSSProperties = {
   ...emailStyles.muted,
 }
 
-const recapBox: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  marginTop: '28px',
-  padding: '16px 18px',
-  borderRadius: '8px',
-  backgroundColor: '#f4f6f4',
-}
-
-const recapTitle: React.CSSProperties = {
-  fontWeight: 700,
-  color: '#0b2545',
-  margin: 0,
-}
-
-const recapList: React.CSSProperties = {
-  paddingLeft: '18px',
-  margin: '8px 0 0',
-  fontSize: '14px',
-  color: '#4a5568',
-}
-
-export default function DailyActionEmail({
+export default function FinishLineEmail({
   firstName,
   victoriaName,
   introCopy,
-  isReset,
   bullets,
-  weeklyRecap,
   appUrl,
   unsubscribeUrl,
-}: DailyActionEmailProps) {
+}: FinishLineEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
@@ -98,40 +67,17 @@ export default function DailyActionEmail({
 
       {introCopy && <p>{introCopy}</p>}
 
-      {isReset ? (
-        <p>
-          You haven&apos;t fallen behind. The plan got too heavy. Today, do one small thing — takes
-          5 minutes — and we restart. I&apos;ll be here. — {victoriaName}
-        </p>
-      ) : bullets ? (
-        <ul style={bulletList}>
-          {bullets.map((bullet, i) => (
-            <li key={i} style={bulletItem}>
-              {bullet}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Check your dashboard for today&apos;s plan.</p>
-      )}
+      <ul style={bulletList}>
+        {bullets.map((bullet, i) => (
+          <li key={i} style={bulletItem}>
+            {bullet}
+          </li>
+        ))}
+      </ul>
 
       <a href={`${appUrl}/dashboard`} style={button}>
         Open my dashboard
       </a>
-
-      {weeklyRecap && (
-        <div style={recapBox}>
-          <p style={recapTitle}>
-            This week so far: {weeklyRecap.pointsEarned} of {weeklyRecap.pointsTarget} points — nice
-            work.
-          </p>
-          <ul style={recapList}>
-            {weeklyRecap.completedTexts.map((text, i) => (
-              <li key={i}>{text}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <p style={footer}>
         Don&apos;t want daily emails?{' '}

@@ -6,10 +6,10 @@ interface WeeklyRecap {
   completedTexts: string[]
 }
 
-interface DailyActionEmailProps {
+interface MidweekCheckinEmailProps {
   firstName: string | null
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
-  introCopy?: string | null
+  introCopy: string | null
   isReset: boolean
   bullets: string[] | null
   weeklyRecap: WeeklyRecap | null
@@ -81,7 +81,7 @@ const recapList: React.CSSProperties = {
   color: '#4a5568',
 }
 
-export default function DailyActionEmail({
+export default function MidweekCheckinEmail({
   firstName,
   victoriaName,
   introCopy,
@@ -90,11 +90,11 @@ export default function DailyActionEmail({
   weeklyRecap,
   appUrl,
   unsubscribeUrl,
-}: DailyActionEmailProps) {
+}: MidweekCheckinEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
-      <p>Hi {firstName || 'there'} — {victoriaName} here.</p>
+      <p>Hi {firstName || 'there'} — {victoriaName} here. Midweek check-in:</p>
 
       {introCopy && <p>{introCopy}</p>}
 

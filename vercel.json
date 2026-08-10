@@ -5,7 +5,11 @@
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/cron/daily-action-email",
+      "path": "/api/cron/candidate-email-dispatch",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/week1-kickoff",
       "schedule": "0 13 * * *"
     },
     {
@@ -15,14 +19,6 @@
     {
       "path": "/api/cron/market-reality-snapshot",
       "schedule": "20 20 * * 1"
-    },
-    {
-      "path": "/api/cron/weekly-gap-nudge",
-      "schedule": "0 21 * * 5"
-    },
-    {
-      "path": "/api/cron/community-coaching-digest",
-      "schedule": "0 15 * * 6"
     },
     {
       "path": "/api/cron/interim-role-reverify",
@@ -39,10 +35,6 @@
     {
       "path": "/api/cron/research-inbox-sweep",
       "schedule": "0 12 * * *"
-    },
-    {
-      "path": "/api/cron/market-digest-candidates",
-      "schedule": "0 14 * * 2"
     },
     {
       "path": "/api/cron/market-digest-coaches",

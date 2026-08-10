@@ -547,11 +547,18 @@ model CandidateProfile {
   // Search Strategy — a standalone, editable-anytime setup step. Search
   // Stage itself isn't stored here — it's derived from currentJobStatus +
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
-  applicationVolumeGoal     Int? // target applications per week
-  isPivoting                Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
-  skillsStillNeeded         String?
-  interimConsultingInterest Boolean   @default(false)
-  searchStrategyConfirmedAt DateTime?
+  applicationVolumeGoal      Int? // target applications per week
+  isPivoting                 Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  skillsStillNeeded          String?
+  interimConsultingInterest  Boolean   @default(false)
+  searchStrategyConfirmedAt  DateTime?
+  // Restrictive covenant from a current/former employer (non-compete,
+  // non-solicit, non-disparagement, garden leave, etc.) — a real Red Line
+  // for coaches/recruiters, since it can literally block or delay a
+  // candidate from certain roles or employers. Nullable tri-state: null
+  // means not asked yet, distinct from an explicit "No."
+  hasRestrictiveCovenant     Boolean?
+  restrictiveCovenantDetails String? // which type + scope/duration, in the candidate's own words
 
   // Resume auto-fill (Phase 1) — unconfirmed until candidate confirms via action plan
   firstName               String?
@@ -634,11 +641,11 @@ model CandidateProfile {
   visaStatus        String?
 
   // Action-plan confirmation tracking
-  profileConfirmedAt  DateTime?
-  industryConfirmedAt DateTime?
-  functionConfirmedAt DateTime?
-  salaryConfirmedAt   DateTime?
-  workAuthConfirmedAt DateTime?
+  profileConfirmedAt          DateTime?
+  industryConfirmedAt         DateTime?
+  functionConfirmedAt         DateTime?
+  salaryConfirmedAt           DateTime?
+  workAuthConfirmedAt         DateTime?
   // One-time Weekly Sprint bonus gate for the standalone Skills Assessment
   // (functionSkillConfidence/aiFlexibilityLevel/etc. below) — the quiz
   // itself is retakeable any time to keep personalization current, but the
@@ -894,6 +901,7 @@ model CandidateProfile {
 
   resumeSubmissionLeads ResumeSubmissionLead[]
   pageBoxDismissals     PageBoxDismissal[]
+  emailSendLogs         CandidateEmailSendLog[]
 
   // Support Network nav badge — "how many new things since I last opened
   // this" needs a baseline. Defaults to now() so existing candidates don't
@@ -1113,7 +1121,7 @@ model CompanyIndustryLookup {
   // One of INDUSTRY_BUCKET_NAMES (src/lib/constants/industry-buckets.ts) —
   // a plain string, not a Prisma enum, since that bucket list lives in
   // admin-editable TS rather than the schema.
-  industryBucket String
+  industryBucket        String
 
   source      String // 'llm' only for now — no curated static list exists yet (unlike company size)
   confidence  Float?
@@ -3045,6 +3053,19 @@ enum PageBoxType {
   WHY_IT_MATTERS
 }
 
+// One row per weekday, each mapped to a specific candidate email sender —
+// admin-editable content/timing/eligibility for the weekly email cadence.
+// See src/lib/email/dispatch/ for the sender each key maps to.
+enum CandidateEmailKey {
+  MORNING_MOTIVATION // Mon — send-weekly-goal-assigned.ts
+  MARKET_UPDATE // Tue — send-market-digest-candidate.ts
+  DAILY_NUDGE // Wed — generic branch of send-daily-action-email.ts
+  MIDWEEK_CHECKIN // Thu — send-midweek-checkin.ts
+  GAP_NUDGE // Fri — send-weekly-gap-nudge.ts
+  COMMUNITY_DIGEST // Sat — send-community-coaching-digest.ts
+  FINISH_LINE // Sun — send-finish-line-email.ts
+}
+
 enum VideoProvider {
   NC_HOSTED
   YOUTUBE
@@ -3103,6 +3124,44 @@ model PageBoxDismissal {
   dismissedAt DateTime         @default(now())
 
   @@unique([candidateId, pageKey, boxType])
+}
+
+// One admin-editable row per day of week, driving both content (title,
+// description, static intro copy prepended above the sender's own dynamic/
+// LLM/computed body) and timing (sendHourUtc) for that day's candidate email.
+// dayOfWeek/emailKey are fixed at seed time (0=Sun..6=Sat) — the admin console
+// only edits copy, timing, active state, and privacy-tier eligibility, never
+// which sender a weekday points to.
+model CandidateEmailSchedule {
+  id                   String            @id @default(cuid())
+  dayOfWeek            Int               @unique // 0=Sun..6=Sat
+  emailKey             CandidateEmailKey @unique
+  title                String
+  description          String? // admin-only note explaining the email's purpose; never sent
+  introCopy            String? // static framing text threaded above the dynamic/computed body — same role as PageContent.leadIn
+  sendHourUtc          Int               @default(13)
+  isActive             Boolean           @default(true)
+  // Empty = no restriction (all tiers eligible). Non-empty = only candidates
+  // whose privacyTier is in this list receive this email.
+  eligiblePrivacyTiers PrivacyTier[]     @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Idempotency guard for the candidate-email-dispatch cron — the unique
+// constraint IS the mechanism (attempt insert before sending, treat a
+// unique-violation as "already sent, skip"), replacing the 5 inconsistent
+// ad hoc "already sent" checks the old per-email crons each had.
+model CandidateEmailSendLog {
+  id          String            @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  emailKey    CandidateEmailKey
+  sentForDate DateTime          @db.Date // calendar day this send counts against, not a timestamp
+  sentAt      DateTime          @default(now())
+
+  @@unique([candidateId, emailKey, sentForDate])
 }
 
 // Admin-managed AI Training catalog — replaces the static

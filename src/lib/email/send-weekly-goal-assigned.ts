@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGoalAssignedEmail from '@/emails/weekly-goal-assigned'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/scoring/grade'
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
+import { recordCandidateEmailSent } from '@/lib/email/send-log'
 
 // What's blocking an A, in the same terms as UnlockAListCallout on the
 // dashboard — kept in sync deliberately, since this is the email version of
@@ -33,7 +34,8 @@ export async function sendWeeklyGoalAssignedEmail(
     grade: Grade
     weeklySprintsCount: number
     laggingEngines: WeeklyEngine['key'][]
-  }
+  },
+  introCopy?: string | null
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping weekly goal-assigned email.')
@@ -62,6 +64,7 @@ export async function sendWeeklyGoalAssignedEmail(
     subject: candidate.firstName ? `Your new week is set, ${candidate.firstName}` : 'Your new week is set',
     react: WeeklyGoalAssignedEmail({
       firstName: candidate.firstName,
+      introCopy: introCopy ?? null,
       lastWeekPoints,
       lastWeekTarget,
       hitLastWeekTarget,
@@ -78,6 +81,8 @@ export async function sendWeeklyGoalAssignedEmail(
     console.error('Failed to send weekly goal-assigned email:', error)
     return { sent: false as const }
   }
+
+  await recordCandidateEmailSent(candidate.id, 'MORNING_MOTIVATION')
 
   return { sent: true as const }
 }

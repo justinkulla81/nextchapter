@@ -2,6 +2,7 @@ import { emailStyles } from '@/lib/email/email-styles'
 
 interface MarketDigestCandidateEmailProps {
   firstName: string | null
+  introCopy: string | null
   adzunaCount: number | null
   blsYoyChangePct: number | null
   nuggetTitle: string | null
@@ -44,6 +45,7 @@ const footer: React.CSSProperties = {
 
 export default function MarketDigestCandidateEmail({
   firstName,
+  introCopy,
   adzunaCount,
   blsYoyChangePct,
   nuggetTitle,
@@ -56,7 +58,7 @@ export default function MarketDigestCandidateEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'},</p>
-      <p>Here&apos;s this week&apos;s market update for your target role.</p>
+      <p>{introCopy || "Here's this week's market update for your target role."}</p>
       {adzunaCount !== null && (
         <p>
           <strong>{adzunaCount.toLocaleString()}</strong> open roles currently match your target — a rough read on
