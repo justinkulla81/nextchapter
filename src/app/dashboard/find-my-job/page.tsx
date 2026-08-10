@@ -11,6 +11,7 @@ import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistFor
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { EmailSyncWatcher } from '@/components/dashboard/EmailSyncWatcher'
+import { JobDetailsEditor } from '@/components/dashboard/JobDetailsEditor'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { InterviewJobPicker } from '@/components/dashboard/InterviewJobPicker'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
@@ -44,7 +45,6 @@ import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -726,42 +726,12 @@ async function FindMyJobBody({
                           </form>
                         )}
                       </div>
-                      <details className="rounded-md border border-border p-3 text-xs">
-                        <summary className="cursor-pointer font-medium text-foreground">
-                          {posting.title || posting.url ? 'Edit title or link' : 'Add title or link'}
-                        </summary>
-                        <form
-                          action={updateApplicationDetails.bind(null, posting.id)}
-                          className="mt-3 space-y-3"
-                        >
-                          <div className="space-y-1">
-                            <label htmlFor={`title-${posting.id}`} className="text-xs font-medium text-foreground">
-                              Job title
-                            </label>
-                            <Input
-                              id={`title-${posting.id}`}
-                              name="title"
-                              defaultValue={posting.title ?? ''}
-                              placeholder="e.g. Senior Product Manager"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label htmlFor={`url-${posting.id}`} className="text-xs font-medium text-foreground">
-                              Posting link (optional — private, only you see it)
-                            </label>
-                            <Input
-                              id={`url-${posting.id}`}
-                              name="url"
-                              type="url"
-                              defaultValue={posting.url ?? ''}
-                              placeholder="https://"
-                            />
-                          </div>
-                          <SubmitButton variant="outline" size="sm">
-                            Save
-                          </SubmitButton>
-                        </form>
-                      </details>
+                      <JobDetailsEditor
+                        initialTitle={posting.title}
+                        initialUrl={posting.url}
+                        companyName={posting.companyName}
+                        action={updateApplicationDetails.bind(null, posting.id)}
+                      />
                       <WhoCanHelpSection {...whoCanHelpFor(posting.id, posting.companyName)} jobId={posting.id} />
                     </div>
                   </details>

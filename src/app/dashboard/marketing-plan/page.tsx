@@ -16,8 +16,13 @@ import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 export const metadata: Metadata = { title: 'My Marketing Plan' }
 
 
-export default async function MarketingPlanPage() {
+export default async function MarketingPlanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ label?: string; scenario?: string }>
+}) {
   const profile = await getDashboardData()
+  const { label: initialLabel, scenario: initialScenario } = await searchParams
   const unlocked = profile.contentComfortLevel !== null && profile.contentVenues.length > 0
 
   if (!unlocked) {
@@ -91,7 +96,11 @@ export default async function MarketingPlanPage() {
           Need a different story for a specific scenario? Draft as many alternative narratives as
           you need, each in its own tab below.
         </p>
-        <AlternativeNarrativeTabs alternatives={alternativeNarratives} />
+        <AlternativeNarrativeTabs
+          alternatives={alternativeNarratives}
+          initialLabel={initialLabel}
+          initialScenario={initialScenario}
+        />
       </div>
 
       {relevantTutorials.length > 0 && (

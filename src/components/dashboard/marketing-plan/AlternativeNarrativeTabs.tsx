@@ -193,7 +193,15 @@ function AlternativeNarrativeTabContent({ narrative }: { narrative: NarrativeIte
   )
 }
 
-export function AlternativeNarrativeTabs({ alternatives }: { alternatives: NarrativeItem[] }) {
+export function AlternativeNarrativeTabs({
+  alternatives,
+  initialLabel,
+  initialScenario,
+}: {
+  alternatives: NarrativeItem[]
+  initialLabel?: string
+  initialScenario?: string
+}) {
   return (
     <div className="space-y-4">
       {alternatives.length > 0 && (
@@ -214,7 +222,7 @@ export function AlternativeNarrativeTabs({ alternatives }: { alternatives: Narra
           ))}
         </Tabs>
       )}
-      <NewNarrativeForm onCreated={() => {}} />
+      <NewNarrativeForm onCreated={() => {}} initialLabel={initialLabel} initialScenario={initialScenario} />
     </div>
   )
 }

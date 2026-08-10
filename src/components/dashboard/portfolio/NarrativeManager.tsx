@@ -234,11 +234,23 @@ function NarrativeRow({ narrative }: { narrative: NarrativeItem }) {
   )
 }
 
-export function NewNarrativeForm({ onCreated }: { onCreated: () => void }) {
+export function NewNarrativeForm({
+  onCreated,
+  initialLabel,
+  initialScenario,
+}: {
+  onCreated: () => void
+  initialLabel?: string
+  initialScenario?: string
+}) {
   const [isPending, startTransition] = useTransition()
-  const [open, setOpen] = useState(false)
-  const [label, setLabel] = useState('')
-  const [scenario, setScenario] = useState('')
+  // Deep-linked from another page (e.g. "Draft a narrative for this job" on
+  // the Application Tracker) opens straight into the form, pre-filled,
+  // instead of landing on a collapsed button the candidate has to notice
+  // and click first.
+  const [open, setOpen] = useState(!!(initialLabel || initialScenario))
+  const [label, setLabel] = useState(initialLabel ?? '')
+  const [scenario, setScenario] = useState(initialScenario ?? '')
   const [error, setError] = useState(false)
 
   if (!open) {
