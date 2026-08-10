@@ -121,6 +121,14 @@ const APPLICATION_CONFIRMATION_HIGH_CONFIDENCE = [
   /(we('| ha)ve )?received your application/i,
   /your application (has been|was) (received|submitted|sent)/i,
   /application (confirmation|received)/i,
+  // Indeed's own confirmation subject never uses any of the phrasing above —
+  // it's always exactly "Indeed Application: <job title>".
+  /^indeed application:/i,
+  // A second, newer LinkedIn confirmation subject shape — "Your application
+  // to <role> at <company>" — distinct from "your application was sent to
+  // <company>" above (see guessCompanyFromConfirmationSubject's "at"
+  // fallback for how the company gets pulled out of this one).
+  /your application to .+ at /i,
 ]
 
 export function matchApplicationConfirmation(subject: string, bodyPreview: string): PatternMatch {
@@ -136,9 +144,17 @@ export function matchApplicationConfirmation(subject: string, bodyPreview: strin
 // greenhouse.io, ...), never the hiring company's own domain.
 const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,5})\s*$/
 
+// The "your application to <role> at <company>" subject shape names the
+// company after "at" instead of after "applying to"/"sent to" — needs its
+// own pattern since the company here is NOT at a fixed distance from a
+// shared keyword the way the suffix pattern above assumes.
+const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,5})\s*$/
+
 export function guessCompanyFromConfirmationSubject(subject: string): string | null {
-  const match = subject.match(CONFIRMATION_COMPANY_SUFFIX)
-  return match ? match[1].trim() : null
+  const suffixMatch = subject.match(CONFIRMATION_COMPANY_SUFFIX)
+  if (suffixMatch) return suffixMatch[1].trim()
+  const atMatch = subject.match(CONFIRMATION_COMPANY_AT_SUFFIX)
+  return atMatch ? atMatch[1].trim() : null
 }
 
 // Same phrasing as the subject-based guess above, but scanning the body

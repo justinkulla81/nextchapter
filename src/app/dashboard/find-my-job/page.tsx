@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { after } from 'next/server'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -302,27 +303,26 @@ async function FindMyJobBody({
   // Networking-shaped sent mail stays there; this page only shows the
   // job-outcome side of that same synced inbox.
   //
-  // Run before anything below reads jobPostings — this used to run much
-  // later in the function, after every jobPostings-derived stat had already
-  // been computed from the pre-sync snapshot fetched by getDashboardData()
-  // above. The sync wrote its new rows to the database correctly, but that
-  // pre-sync snapshot never picked them up, so a reload right after
-  // applying to a job wouldn't show it until the *next* reload. Refetching
-  // jobPostings immediately after the sync (into its own local rather than
-  // mutating the profile prop) fixes every consumer below (the stats tile,
-  // Interview Tracking, and Application Tracker) in one place.
+  // Backgrounded via after() rather than awaited — a heavy inbox (thousands
+  // of messages) can make a real Gmail sync take long enough that awaiting
+  // it here left the ENTIRE rest of this page (Interview Tracking, the
+  // Application Tracker, thank-you notes, everything) stuck behind this
+  // component's Suspense fallback for the whole wait, which read as "the
+  // page is broken/empty" rather than "still loading." The tradeoff: a job
+  // application landing via Gmail in just the last moment might not show up
+  // until the *next* page load instead of this one — the same
+  // stale-while-revalidate tradeoff already accepted everywhere else in
+  // this app's slow-load fixes, and a far smaller cost than the whole page
+  // appearing to vanish.
   const emailConnection = await prisma.emailConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },
   })
   if (emailConnection) {
-    await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+    after(() =>
+      syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
+    )
   }
-  const jobPostings = emailConnection
-    ? await prisma.jobPosting.findMany({
-        where: { candidateId: profile.id },
-        orderBy: { createdAt: 'desc' },
-      })
-    : profile.jobPostings
+  const jobPostings = profile.jobPostings
 
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
