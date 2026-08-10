@@ -261,35 +261,72 @@ async function JobRecommendationsSection({
 export default async function JobFitPage() {
   const profile = await getDashboardData()
 
+  return (
+    <div className="space-y-10">
+      <MarkWatchlistViewedOnMount />
+      <div className="space-y-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
+        <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
+      </div>
+
+      <Suspense fallback={<FindMyJobBodySkeleton />}>
+        <FindMyJobBody profile={profile} />
+      </Suspense>
+    </div>
+  )
+}
+
+function FindMyJobBodySkeleton() {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Loading your job search…
+    </div>
+  )
+}
+
+// Carries the Gmail sync (a live external API call, throttled to once per 5
+// minutes but still a real network round trip on the un-throttled path) plus
+// every section whose data depends on its freshly-synced jobPostings —
+// stats, Interview Tracking, and the Application Tracker — in its own
+// Suspense boundary so the page header above renders immediately instead of
+// blocking on this every single visit.
+async function FindMyJobBody({
+  profile,
+}: {
+  profile: Awaited<ReturnType<typeof getDashboardData>>
+}) {
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
   // the same Gmail connection managed on the Live Conversations page.
   // Networking-shaped sent mail stays there; this page only shows the
   // job-outcome side of that same synced inbox.
   //
-  // Run before anything below reads profile.jobPostings — this used to run
-  // much later in the function, after every jobPostings-derived stat had
-  // already been computed from the pre-sync snapshot fetched by
-  // getDashboardData() above. The sync wrote its new rows to the database
-  // correctly, but this render's already-fetched `profile` object never
-  // picked them up, so a reload right after applying to a job wouldn't show
-  // it until the *next* reload. Refetching jobPostings immediately after
-  // the sync fixes every consumer below (the stats tile, Interview
-  // Tracking, and Application Tracker) in one place.
+  // Run before anything below reads jobPostings — this used to run much
+  // later in the function, after every jobPostings-derived stat had already
+  // been computed from the pre-sync snapshot fetched by getDashboardData()
+  // above. The sync wrote its new rows to the database correctly, but that
+  // pre-sync snapshot never picked them up, so a reload right after
+  // applying to a job wouldn't show it until the *next* reload. Refetching
+  // jobPostings immediately after the sync (into its own local rather than
+  // mutating the profile prop) fixes every consumer below (the stats tile,
+  // Interview Tracking, and Application Tracker) in one place.
   const emailConnection = await prisma.emailConnection.findFirst({
     where: { candidateId: profile.id, disconnectedAt: null },
   })
   if (emailConnection) {
     await syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
-    profile.jobPostings = await prisma.jobPosting.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { createdAt: 'desc' },
-    })
   }
+  const jobPostings = emailConnection
+    ? await prisma.jobPosting.findMany({
+        where: { candidateId: profile.id },
+        orderBy: { createdAt: 'desc' },
+      })
+    : profile.jobPostings
 
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
-  const activeCount = profile.jobPostings.filter(
+  const activeCount = jobPostings.filter(
     (j) => j.source !== 'EMAIL_DETECTED' && j.interviewLandedAt === null && j.offerReceivedAt === null
   ).length
   const atCap = activeCount >= MAX_ACTIVE_FIT_CHECK_SLOTS
@@ -322,7 +359,7 @@ export default async function JobFitPage() {
   // separate, larger set of companies from board/surfaced listings is
   // resolved independently inside JobRecommendationsSection so that slower
   // lookup never blocks this page's main render.
-  const appliedCompanyNames = [...new Set(profile.jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
+  const appliedCompanyNames = [...new Set(jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
   const appliedCompanyBands = await Promise.all(appliedCompanyNames.map((name) => resolveCompanySizeBand(name)))
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
@@ -363,7 +400,7 @@ export default async function JobFitPage() {
 
   // Every posting with appliedAt set is "My Applications", regardless of
   // whether it was pasted in manually or auto-detected from email.
-  const allApplications = profile.jobPostings
+  const allApplications = jobPostings
     .filter((j) => j.appliedAt !== null)
     .sort((a, b) => (b.appliedAt?.getTime() ?? 0) - (a.appliedAt?.getTime() ?? 0))
   const weekStart = getMondayOfWeek(new Date())
@@ -372,13 +409,13 @@ export default async function JobFitPage() {
   // Interview Tracking section — a top-level rollup of everything already
   // marked interviewLandedAt, so a candidate doesn't have to dig into a
   // collapsed application card to see where they stand or jump to prep.
-  const interviewingPostings = profile.jobPostings
+  const interviewingPostings = jobPostings
     .filter((j) => j.interviewLandedAt !== null)
     .sort((a, b) => b.interviewLandedAt!.getTime() - a.interviewLandedAt!.getTime())
   // Postings a candidate could plausibly say "I have an interview for this"
   // about — already applied (or an email-detected row, which is assumed
   // applied) and not already interviewing/declined/offered.
-  const eligibleForInterview = profile.jobPostings.filter(
+  const eligibleForInterview = jobPostings.filter(
     (j) =>
       j.interviewLandedAt === null &&
       j.declinedAt === null &&
@@ -458,13 +495,7 @@ export default async function JobFitPage() {
   const industryBoards = getIndustryJobBoards(profile.targetIndustries)
 
   return (
-    <div className="space-y-10">
-      <MarkWatchlistViewedOnMount />
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
-        <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
-      </div>
-
+    <>
       <ReconnectBanner candidateId={profile.id} />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
@@ -586,12 +617,12 @@ export default async function JobFitPage() {
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Application Tracker</h2>
 
-        <ConversionDiagnosticCard jobPostings={profile.jobPostings} />
+        <ConversionDiagnosticCard jobPostings={jobPostings} />
 
-        {profile.jobPostings.length > 0 && (
+        {jobPostings.length > 0 && (
           <div className="divide-y divide-border rounded-lg border border-border">
-            <ShowMoreList initialCount={10} totalCount={profile.jobPostings.length}>
-            {profile.jobPostings.map((posting) => {
+            <ShowMoreList initialCount={10} totalCount={jobPostings.length}>
+            {jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)
 
               if (posting.source === 'EMAIL_DETECTED') {
@@ -1054,7 +1085,7 @@ export default async function JobFitPage() {
             </details>
           </div>
         )}
-        {profile.jobPostings.length === 0 && (
+        {jobPostings.length === 0 && (
           <details className="rounded-lg border border-border p-3 text-sm">
             <summary className="cursor-pointer font-medium text-foreground">
               Add a job manually (paste a URL for fit-check + cover letter tools)
@@ -1086,6 +1117,6 @@ export default async function JobFitPage() {
       </div>
 
       <GuideCallout pageSlot="find-my-job" currentJobStatus={profile.currentJobStatus} />
-    </div>
+    </>
   )
 }

@@ -224,7 +224,22 @@ export function classifyCalendarEvent(
     return { eventType: 'NETWORKING_CALL', confidence: 'high' }
   }
   if (matchesAny(text, NETWORKING_GENERIC_PATTERNS)) {
-    if (context.hasOtherAttendees || isWeekdayBusinessHours(context) || hasCareerCorroboration(text)) {
+    // Real career-context corroboration overrides the recurring check below
+    // — a standing "Networking Sync" that's genuinely about the job search
+    // still counts even if it repeats weekly.
+    if (hasCareerCorroboration(text)) {
+      return { eventType: 'NETWORKING_CALL', confidence: 'high' }
+    }
+    // Without that corroboration, a recurring instance is excluded — same
+    // reasoning as the name-to-name fallback below: a standing weekly 1:1 or
+    // team sync almost always has another attendee, lands in a normal
+    // business-hours slot, AND has "meeting"/"call"/"chat"/"zoom" somewhere
+    // in its Zoom/Meet boilerplate description, so this bucket's own
+    // corroboration signals (hasOtherAttendees, isWeekdayBusinessHours) are
+    // satisfied by nearly every internal recurring meeting regardless of
+    // topic — they aren't real evidence for a recurring instance the way
+    // they are for a one-off.
+    if (!context.isRecurring && (context.hasOtherAttendees || isWeekdayBusinessHours(context))) {
       return { eventType: 'NETWORKING_CALL', confidence: 'high' }
     }
     return { eventType: 'NEEDS_REVIEW', confidence: 'low' }

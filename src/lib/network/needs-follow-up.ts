@@ -9,11 +9,22 @@ const INBOUND_LOOKBACK_DAYS = 14
 
 export interface NeedsFollowUpItem {
   kind: 'meeting' | 'inbound-email'
+  sourceId: string
   contactName: string
   contactEmail: string
   date: Date
   subject: string
-  mailtoHref: string
+  gmailHref: string
+}
+
+// Opens Gmail's own web compose (not a bare mailto:, which hands off to
+// whatever mail client the OS has set as default — often not Gmail even
+// though the connected inbox this list is built from always is) prefilled
+// with the recipient and a subject line referencing what prompted the
+// follow-up.
+function gmailComposeHref(to: string, subject: string): string {
+  const params = new URLSearchParams({ view: 'cm', fs: '1', to, su: `Re: ${subject}` })
+  return `https://mail.google.com/mail/?${params.toString()}`
 }
 
 // Two real, verifiable "you owe someone something" signals, joined without
@@ -81,13 +92,15 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     })
     .map((meeting) => {
       const address = meeting.counterpartEmail!.toLowerCase()
+      const subject = meeting.title || (meeting.eventType === 'INTERVIEW' ? 'Interview' : 'Networking call')
       return {
         kind: 'meeting' as const,
+        sourceId: meeting.id,
         contactName: contactNameByEmail.get(address) ?? meeting.counterpartName ?? address,
         contactEmail: address,
         date: meeting.startTime,
-        subject: meeting.title || (meeting.eventType === 'INTERVIEW' ? 'Interview' : 'Networking call'),
-        mailtoHref: `mailto:${address}`,
+        subject,
+        gmailHref: gmailComposeHref(address, `Thank you — ${subject}`),
       }
     })
 
@@ -106,13 +119,15 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     })
     .map((activity) => {
       const address = activity.fromAddress!.toLowerCase()
+      const subject = activity.subject || 'their email'
       return {
         kind: 'inbound-email' as const,
+        sourceId: activity.id,
         contactName: contactNameByEmail.get(address) ?? address,
         contactEmail: address,
         date: activity.detectedAt,
-        subject: activity.subject || 'their email',
-        mailtoHref: `mailto:${address}`,
+        subject,
+        gmailHref: gmailComposeHref(address, subject),
       }
     })
 

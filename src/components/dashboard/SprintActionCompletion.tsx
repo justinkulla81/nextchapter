@@ -21,9 +21,7 @@ const AUTO_DETECTED_SIGNAL: Partial<Record<string, string>> = {
   OUTREACH_MESSAGE: 'Detected automatically when you send a networking message from your connected Gmail.',
   OUTREACH_CALL: 'Detected automatically from a networking call on your connected Calendar.',
   NETWORKING_LIST: 'Detected automatically when you add new contacts (CSV import).',
-  FOLLOW_UP_NOTE_SENT: 'Detected automatically when you send a follow-up from your connected Gmail.',
-  THANK_YOU_NOTE_SENT: 'Detected automatically when you send a thank-you note from your connected Gmail.',
-  CHECK_IN_NOTE_SENT: 'Detected automatically when you send a check-in note from your connected Gmail.',
+  FOLLOW_UP_NOTE_SENT: 'Detected automatically when you send a follow-up or thank-you note from your connected Gmail.',
   INTRO_CONNECTION_REQUEST_SENT: 'Detected automatically when you ask for an introduction from your connected Gmail.',
   INTERVIEW_ATTENDED: 'Detected automatically from an interview on your connected Calendar.',
   LEARNING_SESSION_ATTENDED: 'Detected automatically from a course/webinar/training block on your connected Calendar.',
@@ -31,6 +29,21 @@ const AUTO_DETECTED_SIGNAL: Partial<Record<string, string>> = {
   JOB_INTERESTED_REACTION: "Detected automatically when you react Interested to a job recommendation on the Jobs page.",
   WATCHLIST_ADD: 'Detected automatically when you add a company to your tracker on the Jobs page.',
 }
+
+// THANK_YOU_NOTE_SENT, FOLLOW_UP_NOTE_SENT, and CHECK_IN_NOTE_SENT are the
+// same real-world action — reaching back out to someone — just different
+// phrasing the Gmail classifier picked up on. Shown as one combined row
+// (keyed to the first type present) rather than three near-identical ones,
+// same reasoning as the stat-tile merge on the Network page. Only collapses
+// when a page's actionTypes includes every type in the group — a page that
+// only lists one of them (none currently do) keeps it as its own row.
+// types[0] doubles as the representative key for React's list key and the
+// AUTO_DETECTED_SIGNAL lookup below — must be a type that still has an
+// entry there (FOLLOW_UP_NOTE_SENT does; the other two were folded into its
+// message and removed as standalone keys).
+const MERGED_AUTO_DETECTED_GROUPS: { types: string[]; label: string }[] = [
+  { types: ['FOLLOW_UP_NOTE_SENT', 'THANK_YOU_NOTE_SENT', 'CHECK_IN_NOTE_SENT'], label: 'Follow-up or thank-you note sent' },
+]
 
 // Marking a Weekly Search Sprint action done/started now only happens here
 // — on the real feature page where the work actually gets done — not
@@ -91,18 +104,41 @@ export async function SprintActionCompletion({
   // so the readout is visible even before the type has ever been committed
   // this week.
   const autoDetectedTypes = actionTypes.filter(isAutoDetectedActionType)
-  const autoDetectedRows = autoDetectedTypes
-    .map((actionType) => {
-      const committed = relevantCommitted.find((a) => a.actionType === actionType)
-      if (committed) return committed
-      const suggested = relevantSuggested.find((a) => a.actionType === actionType)
-      if (suggested) {
-        const effort = estimateActionEffort(suggested)
-        return { text: suggested.text, actionType, points: effort.points, completed: false } as CommittedAction
+  const rowForType = (actionType: string): CommittedAction | null => {
+    const committed = relevantCommitted.find((a) => a.actionType === actionType)
+    if (committed) return committed
+    const suggested = relevantSuggested.find((a) => a.actionType === actionType)
+    if (suggested) {
+      const effort = estimateActionEffort(suggested)
+      return {
+        text: suggested.text,
+        actionType,
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+        completed: false,
+        recurring: isRecurringActionType(actionType),
       }
-      return null
-    })
-    .filter((a): a is CommittedAction => a !== null)
+    }
+    return null
+  }
+
+  const mergedGroup = MERGED_AUTO_DETECTED_GROUPS.find((g) => g.types.every((t) => autoDetectedTypes.includes(t)))
+  const singleTypes = mergedGroup ? autoDetectedTypes.filter((t) => !mergedGroup.types.includes(t)) : autoDetectedTypes
+  const autoDetectedRows = singleTypes.map(rowForType).filter((a): a is CommittedAction => a !== null)
+
+  if (mergedGroup) {
+    const groupRows = mergedGroup.types.map(rowForType).filter((a): a is CommittedAction => a !== null)
+    if (groupRows.length > 0) {
+      autoDetectedRows.push({
+        text: mergedGroup.label,
+        actionType: mergedGroup.types[0],
+        points: Math.max(...groupRows.map((r) => r.points)),
+        estimatedMinutes: Math.max(...groupRows.map((r) => r.estimatedMinutes)),
+        completed: groupRows.some((r) => r.completed),
+        recurring: groupRows.some((r) => r.recurring),
+      })
+    }
+  }
 
   if (selfReportCommitted.length === 0 && selfReportSuggested.length === 0 && autoDetectedRows.length === 0) {
     return null

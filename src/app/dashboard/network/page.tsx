@@ -154,12 +154,16 @@ async function AutomaticTrackingSection({
     date: e.startTime,
   })
 
-  // FOLLOW_UP and CHECK_IN are shown as one stat — see matchFollowUp's
-  // comment in ats-patterns.ts for why they were merged as a single
-  // real-world action ("re-reached out"), rather than split by phrasing.
-  const followUpItems = emailActivities.filter((a) => a.activityType === 'FOLLOW_UP' || a.activityType === 'CHECK_IN')
+  // THANK_YOU, FOLLOW_UP, and CHECK_IN are shown as one combined stat — all
+  // three are the same real-world action ("reached back out to someone"),
+  // just different phrasing, so tracking them as separate tiles only
+  // fragmented one number into three.
+  const followUpOrThankYouItems = emailActivities.filter((a) =>
+    (['FOLLOW_UP', 'CHECK_IN', 'THANK_YOU'] as const).includes(
+      a.activityType as 'FOLLOW_UP' | 'CHECK_IN' | 'THANK_YOU'
+    )
+  )
   const resumesSharedItems = emailActivities.filter((a) => a.direction === 'OUTBOUND' && a.hasResumeAttachment)
-  const thankYouItems = emailActivities.filter((a) => a.activityType === 'THANK_YOU')
   const introRequestItems = emailActivities.filter((a) => a.activityType === 'INTRO_REQUEST')
   // High-confidence only — NETWORKING_OUTREACH's low-confidence bucket is
   // bare generic keywords ("help", "job", "next chapter") that show up in
@@ -171,8 +175,7 @@ async function AutomaticTrackingSection({
   const networkingCallItems = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL')
 
   const networkingStatTiles = [
-    { label: 'Thank-you notes', items: thankYouItems.map(emailItem) },
-    { label: 'Follow-up notes', items: followUpItems.map(emailItem) },
+    { label: 'Follow-up / thank-you notes', items: followUpOrThankYouItems.map(emailItem) },
     { label: 'Intro/connection requests', items: introRequestItems.map(emailItem) },
     { label: 'Networking outreach messages', items: networkingOutreachItems.map(emailItem) },
     { label: 'Resumes shared', items: resumesSharedItems.map(emailItem) },
@@ -471,7 +474,7 @@ export default async function NetworkPage({
         href="/dashboard/network/contacts"
         className="inline-flex h-10 w-fit items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90"
       >
-        Start a new conversation
+        Build Your Networking List ({contacts.length})
       </Link>
 
       <MarkBackchannelViewedOnMount />

@@ -454,17 +454,31 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   // silently lose one's completion to the other's overwrite.
   let synced = 0
   let scopeInsufficient = false
+  // Each message is its own try/catch — previously one message throwing
+  // (malformed payload, a transient fetch error) aborted the whole loop,
+  // silently dropping every message after it in that batch AND, since
+  // lastSyncAt only gets written after the loop finishes clean, permanently
+  // stalling this connection's sync on that same message on every future
+  // visit until someone noticed and dug through logs.
   for (const id of newInboxIds) {
     if (scopeInsufficient) break
-    const result = await processMessage(connection, accessToken, id, 'INBOUND', workHistoryCompanies)
-    if (result === 'insufficient_scope') scopeInsufficient = true
-    else if (result === 'synced') synced++
+    try {
+      const result = await processMessage(connection, accessToken, id, 'INBOUND', workHistoryCompanies)
+      if (result === 'insufficient_scope') scopeInsufficient = true
+      else if (result === 'synced') synced++
+    } catch (error) {
+      console.error(`Failed to process inbound message ${id}:`, error)
+    }
   }
   for (const id of newSentIds) {
     if (scopeInsufficient) break
-    const result = await processMessage(connection, accessToken, id, 'OUTBOUND', workHistoryCompanies)
-    if (result === 'insufficient_scope') scopeInsufficient = true
-    else if (result === 'synced') synced++
+    try {
+      const result = await processMessage(connection, accessToken, id, 'OUTBOUND', workHistoryCompanies)
+      if (result === 'insufficient_scope') scopeInsufficient = true
+      else if (result === 'synced') synced++
+    } catch (error) {
+      console.error(`Failed to process outbound message ${id}:`, error)
+    }
   }
 
   // A token issued under the old gmail.metadata scope 403s on the new
