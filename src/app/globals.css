@@ -58,6 +58,35 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* NextChapter's branded loading spinner (see src/components/ui/spinner.tsx)
+ * — one fixed, deterministic loop, not random per-play, but long enough
+ * (8.64s) and varied enough (two plain N<->C flips, then a third that ends
+ * in a full clockwise spin, then a fourth that ends in two counterclockwise
+ * spins, then it recycles) that it doesn't read as a metronome. rotateY
+ * only ever increases or decreases within a single continuous keyframe
+ * timeline, never resets mid-animation, so every segment — including the
+ * counterclockwise ones — animates in the intended direction with no
+ * "snap back": CSS interpolates a transform function's raw angle, not the
+ * shortest visual path, and the loop point (720deg -> 0deg) is a silent,
+ * seamless wrap because both are multiples of 360 (the same "N" face). */
+@keyframes nc-flip {
+  0%, 10.19% { transform: rotateY(0deg); }
+  12.73%, 22.92% { transform: rotateY(180deg); }
+  25.46%, 35.65% { transform: rotateY(360deg); }
+  38.19%, 48.38% { transform: rotateY(540deg); }
+  50.93% { transform: rotateY(720deg); }
+  /* animation-timing-function set on a keyframe governs its OUTGOING
+   * segment (this stop to the next) — placed here, not on the 59.95%
+   * stop, so it actually paces the clockwise spin rather than the hold
+   * that follows it. */
+  54.4% { transform: rotateY(720deg); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+  59.95%, 70.14% { transform: rotateY(1080deg); }
+  72.69%, 82.87% { transform: rotateY(1260deg); }
+  85.42% { transform: rotateY(1440deg); }
+  88.89% { transform: rotateY(1440deg); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+  100% { transform: rotateY(720deg); }
+}
+
 :root {
   --background: #f7f9fa;
   --foreground: #0a0a0a;
