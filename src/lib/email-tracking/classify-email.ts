@@ -64,27 +64,43 @@ export function classifyInboundEmail(
   }
 
   // Bulk/promotional mail (retail promos, newsletters, lead-gen follow-ups,
-  // financial solicitations) gets ruled out before any category matcher
-  // runs — see isLikelyBulkOrPromotional's comment in ats-patterns.ts for
-  // why this has to come first rather than being folded into each pattern.
-  if (isLikelyBulkOrPromotional(subject, bodyPreview, fromAddress, hasListUnsubscribeHeader)) {
-    return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName }
-  }
+  // financial solicitations) can use phrasing that coincidentally matches a
+  // LOW_CONFIDENCE category pattern ("keep your resume on file", "chat
+  // about the role") — that's what let a CB2 rewards promo classify as a
+  // REJECTION and a Force Management sales email classify as an
+  // INTERVIEW_INVITE. But the bulk signal itself isn't as reliable as it
+  // used to be: real ATS platforms (Greenhouse, Lever, Workday) attach a
+  // List-Unsubscribe header to their transactional confirmation mail too,
+  // for CAN-SPAM/bulk-sender-rules compliance, not because it's actually
+  // bulk — confirmed against real production mail that this was
+  // misclassifying genuine "thanks for applying" confirmations as
+  // NEEDS_REVIEW. A HIGH_CONFIDENCE pattern (specific, standardized hiring
+  // phrasing that's very unlikely to appear in unrelated marketing copy) is
+  // allowed to win regardless of the bulk signal; only a LOW_CONFIDENCE
+  // match is still filtered out when the message looks bulk.
+  const isBulk = isLikelyBulkOrPromotional(subject, bodyPreview, fromAddress, hasListUnsubscribeHeader)
+  const winsOverBulk = (confidence: 'high' | 'low') => confidence === 'high' || !isBulk
 
   // Rejections first and given priority — the easiest to detect (most
   // standardized ATS phrasing) and the one with the most downstream value,
   // since it's what triggers Victoria's supportive reframe.
   const rejection = matchRejection(subject, bodyPreview)
-  if (rejection.matched) return { activityType: 'REJECTION', confidence: rejection.confidence, companyName }
+  if (rejection.matched && winsOverBulk(rejection.confidence)) {
+    return { activityType: 'REJECTION', confidence: rejection.confidence, companyName }
+  }
 
   const offer = matchOffer(subject, bodyPreview)
-  if (offer.matched) return { activityType: 'OFFER', confidence: offer.confidence, companyName }
+  if (offer.matched && winsOverBulk(offer.confidence)) {
+    return { activityType: 'OFFER', confidence: offer.confidence, companyName }
+  }
 
   const interview = matchInterviewInvite(subject, bodyPreview)
-  if (interview.matched) return { activityType: 'INTERVIEW_INVITE', confidence: interview.confidence, companyName }
+  if (interview.matched && winsOverBulk(interview.confidence)) {
+    return { activityType: 'INTERVIEW_INVITE', confidence: interview.confidence, companyName }
+  }
 
   const confirmation = matchApplicationConfirmation(subject, bodyPreview)
-  if (confirmation.matched) {
+  if (confirmation.matched && winsOverBulk(confirmation.confidence)) {
     return {
       activityType: 'APPLICATION_CONFIRMATION',
       confidence: confirmation.confidence,
@@ -92,8 +108,18 @@ export function classifyInboundEmail(
     }
   }
 
+  // Deliberately NOT given the winsOverBulk carve-out above: its
+  // "high confidence" is sender-domain-based (a known recruiting-firm
+  // domain), not phrasing-based — and that same domain can legitimately
+  // send bulk job-alert digests alongside real personal outreach, so the
+  // bulk signal is still the more trustworthy one here. Confirmed against
+  // real production mail: a "171 Remote Jobs are Live" digest from a
+  // recruiting-firm domain would otherwise have overridden its own
+  // List-Unsubscribe header.
   const outreach = matchRecruiterOutreach(subject, bodyPreview, fromAddress)
-  if (outreach.matched) return { activityType: 'RECRUITER_OUTREACH', confidence: outreach.confidence, companyName }
+  if (outreach.matched && !isBulk) {
+    return { activityType: 'RECRUITER_OUTREACH', confidence: outreach.confidence, companyName }
+  }
 
   return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName }
 }
