@@ -20,7 +20,8 @@
     "backfill:profile-buckets": "tsx --env-file=.env.local scripts/backfill-profile-buckets.ts",
     "backfill:resume-detection": "tsx --env-file=.env.local scripts/backfill-resume-attachment-detection.ts",
     "backfill:dismiss-selfmail": "tsx --env-file=.env.local scripts/backfill-dismiss-nextchapter-selfmail.ts",
-    "backfill:classification-fix": "tsx --env-file=.env.local scripts/backfill-classification-fix.ts"
+    "backfill:classification-fix": "tsx --env-file=.env.local scripts/backfill-classification-fix.ts",
+    "backfill:null-company-confirmations": "tsx --env-file=.env.local scripts/backfill-null-company-confirmations.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

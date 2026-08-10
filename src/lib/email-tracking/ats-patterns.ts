@@ -142,13 +142,17 @@ export function matchApplicationConfirmation(subject: string, bodyPreview: strin
 // extracting specifically here since the sender domain never has it: these
 // come from LinkedIn or a generic ATS mail relay (workablemail.com,
 // greenhouse.io, ...), never the hiring company's own domain.
-const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,5})\s*$/
+// │ and | are included because staffing/search firms routinely stylize
+// their own name with one ("Coda Search│Staffing") — without it the suffix
+// regex's end-of-string anchor never matches, and the company-name guess
+// silently comes back null for an otherwise-ordinary confirmation subject.
+const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/
 
 // The "your application to <role> at <company>" subject shape names the
 // company after "at" instead of after "applying to"/"sent to" — needs its
 // own pattern since the company here is NOT at a fixed distance from a
 // shared keyword the way the suffix pattern above assumes.
-const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,5})\s*$/
+const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/
 
 export function guessCompanyFromConfirmationSubject(subject: string): string | null {
   const suffixMatch = subject.match(CONFIRMATION_COMPANY_SUFFIX)
@@ -164,8 +168,16 @@ export function guessCompanyFromConfirmationSubject(subject: string): string | n
 // BioUrja Advisors, LLC. Good luck!"). Bodies rarely end right after the
 // company name the way subject lines do, so this stops at the next
 // sentence/clause boundary instead of requiring end-of-string.
+//
+// Comma is deliberately excluded from the word character class (unlike the
+// subject patterns above, which can keep it since they're end-anchored) —
+// with it included, "BioUrja Advisors, LLC." greedily swallows its own
+// comma into the captured name, so the ",\s" boundary alternative right
+// below never finds a comma left to match against and the whole pattern
+// fails closed. Dropping it from the class turns the comma back into a real
+// terminator instead of just more name text.
 const CONFIRMATION_COMPANY_MENTION_IN_BODY =
-  /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to|items? were sent to)\s+([A-Z][\w&.,'-]*(?:\s[\w&.,'-]+){0,6}?)(?:\.\s|,\s|\s+—|\s+-\s|\s*$)/
+  /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to|items? were sent to)\s+([A-Z][\w&.'-]*(?:\s[\w&.'-]+){0,6}?)(?:\.\s|,\s|\s+—|\s+-\s|\s*$)/
 
 export function guessCompanyFromConfirmationText(subject: string, bodyPreview: string): string | null {
   const fromSubject = guessCompanyFromConfirmationSubject(subject)

@@ -40,6 +40,13 @@ import {
 import { extractDomain, extractEmailAddress } from '../src/lib/email-tracking/email-address'
 import { NON_COMPANY_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '../src/lib/text/email-domain'
 import { normalizeOrgName, orgNamesMatch } from '../src/lib/text/org-name-match'
+import type { EmailActivityType } from '@prisma/client'
+
+interface GmailPart {
+  mimeType?: string
+  body?: { data?: string }
+  parts?: GmailPart[]
+}
 
 const prisma = new PrismaClient()
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
@@ -136,7 +143,7 @@ function getHeader(headers: { name: string; value: string }[] | undefined, name:
   return headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? ''
 }
 
-function extractBodyPreview(part: any, depth = 0): string {
+function extractBodyPreview(part: GmailPart | undefined, depth = 0): string {
   if (!part || depth > 8) return ''
   if (part.mimeType === 'text/plain' && part.body?.data) {
     try {
@@ -270,7 +277,7 @@ async function main() {
       await prisma.trackedEmailActivity.update({
         where: { id: row.id },
         data: {
-          activityType: result.activityType as any,
+          activityType: result.activityType as EmailActivityType,
           confidence: result.confidence,
           companyName: result.companyName,
         },

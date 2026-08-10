@@ -94,23 +94,51 @@ interface GmailMessage {
   payload?: { headers?: GmailHeader[] } & GmailPart
 }
 
-// Gmail nests the actual text/plain part arbitrarily deep inside
-// multipart/alternative and multipart/mixed containers — walk until one is
-// found. Depth-capped defensively; real messages never nest this deep.
-function extractBodyPreview(part: GmailPart | undefined, depth = 0): string {
-  if (!part || depth > 8) return ''
-  if (part.mimeType === 'text/plain' && part.body?.data) {
+function findPartByMimeType(part: GmailPart | undefined, mimeType: string, depth = 0): string | null {
+  if (!part || depth > 8) return null
+  if (part.mimeType === mimeType && part.body?.data) {
     try {
-      return Buffer.from(part.body.data, 'base64url').toString('utf-8').slice(0, BODY_PREVIEW_MAX_CHARS)
+      return Buffer.from(part.body.data, 'base64url').toString('utf-8')
     } catch {
-      return ''
+      return null
     }
   }
   for (const sub of part.parts ?? []) {
-    const found = extractBodyPreview(sub, depth + 1)
+    const found = findPartByMimeType(sub, mimeType, depth + 1)
     if (found) return found
   }
-  return ''
+  return null
+}
+
+// Crude but sufficient for regex keyword matching (never stored/rendered) —
+// strip tags, decode the handful of entities real ATS templates actually
+// use, collapse whitespace.
+function stripHtml(html: string): string {
+  return html
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&(lt|gt|#39|quot);/gi, (m) => ({ '&lt;': '<', '&gt;': '>', '&#39;': "'", '&quot;': '"' })[m.toLowerCase()] ?? m)
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Gmail nests the actual text/plain part arbitrarily deep inside
+// multipart/alternative and multipart/mixed containers — walk until one is
+// found, and always append the text/html part (stripped) too rather than
+// treating it as a last resort. Some ATS confirmation templates (e.g.
+// Indeed Apply's "Indeed Application: <Job Title>") put only a bare
+// "application submitted, good luck!" line in text/plain and leave every
+// real detail — including the company name — solely in the HTML part;
+// text/plain alone silently starved every downstream regex of the one
+// signal they actually needed. Depth-capped defensively; real messages
+// never nest this deep.
+function extractBodyPreview(part: GmailPart | undefined): string {
+  const plain = findPartByMimeType(part, 'text/plain') ?? ''
+  const html = findPartByMimeType(part, 'text/html')
+  const combined = html ? `${plain} ${stripHtml(html)}` : plain
+  return combined.slice(0, BODY_PREVIEW_MAX_CHARS)
 }
 
 // A part with a non-empty filename is an attachment (Gmail's convention —
