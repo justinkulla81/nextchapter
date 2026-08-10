@@ -7,6 +7,8 @@ import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { getWatchlistView } from '@/lib/company-tracker/watchlist'
 import { FIT_BUCKET_LABEL, isWeakFit } from '@/lib/jobs/fit-bucket-types'
+import { fitScoreToLabel, type FitScoreLabel } from '@/lib/jobs/fit-score-label'
+import { cn } from '@/lib/utils'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
@@ -50,7 +52,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { scoreToGrade, GRADE_LABEL, type Grade } from '@/lib/scoring/grade'
+import { type Grade } from '@/lib/scoring/grade'
 import { Spinner } from '@/components/ui/spinner'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
@@ -81,6 +83,20 @@ const SURFACED_JOB_POOL_TARGET = 10
 // is noise, not information. A few examples plus a summary line makes the
 // same point without the wall.
 const LOCKED_PREVIEW_COUNT = 3
+
+const FIT_SCORE_BADGE_CLASS: Record<FitScoreLabel, string> = {
+  'Perfect Fit': 'bg-success/10 text-success',
+  'Strong Fit': 'bg-success/10 text-success',
+  'Good Fit': 'bg-muted text-muted-foreground',
+  'Poor Fit': 'bg-destructive/10 text-destructive',
+}
+
+const FIT_SCORE_TEXT_CLASS: Record<FitScoreLabel, string> = {
+  'Perfect Fit': 'text-success',
+  'Strong Fit': 'text-success',
+  'Good Fit': 'text-foreground',
+  'Poor Fit': 'text-destructive',
+}
 
 interface InterviewPrep {
   likelyQuestions: string[]
@@ -759,8 +775,13 @@ async function FindMyJobBody({
                       {posting.title || posting.companyName || posting.url}
                     </span>
                     {posting.fitScore !== null && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                        Fit: {scoreToGrade(posting.fitScore)}
+                      <span
+                        className={cn(
+                          'rounded-full px-2 py-0.5 text-xs font-medium',
+                          FIT_SCORE_BADGE_CLASS[fitScoreToLabel(posting.fitScore)]
+                        )}
+                      >
+                        {fitScoreToLabel(posting.fitScore)}
                       </span>
                     )}
                   </span>
@@ -832,11 +853,8 @@ async function FindMyJobBody({
 
                   {posting.fitScore !== null && (
                     <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        Fit: {scoreToGrade(posting.fitScore)}{' '}
-                        <span className="text-muted-foreground">
-                          ({GRADE_LABEL[scoreToGrade(posting.fitScore)]})
-                        </span>
+                      <p className={cn('text-sm font-medium', FIT_SCORE_TEXT_CLASS[fitScoreToLabel(posting.fitScore)])}>
+                        {fitScoreToLabel(posting.fitScore)}
                       </p>
                       {posting.fitFeedback.length > 0 && (
                         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">

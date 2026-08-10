@@ -26,7 +26,7 @@ const jobFitSchema = z.object({
     .max(5),
 })
 
-const PROMPT_PREFIX = `You are giving a candidate honest, specific feedback about how well they fit a job posting. Do not be generically encouraging — if the fit is weak, say so plainly and explain why. Consider their stated experience level, function, industry background, and target role against what the posting actually asks for.
+const PROMPT_PREFIX = `You are giving a candidate honest, specific feedback about how well they fit a job posting, and a precise fitScore (0-100) that a candidate will see displayed directly as a percentage — so calibrate it carefully rather than defaulting to the middle of the range. Do not be generically encouraging — if the fit is weak, say so plainly and explain why. Weigh, in this order: (1) function/industry/seniority-level alignment, (2) required skills and keywords present in the posting vs. the candidate's resume keywords and certifications, (3) location/remote-work compatibility (posting's stated location vs. the candidate's location and relocation/remote preferences), (4) compensation compatibility (posting's stated comp range, if any, vs. the candidate's target minimum and flexibility). Only score dimensions the posting text actually gives you information on — do not penalize for a posting that simply doesn't mention comp or location.
 
 First, extract the job title, hiring company name, and location stated in the posting text itself (title/companyName/location — null if genuinely not stated, never guessed). Location should be short and as stated (e.g. "Remote", "New York, NY", "Austin, TX (hybrid)").
 
@@ -58,6 +58,11 @@ Primary function: ${candidate.primaryFunction ?? 'not specified'}${candidate.sec
 Industry background: ${candidate.industryContext ?? 'not specified'}${candidate.secondaryIndustryContext ? ` (also recently: ${candidate.secondaryIndustryContext})` : ''}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}`).join('; ') || 'not specified'}
+Resume skills/keywords: ${candidate.resumeKeywords.join(', ') || 'not specified'}
+Certifications: ${candidate.certifications.join(', ') || 'none listed'}
+Location: ${[candidate.currentCity, candidate.currentState].filter(Boolean).join(', ') || 'not specified'}${candidate.openToRelocation ? ' (open to relocation)' : ''}
+Remote-work preference: ${candidate.remotePreference ?? 'not specified'}
+Target minimum compensation: ${candidate.targetCompMin ? `$${candidate.targetCompMin.toLocaleString()}` : 'not specified'}${candidate.compFlexible ? ' (flexible on comp)' : ''}
 
 Real work-history achievement bullets (rewrite up to 5 of these, verbatim as the "original" — never invent new ones):
 ${
