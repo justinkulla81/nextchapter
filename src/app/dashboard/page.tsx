@@ -219,7 +219,6 @@ export default async function DashboardPage() {
           categoryMinimumsMet={grade.categoryMinimumsMet}
           weeklyPoints={grade.weeklyPoints}
           weeklyPointsTarget={grade.weeklyPointsTarget}
-          weeklyVisibilityBonus={grade.weeklyVisibilityBonus}
           onTrack={onTrack}
           hasEmailConnection={!!emailConnection}
           hasCalendarConnection={!!calendarConnection}

@@ -54,7 +54,7 @@ export function DashboardTopStrip({
         />
       </div>
 
-      <div className="text-right">
+      <div>
         <Link href="/dashboard/stats" className="text-xs font-medium text-primary underline underline-offset-4">
           View My Stats & Reports →
         </Link>

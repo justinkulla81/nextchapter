@@ -251,7 +251,6 @@ export function SuccessSprintCard({
   categoryMinimumsMet,
   weeklyPoints,
   weeklyPointsTarget,
-  weeklyVisibilityBonus,
   onTrack,
   hasEmailConnection,
   hasCalendarConnection,
@@ -266,7 +265,6 @@ export function SuccessSprintCard({
   categoryMinimumsMet: boolean
   weeklyPoints: number
   weeklyPointsTarget: number
-  weeklyVisibilityBonus: number
   onTrack: boolean
   hasEmailConnection: boolean
   hasCalendarConnection: boolean
@@ -282,31 +280,11 @@ export function SuccessSprintCard({
   const availableCatalog = suggestedActions.filter((sa) => !usedKeys.has(actionKey(sa)))
   const catalogKeys = new Set(availableCatalog.map(actionKey))
 
-  // Personalize items (profile/gate confirms, connecting Gmail & Calendar)
-  // still count toward weeklyPoints/oneTimePointsEarned below — the
-  // "doesn't count toward this week's pace" split is about the math, not
-  // about hiding them in a separate section anymore; they render in this
-  // same unified list, just flagged as priority when undone (see ActionRow).
-  const nonPersonalizeActions = realActions.filter((a) => !isPersonalizeType(a.actionType))
-  const oneTimeTotal = nonPersonalizeActions.filter((a) => !a.recurring).length
-  const oneTimeDone = nonPersonalizeActions.filter((a) => !a.recurring && a.completed).length
-  // Splits weeklyPoints by kind so the blended total doesn't obscure how much
-  // came from a real finish line (one-time) vs a habit that resets next week
-  // (recurring) — see the isRecurringActionType doc comment in CommittedAction.
-  const oneTimePointsEarned = realActions
-    .filter((a) => !a.recurring && a.completed)
-    .reduce((sum, a) => sum + a.points, 0)
-  const recurringPointsEarned = realActions
-    .filter((a) => a.recurring && a.completed)
-    .reduce((sum, a) => sum + a.points, 0)
-  // These three should always sum to weeklyPoints — breaking it out here
-  // (rather than just showing the blended total) is what makes "why did my
-  // points change" answerable from this card alone.
-  const pointsBreakdown = [
-    oneTimePointsEarned > 0 ? `${oneTimePointsEarned} pts one-time` : null,
-    recurringPointsEarned > 0 ? `${recurringPointsEarned} pts recurring` : null,
-    weeklyVisibilityBonus > 0 ? `${weeklyVisibilityBonus} pts for being publicly visible` : null,
-  ].filter(Boolean)
+  // "Actions done this week" — every committed action marked complete,
+  // one-time or recurring alike. realActions is already scoped to this
+  // week's sprint, so this is a simple, honest count with no separate
+  // points-by-kind breakdown needed alongside it.
+  const actionsDoneCount = realActions.filter((a) => a.completed).length
 
   // Every incomplete Personalize item (connecting Gmail/Calendar, any undone
   // profile/gate confirm) is flagged as a high-priority action, same visual
@@ -444,20 +422,25 @@ export function SuccessSprintCard({
             )}
           >
             <p className="text-lg font-semibold text-foreground">
-              <span className="tabular-nums">{weeklyPoints}</span> of{' '}
-              <span className="tabular-nums">{weeklyPointsTarget}</span> points this week
-            </p>
-            {pointsBreakdown.length > 0 && (
-              <p className="text-xs text-muted-foreground tabular-nums">{pointsBreakdown.join(' + ')}</p>
-            )}
-            <p className={cn('mt-1 text-2xl font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
-              {onTrack ? 'On track' : 'Behind pace'}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {oneTimeTotal > 0 && oneTimeDone === oneTimeTotal
-                ? 'All one-time actions done for this sprint ✓'
-                : `${oneTimeDone} of ${oneTimeTotal} one-time action${oneTimeTotal === 1 ? '' : 's'} done`}
-              {recurringPointsEarned > 0 && ` · ${recurringPointsEarned} pts earned from recurring activity this week`}
+              <span className={cn('text-base font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
+                {onTrack ? 'On track' : 'Behind pace'}
+              </span>
+              {' — '}
+              {allRows.length > 0 ? (
+                <a href="#weekly-actions-list" className="underline underline-offset-4 hover:text-primary">
+                  <span className="tabular-nums">{weeklyPoints}</span> of{' '}
+                  <span className="tabular-nums">{weeklyPointsTarget}</span> points this week ·{' '}
+                  <span className="tabular-nums">{actionsDoneCount}</span> action
+                  {actionsDoneCount === 1 ? '' : 's'} done
+                </a>
+              ) : (
+                <>
+                  <span className="tabular-nums">{weeklyPoints}</span> of{' '}
+                  <span className="tabular-nums">{weeklyPointsTarget}</span> points this week ·{' '}
+                  <span className="tabular-nums">{actionsDoneCount}</span> action
+                  {actionsDoneCount === 1 ? '' : 's'} done
+                </>
+              )}
             </p>
           </div>
 
@@ -467,7 +450,7 @@ export function SuccessSprintCard({
                 One-time actions count once, ever. Recurring actions count once per week — do them
                 again next week to earn those points again.
               </p>
-              <div className="space-y-4">
+              <div id="weekly-actions-list" className="space-y-4 scroll-mt-4">
                 {priorityRows.length > 0 && (
                   <ActionGroup title="Priority">
                     {priorityRows.map((row, i) => (
