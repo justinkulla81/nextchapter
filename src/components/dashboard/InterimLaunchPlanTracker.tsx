@@ -21,7 +21,7 @@ export function InterimLaunchPlanTracker({ phases }: { phases: LaunchPhase[] }) 
       </div>
       <div className="space-y-3">
         {phases.map((phase) => (
-          <div key={phase.number} className="rounded-lg border border-border p-4">
+          <div key={phase.number} id={`launch-phase-${phase.number}`} className="rounded-lg border border-border p-4">
             <div className="flex items-start gap-3">
               <span
                 className={cn(

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Lock } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { InterimLaunchPlanTracker } from '@/components/dashboard/InterimLaunchPlanTracker'
 import { InterimListingGrid } from '@/components/dashboard/InterimListingGrid'
@@ -115,87 +116,98 @@ export default async function InterimWorkPage() {
         )}
       </section>
 
-      {/* Section 2 — Fractional / Talent Marketplaces */}
-      {profile.gigDirectoryUnlockAnswer && (
-        <section className="space-y-3 border-b border-border pb-10">
-          <div>
-            <h2 className="text-lg font-semibold">2. Fractional & talent marketplaces</h2>
-            <p className="text-sm text-muted-foreground">
-              Tailored to your background — Partner means we have a confirmed relationship with the
-              platform; Included for quality means it&apos;s a real, relevant option with no revenue
-              arrangement.
-            </p>
+      {!profile.gigDirectoryUnlockAnswer ? (
+        <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+          <div className="flex items-center gap-2">
+            <Lock className="size-4 text-orange" />
+            <p className="text-sm font-medium text-orange">Directory — locked</p>
           </div>
-          <InterimListingGrid listings={marketplaceListings} signedUpIds={signedUpIds} showSignupCheckbox />
-        </section>
-      )}
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Fractional & talent marketplaces, expert networks, board & advisory roles, and teaching
+            opportunities all unlock together — answer the one question in{' '}
+            <a href="#launch-phase-1" className="text-primary underline underline-offset-4">
+              Phase 1 of the Launch Plan above
+            </a>{' '}
+            to see them.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Section 2 — Fractional / Talent Marketplaces */}
+          <section className="space-y-3 border-b border-border pb-10">
+            <div>
+              <h2 className="text-lg font-semibold">2. Fractional & talent marketplaces</h2>
+              <p className="text-sm text-muted-foreground">
+                Tailored to your background — Partner means we have a confirmed relationship with the
+                platform; Included for quality means it&apos;s a real, relevant option with no revenue
+                arrangement.
+              </p>
+            </div>
+            <InterimListingGrid listings={marketplaceListings} signedUpIds={signedUpIds} showSignupCheckbox />
+          </section>
 
-      {/* Section 3 — Expert Networks */}
-      {profile.gigDirectoryUnlockAnswer && (
-        <section className="space-y-3 border-b border-border pb-10">
-          <div>
-            <h2 className="text-lg font-semibold">3. Expert networks</h2>
-            <p className="text-sm text-muted-foreground">
-              Paid consulting calls with investors and consulting firms who need your specific
-              industry expertise — usually flexible, project-based, and a good fit alongside a
-              search.
-            </p>
-          </div>
-          {showLegalCaution && (
-            <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-warning">
-              A restriction flagged on your account may limit paid consulting work like this — check
-              with your coach before signing up.
-            </p>
-          )}
-          <InterimListingGrid listings={expertNetworkListings} signedUpIds={signedUpIds} />
-        </section>
-      )}
+          {/* Section 3 — Expert Networks */}
+          <section className="space-y-3 border-b border-border pb-10">
+            <div>
+              <h2 className="text-lg font-semibold">3. Expert networks</h2>
+              <p className="text-sm text-muted-foreground">
+                Paid consulting calls with investors and consulting firms who need your specific
+                industry expertise — usually flexible, project-based, and a good fit alongside a
+                search.
+              </p>
+            </div>
+            {showLegalCaution && (
+              <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-warning">
+                A restriction flagged on your account may limit paid consulting work like this — check
+                with your coach before signing up.
+              </p>
+            )}
+            <InterimListingGrid listings={expertNetworkListings} signedUpIds={signedUpIds} />
+          </section>
 
-      {/* Section 4 — Board & Advisory */}
-      {profile.gigDirectoryUnlockAnswer && (
-        <section className="space-y-3 border-b border-border pb-10">
-          <div>
-            <h2 className="text-lg font-semibold">4. Board & advisory roles</h2>
-            <p className="text-sm text-muted-foreground">
-              {boardReady
-                ? 'Based on your level and years of experience, formal board and advisory positions are a realistic option worth pursuing.'
-                : 'Formal corporate board seats are typically a fit later in a career — nonprofit board and advisory roles are a strong, realistic starting point and a real credential-builder.'}
-            </p>
-          </div>
-          <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
-        </section>
-      )}
+          {/* Section 4 — Board & Advisory */}
+          <section className="space-y-3 border-b border-border pb-10">
+            <div>
+              <h2 className="text-lg font-semibold">4. Board & advisory roles</h2>
+              <p className="text-sm text-muted-foreground">
+                {boardReady
+                  ? 'Based on your level and years of experience, formal board and advisory positions are a realistic option worth pursuing.'
+                  : 'Formal corporate board seats are typically a fit later in a career — nonprofit board and advisory roles are a strong, realistic starting point and a real credential-builder.'}
+              </p>
+            </div>
+            <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
+          </section>
 
-      {/* Section 5 — Teaching & light advisory */}
-      {profile.gigDirectoryUnlockAnswer && (
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold">5. Teaching & light advisory work</h2>
-            <p className="text-sm text-muted-foreground">
-              Lower-commitment ways to stay visible and put your expertise to use.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-medium text-foreground">Guest lecturing & teaching</h3>
-            <p className="text-sm text-muted-foreground">
-              Sharing what you know publicly is also how board seats and fractional clients find you.
-              Use the{' '}
-              <Link href="/dashboard/marketing-plan" className="text-primary underline underline-offset-4">
-                My Marketing Plan
-              </Link>{' '}
-              to build the content that leads to these invitations.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-medium text-foreground">Light advisory & angel work</h3>
-            <p className="text-sm text-muted-foreground">
-              Informal advising — a few hours a month for a founder or small team — is a real rung on
-              the ladder toward a formal board seat, but it&apos;s relationship-driven rather than
-              something you apply for. There&apos;s no directory for this one: it comes from the same
-              network activation as Section 1, so keep that going.
-            </p>
-          </div>
-        </section>
+          {/* Section 5 — Teaching & light advisory */}
+          <section className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold">5. Teaching & light advisory work</h2>
+              <p className="text-sm text-muted-foreground">
+                Lower-commitment ways to stay visible and put your expertise to use.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-foreground">Guest lecturing & teaching</h3>
+              <p className="text-sm text-muted-foreground">
+                Sharing what you know publicly is also how board seats and fractional clients find
+                you. Use the{' '}
+                <Link href="/dashboard/marketing-plan" className="text-primary underline underline-offset-4">
+                  My Marketing Plan
+                </Link>{' '}
+                to build the content that leads to these invitations.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-foreground">Light advisory & angel work</h3>
+              <p className="text-sm text-muted-foreground">
+                Informal advising — a few hours a month for a founder or small team — is a real rung
+                on the ladder toward a formal board seat, but it&apos;s relationship-driven rather
+                than something you apply for. There&apos;s no directory for this one: it comes from
+                the same network activation as Section 1, so keep that going.
+              </p>
+            </div>
+          </section>
+        </>
       )}
     </div>
   )
