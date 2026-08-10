@@ -577,6 +577,22 @@ export async function updateApplicationDetails(jobPostingId: string, formData: F
   revalidatePath('/dashboard/find-my-job')
 }
 
+export async function updateResumeBookOptIn(optedIn: boolean) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { resumeBookOptIn: optedIn },
+  })
+  captureServerEvent(profile.id, 'resume_book_opt_in_updated', { optedIn })
+  revalidatePath('/dashboard/find-my-job')
+}
+
 export async function deleteJobPosting(jobPostingId: string) {
   const supabase = await createClient()
   const {

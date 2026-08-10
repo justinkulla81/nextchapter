@@ -13,19 +13,20 @@ export function JobBoardLinkList({
   const posthog = usePostHog()
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <ul className="space-y-1.5">
       {boards.map((board) => (
-        <a
-          key={board.name}
-          href={board.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => posthog?.capture('job_board_link_clicked', { name: board.name, url: board.url, category })}
-          className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-brand hover:text-brand"
-        >
-          {board.name} ↗
-        </a>
+        <li key={board.name}>
+          <a
+            href={board.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => posthog?.capture('job_board_link_clicked', { name: board.name, url: board.url, category })}
+            className="text-sm font-medium text-foreground underline underline-offset-4 transition-colors hover:text-brand"
+          >
+            {board.name} ↗
+          </a>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }

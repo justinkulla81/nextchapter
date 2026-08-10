@@ -12,6 +12,7 @@ import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { EmailSyncWatcher } from '@/components/dashboard/EmailSyncWatcher'
 import { JobDetailsEditor } from '@/components/dashboard/JobDetailsEditor'
+import { ResumeBookOptInForm } from '@/components/dashboard/ResumeBookOptInForm'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
 import { InterviewJobPicker } from '@/components/dashboard/InterviewJobPicker'
 import { JobPostingTextFallback } from '@/components/dashboard/JobPostingTextFallback'
@@ -107,12 +108,9 @@ const STATUS_LABELS: Record<string, string> = {
 
 function JobRecommendationsSkeleton() {
   return (
-    <div id="job-recommendations" className="scroll-mt-4 space-y-4">
-      <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
-      <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
-        <Spinner size={16} />
-        Finding jobs that fit you…
-      </div>
+    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Finding jobs that fit you…
     </div>
   )
 }
@@ -194,9 +192,7 @@ async function JobRecommendationsSection({
   })
 
   return (
-    <div id="job-recommendations" className="scroll-mt-4 space-y-4">
-      <h2 className="text-lg font-semibold tracking-tight">Job Recommendations For You</h2>
-
+    <div className="space-y-4">
       {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No jobs surfaced yet — set a target role in your Goals to get started.
@@ -527,32 +523,55 @@ async function FindMyJobBody({
           </p>
         </div>
 
-        <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
+        <div className="space-y-6 rounded-lg border border-border bg-card p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Resume Book</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Opt in and your resume is included in the Next Chapter Resume Book, where recruiters
+              and hiring managers browsing by role can find it.
+            </p>
+            <div className="mt-2">
+              <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
+            </div>
+          </div>
 
-        <div className="rounded-lg border border-border p-4">
-          <p className="text-sm font-medium text-foreground">Executive Recruiters</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {isAList
-              ? "You're an A — recruiters can already find you."
-              : "Recruiters can find and reach out to you directly once you hit an A grade — you can opt in any time so you're ready."}
-          </p>
-          <Link
-            href="/dashboard/privacy"
-            className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
-          >
-            Manage recruiter visibility →
-          </Link>
+          <div>
+            <p className="text-sm font-medium text-foreground">Job Boards</p>
+            <div className="mt-2">
+              <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-foreground">Executive Recruiters</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isAList
+                ? "You're an A — recruiters can already find you."
+                : "Recruiters can find and reach out to you directly once you hit an A grade — you can opt in any time so you're ready."}
+            </p>
+            <Link
+              href="/dashboard/privacy"
+              className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Manage recruiter visibility →
+            </Link>
+          </div>
+
+          <div id="job-recommendations" className="scroll-mt-4">
+            <p className="text-sm font-medium text-foreground">Job Recommendations For You</p>
+            <div className="mt-2">
+              <Suspense fallback={<JobRecommendationsSkeleton />}>
+                <JobRecommendationsSection
+                  profile={profile}
+                  isAList={isAList}
+                  gradeLetter={grade.grade}
+                  boardPostings={boardPostings}
+                />
+              </Suspense>
+            </div>
+          </div>
         </div>
       </div>
-
-      <Suspense fallback={<JobRecommendationsSkeleton />}>
-        <JobRecommendationsSection
-          profile={profile}
-          isAList={isAList}
-          gradeLetter={grade.grade}
-          boardPostings={boardPostings}
-        />
-      </Suspense>
 
       <div id="interview-tracking" className="scroll-mt-4 space-y-4 rounded-lg border border-border p-4">
         <div>
