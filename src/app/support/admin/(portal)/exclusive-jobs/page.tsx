@@ -161,14 +161,25 @@ async function loadPageData() {
   ])
   const pending = postings.filter((p) => p.status === 'pending' && !p.archivedAt)
   const active = postings.filter((p) => p.status === 'approved' && !p.archivedAt)
+  // ATS-fed rows never need a person to Archive/"still open — confirm" them
+  // individually — the feed itself reconfirms or archives them on every run
+  // (see ats-job-board-feed.ts). They're also the overwhelming majority of
+  // `active` (thousands, vs. a handful of real employer/recruiter
+  // submissions), so rendering one Card per row here — as this section did
+  // when "active" meant "the small number of admin-trusted postings" — blew
+  // past this route's response size/time budget as soon as the ATS feed's
+  // volume landed in the same status. Only genuinely admin-managed rows get
+  // a Card; the feed-managed rest are just counted.
+  const activeManaged = active.filter((p) => p.source !== 'ats_feed')
+  const activeAtsFeedCount = active.length - activeManaged.length
   const archived = postings.filter((p) => p.archivedAt || p.status === 'rejected')
-  return { pending, active, archived, candidates }
+  return { pending, active, activeManaged, activeAtsFeedCount, archived, candidates }
 }
 
 export default async function ExclusiveJobsAdminPage() {
   await requireAdmin()
 
-  const { pending, active, archived, candidates } = await loadPageData()
+  const { pending, active, activeManaged, activeAtsFeedCount, archived, candidates } = await loadPageData()
 
   // Computed once, reused by both the "by company" and "by fit" views below
   // so a posting's match count is never recalculated twice per render.
@@ -397,10 +408,17 @@ export default async function ExclusiveJobsAdminPage() {
 
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Active ({active.length})</h2>
-        {active.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No active postings yet.</p>
+        {activeAtsFeedCount > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {activeAtsFeedCount.toLocaleString()} of those are ATS-fed listings, managed automatically by the daily
+            feed sync (reconfirmed or archived on their own) — not listed individually here. The rows below are the
+            ones that need a person to keep an eye on them.
+          </p>
+        )}
+        {activeManaged.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No admin-managed active postings yet.</p>
         ) : (
-          active.map((posting) => {
+          activeManaged.map((posting) => {
             const location = displayJobLocation(posting.location)
             return (
               <Card key={posting.id}>
