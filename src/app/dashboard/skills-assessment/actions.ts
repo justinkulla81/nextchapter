@@ -61,7 +61,7 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
       const effort = estimateActionEffort({ actionType: 'SKILLS_ASSESSMENT_COMPLETED' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'SKILLS_ASSESSMENT_COMPLETED',
-        text: 'Completed the Skills Assessment',
+        text: 'Complete the Skills Assessment',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

@@ -63,7 +63,7 @@ export async function updatePrivacyTier(
       const effort = estimateActionEffort({ actionType: 'PRIVACY_CONFIRMED' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'PRIVACY_CONFIRMED',
-        text: 'Confirmed your privacy setting',
+        text: 'Confirm your privacy setting',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

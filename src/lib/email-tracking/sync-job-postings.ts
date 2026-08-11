@@ -16,7 +16,7 @@ async function creditApplicationSubmitted(candidateId: string) {
   const effort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
   await autoCompleteEngagementAction(candidateId, {
     actionType: 'JOB_APPLICATION_SUBMITTED',
-    text: 'Applied to a job',
+    text: 'Apply to a job',
     points: effort.points,
     estimatedMinutes: effort.minutes,
   })

@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       if (sprint) {
         const effort = estimateActionEffort({ actionType: 'CALENDAR_RECONNECTED' })
         await logCatalogAction(profile.id, {
-          text: 'Reconnected Calendar after it expired',
+          text: 'Reconnect Calendar after it expired',
           actionType: 'CALENDAR_RECONNECTED',
           points: effort.points,
           estimatedMinutes: effort.minutes,

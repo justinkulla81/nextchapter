@@ -203,7 +203,7 @@ export async function importConnectionsCsv(
       const effort = estimateActionEffort({ actionType: 'NETWORKING_LIST' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'NETWORKING_LIST',
-        text: 'Added new contacts to your networking list',
+        text: 'Add new contacts to your networking list',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       }).catch((error) => console.error('Failed to auto-complete NETWORKING_LIST action:', error))
@@ -327,7 +327,7 @@ export async function setNetworkComfortLevel(level: NetworkComfortLevel) {
       const effort = estimateActionEffort({ actionType: 'NETWORK_COMFORT_CONFIRMED' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'NETWORK_COMFORT_CONFIRMED',
-        text: 'Answered the network comfort check-in',
+        text: 'Answer the network comfort check-in',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

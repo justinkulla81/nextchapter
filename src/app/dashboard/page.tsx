@@ -26,6 +26,7 @@ import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
+import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -147,7 +148,17 @@ export default async function DashboardPage() {
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
-  const searchStrategyChecklist = computeSearchStrategyChecklist(profile)
+  // Same recency sort + inference as search-strategy/page.tsx so this
+  // checklist agrees with what that page actually shows — otherwise a
+  // pre-filled-but-unsaved field (e.g. Target industries guessed from work
+  // history) would read as "needs updating" here while looking already
+  // answered there.
+  const workHistoryByRecency = [...profile.workHistory].sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1
+    return b.startDate.getTime() - a.startDate.getTime()
+  })
+  const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
+  const searchStrategyChecklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
   // Prompt 45 §8: on_track is measured against the system's points_target
   // (the ramp), never against whatever the candidate personally committed

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Mood } from '@prisma/client'
 import { TrendingDown, Minus, TrendingUp, Zap, X, type LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,6 +28,7 @@ export function MoodCheckInCard({
   // moodCardDismissedAt / startOfUTCDay) — resets automatically tomorrow.
   dismissedToday: boolean
 }) {
+  const router = useRouter()
   const [optimisticMood, setOptimisticMood] = useState<Mood | null>(todaysMood)
   const [isPending, startTransition] = useTransition()
   const [dismissed, setDismissed] = useState(dismissedToday)
@@ -35,8 +37,14 @@ export function MoodCheckInCard({
 
   function handleCheckIn(selected: Mood) {
     setOptimisticMood(selected)
-    startTransition(() => {
-      checkInMood(selected)
+    startTransition(async () => {
+      await checkInMood(selected)
+      // checkInMood's +3 points feed the Weekly A target / grade shown
+      // elsewhere on this same page (DashboardTopStrip, SuccessSprintCard) —
+      // those are plain server-rendered props from the initial page load,
+      // not data this card owns, so router.refresh() is what actually pulls
+      // the new total in immediately instead of waiting for the next visit.
+      router.refresh()
     })
   }
 

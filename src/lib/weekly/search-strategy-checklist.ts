@@ -21,6 +21,12 @@ export interface SearchStrategyChecklistProfile {
   highestLevelReached: string | null
   targetRoleType: string | null
   remotePreference: string | null
+  // The form pre-fills this field from work history when the candidate has
+  // never explicitly set it — those pre-filled tags are real, visible
+  // answers on the page even though nothing's been saved to targetIndustries
+  // yet, so treating them as still "incomplete" was a false nag: the
+  // candidate sees 3 industries already sitting there and no reason to act.
+  inferredIndustries?: string[]
 }
 
 const POINTS_PER_ITEM = 5
@@ -45,7 +51,7 @@ const FIELDS: {
     key: 'targetIndustries',
     label: 'Target industries',
     anchor: 'targetIndustries',
-    isAnswered: (p) => p.targetIndustries.length > 0,
+    isAnswered: (p) => p.targetIndustries.length > 0 || (p.inferredIndustries?.length ?? 0) > 0,
   },
   {
     key: 'primaryFunction',

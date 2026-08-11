@@ -177,7 +177,7 @@ export async function updateComfortCheck(fields: {
       const effort = estimateActionEffort({ actionType: 'COMFORT_CHECK_CONFIRM' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'COMFORT_CHECK_CONFIRM',
-        text: 'Completed the Interview Prep Comfort Check',
+        text: 'Complete the Interview Prep Comfort Check',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

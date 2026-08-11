@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       if (sprint) {
         const effort = estimateActionEffort({ actionType: 'GMAIL_RECONNECTED' })
         await logCatalogAction(profile.id, {
-          text: 'Reconnected Gmail after it expired',
+          text: 'Reconnect Gmail after it expired',
           actionType: 'GMAIL_RECONNECTED',
           points: effort.points,
           estimatedMinutes: effort.minutes,

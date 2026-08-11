@@ -74,7 +74,7 @@ export async function submitLinkedInUnlock(
       const effort = estimateActionEffort({ actionType: 'LINKEDIN_UNLOCK' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'LINKEDIN_UNLOCK',
-        text: 'Unlocked the LinkedIn post generator',
+        text: 'Unlock the LinkedIn post generator',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

@@ -134,7 +134,7 @@ async function normalizeCommittedActions(candidateId: string, rawActions: Commit
     if (hasEmailConnection && hasCalendarConnection) {
       deduped[staleGmailIndex] = {
         ...deduped[staleGmailIndex],
-        text: 'Connected your Gmail and Calendar so activity counts automatically',
+        text: 'Connect your Gmail and Calendar so activity counts automatically',
         completed: true,
         completedAt: new Date().toISOString(),
       }
@@ -444,7 +444,7 @@ export async function commitWeeklySprint(
     ...(includeWelcomeBonus
       ? [
           {
-            text: 'Completed your welcome & commitment',
+            text: 'Complete your welcome & commitment',
             points: INTRO_WELCOME_BONUS_POINTS,
             estimatedMinutes: 0,
             completed: true,

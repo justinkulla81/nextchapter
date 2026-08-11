@@ -33,6 +33,7 @@ export interface ProfileChecklistItem {
 
 const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   WORKING_STYLE_QUIZ: 'Take the Behavioral Assessment',
+  SKILLS_ASSESSMENT_COMPLETED: 'Take the Skills Assessment',
   PROFILE_CONFIRM: 'Confirm your basic profile info',
   INDUSTRY_CONFIRM: 'Confirm your industry',
   FUNCTION_CONFIRM: 'Confirm your function & experience',
@@ -76,6 +77,7 @@ async function fetchCompletion(candidateId: string) {
         linkedinUnlockBonusAt: true,
         profilePictureUrl: true,
         linkedInConfirmedAt: true,
+        skillsAssessmentCompletedAt: true,
       },
     }),
     prisma.candidateAssessmentResponse.count({ where: { candidateId } }),
@@ -94,6 +96,7 @@ async function fetchCompletion(candidateId: string) {
 
   const completion: Record<ProfileChecklistActionType, boolean> = {
     WORKING_STYLE_QUIZ: assessmentResponseCount > 0,
+    SKILLS_ASSESSMENT_COMPLETED: !!profile.skillsAssessmentCompletedAt,
     PROFILE_CONFIRM: !!profile.profileConfirmedAt,
     INDUSTRY_CONFIRM: !!profile.industryConfirmedAt,
     FUNCTION_CONFIRM: !!profile.functionConfirmedAt,

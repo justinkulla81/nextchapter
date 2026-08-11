@@ -181,7 +181,6 @@ function ActionRow({
   if (actionType === 'OUTREACH_CALL' && !hasCalendarConnection) {
     link = { href: connectHref(hasEmailConnection, hasCalendarConnection), label: 'Connect Calendar' }
   }
-  const isPriority = !!priority && !completed
   // "Action name — why it matters," never the whole sentence underlined —
   // hyperlink only the short label; the reason renders as plain text next to
   // it. See splitActionText/getActionWhy for where each half comes from.
@@ -189,6 +188,14 @@ function ActionRow({
   const why = getActionWhy(actionType, authoredWhy)
   const targetCount = recurring ? getRecurringTargetCount(actionType) : null
   const count = completionCount ?? (completed ? 1 : 0)
+  // A recurring row's `completed` flag means "logged at least once ever,"
+  // not "hit this week's target" — a row still short of targetCount (e.g. 0
+  // of 2) was showing as not-priority and losing its High Priority badge
+  // even though it's exactly the thing still owed this week. Achieved means
+  // count >= targetCount for recurring rows, the plain completed flag for
+  // one-time ones.
+  const achieved = recurring && targetCount ? count >= targetCount : completed
+  const isPriority = !!priority && !achieved
   return (
     <div
       className={cn(
@@ -200,11 +207,11 @@ function ActionRow({
         {recurring && targetCount ? (
           <span
             className={cn(
-              'shrink-0 rounded-full text-xs font-semibold tabular-nums',
-              count >= targetCount ? 'bg-success/10 px-2 py-0.5 text-success' : 'text-muted-foreground'
+              'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+              count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
             )}
           >
-            {count} of {targetCount} this week
+            {count} / {targetCount} this week
           </span>
         ) : completed && recurring ? (
           <span className="shrink-0 text-xs font-semibold text-brand tabular-nums">✓ {points} pts this week</span>
@@ -421,26 +428,15 @@ export function SuccessSprintCard({
               onTrack ? 'border-success bg-success/5' : 'border-border bg-muted/40'
             )}
           >
-            <p className="text-lg font-semibold text-foreground">
-              <span className={cn('text-base font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
+            <p className="text-base font-semibold text-foreground">
+              <span className={cn('font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
                 {onTrack ? 'On track' : 'Behind pace'}
               </span>
               {' — '}
-              {allRows.length > 0 ? (
-                <a href="#weekly-actions-list" className="underline underline-offset-4 hover:text-primary">
-                  <span className="tabular-nums">{weeklyPoints}</span> of{' '}
-                  <span className="tabular-nums">{weeklyPointsTarget}</span> points this week ·{' '}
-                  <span className="tabular-nums">{actionsDoneCount}</span> action
-                  {actionsDoneCount === 1 ? '' : 's'} done
-                </a>
-              ) : (
-                <>
-                  <span className="tabular-nums">{weeklyPoints}</span> of{' '}
-                  <span className="tabular-nums">{weeklyPointsTarget}</span> points this week ·{' '}
-                  <span className="tabular-nums">{actionsDoneCount}</span> action
-                  {actionsDoneCount === 1 ? '' : 's'} done
-                </>
-              )}
+              <span className="tabular-nums">{weeklyPoints}</span> of{' '}
+              <span className="tabular-nums">{weeklyPointsTarget}</span> points this week ·{' '}
+              <span className="tabular-nums">{actionsDoneCount}</span> action
+              {actionsDoneCount === 1 ? '' : 's'} done
             </p>
           </div>
 

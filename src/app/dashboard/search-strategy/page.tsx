@@ -128,7 +128,7 @@ export default async function SearchStrategyPage() {
   // Same "more of the same" default as onboarding/goals/page.tsx — a guess at
   // the pivot target, not a separate inference pass. Editable right there.
   const inferredFunction = profile.primaryFunction ?? null
-  const checklist = computeSearchStrategyChecklist(profile)
+  const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
   return (
     <div className="space-y-8">

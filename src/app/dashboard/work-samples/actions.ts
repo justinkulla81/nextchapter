@@ -47,7 +47,7 @@ export async function submitWorkSampleType(_prevState: FormState, formData: Form
       const effort = estimateActionEffort({ actionType: 'WORK_SAMPLE_TYPE_CONFIRMED' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'WORK_SAMPLE_TYPE_CONFIRMED',
-        text: 'Confirmed your work sample type',
+        text: 'Confirm your work sample type',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

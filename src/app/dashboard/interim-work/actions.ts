@@ -47,7 +47,7 @@ export async function submitGigDirectoryUnlock(_prevState: FormState, formData: 
       const effort = estimateActionEffort({ actionType: 'GIG_DIRECTORY_UNLOCK' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'GIG_DIRECTORY_UNLOCK',
-        text: 'Unlocked the Interim/Gig Directory',
+        text: 'Unlock the Interim/Gig Directory',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

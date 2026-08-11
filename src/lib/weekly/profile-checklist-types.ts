@@ -4,6 +4,7 @@
 // in the server-only DB-querying half of that file.
 export const PROFILE_CHECKLIST_ACTION_TYPES = [
   'WORKING_STYLE_QUIZ',
+  'SKILLS_ASSESSMENT_COMPLETED',
   'PROFILE_CONFIRM',
   'INDUSTRY_CONFIRM',
   'FUNCTION_CONFIRM',

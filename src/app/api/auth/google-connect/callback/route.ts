@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       } else if (existingEmail.needsReconnectAt) {
         const effort = estimateActionEffort({ actionType: 'GMAIL_RECONNECTED' })
         await logCatalogAction(profile.id, {
-          text: 'Reconnected Gmail after it expired',
+          text: 'Reconnect Gmail after it expired',
           actionType: 'GMAIL_RECONNECTED',
           points: effort.points,
           estimatedMinutes: effort.minutes,
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
       } else if (existingCalendar.needsReconnectAt) {
         const effort = estimateActionEffort({ actionType: 'CALENDAR_RECONNECTED' })
         await logCatalogAction(profile.id, {
-          text: 'Reconnected Calendar after it expired',
+          text: 'Reconnect Calendar after it expired',
           actionType: 'CALENDAR_RECONNECTED',
           points: effort.points,
           estimatedMinutes: effort.minutes,

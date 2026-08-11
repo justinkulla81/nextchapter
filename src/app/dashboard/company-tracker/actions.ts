@@ -28,7 +28,7 @@ async function logWatchlistAdd(candidateId: string, companyName: string) {
   // companies in a week shows as one "N of 3 this week" progress line
   // instead of a separate row naming each company.
   await logCatalogAction(candidateId, {
-    text: 'Added a company to your tracker',
+    text: 'Add a company to your tracker',
     actionType: 'WATCHLIST_ADD',
     points: 2,
     estimatedMinutes: 2,
@@ -83,7 +83,7 @@ export async function viewWatchlistPosting(postingId: string, companyName: strin
   const profile = await getProfile()
   if (!profile) return
   await logCatalogAction(profile.id, {
-    text: 'Reviewed a new posting from your tracker',
+    text: 'Review a new posting from your tracker',
     actionType: 'WATCHLIST_POSTING_VIEWED',
     points: 2,
     estimatedMinutes: 2,

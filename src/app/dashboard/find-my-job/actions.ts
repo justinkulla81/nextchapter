@@ -165,7 +165,7 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
   const applyEffort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
   await autoCompleteEngagementAction(profile.id, {
     actionType: 'JOB_APPLICATION_SUBMITTED',
-    text: 'Applied to a job',
+    text: 'Apply to a job',
     points: applyEffort.points,
     estimatedMinutes: applyEffort.minutes,
   })
@@ -295,7 +295,7 @@ export async function markApplied(jobPostingId: string, formData: FormData) {
   const effort = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' })
   await autoCompleteEngagementAction(profile.id, {
     actionType: 'JOB_APPLICATION_SUBMITTED',
-    text: 'Applied to a job',
+    text: 'Apply to a job',
     points: effort.points,
     estimatedMinutes: effort.minutes,
   })
@@ -698,7 +698,7 @@ export async function reactToSurfacedJob(
     const effort = estimateActionEffort({ actionType: 'JOB_INTERESTED_REACTION' })
     await autoCompleteEngagementAction(profile.id, {
       actionType: 'JOB_INTERESTED_REACTION',
-      text: 'Expressed interest in a job listing',
+      text: 'Express interest in a job listing',
       points: effort.points,
       estimatedMinutes: effort.minutes,
     })
@@ -885,7 +885,7 @@ export async function requestNegotiationPracticeFeedback(
     const effort = estimateActionEffort({ actionType: 'NEGOTIATION_ADVICE' })
     await autoCompleteEngagementAction(profile.id, {
       actionType: 'NEGOTIATION_ADVICE',
-      text: 'Practiced your negotiation counter-ask',
+      text: 'Practice your negotiation counter-ask',
       points: effort.points,
       estimatedMinutes: effort.minutes,
     })
