@@ -6,11 +6,10 @@
 // Reliability are the three categories with a real self-awareness check —
 // each needs at least one completed reference as the independent evidence
 // to compare against. Without one, the check returns 'not_available' (an
-// honest "we can't tell yet," not a guessed match/mismatch) paired with a
-// concrete unlock action, rather than silently omitting it or inferring
-// from self-report alone.
+// honest "we can't tell yet," not a guessed match/mismatch), rather than
+// silently omitting it or inferring from self-report alone.
 
-import { CATEGORY_UNLOCK_ACTION, type CategoryKey, type SelfAwarenessRead } from '@/lib/scoring/grade'
+import type { CategoryKey, SelfAwarenessRead } from '@/lib/scoring/grade'
 
 export interface SelfAwarenessInputs {
   communicatorConfidence: number | null
@@ -33,7 +32,7 @@ const LOW_POLE_THRESHOLD = -0.3
 
 function checkLeadership(inputs: SelfAwarenessInputs): SelfAwarenessRead {
   if (!inputs.hasCompletedReference) {
-    return { status: 'not_available', unlockAction: CATEGORY_UNLOCK_ACTION.leadership }
+    return { status: 'not_available' }
   }
 
   const claimsLeadership =
@@ -60,7 +59,7 @@ function checkLeadership(inputs: SelfAwarenessInputs): SelfAwarenessRead {
 
 function checkCommunication(inputs: SelfAwarenessInputs): SelfAwarenessRead {
   if (!inputs.hasCompletedReference) {
-    return { status: 'not_available', unlockAction: CATEGORY_UNLOCK_ACTION.communication }
+    return { status: 'not_available' }
   }
 
   const highSelfRating = (inputs.communicatorConfidence ?? 0) >= HIGH_SELF_RATING_THRESHOLD
@@ -84,7 +83,7 @@ function checkOwnership(inputs: SelfAwarenessInputs): SelfAwarenessRead {
   // the self-awareness read here is really just "do we have a reference at
   // all yet," not a mismatch comparison.
   if (!inputs.hasCompletedReference) {
-    return { status: 'not_available', unlockAction: CATEGORY_UNLOCK_ACTION.ownership }
+    return { status: 'not_available' }
   }
   return { status: 'match' }
 }

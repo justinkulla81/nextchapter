@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { AssessmentForm } from '@/components/onboarding/AssessmentForm'
 import { KnownForForm } from '@/components/dashboard/KnownForForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { CURRENT_ASSESSMENT_ROTATION_GROUP } from '@/lib/constants/onboarding'
 
 export const metadata: Metadata = { title: 'How I Work Best' }
@@ -33,6 +35,9 @@ export default async function RetakeAssessmentPage() {
               You can retake your How I Work Best assessment once a week — next retake available in{' '}
               {daysRemaining} day{daysRemaining === 1 ? '' : 's'}.
             </p>
+            <Button nativeButton={false} variant="outline" render={<Link href="/dashboard/skills-assessments" />} size="sm">
+              Back to Assessments
+            </Button>
           </div>
           <Card>
             <CardHeader>
@@ -68,6 +73,15 @@ export default async function RetakeAssessmentPage() {
           How you work can shift as your search progresses — this replaces your How I Work Best
           profile with a fresh read. No wrong answers.
         </p>
+        <Button
+          nativeButton={false}
+          variant="outline"
+          render={<Link href="/dashboard/skills-assessments" />}
+          size="sm"
+          className="mt-3"
+        >
+          Back to Assessments
+        </Button>
       </div>
       <Card>
         <CardHeader>

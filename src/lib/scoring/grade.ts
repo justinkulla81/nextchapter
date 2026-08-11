@@ -119,16 +119,6 @@ export const CATEGORY_EXPLANATION: Record<CategoryKey, string> = {
     "Whether people can hand you something and trust it gets done without hovering — your How I Work Best results and what references say about your follow-through.",
 }
 
-// Some categories lean on reference data to move from a self-report into a
-// confirmed read. When there isn't enough evidence yet for a category (or
-// a self-awareness comparison within one) to mean anything, the report
-// shows "N/A" plus this concrete next step, rather than guessing.
-export const CATEGORY_UNLOCK_ACTION: Partial<Record<CategoryKey, string>> = {
-  leadership: 'Request a reference from someone who saw you manage or lead — it turns this from a self-report into a confirmed read.',
-  communication: 'Request a reference — it lets us confirm how you communicate instead of relying only on your own rating.',
-  ownership: "Request a reference — follow-through is hard to self-assess accurately, and a reference closes that gap.",
-}
-
 // Whether a candidate's self-report on a category agrees with harder
 // evidence (a completed reference, or a How I Work Best result). Shown
 // only where it's flattering on the Dossier; shown both directions in
@@ -140,11 +130,7 @@ export type SelfAwarenessStatus = 'match' | 'mismatch' | 'not_available'
 export interface SelfAwarenessRead {
   status: SelfAwarenessStatus
   note?: string
-  unlockAction?: string
 }
-
-export const SELF_AWARENESS_UNLOCK_ACTION =
-  'Request a reference to compare your self-assessment against an outside view.'
 
 // How much real signal backs a category's grade today, separate from the
 // grade itself — a candidate should be able to tell "this is confirmed by
