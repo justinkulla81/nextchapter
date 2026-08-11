@@ -65,6 +65,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // One-time items
   WORKING_STYLE_QUIZ: { minutes: 25, points: 25 },
   SKILLS_ASSESSMENT_COMPLETED: { minutes: 15, points: 20 },
+  // Assessment Layer spec Part 3 ("How I Perform") — 40 items, a bit more
+  // ground than the 48-item Working Style quiz's 25/25, so weighted slightly
+  // higher. The spec's own point/time table (5 min / 50 pts) doesn't follow
+  // this file's "1 point = 1 minute" invariant (see header comment), so
+  // that's not reused as-is — kept the existing convention instead.
+  PERFORMANCE_ASSESSMENT_COMPLETED: { minutes: 20, points: 20 },
 
   // Prompt 68 — Interim Work page. Signing up for a fractional/talent
   // marketplace is a real, if small, step; deliberately smaller than
@@ -233,6 +239,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   ASSESSMENT_COMPLETE: 'effort',
   WORKING_STYLE_QUIZ: 'effort',
   SKILLS_ASSESSMENT_COMPLETED: 'effort',
+  PERFORMANCE_ASSESSMENT_COMPLETED: 'effort',
   REFERENCE_ADDED: 'effort',
   RESUME_BOOK_UPLOAD: 'effort',
   PROFILE_CONFIRM: 'effort',
@@ -298,6 +305,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   SEARCH_STRATEGY_CHECKLIST: 'Personalize',
   WORKING_STYLE_QUIZ: 'Personalize',
   SKILLS_ASSESSMENT_COMPLETED: 'Personalize',
+  PERFORMANCE_ASSESSMENT_COMPLETED: 'Personalize',
   PROFILE_CONFIRM: 'Personalize',
   INDUSTRY_CONFIRM: 'Personalize',
   FUNCTION_CONFIRM: 'Personalize',
@@ -471,6 +479,7 @@ export const VERIFIED_ACTION_TYPES = new Set<string>([
   'WORK_AUTHORIZATION',
   'WORKING_STYLE_QUIZ',
   'SKILLS_ASSESSMENT_COMPLETED',
+  'PERFORMANCE_ASSESSMENT_COMPLETED',
   'ANSWER_OPTIONAL_QUESTIONS',
   'COMFORT_CHECK_CONFIRM',
 ])
@@ -556,6 +565,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   ANSWER_OPTIONAL_QUESTIONS: { href: '/dashboard/search-strategy#optional-questions', label: 'Search Strategy' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
   SKILLS_ASSESSMENT_COMPLETED: { href: '/dashboard/skills-assessment', label: 'Skills Assessment' },
+  PERFORMANCE_ASSESSMENT_COMPLETED: { href: '/dashboard/how-i-perform', label: 'How I Perform' },
   COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
@@ -735,7 +745,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   ],
   privacy: ['PRIVACY_CONFIRMED'],
   references: ['REFERENCE_ADDED'],
-  'skills-assessments': ['WORKING_STYLE_QUIZ', 'SKILLS_ASSESSMENT_COMPLETED'],
+  'skills-assessments': ['WORKING_STYLE_QUIZ', 'SKILLS_ASSESSMENT_COMPLETED', 'PERFORMANCE_ASSESSMENT_COMPLETED'],
   'search-strategy': [],
   stats: [],
   'got-hired': [],

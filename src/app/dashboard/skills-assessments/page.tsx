@@ -34,11 +34,18 @@ function SkillsToBuildSkeleton() {
 export default async function SkillsAssessmentsPage() {
   const profile = await getDashboardData()
 
-  const latestWorkStyleResponse = await prisma.candidateAssessmentResponse.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { completedAt: 'desc' },
-    select: { completedAt: true },
-  })
+  const [latestWorkStyleResponse, latestPerformanceResponse] = await Promise.all([
+    prisma.candidateAssessmentResponse.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { completedAt: 'desc' },
+      select: { completedAt: true },
+    }),
+    prisma.performanceAssessmentResponse.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { completedAt: 'desc' },
+      select: { completedAt: true },
+    }),
+  ])
 
   const assessments = [
     {
@@ -50,6 +57,16 @@ export default async function SkillsAssessmentsPage() {
       points: estimateActionEffort({ actionType: 'WORKING_STYLE_QUIZ' }).points,
       href: '/dashboard/retake-assessment',
       ctaLabel: latestWorkStyleResponse ? 'Retake' : 'Take the quiz',
+    },
+    {
+      key: 'performance',
+      title: 'How I Perform',
+      description:
+        'How you execute, decide, hold up under pressure, and get things done through other people. Your references answer these same questions about you.',
+      completedAt: latestPerformanceResponse?.completedAt ?? null,
+      points: estimateActionEffort({ actionType: 'PERFORMANCE_ASSESSMENT_COMPLETED' }).points,
+      href: '/dashboard/how-i-perform',
+      ctaLabel: latestPerformanceResponse ? 'Retake' : 'Take the assessment',
     },
     {
       key: 'skills',

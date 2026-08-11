@@ -886,6 +886,7 @@ model CandidateProfile {
   portfolioAccessRequests      PortfolioAccessRequest[]
   assessmentResults            AssessmentResult[]
   assessmentResponses          CandidateAssessmentResponse[]
+  performanceAssessmentResponses PerformanceAssessmentResponse[]
   resumes                      Resume[]
   jobPostings                  JobPosting[]
   communityPosts               CommunityPost[]
@@ -1600,6 +1601,35 @@ model CandidateAssessmentResponse {
   // both this response and at least one BARS-scored reference exist.
   referenceDelta   Json? // Candidate vector vs reference BARS aggregate
   frictionSurfaces String[] // Dimensions where delta > threshold — shown to employers
+
+  @@index([candidateId])
+}
+
+// Assessment Layer spec Part 3 ("How I Perform") — a *performance* self-report,
+// deliberately separate from CandidateAssessmentResponse above which is a
+// *style* self-report (no right/wrong answer). This one has a right and wrong
+// end per item; Reference.perf* fields (Part A of the Reference Check) rate
+// the same 4 scored dimensions in parallel on the same referee. Integrity is
+// 5th dimension, self-only — never surfaced as a score, never blended into
+// the Hireability grade (spec §3.2), only read by Coaching Notes / Hiring
+// Manager Notes.
+model PerformanceAssessmentResponse {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  completedAt DateTime         @default(now())
+
+  responses Json // Array of {itemId: 1-40, score: 1-4} — raw answers, reverse items not yet flipped
+
+  // Computed 1-4 dimension means, reverse-scored items flipped. Never display
+  // the raw float to a candidate or employer — round via meanToAnchorLabel-
+  // style presentation at the read site, same rule as the Reference Check
+  // anchored scale (src/lib/references/anchored-scale.ts).
+  executionScore Float
+  judgmentScore  Float
+  composureScore Float
+  influenceScore Float
+  integrityScore Float
 
   @@index([candidateId])
 }

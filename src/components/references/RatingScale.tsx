@@ -13,6 +13,7 @@ export function RatingScale({
   label,
   lowLabel = 'Strongly disagree',
   highLabel = 'Strongly agree',
+  points = [1, 2, 3, 4, 5],
   id,
   onAnswered,
   highlighted,
@@ -21,6 +22,7 @@ export function RatingScale({
   label: string
   lowLabel?: string
   highLabel?: string
+  points?: number[]
   id?: string
   onAnswered?: () => void
   highlighted?: boolean
@@ -37,7 +39,7 @@ export function RatingScale({
     >
       <legend className="text-lg leading-snug text-foreground">{label}</legend>
       <div className="flex justify-between gap-1 sm:gap-2">
-        {[1, 2, 3, 4, 5].map((point) => {
+        {points.map((point) => {
           const isSelected = value === point
           return (
             <label key={point} className="flex flex-1 cursor-pointer flex-col items-center gap-1">
