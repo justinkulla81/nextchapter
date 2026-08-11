@@ -17,15 +17,40 @@
 
 import { prisma } from '@/lib/prisma'
 import { ASSESSMENT_DIMENSIONS, type AssessmentDimension } from '@/lib/constants/onboarding'
+import { WORK_STYLE_DIMENSION_LABEL, type WorkStyleDimension } from '@/lib/constants/how-i-work-best-items'
 import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { aggregatePerformance, type PerformanceAggregate } from '@/lib/references/aggregate-performance'
 import type { Reference } from '@prisma/client'
 
 export interface FrictionExample {
-  dimension: AssessmentDimension
+  dimension: string
   dimensionLabel: string
   candidateDescription: string
   referenceDescription: string
+}
+
+// Assessment Layer spec Part 2.1's dimension merge/rename (see
+// reference-delta.ts's NEW_DIMENSION_BARS_SOURCE) means a rotationGroup-3
+// candidate's frictionSurfaces can contain keys ASSESSMENT_DIMENSIONS (the
+// legacy 9-dimension list) doesn't know about. Resolve labels from the new
+// list first, falling back to the old one for legacy responses.
+function dimensionLabel(dim: string): string {
+  const newLabel = WORK_STYLE_DIMENSION_LABEL[dim.toUpperCase() as WorkStyleDimension]
+  if (newLabel) return newLabel
+  return ASSESSMENT_DIMENSIONS.find((d) => d.key === dim)?.label ?? dim
+}
+
+// BARSAnchor rows only exist under the 9 legacy dimension names — no new
+// anchor text was authored for the merged Definition/Collaboration
+// dimensions. Reusing one component's anchor text as a representative
+// behavioral description is a deliberate, disclosed simplification (not a
+// guess at new content); renamed dimensions (Directness/Rigor) alias
+// directly since they're the same underlying BARS column under a new name.
+const ANCHOR_LOOKUP_ALIAS: Record<string, string> = {
+  directness: 'leadership',
+  rigor: 'conscientiousness',
+  definition: 'architecture',
+  collaboration: 'communication',
 }
 
 export interface ProfileConsistencyAlert {
@@ -222,9 +247,7 @@ export async function generateHiringManagerReport(candidateId: string): Promise<
 
     const frictionSurfaces = latestResponse.frictionSurfaces ?? []
     if (frictionSurfaces.length > 0) {
-      interviewAuditFocusAreas = frictionSurfaces.map(
-        (dim) => ASSESSMENT_DIMENSIONS.find((d) => d.key === dim)?.label ?? dim
-      )
+      interviewAuditFocusAreas = frictionSurfaces.map(dimensionLabel)
       redFlagsSummary.push(
         `References described this candidate's actual day-to-day behavior differently than the candidate described themselves, in ${frictionSurfaces.length} area${frictionSurfaces.length > 1 ? 's' : ''}. See Interview Audit Focus Areas below.`
       )
@@ -236,20 +259,20 @@ export async function generateHiringManagerReport(candidateId: string): Promise<
 
       if (referenceDelta) {
         frictionExamples = frictionSurfaces.map((dim) => {
-          const dimMeta = ASSESSMENT_DIMENSIONS.find((d) => d.key === dim)
+          const anchorKey = ANCHOR_LOOKUP_ALIAS[dim] ?? dim
           const candidateDescription = nearestAnchorText(
             candidateVectors[dim as AssessmentDimension],
-            dim,
+            anchorKey,
             anchorsByDimension
           )
           const referenceDescription = nearestAnchorText(
             referenceDelta.aggregatedRefVectors[dim] ?? 0,
-            dim,
+            anchorKey,
             anchorsByDimension
           )
           return {
-            dimension: dim as AssessmentDimension,
-            dimensionLabel: dimMeta?.label ?? dim,
+            dimension: dim,
+            dimensionLabel: dimensionLabel(dim),
             candidateDescription: candidateDescription ?? 'No self-reported behavioral anchor available.',
             referenceDescription: referenceDescription ?? 'No reference behavioral anchor available.',
           }

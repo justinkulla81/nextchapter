@@ -15,6 +15,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
+import { translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
 import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
@@ -183,8 +184,14 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
   })
 
   const latestAssessment = candidate.assessmentResponses[0]
+  // See dossier-sections.ts's getHowIOperate for why this branches — a
+  // rotationGroup-3 response uses a different dimension-key set than
+  // translateDimensionVectors expects.
+  const latestAssessmentVectors = latestAssessment?.dimensionVectors as Record<string, number> | undefined
   const dimensionSummary = latestAssessment
-    ? translateDimensionVectors(latestAssessment.dimensionVectors as unknown as DimensionVectors)
+    ? 'definition' in (latestAssessmentVectors ?? {})
+      ? translateWorkStyleVectors(latestAssessmentVectors as Record<string, number>)
+      : translateDimensionVectors(latestAssessment.dimensionVectors as unknown as DimensionVectors)
     : null
 
   const latestResume = candidate.resumes[0]

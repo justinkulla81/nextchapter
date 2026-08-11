@@ -38,7 +38,9 @@ function checkLeadership(inputs: SelfAwarenessInputs): SelfAwarenessRead {
 
   const claimsLeadership =
     inputs.topStrengths.includes('people_manager') || (inputs.managementSkillConfidence ?? 0) >= HIGH_SELF_RATING_THRESHOLD
-  const leadershipVector = inputs.dimensionVectors?.leadership
+  // rotationGroup 3 renamed this dimension Leadership -> Directness (spec
+  // Part 2.1) — read whichever key the candidate's response actually has.
+  const leadershipVector = inputs.dimensionVectors?.directness ?? inputs.dimensionVectors?.leadership
   const structuredSignalWeak = inputs.isPeopleManager === false
 
   if (claimsLeadership && structuredSignalWeak) {
@@ -62,7 +64,9 @@ function checkCommunication(inputs: SelfAwarenessInputs): SelfAwarenessRead {
   }
 
   const highSelfRating = (inputs.communicatorConfidence ?? 0) >= HIGH_SELF_RATING_THRESHOLD
-  const communicationVector = inputs.dimensionVectors?.communication
+  // rotationGroup 3 merged Communication+Environment -> Collaboration (spec
+  // Part 2.1) — read whichever key the candidate's response actually has.
+  const communicationVector = inputs.dimensionVectors?.collaboration ?? inputs.dimensionVectors?.communication
   const noStrengthListed = !inputs.topStrengths.includes('clear_communicator')
 
   if (highSelfRating && communicationVector !== undefined && communicationVector < LOW_POLE_THRESHOLD && noStrengthListed) {

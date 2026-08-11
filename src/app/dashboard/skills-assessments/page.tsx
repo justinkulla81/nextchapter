@@ -52,7 +52,7 @@ export default async function SkillsAssessmentsPage() {
       key: 'working-style',
       title: 'How I Work Best',
       description:
-        'A quick quad-block quiz on your working style — how you operate, decide, and collaborate.',
+        'A quick self-report on your working style — how you operate, decide, and collaborate. Your references answer these same questions about you.',
       completedAt: latestWorkStyleResponse?.completedAt ?? null,
       points: estimateActionEffort({ actionType: 'WORKING_STYLE_QUIZ' }).points,
       href: '/dashboard/retake-assessment',

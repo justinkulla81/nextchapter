@@ -60,6 +60,10 @@ export function AssessmentForm({
   // toggled — so QuadBlockCard/LikertItemRow's own internal selection
   // state survives moving forward/back through the wizard.
   const pageCount = quadPages.length + likertPages.length
+  // rotationGroup 3 (How I Work Best rebuild) has zero QuadBlocks and scores
+  // its Likert items on a 1-4 scale server-side (src/app/onboarding/actions.ts
+  // isLikertOnlyRotation) — the legacy rotation's Likert items are 1-5.
+  const isLikertOnlyRotation = quadPages.length === 0
   const [step, setStep] = useState(0)
   const [thinking, setThinking] = useState(false)
   const [encouragementIndex, setEncouragementIndex] = useState<number | null>(null)
@@ -198,6 +202,7 @@ export function AssessmentForm({
                 itemText={item.itemText}
                 onAnswered={(id) => setAnsweredLikertItems((prev) => new Set(prev).add(id))}
                 highlighted={highlightId === `likert-item-${item.id}`}
+                points={isLikertOnlyRotation ? [1, 2, 3, 4] : undefined}
               />
             ))}
           </div>

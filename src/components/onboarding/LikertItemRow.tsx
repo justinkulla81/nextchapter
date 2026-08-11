@@ -5,11 +5,13 @@ export function LikertItemRow({
   itemText,
   onAnswered,
   highlighted,
+  points,
 }: {
   itemId: string
   itemText: string
   onAnswered?: (itemId: string) => void
   highlighted?: boolean
+  points?: number[]
 }) {
   return (
     <RatingScale
@@ -18,6 +20,7 @@ export function LikertItemRow({
       label={itemText}
       onAnswered={() => onAnswered?.(itemId)}
       highlighted={highlighted}
+      points={points}
     />
   )
 }

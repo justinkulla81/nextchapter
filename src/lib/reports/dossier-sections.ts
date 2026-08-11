@@ -11,6 +11,7 @@ import {
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
+import { translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { TOP_STRENGTH_OPTIONS, LOCATION_PREFERENCE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
@@ -313,8 +314,23 @@ export async function getHowIOperate(
     where: { candidateId },
     orderBy: { completedAt: 'desc' },
   })
+  // rotationGroup 3 (the Assessment Layer rebuild) stores a different key
+  // set (velocity/definition/collaboration/directness/oversight/commitment/
+  // rigor) than the legacy rotationGroup-2 quad+Likert instrument
+  // (velocity/architecture/structure/communication/environment/leadership/
+  // oversight/commitment/conscientiousness) — translateDimensionVectors only
+  // knows the legacy 9, so calling it on a rotation-3 response would read
+  // undefined for the 6 keys it doesn't recognize and mislabel them
+  // "Strongly leans" toward the high pole. Detect which set a response
+  // actually used via a new-only key rather than assuming by rotation.
+  const rawVectors = latestAssessment?.dimensionVectors as Record<string, number> | null | undefined
+  const isWorkStyleRebuild = rawVectors != null && 'definition' in rawVectors
   const dimensionSummaries = latestAssessment
-    ? Object.values(translateDimensionVectors(latestAssessment.dimensionVectors as unknown as DimensionVectors))
+    ? Object.values(
+        isWorkStyleRebuild
+          ? translateWorkStyleVectors(rawVectors as Record<string, number>)
+          : translateDimensionVectors(latestAssessment.dimensionVectors as unknown as DimensionVectors)
+      )
     : []
 
   const alignment = await computeReferenceAlignment(candidateId)

@@ -26,6 +26,25 @@ export const BARS_FIELD_BY_DIMENSION: Record<AssessmentDimension, string> = {
   conscientiousness: 'barsConscientiousness',
 }
 
+// Assessment Layer spec Part 2.1 merges Architecture+Structure -> Definition
+// and Communication+Environment -> Collaboration on the SELF-report side
+// (see how-i-work-best-items.ts), and renames Leadership -> Directness,
+// Conscientiousness -> Rigor. The reference side still rates all 9 original
+// BARS columns separately — no reference-form change, per the founder's
+// decision to reconcile this by merging at read time instead. These are the
+// new dimension keys a rotationGroup-3 candidate's dimensionVectors uses;
+// `calculateReferenceDelta` below is dimension-key-agnostic (it only reads
+// whatever keys are actually present in candidateVectors), so emitting both
+// the legacy 9 keys AND these new ones into aggregatedRefVectors lets the
+// same pure function serve rotationGroup-2 (old keys) and rotationGroup-3
+// (new keys) candidates without knowing which rotation produced the response.
+const NEW_DIMENSION_BARS_SOURCE: Record<string, string[]> = {
+  directness: ['barsLeadership'],
+  rigor: ['barsConscientiousness'],
+  definition: ['barsArchitecture', 'barsStructure'],
+  collaboration: ['barsCommunication', 'barsEnvironment'],
+}
+
 export interface ReferenceDeltaResult {
   deltas: Record<string, number>
   frictionSurfaces: string[]
@@ -95,6 +114,16 @@ export async function syncReferenceDelta(candidateId: string) {
       const field = BARS_FIELD_BY_DIMENSION[dim.key]
       const score = ref[field as keyof typeof ref] as number | null
       if (score !== null) dimensionScores[dim.key] = score
+    }
+    // Also emit the new (renamed/merged) dimension keys, averaging when a
+    // merge draws on 2 BARS columns — see NEW_DIMENSION_BARS_SOURCE above.
+    for (const [newDim, fields] of Object.entries(NEW_DIMENSION_BARS_SOURCE)) {
+      const scores = fields
+        .map((field) => ref[field as keyof typeof ref] as number | null)
+        .filter((s): s is number => s !== null)
+      if (scores.length > 0) {
+        dimensionScores[newDim] = scores.reduce((sum, s) => sum + s, 0) / scores.length
+      }
     }
     return { dimensionScores }
   })

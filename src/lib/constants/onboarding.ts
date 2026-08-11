@@ -204,7 +204,14 @@ export function confidenceSliderLabel(
 // Which QuadBlock/LikertItem rotationGroup is currently live in onboarding —
 // bump this when re-seeding new assessment content so old and new content
 // don't collide (see scripts/seed-assessment-content.ts).
-export const CURRENT_ASSESSMENT_ROTATION_GROUP = 2
+//
+// rotationGroup 3 is the Assessment Layer rebuild (spec Part 2) — the
+// frozen 56-item, 7-dimension, Likert-only bank in
+// how-i-work-best-items.ts, seeded via scripts/seed-how-i-work-best-frozen.ts.
+// It has zero QuadBlock rows on purpose (quad-blocks are cut entirely).
+// updateAssessment in onboarding/actions.ts branches on
+// `activeBlocks.length === 0` to detect this and score accordingly.
+export const CURRENT_ASSESSMENT_ROTATION_GROUP = 3
 
 // The 9 work-style dimensions probed by the quad-block/Likert assessment.
 // "low"/"high" describe the two poles QuadBlockStatement.pole and
