@@ -31,28 +31,16 @@ function SkillsToBuildSkeleton() {
   )
 }
 
-// Modules 4-6 of the spec's 7-module roster (Track Record, Work Interests,
-// What I Need) aren't built yet — listed here as locked cards so the full
-// roster is visible/honest about scope, rather than only showing the 4
-// modules that happen to exist today.
+// Work Interests (spec module 5, O*NET RIASEC) isn't built yet — blocked on
+// an O*NET Web Services account only the account owner can register.
+// Track Record and What I Need (modules 4 and 6) are real now, listed in
+// the main roster below.
 const UPCOMING_MODULES = [
-  {
-    key: 'track-record',
-    title: 'Track Record',
-    description: 'Scope, ownership, and the kind of situations you’ve operated in — verified against what your references say.',
-    feeds: 'Feeds: Executive Dossier · Hiring Manager Notes',
-  },
   {
     key: 'work-interests',
     title: 'Work Interests',
     description: 'What kind of work actually energizes you, based on the Holland RIASEC framework used across career counseling.',
     feeds: 'Feeds: Job Recommendations · Learning recommendations',
-  },
-  {
-    key: 'what-i-need',
-    title: 'What I Need',
-    description: 'The work values you’re not willing to trade away, ranked — comp, flexibility, growth, stability, and more.',
-    feeds: 'Feeds: Search Strategy · Coaching Notes',
   },
 ] as const
 
@@ -72,6 +60,9 @@ export default async function SkillsAssessmentsPage() {
     }),
     prisma.reference.count({ where: { candidateId: profile.id, completedAt: { not: null } } }),
   ])
+
+  const trackRecordCompletedAt = profile.trackRecordCompletedAt
+  const whatINeedCompletedAt = profile.whatINeedCompletedAt
 
   const assessments = [
     {
@@ -106,6 +97,28 @@ export default async function SkillsAssessmentsPage() {
       points: estimateActionEffort({ actionType: 'SKILLS_ASSESSMENT_COMPLETED' }).points,
       href: '/dashboard/skills-assessment',
       ctaLabel: profile.skillsAssessmentCompletedAt ? 'Retake' : 'Take the assessment',
+    },
+    {
+      key: 'track-record',
+      title: 'Track Record',
+      description:
+        'Scope, ownership, and the kind of situations you’ve operated in — verified against what your references say.',
+      feeds: 'Feeds: Executive Dossier · Hiring Manager Notes',
+      completedAt: trackRecordCompletedAt,
+      points: estimateActionEffort({ actionType: 'TRACK_RECORD_COMPLETED' }).points,
+      href: '/dashboard/track-record',
+      ctaLabel: trackRecordCompletedAt ? 'Retake' : 'Take the assessment',
+    },
+    {
+      key: 'what-i-need',
+      title: 'What I Need',
+      description:
+        'The work values you’re not willing to trade away, ranked — comp, flexibility, growth, stability, and more.',
+      feeds: 'Feeds: Search Strategy · Coaching Notes',
+      completedAt: whatINeedCompletedAt,
+      points: estimateActionEffort({ actionType: 'WHAT_I_NEED_COMPLETED' }).points,
+      href: '/dashboard/what-i-need',
+      ctaLabel: whatINeedCompletedAt ? 'Retake' : 'Take the assessment',
     },
     {
       key: 'reference-check',

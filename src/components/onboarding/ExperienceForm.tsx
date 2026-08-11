@@ -3,19 +3,12 @@
 import { useActionState, useState } from 'react'
 import { updateExperience } from '@/app/onboarding/actions'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfidenceSlider } from './ConfidenceSlider'
-import { ChoiceButtons } from './ChoiceButtons'
 import { MultiChoiceButtons } from './MultiChoiceButtons'
 import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
-
-const YES_NO_OPTIONS = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-] as const
 
 // Core job-function/AI skills go all the way to "best in my field" — these
 // are the kind of skills people can confidently self-assess as elite.
@@ -35,7 +28,10 @@ const MANAGEMENT_LABELS = [
 
 export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateExperience, undefined)
-  const [isPeopleManager, setIsPeopleManager] = useState<boolean | null>(profile.isPeopleManager)
+  // Asked from Track Record now (spec §4.2 item 16), not during onboarding —
+  // this just reads whatever value is already on the profile to gate the
+  // management-confidence slider below.
+  const isPeopleManager = profile.isPeopleManager
   const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
 
   // Tailors the management-confidence slider toward a strength the
@@ -66,30 +62,6 @@ export function ExperienceForm({ profile }: { profile: CandidateProfile }) {
           max={TOP_STRENGTHS_MAX}
         />
       </div>
-
-      <div className="space-y-2">
-        <Label>Have you been a people manager?</Label>
-        <ChoiceButtons
-          name="isPeopleManager"
-          options={YES_NO_OPTIONS}
-          value={isPeopleManager === null ? null : isPeopleManager ? 'yes' : 'no'}
-          onChange={(value) => setIsPeopleManager(value === 'yes')}
-          columns={2}
-        />
-      </div>
-
-      {isPeopleManager && (
-        <div className="space-y-2">
-          <Label htmlFor="teamSizeManaged">Largest team you managed</Label>
-          <Input
-            id="teamSizeManaged"
-            name="teamSizeManaged"
-            type="number"
-            min={0}
-            defaultValue={profile.teamSizeManaged ?? undefined}
-          />
-        </div>
-      )}
 
       <ConfidenceSlider
         name="functionSkillConfidence"

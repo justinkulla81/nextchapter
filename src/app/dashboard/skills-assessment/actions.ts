@@ -24,8 +24,11 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  const isPeopleManagerRaw = formData.get('isPeopleManager') as string | null
-  const isPeopleManager = isPeopleManagerRaw === 'yes'
+  // isPeopleManager/teamSizeManaged are no longer asked here — moved to
+  // Track Record (spec §4.2 item 16). isPeopleManager still gates the
+  // managementSkillConfidence slider below, read from the profile value
+  // Track Record wrote rather than from this form.
+  const isPeopleManager = profile.isPeopleManager
   const topStrengths = formData.getAll('topStrengths').map(String)
   const functionSkillConfidence = formData.get('functionSkillConfidence')
   const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
@@ -40,13 +43,7 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
-      isPeopleManager,
       topStrengths,
-      teamSizeManaged: isPeopleManager
-        ? formData.get('teamSizeManaged')
-          ? Number(formData.get('teamSizeManaged'))
-          : 0
-        : null,
       functionSkillConfidence: functionSkillConfidence ? Number(functionSkillConfidence) : null,
       aiFlexibilityLevel: aiFlexibilityLevel ? Number(aiFlexibilityLevel) : null,
       managementSkillConfidence: isPeopleManager && managementSkillConfidence ? Number(managementSkillConfidence) : null,

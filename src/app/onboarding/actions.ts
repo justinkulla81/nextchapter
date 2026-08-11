@@ -378,13 +378,16 @@ export async function updateExperience(
 ): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
-  const isPeopleManagerRaw = formData.get('isPeopleManager') as string | null
-
-  if (!isPeopleManagerRaw) {
-    return { error: 'Please answer all required questions.' }
-  }
-
-  const isPeopleManager = isPeopleManagerRaw === 'yes'
+  // isPeopleManager/teamSizeManaged are no longer asked here — moved to
+  // Track Record (spec §4.2 item 16). isPeopleManager still gates the
+  // managementSkillConfidence slider below, read from whatever's already on
+  // the profile (null pre-Track-Record, same as any other not-yet-answered
+  // profile field) rather than required in this form.
+  const existing = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: { isPeopleManager: true },
+  })
+  const isPeopleManager = existing?.isPeopleManager ?? false
   const topStrengths = formData.getAll('topStrengths').map(String)
   const functionSkillConfidence = formData.get('functionSkillConfidence')
   const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
@@ -397,13 +400,7 @@ export async function updateExperience(
     await prisma.candidateProfile.update({
       where: { id: candidateId },
       data: {
-        isPeopleManager,
         topStrengths,
-        teamSizeManaged: isPeopleManager
-          ? formData.get('teamSizeManaged')
-            ? Number(formData.get('teamSizeManaged'))
-            : 0
-          : null,
         functionSkillConfidence: functionSkillConfidence ? Number(functionSkillConfidence) : null,
         aiFlexibilityLevel: aiFlexibilityLevel ? Number(aiFlexibilityLevel) : null,
         managementSkillConfidence: isPeopleManager && managementSkillConfidence

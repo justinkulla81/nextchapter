@@ -3,19 +3,12 @@
 import { useActionState, useState } from 'react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
-import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { MultiChoiceButtons } from '@/components/onboarding/MultiChoiceButtons'
 import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
-
-const YES_NO_OPTIONS = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-] as const
 
 const CORE_SKILL_LABELS = [
   'Just getting started',
@@ -33,7 +26,10 @@ const MANAGEMENT_LABELS = [
 
 export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateSkillsAssessment, undefined)
-  const [isPeopleManager, setIsPeopleManager] = useState<boolean | null>(profile.isPeopleManager)
+  // Asked from Track Record now (spec §4.2 item 16), not here — this just
+  // reads the value Track Record wrote to gate the management-confidence
+  // slider below, rather than asking it again.
+  const isPeopleManager = profile.isPeopleManager
   const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
 
   const functionLabel = profile.resumeLatestJobTitle ?? profile.primaryFunction
@@ -57,30 +53,6 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           max={TOP_STRENGTHS_MAX}
         />
       </div>
-
-      <div className="space-y-2">
-        <Label>Have you been a people manager?</Label>
-        <ChoiceButtons
-          name="isPeopleManager"
-          options={YES_NO_OPTIONS}
-          value={isPeopleManager === null ? null : isPeopleManager ? 'yes' : 'no'}
-          onChange={(value) => setIsPeopleManager(value === 'yes')}
-          columns={2}
-        />
-      </div>
-
-      {isPeopleManager && (
-        <div className="space-y-2">
-          <Label htmlFor="teamSizeManaged">Largest team you managed</Label>
-          <Input
-            id="teamSizeManaged"
-            name="teamSizeManaged"
-            type="number"
-            min={0}
-            defaultValue={profile.teamSizeManaged ?? undefined}
-          />
-        </div>
-      )}
 
       <ConfidenceSlider
         name="functionSkillConfidence"

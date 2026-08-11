@@ -142,6 +142,64 @@ enum GapDurationBucket {
   TWELVE_PLUS_MONTHS
 }
 
+// Track Record bands (spec §4.2) — reused across several items (team size,
+// org size, people hired) since they're all "how many people" questions on
+// the same real scale, not because the underlying facts are the same.
+enum TrackRecordSizeBand {
+  NONE
+  ONE_TO_FIVE
+  SIX_TO_TWENTY
+  TWENTY_ONE_TO_FIFTY
+  FIFTY_ONE_TO_TWO_HUNDRED
+  TWO_HUNDRED_PLUS
+}
+
+// Dollar-scope band — reused for budget/P&L owned and largest initiative
+// scope, same reasoning as TrackRecordSizeBand above.
+enum TrackRecordDollarBand {
+  NONE
+  UNDER_100K
+  ONE_HUNDRED_K_TO_1M
+  ONE_M_TO_10M
+  TEN_M_TO_100M
+  OVER_100M
+}
+
+enum TrackRecordTenureBand {
+  UNDER_ONE_YEAR
+  ONE_TO_TWO_YEARS
+  TWO_TO_FOUR_YEARS
+  FOUR_TO_SEVEN_YEARS
+  SEVEN_PLUS_YEARS
+}
+
+enum TrackRecordBoardExposure {
+  NONE
+  PRESENTED_TO
+  MEMBER_OF
+}
+
+enum TrackRecordPnlAccountability {
+  PNL
+  BUDGET
+  NEITHER
+}
+
+enum TrackRecordGeographicScope {
+  SINGLE_SITE
+  MULTI_SITE
+  MULTI_COUNTRY
+}
+
+enum TrackRecordReportedToLevel {
+  MANAGER
+  DIRECTOR
+  VP
+  C_SUITE
+  CEO
+  BOARD
+}
+
 // "When are you most ready to take action?" — controls daily email timing.
 enum ActionWindow {
   MORNING // Plan and act in the morning
@@ -514,8 +572,8 @@ model CandidateProfile {
   // recommendation gating and the Coaching Notes openness-to-learning
   // signal (src/lib/coach/coaching-notes.ts).
   certifications           String[] @default([])
-  isPeopleManager          Boolean? // gates teamSizeManaged + managementSkillConfidence questions
-  teamSizeManaged          Int? // 0 = IC, otherwise largest team managed
+  isPeopleManager          Boolean? // gates teamSizeManaged + managementSkillConfidence questions — now asked from Track Record (spec §4.2 item 16), written to this same field so existing consumers are unaffected
+  teamSizeManaged          Int? // 0 = IC, otherwise largest team managed — legacy raw-number field, no longer asked anywhere (Track Record's largestTeamManaged supersedes it as a band); kept as a read-only fallback for existing candidates and the several consumers that read it directly
   topStrengths             String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
   knownFor                 String? // "How former colleagues would describe me" — required before requesting references
 
@@ -588,39 +646,39 @@ model CandidateProfile {
   // Search Strategy — a standalone, editable-anytime setup step. Search
   // Stage itself isn't stored here — it's derived from currentJobStatus +
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
-  applicationVolumeGoal      Int? // target applications per week
-  isPivoting                 Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  applicationVolumeGoal          Int? // target applications per week
+  isPivoting                     Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
-  skillsToBuild              String[]  @default([])
+  skillsToBuild                  String[]  @default([])
   // Cached LLM-generated suggestions for the box above — {resumeGaps,
   // roleGaps, modernSkills}, each a string[]. Regenerated only when
   // skillGapSuggestionsFingerprint no longer matches the candidate's
   // current resume/target-role/industries (see skill-gap-suggestions.ts) —
   // this is a real per-candidate LLM cost, so it must never fire on every
   // page view.
-  skillGapSuggestions             Json?
-  skillGapSuggestionsFingerprint  String?
-  interimConsultingInterest  Boolean   @default(false)
-  searchStrategyConfirmedAt  DateTime?
+  skillGapSuggestions            Json?
+  skillGapSuggestionsFingerprint String?
+  interimConsultingInterest      Boolean   @default(false)
+  searchStrategyConfirmedAt      DateTime?
   // Restrictive covenant from a current/former employer (non-compete,
   // non-solicit, non-disparagement, garden leave, etc.) — a real Red Line
   // for coaches/recruiters, since it can literally block or delay a
   // candidate from certain roles or employers. Nullable tri-state: null
   // means not asked yet, distinct from an explicit "No."
-  hasRestrictiveCovenant     Boolean?
-  restrictiveCovenantDetails String? // which type + scope/duration, in the candidate's own words
+  hasRestrictiveCovenant         Boolean?
+  restrictiveCovenantDetails     String? // which type + scope/duration, in the candidate's own words
   // Screening questions — real Red Lines for recruiters/hiring managers,
   // same nullable tri-state shape as hasRestrictiveCovenant above (null =
   // not asked yet). Bundled with it into one RED_FLAGS_CONFIRMED one-time
   // bonus (see complete-profile/actions.ts) rather than separate bonuses
   // per question, same "small related-question bundle" shape as
   // ANSWER_OPTIONAL_QUESTIONS/COMFORT_CHECK_CONFIRM.
-  willingToTakeDrugTest       Boolean?
-  willingToTakeBackgroundCheck Boolean?
-  wantsAnimalFriendlyWorkplace Boolean?
-  redFlagsBonusAt              DateTime?
+  willingToTakeDrugTest          Boolean?
+  willingToTakeBackgroundCheck   Boolean?
+  wantsAnimalFriendlyWorkplace   Boolean?
+  redFlagsBonusAt                DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
   // (targetCompMin) and expanded with real benefit-importance questions
@@ -728,6 +786,11 @@ model CandidateProfile {
   // itself is retakeable any time to keep personalization current, but the
   // points only award once.
   skillsAssessmentCompletedAt DateTime?
+  // Same one-time Weekly Sprint bonus pattern as skillsAssessmentCompletedAt
+  // above, for the two Assessment Layer Part 4 modules (Track Record,
+  // What I Need) — both forms are retakeable any time.
+  trackRecordCompletedAt      DateTime?
+  whatINeedCompletedAt        DateTime?
 
   // LinkedIn & job-search behaviors
   linkedInUrl               String?
@@ -870,57 +933,59 @@ model CandidateProfile {
   recruiterUnlockNudgeOptedOut Boolean   @default(false)
 
   // Relations
-  workHistory                  WorkHistoryEntry[]
-  educationHistory             EducationEntry[]
-  references                   Reference[]
-  referenceQuotes              ReferenceQuote[]
-  claimedEmployerReferences    EmployerReferenceSubmission[]
-  jobClickEvents               JobClickEvent[]
-  workSamples                  WorkSample[]
-  interviewResponses           InterviewResponse[]
-  peerNominations              PeerNomination[]
-  learningBadges               LearningBadge[]
-  aiToolFamiliarity            CandidateAiToolFamiliarity[]
-  employerInteractions         CandidateInteraction[]
-  approvedEmployers            ApprovedEmployer[]
-  portfolioAccessRequests      PortfolioAccessRequest[]
-  assessmentResults            AssessmentResult[]
-  assessmentResponses          CandidateAssessmentResponse[]
+  workHistory                    WorkHistoryEntry[]
+  educationHistory               EducationEntry[]
+  references                     Reference[]
+  referenceQuotes                ReferenceQuote[]
+  claimedEmployerReferences      EmployerReferenceSubmission[]
+  jobClickEvents                 JobClickEvent[]
+  workSamples                    WorkSample[]
+  interviewResponses             InterviewResponse[]
+  peerNominations                PeerNomination[]
+  learningBadges                 LearningBadge[]
+  aiToolFamiliarity              CandidateAiToolFamiliarity[]
+  employerInteractions           CandidateInteraction[]
+  approvedEmployers              ApprovedEmployer[]
+  portfolioAccessRequests        PortfolioAccessRequest[]
+  assessmentResults              AssessmentResult[]
+  assessmentResponses            CandidateAssessmentResponse[]
   performanceAssessmentResponses PerformanceAssessmentResponse[]
-  resumes                      Resume[]
-  jobPostings                  JobPosting[]
-  communityPosts               CommunityPost[]
-  expressedInterests           CommunityPostInterest[]
-  hireabilityReports           HireabilityReport[]
-  linkedInActivityLogs         LinkedInActivityLog[]
-  coachConversation            CoachConversation?
-  narratives                   CandidateNarrative[]
-  coachingWaitlistEntries      CoachingWaitlist[]
-  guideLeadEntries             GuideLead[]
-  bountyClaims                 BountyClaim[]
-  dailyCheckIns                DailyCheckIn[]
-  weeklySprints                WeeklySprint[]
-  sundayNightReports           SundayNightReport[]
-  weeklyBadgesEarned           WeeklyBadgeEarned[]
-  marketRealitySnapshots       MarketRealitySnapshot[]
-  encouragementNotesSent       EncouragementNote[]           @relation("EncouragementSent")
-  encouragementNotesReceived   EncouragementNote[]           @relation("EncouragementReceived")
-  supportNetworkContacts       SupportNetworkContact[]
-  outreachLogs                 OutreachLog[]
-  surfacedJobs                 SurfacedJob[]
-  jobBoardIntroRequests        JobBoardIntroRequest[]
-  candidateJobBoardSubmissions ExclusiveJobPosting[]
-  pivotIdeas                   PivotIdea[]
-  marketResponseLogs           MarketResponseLog[]
-  profileShares                ProfileShare[]
-  interimMarketplaceSignups    InterimMarketplaceSignup[]
-  partnerClickThroughs         PartnerClickThrough[]
-  companyWatchlist             CompanyWatchlistEntry[]
-  emailConnection              EmailConnection?
-  trackedEmailActivities       TrackedEmailActivity[]
-  adminEmailLogs               AdminEmailLog[]
-  calendarConnection           CalendarConnection?
-  trackedCalendarEvents        TrackedCalendarEvent[]
+  trackRecordResponse            TrackRecordResponse?
+  whatINeedResponse              WhatINeedResponse?
+  resumes                        Resume[]
+  jobPostings                    JobPosting[]
+  communityPosts                 CommunityPost[]
+  expressedInterests             CommunityPostInterest[]
+  hireabilityReports             HireabilityReport[]
+  linkedInActivityLogs           LinkedInActivityLog[]
+  coachConversation              CoachConversation?
+  narratives                     CandidateNarrative[]
+  coachingWaitlistEntries        CoachingWaitlist[]
+  guideLeadEntries               GuideLead[]
+  bountyClaims                   BountyClaim[]
+  dailyCheckIns                  DailyCheckIn[]
+  weeklySprints                  WeeklySprint[]
+  sundayNightReports             SundayNightReport[]
+  weeklyBadgesEarned             WeeklyBadgeEarned[]
+  marketRealitySnapshots         MarketRealitySnapshot[]
+  encouragementNotesSent         EncouragementNote[]             @relation("EncouragementSent")
+  encouragementNotesReceived     EncouragementNote[]             @relation("EncouragementReceived")
+  supportNetworkContacts         SupportNetworkContact[]
+  outreachLogs                   OutreachLog[]
+  surfacedJobs                   SurfacedJob[]
+  jobBoardIntroRequests          JobBoardIntroRequest[]
+  candidateJobBoardSubmissions   ExclusiveJobPosting[]
+  pivotIdeas                     PivotIdea[]
+  marketResponseLogs             MarketResponseLog[]
+  profileShares                  ProfileShare[]
+  interimMarketplaceSignups      InterimMarketplaceSignup[]
+  partnerClickThroughs           PartnerClickThrough[]
+  companyWatchlist               CompanyWatchlistEntry[]
+  emailConnection                EmailConnection?
+  trackedEmailActivities         TrackedEmailActivity[]
+  adminEmailLogs                 AdminEmailLog[]
+  calendarConnection             CalendarConnection?
+  trackedCalendarEvents          TrackedCalendarEvent[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -1369,10 +1434,10 @@ model Reference {
 
   // Part B — Comparative (5 items). Self-normed against the rater's own
   // bench rather than a cross-candidate norm group — no n-size requirement.
-  compRelativeRank     RelativeRank?     // b1, manager-only in copy but stored regardless
-  compWouldHireAgain   HireAgainLevel?   // b2 — distinct from legacy wouldHireAgain (Boolean, different question)
+  compRelativeRank     RelativeRank? // b1, manager-only in copy but stored regardless
+  compWouldHireAgain   HireAgainLevel? // b2 — distinct from legacy wouldHireAgain (Boolean, different question)
   compDepartureContext DepartureContext? // b3, manager-only
-  compWouldTakeAgain   TakeAgainLevel?   // b4
+  compWouldTakeAgain   TakeAgainLevel? // b4
   compTrustedScope     TrustedScopeLevel? // b5
 
   // Part C — Written, rotating. Exactly 2 questions per reference, assigned
@@ -1632,6 +1697,68 @@ model PerformanceAssessmentResponse {
   integrityScore Float
 
   @@index([candidateId])
+}
+
+// Track Record (spec §4.2) — 20 structured items, no free text except item
+// 20. One row per candidate (a profile fact set, not a retaken behavioral
+// instrument like How I Perform). Items 1 and 15 in the spec ("largest team
+// directly managed" / "direct reports at peak") describe the same real
+// fact, so they're deliberately collapsed into one field here rather than
+// asked twice. Item 16 ("have you been a people manager?") reuses the
+// existing CandidateProfile.isPeopleManager field it's migrating from — no
+// separate column needed. Item 15's other migration source,
+// CandidateProfile.teamSizeManaged, is NOT written from here (it stays a
+// raw number, this is a band) — see the comment on that field.
+model TrackRecordResponse {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  largestTeamManaged         TrackRecordSizeBand? // items 1 & 15
+  largestOrgIndirect         TrackRecordSizeBand? // item 2
+  budgetOwned                TrackRecordDollarBand? // item 3
+  approvalAuthority          String[] // item 4 — ApprovalAuthority values
+  situationRanking           String[] // item 5 — ordered OperatingSituation values, most to least
+  mandateClarity             Int? // item 6 — 1-4
+  functionsOwnedOutsideCore  String[] // item 7
+  droveOutcomesThroughOthers Int? // item 8 — 1-4
+  peopleHiredDirectly        TrackRecordSizeBand? // item 9
+  ledThroughRestructuring    Boolean? // item 10
+  sectorHistory              String[] // item 11a
+  stageHistory               String[] // item 11b
+  boardExposure              TrackRecordBoardExposure? // item 12
+  largestInitiativeScope     TrackRecordDollarBand? // item 13
+  longestTenure              TrackRecordTenureBand? // item 14
+  pnlAccountability          TrackRecordPnlAccountability? // item 17
+  geographicScope            TrackRecordGeographicScope? // item 18
+  reportedToLevel            TrackRecordReportedToLevel? // item 19
+  accomplishmentToConfirm    String?                       @db.Text // item 20 — routes into Reference Check verification
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// What I Need (spec §4.4) — 24 items rated Not important/Somewhat/
+// Important/Essential, mapped to the 6 O*NET Work Values, plus a drag-rank
+// of the 6 domains. One row per candidate.
+model WhatINeedResponse {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // {itemId: 'achievement-1', rating: 1-4} for all 24 items — see
+  // src/lib/constants/what-i-need.ts for the fixed item bank this indexes
+  // into.
+  itemRatings Json
+
+  // Six WorkValueDomain keys, most to least important — the report
+  // headline and tie-breaker per spec §4.4.
+  domainRank String[]
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model BARSAnchor {
@@ -3767,21 +3894,21 @@ enum InterimListingAudienceFocus {
 }
 
 model InterimListing {
-  id              String                       @id @default(cuid())
+  id              String                      @id @default(cuid())
   category        InterimListingCategory
   name            String
   description     String
   url             String
-  designation     InterimListingDesignation    @default(INCLUDED_FOR_QUALITY)
-  audienceFocus   InterimListingAudienceFocus  @default(GENERAL)
+  designation     InterimListingDesignation   @default(INCLUDED_FOR_QUALITY)
+  audienceFocus   InterimListingAudienceFocus @default(GENERAL)
   // Free-text nuance on the designation, e.g. Toptal's client-referral
   // (not talent-referral) program — shown alongside the badge so the
   // distinction isn't silently lost.
-  designationNote String?                      @db.Text
-  isActive        Boolean                      @default(true)
-  sortOrder       Int                          @default(0)
-  createdAt       DateTime                     @default(now())
-  updatedAt       DateTime                     @updatedAt
+  designationNote String?                     @db.Text
+  isActive        Boolean                     @default(true)
+  sortOrder       Int                         @default(0)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
 
   signups InterimMarketplaceSignup[]
 
