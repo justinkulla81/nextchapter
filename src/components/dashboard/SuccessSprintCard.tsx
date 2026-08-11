@@ -470,11 +470,13 @@ export function SuccessSprintCard({
               <span className={cn(onTrack ? 'text-success' : 'text-muted-foreground')}>
                 {onTrack ? 'On track' : 'Behind pace'}
               </span>
-              {' — '}
-              <span className="tabular-nums">{weeklyPoints}</span> of{' '}
-              <span className="tabular-nums">{weeklyPointsTarget}</span> points this week ·{' '}
-              <span className="tabular-nums">{actionsDoneCount}</span> action
-              {actionsDoneCount === 1 ? '' : 's'} done
+              {': '}
+              <span className="text-sm">
+                You&apos;ve done <span className="tabular-nums">{actionsDoneCount}</span> action
+                {actionsDoneCount === 1 ? '' : 's'} and earned{' '}
+                <span className="tabular-nums">{weeklyPoints}</span> of{' '}
+                <span className="tabular-nums">{weeklyPointsTarget}</span> points this week
+              </span>
             </p>
           </div>
 
