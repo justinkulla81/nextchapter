@@ -7,7 +7,6 @@ import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './a
 import { SubmitButton } from '@/components/ui/submit-button'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { StatusIcon } from '@/components/ui/status-icon'
-import { Button } from '@/components/ui/button'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
@@ -24,7 +23,7 @@ import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { cn } from '@/lib/utils'
 
-export const metadata: Metadata = { title: 'Hireability Report' }
+export const metadata: Metadata = { title: 'Market Reality Report' }
 
 
 // A first-ever report has essentially no track record behind it yet — an F
@@ -191,7 +190,7 @@ export default async function HireabilityReportPage() {
 
       <div className="flex flex-wrap items-start justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Hireability Report</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Market Reality Report</h1>
           <p className="mt-1 text-muted-foreground">
             Your strengths, gaps, and an action plan — built from everything in your profile.
           </p>
@@ -199,9 +198,6 @@ export default async function HireabilityReportPage() {
         <div className="flex shrink-0 flex-wrap gap-2">
           {report && (
             <>
-              <Button nativeButton={false} variant="outline" render={<Link href="/dashboard/recruiter-report" />}>
-                Executive Dossier →
-              </Button>
               <PrintReportButton />
               {!report.emailSentAt && (
                 <form action={resendMyHireabilityReportEmail}>
@@ -239,7 +235,7 @@ export default async function HireabilityReportPage() {
             <div>
               <p className="text-2xl font-bold tracking-tight text-navy">NextChapter</p>
               <p className="mt-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                Hireability Report
+                Market Reality Report
               </p>
             </div>
             <div className="text-right text-sm text-muted-foreground">

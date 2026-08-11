@@ -94,6 +94,126 @@ export default async function PortfolioPage() {
 
       <div className="space-y-4">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Reports &amp; Dossiers
+        </h2>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Reports</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {reportHistory.length > 0 && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+                <div className="text-sm">
+                  <p className="font-medium text-foreground">Full report</p>
+                  <p className="text-xs text-muted-foreground">
+                    {reportHistory[0].generatedAt.toLocaleDateString()}
+                    {(() => {
+                      const g = normalizeGradeSnapshot(reportHistory[0].hireabilityGradeAtGeneration)
+                      return g ? ` — Grade ${g.grade}` : ''
+                    })()}
+                  </p>
+                </div>
+                <Button
+                  nativeButton={false}
+                  size="sm"
+                  variant="outline"
+                  render={<Link href="/dashboard/hireability-report" />}
+                >
+                  View full report
+                </Button>
+              </div>
+            )}
+            <MarketRealitySnapshotArchive
+              snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
+                id: s.id,
+                weekStartDate: s.weekStartDate,
+                grade: s.grade as Grade,
+                namedReasons: s.namedReasons as unknown as NamedReason[],
+              }))}
+            />
+            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/stats" />}>
+              View trend over time
+            </Button>
+          </CardContent>
+        </Card>
+
+        {isAList ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Executive Dossier</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                What recruiters and hiring managers see when you share your profile with them.
+              </p>
+              <Button
+                nativeButton={false}
+                size="sm"
+                variant="outline"
+                render={<Link href="/dashboard/recruiter-report" />}
+              >
+                View
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+            <div className="flex items-center gap-2">
+              <Lock className="size-4 text-orange" />
+              <p className="text-sm font-medium text-orange">Executive Dossier — locked</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              What recruiters and hiring managers would see when you share your profile with them.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Reach an A grade to unlock it — your current grade is{' '}
+              <span className="font-semibold text-foreground">{grade.grade}</span>.
+            </p>
+          </div>
+        )}
+
+        {profile.coachId &&
+          (hasCoachDossierAccess ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Coach Dossier &amp; Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-between gap-3">
+                <p className="text-sm text-muted-foreground">
+                  Exactly what {coach?.fullName ?? 'your coach'} sees when preparing for your sessions.
+                </p>
+                <Button
+                  nativeButton={false}
+                  size="sm"
+                  variant="outline"
+                  render={<Link href="/dashboard/coach-dossier" />}
+                >
+                  View
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+              <div className="flex items-center gap-2">
+                <Lock className="size-4 text-orange" />
+                <p className="text-sm font-medium text-orange">Coach Dossier &amp; Notes — locked</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Turn on sharing in Privacy Settings to see exactly what your coach sees when preparing
+                for your sessions.
+              </p>
+              <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/privacy" />}>
+                Privacy Settings
+              </Button>
+            </div>
+          ))}
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Your Assets
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -217,139 +337,6 @@ export default async function PortfolioPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Reports &amp; Dossiers
-        </h2>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Hireability Report</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {reportHistory.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No report generated yet.</p>
-            ) : (
-              <ul className="space-y-1.5 text-sm">
-                {reportHistory.map((r) => {
-                  const g = normalizeGradeSnapshot(r.hireabilityGradeAtGeneration)
-                  return (
-                    <li key={r.id} className="flex items-center justify-between text-foreground">
-                      <span>{r.generatedAt.toLocaleDateString()}</span>
-                      <span className="text-muted-foreground">
-                        {g
-                          ? `Grade ${g.grade}`
-                          : '—'}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-            <Button
-              nativeButton={false}
-              size="sm"
-              variant="outline"
-              render={<Link href="/dashboard/hireability-report" />}
-            >
-              View full report
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Reports</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <MarketRealitySnapshotArchive
-              snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-                id: s.id,
-                weekStartDate: s.weekStartDate,
-                grade: s.grade as Grade,
-                namedReasons: s.namedReasons as unknown as NamedReason[],
-              }))}
-            />
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/stats" />}>
-              View trend over time
-            </Button>
-          </CardContent>
-        </Card>
-
-        {isAList ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Executive Dossier</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
-                What recruiters and hiring managers see when you share your profile with them.
-              </p>
-              <Button
-                nativeButton={false}
-                size="sm"
-                variant="outline"
-                render={<Link href="/dashboard/recruiter-report" />}
-              >
-                View
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
-            <div className="flex items-center gap-2">
-              <Lock className="size-4 text-orange" />
-              <p className="text-sm font-medium text-orange">Executive Dossier — locked</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              What recruiters and hiring managers would see when you share your profile with them.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Reach an A grade to unlock it — your current grade is{' '}
-              <span className="font-semibold text-foreground">{grade.grade}</span>.
-            </p>
-          </div>
-        )}
-
-        {profile.coachId &&
-          (hasCoachDossierAccess ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Coach Dossier &amp; Notes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
-                  Exactly what {coach?.fullName ?? 'your coach'} sees when preparing for your sessions.
-                </p>
-                <Button
-                  nativeButton={false}
-                  size="sm"
-                  variant="outline"
-                  render={<Link href="/dashboard/coach-dossier" />}
-                >
-                  View
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
-              <div className="flex items-center gap-2">
-                <Lock className="size-4 text-orange" />
-                <p className="text-sm font-medium text-orange">Coach Dossier &amp; Notes — locked</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Turn on sharing in Privacy Settings to see exactly what your coach sees when preparing
-                for your sessions.
-              </p>
-              <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/privacy" />}>
-                Privacy Settings
-              </Button>
-            </div>
-          ))}
       </div>
     </div>
   )

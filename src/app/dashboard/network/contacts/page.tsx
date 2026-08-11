@@ -40,6 +40,9 @@ export default async function ContactDirectoryPage({
   const dir: 'asc' | 'desc' = sp.dir === 'desc' ? 'desc' : 'asc'
   const pin = sp.pin !== '0'
   const emailFilter: 'all' | 'has' | 'missing' = sp.email === 'has' || sp.email === 'missing' ? sp.email : 'all'
+  const reachedFilter: 'all' | 'yes' | 'no' = sp.reached === 'yes' || sp.reached === 'no' ? sp.reached : 'all'
+  const relFilter: 'all' | 'yes' | 'no' = sp.rel === 'yes' || sp.rel === 'no' ? sp.rel : 'all'
+  const ncFilter: 'all' | 'yes' | 'no' = sp.nc === 'yes' || sp.nc === 'no' ? sp.nc : 'all'
   const page = Math.max(1, Number(sp.page) || 1)
 
   // Deliberately filtered/sorted/paginated at the DB level, not fetched in
@@ -56,13 +59,46 @@ export default async function ContactDirectoryPage({
   }
   if (emailFilter === 'has') where.email = { not: null }
   if (emailFilter === 'missing') where.email = null
+  if (reachedFilter === 'yes') where.outreachLogs = { some: {} }
+  if (reachedFilter === 'no') where.outreachLogs = { none: {} }
+  if (relFilter === 'yes') where.relationshipTags = { isEmpty: false }
+  if (relFilter === 'no') where.relationshipTags = { isEmpty: true }
+
+  // AND-ed together (rather than assigned to where.OR/where.email directly)
+  // so the free-text search and the "On NextChapter" membership check can
+  // both contribute their own OR clauses without clobbering each other.
+  const andConditions: Prisma.SupportNetworkContactWhereInput[] = []
   if (q) {
-    where.OR = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { company: { contains: q, mode: 'insensitive' } },
-      { email: { contains: q, mode: 'insensitive' } },
-    ]
+    andConditions.push({
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { company: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+      ],
+    })
   }
+
+  // "On NextChapter" can't be a plain column filter — membership is
+  // resolved by looking emails up against candidate/coach/recruiter/
+  // employer accounts (see lookupNextChapterMemberships), not stored on
+  // the contact row. Resolve it up front against every email that matches
+  // the filters so far, then fold the result back in as an email-in-set
+  // filter before paginating — otherwise "on NextChapter" could only ever
+  // filter the 50 rows already on the current page.
+  if (ncFilter !== 'all') {
+    const candidateEmails = await prisma.supportNetworkContact.findMany({
+      where: { ...where, AND: andConditions, email: { not: null } },
+      select: { email: true },
+    })
+    const memberships = await lookupNextChapterMemberships(candidateEmails.map((c) => c.email))
+    const memberEmails = [...memberships.keys()]
+    if (ncFilter === 'yes') {
+      andConditions.push({ email: { in: memberEmails, mode: 'insensitive' } })
+    } else {
+      andConditions.push({ OR: [{ email: null }, { email: { notIn: memberEmails, mode: 'insensitive' } }] })
+    }
+  }
+  if (andConditions.length > 0) where.AND = andConditions
 
   const orderBy: Prisma.SupportNetworkContactOrderByWithRelationInput[] = []
   if (pin) orderBy.push({ isPriority: 'desc' })
@@ -112,6 +148,9 @@ export default async function ContactDirectoryPage({
         dir={dir}
         pin={pin}
         emailFilter={emailFilter}
+        reachedFilter={reachedFilter}
+        relFilter={relFilter}
+        ncFilter={ncFilter}
       />
 
       {/* Deep-linked from the "Build Your Networking List" button on the

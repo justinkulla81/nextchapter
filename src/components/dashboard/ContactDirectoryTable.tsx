@@ -11,6 +11,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
 import { updateContact, deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
 import { MEMBERSHIP_LABEL, type NextChapterMembership } from '@/lib/network/next-chapter-membership'
+import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import type { ContactSortKey } from '@/app/dashboard/network/contacts/page'
 import { cn } from '@/lib/utils'
 
@@ -48,6 +49,9 @@ export function ContactDirectoryTable({
   dir,
   pin,
   emailFilter,
+  reachedFilter,
+  relFilter,
+  ncFilter,
 }: {
   contacts: ContactRowData[]
   totalCount: number
@@ -59,6 +63,9 @@ export function ContactDirectoryTable({
   dir: 'asc' | 'desc'
   pin: boolean
   emailFilter: 'all' | 'has' | 'missing'
+  reachedFilter: 'all' | 'yes' | 'no'
+  relFilter: 'all' | 'yes' | 'no'
+  ncFilter: 'all' | 'yes' | 'no'
 }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
@@ -73,15 +80,32 @@ export function ContactDirectoryTable({
     dir?: 'asc' | 'desc'
     pin?: boolean
     email?: 'all' | 'has' | 'missing'
+    reached?: 'all' | 'yes' | 'no'
+    rel?: 'all' | 'yes' | 'no'
+    nc?: 'all' | 'yes' | 'no'
     page?: number
   }) {
-    const next = { q: query, sort: sortKey, dir, pin, email: emailFilter, page, ...overrides }
+    const next = {
+      q: query,
+      sort: sortKey,
+      dir,
+      pin,
+      email: emailFilter,
+      reached: reachedFilter,
+      rel: relFilter,
+      nc: ncFilter,
+      page,
+      ...overrides,
+    }
     const params = new URLSearchParams()
     if (next.q) params.set('q', next.q)
     if (next.sort !== 'name') params.set('sort', next.sort)
     if (next.dir !== 'asc') params.set('dir', next.dir)
     if (!next.pin) params.set('pin', '0')
     if (next.email !== 'all') params.set('email', next.email)
+    if (next.reached !== 'all') params.set('reached', next.reached)
+    if (next.rel !== 'all') params.set('rel', next.rel)
+    if (next.nc !== 'all') params.set('nc', next.nc)
     if (next.page !== 1) params.set('page', String(next.page))
     const qs = params.toString()
     router.push(`/dashboard/network/contacts${qs ? `?${qs}` : ''}`)
@@ -133,15 +157,54 @@ export function ContactDirectoryTable({
           <input type="checkbox" checked={pin} onChange={(e) => navigate({ pin: e.target.checked, page: 1 })} />
           Priority contacts on top
         </label>
-        <select
-          value={emailFilter}
-          onChange={(e) => navigate({ email: e.target.value as 'all' | 'has' | 'missing', page: 1 })}
-          className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
-        >
-          <option value="all">All contacts</option>
-          <option value="has">Has email</option>
-          <option value="missing">No email</option>
-        </select>
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          Has Email?
+          <select
+            value={emailFilter}
+            onChange={(e) => navigate({ email: e.target.value as 'all' | 'has' | 'missing', page: 1 })}
+            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+          >
+            <option value="all">All</option>
+            <option value="has">Has email</option>
+            <option value="missing">No email</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          On NextChapter?
+          <select
+            value={ncFilter}
+            onChange={(e) => navigate({ nc: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
+            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+          >
+            <option value="all">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          Reached out?
+          <select
+            value={reachedFilter}
+            onChange={(e) => navigate({ reached: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
+            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+          >
+            <option value="all">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          Has relationship?
+          <select
+            value={relFilter}
+            onChange={(e) => navigate({ rel: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
+            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+          >
+            <option value="all">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
         {undo && (
           <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-sm">
             <span className="text-muted-foreground">Removed {undo.name}.</span>
@@ -271,7 +334,7 @@ function ContactRowExpandable({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="text-xs font-medium text-primary hover:underline"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               {isExpanded ? 'Hide' : 'Edit'}
             </button>
@@ -284,7 +347,9 @@ function ContactRowExpandable({
             </button>
             {contact.email && (
               <a
-                href={`mailto:${contact.email}`}
+                href={gmailComposeHref(contact.email, '')}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-xs font-medium text-primary hover:underline"
               >
                 Email

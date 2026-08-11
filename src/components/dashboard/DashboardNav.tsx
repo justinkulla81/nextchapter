@@ -105,7 +105,7 @@ function buildSections(
           label: 'My Portfolio',
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
         },
-        { href: '/dashboard/stats', label: 'My Stats & Reports' },
+        { href: '/dashboard/stats', label: 'My Stats' },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },
       ],
     },
