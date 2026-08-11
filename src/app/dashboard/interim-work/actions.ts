@@ -86,6 +86,28 @@ export async function submitInterimOfferDefinition(
   revalidatePath('/dashboard/interim-work')
 }
 
+// Independent of eeocGenderIdentity — see the enum's comment in schema.prisma.
+// This is a direct, feature-scoped question that only decides whether
+// WOMEN_FOCUSED board listings (Athena Alliance, theBoardlist) show up in
+// Section 4, never read anywhere else.
+export async function setBoardDiversityListingsOptIn(optIn: boolean): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { boardDiversityListingsOptIn: optIn },
+  })
+
+  captureServerEvent(profile.id, 'board_diversity_listings_opt_in_set', { optIn })
+
+  revalidatePath('/dashboard/interim-work')
+}
+
 export async function markInterimOutreachStarted(): Promise<void> {
   const supabase = await createClient()
   const {

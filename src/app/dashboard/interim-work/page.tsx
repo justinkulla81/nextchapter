@@ -13,6 +13,8 @@ import { hasLegalRestrictionFlag } from '@/lib/interim-work/expert-network-cauti
 import { getActiveListings, getSignedUpListingIds } from '@/lib/interim-work/listings'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { InterimListingCategory } from '@prisma/client'
+import { setBoardDiversityListingsOptIn } from './actions'
+import { SubmitButton } from '@/components/ui/submit-button'
 
 export const metadata: Metadata = { title: 'Interim Work' }
 
@@ -25,7 +27,7 @@ export default async function InterimWorkPage() {
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [marketplaceListings, expertNetworkListings, boardListings, signedUpIds] = await Promise.all([
+  const [marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds] = await Promise.all([
     getActiveListings(marketplaceCategories),
     getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
     getActiveListings([
@@ -33,6 +35,14 @@ export default async function InterimWorkPage() {
     ]),
     getSignedUpListingIds(profile.id),
   ])
+
+  // WOMEN_FOCUSED listings (Athena Alliance, theBoardlist) only show once the
+  // candidate has directly opted in via boardDiversityListingsOptIn — never
+  // inferred from eeocGenderIdentity, see that field's schema comment.
+  const boardListings = allBoardListings.filter(
+    (l) => l.audienceFocus === 'GENERAL' || profile.boardDiversityListingsOptIn === true
+  )
+  const hasWomenFocusedListings = allBoardListings.some((l) => l.audienceFocus === 'WOMEN_FOCUSED')
 
   return (
     <div className="space-y-10">
@@ -153,7 +163,8 @@ export default async function InterimWorkPage() {
               <p className="text-sm text-muted-foreground">
                 Paid consulting calls with investors and consulting firms who need your specific
                 industry expertise — usually flexible, project-based, and a good fit alongside a
-                search.
+                search. Partner means we have a confirmed relationship with the platform; Included
+                for quality means it&apos;s a real, relevant option with no revenue arrangement.
               </p>
             </div>
             {showLegalCaution && (
@@ -172,9 +183,31 @@ export default async function InterimWorkPage() {
               <p className="text-sm text-muted-foreground">
                 {boardReady
                   ? 'Based on your level and years of experience, formal board and advisory positions are a realistic option worth pursuing.'
-                  : 'Formal corporate board seats are typically a fit later in a career — nonprofit board and advisory roles are a strong, realistic starting point and a real credential-builder.'}
+                  : 'Formal corporate board seats are typically a fit later in a career — nonprofit board and advisory roles are a strong, realistic starting point and a real credential-builder.'}{' '}
+                Partner means we have a confirmed relationship with the platform; Included for
+                quality means it&apos;s a real, relevant option with no revenue arrangement.
               </p>
             </div>
+            {hasWomenFocusedListings && profile.boardDiversityListingsOptIn === null && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-off-white p-3">
+                <p className="text-sm text-muted-foreground">
+                  A couple of platforms below focus specifically on supporting women or
+                  underrepresented leaders. Want those included in your list?
+                </p>
+                <div className="flex shrink-0 gap-2">
+                  <form action={setBoardDiversityListingsOptIn.bind(null, true)}>
+                    <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                      Yes, include them
+                    </SubmitButton>
+                  </form>
+                  <form action={setBoardDiversityListingsOptIn.bind(null, false)}>
+                    <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                      No, skip those
+                    </SubmitButton>
+                  </form>
+                </div>
+              </div>
+            )}
             <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
           </section>
 

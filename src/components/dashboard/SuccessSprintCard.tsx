@@ -233,7 +233,7 @@ function ActionRow({
   const count = completionCount ?? (completed ? 1 : 0)
   // A recurring row's `completed` flag means "logged at least once ever,"
   // not "hit this week's target" — a row still short of targetCount (e.g. 0
-  // of 2) was showing as not-priority and losing its High Priority badge
+  // of 2) was showing as not-priority and losing its Priority badge
   // even though it's exactly the thing still owed this week. Achieved means
   // count >= targetCount for recurring rows, the plain completed flag for
   // one-time ones.
@@ -277,8 +277,8 @@ function ActionRow({
           {recurring ? 'Recurring' : 'One-time'}
         </span>
         {isPriority && (
-          <span className="shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
-            High Priority
+          <span className="shrink-0 whitespace-nowrap rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+            Priority
           </span>
         )}
       </div>
@@ -460,7 +460,7 @@ export function SuccessSprintCard({
   const openRows = allRows.filter((r) => !(r.completed && !r.recurring))
 
   // Same "hit this week's target" logic ActionRow uses to decide whether a
-  // row still gets the High Priority badge/border — a recurring row that's
+  // row still gets the Priority badge/border — a recurring row that's
   // already met its weekly count is done for the week even though it stays
   // in openRows (recurring rows never drop out). Without this check such a
   // row still landed in priorityRows below, then rendered with none of the

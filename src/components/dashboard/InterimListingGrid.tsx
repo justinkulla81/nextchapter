@@ -33,8 +33,8 @@ export function InterimListingGrid({ listings, signedUpIds, showSignupCheckbox =
                 <span
                   className={
                     listing.designation === 'PARTNER'
-                      ? 'rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'
-                      : 'rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground'
+                      ? 'shrink-0 whitespace-nowrap rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'
+                      : 'shrink-0 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground'
                   }
                 >
                   {listing.designation === 'PARTNER' ? 'Partner' : 'Included for quality'}

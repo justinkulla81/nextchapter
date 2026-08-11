@@ -222,6 +222,31 @@ async function getFullMessage(
   return { message: await response.json(), insufficientScope: false }
 }
 
+type FetchedMessage = { message: GmailMessage | null; insufficientScope: boolean }
+
+// Fetching each message is a standalone network round trip with no shared
+// state — unlike the classify+persist step below (kept sequential because it
+// writes the sprint's committedActions JSON), there's no correctness reason
+// to fetch one at a time. A candidate returning after several days away
+// could have 50-100+ new messages, and doing those fetches strictly
+// sequentially was most of what made a sync feel "slow" — this bounds
+// concurrency instead of firing them all at once, which would risk Gmail's
+// per-user rate limit.
+const MESSAGE_FETCH_CONCURRENCY = 8
+
+async function fetchMessages(accessToken: string, ids: string[]): Promise<Map<string, FetchedMessage>> {
+  const results = new Map<string, FetchedMessage>()
+  let nextIndex = 0
+  async function worker() {
+    while (nextIndex < ids.length) {
+      const id = ids[nextIndex++]
+      results.set(id, await getFullMessage(accessToken, id))
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(MESSAGE_FETCH_CONCURRENCY, ids.length) }, worker))
+  return results
+}
+
 const SENT_ACTION_TYPE_BY_ACTIVITY: Partial<Record<string, string>> = {
   THANK_YOU: 'THANK_YOU_NOTE_SENT',
   FOLLOW_UP: 'FOLLOW_UP_NOTE_SENT',
@@ -241,12 +266,12 @@ type ProcessResult = 'synced' | 'skipped' | 'insufficient_scope'
 
 async function processMessage(
   connection: EmailConnection,
-  accessToken: string,
   messageId: string,
+  fetched: FetchedMessage,
   direction: EmailDirection,
   workHistoryCompanies: string[]
 ): Promise<ProcessResult> {
-  const { message, insufficientScope } = await getFullMessage(accessToken, messageId)
+  const { message, insufficientScope } = fetched
   if (insufficientScope) return 'insufficient_scope'
   if (!message) return 'skipped'
 
@@ -485,11 +510,17 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   })
   const workHistoryCompanies = workHistory.map((w) => w.companyName)
 
-  // Only genuinely new messages ever reach the Gmail API now. Kept
-  // sequential (not Promise.all) on purpose: autoCompleteEngagementAction
-  // does a read-modify-write on the sprint's committedActions JSON blob,
-  // and running two of these concurrently for different action types can
+  // Fetching is bounded-concurrency (see fetchMessages) since it's pure
+  // network I/O with no shared state. Persisting stays sequential (not
+  // Promise.all) on purpose: autoCompleteEngagementAction does a
+  // read-modify-write on the sprint's committedActions JSON blob, and
+  // running two of those concurrently for different action types can
   // silently lose one's completion to the other's overwrite.
+  const [inboxFetched, sentFetched] = await Promise.all([
+    fetchMessages(accessToken, newInboxIds),
+    fetchMessages(accessToken, newSentIds),
+  ])
+
   let synced = 0
   let scopeInsufficient = false
   // Each message is its own try/catch — previously one message throwing
@@ -501,7 +532,9 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   for (const id of newInboxIds) {
     if (scopeInsufficient) break
     try {
-      const result = await processMessage(connection, accessToken, id, 'INBOUND', workHistoryCompanies)
+      const fetched = inboxFetched.get(id)
+      if (!fetched) continue
+      const result = await processMessage(connection, id, fetched, 'INBOUND', workHistoryCompanies)
       if (result === 'insufficient_scope') scopeInsufficient = true
       else if (result === 'synced') synced++
     } catch (error) {
@@ -511,7 +544,9 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   for (const id of newSentIds) {
     if (scopeInsufficient) break
     try {
-      const result = await processMessage(connection, accessToken, id, 'OUTBOUND', workHistoryCompanies)
+      const fetched = sentFetched.get(id)
+      if (!fetched) continue
+      const result = await processMessage(connection, id, fetched, 'OUTBOUND', workHistoryCompanies)
       if (result === 'insufficient_scope') scopeInsufficient = true
       else if (result === 'synced') synced++
     } catch (error) {

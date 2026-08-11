@@ -146,15 +146,30 @@ export function matchApplicationConfirmation(subject: string, bodyPreview: strin
 // their own name with one ("Coda Search│Staffing") — without it the suffix
 // regex's end-of-string anchor never matches, and the company-name guess
 // silently comes back null for an otherwise-ordinary confirmation subject.
-const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/
+// /i because some senders title-case the whole subject ("Thank You for
+// Applying to BGBx") — confirmed against real production mail that the
+// case-sensitive version silently lost the company name on those.
+const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/i
 
 // The "your application to <role> at <company>" subject shape names the
 // company after "at" instead of after "applying to"/"sent to" — needs its
 // own pattern since the company here is NOT at a fixed distance from a
 // shared keyword the way the suffix pattern above assumes.
-const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/
+const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/i
+
+// A third shape leads with the company name instead of ending with it —
+// Ashby's own confirmation template ("Legora - Thank you for applying -
+// Director of Corporate Development") puts it before a dash separator.
+// Confirmed against real production mail: without this, that exact subject
+// matched APPLICATION_CONFIRMATION fine but came back with a null company
+// name, and syncJobPostingFromEmail's `if (!companyName) return` silently
+// dropped the application — correctly detected, never shown to the
+// candidate. /i because "Thank You for Applying" is sometimes title-cased.
+const CONFIRMATION_COMPANY_PREFIX = /^([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,4})\s*[-–—:]\s*thank you for applying/i
 
 export function guessCompanyFromConfirmationSubject(subject: string): string | null {
+  const prefixMatch = subject.match(CONFIRMATION_COMPANY_PREFIX)
+  if (prefixMatch) return prefixMatch[1].trim()
   const suffixMatch = subject.match(CONFIRMATION_COMPANY_SUFFIX)
   if (suffixMatch) return suffixMatch[1].trim()
   const atMatch = subject.match(CONFIRMATION_COMPANY_AT_SUFFIX)
