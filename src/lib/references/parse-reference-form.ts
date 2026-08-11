@@ -93,3 +93,86 @@ export function parseReferenceFormData(formData: FormData): { data: ParsedRefere
     },
   }
 }
+
+// Part A performance items — field name -> Prisma column. "Didn't see
+// this" submits an empty string (rendered as its own radio option, see
+// ReferencePerformanceScale), which must parse to null and be excluded
+// from any aggregation, never coerced to 0 or skipped as "unanswered."
+export const PERFORMANCE_ITEM_FIELDS = {
+  a1: 'perfExecutionDelivered',
+  a2: 'perfExecutionQuality',
+  a3: 'perfExecutionAutonomy',
+  a4: 'perfJudgmentDecisionQuality',
+  a5: 'perfJudgmentEscalation',
+  a6: 'perfJudgmentSituationalRead',
+  a7: 'perfComposureSteadiness',
+  a8: 'perfComposureFeedbackResponse',
+  a9: 'perfComposureEffectOnOthers',
+  a10: 'perfInfluenceOutcomes',
+  a11: 'perfInfluenceCredibility',
+  a12: 'perfInfluenceDirectness',
+} as const
+
+export interface ParsedReferenceCheckExtension {
+  performance: Record<string, number | null>
+  compRelativeRank: string | null
+  compWouldHireAgain: string | null
+  compDepartureContext: string | null
+  compWouldTakeAgain: string | null
+  compTrustedScope: string | null
+  writtenResponse1: string | null
+  writtenResponse2: string | null
+  verifiedTitleCorrect: boolean | null
+  correctedTitle: string | null
+  verifiedDatesCorrect: boolean | null
+  correctedDates: string | null
+  verifiedReportingCorrect: boolean | null
+  correctedReporting: string | null
+  verifiedScopeCorrect: boolean | null
+  correctedScope: string | null
+  verificationConfidence: number | null
+}
+
+function parseYesNo(raw: FormDataEntryValue | null): boolean | null {
+  if (raw === 'yes') return true
+  if (raw === 'no') return false
+  return null
+}
+
+// Assessment Layer Reference Check Parts A-D — kept as a separate parser
+// (rather than folded into parseReferenceFormData above) so the original
+// Prompt 48 instrument's required-field contract doesn't change: every
+// field here is optional at the parse layer, since Part A explicitly
+// allows "Didn't see this," Part B/D questions are audience-gated
+// (manager-only items don't render for a peer), and this extension can
+// roll out to the submission form incrementally without breaking existing
+// in-flight reference links.
+export function parseReferenceCheckExtension(formData: FormData): ParsedReferenceCheckExtension {
+  const performance: Record<string, number | null> = {}
+  for (const [itemKey, field] of Object.entries(PERFORMANCE_ITEM_FIELDS)) {
+    const raw = formData.get(`perf-${itemKey}`)
+    performance[field] = raw && raw !== '' ? Number(raw) : null
+  }
+
+  const verificationConfidenceRaw = formData.get('verificationConfidence')
+
+  return {
+    performance,
+    compRelativeRank: (formData.get('compRelativeRank') as string | null) || null,
+    compWouldHireAgain: (formData.get('compWouldHireAgain') as string | null) || null,
+    compDepartureContext: (formData.get('compDepartureContext') as string | null) || null,
+    compWouldTakeAgain: (formData.get('compWouldTakeAgain') as string | null) || null,
+    compTrustedScope: (formData.get('compTrustedScope') as string | null) || null,
+    writtenResponse1: (formData.get('writtenResponse1') as string | null)?.trim() || null,
+    writtenResponse2: (formData.get('writtenResponse2') as string | null)?.trim() || null,
+    verifiedTitleCorrect: parseYesNo(formData.get('verifiedTitleCorrect')),
+    correctedTitle: (formData.get('correctedTitle') as string | null)?.trim() || null,
+    verifiedDatesCorrect: parseYesNo(formData.get('verifiedDatesCorrect')),
+    correctedDates: (formData.get('correctedDates') as string | null)?.trim() || null,
+    verifiedReportingCorrect: parseYesNo(formData.get('verifiedReportingCorrect')),
+    correctedReporting: (formData.get('correctedReporting') as string | null)?.trim() || null,
+    verifiedScopeCorrect: parseYesNo(formData.get('verifiedScopeCorrect')),
+    correctedScope: (formData.get('correctedScope') as string | null)?.trim() || null,
+    verificationConfidence: verificationConfidenceRaw ? Number(verificationConfidenceRaw) : null,
+  }
+}

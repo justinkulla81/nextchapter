@@ -57,6 +57,17 @@ export default async function ReferenceTokenPage({
       .map((a) => ({ scalePoint: a.scalePoint, anchorText: a.anchorText })),
   }))
 
+  const isManager = reference.relationshipType === 'DIRECT_MANAGER' || reference.relationshipType === 'SKIP_LEVEL_MANAGER'
+  const writtenQuestions =
+    reference.writtenQuestion1Key && reference.writtenQuestion1Text
+      ? [
+          { key: reference.writtenQuestion1Key, text: reference.writtenQuestion1Text },
+          ...(reference.writtenQuestion2Key && reference.writtenQuestion2Text
+            ? [{ key: reference.writtenQuestion2Key, text: reference.writtenQuestion2Text }]
+            : []),
+        ]
+      : undefined
+
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <div className="mb-8 space-y-2">
@@ -74,6 +85,12 @@ export default async function ReferenceTokenPage({
         candidateName={candidateName}
         dimensionGroups={dimensionGroups}
         action={submitReference}
+        isManager={isManager}
+        writtenQuestions={writtenQuestions}
+        verification={{
+          claimedTitle: reference.refereeTitle,
+          claimedYearsTogether: reference.yearsWorkedTogether,
+        }}
       />
     </div>
   )

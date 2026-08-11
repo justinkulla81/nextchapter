@@ -6,7 +6,8 @@ import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { generateReferenceQuotes } from '@/lib/references/testimony-processing'
 import { applyReferenceCompletedRewrite } from '@/lib/scoring/rewrite-actions'
-import { parseReferenceFormData } from '@/lib/references/parse-reference-form'
+import { parseReferenceFormData, parseReferenceCheckExtension } from '@/lib/references/parse-reference-form'
+import type { RelativeRank, HireAgainLevel, DepartureContext, TakeAgainLevel, TrustedScopeLevel } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
@@ -38,6 +39,7 @@ export async function submitReference(_prevState: FormState, formData: FormData)
     return { error: parsed.error }
   }
   const content = parsed.data
+  const extension = parseReferenceCheckExtension(formData)
 
   const updatedReference = await prisma.reference.update({
     where: { token },
@@ -54,6 +56,23 @@ export async function submitReference(_prevState: FormState, formData: FormData)
       definingStory: content.definingStory,
       wouldWorkWithAgainReason: content.wouldWorkWithAgainReason,
       quotableWithAttribution: content.quotableWithAttribution,
+      ...extension.performance,
+      compRelativeRank: extension.compRelativeRank as RelativeRank | null,
+      compWouldHireAgain: extension.compWouldHireAgain as HireAgainLevel | null,
+      compDepartureContext: extension.compDepartureContext as DepartureContext | null,
+      compWouldTakeAgain: extension.compWouldTakeAgain as TakeAgainLevel | null,
+      compTrustedScope: extension.compTrustedScope as TrustedScopeLevel | null,
+      writtenResponse1Text: extension.writtenResponse1,
+      writtenResponse2Text: extension.writtenResponse2,
+      verifiedTitleCorrect: extension.verifiedTitleCorrect,
+      correctedTitle: extension.correctedTitle,
+      verifiedDatesCorrect: extension.verifiedDatesCorrect,
+      correctedDates: extension.correctedDates,
+      verifiedReportingCorrect: extension.verifiedReportingCorrect,
+      correctedReporting: extension.correctedReporting,
+      verifiedScopeCorrect: extension.verifiedScopeCorrect,
+      correctedScope: extension.correctedScope,
+      verificationConfidence: extension.verificationConfidence,
       status: 'COMPLETED',
       completedAt: new Date(),
     },

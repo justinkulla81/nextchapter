@@ -177,6 +177,47 @@ enum ReferenceStatus {
   EXPIRED
 }
 
+// Reference Check Part B — comparative standing, anchored to the rater's
+// own bench rather than a norm group ("of everyone who's held a comparable
+// role under you"). See Assessment Layer spec §5.4.
+enum RelativeRank {
+  BOTTOM_HALF
+  TOP_HALF
+  TOP_25
+  TOP_10
+  TOP_1
+}
+
+enum HireAgainLevel {
+  NO
+  PROBABLY_NOT
+  PROBABLY
+  DEFINITELY
+}
+
+// Manager-only — "when they left, what happened?"
+enum DepartureContext {
+  INITIATED_BY_ME
+  RELIEVED
+  UNDERSTOOD_SUPPORTED
+  ASKED_TO_STAY
+  FOUGHT_TO_KEEP
+}
+
+enum TakeAgainLevel {
+  NO
+  MAYBE
+  YES
+  YES_FIRST_CALL
+}
+
+enum TrustedScopeLevel {
+  SAME
+  SOMEWHAT_MORE
+  MEANINGFULLY_MORE
+  STEP_CHANGE
+}
+
 // The 5x5 Support Network builder's categories — see "My Support Network"
 // in the product spec.
 enum ContactCategory {
@@ -1295,6 +1336,78 @@ model Reference {
   quotableWithAttribution Boolean?
 
   quotes ReferenceQuote[]
+
+  // Assessment Layer Reference Check (spec v1.0, Part A-D) — a SECOND,
+  // independent rating layer alongside the BARS style ratings above. BARS
+  // rates WORKING STYLE (velocity, structure, etc. — no right answer,
+  // powers the existing style "friction" comparison in the Hiring Manager
+  // Report). Everything below rates PERFORMANCE (right/wrong exists),
+  // parallel to the candidate's own How I Perform self-report, and is a
+  // distinct comparison the Hiring Manager Report will show alongside the
+  // style one, not instead of it. All rating fields are 1-4 on the
+  // anchored scale (1=Below what the role needed ... 4=Exceptional — see
+  // src/lib/references/anchored-scale.ts) and nullable to support "Didn't
+  // see this," which is excluded from aggregation entirely.
+
+  // Part A — Performance (12 items, 4 dimensions x 3). Parallel to the
+  // EXECUTION/JUDGMENT/COMPOSURE/INFLUENCE dimensions of How I Perform.
+  // Integrity is deliberately absent here — spec keeps it self-report-only,
+  // coach-only, never rated by a reference or scored into any category.
+  perfExecutionDelivered        Int?
+  perfExecutionQuality          Int?
+  perfExecutionAutonomy         Int?
+  perfJudgmentDecisionQuality   Int?
+  perfJudgmentEscalation        Int?
+  perfJudgmentSituationalRead   Int?
+  perfComposureSteadiness       Int?
+  perfComposureFeedbackResponse Int?
+  perfComposureEffectOnOthers   Int?
+  perfInfluenceOutcomes         Int?
+  perfInfluenceCredibility      Int?
+  perfInfluenceDirectness       Int?
+
+  // Part B — Comparative (5 items). Self-normed against the rater's own
+  // bench rather than a cross-candidate norm group — no n-size requirement.
+  compRelativeRank     RelativeRank?     // b1, manager-only in copy but stored regardless
+  compWouldHireAgain   HireAgainLevel?   // b2 — distinct from legacy wouldHireAgain (Boolean, different question)
+  compDepartureContext DepartureContext? // b3, manager-only
+  compWouldTakeAgain   TakeAgainLevel?   // b4
+  compTrustedScope     TrustedScopeLevel? // b5
+
+  // Part C — Written, rotating. Exactly 2 questions per reference, assigned
+  // at invite time from the pool (w1-w11) by inviteSequence + relationship,
+  // stable across sessions. Position 1 always gets w11 (verification-tied)
+  // + w1; every reference after that gets one relationship-specific
+  // question plus one general question, never repeating a key within one
+  // candidate's set. See src/lib/references/written-question-pool.ts.
+  writtenQuestion1Key  String? // assigned question, e.g. "w1" — see written-question-pool.ts
+  writtenQuestion1Text String? @db.Text // the assigned question's own copy, snapshotted at assignment
+  writtenResponse1Text String? @db.Text // the reference's answer
+  writtenQuestion2Key  String?
+  writtenQuestion2Text String? @db.Text
+  writtenResponse2Text String? @db.Text
+
+  // Part D — Verification. Pre-filled from the candidate's own claims
+  // (title/dates already on this row via refereeTitle/yearsWorkedTogether;
+  // relationship via verifiedRelationship above); scope verification is
+  // additive here since Track Record (candidate-side scope claims) doesn't
+  // exist yet — these fields work standalone against whatever context the
+  // reference was given at invite time.
+  verifiedTitleCorrect     Boolean?
+  correctedTitle           String?
+  verifiedDatesCorrect     Boolean?
+  correctedDates           String?
+  verifiedReportingCorrect Boolean?
+  correctedReporting       String?
+  verifiedScopeCorrect     Boolean?
+  correctedScope           String?
+  verificationConfidence   Int? // 1-4
+
+  // Order this reference was invited in, 1-based per candidate — drives
+  // Part C's "position 1 always gets w11+w1" assignment rule. Set once at
+  // invite time, never recomputed (removing an earlier reference must not
+  // reshuffle a later one's already-answered written questions).
+  inviteSequence Int?
 
   @@index([candidateId, status])
   @@index([token])

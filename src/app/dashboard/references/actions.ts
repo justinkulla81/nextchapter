@@ -8,6 +8,7 @@ import { sendReferenceRequestEmail } from '@/lib/email/send-reference-request'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { assignWrittenQuestions } from '@/lib/references/written-question-pool'
 import type { ReferenceType } from '@prisma/client'
 
 export type FormState = { error?: string; sent?: boolean } | undefined
@@ -81,6 +82,24 @@ export async function requestReference(
     }
   }
 
+  // Part C written-question assignment happens once, here, at invite time —
+  // never recomputed later, so it stays stable even if an earlier reference
+  // is removed. inviteSequence is this candidate's Nth reference ever
+  // invited (not Nth currently active), matching the spec's "position 1
+  // always gets w11+w1" rule to the actual first invite.
+  const [existingCount, priorReferences] = await Promise.all([
+    prisma.reference.count({ where: { candidateId: profile.id } }),
+    prisma.reference.findMany({
+      where: { candidateId: profile.id },
+      select: { writtenQuestion1Key: true, writtenQuestion2Key: true },
+    }),
+  ])
+  const inviteSequence = existingCount + 1
+  const usedKeys = new Set(
+    priorReferences.flatMap((r) => [r.writtenQuestion1Key, r.writtenQuestion2Key].filter((k): k is string => !!k))
+  )
+  const [q1, q2] = assignWrittenQuestions(inviteSequence, relationshipType, usedKeys)
+
   const reference = await prisma.reference.create({
     data: {
       candidateId: profile.id,
@@ -90,6 +109,11 @@ export async function requestReference(
       refereeCompany: (formData.get('refereeCompany') as string | null) || null,
       relationshipType,
       yearsWorkedTogether: yearsWorkedTogether ? Number(yearsWorkedTogether) : null,
+      inviteSequence,
+      writtenQuestion1Key: q1.key,
+      writtenQuestion1Text: q1.text,
+      writtenQuestion2Key: q2.key,
+      writtenQuestion2Text: q2.text,
     },
   })
 
