@@ -1,11 +1,10 @@
-import type { Grade } from '@/lib/scoring/grade'
+import { GRADE_VALUE, type Grade } from '@/lib/scoring/grade'
 
 // Same hand-rolled SVG pattern as MotivationChart — no charting library in
 // this project. Plots Current Market Reality (the "Hireability Score" trend,
 // per Prompt 50) over the archived weekly snapshots from Prompt 46. Grades
 // are ordinal (A-F), not a raw score — this reads them onto a 0-4 axis
 // purely for line position, never displays a numeric score anywhere.
-const GRADE_VALUE: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
 
 const WIDTH = 640
 const HEIGHT = 160
@@ -83,9 +82,11 @@ export function MarketRealityTrendChart({
 
         {snapshots.map((s, i) => (
           <circle key={i} cx={xFor(i)} cy={yFor(GRADE_VALUE[s.grade])} r={3.5} fill="var(--color-brand)">
-            <title>
-              Week of {s.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: {s.grade}
-            </title>
+            {/* Single expression, no interleaved JSX text — a text/expression
+                mix here previously caused a server/client text-node-split
+                hydration mismatch (React reconciles it differently than SSR
+                serializes it). */}
+            <title>{`Week of ${s.weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${s.grade}`}</title>
           </circle>
         ))}
 
@@ -100,7 +101,7 @@ export function MarketRealityTrendChart({
                 fontSize={10}
                 fill="var(--color-muted-foreground)"
               >
-                {s.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                {s.weekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </text>
             )
         )}

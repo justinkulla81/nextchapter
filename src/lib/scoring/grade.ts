@@ -60,6 +60,11 @@ export const GRADE_TEXT_COLOR: Record<Grade, string> = {
   F: 'text-error',
 }
 
+// Ordinal position for plotting grades on a line/sparkline — never shown
+// as a number itself, only used for y-axis position. Shared across every
+// grade-trend chart so they can't silently drift out of sync.
+export const GRADE_VALUE: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
+
 export const GRADE_RING_STROKE: Record<Grade, string> = {
   A: 'stroke-success',
   B: 'stroke-brand',

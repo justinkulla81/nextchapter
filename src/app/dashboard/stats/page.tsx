@@ -4,10 +4,18 @@ import { ListChecks } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { WEEKLY_ENGINE_LABEL, GRADE_TEXT_COLOR, type WeeklyEngine } from '@/lib/scoring/grade'
+import { WEEKLY_ENGINE_LABEL, GRADE_TEXT_COLOR, CATEGORY_ORDER, type WeeklyEngine } from '@/lib/scoring/grade'
 import type { Grade } from '@/lib/scoring/grade'
+import {
+  getCategoryScoreHistory,
+  computeBestWeekSentence,
+  computeWhatMovedThisWeek,
+  computeWeeksOfImprovement,
+  computeSprintCompletionStreaks,
+} from '@/lib/scoring/market-reality-history'
+import { MarketRealityOverview } from '@/components/dashboard/MarketRealityOverview'
 import { cn } from '@/lib/utils'
-import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
@@ -18,7 +26,6 @@ import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
 import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
-import { MarketRealityTrendChart } from '@/components/dashboard/MarketRealityTrendChart'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { StreakHeroBanner } from '@/components/dashboard/StreakHeroBanner'
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
@@ -33,19 +40,9 @@ export const metadata: Metadata = { title: 'My Stats & Reports' }
 type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
 
-const GRADE_VALUE: Record<Grade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 }
-type Delta = 'up' | 'down' | 'flat' | null
-function gradeDelta(current: Grade, previous: Grade | null): Delta {
-  if (!previous) return null
-  const diff = GRADE_VALUE[current] - GRADE_VALUE[previous]
-  if (diff > 0) return 'up'
-  if (diff < 0) return 'down'
-  return 'flat'
-}
-const DELTA_ICON: Record<Exclude<Delta, null>, string> = { up: '↑', down: '↓', flat: '→' }
-
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
+  const weekStartDate = getMondayOfWeek(new Date())
 
   const [
     grade,
@@ -58,6 +55,8 @@ export default async function YourStatsPage() {
     weeklyBadges,
     milestoneBadges,
     sprintTargetWeeks,
+    weekNumber,
+    sprintCompletionStreaks,
   ] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
@@ -80,6 +79,8 @@ export default async function YourStatsPage() {
       take: 12,
       select: { weekStartDate: true },
     }),
+    getCandidateWeekNumber(profile.id, weekStartDate),
+    computeSprintCompletionStreaks(profile.id),
   ])
 
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
@@ -113,6 +114,11 @@ export default async function YourStatsPage() {
   const previousMarketRealityGrade =
     marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
 
+  const heroSnapshots = marketRealitySnapshots.slice(-12)
+  const categoryHistory = new Map(
+    CATEGORY_ORDER.map((key) => [key, getCategoryScoreHistory(heroSnapshots, key)])
+  )
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -126,37 +132,31 @@ export default async function YourStatsPage() {
 
       <StreakHeroBanner currentStreak={profile.currentStreak} activeDays={activeDays} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Current Market Reality</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className={cn('text-3xl font-bold', GRADE_TEXT_COLOR[grade.grade])}>{grade.grade}</span>
-              {(() => {
-                const delta = gradeDelta(grade.grade, previousMarketRealityGrade)
-                return delta ? (
-                  <span className="text-sm text-muted-foreground">
-                    {DELTA_ICON[delta]} vs last week ({previousMarketRealityGrade})
-                  </span>
-                ) : null
-              })()}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-foreground tabular-nums">
-              {grade.weeklyPoints} / {grade.weeklyPointsTarget}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">points this week</p>
-          </CardContent>
-        </Card>
-      </div>
+      <MarketRealityOverview
+        weekLabel={`Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+        currentGrade={grade.grade}
+        previousGrade={previousMarketRealityGrade}
+        bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
+        trendSnapshots={heroSnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
+        categories={grade.categories}
+        categoryHistory={categoryHistory}
+        whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
+        sprintCompletionStreak={sprintCompletionStreaks.currentStreak}
+        longestSprintCompletionStreak={sprintCompletionStreaks.longestStreak}
+        weeksOfImprovement={computeWeeksOfImprovement(heroSnapshots)}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-bold text-foreground tabular-nums">
+            {grade.weeklyPoints} / {grade.weeklyPointsTarget}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">points this week</p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -164,17 +164,6 @@ export default async function YourStatsPage() {
         </CardHeader>
         <CardContent>
           <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Current Market Reality trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MarketRealityTrendChart
-            snapshots={marketRealitySnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
-          />
         </CardContent>
       </Card>
 
