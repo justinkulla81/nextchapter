@@ -1,18 +1,11 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import Link from 'next/link'
 import { confirmFunctionAndExperience } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { cn } from '@/lib/utils'
@@ -33,14 +26,12 @@ export function FunctionConfirmForm({
   const [state, formAction, pending] = useActionState(confirmFunctionAndExperience, undefined)
 
   const [values, setValues] = useState({
-    primaryFunction: primaryFunction ?? '',
     resumeLatestJobTitle: resumeLatestJobTitle ?? '',
     yearsExperience: yearsExperience != null ? String(yearsExperience) : '',
   })
 
   const isConfirmed = !!confirmedAt
   const isDirty =
-    values.primaryFunction !== (primaryFunction ?? '') ||
     values.resumeLatestJobTitle !== (resumeLatestJobTitle ?? '') ||
     values.yearsExperience !== (yearsExperience != null ? String(yearsExperience) : '')
   const canConfirm = !isConfirmed || isDirty
@@ -51,22 +42,12 @@ export function FunctionConfirmForm({
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <ConfirmHint show={!isConfirmed} />
-      <Select
-        name="primaryFunction"
-        value={values.primaryFunction || null}
-        onValueChange={(v) => setValues((prev) => ({ ...prev, primaryFunction: (v as string) ?? '' }))}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Primary function" />
-        </SelectTrigger>
-        <SelectContent>
-          {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
-            <SelectItem key={fn} value={fn}>
-              {fn}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <p className="text-sm text-foreground">
+        Primary function: <span className="font-medium">{primaryFunction ?? 'Not set'}</span>{' '}
+        <Link href="/dashboard/search-strategy" className="text-brand underline underline-offset-2">
+          Edit on Search Strategy
+        </Link>
+      </p>
       <Input
         name="resumeLatestJobTitle"
         placeholder="Latest job title"

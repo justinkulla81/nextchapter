@@ -300,7 +300,6 @@ export async function confirmFunctionAndExperience(
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
-      primaryFunction: (formData.get('primaryFunction') as string) || null,
       resumeLatestJobTitle: (formData.get('resumeLatestJobTitle') as string) || null,
       yearsExperience: yearsExperience ? Number(yearsExperience) : null,
       functionConfirmedAt: new Date(),
