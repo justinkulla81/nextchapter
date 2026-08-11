@@ -64,9 +64,9 @@ async function buildWeeklyTargetDraft(candidateId: string, firstName: string): P
 }
 
 async function buildNetworkingDraft(candidateId: string, firstName: string): Promise<NudgeDraft> {
-  const [contactCount, warmCount, outreachCount7d] = await Promise.all([
+  const [contactCount, starredCount, outreachCount7d] = await Promise.all([
     prisma.supportNetworkContact.count({ where: { candidateId } }),
-    prisma.supportNetworkContact.count({ where: { candidateId, warmth: { in: ['HOT', 'WARM'] } } }),
+    prisma.supportNetworkContact.count({ where: { candidateId, isPriority: true } }),
     prisma.outreachLog.count({
       where: { candidateId, loggedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
     }),
@@ -75,7 +75,7 @@ async function buildNetworkingDraft(candidateId: string, firstName: string): Pro
   const statusLine =
     contactCount === 0
       ? `You haven't added anyone to your contact list yet.`
-      : `You have ${contactCount} contact${contactCount === 1 ? '' : 's'} in your list (${warmCount} marked warm or hot), and ${outreachCount7d} outreach message${outreachCount7d === 1 ? '' : 's'} logged in the last 7 days.`
+      : `You have ${contactCount} contact${contactCount === 1 ? '' : 's'} in your list (${starredCount} starred as a priority), and ${outreachCount7d} outreach message${outreachCount7d === 1 ? '' : 's'} logged in the last 7 days.`
 
   const body = [
     `Hi ${firstName},`,

@@ -370,7 +370,6 @@ function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
             inferredCompany={contact.inferredCompany}
             inferredSchool={contact.inferredSchool}
           />
-          <input type="hidden" name="warmth" value={contact.warmth} />
           <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
             Save
           </SubmitButton>

@@ -41,6 +41,8 @@ import { PendingEmployerReferenceBanner } from '@/components/dashboard/PendingEm
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 import { PortfolioAccessRequestSection } from '@/components/dashboard/PortfolioAccessRequestSection'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
+import { getEmailReminders } from '@/lib/network/reminders'
+import { NetworkRemindersCard } from '@/components/dashboard/NetworkRemindersCard'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -125,6 +127,7 @@ export default async function DashboardPage() {
     profileChecklistItems,
     emailConnection,
     calendarConnection,
+    emailReminders,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -146,6 +149,7 @@ export default async function DashboardPage() {
     getProfileChecklistItems(profile.id),
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
+    getEmailReminders(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
   // Same recency sort + inference as search-strategy/page.tsx so this
@@ -220,6 +224,8 @@ export default async function DashboardPage() {
         <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
 
         <ReconnectBanner candidateId={profile.id} variant="link" />
+
+        <NetworkRemindersCard reminders={emailReminders} />
 
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}

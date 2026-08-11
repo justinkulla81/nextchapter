@@ -69,6 +69,7 @@ type NetworkSearchParams = {
   gmailError?: string
   calendarConnected?: string
   calendarError?: string
+  contact?: string
 }
 
 // A contact counts as job-relevant two ways: manually flagged as able to
@@ -479,14 +480,16 @@ export default async function NetworkPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const [contacts, backchannelMatches, needsFollowUp] = await Promise.all([
+  const [rawContacts, backchannelMatches, needsFollowUp] = await Promise.all([
     prisma.supportNetworkContact.findMany({
-      where: { candidateId: profile.id },
+      where: { candidateId: profile.id, removedAt: null },
       orderBy: { createdAt: 'desc' },
+      include: { outreachLogs: { select: { id: true }, take: 1 } },
     }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
     getNeedsFollowUpList(profile.id),
   ])
+  const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0 }))
 
   if (!profile.networkComfortLevel) {
     return (
@@ -532,7 +535,7 @@ export default async function NetworkPage({
 
       <BackchannelMatchesCard matches={backchannelMatches} />
 
-      <NetworkQuickActionsCard contacts={contacts} />
+      <NetworkQuickActionsCard contacts={contacts} initialContactId={params.contact} />
 
       <NeedsFollowUpCard items={needsFollowUp} />
 

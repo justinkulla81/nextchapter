@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache'
 import type {
-  ContactWarmth,
   NetworkingAnxiety,
   NetworkComfortLevel,
   OutreachChannel,
@@ -232,7 +231,6 @@ export async function updateContact(contactId: string, formData: FormData) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  const warmth = formData.get('warmth') as ContactWarmth | null
   const relationshipTags = formData.getAll('relationshipTags') as RelationshipTag[]
   const name = (formData.get('name') as string | null)?.trim()
   const company = (formData.get('company') as string | null)?.trim() || null
@@ -244,7 +242,6 @@ export async function updateContact(contactId: string, formData: FormData) {
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
     data: {
-      warmth: warmth || undefined,
       relationshipTags,
       ...(name ? { name } : {}),
       company,

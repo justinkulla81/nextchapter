@@ -1,0 +1,57 @@
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+
+const STALE_AFTER_DAYS = 14
+const MAX_REMINDERS = 3
+
+export interface EmailReminder {
+  contactId: string
+  name: string
+  company: string | null
+  daysSinceLastOutreach: number | null // null = never reached out
+}
+
+// Surfaced on the Success Dashboard so starring someone actually does
+// something beyond a visual pin — it's the input to this reminder list.
+// Only starred (isPriority) contacts qualify: emailing everyone you've ever
+// emailed before would just be noise, but a candidate who starred someone
+// and then let two weeks go by without following up is exactly the "you
+// meant to do this" gap a reminder should close.
+export async function getEmailReminders(candidateId: string): Promise<EmailReminder[]> {
+  const staleCutoff = new Date(Date.now() - STALE_AFTER_DAYS * 24 * 60 * 60 * 1000)
+
+  const starred = await prisma.supportNetworkContact.findMany({
+    where: { candidateId, isPriority: true, removedAt: null },
+    select: {
+      id: true,
+      name: true,
+      company: true,
+      outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1, select: { loggedAt: true } },
+    },
+  })
+
+  const due = starred
+    .map((contact) => {
+      const lastOutreach = contact.outreachLogs[0]?.loggedAt ?? null
+      const daysSinceLastOutreach = lastOutreach
+        ? Math.floor((Date.now() - lastOutreach.getTime()) / (24 * 60 * 60 * 1000))
+        : null
+      return { contact, lastOutreach, daysSinceLastOutreach }
+    })
+    .filter(({ lastOutreach }) => !lastOutreach || lastOutreach < staleCutoff)
+    .sort((a, b) => {
+      // Never-contacted first, then longest-overdue.
+      if (!a.lastOutreach && b.lastOutreach) return -1
+      if (a.lastOutreach && !b.lastOutreach) return 1
+      if (!a.lastOutreach && !b.lastOutreach) return 0
+      return a.lastOutreach!.getTime() - b.lastOutreach!.getTime()
+    })
+    .slice(0, MAX_REMINDERS)
+
+  return due.map(({ contact, daysSinceLastOutreach }) => ({
+    contactId: contact.id,
+    name: contact.name,
+    company: contact.company,
+    daysSinceLastOutreach,
+  }))
+}
