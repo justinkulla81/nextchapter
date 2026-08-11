@@ -147,7 +147,7 @@ export default async function CompleteProfilePage() {
         {isIncomplete('ANSWER_OPTIONAL_QUESTIONS') && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
             <div>
-              <p className="text-sm font-medium text-foreground">Check in on your search progress</p>
+              <p className="text-sm font-medium text-foreground">Complete your Search Strategy questions</p>
               <p className="mt-1 text-xs text-muted-foreground">On the Search Strategy page.</p>
             </div>
             <Link

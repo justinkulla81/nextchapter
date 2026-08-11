@@ -17,6 +17,7 @@ import {
 } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { ProfileChecklistItem } from '@/lib/weekly/profile-checklist'
+import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
 import type { SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import type { WeeklyEngine } from '@/lib/scoring/grade'
@@ -384,7 +385,13 @@ export function SuccessSprintCard({
   // grouped by nav category, with no other distinction drawn between them.
   const allRows: Row[] = [
     ...realActions.map((a) => ({
-      text: a.text,
+      // The stored text is a JSON snapshot from whenever this row was
+      // completed — it never gets rewritten when a label changes later, so
+      // a candidate who logged this action before a copy edit would keep
+      // seeing the old wording forever. Prefer the current canonical label
+      // whenever this actionType has one; only genuinely personalized rows
+      // (no fixed actionType) fall back to their stored text.
+      text: CANONICAL_ACTION_LABEL[a.actionType ?? ''] ?? a.text,
       points: a.points,
       estimatedMinutes: a.estimatedMinutes,
       actionType: a.actionType,

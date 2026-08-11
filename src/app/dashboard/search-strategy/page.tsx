@@ -200,7 +200,7 @@ export default async function SearchStrategyPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Check in on your search progress
+              Complete your Search Strategy questions
             </CardTitle>
             {!optionalQuestionsAnswered && (
               <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
