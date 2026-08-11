@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import type { SupportNetworkContact, RelationshipTag } from '@prisma/client'
 import { Star } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -31,7 +32,13 @@ function relationshipSummary(tags: RelationshipTag[]): string {
   return tags.map((t) => RELATIONSHIP_LABEL[t]).join(', ')
 }
 
-export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[] }) {
+export function ContactDirectoryTable({
+  contacts,
+  removedCount,
+}: {
+  contacts: ContactRowData[]
+  removedCount: number
+}) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [search, setSearch] = useState('')
@@ -218,6 +225,15 @@ export function ContactDirectoryTable({ contacts }: { contacts: ContactRowData[]
             </Button>
           </div>
         </div>
+      )}
+
+      {removedCount > 0 && (
+        <Link
+          href="/dashboard/network/contacts/removed"
+          className="text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Removed contacts ({removedCount})
+        </Link>
       )}
     </div>
   )

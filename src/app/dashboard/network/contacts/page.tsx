@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getPageBoxContent } from '@/lib/dashboard/page-content'
@@ -44,27 +43,11 @@ export default async function ContactDirectoryPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
-          <p className="mt-1 text-muted-foreground">
-            Every contact you&apos;ve added, warmest first. Every outreach you log here counts toward
-            the connecting signal in your Current Market Reality.
-          </p>
-        </div>
-        {removedCount > 0 && (
-          <Link
-            href="/dashboard/network/contacts/removed"
-            className="mt-1 shrink-0 text-sm font-medium text-primary underline underline-offset-4"
-          >
-            Removed contacts ({removedCount})
-          </Link>
-        )}
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
 
       <WhyItMattersBox pageKey="network-contacts" content={proTips} />
 
-      <ContactDirectoryTable contacts={contacts} />
+      <ContactDirectoryTable contacts={contacts} removedCount={removedCount} />
 
       <Accordion>
         <AccordionItem value="build-list">

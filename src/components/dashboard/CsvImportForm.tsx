@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { importConnectionsCsv } from '@/app/dashboard/network/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 
 export function CsvImportForm() {
   const [state, formAction, pending] = useActionState(importConnectionsCsv, undefined)
+  const [fileChosen, setFileChosen] = useState(false)
   const points = estimateActionEffort({ actionType: 'NETWORKING_LIST' }).points
 
   return (
@@ -16,7 +17,14 @@ export function CsvImportForm() {
       action={formAction}
       className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <Input name="file" type="file" accept=".csv" required disabled={pending} />
+      <Input
+        name="file"
+        type="file"
+        accept=".csv"
+        required
+        disabled={pending}
+        onChange={(e) => setFileChosen(!!e.target.files?.length)}
+      />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.imported !== undefined && (
         <p className="text-sm text-success">
@@ -29,7 +37,7 @@ export function CsvImportForm() {
         </p>
       )}
       <div className="flex items-center gap-2">
-        <Button type="submit" variant="outline" disabled={pending}>
+        <Button type="submit" variant={fileChosen ? 'success' : 'outline'} disabled={pending}>
           {pending ? 'Importing…' : 'Import LinkedIn connections'}
         </Button>
         <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">

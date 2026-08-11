@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
+import type { PageContentView } from '@/lib/dashboard/page-content'
 
 export interface WatchlistPosting {
   id: string
@@ -77,7 +78,12 @@ async function getSurfacedJobPostings(candidateId: string): Promise<WatchlistPos
   }))
 }
 
-export async function getWatchlistView(candidateId: string, isAList: boolean): Promise<WatchlistEntryView[]> {
+// Shared match/new-count computation, reused by getWatchlistView (which
+// additionally applies A-List gating to decide what's visible) and
+// getWatchlistAlertContent (which only cares whether *anything* new landed,
+// not whether this candidate can open it yet — see that function for why
+// A-List status doesn't matter there).
+async function matchWatchlistEntries(candidateId: string) {
   const [entries, boardPostings, surfacedPostings] = await Promise.all([
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
     getActivePostings(),
@@ -86,14 +92,22 @@ export async function getWatchlistView(candidateId: string, isAList: boolean): P
 
   return entries.map((entry) => {
     const boardMatches = boardPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
+    const surfacedMatches = surfacedPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
+    const allMatches = [...boardMatches, ...surfacedMatches]
+    const newPostingCount = allMatches.filter((p) => p.createdAt > entry.lastViewedAt).length
+    return { entry, boardMatches, surfacedMatches, newPostingCount }
+  })
+}
+
+export async function getWatchlistView(candidateId: string, isAList: boolean): Promise<WatchlistEntryView[]> {
+  const matches = await matchWatchlistEntries(candidateId)
+
+  return matches.map(({ entry, boardMatches, surfacedMatches, newPostingCount }) => {
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones
     // this candidate can open yet — counted, never detailed, unless the
     // candidate is actually A-List.
     const visibleBoard = boardMatches.filter((p) => isAList || p.audienceTier !== 'A_LIST_ONLY')
-    const surfacedMatches = surfacedPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
-    const allMatches = [...boardMatches, ...surfacedMatches]
     const visible = [...visibleBoard, ...surfacedMatches]
-    const newPostingCount = allMatches.filter((p) => p.createdAt > entry.lastViewedAt).length
     return {
       id: entry.id,
       companyName: entry.companyName,
@@ -109,6 +123,39 @@ export async function getWatchlistView(candidateId: string, isAList: boolean): P
       lockedCount: boardMatches.length - visibleBoard.length,
     }
   })
+}
+
+// Computed "Daily Message" for the dashboard/find-my-job header — takes
+// priority over the admin-authored rotation for that candidate for the day
+// (see getPageBoxContent's dynamicOverride param). Deliberately skips the
+// A-List visibility gate getWatchlistView applies: this is just "heads up,
+// something landed," not the postings themselves, so it's fine to mention a
+// company by name even for a locked posting a non-A-List candidate can't
+// open yet — the Company Tracker section on find-my-job explains the lock.
+export async function getWatchlistAlertContent(candidateId: string): Promise<PageContentView | null> {
+  const matches = await matchWatchlistEntries(candidateId)
+  const withNew = matches.filter((m) => m.newPostingCount > 0)
+  if (withNew.length === 0) return null
+
+  const totalNew = withNew.reduce((sum, m) => sum + m.newPostingCount, 0)
+  const title =
+    withNew.length === 1
+      ? `${totalNew} new job${totalNew === 1 ? '' : 's'} at ${withNew[0].entry.companyName}`
+      : `New jobs at ${withNew.length} companies you're watching`
+
+  return {
+    id: 'watchlist-new-jobs',
+    title,
+    leadIn: null,
+    bullets: withNew.map(
+      ({ entry, newPostingCount }) => `${entry.companyName}: ${newPostingCount} new job${newPostingCount === 1 ? '' : 's'}`
+    ),
+    footer: 'Check your watchlist on the Jobs page for details.',
+    videoProvider: null,
+    videoUrl: null,
+    useInlineEmbed: false,
+    isPinned: true,
+  }
 }
 
 export async function addCompanyToWatchlist(

@@ -55,10 +55,18 @@ export interface PageContentView {
 // dismissals only count for the rest of the day they were made (reappears
 // tomorrow); WHY_IT_MATTERS dismissals are permanent until the candidate
 // re-enables from /dashboard/privacy (see reenablePageBox).
+//
+// dynamicOverride lets a caller inject a computed, non-admin-authored
+// message (e.g. "new jobs at a company you're watching" — see
+// getWatchlistAlertContent) that takes priority over the static rotation
+// below whenever it's present. It still goes through the same dismissal
+// check as everything else, so "dismiss for today" suppresses it too and it
+// reappears tomorrow if the underlying condition still holds.
 export async function getPageBoxContent(
   candidateId: string,
   pageKey: PageKey,
-  boxType: PageBoxType
+  boxType: PageBoxType,
+  dynamicOverride?: PageContentView | null
 ): Promise<PageContentView | null> {
   const dismissal = await prisma.pageBoxDismissal.findUnique({
     where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType } },
@@ -67,6 +75,8 @@ export async function getPageBoxContent(
     ? boxType === 'WHY_IT_MATTERS' || dismissal.dismissedAt >= startOfUTCDay()
     : false
   if (isDismissed) return null
+
+  if (dynamicOverride) return dynamicOverride
 
   const now = new Date()
   const where = {
