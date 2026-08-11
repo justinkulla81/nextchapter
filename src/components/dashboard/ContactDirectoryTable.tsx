@@ -45,6 +45,7 @@ export function ContactDirectoryTable({
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [priorityPin, setPriorityPin] = useState(true)
+  const [emailFilter, setEmailFilter] = useState<'all' | 'has' | 'missing'>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
   const [undo, setUndo] = useState<ContactRowData | null>(null)
@@ -63,6 +64,8 @@ export function ContactDirectoryTable({
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase()
     let list = contacts.filter((c) => !removedIds.has(c.id))
+    if (emailFilter === 'has') list = list.filter((c) => !!c.email)
+    if (emailFilter === 'missing') list = list.filter((c) => !c.email)
     if (term) {
       list = list.filter(
         (c) =>
@@ -101,7 +104,7 @@ export function ContactDirectoryTable({
           )
       }
     })
-  }, [contacts, removedIds, search, sortKey, sortDir, priorityPin])
+  }, [contacts, removedIds, search, sortKey, sortDir, priorityPin, emailFilter])
 
   const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
   // Clamp at render time rather than in an effect — the underlying list can
@@ -159,6 +162,18 @@ export function ContactDirectoryTable({
           />
           Priority contacts on top
         </label>
+        <select
+          value={emailFilter}
+          onChange={(e) => {
+            setEmailFilter(e.target.value as 'all' | 'has' | 'missing')
+            setPage(0)
+          }}
+          className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+        >
+          <option value="all">All contacts</option>
+          <option value="has">Has email</option>
+          <option value="missing">No email</option>
+        </select>
         {undo && (
           <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-sm">
             <span className="text-muted-foreground">Removed {undo.name}.</span>
@@ -294,6 +309,14 @@ function ContactRowExpandable({
             >
               Remove
             </button>
+            {contact.email && (
+              <a
+                href={`mailto:${contact.email}`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Email
+              </a>
+            )}
           </div>
         </td>
         <td className="px-3 py-2 font-medium text-foreground">
@@ -335,7 +358,12 @@ function ContactRowExpandable({
 function ContactNameLink({ contact }: { contact: ContactRowData }) {
   if (!contact.linkedinUrl) return <>{contact.name}</>
   return (
-    <a href={contact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+    <a
+      href={contact.linkedinUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-primary hover:underline"
+    >
       {contact.name}
     </a>
   )
