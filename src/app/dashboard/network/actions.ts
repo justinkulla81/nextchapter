@@ -61,6 +61,15 @@ export async function importConnectionsCsv(
   const file = formData.get('file') as File | null
   if (!file || file.size === 0) return { error: 'Choose your LinkedIn Connections.csv file first.' }
 
+  try {
+    return await doImportConnectionsCsv(profile.id, file)
+  } catch (error) {
+    console.error('Failed to import connections CSV:', error)
+    return { error: "Something went wrong importing that file. Double check it's LinkedIn's Connections.csv export and try again." }
+  }
+}
+
+async function doImportConnectionsCsv(candidateId: string, file: File): Promise<NetworkFormState> {
   const text = await file.text()
   const contacts = parseLinkedInConnectionsCsv(text)
   if (contacts.length === 0) {
@@ -74,7 +83,7 @@ export async function importConnectionsCsv(
   // either of those, so this fetches every existing row up front and
   // decides create/update/skip per contact in memory instead.
   const existing = await prisma.supportNetworkContact.findMany({
-    where: { candidateId: profile.id },
+    where: { candidateId },
     select: {
       id: true,
       name: true,
@@ -142,7 +151,7 @@ export async function importConnectionsCsv(
     }
 
     toCreate.push({
-      candidateId: profile.id,
+      candidateId,
       name: c.name,
       company: c.company,
       title: c.title,
@@ -154,7 +163,10 @@ export async function importConnectionsCsv(
     })
   }
 
-  const created = toCreate.length > 0 ? await prisma.supportNetworkContact.createMany({ data: toCreate }) : { count: 0 }
+  const created =
+    toCreate.length > 0
+      ? await prisma.supportNetworkContact.createMany({ data: toCreate, skipDuplicates: true })
+      : { count: 0 }
   // Bulk SQL rather than one Prisma call per row — a large account (tens of
   // thousands of contacts) re-uploading a CSV that fills in a previously-
   // blank field on most existing rows can produce thousands of updates.
@@ -186,22 +198,22 @@ export async function importConnectionsCsv(
       await prisma.$executeRaw`
         UPDATE "SupportNetworkContact"
         SET ${Prisma.raw(`"${field}"`)} = CASE id ${cases} END
-        WHERE id IN (${ids}) AND "candidateId" = ${profile.id}
+        WHERE id IN (${ids}) AND "candidateId" = ${candidateId}
       `
     }
   }
 
-  await markNetworkingListSubmittedIfThresholdMet(profile.id)
+  await markNetworkingListSubmittedIfThresholdMet(candidateId)
 
   // Weekly Sprint credit only for genuinely new contacts — re-uploading the
   // same export (or one with no new names) fires zero credit, not a
   // re-award of the same one-time flag
   // markNetworkingListSubmittedIfThresholdMet uses.
   if (created.count > 0) {
-    const sprint = await getCurrentWeekSprint(profile.id)
+    const sprint = await getCurrentWeekSprint(candidateId)
     if (sprint) {
       const effort = estimateActionEffort({ actionType: 'NETWORKING_LIST' })
-      await autoCompleteEngagementAction(profile.id, {
+      await autoCompleteEngagementAction(candidateId, {
         actionType: 'NETWORKING_LIST',
         text: 'Add new contacts to your networking list',
         points: effort.points,
