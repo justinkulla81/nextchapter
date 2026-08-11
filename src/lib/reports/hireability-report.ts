@@ -164,6 +164,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     where: { id: candidateId },
     include: {
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       workHistory: true,
       references: { where: { status: 'COMPLETED' } },
       resumes: { orderBy: { uploadedAt: 'desc' }, take: 1 },

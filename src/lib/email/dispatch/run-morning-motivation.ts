@@ -36,6 +36,7 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
       surfacedJobs: { select: { reaction: true } },
       linkedInActivityLogs: true,
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       _count: { select: { weeklySprints: true } },
       coach: { select: { focus: true } },
     },

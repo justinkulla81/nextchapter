@@ -38,6 +38,7 @@ export async function getDashboardData() {
       linkedInActivityLogs: true,
       hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       _count: { select: { weeklySprints: true } },
       coach: { select: { focus: true } },
     },

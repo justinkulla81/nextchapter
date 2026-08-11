@@ -40,6 +40,7 @@ import type {
   CompanySizeBand,
   JobPosting,
   LinkedInActivityLog,
+  PerformanceAssessmentResponse,
   PrivacyTier,
   Reference,
   Resume,
@@ -91,8 +92,27 @@ export type CandidateWithGradeRelations = CandidateProfile & {
   communityPosts: { createdAt: Date }[]
   surfacedJobs: Pick<SurfacedJob, 'reaction'>[]
   assessmentResponses: Pick<CandidateAssessmentResponse, 'dimensionVectors' | 'completedAt'>[]
+  performanceAssessmentResponses: Pick<
+    PerformanceAssessmentResponse,
+    'executionScore' | 'judgmentScore' | 'composureScore' | 'influenceScore' | 'completedAt'
+  >[]
   _count: { weeklySprints: number }
   coach: { focus: CoachingFocus } | null
+}
+
+// Rescales a How I Perform dimension mean (1-4) to the 0-100 self-report
+// scale every other category input already uses. Averages when >1 dimension
+// feeds a category (Ownership: Execution + Composure; Adaptability: Judgment
+// + Composure — spec §3.2). Returns null when the candidate hasn't completed
+// How I Perform yet, so callers can fall back to the pre-existing self-report
+// input untouched.
+type PerformanceDimensionKey = 'executionScore' | 'judgmentScore' | 'composureScore' | 'influenceScore'
+
+function performanceSelfReport(candidate: CandidateWithGradeRelations, dims: PerformanceDimensionKey[]): number | null {
+  const response = candidate.performanceAssessmentResponses[0]
+  if (!response) return null
+  const mean = dims.reduce((sum, dim) => sum + response[dim], 0) / dims.length
+  return clamp(((mean - 1) / 3) * 100)
 }
 
 function clamp(n: number): number {
@@ -327,17 +347,24 @@ export async function computeCategoryGrades(
 
   // ---- Leadership & Management — resume scope (isPeopleManager,
   // teamSizeManaged) + self-rated management confidence, blended with the
-  // reference "team lift" rating where available.
+  // reference "team lift" rating where available. The confidence component
+  // is How I Perform's Influence score once completed (spec §3.2) — it
+  // replaces managementSkillConfidence rather than blending alongside it,
+  // since it's a richer 8-item read on the same "gets outcomes through
+  // people" question a single slider was standing in for.
+  const managementConfidenceInput = performanceSelfReport(candidate, ['influenceScore']) ?? candidate.managementSkillConfidence ?? 50
   const leadershipSelfReport = candidate.isPeopleManager
-    ? clamp(30 + Math.min(candidate.teamSizeManaged ?? 0, 20) * 2 + (candidate.managementSkillConfidence ?? 50) * 0.3)
+    ? clamp(30 + Math.min(candidate.teamSizeManaged ?? 0, 20) * 2 + managementConfidenceInput * 0.3)
     : 40 // not a penalty — an IC candidate simply has less direct-management evidence to show yet
   const leadershipRefRating = averageReferenceRating(refs, 'traitPresenceRating')
   const leadershipScore =
     leadershipRefRating !== null ? clamp(leadershipSelfReport * 0.5 + leadershipRefRating * 0.5) : leadershipSelfReport
 
   // ---- Skills & Execution — self-rated core-skill confidence, blended
-  // with the reference "work ethic" rating.
-  const skillsSelfReport = candidate.functionSkillConfidence ?? 50
+  // with the reference "work ethic" rating. How I Perform's Execution score
+  // replaces functionSkillConfidence once completed (spec §3.2) — same
+  // "richer instrument replaces the thin slider" treatment as Leadership.
+  const skillsSelfReport = performanceSelfReport(candidate, ['executionScore']) ?? candidate.functionSkillConfidence ?? 50
   const skillsRefRating = averageReferenceRating(refs, 'overallRating')
   const skillsExecutionBase =
     skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : clamp(skillsSelfReport)
@@ -361,14 +388,17 @@ export async function computeCategoryGrades(
   // (ATS readability + quantified-results framing — both fundamentally
   // about writing clearly, not about whether the underlying experience
   // fits), then blended again with the reference communication rating.
+  // Confidence input is How I Perform's Influence score once completed
+  // (spec §3.2), replacing communicatorConfidence.
   const presentationScore =
     latestResume?.atsScore != null && latestResume?.resultsScore != null
       ? clamp((latestResume.atsScore + latestResume.resultsScore) / 2)
       : null
+  const communicatorConfidenceInput = performanceSelfReport(candidate, ['influenceScore']) ?? candidate.communicatorConfidence ?? 50
   const communicationSelfReport =
     presentationScore !== null
-      ? clamp((candidate.communicatorConfidence ?? 50) * 0.6 + presentationScore * 0.4)
-      : (candidate.communicatorConfidence ?? 50)
+      ? clamp(communicatorConfidenceInput * 0.6 + presentationScore * 0.4)
+      : communicatorConfidenceInput
   const communicationRefRating = averageReferenceRating(refs, 'traitCollaborationRating')
   const communicationScore =
     communicationRefRating !== null
@@ -388,12 +418,19 @@ export async function computeCategoryGrades(
   // comp/level/location/pivoting. The archival snapshot, Coaching Notes,
   // and the Dossier's self-awareness read all keep the real signal via the
   // default.
+  //
+  // How I Perform's Judgment + Composure average (spec §3.2) replaces this
+  // whole structural formula once completed — unlike the flexibility
+  // checkboxes it isn't gameable by claiming comp/location flexibility, so
+  // it's used regardless of includeFlexibilitySignal.
   const flexibilityCount = [candidate.willingToStartLower, candidate.compFlexible, candidate.openToRelocation].filter(
     Boolean
   ).length
-  const adaptabilitySelfReport = includeFlexibilitySignal
+  const structuralAdaptabilitySelfReport = includeFlexibilitySignal
     ? clamp(40 + flexibilityCount * 15 + (candidate.isPivoting ? 10 : 0))
     : clamp(50)
+  const adaptabilitySelfReport =
+    performanceSelfReport(candidate, ['judgmentScore', 'composureScore']) ?? structuralAdaptabilitySelfReport
   const adaptabilityRefRating = averageReferenceRating(refs, 'traitAdaptabilityRating')
   const adaptabilityScore =
     adaptabilityRefRating !== null
@@ -406,8 +443,10 @@ export async function computeCategoryGrades(
   // work, is initiative/follow-through in the candidate's own words. Blended
   // with the reference "follow-through" rating the same way every other
   // category blends self-report and reference signal, rather than leaning on
-  // the reference alone.
-  const ownershipSelfReport = candidate.actionOrientedConfidence ?? 50
+  // the reference alone. How I Perform's Execution + Composure average
+  // (spec §3.2) replaces actionOrientedConfidence once completed.
+  const ownershipSelfReport =
+    performanceSelfReport(candidate, ['executionScore', 'composureScore']) ?? candidate.actionOrientedConfidence ?? 50
   const ownershipRefRating = averageReferenceRating(refs, 'traitFollowThroughRating')
   const ownershipBase =
     ownershipRefRating !== null
@@ -666,6 +705,11 @@ export const GRADE_RELATIONS_INCLUDE = {
   communityPosts: { where: { isActive: true } },
   surfacedJobs: { select: { reaction: true } },
   assessmentResponses: { orderBy: { completedAt: 'desc' as const }, take: 1, select: { dimensionVectors: true, completedAt: true } },
+  performanceAssessmentResponses: {
+    orderBy: { completedAt: 'desc' as const },
+    take: 1,
+    select: { executionScore: true, judgmentScore: true, composureScore: true, influenceScore: true, completedAt: true },
+  },
   _count: { select: { weeklySprints: true } },
   coach: { select: { focus: true } },
 } as const
