@@ -154,15 +154,15 @@ function NavContent({
               type="button"
               onClick={() => onToggleSection(section.title!)}
               aria-expanded={!collapsed}
-              className="flex w-full items-center justify-between gap-2 px-2 pb-1 text-[11px] font-semibold tracking-widest text-orange/60 uppercase hover:text-orange/80"
+              className="flex w-full items-center gap-1.5 px-2 pb-1 text-[11px] font-semibold tracking-widest text-orange/60 uppercase hover:text-orange/80"
             >
               {section.title}
               <svg
                 viewBox="0 0 24 24"
-                className={cn('size-3 shrink-0 transition-transform', collapsed && '-rotate-90')}
+                className={cn('size-3.5 shrink-0 text-orange transition-transform', collapsed && '-rotate-90')}
                 fill="none"
                 stroke="currentColor"
-                strokeWidth={2.5}
+                strokeWidth={3.5}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
               </svg>

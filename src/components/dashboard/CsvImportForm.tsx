@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { importConnectionsCsv } from '@/app/dashboard/network/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,16 @@ export function CsvImportForm() {
   const [state, formAction, pending] = useActionState(importConnectionsCsv, undefined)
   const [fileChosen, setFileChosen] = useState(false)
   const points = estimateActionEffort({ actionType: 'NETWORKING_LIST' }).points
+  const router = useRouter()
+
+  // The server action already revalidates the contacts path, but the
+  // contact table above this form was rendered before the import ran —
+  // router.refresh() re-fetches it so the new/updated rows show up without
+  // the candidate having to reload the page themselves.
+  useEffect(() => {
+    if (state?.imported !== undefined) router.refresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
 
   return (
     <form
@@ -24,6 +35,12 @@ export function CsvImportForm() {
         required
         disabled={pending}
         onChange={(e) => setFileChosen(!!e.target.files?.length)}
+        className={cn(
+          'file:mr-4 file:h-9 file:px-4',
+          pending && 'file:cursor-progress',
+          !fileChosen &&
+            'file:bg-success file:text-white hover:file:bg-success-hover active:file:bg-success-hover active:file:text-white'
+        )}
       />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.imported !== undefined && (

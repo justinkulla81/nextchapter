@@ -30,7 +30,15 @@ export function ResumeUploadForm() {
     >
       <div className="space-y-2">
         <Label htmlFor="file">Upload your resume (PDF or DOCX, up to 10MB)</Label>
-        <Input id="file" name="file" type="file" accept=".pdf,.docx" required disabled={pending} />
+        <Input
+          id="file"
+          name="file"
+          type="file"
+          accept=".pdf,.docx"
+          required
+          disabled={pending}
+          className={pending ? 'file:cursor-progress' : undefined}
+        />
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
