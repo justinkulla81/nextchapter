@@ -116,6 +116,112 @@ export default async function RecruiterCandidateBriefPage({
           )}
         </div>
 
+        {brief.verified.length > 0 && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium text-muted-foreground">Verified</p>
+            <ul className="mt-2 space-y-1.5">
+              {brief.verified.map((item) => (
+                <li key={item.label} className="text-sm text-foreground">
+                  {item.label}
+                  {item.confirmedCount > 0 && (
+                    <span className="text-muted-foreground"> — confirmed by {item.confirmedCount}</span>
+                  )}
+                  {item.correction && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      One correction: a reference notes &ldquo;{item.correction}&rdquo;
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {brief.performance.completedReferenceCount > 0 && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium text-muted-foreground">Performance</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Rated by people who worked with them, on a scale where &ldquo;Solid&rdquo; means they did the job
+              well and &ldquo;Exceptional&rdquo; is reserved for the best people someone has worked with.
+            </p>
+            {brief.performance.confidenceTier === 'PROVISIONAL' ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Only {brief.performance.completedReferenceCount} response
+                {brief.performance.completedReferenceCount === 1 ? '' : 's'} so far — not enough yet to show
+                performance averages.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-1.5">
+                {brief.performance.dimensions.map((d) => (
+                  <div key={d.dimension} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="text-foreground">{d.dimension}</span>
+                    <span className="text-muted-foreground">
+                      {d.label ? `${d.label} · ${d.n} response${d.n === 1 ? '' : 's'}` : '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {brief.comparative.responseCount > 0 && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium text-muted-foreground">Comparative standing</p>
+            <ul className="mt-2 space-y-1 text-sm text-foreground">
+              {brief.comparative.managerCount > 0 && (
+                <li>
+                  {brief.comparative.managerWouldHireAgainDefinitely} of {brief.comparative.managerCount} former
+                  manager{brief.comparative.managerCount === 1 ? '' : 's'} would definitely hire them again
+                </li>
+              )}
+              {brief.comparative.rankAnsweredCount > 0 && (
+                <li>
+                  Ranked in the top 10% by {brief.comparative.topTierRankCount} of{' '}
+                  {brief.comparative.rankAnsweredCount} who answered
+                </li>
+              )}
+              {brief.comparative.foughtToKeepCount > 0 && <li>A former manager fought to keep them when they left</li>}
+              {brief.comparative.takeAgainAnsweredCount > 0 && (
+                <li>
+                  {brief.comparative.wouldTakeAgainCount} of {brief.comparative.takeAgainAnsweredCount} would take
+                  them if starting something new
+                </li>
+              )}
+              {brief.comparative.scopeAnsweredCount > 0 && (
+                <li>
+                  {brief.comparative.meaningfullyMoreScopeCount} of {brief.comparative.scopeAnsweredCount} would
+                  trust them with meaningfully more scope than they&apos;ve had
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {(brief.attributedQuotes.length > 0 || brief.unattributedCommentCount > 0) && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium text-muted-foreground">In their words</p>
+            <div className="mt-3 space-y-3">
+              {brief.attributedQuotes.map((q, i) => (
+                <blockquote key={i} className="border-l-2 border-border pl-3 text-sm text-foreground italic">
+                  &ldquo;{q.text}&rdquo;
+                  <footer className="mt-1 text-xs font-normal text-muted-foreground not-italic">
+                    — {q.refereeName}
+                    {q.refereeTitle ? `, ${q.refereeTitle}` : ''}
+                  </footer>
+                </blockquote>
+              ))}
+              {brief.unattributedCommentCount > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {brief.unattributedCommentCount} additional reference
+                  {brief.unattributedCommentCount === 1 ? '' : 's'} provided written comments without releasing
+                  attribution.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {brief.frictionExamples.length > 0 && (
           <div className="rounded-lg border border-border p-4">
             <p className="text-sm font-medium text-muted-foreground">Self vs. reference friction examples</p>

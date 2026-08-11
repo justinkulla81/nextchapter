@@ -18,6 +18,8 @@
 import { prisma } from '@/lib/prisma'
 import { ASSESSMENT_DIMENSIONS, type AssessmentDimension } from '@/lib/constants/onboarding'
 import type { DimensionVectors } from '@/lib/scoring/assessment-vectors'
+import { aggregatePerformance, type PerformanceAggregate } from '@/lib/references/aggregate-performance'
+import type { Reference } from '@prisma/client'
 
 export interface FrictionExample {
   dimension: AssessmentDimension
@@ -37,6 +39,33 @@ export interface RedFlagsSection {
   interviewAuditFocusAreas: string[]
 }
 
+export interface VerifiedItem {
+  label: string
+  confirmedCount: number
+  correction: string | null // set only when exactly one reference flagged a correction and no one else disputed it
+}
+
+// Reference Check Part B rollup (spec §9.1's COMPARATIVE STANDING block) —
+// counts, not averages, since these are categorical answers, not a scale.
+export interface ComparativeStanding {
+  responseCount: number
+  managerCount: number
+  managerWouldHireAgainDefinitely: number
+  topTierRankCount: number // TOP_10 or TOP_1
+  rankAnsweredCount: number
+  foughtToKeepCount: number
+  wouldTakeAgainCount: number
+  takeAgainAnsweredCount: number
+  meaningfullyMoreScopeCount: number
+  scopeAnsweredCount: number
+}
+
+export interface AttributedQuote {
+  text: string
+  refereeName: string
+  refereeTitle: string | null
+}
+
 export interface HiringManagerReport {
   candidateId: string
   candidateName: string
@@ -45,6 +74,14 @@ export interface HiringManagerReport {
   frictionExamples: FrictionExample[]
   selfAwarenessScore: number | null
   selfAwarenessLabel: 'High' | 'Moderate' | 'Low' | null
+  // Assessment Layer Reference Check additions (spec §9.1) — the
+  // performance/comparative/verification/quote layer, distinct from the
+  // style-based friction examples above.
+  verified: VerifiedItem[]
+  performance: PerformanceAggregate
+  comparative: ComparativeStanding
+  attributedQuotes: AttributedQuote[]
+  unattributedCommentCount: number
 }
 
 // Same calibration anchor as inconsistencyScore's realistic max delta between
@@ -83,14 +120,77 @@ function nearestAnchorText(
   return anchorsByDimension.get(dimension)?.get(scalePoint) ?? null
 }
 
+// Part D verification rollup — one row per claim type, counting how many
+// completed references confirmed it and surfacing a correction only when
+// exactly one reference flagged one and nobody else disputed it (spec
+// §9.1's example: "a former manager notes the team was 12 at peak, not
+// 10"). Two-plus conflicting corrections are dropped rather than guessed
+// at — that's a candidate-side dispute conversation, not something to
+// silently pick a winner on.
+function buildVerifiedItems(completedReferences: Reference[]): VerifiedItem[] {
+  const items: { label: string; correctField: keyof Reference; correctionField: keyof Reference }[] = [
+    { label: 'Title', correctField: 'verifiedTitleCorrect', correctionField: 'correctedTitle' },
+    { label: 'Dates', correctField: 'verifiedDatesCorrect', correctionField: 'correctedDates' },
+    { label: 'Reporting relationship', correctField: 'verifiedReportingCorrect', correctionField: 'correctedReporting' },
+    { label: 'Scope', correctField: 'verifiedScopeCorrect', correctionField: 'correctedScope' },
+  ]
+
+  return items
+    .map(({ label, correctField, correctionField }) => {
+      const answered = completedReferences.filter((r) => r[correctField] !== null)
+      const confirmedCount = answered.filter((r) => r[correctField] === true).length
+      const corrections = answered
+        .map((r) => r[correctionField] as string | null)
+        .filter((c): c is string => !!c && c.trim().length > 0)
+      return {
+        label,
+        confirmedCount,
+        correction: corrections.length === 1 ? corrections[0] : null,
+      }
+    })
+    .filter((item) => item.confirmedCount > 0 || item.correction)
+}
+
+function buildComparativeStanding(completedReferences: Reference[]): ComparativeStanding {
+  const managerRefs = completedReferences.filter(
+    (r) => r.relationshipType === 'DIRECT_MANAGER' || r.relationshipType === 'SKIP_LEVEL_MANAGER'
+  )
+  const rankAnswered = completedReferences.filter((r) => r.compRelativeRank !== null)
+  const takeAgainAnswered = completedReferences.filter((r) => r.compWouldTakeAgain !== null)
+  const scopeAnswered = completedReferences.filter((r) => r.compTrustedScope !== null)
+
+  return {
+    responseCount: completedReferences.length,
+    managerCount: managerRefs.length,
+    managerWouldHireAgainDefinitely: managerRefs.filter((r) => r.compWouldHireAgain === 'DEFINITELY').length,
+    topTierRankCount: rankAnswered.filter((r) => r.compRelativeRank === 'TOP_10' || r.compRelativeRank === 'TOP_1')
+      .length,
+    rankAnsweredCount: rankAnswered.length,
+    foughtToKeepCount: managerRefs.filter((r) => r.compDepartureContext === 'FOUGHT_TO_KEEP').length,
+    wouldTakeAgainCount: takeAgainAnswered.filter(
+      (r) => r.compWouldTakeAgain === 'YES' || r.compWouldTakeAgain === 'YES_FIRST_CALL'
+    ).length,
+    takeAgainAnsweredCount: takeAgainAnswered.length,
+    meaningfullyMoreScopeCount: scopeAnswered.filter(
+      (r) => r.compTrustedScope === 'MEANINGFULLY_MORE' || r.compTrustedScope === 'STEP_CHANGE'
+    ).length,
+    scopeAnsweredCount: scopeAnswered.length,
+  }
+}
+
 export async function generateHiringManagerReport(candidateId: string): Promise<HiringManagerReport> {
-  const [candidate, latestResponse, barsAnchors] = await Promise.all([
+  const [candidate, latestResponse, barsAnchors, completedReferences, approvedQuotes] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
     prisma.candidateAssessmentResponse.findFirst({
       where: { candidateId },
       orderBy: { completedAt: 'desc' },
     }),
     prisma.bARSAnchor.findMany({ where: { isActive: true } }),
+    prisma.reference.findMany({ where: { candidateId, status: 'COMPLETED' } }),
+    prisma.referenceQuote.findMany({
+      where: { candidateId, approvedByCandidateAt: { not: null }, rejectedAt: null },
+      include: { reference: { select: { refereeName: true, refereeTitle: true, quotableWithAttribution: true } } },
+    }),
   ])
 
   const anchorsByDimension = new Map<string, Map<number, string>>()
@@ -162,6 +262,19 @@ export async function generateHiringManagerReport(candidateId: string): Promise<
     redFlagsSummary.push('No red flags identified from available signals.')
   }
 
+  // Only attributed quotes ever render as text (spec §5.7/§9.1) — an
+  // approved-but-not-attributed quote still counts toward the "N additional
+  // references provided written comments" line, it just never shows its
+  // words.
+  const attributedQuotes: AttributedQuote[] = approvedQuotes
+    .filter((q) => q.reference.quotableWithAttribution === true)
+    .map((q) => ({
+      text: q.quoteText,
+      refereeName: q.reference.refereeName,
+      refereeTitle: q.reference.refereeTitle,
+    }))
+  const unattributedCommentCount = approvedQuotes.filter((q) => q.reference.quotableWithAttribution !== true).length
+
   return {
     candidateId,
     candidateName: candidate.displayName || 'This candidate',
@@ -174,5 +287,10 @@ export async function generateHiringManagerReport(candidateId: string): Promise<
     frictionExamples,
     selfAwarenessScore: selfAwarenessScoreValue,
     selfAwarenessLabel: selfAwarenessLabel(selfAwarenessScoreValue),
+    verified: buildVerifiedItems(completedReferences),
+    performance: aggregatePerformance(completedReferences),
+    comparative: buildComparativeStanding(completedReferences),
+    attributedQuotes,
+    unattributedCommentCount,
   }
 }
