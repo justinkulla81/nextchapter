@@ -97,15 +97,34 @@ const PROFILE_SECTION_GROUPS: { text: string; actionType: string; types: Set<str
   },
 ]
 
-// Within a group, high-priority rows read first, then everything else —
-// a completed one-time row never reaches this function at all (see
+// The one-time setup questionnaires — personal info, screening, skills
+// assessments, search-progress questions — read as one adjacent cluster
+// rather than scattered among unrelated one-time items, since they're all
+// the same kind of thing: informational forms with no urgency to them.
+const ONE_TIME_SETUP_CLUSTER = new Set([
+  'PROFILE_CONFIRM', // consolidated "Complete My Personal Information" row
+  'RED_FLAGS_CONFIRMED', // consolidated "Complete Screening Questions" row
+  'BENEFITS_PRIORITIES_CONFIRMED', // consolidated "Set your Search Goals" row
+  'WORKING_STYLE_QUIZ',
+  'SKILLS_ASSESSMENT_COMPLETED',
+  'ANSWER_OPTIONAL_QUESTIONS',
+])
+
+// One-time actions read before recurring ones, and connecting Gmail always
+// leads when it's still open — it's the one action that makes every other
+// auto-detected action type (applications, interviews, outreach) start
+// counting, so it shouldn't get buried under whatever happens to sort
+// earlier. A completed one-time row never reaches this function at all (see
 // openRows below, which drops those before grouping/sorting ever runs), so
-// there's no "completed rows last" tier to account for here anymore.
+// GMAIL_CONNECTED/GMAIL_RECONNECTED are guaranteed still-incomplete whenever
+// they appear here — no separate "if not completed" check needed.
 // Array.prototype.sort is stable in every engine this app runs on, so rows
 // within the same tier keep their original relative order.
 function sortForDisplay(rows: Row[]): Row[] {
   function tier(row: Row): number {
-    return row.priority ? 0 : 1
+    if (row.actionType === 'GMAIL_CONNECTED' || row.actionType === 'GMAIL_RECONNECTED') return 0
+    if (row.actionType && ONE_TIME_SETUP_CLUSTER.has(row.actionType)) return 1
+    return row.recurring ? 3 : 2
   }
   return [...rows].sort((a, b) => tier(a) - tier(b))
 }
@@ -133,7 +152,11 @@ function consolidateProfileDataRows(rows: Row[]): Row[] {
       actionType: group.actionType,
       completed: false,
       recurring: false,
-      priority: true,
+      // Real one-time setup — personal info, screening, comp/benefits —
+      // but informational, not urgent: nothing else in the app is blocked
+      // on any of these, so they don't compete for attention the way
+      // Gmail/Calendar connect or a privacy-tier choice do.
+      priority: false,
     })
   }
 
@@ -312,24 +335,30 @@ export function SuccessSprintCard({
   // points-by-kind breakdown needed alongside it.
   const actionsDoneCount = realActions.filter((a) => a.completed).length
 
-  // Every incomplete Personalize item (connecting Gmail/Calendar, any undone
-  // profile/gate confirm) is flagged as a high-priority action, same visual
-  // treatment as the hamburger nav's High Priority badge — foundational
-  // setup that unlocks or improves everything else. Getting an interim job
-  // joins that flag, but only once the search has run long enough that
-  // bridging the gap becomes the priority (see LONG_SEARCH_WEEK_THRESHOLD).
-  // A few Personalize items are deliberately excluded — real one-time
-  // setup, but not foundational the way the others are, so they shouldn't
-  // compete for attention with things that unlock the rest of the app:
-  // the Interview Prep Comfort Check, and the three content/marketplace
-  // unlock gates (work samples, Interim/Gig Directory, LinkedIn post
-  // generator) — each is a nice-to-have unlock, not a blocker for anything
-  // else.
-  const DEPRIORITIZED_PERSONALIZE_TYPES = new Set([
-    'COMFORT_CHECK_CONFIRM',
-    'WORK_SAMPLE_TYPE_CONFIRMED',
+  // Only a curated, explicit set of Personalize items are flagged
+  // high-priority — genuinely foundational/blocking setup (connecting
+  // Gmail/Calendar so activity auto-detects, choosing a privacy tier,
+  // opting into network-comfort tracking) or a real inventory unlock
+  // (the Interim/Gig Directory). Everything else in Personalize — profile
+  // fields, screening questions, skills assessments, search-progress
+  // questions, resume/LinkedIn/interview-prep tools — is real one-time
+  // setup but not urgent, so it doesn't compete for attention with what
+  // actually is. Deliberately an allowlist, not "every Personalize item is
+  // priority unless excluded": that exclusion-list shape is what silently
+  // promoted resume/skills-translator/interview-prep/LinkedIn-setup to
+  // Priority the moment they were reassigned off the retired 'Building'
+  // category — an allowlist can't repeat that mistake, since adding a new
+  // Personalize action type is a no-op here until someone deliberately
+  // opts it in.
+  const PRIORITIZED_PERSONALIZE_TYPES = new Set([
+    'PRIVACY_CONFIRMED',
+    'NETWORK_COMFORT_CONFIRMED',
+    'MARKETING_PLAN_UNLOCK',
     'GIG_DIRECTORY_UNLOCK',
-    'LINKEDIN_UNLOCK',
+    'GMAIL_CONNECTED',
+    'GMAIL_RECONNECTED',
+    'CALENDAR_CONNECTED',
+    'CALENDAR_RECONNECTED',
   ])
   // The core, always-available job-search actions — applying, networking
   // outreach, adding contacts, and lining up references — carry real weekly
@@ -343,8 +372,7 @@ export function SuccessSprintCard({
   ])
   function isPriorityActionType(actionType: string | undefined): boolean {
     if (!actionType) return false
-    if (DEPRIORITIZED_PERSONALIZE_TYPES.has(actionType)) return false
-    if (isPersonalizeType(actionType)) return true
+    if (isPersonalizeType(actionType)) return PRIORITIZED_PERSONALIZE_TYPES.has(actionType)
     if (CORE_SEARCH_ACTION_TYPES.has(actionType)) return true
     if (actionType === 'INTERIM_PROFILE_CREATED') return weeklySprintsCount >= LONG_SEARCH_WEEK_THRESHOLD
     return false

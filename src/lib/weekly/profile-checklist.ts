@@ -39,7 +39,7 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   FUNCTION_CONFIRM: 'Confirm your function & experience',
   SALARY_CONFIRM: 'Confirm your last salary',
   WORK_AUTHORIZATION: 'Confirm your work authorization',
-  ANSWER_OPTIONAL_QUESTIONS: 'Define your search goals',
+  ANSWER_OPTIONAL_QUESTIONS: 'Check in on your search progress',
   PRIVACY_CONFIRMED: 'Choose your privacy setting',
   COMFORT_CHECK_CONFIRM: 'Complete your Interview Prep Comfort Check',
   NETWORK_COMFORT_CONFIRMED: 'Your networking comfort level',

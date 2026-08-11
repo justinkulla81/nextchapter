@@ -68,7 +68,7 @@ function buildSections(
           // more specific, more actionable reason to visit right now.
           badge: newBackchannelCount > 0 ? String(newBackchannelCount) : 'Priority',
         },
-        { href: '/dashboard/references', label: 'My References' },
+        { href: '/dashboard/references', label: 'My References', badge: 'Priority' },
         {
           href: '/dashboard/community',
           label: 'NextChapter Community',

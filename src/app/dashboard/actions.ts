@@ -83,7 +83,7 @@ export async function checkInMood(mood: Mood) {
     const effort = estimateActionEffort({ actionType: 'MOOD_CHECKIN' })
     await autoCompleteEngagementAction(profile.id, {
       actionType: 'MOOD_CHECKIN',
-      text: "Checked in on how you're feeling",
+      text: "Check in on how you're feeling",
       points: effort.points,
       estimatedMinutes: effort.minutes,
     })
@@ -117,7 +117,7 @@ export async function checkInVisibilityComfort(comfort: PublicDisclosureComfort)
   const effort = estimateActionEffort({ actionType: 'VISIBILITY_COMFORT_CHECKIN' })
   await autoCompleteEngagementAction(profile.id, {
     actionType: 'VISIBILITY_COMFORT_CHECKIN',
-    text: "Answered this week's visibility comfort check-in",
+    text: "Answer this week's visibility comfort check-in",
     points: effort.points,
     estimatedMinutes: effort.minutes,
   })
