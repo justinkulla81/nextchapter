@@ -56,7 +56,8 @@ export function OutreachPlanCard({
       >
         <X className="size-4" />
       </button>
-      <h2 className="pr-6 text-sm font-medium text-foreground">Your outreach plan</h2>
+      <p className="pr-6 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Daily Message</p>
+      <h2 className="pr-6 text-sm font-semibold text-navy">Your outreach plan</h2>
       <p className="text-sm text-foreground">{COMFORT_RESPONSE[comfortLevel]}</p>
       <div>
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

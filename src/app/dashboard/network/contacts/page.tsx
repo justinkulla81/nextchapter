@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import type { Prisma } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getPageBoxContent } from '@/lib/dashboard/page-content'
@@ -20,16 +21,68 @@ import {
 } from '@/lib/constants/network-email-templates'
 export const metadata: Metadata = { title: 'Contact Directory' }
 
-export default async function ContactDirectoryPage() {
+const PAGE_SIZE = 50
+const SORT_KEYS = ['name', 'company', 'date', 'priority'] as const
+export type ContactSortKey = (typeof SORT_KEYS)[number]
+
+export default async function ContactDirectoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const sp = await searchParams
   const profile = await getDashboardData()
-  const [rawContacts, removedCount] = await Promise.all([
+
+  const q = typeof sp.q === 'string' ? sp.q.trim() : ''
+  const sortKey: ContactSortKey = (SORT_KEYS as readonly string[]).includes(sp.sort as string)
+    ? (sp.sort as ContactSortKey)
+    : 'name'
+  const dir: 'asc' | 'desc' = sp.dir === 'desc' ? 'desc' : 'asc'
+  const pin = sp.pin !== '0'
+  const emailFilter: 'all' | 'has' | 'missing' = sp.email === 'has' || sp.email === 'missing' ? sp.email : 'all'
+  const page = Math.max(1, Number(sp.page) || 1)
+
+  // Deliberately filtered/sorted/paginated at the DB level, not fetched in
+  // full and sliced in the browser — this candidate has 27,000+ contacts
+  // (a real LinkedIn export), and shipping every row to the client on every
+  // page visit was the actual cause of "this page is slow", not the DB
+  // query itself (which runs in well under 50ms even unindexed at this
+  // scale — confirmed via EXPLAIN ANALYZE). Only relationship/reached-out/
+  // membership stay display-only (not sortable) since they're derived from
+  // a relation or an external lookup rather than a plain column.
+  const where: Prisma.SupportNetworkContactWhereInput = {
+    candidateId: profile.id,
+    removedAt: null,
+  }
+  if (emailFilter === 'has') where.email = { not: null }
+  if (emailFilter === 'missing') where.email = null
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: 'insensitive' } },
+      { company: { contains: q, mode: 'insensitive' } },
+      { email: { contains: q, mode: 'insensitive' } },
+    ]
+  }
+
+  const orderBy: Prisma.SupportNetworkContactOrderByWithRelationInput[] = []
+  if (pin) orderBy.push({ isPriority: 'desc' })
+  if (sortKey === 'priority') orderBy.push({ isPriority: dir })
+  else if (sortKey === 'date') orderBy.push({ connectedAt: dir }, { createdAt: dir })
+  else orderBy.push({ [sortKey]: dir })
+
+  const [totalCount, removedCount, rawContacts] = await Promise.all([
+    prisma.supportNetworkContact.count({ where }),
+    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: { not: null } } }),
     prisma.supportNetworkContact.findMany({
-      where: { candidateId: profile.id, removedAt: null },
-      orderBy: { createdAt: 'desc' },
+      where,
+      orderBy,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       include: { outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 } },
     }),
-    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: { not: null } } }),
   ])
+  // Only looked up for the ~50 contacts on the current page, not the whole
+  // list — this used to run against all 27,000+ emails at once.
   const memberships = await lookupNextChapterMemberships(rawContacts.map((c) => c.email))
   const contacts = rawContacts.map((c) => ({
     ...c,
@@ -37,6 +90,7 @@ export default async function ContactDirectoryPage() {
     lastOutreachChannel: c.outreachLogs[0]?.channel ?? null,
     membership: c.email ? (memberships.get(c.email.toLowerCase()) ?? null) : null,
   }))
+  const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   const networkScriptsGuide = GUIDES.find((g) => g.slug === 'network-scripts')
   const proTips = await getPageBoxContent(profile.id, 'network-contacts', 'WHY_IT_MATTERS')
@@ -47,9 +101,23 @@ export default async function ContactDirectoryPage() {
 
       <WhyItMattersBox pageKey="network-contacts" content={proTips} />
 
-      <ContactDirectoryTable contacts={contacts} removedCount={removedCount} />
+      <ContactDirectoryTable
+        contacts={contacts}
+        totalCount={totalCount}
+        removedCount={removedCount}
+        page={Math.min(page, pageCount)}
+        pageCount={pageCount}
+        query={q}
+        sortKey={sortKey}
+        dir={dir}
+        pin={pin}
+        emailFilter={emailFilter}
+      />
 
-      <Accordion>
+      {/* Deep-linked from the "Build Your Networking List" button on the
+          Network page (?buildList=1#import) — opens straight to the import
+          form instead of landing on a collapsed accordion item. */}
+      <Accordion defaultValue={sp.buildList ? ['build-list'] : []}>
         <AccordionItem value="build-list">
           <AccordionTrigger>Build your list from LinkedIn</AccordionTrigger>
           <AccordionContent>

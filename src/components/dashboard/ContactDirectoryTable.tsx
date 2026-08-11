@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { SupportNetworkContact, RelationshipTag } from '@prisma/client'
@@ -11,6 +11,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
 import { updateContact, deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
 import { MEMBERSHIP_LABEL, type NextChapterMembership } from '@/lib/network/next-chapter-membership'
+import type { ContactSortKey } from '@/app/dashboard/network/contacts/page'
 import { cn } from '@/lib/utils'
 
 const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
@@ -23,96 +24,83 @@ export interface ContactRowData extends SupportNetworkContact {
   membership: NextChapterMembership | null
 }
 
-type SortKey = 'name' | 'company' | 'relationship' | 'date' | 'reachedOut' | 'priority' | 'membership'
-
-const PAGE_SIZE = 50
-
 function relationshipSummary(tags: RelationshipTag[]): string {
   if (tags.length === 0) return '—'
   return tags.map((t) => RELATIONSHIP_LABEL[t]).join(', ')
 }
 
+const SORTABLE_COLUMNS: { key: ContactSortKey; label: string }[] = [
+  { key: 'priority', label: 'Priority' },
+  { key: 'name', label: 'Name' },
+  { key: 'company', label: 'Company' },
+  { key: 'date', label: 'Date connected' },
+]
+const DISPLAY_COLUMNS = ['Relationship', 'Reached out', 'On NextChapter']
+
 export function ContactDirectoryTable({
   contacts,
+  totalCount,
   removedCount,
+  page,
+  pageCount,
+  query,
+  sortKey,
+  dir,
+  pin,
+  emailFilter,
 }: {
   contacts: ContactRowData[]
+  totalCount: number
   removedCount: number
+  page: number
+  pageCount: number
+  query: string
+  sortKey: ContactSortKey
+  dir: 'asc' | 'desc'
+  pin: boolean
+  emailFilter: 'all' | 'has' | 'missing'
 }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
-  const [search, setSearch] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('name')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
-  const [priorityPin, setPriorityPin] = useState(true)
-  const [emailFilter, setEmailFilter] = useState<'all' | 'has' | 'missing'>('all')
+  const [searchInput, setSearchInput] = useState(query)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set())
   const [undo, setUndo] = useState<ContactRowData | null>(null)
-  const [rawPage, setPage] = useState(0)
 
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortDir('asc')
-    }
-    setPage(0)
+  function navigate(overrides: {
+    q?: string
+    sort?: ContactSortKey
+    dir?: 'asc' | 'desc'
+    pin?: boolean
+    email?: 'all' | 'has' | 'missing'
+    page?: number
+  }) {
+    const next = { q: query, sort: sortKey, dir, pin, email: emailFilter, page, ...overrides }
+    const params = new URLSearchParams()
+    if (next.q) params.set('q', next.q)
+    if (next.sort !== 'name') params.set('sort', next.sort)
+    if (next.dir !== 'asc') params.set('dir', next.dir)
+    if (!next.pin) params.set('pin', '0')
+    if (next.email !== 'all') params.set('email', next.email)
+    if (next.page !== 1) params.set('page', String(next.page))
+    const qs = params.toString()
+    router.push(`/dashboard/network/contacts${qs ? `?${qs}` : ''}`)
   }
 
-  const visible = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    let list = contacts.filter((c) => !removedIds.has(c.id))
-    if (emailFilter === 'has') list = list.filter((c) => !!c.email)
-    if (emailFilter === 'missing') list = list.filter((c) => !c.email)
-    if (term) {
-      list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(term) ||
-          (c.company ?? '').toLowerCase().includes(term) ||
-          (c.email ?? '').toLowerCase().includes(term)
-      )
-    }
-    const dir = sortDir === 'asc' ? 1 : -1
-    return [...list].sort((a, b) => {
-      if (priorityPin) {
-        const priorityDiff = Number(b.isPriority) - Number(a.isPriority)
-        if (priorityDiff !== 0) return priorityDiff
-      }
-      switch (sortKey) {
-        case 'name':
-          return dir * a.name.localeCompare(b.name)
-        case 'company':
-          return dir * (a.company ?? '').localeCompare(b.company ?? '')
-        case 'relationship':
-          return dir * relationshipSummary(a.relationshipTags).localeCompare(relationshipSummary(b.relationshipTags))
-        case 'reachedOut':
-          return dir * (Number(a.hasReachedOut) - Number(b.hasReachedOut))
-        case 'priority':
-          return dir * (Number(a.isPriority) - Number(b.isPriority))
-        case 'membership':
-          return dir * (Number(!!a.membership) - Number(!!b.membership))
-        case 'date':
-        default:
-          // Falls back to createdAt only to keep sort order well-defined for
-          // contacts with no real connectedAt (most manually-added ones) —
-          // the column itself still shows "—" rather than that fallback.
-          return (
-            dir *
-            ((a.connectedAt ?? a.createdAt).getTime() - (b.connectedAt ?? b.createdAt).getTime())
-          )
-      }
-    })
-  }, [contacts, removedIds, search, sortKey, sortDir, priorityPin, emailFilter])
+  // Debounced so typing doesn't fire a navigation per keystroke.
+  useEffect(() => {
+    if (searchInput === query) return
+    const t = setTimeout(() => navigate({ q: searchInput, page: 1 }), 400)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput])
 
-  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
-  // Clamp at render time rather than in an effect — the underlying list can
-  // shrink (removals) or narrow (search/sort) between renders, and a stale
-  // page index would otherwise point past the end and render nothing.
-  const page = Math.min(rawPage, pageCount - 1)
+  function toggleSort(key: ContactSortKey) {
+    if (sortKey === key) navigate({ dir: dir === 'asc' ? 'desc' : 'asc', page: 1 })
+    else navigate({ sort: key, dir: 'asc', page: 1 })
+  }
 
-  const pageItems = useMemo(() => visible.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE), [visible, page])
+  const visibleContacts = contacts.filter((c) => !removedIds.has(c.id))
 
   function handleRemove(contact: ContactRowData) {
     setRemovedIds((prev) => new Set(prev).add(contact.id))
@@ -132,42 +120,22 @@ export function ContactDirectoryTable({
     })
   }
 
-  const columns: { key: SortKey; label: string }[] = [
-    { key: 'priority', label: 'Priority' },
-    { key: 'name', label: 'Name' },
-    { key: 'company', label: 'Company' },
-    { key: 'relationship', label: 'Relationship' },
-    { key: 'date', label: 'Date connected' },
-    { key: 'reachedOut', label: 'Reached out' },
-    { key: 'membership', label: 'On NextChapter' },
-  ]
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value)
-            setPage(0)
-          }}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           placeholder="Search by name, company, or email…"
           className="max-w-sm"
         />
         <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={priorityPin}
-            onChange={(e) => setPriorityPin(e.target.checked)}
-          />
+          <input type="checkbox" checked={pin} onChange={(e) => navigate({ pin: e.target.checked, page: 1 })} />
           Priority contacts on top
         </label>
         <select
           value={emailFilter}
-          onChange={(e) => {
-            setEmailFilter(e.target.value as 'all' | 'has' | 'missing')
-            setPage(0)
-          }}
+          onChange={(e) => navigate({ email: e.target.value as 'all' | 'has' | 'missing', page: 1 })}
           className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
         >
           <option value="all">All contacts</option>
@@ -188,7 +156,7 @@ export function ContactDirectoryTable({
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-left text-xs text-muted-foreground">
-              {columns.map((col) => (
+              {SORTABLE_COLUMNS.map((col) => (
                 <th key={col.key} className="px-3 py-2 font-medium">
                   <button
                     type="button"
@@ -196,21 +164,26 @@ export function ContactDirectoryTable({
                     className="flex items-center gap-1 hover:text-foreground"
                   >
                     {col.label}
-                    {sortKey === col.key && <span aria-hidden>{sortDir === 'asc' ? '▲' : '▼'}</span>}
+                    {sortKey === col.key && <span aria-hidden>{dir === 'asc' ? '▲' : '▼'}</span>}
                   </button>
+                </th>
+              ))}
+              {DISPLAY_COLUMNS.map((label) => (
+                <th key={label} className="px-3 py-2 font-medium">
+                  {label}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {pageItems.length === 0 && (
+            {visibleContacts.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-6 text-center text-sm text-muted-foreground">
-                  {search ? 'No contacts match your search.' : 'No contacts yet.'}
+                <td colSpan={SORTABLE_COLUMNS.length + DISPLAY_COLUMNS.length} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  {query ? 'No contacts match your search.' : 'No contacts yet.'}
                 </td>
               </tr>
             )}
-            {pageItems.map((contact) => (
+            {visibleContacts.map((contact) => (
               <ContactRowExpandable
                 key={contact.id}
                 contact={contact}
@@ -226,21 +199,21 @@ export function ContactDirectoryTable({
       {pageCount > 1 && (
         <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>
-            Showing {page * PAGE_SIZE + 1}–{Math.min(visible.length, (page + 1) * PAGE_SIZE)} of {visible.length}
+            Showing {(page - 1) * 50 + 1}–{Math.min(totalCount, page * 50)} of {totalCount}
           </span>
           <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+            <Button type="button" variant="outline" size="sm" disabled={page <= 1} onClick={() => navigate({ page: page - 1 })}>
               Previous
             </Button>
             <span className="tabular-nums">
-              Page {page + 1} of {pageCount}
+              Page {page} of {pageCount}
             </span>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              disabled={page >= pageCount - 1}
-              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= pageCount}
+              onClick={() => navigate({ page: page + 1 })}
             >
               Next
             </Button>
@@ -323,10 +296,10 @@ function ContactRowExpandable({
           <ContactNameLink contact={contact} />
         </td>
         <td className="px-3 py-2 text-muted-foreground">{contact.company ?? '—'}</td>
-        <td className="px-3 py-2 text-muted-foreground">{relationshipSummary(contact.relationshipTags)}</td>
         <td className="px-3 py-2 text-muted-foreground">
           {contact.connectedAt ? contact.connectedAt.toLocaleDateString() : '—'}
         </td>
+        <td className="px-3 py-2 text-muted-foreground">{relationshipSummary(contact.relationshipTags)}</td>
         <td className="px-3 py-2">
           {contact.hasReachedOut ? (
             <span className="text-brand">✓{contact.lastOutreachChannel ? ` ${contact.lastOutreachChannel.toLowerCase()}` : ''}</span>

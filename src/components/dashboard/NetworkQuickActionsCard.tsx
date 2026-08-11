@@ -37,13 +37,26 @@ export function NetworkQuickActionsCard({ contacts }: { contacts: SupportNetwork
   calendarUrl.searchParams.set('text', `Coffee chat with ${pick.name}`)
   if (pick.email) calendarUrl.searchParams.set('add', pick.email)
 
+  // "Who is this person and why them" — the pick is a real name pulled at
+  // random (day-rotating) from the candidate's own imported contact list,
+  // which for a large LinkedIn export can easily surface someone the
+  // candidate doesn't immediately recognize by name alone. Company/title/tag
+  // context answers that without the candidate needing to go dig through
+  // their contact list first.
+  const roleContext = [pick.title, pick.company].filter(Boolean).join(' at ')
+  const whyPicked = pick.isPriority
+    ? 'Marked as a priority contact.'
+    : pool.length > 0
+      ? 'Picked from your warmest connections.'
+      : 'Picked at random from your contact list.'
+
   return (
     <div className="space-y-3 rounded-lg border border-border p-4">
       <div>
         <h2 className="text-sm font-medium text-foreground">Reach out to {firstName}</h2>
         <p className="text-sm text-muted-foreground">
-          You have {contacts.length} contact{contacts.length === 1 ? '' : 's'} saved.
-          {pool.length > 0 ? ' Picked from your warmest connections.' : ''}
+          {roleContext && <span className="text-foreground">{roleContext} — </span>}
+          {whyPicked} From your {contacts.length} saved contact{contacts.length === 1 ? '' : 's'}.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

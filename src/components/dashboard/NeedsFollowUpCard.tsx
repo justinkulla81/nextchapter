@@ -1,8 +1,10 @@
+'use client'
+
+import { useState, useTransition } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
 import { dismissEmailActivity } from '@/app/dashboard/email-activity/actions'
 import { dismissCalendarEvent } from '@/app/dashboard/calendar-activity/actions'
-import { SubmitButton } from '@/components/ui/submit-button'
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -13,11 +15,32 @@ function formatDate(date: Date): string {
 // "Reply"/"Send thank-you" only ever links out to a Gmail compose draft,
 // never a "mark done" button. The X is the escape hatch for the other
 // direction: a meeting or email that got auto-detected but isn't actually a
-// real networking/interview conversation (dismissEmailActivity/
-// dismissCalendarEvent set dismissedAt, the same field every stat and list
-// consumer across this page already filters on).
+// real networking/interview conversation — dismissEmailActivity/
+// dismissCalendarEvent set dismissedAt permanently (every stat and list
+// consumer across this page already filters on that field, and the
+// classifier itself no longer recommends bulk/newsletter senders going
+// forward — see isBulk gating in sync-gmail.ts). This is a client component
+// so the row disappears the instant it's clicked instead of waiting on a
+// full server round-trip.
 export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
-  if (items.length === 0) return null
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+  const [, startTransition] = useTransition()
+
+  const visibleItems = items.filter((item) => !dismissedIds.has(item.sourceId))
+  if (visibleItems.length === 0) return null
+
+  function handleDismiss(item: NeedsFollowUpItem) {
+    setDismissedIds((prev) => new Set(prev).add(item.sourceId))
+    startTransition(() => {
+      const dismiss = item.kind === 'meeting' ? dismissCalendarEvent : dismissEmailActivity
+      dismiss(item.sourceId).catch(() => {
+        // Server dismiss failed — the row stays gone from this session's
+        // view either way (retrying would just re-show something the
+        // candidate already said isn't real); next full page load will
+        // reconcile from the DB if it truly didn't save.
+      })
+    })
+  }
 
   return (
     <Card id="needs-follow-up" className="scroll-mt-4">
@@ -30,9 +53,9 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
           yet. Send one to earn the points — we&apos;ll detect it automatically.
         </p>
         <div className="space-y-2">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <div
-              key={item.contactEmail}
+              key={item.sourceId}
               className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
             >
               <div className="min-w-0">
@@ -51,21 +74,14 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
                 >
                   {item.kind === 'meeting' ? 'Send thank-you' : 'Reply'}
                 </a>
-                <form
-                  action={(item.kind === 'meeting' ? dismissCalendarEvent : dismissEmailActivity).bind(
-                    null,
-                    item.sourceId
-                  )}
+                <button
+                  type="button"
+                  onClick={() => handleDismiss(item)}
+                  className="h-8 rounded-md px-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+                  title="Not a real person or conversation — remove from this list and your stats for good"
                 >
-                  <SubmitButton
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-muted-foreground"
-                    title="Not a real conversation — remove from this list and your stats"
-                  >
-                    ✕
-                  </SubmitButton>
-                </form>
+                  ✕
+                </button>
               </div>
             </div>
           ))}

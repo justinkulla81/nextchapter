@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
-import { matchResumeShared, matchCourseCompletion } from './ats-patterns'
+import { matchResumeShared, matchCourseCompletion, isLikelyBulkOrPromotional } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { extractEmailAddress, extractDisplayName, extractDomain } from './email-address'
 import { ATS_AND_JOB_BOARD_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
@@ -313,7 +313,17 @@ async function processMessage(
   // actually contacting them. Never a real person, so this is skipped the
   // same way ATS/job-board bulk mail already is.
   const isFromNextChapterItself = direction === 'INBOUND' && !!senderRootDomain && NEXTCHAPTER_SENDING_DOMAINS.has(senderRootDomain)
-  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself
+  // Bulk/cold-outreach senders (deal-flow blasts, recruiting-adjacent
+  // newsletters, lead-gen mail) route their own boilerplate through the same
+  // "recruiting"/"talent"/"search firm" vocabulary a real recruiter uses,
+  // which used to let them straight through: this check only ever gated the
+  // RECRUITER_OUTREACH classification path (see classify-email.ts), not the
+  // separate role-title-mention path below, so a mass "138 Social Impact
+  // Jobs are Live" or "New Off-Market Businesses For Sale" blast could still
+  // get flagged isRecruiterContact and land on the candidate's follow-up
+  // list as if it were a real person.
+  const isBulk = direction === 'INBOUND' && isLikelyBulkOrPromotional(subject, bodyPreview, from, !!listUnsubscribe)
+  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself || isBulk
   const roleText = `${subject} ${bodyPreview}`
   const isRecruiterRoleMention = !skipRoleMatching && matchRecruiterRoleMention(roleText)
   const isHiringManagerContact = !skipRoleMatching && matchHiringManagerRoleMention(roleText)

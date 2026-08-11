@@ -49,6 +49,15 @@ const PROMOTIONAL_SUBJECT_SIGNALS = [
 ]
 const BULK_SENDER_LOCAL_PART = /^(no-?reply|newsletter|news|deals?|offers?|promos?|promotions?|marketing|updates?)@/i
 
+// A handful of platforms whose own outbound-relay domain is never a real
+// person's mailbox, regardless of subject/body phrasing — confirmed against
+// real production mail where a beehiiv-hosted "138 Social Impact Jobs are
+// Live + AI Bots applying for you" newsletter and dealstream.com M&A
+// deal-flow blasts ("New Off-Market Businesses For Sale") both used
+// "recruiting"/"search"-adjacent language that let them slip past the
+// phrasing-only signals above and get flagged as real recruiter contact.
+const KNOWN_BULK_SENDER_ROOT_DOMAINS = new Set(['beehiiv.com', 'dealstream.com', 'substack.com'])
+
 export function isLikelyBulkOrPromotional(
   subject: string,
   bodyPreview: string,
@@ -59,6 +68,9 @@ export function isLikelyBulkOrPromotional(
   if (testAny(bodyPreview, BULK_MAIL_BODY_SIGNALS)) return true
   if (testAny(subject, PROMOTIONAL_SUBJECT_SIGNALS)) return true
   if (BULK_SENDER_LOCAL_PART.test(extractEmailAddress(fromAddress))) return true
+  const domain = extractDomain(fromAddress)
+  const rootDomain = domain?.split('.').slice(-2).join('.')
+  if (rootDomain && KNOWN_BULK_SENDER_ROOT_DOMAINS.has(rootDomain)) return true
   return false
 }
 

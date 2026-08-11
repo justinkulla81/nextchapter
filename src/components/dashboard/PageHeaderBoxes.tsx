@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { getPageBoxContent, type PageKey } from '@/lib/dashboard/page-content'
 import { getWatchlistAlertContent } from '@/lib/company-tracker/watchlist'
 import { DailyMessageBox } from '@/components/dashboard/DailyMessageBox'
@@ -19,21 +20,28 @@ export async function PageHeaderBoxes({
   pageKey,
   candidateId,
   lifetimeProgress,
+  dailyMessageOverride,
 }: {
   pageKey: PageKey
   candidateId: string
   lifetimeProgress?: Partial<Record<string, { current: number; target: number }>>
+  // Lets a page substitute per-candidate computed content (e.g. the Network
+  // page's outreach plan, which depends on the candidate's own comfort-level
+  // answer) in the Daily Message slot instead of the generic admin-authored
+  // rotation — avoids stacking two near-identical "personalized message"
+  // cards on the same page.
+  dailyMessageOverride?: ReactNode
 }) {
   const watchlistAlert = WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
 
   const [dailyMessage, whyItMatters] = await Promise.all([
-    getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert),
+    dailyMessageOverride ? null : getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert),
     getPageBoxContent(candidateId, pageKey, 'WHY_IT_MATTERS'),
   ])
 
   return (
     <div className="space-y-3">
-      <DailyMessageBox pageKey={pageKey} content={dailyMessage} />
+      {dailyMessageOverride ?? <DailyMessageBox pageKey={pageKey} content={dailyMessage} />}
       <WhyItMattersBox pageKey={pageKey} content={whyItMatters} />
       <ActionPlanBox pageKey={pageKey} candidateId={candidateId} lifetimeProgress={lifetimeProgress} />
     </div>

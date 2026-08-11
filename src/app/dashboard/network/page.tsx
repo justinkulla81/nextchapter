@@ -8,6 +8,7 @@ import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
+import { extractEmailAddress } from '@/lib/email-tracking/email-address'
 import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
@@ -70,6 +71,36 @@ type NetworkSearchParams = {
   calendarError?: string
 }
 
+// A contact counts as job-relevant two ways: manually flagged as able to
+// help with a specific application (helpfulForJobs — the "Who can help"
+// section on the Jobs page), or their company on file matches a job the
+// candidate has applied to, is interviewing for, or is otherwise actively
+// tracking (any JobPosting row means the candidate checked its fit or
+// applied — both read as "interested in this company"). Case-insensitive
+// match since CSV-imported company names and JobPosting.companyName rarely
+// share exact casing.
+async function getJobRelevantContactEmails(candidateId: string): Promise<Set<string>> {
+  const [contacts, jobPostings] = await Promise.all([
+    prisma.supportNetworkContact.findMany({
+      where: { candidateId, removedAt: null, email: { not: null } },
+      select: { email: true, company: true, helpfulForJobs: { select: { id: true } } },
+    }),
+    prisma.jobPosting.findMany({
+      where: { candidateId, companyName: { not: null } },
+      select: { companyName: true },
+    }),
+  ])
+  const jobCompanies = new Set(jobPostings.map((j) => j.companyName!.toLowerCase().trim()))
+  const emails = new Set<string>()
+  for (const contact of contacts) {
+    if (!contact.email) continue
+    const isFlaggedHelpful = contact.helpfulForJobs.length > 0
+    const companyMatches = !!contact.company && jobCompanies.has(contact.company.toLowerCase().trim())
+    if (isFlaggedHelpful || companyMatches) emails.add(contact.email.toLowerCase())
+  }
+  return emails
+}
+
 function AutomaticTrackingSkeleton() {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
@@ -95,11 +126,12 @@ async function AutomaticTrackingSection({
   profile: Awaited<ReturnType<typeof getDashboardData>>
   params: NetworkSearchParams
 }) {
-  const [emailConnection, calendarConnection, emailTester, calendarTester] = await Promise.all([
+  const [emailConnection, calendarConnection, emailTester, calendarTester, jobRelevantContactEmails] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     profile.email ? isGmailTrackingTester(profile.email) : false,
     profile.email ? isCalendarTrackingTester(profile.email) : false,
+    getJobRelevantContactEmails(profile.id),
   ])
 
   // Auto-syncs on every visit instead of requiring the manual buttons below —
@@ -174,8 +206,22 @@ async function AutomaticTrackingSection({
   )
   const networkingCallItems = calendarEvents.filter((e) => e.eventType === 'NETWORKING_CALL')
 
+  // Same networking-type filter as the tiles above, but scoped to contacts
+  // tied to a specific job — someone at a company the candidate applied to,
+  // is interviewing at, or has flagged as able to help — rather than
+  // networking in general. jobRelevantContactEmails is computed once at the
+  // top of the page (before this Suspense boundary) so it's available even
+  // though only the on-page-load-fast query set lives up there.
+  const jobFollowUpItems = emailActivities.filter(
+    (a) =>
+      a.direction === 'OUTBOUND' &&
+      NETWORKING_EMAIL_TYPES.includes(a.activityType) &&
+      jobRelevantContactEmails.has(extractEmailAddress(a.fromAddress ?? '').toLowerCase())
+  )
+
   const networkingStatTiles = [
     { label: 'Follow-up / thank-you notes', items: followUpOrThankYouItems.map(emailItem) },
+    { label: 'Job-related follow-ups', items: jobFollowUpItems.map(emailItem) },
     { label: 'Intro/connection requests', items: introRequestItems.map(emailItem) },
     { label: 'Networking outreach messages', items: networkingOutreachItems.map(emailItem) },
     { label: 'Resumes shared', items: resumesSharedItems.map(emailItem) },
@@ -460,18 +506,22 @@ export default async function NetworkPage({
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Network with My Contacts</h1>
-        <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
+        <PageHeaderBoxes
+          pageKey="network"
+          candidateId={profile.id}
+          dailyMessageOverride={
+            <OutreachPlanCard
+              concerns={profile.networkingConcerns}
+              connectPreferences={profile.networkConnectPreferences}
+              comfortLevel={profile.networkComfortLevel}
+              dismissedAlready={Boolean(profile.outreachPlanDismissedAt)}
+            />
+          }
+        />
       </div>
 
-      <OutreachPlanCard
-        concerns={profile.networkingConcerns}
-        connectPreferences={profile.networkConnectPreferences}
-        comfortLevel={profile.networkComfortLevel}
-        dismissedAlready={Boolean(profile.outreachPlanDismissedAt)}
-      />
-
       <Link
-        href="/dashboard/network/contacts"
+        href="/dashboard/network/contacts?buildList=1#import"
         className="inline-flex h-10 w-fit items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90"
       >
         Build Your Networking List ({contacts.length})
