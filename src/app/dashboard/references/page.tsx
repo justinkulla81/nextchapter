@@ -12,6 +12,9 @@ import { cn } from '@/lib/utils'
 import type { ReferenceStatus } from '@prisma/client'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
+import { aggregatePerformance } from '@/lib/references/aggregate-performance'
+import { computeRequiredMix } from '@/lib/references/required-mix'
+import { ReferenceCheckSummary } from '@/components/references/ReferenceCheckSummary'
 
 export const metadata: Metadata = { title: 'My References' }
 
@@ -58,6 +61,8 @@ export default async function ReferencesPage({
   const candidateName = profile.displayName || 'me'
   const providedReferences = profile.references.filter((r) => r.status === 'COMPLETED')
   const requestedReferences = profile.references.filter((r) => r.status !== 'COMPLETED')
+  const performanceAggregate = aggregatePerformance(providedReferences)
+  const mix = computeRequiredMix(providedReferences.map((r) => r.relationshipType))
 
   return (
     <div className="space-y-8">
@@ -82,6 +87,14 @@ export default async function ReferencesPage({
       />
 
       <ReferenceRequestForm initialName={params.name} initialEmail={params.email} />
+
+      <ReferenceCheckSummary
+        dimensions={performanceAggregate.dimensions}
+        completedReferenceCount={performanceAggregate.completedReferenceCount}
+        confidenceTier={performanceAggregate.confidenceTier}
+        confidenceLabel={performanceAggregate.confidenceLabel}
+        mix={mix}
+      />
 
       {profile.references.length === 0 && (
         <EmptyState
