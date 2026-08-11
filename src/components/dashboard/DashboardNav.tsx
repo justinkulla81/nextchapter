@@ -49,7 +49,7 @@ function buildSections(
       links: [{ href: '/dashboard', label: 'Success Dashboard' }],
     },
     {
-      title: 'Building',
+      title: 'Personalize',
       links: [
         { href: '/dashboard/profile', label: 'My Profile' },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
@@ -61,6 +61,7 @@ function buildSections(
           label: 'My Portfolio',
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
         },
+        { href: '/dashboard/network/contacts', label: 'Contact Directory' },
       ],
     },
     {
@@ -105,7 +106,6 @@ function buildSections(
     {
       title: 'Misc',
       links: [
-        { href: '/dashboard/network/contacts', label: 'Contact Directory' },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
         { href: "/dashboard/support", label: "I'm Struggling" },
         { href: '/dashboard/privacy', label: 'Privacy Settings' },
