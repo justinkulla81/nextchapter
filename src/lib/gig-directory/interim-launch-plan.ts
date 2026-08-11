@@ -24,9 +24,9 @@ export async function getInterimLaunchPlan(profile: ProfileForLaunchPlan): Promi
   return [
     {
       number: 1,
-      title: 'Reality-check the economics',
+      title: 'Unlock the Interim/Gig Directory',
       description:
-        'Fractional/interim rates typically land well below a full-time equivalent once you annualize the hours. Set a target before you browse.',
+        'Fractional/interim rates typically land well below a full-time equivalent once you annualize the hours — set a target before you browse. Answering this unlocks the directory below.',
       completed: !!profile.gigDirectoryUnlockAnswer,
       cta: null,
     },
