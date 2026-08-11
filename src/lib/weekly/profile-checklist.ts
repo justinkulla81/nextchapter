@@ -39,7 +39,7 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   FUNCTION_CONFIRM: 'Confirm your function & experience',
   SALARY_CONFIRM: 'Confirm your last salary',
   WORK_AUTHORIZATION: 'Confirm your work authorization',
-  ANSWER_OPTIONAL_QUESTIONS: 'Answer a few optional search questions',
+  ANSWER_OPTIONAL_QUESTIONS: 'Define your search goals',
   PRIVACY_CONFIRMED: 'Choose your privacy setting',
   COMFORT_CHECK_CONFIRM: 'Complete your Interview Prep Comfort Check',
   NETWORK_COMFORT_CONFIRMED: 'Your networking comfort level',
@@ -49,7 +49,7 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   LINKEDIN_UNLOCK: 'Unlock the LinkedIn post generator',
   PROFILE_PICTURE_UPLOADED: 'Add a profile picture',
   LINKEDIN_PROFILE_ADDED: 'Add your LinkedIn profile',
-  RED_FLAGS_CONFIRMED: 'Answer a few screening questions',
+  RED_FLAGS_CONFIRMED: 'Complete Screening Questions',
   BENEFITS_PRIORITIES_CONFIRMED: 'Set your benefits & compensation priorities',
 }
 

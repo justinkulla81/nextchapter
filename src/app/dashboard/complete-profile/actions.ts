@@ -150,7 +150,7 @@ export async function answerRedFlags(_prevState: RedFlagsState, formData: FormDa
       const effort = estimateActionEffort({ actionType: 'RED_FLAGS_CONFIRMED' })
       await autoCompleteEngagementAction(profile.id, {
         actionType: 'RED_FLAGS_CONFIRMED',
-        text: 'Answer a few screening questions',
+        text: 'Complete Screening Questions',
         points: effort.points,
         estimatedMinutes: effort.minutes,
       })

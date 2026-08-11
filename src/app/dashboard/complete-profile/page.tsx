@@ -147,7 +147,7 @@ export default async function CompleteProfilePage() {
         {isIncomplete('ANSWER_OPTIONAL_QUESTIONS') && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
             <div>
-              <p className="text-sm font-medium text-foreground">A few optional search questions</p>
+              <p className="text-sm font-medium text-foreground">Define your search goals</p>
               <p className="mt-1 text-xs text-muted-foreground">On the Search Strategy page.</p>
             </div>
             <Link
@@ -233,7 +233,7 @@ export default async function CompleteProfilePage() {
         {isIncomplete('RED_FLAGS_CONFIRMED') && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
             <div>
-              <p className="text-sm font-medium text-foreground">Screening questions</p>
+              <p className="text-sm font-medium text-foreground">Complete Screening Questions</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Drug test, background check, and other deal-breakers — on the Screening Questions
                 page.

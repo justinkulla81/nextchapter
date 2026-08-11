@@ -287,7 +287,7 @@ export function engineForActionType(actionType: string | undefined): SearchExecu
 // SuccessSprintCard's oneTimeTotal/oneTimeDone), same as it always was when
 // this lived on a separate /dashboard/complete-profile page; only its
 // on-screen location changed.
-export type NavCategory = 'Personalize' | 'Building' | 'Connecting' | 'Learning & Working'
+export type NavCategory = 'Personalize' | 'Connecting' | 'Learning & Working'
 
 const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   // Display-only sentinel for the Search Strategy completeness checklist
@@ -320,13 +320,13 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   RED_FLAGS_CONFIRMED: 'Personalize',
   BENEFITS_PRIORITIES_CONFIRMED: 'Personalize',
 
-  RESUME_UPDATE: 'Building',
-  SKILLS_TRANSLATOR: 'Building',
-  INTERVIEW_PREP: 'Building',
-  INTERVIEW_BEHAVIORAL_PRACTICE: 'Building',
-  LINKEDIN_POST_IDEA: 'Building',
-  THOUGHT_LEADERSHIP_SHARE: 'Building',
-  LINKEDIN_SETUP: 'Building',
+  RESUME_UPDATE: 'Personalize',
+  SKILLS_TRANSLATOR: 'Personalize',
+  INTERVIEW_PREP: 'Personalize',
+  INTERVIEW_BEHAVIORAL_PRACTICE: 'Personalize',
+  LINKEDIN_POST_IDEA: 'Personalize',
+  THOUGHT_LEADERSHIP_SHARE: 'Personalize',
+  LINKEDIN_SETUP: 'Personalize',
 
   NETWORKING_LIST: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
@@ -621,7 +621,6 @@ const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
 const DEFAULT_WHY_BY_NAV_CATEGORY: Partial<Record<NavCategory, string>> = {
   Personalize: 'personalizes your search so we can match you to the right jobs and skills',
   Connecting: 'networking is the single most important thing you can do to find your next role',
-  Building: 'gets you noticed by recruiters and ready for the interview',
   'Learning & Working': 'makes you a more employable candidate',
 }
 

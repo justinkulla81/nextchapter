@@ -241,6 +241,42 @@ function buildFlexibilitySummary(candidate: {
   }
 }
 
+// Flags when the candidate's stated minimum acceptable comp sits well below
+// their last salary — worth a coach's eye because it can mean the past
+// salary was inflated, or that the candidate is more willing (or
+// desperate) to move lower than they're letting on elsewhere. Checked
+// against compFlexible/willingToStartLower — the closest thing to a
+// calibrating question already on file — so a coach sees at a glance
+// whether the gap is consistent with what the candidate said, or a
+// contradiction worth raising in session.
+export interface SalaryGapFlag {
+  lastSalary: number
+  targetCompMin: number
+  gapPercent: number
+  consistentWithStatedFlexibility: boolean
+}
+
+// targetCompMin at or below 85% of lastSalary counts as a "big gap" —
+// arbitrary but conservative; a 5-10% haircut is normal negotiation room,
+// not a signal.
+const SALARY_GAP_THRESHOLD = 0.85
+
+function buildSalaryGapFlag(candidate: {
+  lastSalary: number | null
+  targetCompMin: number | null
+  compFlexible: boolean
+  willingToStartLower: boolean
+}): SalaryGapFlag | null {
+  const { lastSalary, targetCompMin } = candidate
+  if (!lastSalary || !targetCompMin || targetCompMin > lastSalary * SALARY_GAP_THRESHOLD) return null
+  return {
+    lastSalary,
+    targetCompMin,
+    gapPercent: Math.round((1 - targetCompMin / lastSalary) * 100),
+    consistentWithStatedFlexibility: candidate.compFlexible || candidate.willingToStartLower,
+  }
+}
+
 const WORK_AUTHORIZATION_RED_LINE_LABEL: Record<string, string> = {
   h1b: 'H-1B',
   opt: 'OPT / STEM OPT',
@@ -301,6 +337,7 @@ export interface CoachingNotes {
   referralRecencyLabel: string | null
   lastSalary: number | null
   targetCompMin: number | null
+  salaryGapFlag: SalaryGapFlag | null
   gapAnalysis: { targetRole: string; gaps: GapAnalysisGap[] } | null
   avoidancePattern: AvoidancePattern | null
   selfAwarenessFlags: SelfAwarenessFlag[]
@@ -452,6 +489,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       : null,
     lastSalary: candidate.lastSalary,
     targetCompMin: candidate.targetCompMin,
+    salaryGapFlag: buildSalaryGapFlag(candidate),
     gapAnalysis: latestReport
       ? (latestReport.gapAnalysis as unknown as { targetRole: string; gaps: GapAnalysisGap[] })
       : null,

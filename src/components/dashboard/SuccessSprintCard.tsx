@@ -57,12 +57,12 @@ function actionKey(a: { actionType?: string; text: string }): string {
 }
 
 // Personalize first (lifetime setup — flagged as priority when incomplete,
-// see ActionRow), then Building, Connecting, Learning & Working, matching
-// the hamburger nav's own section order — "Other" catches personalized
+// see ActionRow), then Connecting, Learning & Working, matching the
+// hamburger nav's own section order — "Other" catches personalized
 // LLM-suggested items with no fixed actionType to categorize by, and
 // deliberately sorts last since it's the least legible bucket. A group with
 // no items in it simply isn't rendered.
-const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Building', 'Connecting', 'Learning & Working', 'Other']
+const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Connecting', 'Learning & Working', 'Other']
 
 // The three sub-pages under the My Profile hub (see
 // /dashboard/profile/page.tsx) — each one's items are collapsed into a
@@ -74,7 +74,7 @@ const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Building', 'Conn
 // — it renders as its own individual row.
 const PROFILE_SECTION_GROUPS: { text: string; actionType: string; types: Set<string> }[] = [
   {
-    text: 'Complete My Personal Information — confirms your basics, industry, role, salary, LinkedIn, and photo',
+    text: 'Complete My Personal Information — basics, LinkedIn, photo, education, industry, and role',
     actionType: 'PROFILE_CONFIRM',
     types: new Set([
       'PROFILE_CONFIRM',
@@ -86,7 +86,7 @@ const PROFILE_SECTION_GROUPS: { text: string; actionType: string; types: Set<str
     ]),
   },
   {
-    text: 'Answer your Screening Questions — work authorization, deal-breakers, and background/drug-test willingness',
+    text: 'Complete Screening Questions — work authorization, deal-breakers, and background/drug-test willingness',
     actionType: 'RED_FLAGS_CONFIRMED',
     types: new Set(['WORK_AUTHORIZATION', 'RED_FLAGS_CONFIRMED']),
   },
@@ -143,7 +143,6 @@ function consolidateProfileDataRows(rows: Row[]): Row[] {
 function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Record<string, T[]> {
   const groups: Record<string, T[]> = {
     Personalize: [],
-    Building: [],
     Connecting: [],
     'Learning & Working': [],
     Other: [],
@@ -425,15 +424,34 @@ export function SuccessSprintCard({
   // week" as a real, current signal, not a stale leftover.
   const openRows = allRows.filter((r) => !(r.completed && !r.recurring))
 
-  // Every still-open high-priority row, regardless of which nav category
-  // it belongs to, surfaced as its own group above the rest — so the most
-  // important things to do are visible without scanning every section.
-  // Deliberately not removed from its own category below: a candidate
-  // browsing Connecting should still see "Send a personalized outreach
-  // message" there even though it's also called out up top.
-  const priorityRows = sortForDisplay(openRows.filter((r) => r.priority))
+  // Same "hit this week's target" logic ActionRow uses to decide whether a
+  // row still gets the High Priority badge/border — a recurring row that's
+  // already met its weekly count is done for the week even though it stays
+  // in openRows (recurring rows never drop out). Without this check such a
+  // row still landed in priorityRows below, then rendered with none of the
+  // Priority group's visual treatment (ActionRow's own isPriority came out
+  // false) — a plain, unbadged row sitting under the "Priority" heading.
+  function isAchieved(row: Row): boolean {
+    const targetCount = row.recurring ? getRecurringTargetCount(row.actionType) : null
+    const count = row.completionCount ?? (row.completed ? 1 : 0)
+    return row.recurring && targetCount ? count >= targetCount : row.completed
+  }
 
-  const groups = groupByNavCategory(consolidateProfileDataRows(openRows))
+  // Consolidate before splitting into Priority vs. category groups, not
+  // after — otherwise a My Profile sub-item like "Add your LinkedIn
+  // profile" shows up here as its own row AND, redundantly, folded into
+  // "Complete My Personal Information" under Personalize below.
+  const consolidatedOpenRows = consolidateProfileDataRows(openRows)
+
+  // Every still-open, not-yet-achieved high-priority row, regardless of
+  // which nav category it belongs to, surfaced as its own group above the
+  // rest — so the most important things to do are visible without scanning
+  // every section. Deliberately not removed from its own category below: a
+  // candidate browsing Connecting should still see "Send a personalized
+  // outreach message" there even though it's also called out up top.
+  const priorityRows = sortForDisplay(consolidatedOpenRows.filter((r) => r.priority && !isAchieved(r)))
+
+  const groups = groupByNavCategory(consolidatedOpenRows)
 
   return (
     <Card>

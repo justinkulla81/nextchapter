@@ -117,6 +117,16 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
             </dd>
           </div>
         </dl>
+        {notes.salaryGapFlag && (
+          <p className="mt-2 rounded-md border border-orange/30 bg-orange/5 p-2 text-xs text-foreground">
+            Target minimum is <span className="font-medium tabular-nums">{notes.salaryGapFlag.gapPercent}%</span>{' '}
+            below their last salary — could mean the past salary was inflated, or they&apos;re more open to a
+            lower offer than they&apos;re letting on.{' '}
+            {notes.salaryGapFlag.consistentWithStatedFlexibility
+              ? 'Consistent with the comp flexibility they flagged in Search Strategy.'
+              : "They haven't flagged comp flexibility or willingness to start lower elsewhere — worth confirming this is intentional."}
+          </p>
+        )}
       </div>
 
       <div>
