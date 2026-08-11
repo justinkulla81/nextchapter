@@ -570,6 +570,31 @@ model CandidateProfile {
   // means not asked yet, distinct from an explicit "No."
   hasRestrictiveCovenant     Boolean?
   restrictiveCovenantDetails String? // which type + scope/duration, in the candidate's own words
+  // Screening questions — real Red Lines for recruiters/hiring managers,
+  // same nullable tri-state shape as hasRestrictiveCovenant above (null =
+  // not asked yet). Bundled with it into one RED_FLAGS_CONFIRMED one-time
+  // bonus (see complete-profile/actions.ts) rather than separate bonuses
+  // per question, same "small related-question bundle" shape as
+  // ANSWER_OPTIONAL_QUESTIONS/COMFORT_CHECK_CONFIRM.
+  willingToTakeDrugTest       Boolean?
+  willingToTakeBackgroundCheck Boolean?
+  wantsAnimalFriendlyWorkplace Boolean?
+  redFlagsBonusAt              DateTime?
+
+  // Benefits & Compensation Priorities — moved off Search Strategy
+  // (targetCompMin) and expanded with real benefit-importance questions
+  // recruiters/hiring managers ask about. Same nullable-tri-state +
+  // one-time-bonus shape as the Red Flags cluster above.
+  wantsHealthDentalVisionInsurance  Boolean?
+  wantsDisabilityInsurance          Boolean?
+  wants401kMatch                    Boolean?
+  ptoWeeksExpected                  Int?
+  remoteDaysPerWeekDesired          Int?
+  paidParentalLeaveWeeksExpected    Int?
+  wantsProfessionalDevReimbursement Boolean?
+  wantsCommuterBenefits             Boolean?
+  wantsGymMembership                Boolean?
+  benefitsPrioritiesBonusAt         DateTime?
 
   // Resume auto-fill (Phase 1) — unconfirmed until candidate confirms via action plan
   firstName               String?

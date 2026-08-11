@@ -301,29 +301,6 @@ export function SearchStrategyForm({
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="targetCompMin">What is the minimum comp you are able to take? (optional)</Label>
-        <div className="flex items-center gap-2">
-          <div className="relative w-36">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="targetCompMin"
-              name="targetCompMinThousands"
-              type="number"
-              min={0}
-              placeholder="120"
-              className="pl-7"
-              defaultValue={profile.targetCompMin ? Math.round(profile.targetCompMin / 1000) : undefined}
-            />
-          </div>
-          <span className="text-sm text-muted-foreground">
-            ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
-          </span>
-        </div>
-      </div>
-
       <div className="space-y-4 rounded-lg border border-border p-4">
         <Label className="text-sm font-semibold">Search Goals and Red Lines</Label>
 

@@ -73,7 +73,7 @@ function buildSections(
           // A real "you know someone at a company you applied to" count
           // takes priority over the generic High Priority label — it's a
           // more specific, more actionable reason to visit right now.
-          badge: newBackchannelCount > 0 ? String(newBackchannelCount) : 'High Priority',
+          badge: newBackchannelCount > 0 ? String(newBackchannelCount) : 'Priority',
         },
         { href: '/dashboard/references', label: 'My References' },
         {
@@ -97,9 +97,9 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
-        { href: '/dashboard/learning', label: 'Learn New Skills', badge: 'High Priority' },
-        { href: '/dashboard/interim-work', label: 'Find Interim Work', badge: 'High Priority' },
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', badge: 'High Priority' },
+        { href: '/dashboard/learning', label: 'Learn New Skills', badge: 'Priority' },
+        { href: '/dashboard/interim-work', label: 'Find Interim Work', badge: 'Priority' },
+        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', badge: 'Priority' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
       ],
     },
@@ -167,7 +167,7 @@ function NavContent({
             const badgeEl = link.badge && (
               <span
                 className={cn(
-                  'rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase',
+                  'shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap tracking-wide uppercase',
                   link.muted ? 'bg-white/10 text-white/50' : 'bg-orange/20 text-orange'
                 )}
               >
@@ -180,7 +180,7 @@ function NavContent({
                 <div
                   key={`${section.title ?? 'top'}-${link.href}`}
                   aria-disabled="true"
-                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium text-white/40"
+                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap text-white/40"
                 >
                   <span>{link.label}</span>
                   {badgeEl}
@@ -194,7 +194,7 @@ function NavContent({
                 href={link.href}
                 onClick={onNavigate}
                 className={cn(
-                  'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium transition-colors',
+                  'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors',
                   isActive(link.href)
                     ? 'bg-white/15 text-white'
                     : link.muted
@@ -261,7 +261,7 @@ export function DashboardNav({
   return (
     <>
       {/* Desktop: persistent sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 bg-navy lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 bg-navy lg:block">
         <NavContent
           pathname={pathname}
           portfolioAssetCount={portfolioAssetCount}
@@ -295,7 +295,7 @@ export function DashboardNav({
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
+          <div className="fixed inset-y-0 left-0 w-72 bg-navy shadow-xl">
             <NavContent
               pathname={pathname}
               onNavigate={() => setOpen(false)}

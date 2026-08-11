@@ -64,7 +64,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         messagesUnreadCount={messagesUnreadCount}
         newBackchannelCount={newBackchannelCount}
       />
-      <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
+      <main className="px-6 py-12 lg:pl-[calc(18rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>
       </main>
     </div>

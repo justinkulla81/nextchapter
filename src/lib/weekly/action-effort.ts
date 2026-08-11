@@ -177,6 +177,14 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   LINKEDIN_UNLOCK: { minutes: 3, points: 5 },
   WORK_SAMPLE_TYPE_CONFIRMED: { minutes: 3, points: 5 },
   NETWORK_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
+  // Drug test / background check / restrictive covenant — same one-time
+  // confirm-bonus weight as the other small profile-checklist bundles.
+  RED_FLAGS_CONFIRMED: { minutes: 3, points: 5 },
+  // Minimum comp (moved off Search Strategy) plus ~9 benefit-importance/
+  // expectation questions — a longer bundle than the confirm-bonuses above,
+  // weighted like GMAIL_CONNECTED/CALENDAR_CONNECTED for a comparable
+  // one-time setup cost.
+  BENEFITS_PRIORITIES_CONFIRMED: { minutes: 5, points: 10 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -260,6 +268,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   WORK_SAMPLE_TYPE_CONFIRMED: 'working',
   NETWORK_COMFORT_CONFIRMED: 'connecting',
   LINKEDIN_PROFILE_ADDED: 'working',
+  RED_FLAGS_CONFIRMED: 'effort',
+  BENEFITS_PRIORITIES_CONFIRMED: 'effort',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -307,6 +317,8 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   GMAIL_RECONNECTED: 'Personalize',
   CALENDAR_CONNECTED: 'Personalize',
   CALENDAR_RECONNECTED: 'Personalize',
+  RED_FLAGS_CONFIRMED: 'Personalize',
+  BENEFITS_PRIORITIES_CONFIRMED: 'Personalize',
 
   RESUME_UPDATE: 'Building',
   SKILLS_TRANSLATOR: 'Building',
@@ -569,6 +581,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Network with My Contacts' },
   PROFILE_PICTURE_UPLOADED: { href: '/dashboard/profile#profile-picture', label: 'Profile' },
   LINKEDIN_PROFILE_ADDED: { href: '/dashboard/profile#linkedin', label: 'Profile' },
+  RED_FLAGS_CONFIRMED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
+  BENEFITS_PRIORITIES_CONFIRMED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
 }
 
 

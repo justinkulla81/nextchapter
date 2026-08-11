@@ -49,6 +49,8 @@ const LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
   LINKEDIN_UNLOCK: 'Unlock the LinkedIn post generator',
   PROFILE_PICTURE_UPLOADED: 'Add a profile picture',
   LINKEDIN_PROFILE_ADDED: 'Add your LinkedIn profile',
+  RED_FLAGS_CONFIRMED: 'Answer a few screening questions',
+  BENEFITS_PRIORITIES_CONFIRMED: 'Set your benefits & compensation priorities',
 }
 
 async function fetchCompletion(candidateId: string) {
@@ -78,6 +80,8 @@ async function fetchCompletion(candidateId: string) {
         profilePictureUrl: true,
         linkedInConfirmedAt: true,
         skillsAssessmentCompletedAt: true,
+        redFlagsBonusAt: true,
+        benefitsPrioritiesBonusAt: true,
       },
     }),
     prisma.candidateAssessmentResponse.count({ where: { candidateId } }),
@@ -119,6 +123,8 @@ async function fetchCompletion(candidateId: string) {
     // earns this, same as other confirm-type items reward answering the
     // question, not any particular answer.
     LINKEDIN_PROFILE_ADDED: !!profile.linkedInConfirmedAt,
+    RED_FLAGS_CONFIRMED: !!profile.redFlagsBonusAt,
+    BENEFITS_PRIORITIES_CONFIRMED: !!profile.benefitsPrioritiesBonusAt,
   }
 
   return completion

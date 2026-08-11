@@ -18,6 +18,8 @@ import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from '@/app/dashboard/actions'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
+import { RedFlagsQuestionsForm } from '@/components/dashboard/RedFlagsQuestionsForm'
+import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
 import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Complete Your Profile' }
@@ -220,6 +222,42 @@ export default async function CompleteProfilePage() {
               </span>
             </div>
             <LinkedInConfirmForm />
+          </div>
+        )}
+
+        {isIncomplete('RED_FLAGS_CONFIRMED') && (
+          <div className="space-y-1 rounded-lg border border-border p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">Screening questions</p>
+              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +5 pts, one time
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Shared with your coach and recruiter/employer contacts — helps them match you to
+              roles you&apos;re actually eligible for, and flag issues before an offer, not after.
+            </p>
+            <div className="pt-3">
+              <RedFlagsQuestionsForm />
+            </div>
+          </div>
+        )}
+
+        {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && (
+          <div className="space-y-1 rounded-lg border border-border p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">Benefits & compensation priorities</p>
+              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +10 pts, one time
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              What matters to you beyond salary — helps your coach and recruiter contacts steer you
+              toward roles and offers that actually fit.
+            </p>
+            <div className="pt-3">
+              <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
+            </div>
           </div>
         )}
       </div>
