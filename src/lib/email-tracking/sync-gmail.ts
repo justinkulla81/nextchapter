@@ -290,9 +290,25 @@ async function processMessage(
   const isFromNextChapterItself = direction === 'INBOUND' && !!senderRootDomain && NEXTCHAPTER_SENDING_DOMAINS.has(senderRootDomain)
   const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself
   const roleText = `${subject} ${bodyPreview}`
-  const isRecruiterContact = !skipRoleMatching && matchRecruiterRoleMention(roleText)
+  const isRecruiterRoleMention = !skipRoleMatching && matchRecruiterRoleMention(roleText)
   const isHiringManagerContact = !skipRoleMatching && matchHiringManagerRoleMention(roleText)
   const isCoachContact = !skipRoleMatching && matchCoachRoleMention(roleText)
+  // !skipRoleMatching excludes ATS/job-board and NextChapter's own domains —
+  // without it, an automated LinkedIn notification ("New message from X on
+  // LinkedIn") classifies as RECRUITER_OUTREACH and gets treated as a real
+  // recruiter contact. Gated to high confidence so a NEEDS_REVIEW guess
+  // doesn't count toward the "Recruiter contact" stat either.
+  const isRecruiterOutreach =
+    direction === 'INBOUND' &&
+    !skipRoleMatching &&
+    classification.activityType === 'RECRUITER_OUTREACH' &&
+    classification.confidence === 'high'
+  // A message can be recognized as recruiter outreach by content (the
+  // regex patterns above — "confidential search", "representing a client",
+  // etc.) without ever mentioning a role title like "recruiter" in the
+  // text, so isRecruiterRoleMention alone under-counts. Either signal
+  // qualifies.
+  const isRecruiterContact = isRecruiterRoleMention || isRecruiterOutreach
 
   await prisma.trackedEmailActivity.create({
     data: {
@@ -316,15 +332,9 @@ async function processMessage(
   // points below: only high-confidence classifications, so a NEEDS_REVIEW
   // guess never creates a noise contact.
   if (classification.confidence === 'high') {
-    // !skipRoleMatching excludes ATS/job-board and NextChapter's own domains
-    // — without it, an automated LinkedIn notification ("New message from X
-    // on LinkedIn") classifies as RECRUITER_OUTREACH and gets auto-added as
-    // a contact named after the notification sender (e.g. "LinkedIn Job
-    // Alerts"), which isn't a person at all.
-    const isRecruiterOutreach = direction === 'INBOUND' && !skipRoleMatching && classification.activityType === 'RECRUITER_OUTREACH'
     const isNetworkingOutbound = direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.has(classification.activityType)
     const autoTags: RelationshipTag[] = []
-    if (isRecruiterOutreach || isRecruiterContact) autoTags.push('RECRUITER')
+    if (isRecruiterContact) autoTags.push('RECRUITER')
     if (isHiringManagerContact) autoTags.push('HIRING_MANAGER')
     if (isCoachContact) autoTags.push('COACH')
     if (autoTags.length > 0 || isNetworkingOutbound) {
