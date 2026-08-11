@@ -12,6 +12,18 @@ export interface ImportedContact {
   title: string | null
   email: string | null
   linkedinUrl: string | null
+  connectedAt: Date | null
+}
+
+// LinkedIn's "Connected On" column is a plain "D Mon YYYY" date (e.g. "23
+// Jan 2020"), not ISO — new Date() parses that fine in Node, but guard
+// against a malformed/renamed-format cell rather than writing an Invalid
+// Date into the DB.
+function parseConnectedOn(raw: string | undefined): Date | null {
+  const trimmed = raw?.trim()
+  if (!trimmed) return null
+  const parsed = new Date(trimmed)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
 // Lower-trimmed "name|company" dedup key — used both to stop re-uploading
@@ -64,6 +76,7 @@ export function parseLinkedInConnectionsCsv(csvText: string): ImportedContact[] 
   const companyIdx = headers.indexOf('Company')
   const positionIdx = headers.indexOf('Position')
   const urlIdx = headers.indexOf('URL')
+  const connectedOnIdx = headers.indexOf('Connected On')
 
   const contacts: ImportedContact[] = []
   for (const line of lines.slice(headerIndex + 1)) {
@@ -81,6 +94,7 @@ export function parseLinkedInConnectionsCsv(csvText: string): ImportedContact[] 
       company: companyIdx >= 0 ? fields[companyIdx]?.trim() || null : null,
       title: positionIdx >= 0 ? fields[positionIdx]?.trim() || null : null,
       linkedinUrl: urlIdx >= 0 ? fields[urlIdx]?.trim() || null : null,
+      connectedAt: connectedOnIdx >= 0 ? parseConnectedOn(fields[connectedOnIdx]) : null,
     })
   }
   return contacts

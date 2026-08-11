@@ -75,7 +75,17 @@ export async function importConnectionsCsv(
   // decides create/update/skip per contact in memory instead.
   const existing = await prisma.supportNetworkContact.findMany({
     where: { candidateId: profile.id },
-    select: { id: true, name: true, normalizedKey: true, removedAt: true, company: true, title: true, email: true, linkedinUrl: true },
+    select: {
+      id: true,
+      name: true,
+      normalizedKey: true,
+      removedAt: true,
+      company: true,
+      title: true,
+      email: true,
+      linkedinUrl: true,
+      connectedAt: true,
+    },
   })
   const existingByKey = new Map(existing.filter((e) => e.normalizedKey).map((e) => [e.normalizedKey as string, e]))
   // Name-only fallback index — the primary key is name+company, but company
@@ -93,7 +103,7 @@ export async function importConnectionsCsv(
   }
 
   const toCreate: Prisma.SupportNetworkContactCreateManyInput[] = []
-  const updates: { id: string; data: Record<string, string> }[] = []
+  const updates: { id: string; data: Record<string, string | Date> }[] = []
   let skippedRemoved = 0
 
   for (const c of contacts) {
@@ -116,10 +126,14 @@ export async function importConnectionsCsv(
         continue
       }
       const fresh: Record<string, string | null> = { company: c.company, title: c.title, email: c.email, linkedinUrl: c.linkedinUrl }
-      const fill: Record<string, string> = {}
+      const fill: Record<string, string | Date> = {}
       for (const field of FILLABLE_FIELDS) {
         if (!match[field] && fresh[field]) fill[field] = fresh[field] as string
       }
+      // Real LinkedIn connection date, not the CSV-upload date — only ever
+      // filled in from a LinkedIn export, never guessed at, so an existing
+      // row keeps whatever it already has.
+      if (!match.connectedAt && c.connectedAt) fill.connectedAt = c.connectedAt
       // Matched via the name-only fallback — refresh normalizedKey to the
       // strict name+company key so future imports match it directly too.
       if (match.normalizedKey !== key) fill.normalizedKey = key
@@ -134,6 +148,7 @@ export async function importConnectionsCsv(
       title: c.title,
       email: c.email,
       linkedinUrl: c.linkedinUrl,
+      connectedAt: c.connectedAt,
       source: 'CSV_IMPORT' as const,
       normalizedKey: key,
     })

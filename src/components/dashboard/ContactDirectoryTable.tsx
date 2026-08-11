@@ -92,7 +92,13 @@ export function ContactDirectoryTable({
           return dir * (Number(!!a.membership) - Number(!!b.membership))
         case 'date':
         default:
-          return dir * (a.createdAt.getTime() - b.createdAt.getTime())
+          // Falls back to createdAt only to keep sort order well-defined for
+          // contacts with no real connectedAt (most manually-added ones) —
+          // the column itself still shows "—" rather than that fallback.
+          return (
+            dir *
+            ((a.connectedAt ?? a.createdAt).getTime() - (b.connectedAt ?? b.createdAt).getTime())
+          )
       }
     })
   }, [contacts, removedIds, search, sortKey, sortDir, priorityPin])
@@ -295,7 +301,9 @@ function ContactRowExpandable({
         </td>
         <td className="px-3 py-2 text-muted-foreground">{contact.company ?? '—'}</td>
         <td className="px-3 py-2 text-muted-foreground">{relationshipSummary(contact.relationshipTags)}</td>
-        <td className="px-3 py-2 text-muted-foreground">{contact.createdAt.toLocaleDateString()}</td>
+        <td className="px-3 py-2 text-muted-foreground">
+          {contact.connectedAt ? contact.connectedAt.toLocaleDateString() : '—'}
+        </td>
         <td className="px-3 py-2">
           {contact.hasReachedOut ? (
             <span className="text-brand">✓{contact.lastOutreachChannel ? ` ${contact.lastOutreachChannel.toLowerCase()}` : ''}</span>
@@ -337,10 +345,15 @@ function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
   const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(
     contact.email ?? ''
   )}`
+  const [dirty, setDirty] = useState(false)
 
   return (
     <div className="space-y-4">
-      <form action={updateContact.bind(null, contact.id)} className="space-y-3">
+      <form
+        action={updateContact.bind(null, contact.id)}
+        className="space-y-3"
+        onChange={() => setDirty(true)}
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           <LabeledInput name="name" label="Name" defaultValue={contact.name} required className="max-w-[220px]" />
           <LabeledInput name="company" label="Company" defaultValue={contact.company ?? ''} className="max-w-[220px]" />
@@ -357,7 +370,7 @@ function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
             inferredSchool={contact.inferredSchool}
           />
           <input type="hidden" name="warmth" value={contact.warmth} />
-          <SubmitButton size="sm" variant="outline">
+          <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
             Save
           </SubmitButton>
         </div>

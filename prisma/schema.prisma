@@ -2444,6 +2444,12 @@ model SupportNetworkContact {
   // main directory list; surfaced on its own Removed Contacts page with a
   // restore action that just clears this field.
   removedAt           DateTime?
+  // The actual LinkedIn connection date ("Connected On" in their export) —
+  // distinct from createdAt, which is when this row was imported into
+  // NextChapter and could be months/years after the real connection date.
+  // Only ever populated from a LinkedIn CSV upload; left null for
+  // manually-added contacts rather than guessed at.
+  connectedAt         DateTime?
   // NextChapter admin's own outreach tracking for recruiters/coaches/hiring
   // managers surfaced through candidates' networks — a business-development
   // lead list, entirely separate from the candidate's own relationship to
