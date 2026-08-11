@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -67,18 +67,18 @@ function buildSections(
     {
       title: 'Connecting',
       links: [
-        { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/network',
-          label: 'Network with My Contacts',
+          label: 'Network with Contacts',
           // A real "you know someone at a company you applied to" count
           // takes priority over the generic High Priority label — it's a
           // more specific, more actionable reason to visit right now.
           badge: newBackchannelCount > 0 ? String(newBackchannelCount) : 'High Priority',
         },
+        { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/community',
-          label: 'NC Support Network',
+          label: 'Candidate Community',
           badge:
             supportNetworkUnreadCount + messagesUnreadCount > 0
               ? String(supportNetworkUnreadCount + messagesUnreadCount)
@@ -122,6 +122,8 @@ function NavContent({
   supportNetworkUnreadCount,
   messagesUnreadCount,
   newBackchannelCount,
+  collapsedSections,
+  onToggleSection,
 }: {
   pathname: string
   onNavigate?: () => void
@@ -129,6 +131,8 @@ function NavContent({
   supportNetworkUnreadCount: number
   messagesUnreadCount: number
   newBackchannelCount: number
+  collapsedSections: Set<string>
+  onToggleSection: (title: string) => void
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
   const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, messagesUnreadCount, newBackchannelCount)
@@ -136,14 +140,30 @@ function NavContent({
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
       <Logo className="px-2 text-xl text-white" />
-      {sections.map((section, i) => (
+      {sections.map((section, i) => {
+        const collapsed = !!section.title && collapsedSections.has(section.title)
+        return (
         <div key={section.title ?? `top-${i}`} className="space-y-px">
           {section.title && (
-            <p className="px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase">
+            <button
+              type="button"
+              onClick={() => onToggleSection(section.title!)}
+              aria-expanded={!collapsed}
+              className="flex w-full items-center justify-between gap-2 px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase hover:text-white/70"
+            >
               {section.title}
-            </p>
+              <svg
+                viewBox="0 0 24 24"
+                className={cn('size-3 shrink-0 transition-transform', collapsed && '-rotate-90')}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
           )}
-          {section.links.map((link) => {
+          {!collapsed && section.links.map((link) => {
             const badgeEl = link.badge && (
               <span
                 className={cn(
@@ -188,7 +208,8 @@ function NavContent({
             )
           })}
         </div>
-      ))}
+        )
+      })}
       <div className="mt-auto px-2">
         <form action={signOut}>
           <SignOutButton />
@@ -211,6 +232,26 @@ export function DashboardNav({
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  // Empty on both server and first client render to avoid a hydration
+  // mismatch; the real saved state (if any) loads a frame later.
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const saved = localStorage.getItem('nc-nav-collapsed-sections')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (saved) setCollapsedSections(new Set(JSON.parse(saved)))
+  }, [])
+
+  function toggleSection(title: string) {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev)
+      if (next.has(title)) next.delete(title)
+      else next.add(title)
+      localStorage.setItem('nc-nav-collapsed-sections', JSON.stringify([...next]))
+      return next
+    })
+  }
+
   const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, messagesUnreadCount, newBackchannelCount)
   const current = sections
     .flatMap((s) => s.links)
@@ -227,6 +268,8 @@ export function DashboardNav({
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           messagesUnreadCount={messagesUnreadCount}
           newBackchannelCount={newBackchannelCount}
+          collapsedSections={collapsedSections}
+          onToggleSection={toggleSection}
         />
       </aside>
 
@@ -260,6 +303,8 @@ export function DashboardNav({
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               messagesUnreadCount={messagesUnreadCount}
               newBackchannelCount={newBackchannelCount}
+              collapsedSections={collapsedSections}
+              onToggleSection={toggleSection}
             />
           </div>
         </div>
