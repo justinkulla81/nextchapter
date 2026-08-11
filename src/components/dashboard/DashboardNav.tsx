@@ -173,7 +173,11 @@ function NavContent({
               <span
                 className={cn(
                   'shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap tracking-wide uppercase',
-                  link.muted ? 'bg-white/10 text-white/50' : 'bg-orange/20 text-orange'
+                  link.muted
+                    ? 'bg-white/10 text-white/50'
+                    : link.badge === 'Premium'
+                      ? 'bg-success/20 text-success'
+                      : 'bg-orange/20 text-orange'
                 )}
               >
                 {link.badge}
