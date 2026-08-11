@@ -8,8 +8,8 @@ import type {
   OutreachChannel,
   MarketResponseType,
   RelationshipTag,
-  Prisma,
 } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -155,8 +155,40 @@ export async function importConnectionsCsv(
   }
 
   const created = toCreate.length > 0 ? await prisma.supportNetworkContact.createMany({ data: toCreate }) : { count: 0 }
-  if (updates.length > 0) {
-    await prisma.$transaction(updates.map((u) => prisma.supportNetworkContact.update({ where: { id: u.id }, data: u.data })))
+  // Bulk SQL rather than one Prisma call per row — a large account (tens of
+  // thousands of contacts) re-uploading a CSV that fills in a previously-
+  // blank field on most existing rows can produce thousands of updates.
+  // Measured: even 100-at-a-time parallel prisma.update() calls took 80+
+  // seconds for 3,000 rows against the Supabase pooler, which blows past the
+  // serverless function timeout and fails the whole import. A single
+  // UPDATE ... CASE statement per field, batched a few hundred rows at a
+  // time, does the same work in one round trip instead of one per row.
+  // `field` only ever comes from the hardcoded FILLABLE_FIELDS/connectedAt/
+  // normalizedKey keys above — never user input — so it's safe to splice
+  // into the raw SQL as a column identifier.
+  const UPDATE_BATCH_SIZE = 500
+  const updatesByField = new Map<string, { id: string; value: string | Date }[]>()
+  for (const u of updates) {
+    for (const [field, value] of Object.entries(u.data)) {
+      const list = updatesByField.get(field) ?? []
+      list.push({ id: u.id, value })
+      updatesByField.set(field, list)
+    }
+  }
+  for (const [field, entries] of updatesByField) {
+    for (let i = 0; i < entries.length; i += UPDATE_BATCH_SIZE) {
+      const batch = entries.slice(i, i + UPDATE_BATCH_SIZE)
+      const cases = Prisma.join(
+        batch.map((e) => Prisma.sql`WHEN ${e.id} THEN ${e.value}`),
+        ' '
+      )
+      const ids = Prisma.join(batch.map((e) => e.id))
+      await prisma.$executeRaw`
+        UPDATE "SupportNetworkContact"
+        SET ${Prisma.raw(`"${field}"`)} = CASE id ${cases} END
+        WHERE id IN (${ids}) AND "candidateId" = ${profile.id}
+      `
+    }
   }
 
   await markNetworkingListSubmittedIfThresholdMet(profile.id)
