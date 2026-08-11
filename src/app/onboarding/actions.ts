@@ -24,6 +24,7 @@ import {
   computeInconsistency,
   translateDimensionVectors,
 } from '@/lib/scoring/assessment-vectors'
+import { computeWorkStyleVectors, translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { autoPopulateFirstSprint } from '@/lib/weekly/sprint'
@@ -251,6 +252,15 @@ export async function updateAssessment(
     }),
   ])
 
+  // The Assessment Layer rebuild (spec Part 2) cuts quad-blocks entirely —
+  // ipsative quad+Likert data can't be compared self-to-reference, which is
+  // the whole point of the self-vs-reference friction feature. A frozen
+  // rotation seeded with zero QuadBlock rows (see how-i-work-best-items.ts)
+  // is a Likert-only, 4-point-scale instrument scored by a different pure
+  // function. Older rotations that do have quad blocks keep working exactly
+  // as before — this is the one place the two paths fork.
+  const isLikertOnlyRotation = activeBlocks.length === 0
+
   const blockIds = formData.getAll('quadBlockId').map(String)
   const leastLikeMeIds = formData.getAll('quadLeastLikeMe').map(String)
 
@@ -263,11 +273,12 @@ export async function updateAssessment(
     leastLikeMe: leastLikeMeIds[i],
   }))
 
+  const maxScore = isLikertOnlyRotation ? 4 : 5
   const likertResponses: { itemId: string; score: number }[] = []
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith('likertScore-')) continue
     const score = Number(value)
-    if (!Number.isInteger(score) || score < 1 || score > 5) {
+    if (!Number.isInteger(score) || score < 1 || score > maxScore) {
       return { error: 'Invalid response received.' }
     }
     likertResponses.push({ itemId: key.slice('likertScore-'.length), score })
@@ -279,14 +290,37 @@ export async function updateAssessment(
 
   const quadStatements = activeBlocks.flatMap((block) => block.statements)
 
-  const dimensionVectors = computeDimensionVectors(
-    quadResponses,
-    quadStatements,
-    likertResponses,
-    activeItems
-  )
-  const { inconsistencyScore, inconsistencyPairs, manipulationRiskFlag, flagThreshold } =
-    computeInconsistency(quadResponses, likertResponses, quadStatements, activeItems)
+  let dimensionVectors: Record<string, number>
+  let translatedOutput: Record<string, string>
+  let inconsistencyScore: number
+  let inconsistencyPairs: unknown[]
+  let manipulationRiskFlag: boolean
+  let flagThreshold: number | undefined
+
+  if (isLikertOnlyRotation) {
+    const workStyleResponses = likertResponses.map((r) => ({
+      itemId: Number(r.itemId),
+      score: r.score as 1 | 2 | 3 | 4,
+    }))
+    dimensionVectors = computeWorkStyleVectors(workStyleResponses)
+    translatedOutput = translateWorkStyleVectors(dimensionVectors)
+    // No quad-block cross-validation source exists for this rotation, so
+    // there's nothing to diff against — inconsistency detection is simply
+    // unavailable here, not zeroed-out-as-if-checked.
+    inconsistencyScore = 0
+    inconsistencyPairs = []
+    manipulationRiskFlag = false
+    flagThreshold = undefined
+  } else {
+    const legacyVectors = computeDimensionVectors(quadResponses, quadStatements, likertResponses, activeItems)
+    dimensionVectors = legacyVectors
+    translatedOutput = translateDimensionVectors(legacyVectors)
+    const inconsistency = computeInconsistency(quadResponses, likertResponses, quadStatements, activeItems)
+    inconsistencyScore = inconsistency.inconsistencyScore
+    inconsistencyPairs = inconsistency.inconsistencyPairs
+    manipulationRiskFlag = inconsistency.manipulationRiskFlag
+    flagThreshold = inconsistency.flagThreshold
+  }
 
   try {
     await prisma.$transaction([
@@ -307,7 +341,7 @@ export async function updateAssessment(
           candidateId,
           assessmentType: 'work_style',
           rawScores: { quadResponses, likertResponses } as unknown as Prisma.InputJsonValue,
-          translatedOutput: translateDimensionVectors(dimensionVectors) as unknown as Prisma.InputJsonValue,
+          translatedOutput: translatedOutput as unknown as Prisma.InputJsonValue,
         },
       }),
       prisma.candidateProfile.update({
