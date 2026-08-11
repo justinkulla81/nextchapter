@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { MultiChoiceButtons } from '@/components/onboarding/MultiChoiceButtons'
-import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX, CREATIVITY_LABELS } from '@/lib/constants/onboarding'
+import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
@@ -22,20 +22,6 @@ const CORE_SKILL_LABELS = [
   'Still building skills',
   'Very strong',
   'Among the best in my field',
-] as const
-
-const ACTION_ORIENTED_LABELS = [
-  "I'm easy going on this",
-  'I do what is asked of me',
-  'I like to be first and on top of it',
-  'I like to do things without being told, even if it means more work for me',
-] as const
-
-const COMMUNICATOR_LABELS = [
-  'I am very reserved',
-  "I'll express myself when asked",
-  "I'm social — I'm most comfortable when I can express myself",
-  "I love communicating — it's one of my strengths",
 ] as const
 
 const MANAGEMENT_LABELS = [
@@ -114,27 +100,6 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
         labels={CORE_SKILL_LABELS}
       />
 
-      <ConfidenceSlider
-        name="actionOrientedConfidence"
-        label="How action-oriented are you?"
-        defaultValue={profile.actionOrientedConfidence}
-        labels={ACTION_ORIENTED_LABELS}
-      />
-
-      <ConfidenceSlider
-        name="creativityConfidence"
-        label="How creative are you?"
-        defaultValue={profile.creativityConfidence}
-        labels={CREATIVITY_LABELS}
-      />
-
-      <ConfidenceSlider
-        name="communicatorConfidence"
-        label="How strong a communicator are you?"
-        defaultValue={profile.communicatorConfidence}
-        labels={COMMUNICATOR_LABELS}
-      />
-
       {isPeopleManager && (
         <ConfidenceSlider
           name="managementSkillConfidence"
@@ -146,7 +111,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <SubmitButton pendingLabel="Saving…">Save Skills Assessment</SubmitButton>
+      <SubmitButton pendingLabel="Saving…">Save Skills Inventory</SubmitButton>
     </form>
   )
 }

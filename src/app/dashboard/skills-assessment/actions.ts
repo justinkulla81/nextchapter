@@ -30,10 +30,13 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
   const functionSkillConfidence = formData.get('functionSkillConfidence')
   const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
   const managementSkillConfidence = formData.get('managementSkillConfidence')
-  const actionOrientedConfidence = formData.get('actionOrientedConfidence')
-  const creativityConfidence = formData.get('creativityConfidence')
-  const communicatorConfidence = formData.get('communicatorConfidence')
 
+  // actionOrientedConfidence/creativityConfidence/communicatorConfidence are
+  // deliberately not read here — the spec's dedup kill-list (§6.1) cut these
+  // 3 questions as duplicates of How I Work Best/How I Perform dimensions.
+  // Not writing them (rather than writing null) preserves any value a
+  // candidate already gave before this form stopped asking, since the
+  // scoring formulas that read them still fall back to it.
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
@@ -47,9 +50,6 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
       functionSkillConfidence: functionSkillConfidence ? Number(functionSkillConfidence) : null,
       aiFlexibilityLevel: aiFlexibilityLevel ? Number(aiFlexibilityLevel) : null,
       managementSkillConfidence: isPeopleManager && managementSkillConfidence ? Number(managementSkillConfidence) : null,
-      actionOrientedConfidence: actionOrientedConfidence ? Number(actionOrientedConfidence) : null,
-      creativityConfidence: creativityConfidence ? Number(creativityConfidence) : null,
-      communicatorConfidence: communicatorConfidence ? Number(communicatorConfidence) : null,
     },
   })
 

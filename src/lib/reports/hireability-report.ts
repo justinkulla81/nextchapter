@@ -26,13 +26,7 @@ import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
-import {
-  BIGGEST_BARRIER_OPTIONS,
-  TOP_STRENGTH_OPTIONS,
-  TRADEOFF_PRIORITIES,
-  CREATIVITY_LABELS,
-  confidenceSliderLabel,
-} from '@/lib/constants/onboarding'
+import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { hasStartedSprint, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
@@ -326,7 +320,6 @@ Top strengths they identify with (up to 3): ${
       ? candidate.topStrengths.map((v) => TOP_STRENGTH_OPTIONS.find((o) => o.value === v)?.label ?? v).join(', ')
       : 'not specified'
   }
-Self-rated creativity/structure preference: ${confidenceSliderLabel(candidate.creativityConfidence, CREATIVITY_LABELS) ?? 'not specified'}
 Tradeoff priorities, ranked most to least important: ${
     TRADEOFF_PRIORITIES.map((p) => ({ label: p.label as string, rank: candidate[p.key] }))
       .filter((p) => p.rank !== null)

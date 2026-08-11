@@ -244,11 +244,19 @@ function getCategoryConfidence(
     case 'skillsExecution':
       return refCount >= 1 ? 'HIGH' : candidate.functionSkillConfidence !== null ? 'BUILDING' : 'PROVISIONAL'
     case 'communication':
-      return refCount >= 1 ? 'HIGH' : candidate.communicatorConfidence !== null ? 'BUILDING' : 'PROVISIONAL'
+      return refCount >= 1
+        ? 'HIGH'
+        : candidate.performanceAssessmentResponses.length > 0 || candidate.communicatorConfidence !== null
+          ? 'BUILDING'
+          : 'PROVISIONAL'
     case 'adaptability':
       return refCount >= 1 ? 'HIGH' : 'BUILDING'
     case 'ownership':
-      return refCount >= 1 ? 'HIGH' : candidate.actionOrientedConfidence !== null ? 'BUILDING' : 'PROVISIONAL'
+      return refCount >= 1
+        ? 'HIGH'
+        : candidate.performanceAssessmentResponses.length > 0 || candidate.actionOrientedConfidence !== null
+          ? 'BUILDING'
+          : 'PROVISIONAL'
   }
 }
 

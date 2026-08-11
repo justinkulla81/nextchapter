@@ -31,10 +31,35 @@ function SkillsToBuildSkeleton() {
   )
 }
 
+// Modules 4-6 of the spec's 7-module roster (Track Record, Work Interests,
+// What I Need) aren't built yet — listed here as locked cards so the full
+// roster is visible/honest about scope, rather than only showing the 4
+// modules that happen to exist today.
+const UPCOMING_MODULES = [
+  {
+    key: 'track-record',
+    title: 'Track Record',
+    description: 'Scope, ownership, and the kind of situations you’ve operated in — verified against what your references say.',
+    feeds: 'Feeds: Executive Dossier · Hiring Manager Notes',
+  },
+  {
+    key: 'work-interests',
+    title: 'Work Interests',
+    description: 'What kind of work actually energizes you, based on the Holland RIASEC framework used across career counseling.',
+    feeds: 'Feeds: Job Recommendations · Learning recommendations',
+  },
+  {
+    key: 'what-i-need',
+    title: 'What I Need',
+    description: 'The work values you’re not willing to trade away, ranked — comp, flexibility, growth, stability, and more.',
+    feeds: 'Feeds: Search Strategy · Coaching Notes',
+  },
+] as const
+
 export default async function SkillsAssessmentsPage() {
   const profile = await getDashboardData()
 
-  const [latestWorkStyleResponse, latestPerformanceResponse] = await Promise.all([
+  const [latestWorkStyleResponse, latestPerformanceResponse, completedReferenceCount] = await Promise.all([
     prisma.candidateAssessmentResponse.findFirst({
       where: { candidateId: profile.id },
       orderBy: { completedAt: 'desc' },
@@ -45,6 +70,7 @@ export default async function SkillsAssessmentsPage() {
       orderBy: { completedAt: 'desc' },
       select: { completedAt: true },
     }),
+    prisma.reference.count({ where: { candidateId: profile.id, completedAt: { not: null } } }),
   ])
 
   const assessments = [
@@ -53,6 +79,7 @@ export default async function SkillsAssessmentsPage() {
       title: 'How I Work Best',
       description:
         'A quick self-report on your working style — how you operate, decide, and collaborate. Your references answer these same questions about you.',
+      feeds: 'Feeds: Executive Dossier · Hiring Manager Notes · Coaching Notes',
       completedAt: latestWorkStyleResponse?.completedAt ?? null,
       points: estimateActionEffort({ actionType: 'WORKING_STYLE_QUIZ' }).points,
       href: '/dashboard/retake-assessment',
@@ -63,6 +90,7 @@ export default async function SkillsAssessmentsPage() {
       title: 'How I Perform',
       description:
         'How you execute, decide, hold up under pressure, and get things done through other people. Your references answer these same questions about you.',
+      feeds: 'Feeds: Hireability Report category grades · Hiring Manager Notes',
       completedAt: latestPerformanceResponse?.completedAt ?? null,
       points: estimateActionEffort({ actionType: 'PERFORMANCE_ASSESSMENT_COMPLETED' }).points,
       href: '/dashboard/how-i-perform',
@@ -70,13 +98,29 @@ export default async function SkillsAssessmentsPage() {
     },
     {
       key: 'skills',
-      title: 'Skills Assessment',
+      title: 'Skills Inventory',
       description:
         'A candid self-read on your core function, AI fluency, and a few other skills that drive how jobs and courses get matched to you.',
+      feeds: 'Feeds: Job Recommendations · Skills Recommendations · Hireability Report',
       completedAt: profile.skillsAssessmentCompletedAt,
       points: estimateActionEffort({ actionType: 'SKILLS_ASSESSMENT_COMPLETED' }).points,
       href: '/dashboard/skills-assessment',
       ctaLabel: profile.skillsAssessmentCompletedAt ? 'Retake' : 'Take the assessment',
+    },
+    {
+      key: 'reference-check',
+      title: 'Reference Check',
+      description:
+        'The people who worked with you rate the same things you rated yourself on — the comparison is what a hiring manager actually wants to see.',
+      feeds: 'Feeds: Hiring Manager Notes · self-vs-reference friction · Executive Dossier',
+      completedAt: completedReferenceCount > 0 ? new Date(0) : null,
+      statusLabel:
+        completedReferenceCount > 0
+          ? `${completedReferenceCount} reference${completedReferenceCount === 1 ? '' : 's'} completed`
+          : 'Not completed yet',
+      points: estimateActionEffort({ actionType: 'REFERENCE_ADDED' }).points,
+      href: '/dashboard/references',
+      ctaLabel: completedReferenceCount > 0 ? 'Manage references' : 'Request references',
     },
     // Not-completed first — that's the one thing actually asking for
     // attention on this page.
@@ -106,10 +150,13 @@ export default async function SkillsAssessmentsPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">{assessment.description}</p>
+              <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
               <p className="text-xs text-muted-foreground">
-                {assessment.completedAt
-                  ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
-                  : 'Not completed yet'}
+                {'statusLabel' in assessment
+                  ? assessment.statusLabel
+                  : assessment.completedAt
+                    ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
+                    : 'Not completed yet'}
               </p>
               <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
                 {assessment.ctaLabel}
@@ -133,6 +180,30 @@ export default async function SkillsAssessmentsPage() {
           </Suspense>
         </CardContent>
       </Card>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">Coming soon</h2>
+        <p className="text-sm text-muted-foreground">
+          The rest of the assessment roster — not built yet, listed here so the full picture is
+          honest about what&apos;s ahead.
+        </p>
+        <div className="space-y-4">
+          {UPCOMING_MODULES.map((module) => (
+            <Card key={module.key} className="opacity-70">
+              <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+                <CardTitle className="text-base font-medium text-foreground">{module.title}</CardTitle>
+                <span className="shrink-0 rounded-full bg-light-gray px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  Coming soon
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">{module.description}</p>
+                <p className="text-xs font-medium text-muted-foreground">{module.feeds}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

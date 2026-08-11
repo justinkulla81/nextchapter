@@ -389,10 +389,10 @@ export async function updateExperience(
   const functionSkillConfidence = formData.get('functionSkillConfidence')
   const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
   const managementSkillConfidence = formData.get('managementSkillConfidence')
-  const actionOrientedConfidence = formData.get('actionOrientedConfidence')
-  const creativityConfidence = formData.get('creativityConfidence')
-  const communicatorConfidence = formData.get('communicatorConfidence')
 
+  // actionOrientedConfidence/creativityConfidence/communicatorConfidence are
+  // deliberately not read here — see the matching comment in
+  // src/app/dashboard/skills-assessment/actions.ts.
   try {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
@@ -409,9 +409,6 @@ export async function updateExperience(
         managementSkillConfidence: isPeopleManager && managementSkillConfidence
           ? Number(managementSkillConfidence)
           : null,
-        actionOrientedConfidence: actionOrientedConfidence ? Number(actionOrientedConfidence) : null,
-        creativityConfidence: creativityConfidence ? Number(creativityConfidence) : null,
-        communicatorConfidence: communicatorConfidence ? Number(communicatorConfidence) : null,
         part3Complete: true,
       },
     })

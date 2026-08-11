@@ -564,7 +564,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORK_AUTHORIZATION: { href: '/dashboard/profile/screening#work-authorization', label: 'Screening Questions' },
   ANSWER_OPTIONAL_QUESTIONS: { href: '/dashboard/search-strategy#optional-questions', label: 'Search Strategy' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
-  SKILLS_ASSESSMENT_COMPLETED: { href: '/dashboard/skills-assessment', label: 'Skills Assessment' },
+  SKILLS_ASSESSMENT_COMPLETED: { href: '/dashboard/skills-assessment', label: 'Skills Inventory' },
   PERFORMANCE_ASSESSMENT_COMPLETED: { href: '/dashboard/how-i-perform', label: 'How I Perform' },
   COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERIM_PROFILE_CREATED: { href: '/dashboard/interim-work', label: 'Interim Work' },
