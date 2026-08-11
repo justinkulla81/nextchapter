@@ -25,7 +25,7 @@ export interface ContactRowData extends SupportNetworkContact {
 
 type SortKey = 'name' | 'company' | 'relationship' | 'date' | 'reachedOut' | 'priority' | 'membership'
 
-const PAGE_SIZE = 100
+const PAGE_SIZE = 50
 
 function relationshipSummary(tags: RelationshipTag[]): string {
   if (tags.length === 0) return '—'

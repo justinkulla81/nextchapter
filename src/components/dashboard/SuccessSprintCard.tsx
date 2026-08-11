@@ -449,7 +449,7 @@ export function SuccessSprintCard({
             )}
           >
             <p className="text-base font-semibold text-foreground">
-              <span className={cn('font-bold', onTrack ? 'text-success' : 'text-muted-foreground')}>
+              <span className={cn(onTrack ? 'text-success' : 'text-muted-foreground')}>
                 {onTrack ? 'On track' : 'Behind pace'}
               </span>
               {' — '}
