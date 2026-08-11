@@ -1,9 +1,12 @@
 import { linkContactToJob, unlinkContactFromJob } from '@/app/dashboard/find-my-job/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
 
 export interface HelpContact {
   id: string
   name: string
+  email?: string | null
+  linkedinUrl?: string | null
 }
 
 // "Who can help with this one?" — linked contacts (manually confirmed) plus
@@ -23,21 +26,32 @@ export function WhoCanHelpSection({
   if (linkedContacts.length === 0 && suggestedContacts.length === 0) return null
 
   return (
-    <div className="space-y-1.5 rounded-md border border-border p-3 text-xs">
+    <div className="space-y-2 rounded-md border border-border p-3 text-xs">
       <p className="font-medium text-foreground">Who can help with this one?</p>
       {linkedContacts.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {linkedContacts.map((contact) => (
-            <form key={contact.id} action={unlinkContactFromJob.bind(null, jobId, contact.id)}>
-              <SubmitButton
-                variant="outline"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                title="Not who you meant? Remove"
-              >
-                {contact.name} ✕
-              </SubmitButton>
-            </form>
+            <div
+              key={contact.id}
+              className="flex items-center gap-1.5 rounded-full border border-orange/30 bg-orange/10 py-1 pr-1 pl-2.5"
+            >
+              <ContactQuickLink
+                name={contact.name}
+                email={contact.email}
+                linkedinUrl={contact.linkedinUrl}
+                className="text-orange"
+              />
+              <form action={unlinkContactFromJob.bind(null, jobId, contact.id)}>
+                <SubmitButton
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 px-1 text-xs text-orange"
+                  title="Not who you meant? Remove"
+                >
+                  ✕
+                </SubmitButton>
+              </form>
+            </div>
           ))}
         </div>
       )}
@@ -45,11 +59,17 @@ export function WhoCanHelpSection({
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-muted-foreground">Works there:</span>
           {suggestedContacts.map((contact) => (
-            <form key={contact.id} action={linkContactToJob.bind(null, jobId, contact.id)}>
-              <SubmitButton variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                + {contact.name}
-              </SubmitButton>
-            </form>
+            <div
+              key={contact.id}
+              className="flex items-center gap-1.5 rounded-full border border-border py-1 pr-1 pl-2.5"
+            >
+              <ContactQuickLink name={contact.name} email={contact.email} linkedinUrl={contact.linkedinUrl} />
+              <form action={linkContactToJob.bind(null, jobId, contact.id)}>
+                <SubmitButton variant="ghost" size="sm" className="h-5 px-1.5 text-xs">
+                  Confirm
+                </SubmitButton>
+              </form>
+            </div>
           ))}
         </div>
       )}

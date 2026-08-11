@@ -5,6 +5,7 @@ import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { reactToSurfacedJob, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
+import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
 import { cn } from '@/lib/utils'
 
 const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
@@ -42,7 +43,7 @@ export function NextSurfacedJobCard({
   // row here to link a contact to, so this is informational only: a warm
   // intro is the biggest differentiator among hundreds of applicants, so
   // it's worth surfacing even before the candidate has applied.
-  worksHereContacts?: { id: string; name: string }[]
+  worksHereContacts?: { id: string; name: string; email: string | null; linkedinUrl: string | null }[]
 }) {
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
@@ -79,9 +80,15 @@ export function NextSurfacedJobCard({
             <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{job.description}</p>
           )}
           {worksHereContacts && worksHereContacts.length > 0 && (
-            <p className="mt-1 text-xs font-medium text-brand">
-              🔗 {worksHereContacts.map((c) => c.name).join(', ')} works there — a warm intro beats a cold
-              application
+            <p className="mt-1 text-xs text-muted-foreground">
+              🔗{' '}
+              {worksHereContacts.map((c, i) => (
+                <span key={c.id}>
+                  {i > 0 && ', '}
+                  <ContactQuickLink name={c.name} email={c.email} linkedinUrl={c.linkedinUrl} />
+                </span>
+              ))}{' '}
+              works there — a warm intro beats a cold application
             </p>
           )}
         </div>

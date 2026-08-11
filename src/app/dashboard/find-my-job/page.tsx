@@ -149,7 +149,14 @@ async function JobRecommendationsSection({
   isAList: boolean
   gradeLetter: Grade
   boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
-  contacts: { id: string; name: string; company: string | null; inferredCompany: string | null }[]
+  contacts: {
+    id: string
+    name: string
+    company: string | null
+    inferredCompany: string | null
+    email: string | null
+    linkedinUrl: string | null
+  }[]
 }) {
   const worksHereFor = (companyName: string | null) => {
     if (!companyName) return []
@@ -159,7 +166,7 @@ async function JobRecommendationsSection({
           (c.company && orgNamesMatch(c.company, companyName)) ||
           (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName))
       )
-      .map((c) => ({ id: c.id, name: c.name }))
+      .map((c) => ({ id: c.id, name: c.name, email: c.email, linkedinUrl: c.linkedinUrl }))
   }
   // Auto-backfill the surfaced-job queue server-side so the list always
   // stays topped up at SURFACED_JOB_LIST_SIZE — reacting to one immediately
@@ -392,11 +399,11 @@ async function FindMyJobBody({
   const [contacts, jobsWithHelpfulContacts] = await Promise.all([
     prisma.supportNetworkContact.findMany({
       where: { candidateId: profile.id, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
-      select: { id: true, name: true, company: true, inferredCompany: true },
+      select: { id: true, name: true, company: true, inferredCompany: true, email: true, linkedinUrl: true },
     }),
     prisma.jobPosting.findMany({
       where: { candidateId: profile.id },
-      select: { id: true, helpfulContacts: { select: { id: true, name: true } } },
+      select: { id: true, helpfulContacts: { select: { id: true, name: true, email: true, linkedinUrl: true } } },
     }),
   ])
   const helpfulContactsByJobId = new Map(jobsWithHelpfulContacts.map((j) => [j.id, j.helpfulContacts]))
@@ -413,7 +420,7 @@ async function FindMyJobBody({
             (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName)))
       )
       .slice(0, MAX_SUGGESTED_HELP_CONTACTS)
-      .map((c) => ({ id: c.id, name: c.name }))
+      .map((c) => ({ id: c.id, name: c.name, email: c.email, linkedinUrl: c.linkedinUrl }))
     return { linkedContacts, suggestedContacts }
   }
 
@@ -612,7 +619,7 @@ async function FindMyJobBody({
       </div>
 
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Jobs Applied</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Application Tracker</h2>
 
         <ConversionDiagnosticCard jobPostings={jobPostings} />
 
@@ -645,6 +652,8 @@ async function FindMyJobBody({
                       companySizeBandFor(posting.companyName)
                     )
                   : null
+                const helpInfo = whoCanHelpFor(posting.id, posting.companyName)
+                const helperNames = [...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => c.name)
                 return (
                   <details key={posting.id}>
                     <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
@@ -656,16 +665,21 @@ async function FindMyJobBody({
                           {posting.title && posting.companyName ? `${posting.companyName} — ` : ''}
                           {status} · {posting.appliedAt?.toLocaleDateString()}
                         </p>
+                        {helperNames.length > 0 && (
+                          <p className="truncate text-xs font-medium text-brand">
+                            Who can help: {helperNames.join(', ')}
+                          </p>
+                        )}
                       </div>
-                      {fitBucket && (
-                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                          {FIT_BUCKET_LABEL[fitBucket]}
-                        </span>
-                      )}
                     </summary>
                     <div className="space-y-3 px-4 pb-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-0.5">
+                          {fitBucket && (
+                            <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                              {FIT_BUCKET_LABEL[fitBucket]}
+                            </span>
+                          )}
                           {openRoles > 0 && (
                             <p className="text-xs text-muted-foreground">
                               {openRoles} open role{openRoles === 1 ? '' : 's'} in our job board
@@ -725,12 +739,14 @@ async function FindMyJobBody({
                         companyName={posting.companyName}
                         action={updateApplicationDetails.bind(null, posting.id)}
                       />
-                      <WhoCanHelpSection {...whoCanHelpFor(posting.id, posting.companyName)} jobId={posting.id} />
+                      <WhoCanHelpSection {...helpInfo} jobId={posting.id} />
                     </div>
                   </details>
                 )
               }
 
+              const helpInfo = whoCanHelpFor(posting.id, posting.companyName)
+              const helperNames = [...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => c.name)
               return (
               <details key={posting.id}>
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
@@ -752,26 +768,31 @@ async function FindMyJobBody({
                               ? 'Applied'
                               : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
                     </p>
+                    {helperNames.length > 0 && (
+                      <p className="truncate text-xs font-medium text-brand">
+                        Who can help: {helperNames.join(', ')}
+                      </p>
+                    )}
                   </div>
-                  {posting.fitScore !== null && (
-                    <span
-                      className={cn(
-                        'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
-                        FIT_SCORE_BADGE_CLASS[fitScoreToLabel(posting.fitScore)]
-                      )}
-                    >
-                      {fitScoreToLabel(posting.fitScore)}
-                    </span>
-                  )}
                 </summary>
                 <div className="space-y-3 px-4 pb-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
+                      {posting.fitScore !== null && (
+                        <span
+                          className={cn(
+                            'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
+                            FIT_SCORE_BADGE_CLASS[fitScoreToLabel(posting.fitScore)]
+                          )}
+                        >
+                          {fitScoreToLabel(posting.fitScore)}
+                        </span>
+                      )}
                       <a
                         href={posting.url ?? '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary underline underline-offset-4"
+                        className="block text-sm text-primary underline underline-offset-4"
                       >
                         {posting.url}
                       </a>
@@ -801,7 +822,7 @@ async function FindMyJobBody({
                     </div>
                   </div>
 
-                  <WhoCanHelpSection {...whoCanHelpFor(posting.id, posting.companyName)} jobId={posting.id} />
+                  <WhoCanHelpSection {...helpInfo} jobId={posting.id} />
 
                   {posting.fetchError && (
                     <p className="text-sm text-destructive">{posting.fetchError}</p>
