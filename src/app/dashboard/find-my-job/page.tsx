@@ -13,6 +13,7 @@ import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistFor
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { EmailSyncWatcher } from '@/components/dashboard/EmailSyncWatcher'
+import { EmailActivitySyncButton } from '@/components/dashboard/EmailActivityControls'
 import { JobDetailsEditor } from '@/components/dashboard/JobDetailsEditor'
 import { ResumeBookOptInForm } from '@/components/dashboard/ResumeBookOptInForm'
 import { RecruiterVisibilityOptInForm } from '@/components/dashboard/RecruiterVisibilityOptInForm'
@@ -517,6 +518,16 @@ async function FindMyJobBody({
       {emailConnection && <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />}
       <ReconnectBanner candidateId={profile.id} />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
+
+      {emailConnection && !emailConnection.needsReconnectAt && (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+          <p>
+            Job stats from email
+            {emailConnection.lastSyncAt && <> · last checked {emailConnection.lastSyncAt.toLocaleString()}</>}
+          </p>
+          <EmailActivitySyncButton />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border p-3">

@@ -59,6 +59,7 @@ export async function syncNowAction(): Promise<{ error?: string }> {
     return { error: 'Your Gmail connection needs to be reconnected — the sign-in expired.' }
   }
   revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/find-my-job')
   return {}
 }
 
