@@ -546,12 +546,14 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   NEGOTIATION_ADVICE: { href: '/dashboard/find-my-job#jobs-applied', label: 'Find My Job' },
   // Hash anchors so clicking a profile task lands scrolled to that exact
   // section instead of the top of a long page — see the matching `id`s on
-  // each Card in src/app/dashboard/profile/page.tsx.
-  PROFILE_CONFIRM: { href: '/dashboard/profile#basics', label: 'Profile' },
-  INDUSTRY_CONFIRM: { href: '/dashboard/profile#industry', label: 'Profile' },
-  FUNCTION_CONFIRM: { href: '/dashboard/profile#function-experience', label: 'Profile' },
-  SALARY_CONFIRM: { href: '/dashboard/profile#salary', label: 'Profile' },
-  WORK_AUTHORIZATION: { href: '/dashboard/profile#work-authorization', label: 'Profile' },
+  // each Card in src/app/dashboard/profile/personal/page.tsx (one of the
+  // three sub-pages under the /dashboard/profile hub).
+  PROFILE_CONFIRM: { href: '/dashboard/profile/personal#basics', label: 'Personal Information' },
+  INDUSTRY_CONFIRM: { href: '/dashboard/profile/personal#industry', label: 'Personal Information' },
+  FUNCTION_CONFIRM: { href: '/dashboard/profile/personal#function-experience', label: 'Personal Information' },
+  SALARY_CONFIRM: { href: '/dashboard/profile/personal#salary', label: 'Personal Information' },
+  WORK_AUTHORIZATION: { href: '/dashboard/profile/screening#work-authorization', label: 'Screening Questions' },
+  ANSWER_OPTIONAL_QUESTIONS: { href: '/dashboard/search-strategy#optional-questions', label: 'Search Strategy' },
   WORKING_STYLE_QUIZ: { href: '/dashboard/retake-assessment', label: 'How I Work Best' },
   SKILLS_ASSESSMENT_COMPLETED: { href: '/dashboard/skills-assessment', label: 'Skills Assessment' },
   COMFORT_CHECK_CONFIRM: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
@@ -579,10 +581,10 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   CALENDAR_CONNECTED: { href: '/dashboard/network', label: 'Network with My Contacts' },
   CALENDAR_RECONNECTED: { href: '/dashboard/network', label: 'Network with My Contacts' },
   INTERVIEW_ATTENDED: { href: '/dashboard/network', label: 'Network with My Contacts' },
-  PROFILE_PICTURE_UPLOADED: { href: '/dashboard/profile#profile-picture', label: 'Profile' },
-  LINKEDIN_PROFILE_ADDED: { href: '/dashboard/profile#linkedin', label: 'Profile' },
-  RED_FLAGS_CONFIRMED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
-  BENEFITS_PRIORITIES_CONFIRMED: { href: '/dashboard/complete-profile', label: 'Complete Your Profile' },
+  PROFILE_PICTURE_UPLOADED: { href: '/dashboard/profile/personal#profile-picture', label: 'Personal Information' },
+  LINKEDIN_PROFILE_ADDED: { href: '/dashboard/profile/personal#linkedin', label: 'Personal Information' },
+  RED_FLAGS_CONFIRMED: { href: '/dashboard/profile/screening#screening-questions', label: 'Screening Questions' },
+  BENEFITS_PRIORITIES_CONFIRMED: { href: '/dashboard/profile/search-goals#comp-benefits', label: 'Search Goals' },
 }
 
 

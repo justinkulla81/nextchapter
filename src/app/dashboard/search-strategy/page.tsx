@@ -8,6 +8,7 @@ import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/li
 import { regenerateSearchStrategyGuidance } from '@/app/dashboard/search-strategy/actions'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
+import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
@@ -129,6 +130,19 @@ export default async function SearchStrategyPage() {
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
+  // Mirrors fetchCompletion's optionalQuestionsAnswered check in
+  // profile-checklist.ts — kept in sync manually since this page reads the
+  // fields directly off the already-fetched profile instead of a second query.
+  const optionalQuestionsAnswered = [
+    profile.jobsAppliedBucket,
+    profile.interviewsReceivedCount,
+    profile.networkingLevel,
+    profile.learnedNewSkillsLevel,
+    profile.triedPartTimeOrConsulting,
+    profile.triedExecutiveCoaching,
+    profile.connectedWithRecruiters,
+  ].every((f) => f !== null)
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -179,6 +193,33 @@ export default async function SearchStrategyPage() {
             inferredIndustries={inferredIndustries}
             inferredFunction={inferredFunction}
           />
+        </CardContent>
+      </Card>
+
+      <Card id="optional-questions" className="scroll-mt-4">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Optional search questions
+            </CardTitle>
+            {!optionalQuestionsAnswered && (
+              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +5 pts
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {optionalQuestionsAnswered ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="text-success" aria-hidden>
+                ✓
+              </span>
+              Answered
+            </p>
+          ) : (
+            <OptionalQuestionsForm />
+          )}
         </CardContent>
       </Card>
 

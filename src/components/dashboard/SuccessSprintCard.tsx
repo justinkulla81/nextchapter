@@ -64,22 +64,38 @@ function actionKey(a: { actionType?: string; text: string }): string {
 // no items in it simply isn't rendered.
 const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Building', 'Connecting', 'Learning & Working', 'Other']
 
-// The "confirm your data" cluster of Personalize items — all six live on
-// the same /dashboard/profile page (see ACTION_TYPE_LINK), so listing them
-// as six separate Sprint rows read as scattered busywork rather than "one
-// page to go fill out." Collapsed into a single row with a running point
-// total that counts down as each sub-item completes (see
-// consolidateProfileDataRows below).
-const PROFILE_DATA_ACTION_TYPES = new Set([
-  'PROFILE_CONFIRM',
-  'INDUSTRY_CONFIRM',
-  'FUNCTION_CONFIRM',
-  'SALARY_CONFIRM',
-  'WORK_AUTHORIZATION',
-  'ANSWER_OPTIONAL_QUESTIONS',
-  'PROFILE_PICTURE_UPLOADED',
-  'LINKEDIN_PROFILE_ADDED',
-])
+// The three sub-pages under the My Profile hub (see
+// /dashboard/profile/page.tsx) — each one's items are collapsed into a
+// single row with a running point total that counts down as each sub-item
+// completes (see consolidateProfileDataRows below), so the Weekly Sprint
+// list shows "one page to go fill out" per section instead of scattered
+// single-field rows. ANSWER_OPTIONAL_QUESTIONS lives on My Search Strategy
+// now, not one of these three, so it's deliberately not in any group here
+// — it renders as its own individual row.
+const PROFILE_SECTION_GROUPS: { text: string; actionType: string; types: Set<string> }[] = [
+  {
+    text: 'Complete My Personal Information — confirms your basics, industry, role, salary, LinkedIn, and photo',
+    actionType: 'PROFILE_CONFIRM',
+    types: new Set([
+      'PROFILE_CONFIRM',
+      'INDUSTRY_CONFIRM',
+      'FUNCTION_CONFIRM',
+      'SALARY_CONFIRM',
+      'PROFILE_PICTURE_UPLOADED',
+      'LINKEDIN_PROFILE_ADDED',
+    ]),
+  },
+  {
+    text: 'Answer your Screening Questions — work authorization, deal-breakers, and background/drug-test willingness',
+    actionType: 'RED_FLAGS_CONFIRMED',
+    types: new Set(['WORK_AUTHORIZATION', 'RED_FLAGS_CONFIRMED']),
+  },
+  {
+    text: 'Set your Search Goals — minimum comp and the benefits that matter to you',
+    actionType: 'BENEFITS_PRIORITIES_CONFIRMED',
+    types: new Set(['BENEFITS_PRIORITIES_CONFIRMED']),
+  },
+]
 
 // Within a group, high-priority rows read first, then everything else —
 // a completed one-time row never reaches this function at all (see
@@ -94,30 +110,34 @@ function sortForDisplay(rows: Row[]): Row[] {
   return [...rows].sort((a, b) => tier(a) - tier(b))
 }
 
-// Replaces every row whose actionType is in PROFILE_DATA_ACTION_TYPES with
-// one combined row. Points shown are what's still earnable (0 once every
-// sub-item is done) rather than the lifetime total, so the number on
-// screen always answers "how many more points is this worth me finishing."
+// Replaces every row whose actionType is in one of PROFILE_SECTION_GROUPS
+// with that group's single combined row (one row per My Profile sub-page,
+// not one row overall). Points shown are what's still earnable rather than
+// the lifetime total, so the number on screen always answers "how many
+// more points is this worth me finishing." A group with nothing left open
+// among `rows` (which only ever contains incomplete items — see openRows
+// above) simply isn't rendered.
 function consolidateProfileDataRows(rows: Row[]): Row[] {
-  const profileDataRows = rows.filter((r) => r.actionType && PROFILE_DATA_ACTION_TYPES.has(r.actionType))
-  if (profileDataRows.length === 0) return rows
+  let remainingRows = rows
+  const consolidatedRows: Row[] = []
 
-  const otherRows = rows.filter((r) => !(r.actionType && PROFILE_DATA_ACTION_TYPES.has(r.actionType)))
-  const remaining = profileDataRows.filter((r) => !r.completed)
-  const allDone = remaining.length === 0
+  for (const group of PROFILE_SECTION_GROUPS) {
+    const groupRows = remainingRows.filter((r) => r.actionType && group.types.has(r.actionType))
+    if (groupRows.length === 0) continue
+    remainingRows = remainingRows.filter((r) => !(r.actionType && group.types.has(r.actionType)))
 
-  const consolidated: Row = {
-    text:
-      'Complete your profile to personalize coaching, jobs and skills — confirms your basics, industry, role, salary, and work authorization',
-    points: remaining.reduce((sum, r) => sum + r.points, 0),
-    estimatedMinutes: remaining.reduce((sum, r) => sum + r.estimatedMinutes, 0),
-    actionType: 'PROFILE_CONFIRM',
-    completed: allDone,
-    recurring: false,
-    priority: true,
+    consolidatedRows.push({
+      text: group.text,
+      points: groupRows.reduce((sum, r) => sum + r.points, 0),
+      estimatedMinutes: groupRows.reduce((sum, r) => sum + r.estimatedMinutes, 0),
+      actionType: group.actionType,
+      completed: false,
+      recurring: false,
+      priority: true,
+    })
   }
 
-  return [consolidated, ...otherRows]
+  return [...consolidatedRows, ...remainingRows]
 }
 
 function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Record<string, T[]> {

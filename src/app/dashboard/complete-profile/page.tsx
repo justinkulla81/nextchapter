@@ -6,8 +6,6 @@ import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
 import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
-import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthorizationConfirmForm'
-import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { ComfortCheckTab } from '@/components/dashboard/interview-prep/ComfortCheckTab'
 import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
@@ -18,19 +16,20 @@ import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from '@/app/dashboard/actions'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
-import { RedFlagsQuestionsForm } from '@/components/dashboard/RedFlagsQuestionsForm'
-import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
 import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Complete Your Profile' }
 
 // Every truly one-time profile/gate confirmation in the app, aggregated
-// onto one page — reusing each item's original gate component/server
+// onto one page — most reuse each item's original gate component/server
 // action so completing it here works exactly like completing it on its
 // original page (Profile, Privacy, Network, Work Samples, Marketing Plan,
-// Interim Work, LinkedIn). See profile-checklist.ts for why this exists:
-// these no longer clutter the Weekly Search Sprint's task list. Redirects
-// away once everything is done — there's nothing left to show.
+// Interim Work, LinkedIn). A few (work authorization, screening questions,
+// optional search questions, comp & benefits) instead link out to their own
+// permanent page — see ACTION_TYPE_LINK in action-effort.ts. See profile-checklist.ts
+// for why this exists: these no longer clutter the Weekly Search Sprint's
+// task list. Redirects away once everything is done — there's nothing left
+// to show.
 export default async function CompleteProfilePage() {
   const profile = await getDashboardData()
   const items = await getProfileChecklistItems(profile.id)
@@ -131,26 +130,32 @@ export default async function CompleteProfilePage() {
         )}
 
         {isIncomplete('WORK_AUTHORIZATION') && (
-          <div className="rounded-lg border border-border p-4">
-            <WorkAuthorizationConfirmForm
-              workAuthorization={profile.workAuthorization}
-              visaStatus={profile.visaStatus}
-              confirmedAt={profile.workAuthConfirmedAt}
-            />
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">Confirm your work authorization</p>
+              <p className="mt-1 text-xs text-muted-foreground">On the Screening Questions page.</p>
+            </div>
+            <Link
+              href="/dashboard/profile/screening#work-authorization"
+              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
+            >
+              Answer — 5 pts
+            </Link>
           </div>
         )}
 
         {isIncomplete('ANSWER_OPTIONAL_QUESTIONS') && (
-          <div className="space-y-1 rounded-lg border border-border p-4">
-            <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
+            <div>
               <p className="text-sm font-medium text-foreground">A few optional search questions</p>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +5 pts, one time
-              </span>
+              <p className="mt-1 text-xs text-muted-foreground">On the Search Strategy page.</p>
             </div>
-            <div className="pt-3">
-              <OptionalQuestionsForm />
-            </div>
+            <Link
+              href="/dashboard/search-strategy#optional-questions"
+              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
+            >
+              Answer — 5 pts
+            </Link>
           </div>
         )}
 
@@ -226,38 +231,35 @@ export default async function CompleteProfilePage() {
         )}
 
         {isIncomplete('RED_FLAGS_CONFIRMED') && (
-          <div className="space-y-1 rounded-lg border border-border p-4">
-            <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
+            <div>
               <p className="text-sm font-medium text-foreground">Screening questions</p>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +5 pts, one time
-              </span>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Drug test, background check, and other deal-breakers — on the Screening Questions
+                page.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Shared with your coach and recruiter/employer contacts — helps them match you to
-              roles you&apos;re actually eligible for, and flag issues before an offer, not after.
-            </p>
-            <div className="pt-3">
-              <RedFlagsQuestionsForm />
-            </div>
+            <Link
+              href="/dashboard/profile/screening#screening-questions"
+              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
+            >
+              Answer — 5 pts
+            </Link>
           </div>
         )}
 
         {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && (
-          <div className="space-y-1 rounded-lg border border-border p-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-foreground">Benefits & compensation priorities</p>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +10 pts, one time
-              </span>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">Search Goals — comp &amp; benefits</p>
+              <p className="mt-1 text-xs text-muted-foreground">On the Search Goals page.</p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              What matters to you beyond salary — helps your coach and recruiter contacts steer you
-              toward roles and offers that actually fit.
-            </p>
-            <div className="pt-3">
-              <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
-            </div>
+            <Link
+              href="/dashboard/profile/search-goals#comp-benefits"
+              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
+            >
+              Answer — 10 pts
+            </Link>
           </div>
         )}
       </div>

@@ -13,6 +13,11 @@ const YES_NO_OPTIONS = [
   { value: 'no', label: 'No' },
 ] as const
 
+// Field order is deliberate, not alphabetical/schema order: the
+// administrative questions (insurance, 401k, PTO, WFH) open the form, the
+// two most sensitive ones — minimum comp (financial) and paid parental
+// leave (can signal family-planning intentions) — sit in the middle, then
+// the remaining administrative questions taper back down.
 export function BenefitsPrioritiesForm({ targetCompMin }: { targetCompMin: number | null }) {
   const [state, formAction, pending] = useActionState<BenefitsPrioritiesState, FormData>(
     answerBenefitsPriorities,
@@ -28,46 +33,12 @@ export function BenefitsPrioritiesForm({ targetCompMin }: { targetCompMin: numbe
   return (
     <form action={formAction} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <div className="space-y-2">
-        <Label htmlFor="targetCompMin">What is the minimum comp you are able to take? (optional)</Label>
-        <div className="flex items-center gap-2">
-          <div className="relative w-36">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="targetCompMin"
-              name="targetCompMinThousands"
-              type="number"
-              min={0}
-              placeholder="120"
-              className="pl-7"
-              defaultValue={targetCompMin ? Math.round(targetCompMin / 1000) : undefined}
-            />
-          </div>
-          <span className="text-sm text-muted-foreground">
-            ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-2">
         <Label>Do you want Health/Dental/Vision insurance?</Label>
         <ChoiceButtons
           name="wantsHealthDentalVisionInsurance"
           options={YES_NO_OPTIONS}
           value={healthDentalVision || null}
           onChange={setHealthDentalVision}
-          columns={2}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Do you want disability insurance?</Label>
-        <ChoiceButtons
-          name="wantsDisabilityInsurance"
-          options={YES_NO_OPTIONS}
-          value={disability || null}
-          onChange={setDisability}
           columns={2}
         />
       </div>
@@ -100,6 +71,29 @@ export function BenefitsPrioritiesForm({ targetCompMin }: { targetCompMin: numbe
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="targetCompMin">What is the minimum comp you are able to take? (optional)</Label>
+        <div className="flex items-center gap-2">
+          <div className="relative w-36">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              $
+            </span>
+            <Input
+              id="targetCompMin"
+              name="targetCompMinThousands"
+              type="number"
+              min={0}
+              placeholder="120"
+              className="pl-7"
+              defaultValue={targetCompMin ? Math.round(targetCompMin / 1000) : undefined}
+            />
+          </div>
+          <span className="text-sm text-muted-foreground">
+            ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="paidParentalLeaveWeeksExpected">
           How many weeks of paid parental leave do you expect?{' '}
           <span className="font-normal text-muted-foreground">(optional)</span>
@@ -111,6 +105,17 @@ export function BenefitsPrioritiesForm({ targetCompMin }: { targetCompMin: numbe
           min={0}
           max={52}
           className="w-32"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Do you want disability insurance?</Label>
+        <ChoiceButtons
+          name="wantsDisabilityInsurance"
+          options={YES_NO_OPTIONS}
+          value={disability || null}
+          onChange={setDisability}
+          columns={2}
         />
       </div>
 

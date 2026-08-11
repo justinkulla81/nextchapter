@@ -55,13 +55,6 @@ function buildSections(
         { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments' },
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
-        { href: '/dashboard/stats', label: 'My Stats & Reports' },
-        {
-          href: '/dashboard/portfolio',
-          label: 'My Portfolio',
-          badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
-        },
-        { href: '/dashboard/network/contacts', label: 'Contact Directory' },
       ],
     },
     {
@@ -78,7 +71,7 @@ function buildSections(
         { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/community',
-          label: 'Candidate Community',
+          label: 'NextChapter Community',
           badge:
             supportNetworkUnreadCount + messagesUnreadCount > 0
               ? String(supportNetworkUnreadCount + messagesUnreadCount)
@@ -104,11 +97,23 @@ function buildSections(
       ],
     },
     {
+      title: 'Data',
+      links: [
+        { href: '/dashboard/network/contacts', label: 'My Contacts' },
+        {
+          href: '/dashboard/portfolio',
+          label: 'My Portfolio',
+          badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
+        },
+        { href: '/dashboard/stats', label: 'My Stats & Reports' },
+        { href: '/dashboard/privacy', label: 'Privacy Settings' },
+      ],
+    },
+    {
       title: 'Misc',
       links: [
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
         { href: "/dashboard/support", label: "I'm Struggling" },
-        { href: '/dashboard/privacy', label: 'Privacy Settings' },
         { href: '/faq', label: 'FAQ' },
       ],
     },
@@ -149,7 +154,7 @@ function NavContent({
               type="button"
               onClick={() => onToggleSection(section.title!)}
               aria-expanded={!collapsed}
-              className="flex w-full items-center justify-between gap-2 px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase hover:text-white/70"
+              className="flex w-full items-center justify-between gap-2 px-2 pb-1 text-[11px] font-semibold tracking-widest text-orange/60 uppercase hover:text-orange/80"
             >
               {section.title}
               <svg
@@ -232,9 +237,11 @@ export function DashboardNav({
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  // Empty on both server and first client render to avoid a hydration
-  // mismatch; the real saved state (if any) loads a frame later.
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+  // Data and Misc start collapsed, everything else expanded — same literal
+  // default on server and first client render to avoid a hydration
+  // mismatch; a saved per-user state (if any) loads a frame later and
+  // overrides this.
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(['Data', 'Misc']))
 
   useEffect(() => {
     const saved = localStorage.getItem('nc-nav-collapsed-sections')

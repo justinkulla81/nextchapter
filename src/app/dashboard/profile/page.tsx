@@ -1,274 +1,102 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { createClient } from '@/lib/supabase/server'
-import { ProfileConfirmForm } from '@/components/dashboard/ProfileConfirmForm'
-import { IndustryConfirmForm } from '@/components/dashboard/IndustryConfirmForm'
-import { EducationConfirmForm } from '@/components/dashboard/EducationConfirmForm'
-import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
-import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
-import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthorizationConfirmForm'
-import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
-import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
-import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
-import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
-import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
+import { getProfileChecklistItems, type ProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
-import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import {
-  uploadMyProfilePicture,
-  removeMyProfilePicture,
-  toggleMyProfilePictureVisible,
-} from '@/app/dashboard/actions'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
-// Section order: Email, Basics, Profile picture, Industry, Education,
-// Function & experience, Salary, Work Authorization, Optional demographics,
-// Keywords. The "Save profile" button spans two non-contiguous card groups
-// (id="profile-cards-1" and "profile-cards-2") since Optional demographics
-// sits between Work Authorization and Keywords but saves independently via
-// its own button — see ProfileSaveAllButton's array support.
-export default async function ProfilePage() {
-  const profile = await getDashboardData()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+interface SectionDef {
+  href: string
+  title: string
+  description: string
+  actionTypes: ProfileChecklistActionType[]
+}
 
-  // Mirrors fetchCompletion's optionalQuestionsAnswered check in
-  // profile-checklist.ts — kept in sync manually since this page reads the
-  // fields directly off the already-fetched profile instead of a second query.
-  const optionalQuestionsAnswered = [
-    profile.jobsAppliedBucket,
-    profile.interviewsReceivedCount,
-    profile.networkingLevel,
-    profile.learnedNewSkillsLevel,
-    profile.triedPartTimeOrConsulting,
-    profile.triedExecutiveCoaching,
-    profile.connectedWithRecruiters,
-  ].every((f) => f !== null)
+// The three sub-pages this hub links to, and which profile-checklist items
+// count toward each one's "X of Y points" summary below. Not every field
+// on a sub-page carries points (e.g. Education and demographic self-ID are
+// unscored) — this only reflects the scored items, same as everywhere else
+// in the app.
+const SECTIONS: SectionDef[] = [
+  {
+    href: '/dashboard/profile/personal',
+    title: 'My Personal Information',
+    description: 'Basics, education, industry, function & experience, salary, LinkedIn, and photo.',
+    actionTypes: [
+      'PROFILE_CONFIRM',
+      'INDUSTRY_CONFIRM',
+      'FUNCTION_CONFIRM',
+      'SALARY_CONFIRM',
+      'PROFILE_PICTURE_UPLOADED',
+      'LINKEDIN_PROFILE_ADDED',
+    ],
+  },
+  {
+    href: '/dashboard/profile/screening',
+    title: 'Screening Questions',
+    description: 'Work authorization, drug test/background check willingness, deal-breakers, and demographics.',
+    actionTypes: ['WORK_AUTHORIZATION', 'RED_FLAGS_CONFIRMED'],
+  },
+  {
+    href: '/dashboard/profile/search-goals',
+    title: 'Search Goals',
+    description: 'Minimum comp and the benefits that matter to you.',
+    actionTypes: ['BENEFITS_PRIORITIES_CONFIRMED'],
+  },
+]
+
+// Landing/index page for the three sub-pages below — not a form itself.
+// Each card's points summary is its own consolidated total (see
+// SuccessSprintCard.tsx's consolidateProfileDataRows for the matching
+// per-page rows on the Success Dashboard).
+export default async function ProfileHubPage() {
+  const profile = await getDashboardData()
+  const items = await getProfileChecklistItems(profile.id)
+  const pointsByType = new Map(items.map((i) => [i.actionType, i]))
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
+    <div className="mx-auto max-w-2xl space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
+        <p className="mt-1 text-muted-foreground">
+          Everything about you lives in one of the three sections below.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Account</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" value={user?.email ?? ''} readOnly disabled className="bg-muted" />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        {SECTIONS.map((section) => {
+          const sectionItems = section.actionTypes.map((t) => pointsByType.get(t)).filter((i) => i !== undefined)
+          const totalPoints = sectionItems.reduce((sum, i) => sum + i.points, 0)
+          const earnedPoints = sectionItems.filter((i) => i.complete).reduce((sum, i) => sum + i.points, 0)
+          const allDone = sectionItems.length > 0 && sectionItems.every((i) => i.complete)
 
-      <div id="profile-cards-1" className="space-y-8">
-        <Card id="basics" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Basics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfileConfirmForm
-              firstName={profile.firstName}
-              lastName={profile.lastName}
-              phone={profile.phone}
-              streetAddress={profile.streetAddress}
-              currentCity={profile.currentCity}
-              currentState={profile.currentState}
-              confirmedAt={profile.profileConfirmedAt}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="profile-picture" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Profile picture (optional)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-3 text-sm text-muted-foreground">
-              Shown to your coach and recruiter/employer contacts in messaging, and in weekly
-              recognition (Weekly Sprint Target, badges). Never shown on your resume, dossier, or to
-              hiring managers reviewing your report.
-            </p>
-            <AvatarUploadForm
-              displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
-              currentUrl={profile.profilePictureUrl}
-              visible={profile.profilePictureVisible}
-              uploadAction={uploadMyProfilePicture}
-              removeAction={removeMyProfilePicture}
-              toggleVisibilityAction={toggleMyProfilePictureVisible}
-              points={estimateActionEffort({ actionType: 'PROFILE_PICTURE_UPLOADED' }).points}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="industry" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Industry</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <IndustryConfirmForm
-              industryContext={profile.industryContext}
-              confirmedAt={profile.industryConfirmedAt}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Education</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EducationConfirmForm
-              highestEducationLevel={profile.highestEducationLevel}
-              hasJD={profile.hasJD}
-              hasMD={profile.hasMD}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="function-experience" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Function &amp; experience
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FunctionConfirmForm
-              primaryFunction={profile.primaryFunction}
-              resumeLatestJobTitle={profile.resumeLatestJobTitle}
-              yearsExperience={profile.yearsExperience}
-              confirmedAt={profile.functionConfirmedAt}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="salary" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Salary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SalaryConfirmForm lastSalary={profile.lastSalary} confirmedAt={profile.salaryConfirmedAt} />
-          </CardContent>
-        </Card>
-
-        <Card id="work-authorization" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Work authorization
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <WorkAuthorizationConfirmForm
-              workAuthorization={profile.workAuthorization}
-              visaStatus={profile.visaStatus}
-              confirmedAt={profile.workAuthConfirmedAt}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="linkedin" className="scroll-mt-4">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">LinkedIn</CardTitle>
-              {!profile.linkedInConfirmedAt && (
-                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                  +25 pts
-                </span>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {profile.linkedInConfirmedAt ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-                {profile.linkedInUrl ? (
-                  <a
-                    href={profile.linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline underline-offset-4"
-                  >
-                    {profile.linkedInUrl}
-                  </a>
-                ) : (
-                  'Confirmed — no LinkedIn profile yet'
-                )}
-              </p>
-            ) : (
-              <LinkedInConfirmForm />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card id="optional-questions" className="scroll-mt-4">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Optional search questions
-              </CardTitle>
-              {!optionalQuestionsAnswered && (
-                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                  +5 pts
-                </span>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {optionalQuestionsAnswered ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-                Answered
-              </p>
-            ) : (
-              <OptionalQuestionsForm />
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <ProfileSaveAllButton containerId={['profile-cards-1', 'profile-cards-2']} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Optional demographic self-ID
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EeocSelfIdForm
-            eeocGenderIdentity={profile.eeocGenderIdentity}
-            eeocRaceEthnicity={profile.eeocRaceEthnicity}
-            eeocDisabilityStatus={profile.eeocDisabilityStatus}
-            eeocVeteranStatus={profile.eeocVeteranStatus}
-          />
-        </CardContent>
-      </Card>
-
-      <div id="profile-cards-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Resume keywords
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} />
-          </CardContent>
-        </Card>
+          return (
+            <Link key={section.href} href={section.href}>
+              <Card className="transition-colors hover:border-brand/40">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-base font-medium text-foreground">{section.title}</CardTitle>
+                    {totalPoints > 0 && (
+                      <span
+                        className={
+                          allDone
+                            ? 'shrink-0 text-xs font-medium text-success'
+                            : 'shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'
+                        }
+                      >
+                        {allDone ? '✓ Complete' : `${earnedPoints} of ${totalPoints} pts`}
+                      </span>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{section.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
