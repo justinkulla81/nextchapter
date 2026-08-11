@@ -17,6 +17,7 @@ import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { TOP_STRENGTH_OPTIONS, LOCATION_PREFERENCE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
 import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
+import { buildReferenceVerification, type ReferenceVerification } from '@/lib/reports/reference-verification'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { isInternshipRole } from '@/lib/resume/work-history-facts'
 
@@ -142,6 +143,10 @@ export interface DossierData {
   // flattering direction (a match reads as a strength); a mismatch stays
   // private to Coaching Notes.
   categoryStrengths: DossierCategoryStrength[]
+  // Real, countable backing for every "Confirmed" marker above — see
+  // reference-verification.ts. Candidate-wide, not per-strength: there's no
+  // per-strength reference attribution data to draw on honestly.
+  verification: ReferenceVerification
   positioning: { draftText: string | null; approvedText: string | null }
   howIOperate: { dimensionSummaries: string[]; superpowers: DossierSuperpower[] }
   whatDrivesMe: { motivationNarrative: string | null; effortStatText: string | null }
@@ -571,6 +576,7 @@ export const getDossierSections = cache(async function getDossierSections(candid
     sections: reweightedSections(namedReasons),
     closedLoopCallouts: closedLoopCallouts(namedReasons),
     categoryStrengths: categoryStrengths(categories, namedReasons),
+    verification: buildReferenceVerification(candidate.references),
     positioning,
     howIOperate,
     whatDrivesMe,

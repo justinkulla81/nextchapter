@@ -12,10 +12,19 @@ import { regenerateDossierSections } from './actions'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { DossierCompletenessRing } from '@/components/dashboard/DossierCompletenessRing'
 import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
+import { PreparedForField } from '@/components/dashboard/PreparedForField'
 import { StatusRow } from '@/components/ui/status-icon'
 import { EmptyState } from '@/components/ui/empty-state'
 import { CHARACTER_SIGNAL_MIN_REFERENCES } from '@/lib/reports/evidence-type'
 import { Logo } from '@/components/Logo'
+
+// Two things this document deliberately never shows, per the spec's own
+// honesty rule (a false claim discovered once destroys the whole effect):
+// - A scarcity line ("one of N candidates verified this quarter") — no
+//   cohort-size data exists anywhere in the schema to back it.
+// - A "Verified Scope" block corroborating a specific stated scope/budget
+//   claim against what a reference said — that needs Track Record (not yet
+//   built) to have a scope claim to corroborate in the first place.
 
 export const metadata: Metadata = { title: 'Certified Executive Dossier' }
 
@@ -103,16 +112,30 @@ export default async function RecruiterReportPage() {
         </Suspense>
       </div>
 
-      <div className="space-y-8 rounded-xl border border-border p-8 print:border-0 print:p-0">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <Logo className="text-xl print:text-3xl" />
-          <p className="text-sm text-muted-foreground">
-            Generated {data.generatedAt.toLocaleDateString()}
-          </p>
+      <div
+        className="space-y-8 rounded-xl border border-border p-8 print:space-y-6 print:rounded-none print:border-0 print:bg-[#FDFBF7] print:p-12 print:font-serif print:text-[#1a1a1a] print:[&>section]:border-t print:[&>section]:border-[#0b2545]/20 print:[&>section]:pt-6"
+      >
+        <div className="space-y-2 border-b border-border pb-4 print:border-[#0b2545]/40">
+          <div className="flex items-center justify-between">
+            <Logo className="text-xl print:text-2xl" />
+            <p className="text-sm text-muted-foreground">
+              Generated {data.generatedAt.toLocaleDateString()}
+            </p>
+          </div>
+          <PreparedForField />
+          {data.verification.referenceCount > 0 && (
+            <p className="hidden text-sm text-muted-foreground print:block">
+              Verified · {data.verification.referenceCount} reference
+              {data.verification.referenceCount === 1 ? '' : 's'}
+              {data.verification.verifiedMonthYear ? ` · ${data.verification.verifiedMonthYear}` : ''}
+            </p>
+          )}
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold text-foreground">{data.candidateName}</h2>
+          <h2 className="text-xl font-semibold text-foreground print:font-serif print:text-2xl">
+            {data.candidateName}
+          </h2>
           {data.availability.targetRoleType && (
             <p className="text-muted-foreground">Targeting: {data.availability.targetRoleType}</p>
           )}
@@ -124,7 +147,7 @@ export default async function RecruiterReportPage() {
 
         <section>
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
               Effort summary
             </h3>
             {hasEffort && <EvidenceTypeBadge type={data.effortSummaryLines[0].evidenceType} />}
@@ -145,7 +168,7 @@ export default async function RecruiterReportPage() {
         {data.peerSupportLine && (
           <section>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
                 Peer Support
               </h3>
               <EvidenceTypeBadge type={data.peerSupportLine.evidenceType} />
@@ -157,7 +180,7 @@ export default async function RecruiterReportPage() {
         {data.references.length > 0 && (
           <section>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
                 References
               </h3>
               <EvidenceTypeBadge type="reference_verified" />
@@ -167,6 +190,7 @@ export default async function RecruiterReportPage() {
                 <div key={i}>
                   <p className="text-sm font-medium text-foreground">
                     {r.refereeName}
+                    <span className="ml-2 text-xs text-muted-foreground">{r.relationshipLabel}</span>
                     {r.wouldHireAgain === true && (
                       <span className="ml-2 text-xs text-muted-foreground">Would hire again</span>
                     )}
@@ -190,7 +214,7 @@ export default async function RecruiterReportPage() {
         {data.aiProjects.length > 0 && (
           <section>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
                 AI Fluency
               </h3>
               <EvidenceTypeBadge type={data.aiProjects[0].evidenceType} />
@@ -221,7 +245,7 @@ export default async function RecruiterReportPage() {
 
         {data.learningItems.length > 0 && (
           <section>
-            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
               Learning
             </h3>
             <ul className="mt-2 space-y-1 text-sm text-foreground">
@@ -243,7 +267,7 @@ export default async function RecruiterReportPage() {
 
         {data.gapExplanation && (
           <section>
-            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
               On the gap in my history
             </h3>
             <p className="mt-2 text-sm text-foreground">{data.gapExplanation}</p>
@@ -252,7 +276,7 @@ export default async function RecruiterReportPage() {
 
         <section>
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase print:text-[#0b2545]">
               Availability &amp; fit
             </h3>
             <EvidenceTypeBadge type={data.availability.evidenceType} />
@@ -290,6 +314,15 @@ export default async function RecruiterReportPage() {
             </div>
           </dl>
         </section>
+
+        {/* First 8 characters of the candidate's own id — a stable,
+            non-fabricated per-candidate identifier. Never a cross-candidate
+            count (no real cohort data exists to back one — see the top of
+            this file). */}
+        <p className="pt-2 text-center text-xs tracking-wide text-muted-foreground print:border-t print:border-[#0b2545]/20 print:pt-4 print:text-[#0b2545]">
+          Document {profile.id.slice(0, 8).toUpperCase()}
+          {' · Confidential · Prepared at the candidate’s request'}
+        </p>
       </div>
 
       <p className="text-xs text-muted-foreground print:hidden">

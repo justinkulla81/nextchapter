@@ -1,9 +1,11 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
+import { RELATIONSHIP_TYPE_LABELS } from '@/lib/constants/references'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 import { characterSignalsUnlocked, type EvidenceType } from '@/lib/reports/evidence-type'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
+import { buildReferenceVerification, type ReferenceVerification } from '@/lib/reports/reference-verification'
 
 // The Certified Executive Dossier (formerly "Recruiter Report") is a
 // self-serve, candidate-controlled PDF handed to anyone off-platform,
@@ -28,10 +30,14 @@ export interface RecruiterReportData {
   characterSignalsUnlocked: boolean
   references: {
     refereeName: string
+    relationshipLabel: string
     strengthSummary: string | null
     wouldHireAgain: boolean | null
     evidenceType: EvidenceType
   }[]
+  // Real, countable backing for the document's verification mark and the
+  // Strengths grid's "Confirmed" markers — see reference-verification.ts.
+  verification: ReferenceVerification
   learningItems: { title: string; provider: string | null; completedAt: Date; evidenceType: EvidenceType }[]
   // AI projects — logged via the "Log an AI project" flow on the Learning
   // page — kept separate from learningItems since they carry a description
@@ -125,10 +131,12 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
     characterSignalsUnlocked: signalsUnlocked,
     references: candidate.references.map((r) => ({
       refereeName: r.refereeName,
+      relationshipLabel: RELATIONSHIP_TYPE_LABELS[r.relationshipType],
       strengthSummary: signalsUnlocked ? r.strengthSummary : null,
       wouldHireAgain: r.wouldHireAgain,
       evidenceType: 'reference_verified' as const,
     })),
+    verification: buildReferenceVerification(candidate.references),
     learningItems: candidate.learningBadges
       .filter((b) => b.badgeType !== 'ai_project')
       .map((b) => ({

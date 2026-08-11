@@ -29,16 +29,19 @@ export function DossierSectionsView({ dossier, readOnly = false }: { dossier: Do
       {dossier.categoryStrengths.length > 0 && (
         <section>
           <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Strengths</h3>
+          {dossier.verification.referenceCount > 0 && dossier.categoryStrengths.some((s) => s.confirmed) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Marked strengths are independently confirmed by {dossier.verification.referenceCount}{' '}
+              completed reference{dossier.verification.referenceCount === 1 ? '' : 's'}
+              {dossier.verification.relationshipSummary ? `, including ${dossier.verification.relationshipSummary}` : ''}.
+            </p>
+          )}
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {dossier.categoryStrengths.map((s) => (
               <div key={s.category} className="rounded-lg border border-border p-3">
-                <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <p className="text-sm font-medium text-foreground">
                   {s.label}
-                  {s.confirmed && (
-                    <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-                      Confirmed
-                    </span>
-                  )}
+                  {s.confirmed && <span className="ml-2 text-xs text-muted-foreground">Confirmed</span>}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
               </div>
