@@ -72,14 +72,14 @@ function withRationale(
   items: LearningResource[],
   matchKey: string,
   gaps: GapLike[],
-  skillsStillNeeded: string | null,
+  skillsToBuild: string[],
   structuralFact: string | null,
   completionCounts: Map<string, number>,
   certifications: string[] = []
 ): LearningPlanItem[] {
   return items.map((item) => ({
     ...item,
-    rationale: rationaleForItem({ matchKey, gaps, skillsStillNeeded, structuralFact }),
+    rationale: rationaleForItem({ matchKey, gaps, skillsToBuild, structuralFact }),
     completionCount: completionCounts.get(item.title) ?? 0,
     alreadyHeld: matchesCertification(item.title, certifications),
   }))
@@ -97,7 +97,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         isPeopleManager: true,
         teamSizeManaged: true,
         highestLevelReached: true,
-        skillsStillNeeded: true,
+        skillsToBuild: true,
         activeJobDescription: true,
         storyComfort: true,
         hasMBA: true,
@@ -128,7 +128,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     : []
 
   const primaryFunction = candidate.primaryFunction
-  const skillsStillNeeded = candidate.skillsStillNeeded
+  const skillsToBuild = candidate.skillsToBuild
 
   // Current/past role and target role, kept distinct — the Certifications
   // section shows one block per role instead of collapsing them into a
@@ -207,7 +207,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         aiCourses.filter((c) => c.skillLevel === level).map(toLearningResource),
         'ai',
         gaps,
-        skillsStillNeeded,
+        skillsToBuild,
         'AI fluency is fast becoming table stakes across every function.',
         completionCounts
       ),
@@ -256,7 +256,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         certificationsForCurrent.map(toLearningResource),
         currentFunction ?? '',
         gaps,
-        skillsStillNeeded,
+        skillsToBuild,
         currentFunction ? `A recognized credential for ${currentFunction} roles.` : null,
         completionCounts,
         candidate.certifications
@@ -275,7 +275,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         certificationsForTarget.map(toLearningResource),
         targetFunction ?? '',
         gaps,
-        skillsStillNeeded,
+        skillsToBuild,
         `A recognized credential for ${targetFunction} roles.`,
         completionCounts,
         candidate.certifications
@@ -307,7 +307,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         industryCourses.map(toLearningResource),
         'industry',
         gaps,
-        skillsStillNeeded,
+        skillsToBuild,
         `Tagged as relevant for ${industryLabel}.`,
         completionCounts,
         candidate.certifications
@@ -335,7 +335,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         businessSkillsResources,
         'business',
         gaps,
-        skillsStillNeeded,
+        skillsToBuild,
         execEdProgram ? `Because you studied at ${primaryEducation?.schoolName}.` : 'Core business skills that transfer across every function.',
         completionCounts
       ),
@@ -358,7 +358,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     relevantFunctionTraining.map(toLearningResource),
     contentFunction ?? '',
     gaps,
-    skillsStillNeeded,
+    skillsToBuild,
     contentFunction ? `Common for ${contentFunction} roles.` : null,
     completionCounts
   )
@@ -374,7 +374,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         speakingLeadershipItems,
         'speaking',
         gaps,
-        skillsStillNeeded,
+        skillsToBuild,
         'Communicating clearly under pressure is a skill hiring managers notice.',
         completionCounts
       ),

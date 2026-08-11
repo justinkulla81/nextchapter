@@ -32,7 +32,7 @@ export interface SearchStrategyChecklistProfile {
 const POINTS_PER_ITEM = 5
 
 // Only the fields with a real "unanswered" state that matters for matching —
-// excludes optional free-text fields (dealBreakers, skillsStillNeeded, etc.)
+// excludes optional free-text fields (dealBreakers, skillsToBuild, etc.)
 // and boolean toggles (isPivoting, openToRelocation, etc.) where "unchecked"
 // is a legitimate default answer, not a gap.
 const FIELDS: {

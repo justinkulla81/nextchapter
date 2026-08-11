@@ -154,7 +154,7 @@ export interface DossierData {
   // targetPreferences is deliberately narrow — what they're targeting, not
   // how they'd negotiate. compFlexible, equityImportant, willingToStartLower
   // (+rationale), targetCompMin, dealBreakers, applicationVolumeGoal,
-  // skillsStillNeeded, interimConsultingInterest, and the 5 tradeoff-priority
+  // skillsToBuild, interimConsultingInterest, and the 5 tradeoff-priority
   // rankings never appear here — those are negotiating-sensitive and stay in
   // Coaching Notes only. See buildDossierTargetPreferences.
   fit: { patternSummary: string | null; targetPreferences: DossierTargetPreferences }

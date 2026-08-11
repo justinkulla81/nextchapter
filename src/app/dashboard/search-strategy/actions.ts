@@ -55,7 +55,6 @@ export async function updateSearchStrategy(
   const remotePreference = (formData.get('remotePreference') as string | null) || null
   const applicationVolumeGoalRaw = formData.get('applicationVolumeGoal') as string | null
   const applicationVolumeGoal = applicationVolumeGoalRaw ? Number(applicationVolumeGoalRaw) : null
-  const skillsStillNeeded = (formData.get('skillsStillNeeded') as string | null)?.trim() || null
   const isPivoting = formData.get('isPivoting') === 'on'
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
@@ -98,7 +97,6 @@ export async function updateSearchStrategy(
       startLowerRationale,
       dealBreakers,
       applicationVolumeGoal,
-      skillsStillNeeded,
       isPivoting,
       openToRelocation,
       relocationNotes,

@@ -29,12 +29,10 @@ import type { CandidateProfile } from '@prisma/client'
 
 export function SearchStrategyForm({
   profile,
-  showSkillsNeeded,
   inferredIndustries,
   inferredFunction,
 }: {
   profile: CandidateProfile
-  showSkillsNeeded: boolean
   inferredIndustries: string[]
   inferredFunction: string | null
 }) {
@@ -401,22 +399,6 @@ export function SearchStrategyForm({
           <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
           <TradeoffRanking profile={profile} />
         </div>
-
-        {showSkillsNeeded && (
-          <div className="space-y-2">
-            <Label htmlFor="skillsStillNeeded">
-              Skills you need to build to get and do your next job{' '}
-              <span className="font-normal text-muted-foreground">(optional)</span>
-            </Label>
-            <Textarea
-              id="skillsStillNeeded"
-              name="skillsStillNeeded"
-              rows={2}
-              defaultValue={profile.skillsStillNeeded ?? ''}
-              placeholder="e.g. AI, public speaking, P&L skills, new AI tools for my job function"
-            />
-          </div>
-        )}
 
         <div className="space-y-2">
           <Label htmlFor="dealBreakers">

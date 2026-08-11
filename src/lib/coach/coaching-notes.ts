@@ -163,7 +163,7 @@ export interface RedLine {
 // and whether they'd take interim work in the meantime.
 export interface SearchPlan {
   applicationVolumeGoal: number | null
-  skillsStillNeeded: string | null
+  skillsToBuild: string[]
   interimConsultingInterest: boolean
 }
 
@@ -390,7 +390,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
         visaStatus: true,
         dealBreakers: true,
         applicationVolumeGoal: true,
-        skillsStillNeeded: true,
+        skillsToBuild: true,
         interimConsultingInterest: true,
       },
     }),
@@ -483,7 +483,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     redLines: buildRedLines(candidate),
     searchPlan: {
       applicationVolumeGoal: candidate.applicationVolumeGoal,
-      skillsStillNeeded: candidate.skillsStillNeeded,
+      skillsToBuild: candidate.skillsToBuild,
       interimConsultingInterest: candidate.interimConsultingInterest,
     },
   }

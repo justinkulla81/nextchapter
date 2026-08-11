@@ -116,7 +116,6 @@ function SearchStrategyGuidanceSkeleton() {
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
   const stage = getSearchStage(profile)
-  const showSkillsNeeded = !(profile.functionSkillConfidence === 100 && profile.aiFlexibilityLevel === 100)
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
   // actually reflects most-recent-first, matching onboarding/goals/page.tsx.
@@ -177,7 +176,6 @@ export default async function SearchStrategyPage() {
         <CardContent>
           <SearchStrategyForm
             profile={profile}
-            showSkillsNeeded={showSkillsNeeded}
             inferredIndustries={inferredIndustries}
             inferredFunction={inferredFunction}
           />

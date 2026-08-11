@@ -549,7 +549,18 @@ model CandidateProfile {
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
   applicationVolumeGoal      Int? // target applications per week
   isPivoting                 Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
-  skillsStillNeeded          String?
+  // Candidate-curated tag list, edited on the Skills & Behavioral
+  // Assessments page (moved off Search Strategy) — a TagInput like
+  // targetIndustries, seeded from suggestions rather than freeform text.
+  skillsToBuild              String[]  @default([])
+  // Cached LLM-generated suggestions for the box above — {resumeGaps,
+  // roleGaps, modernSkills}, each a string[]. Regenerated only when
+  // skillGapSuggestionsFingerprint no longer matches the candidate's
+  // current resume/target-role/industries (see skill-gap-suggestions.ts) —
+  // this is a real per-candidate LLM cost, so it must never fire on every
+  // page view.
+  skillGapSuggestions             Json?
+  skillGapSuggestionsFingerprint  String?
   interimConsultingInterest  Boolean   @default(false)
   searchStrategyConfirmedAt  DateTime?
   // Restrictive covenant from a current/former employer (non-compete,

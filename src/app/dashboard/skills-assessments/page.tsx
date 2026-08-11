@@ -1,13 +1,35 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { SkillsToBuildForm } from '@/components/dashboard/SkillsToBuildForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { getOrGenerateSkillGapSuggestions } from '@/lib/skills/skill-gap-suggestions'
 
 export const metadata: Metadata = { title: 'Skills & Behavioral Assessments' }
+
+// getOrGenerateSkillGapSuggestions calls the LLM on a cache miss (resume
+// re-upload, changed target role/industries) — isolated here so that cost
+// never blocks the two assessment cards above it, same pattern as
+// SearchStrategyGuidanceCard on the Search Strategy page.
+async function SkillsToBuildCard({ candidateId, skillsToBuild }: { candidateId: string; skillsToBuild: string[] }) {
+  const suggestions = await getOrGenerateSkillGapSuggestions(candidateId)
+  return <SkillsToBuildForm initialSkills={skillsToBuild} suggestions={suggestions} />
+}
+
+function SkillsToBuildSkeleton() {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Spinner size={16} />
+      Putting together skill suggestions…
+    </div>
+  )
+}
 
 export default async function SkillsAssessmentsPage() {
   const profile = await getDashboardData()
@@ -79,6 +101,21 @@ export default async function SkillsAssessmentsPage() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium text-foreground">Skills You Need to Build</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Skills worth building for your next job — pick from the suggestions below or add your
+            own. Feeds your Learning recommendations and Coaching Notes.
+          </p>
+          <Suspense fallback={<SkillsToBuildSkeleton />}>
+            <SkillsToBuildCard candidateId={profile.id} skillsToBuild={profile.skillsToBuild} />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   )
 }

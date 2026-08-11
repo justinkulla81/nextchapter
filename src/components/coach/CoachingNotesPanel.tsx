@@ -222,7 +222,7 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
       )}
 
       {(notes.searchPlan.applicationVolumeGoal !== null ||
-        notes.searchPlan.skillsStillNeeded ||
+        notes.searchPlan.skillsToBuild.length > 0 ||
         notes.searchPlan.interimConsultingInterest) && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">Search plan</p>
@@ -233,10 +233,10 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
                 <dd className="text-foreground">{notes.searchPlan.applicationVolumeGoal}</dd>
               </div>
             )}
-            {notes.searchPlan.skillsStillNeeded && (
+            {notes.searchPlan.skillsToBuild.length > 0 && (
               <div>
-                <dt className="text-xs text-muted-foreground">Skills they say they still need</dt>
-                <dd className="text-foreground">{notes.searchPlan.skillsStillNeeded}</dd>
+                <dt className="text-xs text-muted-foreground">Skills they&apos;re building</dt>
+                <dd className="text-foreground">{notes.searchPlan.skillsToBuild.join(', ')}</dd>
               </div>
             )}
             {notes.searchPlan.interimConsultingInterest && (
