@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import { GRADE_TEXT_COLOR, type Grade } from '@/lib/scoring/grade'
 import { getNamedReasonActionLink, isResumeSpecificGap } from '@/lib/scoring/named-reason-ids'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
@@ -42,8 +43,12 @@ export function MarketRealitySnapshotArchive({ snapshots }: { snapshots: Archive
               <span>
                 Week of {s.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
               </span>
-              <span className="tabular-nums text-muted-foreground">
-                <span className={cn('font-semibold', GRADE_TEXT_COLOR[s.grade])}>{s.grade}</span> {isOpen ? '▲' : '▼'}
+              <span className="flex items-center gap-2">
+                <span className={cn('tabular-nums font-semibold', GRADE_TEXT_COLOR[s.grade])}>{s.grade}</span>
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {isOpen ? 'Collapse' : 'Expand'}
+                  <ChevronDown className={cn('size-3.5 transition-transform', isOpen && 'rotate-180')} aria-hidden />
+                </span>
               </span>
             </button>
             {isOpen && (

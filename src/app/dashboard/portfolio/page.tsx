@@ -6,12 +6,9 @@ import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
-import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
-import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
-import type { NamedReason } from '@/lib/scoring/named-reasons'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -102,6 +99,9 @@ export default async function PortfolioPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Reports</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Your full narrative report, plus the week-by-week history and trend behind it.
+            </p>
             {reportHistory.length > 0 && (
               <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
                 <div className="text-sm">
@@ -124,17 +124,12 @@ export default async function PortfolioPage() {
                 </Button>
               </div>
             )}
-            <MarketRealitySnapshotArchive
-              snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-                id: s.id,
-                weekStartDate: s.weekStartDate,
-                grade: s.grade as Grade,
-                namedReasons: s.namedReasons as unknown as NamedReason[],
-              }))}
-            />
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/stats" />}>
-              View trend over time
-            </Button>
+            <Link
+              href="/dashboard/stats#market-reality"
+              className="inline-block text-sm text-primary underline underline-offset-4"
+            >
+              See weekly history &amp; trend →
+            </Link>
           </CardContent>
         </Card>
 
@@ -202,11 +197,12 @@ export default async function PortfolioPage() {
                 <p className="text-sm font-medium text-orange">Coach Dossier &amp; Notes — locked</p>
               </div>
               <p className="text-sm text-muted-foreground">
-                Turn on sharing in Privacy Settings to see exactly what your coach sees when preparing
-                for your sessions.
+                Turn on sharing to see exactly what your coach sees when preparing for your
+                sessions. Without it, they walk in blind — no grade history, no named strengths or
+                gaps — which means less time coaching and more time re-explaining your background.
               </p>
               <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/privacy" />}>
-                Privacy Settings
+                Turn on sharing
               </Button>
             </div>
           ))}
@@ -262,7 +258,7 @@ export default async function PortfolioPage() {
                 : "Generated automatically as you apply — none yet"}
             </p>
             <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/find-my-job" />}>
-              {coverLettersCount > 0 ? 'View' : 'Find a job'}
+              {coverLettersCount > 0 ? 'View' : 'Create for a specific job'}
             </Button>
           </CardContent>
         </Card>

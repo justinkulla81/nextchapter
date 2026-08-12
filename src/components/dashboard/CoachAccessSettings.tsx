@@ -26,7 +26,7 @@ export function CoachAccessSettings({
       <p className="text-sm text-muted-foreground">
         {hasConsented
           ? `${coachName} can see your Executive Dossier and Coaching Notes in their client view — never downloadable or forwardable by them.`
-          : `${coachName} does not have access to your Executive Dossier or Coaching Notes yet.`}
+          : `${coachName} does not have access to your Executive Dossier or Coaching Notes yet — sessions start from scratch every time, with no context on your grade, strengths, or gaps.`}
       </p>
       <div className="flex flex-wrap gap-2">
         {!hasConsented && (

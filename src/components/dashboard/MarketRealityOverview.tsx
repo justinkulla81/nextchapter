@@ -54,31 +54,29 @@ export function MarketRealityOverview({
   return (
     <Card>
       <CardContent>
-        <div className="-mx-6 -mt-6 rounded-t-xl bg-brand/5 px-6 pt-6 pb-5">
-          <div className="flex items-baseline justify-between gap-3">
-            <h3
-              className="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-              title="How the market currently sees you"
-            >
-              Market Reality
-            </h3>
-            <span className="text-xs text-muted-foreground">{weekLabel}</span>
-          </div>
-
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className={cn('text-5xl font-bold', GRADE_TEXT_COLOR[currentGrade])}>{currentGrade}</span>
-            {previousGrade && previousGrade !== currentGrade && (
-              <span className="text-sm text-muted-foreground">from {previousGrade}</span>
-            )}
-          </div>
-          {bestWeekSentence && <p className="mt-1 text-sm text-foreground">{bestWeekSentence}</p>}
-
-          <div className="mt-3">
-            <MarketRealityTrendChart snapshots={trendSnapshots} />
-          </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <h3
+            className="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+            title="How the market currently sees you"
+          >
+            Market Reality
+          </h3>
+          <span className="text-xs text-muted-foreground">{weekLabel}</span>
         </div>
 
-        <div className="mt-6 space-y-1">
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className={cn('text-4xl font-bold', GRADE_TEXT_COLOR[currentGrade])}>{currentGrade}</span>
+          {previousGrade && previousGrade !== currentGrade && (
+            <span className="text-sm text-muted-foreground">from {previousGrade}</span>
+          )}
+        </div>
+        {bestWeekSentence && <p className="mt-1 text-sm text-foreground">{bestWeekSentence}</p>}
+
+        <div className="mt-3">
+          <MarketRealityTrendChart snapshots={trendSnapshots} />
+        </div>
+
+        <div className="mt-6 space-y-1 border-t border-border pt-4">
           <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
             The six categories behind this grade
           </h4>
@@ -100,11 +98,22 @@ export function MarketRealityOverview({
                         'shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-medium whitespace-nowrap',
                         CONFIDENCE_STYLE[c.confidence]
                       )}
+                      title={CONFIDENCE_EXPLANATION[c.confidence]}
                     >
                       {CONFIDENCE_LABEL[c.confidence]}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{CATEGORY_EXPLANATION[c.key]}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {CATEGORY_EXPLANATION[c.key]}
+                    {c.confidence !== 'HIGH' && (
+                      <>
+                        {' '}
+                        <Link href="/dashboard/references" className="text-primary underline underline-offset-4">
+                          Invite references to sharpen this →
+                        </Link>
+                      </>
+                    )}
+                  </p>
                 </div>
               )
             })}

@@ -60,6 +60,11 @@ export default async function CoachDossierPage() {
             This is exactly what {coach?.fullName ?? 'your coach'} would see when preparing for your
             sessions — but you haven&apos;t turned on sharing yet, so it&apos;s off for both of you.
           </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Without it, {coach?.fullName ?? 'your coach'} walks into every session blind — no
+            grade history, no named strengths or gaps, nothing from your references. Turning it on
+            means less time re-explaining your background and more time actually coaching.
+          </p>
         </div>
         <Link
           href="/dashboard/privacy"

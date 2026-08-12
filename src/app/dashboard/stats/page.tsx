@@ -23,8 +23,9 @@ import { MarketRealityOverview } from '@/components/dashboard/MarketRealityOverv
 import { cn } from '@/lib/utils'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
-import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
+import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK, getRecurringTargetCount } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
+import { MOOD_SCORE } from '@/lib/daily/mood-labels'
 import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
 import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
 import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
@@ -42,6 +43,16 @@ export const metadata: Metadata = { title: 'My Stats & Reports' }
 
 type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
+
+const SECTIONS = [
+  { id: 'badges', label: 'Badges' },
+  { id: 'streaks', label: 'Streak details' },
+  { id: 'market-reality', label: 'Market Reality' },
+  { id: 'effort', label: "This week's effort" },
+  { id: 'feeling', label: "How you've felt" },
+  { id: 'actions', label: 'Actions completed' },
+  { id: 'available-actions', label: 'All actions' },
+] as const
 
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
@@ -115,57 +126,46 @@ export default async function YourStatsPage() {
   const completedActionsCount = committedActions.filter((a) => a.completed).length
   const onTrackThisWeek = grade.weeklyPoints >= grade.weeklyPointsTarget
 
+  // Flag support resources only when things are trending down AND landing
+  // low right now — a dip from Fired up to Moving isn't the same signal as
+  // sliding into Stuck, and we don't want to nag over normal fluctuation.
+  const recentMoods = moodHistory.slice(-2)
+  const isMoodDecliningAndLow =
+    recentMoods.length === 2 &&
+    MOOD_SCORE[recentMoods[1].mood] < MOOD_SCORE[recentMoods[0].mood] &&
+    (recentMoods[1].mood === 'STUCK' || recentMoods[1].mood === 'GETTING_THERE')
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Your Stats</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The full detail behind your dashboard summary — grade history, points by category, and
-          your Weekly A List.
+          Everything behind your dashboard summary, in one place: your streak and badges, your
+          Market Reality grade and its six categories, this week&apos;s effort, how you&apos;ve
+          been feeling, and every action you&apos;ve done or could do.
         </p>
         <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
+        <nav aria-label="Jump to section" className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-3">
+          {SECTIONS.map((s) => (
+            <a key={s.id} href={`#${s.id}`} className="text-xs text-primary underline underline-offset-4">
+              {s.label}
+            </a>
+          ))}
+        </nav>
       </div>
 
       <StreakHeroBanner currentStreak={profile.currentStreak} activeDays={activeDays} />
 
-      <MarketRealityOverview
-        weekLabel={`Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-        currentGrade={grade.grade}
-        previousGrade={previousMarketRealityGrade}
-        bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
-        trendSnapshots={heroSnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
-        categories={grade.categories}
-        categoryHistory={categoryHistory}
-        whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
-        sprintCompletionStreak={sprintCompletionStreaks.currentStreak}
-        longestSprintCompletionStreak={sprintCompletionStreaks.longestStreak}
-        weeksOfImprovement={computeWeeksOfImprovement(heroSnapshots)}
-      />
-
-      <Card>
+      <Card id="badges" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality reports, week by week</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Badges</CardTitle>
         </CardHeader>
         <CardContent>
-          <MarketRealitySnapshotArchive
-            snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-              id: s.id,
-              weekStartDate: s.weekStartDate,
-              grade: s.grade as Grade,
-              namedReasons: s.namedReasons as unknown as NamedReason[],
-            }))}
-          />
-          <p className="mt-3 text-xs text-muted-foreground">
-            The full narrative behind any week&apos;s grade lives on your{' '}
-            <a href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
-              Market Reality Report
-            </a>
-            .
-          </p>
+          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="streaks" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Streak details</CardTitle>
         </CardHeader>
@@ -193,40 +193,92 @@ export default async function YourStatsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <div id="market-reality" className="scroll-mt-4">
+        <h2 className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">Market Reality</h2>
+        <div className="space-y-4">
+          <MarketRealityOverview
+            weekLabel={`Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+            currentGrade={grade.grade}
+            previousGrade={previousMarketRealityGrade}
+            bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
+            trendSnapshots={heroSnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
+            categories={grade.categories}
+            categoryHistory={categoryHistory}
+            whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
+            sprintCompletionStreak={sprintCompletionStreaks.currentStreak}
+            longestSprintCompletionStreak={sprintCompletionStreaks.longestStreak}
+            weeksOfImprovement={computeWeeksOfImprovement(heroSnapshots)}
+          />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality reports, week by week</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MarketRealitySnapshotArchive
+                snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
+                  id: s.id,
+                  weekStartDate: s.weekStartDate,
+                  grade: s.grade as Grade,
+                  namedReasons: s.namedReasons as unknown as NamedReason[],
+                }))}
+              />
+              <p className="mt-3 text-xs text-muted-foreground">
+                The full narrative behind any week&apos;s grade lives on your{' '}
+                <a href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
+                  Market Reality Report
+                </a>
+                .
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground tabular-nums">
+                {grade.weeklyPoints} / {grade.weeklyPointsTarget}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Points earned toward this week&apos;s target — the same number as &quot;Actions completed this
+                week&quot; below.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <Card id="effort" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s effort by category</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground">
-            Separate from the points total above — these four grades measure how you&apos;re
-            spending your effort this week, not how much of it. They feed into your Target Fit
-            category on Market Reality, not your points.
+            Separate from the points total above — these four grades measure how you&apos;re spending your effort
+            this week, not how much of it. Click a category to see the actions behind it.
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {grade.weeklyEngines.map((e) => (
-              <div key={e.key} className="rounded-lg border border-border p-3" title={WEEKLY_ENGINE_EXPLANATION[e.key]}>
+              <a
+                key={e.key}
+                href={`#available-${e.key}`}
+                className="block rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/40"
+                title={WEEKLY_ENGINE_EXPLANATION[e.key]}
+              >
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
                   <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">{WEEKLY_ENGINE_EXPLANATION[e.key]}</p>
-              </div>
+              </a>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Badges</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
-        </CardContent>
-      </Card>
-
-      <Card>
+      <Card id="feeling" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
         </CardHeader>
@@ -236,6 +288,35 @@ export default async function YourStatsPage() {
             Private — only you and your coach (if you have one) ever see this. Never part of any
             export, and never visible to hiring managers or recruiters.
           </p>
+          {isMoodDecliningAndLow && (
+            <div className="mt-4 space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm">
+              <p className="font-medium text-foreground">Your last check-in trended down — that&apos;s worth naming, not just tracking.</p>
+              <p className="text-muted-foreground">
+                A search that&apos;s dragging is genuinely hard, and it helps to talk to someone rather than push
+                through it alone.
+              </p>
+              <ul className="space-y-1">
+                <li>
+                  <Link href="/dashboard/support" className="text-primary underline underline-offset-4">
+                    I&apos;m Struggling
+                  </Link>{' '}
+                  <span className="text-muted-foreground">— crisis resources, therapist directories, and support hotlines.</span>
+                </li>
+                <li>
+                  <Link href="/dashboard/community" className="text-primary underline underline-offset-4">
+                    NextChapter Community
+                  </Link>{' '}
+                  <span className="text-muted-foreground">— people going through the exact same thing, in the same window.</span>
+                </li>
+                <li>
+                  <Link href="/coaching" className="text-primary underline underline-offset-4">
+                    Executive Coach
+                  </Link>{' '}
+                  <span className="text-muted-foreground">— 1:1 support built specifically for the emotional weight of a transition.</span>
+                </li>
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -280,22 +361,38 @@ export default async function YourStatsPage() {
                         {WEEKLY_ENGINE_LABEL[engine]}
                       </h3>
                       <ul className="mt-2 space-y-1">
-                        {actions.map((a, i) => (
-                          <li
-                            key={i}
-                            className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm"
-                          >
-                            <span className="flex min-w-0 items-center gap-2">
-                              <span className="shrink-0 text-success" aria-hidden>
-                                ✓
+                        {actions.map((a, i) => {
+                          const targetCount = a.recurring ? getRecurringTargetCount(a.actionType) : null
+                          const count = a.completionCount ?? (a.completed ? 1 : 0)
+                          return (
+                            <li
+                              key={i}
+                              className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm"
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                <span className="shrink-0 text-success" aria-hidden>
+                                  ✓
+                                </span>
+                                <span className="truncate text-foreground">{a.text}</span>
                               </span>
-                              <span className="truncate text-foreground">{a.text}</span>
-                            </span>
-                            <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
-                              {a.points} pts
-                            </span>
-                          </li>
-                        ))}
+                              <span className="flex shrink-0 items-center gap-2">
+                                {targetCount && (
+                                  <span
+                                    className={cn(
+                                      'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+                                      count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                                    )}
+                                  >
+                                    {count} / {targetCount} this week
+                                  </span>
+                                )}
+                                <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+                                  {a.points} pts
+                                </span>
+                              </span>
+                            </li>
+                          )
+                        })}
                       </ul>
                     </div>
                   )
@@ -306,16 +403,19 @@ export default async function YourStatsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">See all actions you can do</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
+      <details id="available-actions" className="scroll-mt-4 group rounded-lg border border-border">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          See all actions you can do
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
+            — every action across the app and where it lives, for browsing. Not required.
+          </span>
+        </summary>
+        <div className="space-y-5 border-t border-border p-4">
           {ENGINE_ORDER.map((engine) => {
             const tasks = availableByEngine.get(engine)
             if (!tasks || tasks.length === 0) return null
             return (
-              <div key={engine}>
+              <div key={engine} id={`available-${engine}`} className="scroll-mt-4">
                 <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                   {WEEKLY_ENGINE_LABEL[engine]}
                 </h3>
@@ -339,8 +439,8 @@ export default async function YourStatsPage() {
               </div>
             )
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </details>
     </div>
   )
 }
