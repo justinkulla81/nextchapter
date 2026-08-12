@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import Link from 'next/link'
 import { updateSearchStrategy } from '@/app/dashboard/search-strategy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
@@ -31,10 +32,12 @@ export function SearchStrategyForm({
   profile,
   inferredIndustries,
   inferredFunction,
+  completedReferencesCount,
 }: {
   profile: CandidateProfile
   inferredIndustries: string[]
   inferredFunction: string | null
+  completedReferencesCount?: number
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
@@ -300,93 +303,134 @@ export function SearchStrategyForm({
         </Select>
       </div>
 
-      <div className="space-y-4 rounded-lg border border-border p-4">
-        <Label className="text-sm font-semibold">Search Goals and Red Lines</Label>
+      <div className="space-y-2">
+        <Label htmlFor="applicationVolumeGoal">
+          Applications per week you&apos;re aiming for{' '}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id="applicationVolumeGoal"
+          name="applicationVolumeGoal"
+          type="number"
+          min={0}
+          defaultValue={profile.applicationVolumeGoal ?? 15}
+          className="w-32"
+        />
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="applicationVolumeGoal">
-            Applications per week you&apos;re aiming for{' '}
-            <span className="font-normal text-muted-foreground">(optional)</span>
-          </Label>
-          <Input
-            id="applicationVolumeGoal"
-            name="applicationVolumeGoal"
-            type="number"
-            min={0}
-            defaultValue={profile.applicationVolumeGoal ?? 15}
-            className="w-32"
-          />
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Checkbox id="compFlexible" name="compFlexible" value="on" defaultChecked={profile.compFlexible} />
-            <Label htmlFor="compFlexible" className="font-normal">
-              I have flexibility on compensation
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="equityImportant"
-              name="equityImportant"
-              value="on"
-              defaultChecked={profile.equityImportant}
-            />
-            <Label htmlFor="equityImportant" className="font-normal">
-              Equity matters to me
-            </Label>
-          </div>
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="openToRelocation"
-              name="openToRelocation"
-              value="on"
-              checked={openToRelocation}
-              onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
-            />
-            <Label htmlFor="openToRelocation" className="font-normal">
-              I&apos;m open to relocating for the right role
-            </Label>
-          </div>
-          {openToRelocation && (
-            <Textarea
-              name="relocationNotes"
-              placeholder="Relocation notes (optional)"
-              defaultValue={profile.relocationNotes ?? ''}
-              rows={2}
-            />
+      <div className="space-y-1 rounded-lg border border-border bg-muted/40 p-3">
+        <Label className="text-sm font-semibold">References target</Label>
+        <p className="text-sm text-muted-foreground">
+          3 completed references is the real minimum, 5 is on target, and 7 means you&apos;re
+          outperforming — it&apos;s difficult to unlock an A grade with fewer than 5.
+          {completedReferencesCount !== undefined && (
+            <>
+              {' '}
+              You have{' '}
+              <span className="font-medium text-foreground">
+                {completedReferencesCount} of 5
+              </span>{' '}
+              so far.
+            </>
           )}
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="interimConsultingInterest"
-              name="interimConsultingInterest"
-              defaultChecked={profile.interimConsultingInterest}
+        </p>
+        <Link href="/dashboard/references" className="text-sm text-primary underline underline-offset-4">
+          Manage my references →
+        </Link>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="targetCompMin">What is the minimum comp you are able to take? (optional)</Label>
+        <div className="flex items-center gap-2">
+          <div className="relative w-36">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              $
+            </span>
+            <Input
+              id="targetCompMin"
+              name="targetCompMinThousands"
+              type="number"
+              min={0}
+              placeholder="120"
+              className="pl-7"
+              defaultValue={profile.targetCompMin ? Math.round(profile.targetCompMin / 1000) : undefined}
             />
-            <Label htmlFor="interimConsultingInterest" className="font-normal">
-              I&apos;d consider fractional or interim consulting work while I search
-            </Label>
           </div>
+          <span className="text-sm text-muted-foreground">
+            ,000 — e.g. enter <span className="font-medium text-foreground">120</span> for $120,000
+          </span>
         </div>
+      </div>
 
-        <div className="space-y-2">
-          <Label>
-            Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold">Flexibility</Label>
+        <div className="flex items-center gap-2">
+          <Checkbox id="compFlexible" name="compFlexible" value="on" defaultChecked={profile.compFlexible} />
+          <Label htmlFor="compFlexible" className="font-normal">
+            I have flexibility on compensation
           </Label>
-          <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
-          <TradeoffRanking profile={profile} />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dealBreakers">
-            Are there any other important considerations for your next job? (optional)
-          </Label>
-          <Textarea
-            id="dealBreakers"
-            name="dealBreakers"
-            rows={2}
-            defaultValue={profile.dealBreakers ?? ''}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="equityImportant"
+            name="equityImportant"
+            value="on"
+            defaultChecked={profile.equityImportant}
           />
+          <Label htmlFor="equityImportant" className="font-normal">
+            Equity matters to me
+          </Label>
         </div>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="openToRelocation"
+            name="openToRelocation"
+            value="on"
+            checked={openToRelocation}
+            onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
+          />
+          <Label htmlFor="openToRelocation" className="font-normal">
+            I&apos;m open to relocating for the right role
+          </Label>
+        </div>
+        {openToRelocation && (
+          <Textarea
+            name="relocationNotes"
+            placeholder="Relocation notes (optional)"
+            defaultValue={profile.relocationNotes ?? ''}
+            rows={2}
+          />
+        )}
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="interimConsultingInterest"
+            name="interimConsultingInterest"
+            defaultChecked={profile.interimConsultingInterest}
+          />
+          <Label htmlFor="interimConsultingInterest" className="font-normal">
+            I&apos;d consider fractional or interim consulting work while I search
+          </Label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          Rank what matters most to you right now — drag isn&apos;t required, use the arrows.
+        </Label>
+        <p className="text-sm text-muted-foreground">1 = matters most, 5 = matters least.</p>
+        <TradeoffRanking profile={profile} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="dealBreakers">
+          Are there any other important considerations for your next job? (optional)
+        </Label>
+        <Textarea
+          id="dealBreakers"
+          name="dealBreakers"
+          rows={2}
+          defaultValue={profile.dealBreakers ?? ''}
+        />
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

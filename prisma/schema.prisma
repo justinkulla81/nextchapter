@@ -672,6 +672,10 @@ model CandidateProfile {
   // means not asked yet, distinct from an explicit "No."
   hasRestrictiveCovenant         Boolean?
   restrictiveCovenantDetails     String? // which type + scope/duration, in the candidate's own words
+  // Only asked when currentJobStatus is LAID_OFF — a real, material signal
+  // for recruiters, distinct from a no-fault layoff. Same nullable
+  // tri-state as its siblings.
+  firedForCause                  Boolean?
   // Screening questions — real Red Lines for recruiters/hiring managers,
   // same nullable tri-state shape as hasRestrictiveCovenant above (null =
   // not asked yet). Bundled with it into one RED_FLAGS_CONFIRMED one-time

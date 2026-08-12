@@ -11,6 +11,15 @@ import type { GapDurationBucket } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
+// Same auto-correct as complete-profile/actions.ts's parseCompMinThousands —
+// entering the full dollar amount (e.g. 120000) is treated the same as
+// entering it in thousands (120).
+function parseCompMinThousands(raw: FormDataEntryValue | null): number | null {
+  const entered = raw ? Number(raw) : null
+  if (!entered) return null
+  return entered >= 10000 ? Math.round(entered / 1000) : entered
+}
+
 export async function updateSearchStrategy(
   _prevState: FormState,
   formData: FormData
@@ -55,6 +64,8 @@ export async function updateSearchStrategy(
   const remotePreference = (formData.get('remotePreference') as string | null) || null
   const applicationVolumeGoalRaw = formData.get('applicationVolumeGoal') as string | null
   const applicationVolumeGoal = applicationVolumeGoalRaw ? Number(applicationVolumeGoalRaw) : null
+  const targetCompMinThousands = parseCompMinThousands(formData.get('targetCompMinThousands'))
+  const targetCompMin = targetCompMinThousands ? targetCompMinThousands * 1000 : null
   const isPivoting = formData.get('isPivoting') === 'on'
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
@@ -88,6 +99,11 @@ export async function updateSearchStrategy(
       openToRelocation,
       relocationNotes,
       interimConsultingInterest,
+      // Only overwrite when a value was actually entered here — this field
+      // is also editable from Search Goals (BenefitsPrioritiesForm), and an
+      // empty submit from this page shouldn't silently blank out a value
+      // set over there.
+      ...(targetCompMin !== null && { targetCompMin }),
       ...rankValues,
       searchStrategyConfirmedAt: new Date(),
       // Every input above is a direct input to the Search Strategy Guidance

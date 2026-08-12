@@ -107,8 +107,8 @@ export function WorkAuthorizationConfirmForm({
 
       {state?.error && <p className="text-xs text-destructive">{state.error}</p>}
       <div className="flex items-center gap-2">
-        <Button type="submit" size="sm" variant={canConfirm ? 'outline' : 'ghost'} disabled={pending || !canConfirm}>
-          {pending ? 'Saving…' : isConfirmed ? (isDirty ? 'Reconfirm' : 'Confirmed') : 'Confirm'}
+        <Button type="submit" size="sm" variant={canConfirm ? 'success' : 'ghost'} disabled={pending || !canConfirm}>
+          {pending ? 'Saving…' : canConfirm ? 'Save' : 'Saved'}
         </Button>
         {!isConfirmed && <span className="text-xs font-medium text-muted-foreground tabular-nums">+{POINTS} pts</span>}
       </div>

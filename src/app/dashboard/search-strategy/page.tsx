@@ -128,6 +128,8 @@ export default async function SearchStrategyPage() {
     profile.connectedWithRecruiters,
   ].every((f) => f !== null)
 
+  const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -137,6 +139,33 @@ export default async function SearchStrategyPage() {
         </p>
         <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} showWhyItMatters={false} />
       </div>
+
+      <Card id="optional-questions" className="scroll-mt-4">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Your Search Strategy So Far
+            </CardTitle>
+            {!optionalQuestionsAnswered && (
+              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +5 pts
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {optionalQuestionsAnswered ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="text-success" aria-hidden>
+                ✓
+              </span>
+              Answered
+            </p>
+          ) : (
+            <OptionalQuestionsForm />
+          )}
+        </CardContent>
+      </Card>
 
       <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
         <SearchStrategyGuidanceCard profile={profile} />
@@ -177,34 +206,8 @@ export default async function SearchStrategyPage() {
             profile={profile}
             inferredIndustries={inferredIndustries}
             inferredFunction={inferredFunction}
+            completedReferencesCount={completedReferencesCount}
           />
-        </CardContent>
-      </Card>
-
-      <Card id="optional-questions" className="scroll-mt-4">
-        <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Complete your Search Strategy questions
-            </CardTitle>
-            {!optionalQuestionsAnswered && (
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +5 pts
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {optionalQuestionsAnswered ? (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-              Answered
-            </p>
-          ) : (
-            <OptionalQuestionsForm />
-          )}
         </CardContent>
       </Card>
 

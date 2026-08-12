@@ -23,7 +23,7 @@ export default async function ScreeningPage() {
   const redFlagsAnswered = !!profile.redFlagsBonusAt
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="space-y-8">
       <div>
         <Link href="/dashboard/profile" className="text-sm text-muted-foreground hover:text-foreground">
           ← My Profile
@@ -58,7 +58,7 @@ export default async function ScreeningPage() {
               Answered
             </p>
           ) : (
-            <RedFlagsQuestionsForm />
+            <RedFlagsQuestionsForm currentJobStatus={profile.currentJobStatus} />
           )}
         </CardContent>
       </Card>
@@ -66,7 +66,7 @@ export default async function ScreeningPage() {
       <Card id="demographics" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Optional demographic self-ID
+            Optional demographic self identification
           </CardTitle>
         </CardHeader>
         <CardContent>

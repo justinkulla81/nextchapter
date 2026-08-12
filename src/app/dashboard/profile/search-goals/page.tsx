@@ -19,7 +19,7 @@ export default async function SearchGoalsPage() {
   const benefitsAnswered = !!profile.benefitsPrioritiesBonusAt
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="space-y-8">
       <div>
         <Link href="/dashboard/profile" className="text-sm text-muted-foreground hover:text-foreground">
           ← My Profile

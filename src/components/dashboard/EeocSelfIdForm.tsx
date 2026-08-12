@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { updateEeocSelfId } from '@/app/dashboard/actions'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -17,7 +18,6 @@ const PREFER_NOT_TO_ANSWER = 'Prefer not to answer'
 const GENDER_OPTIONS: { value: EeocGenderIdentity; label: string }[] = [
   { value: 'WOMAN', label: 'Woman' },
   { value: 'MAN', label: 'Man' },
-  { value: 'NON_BINARY', label: 'Non-binary' },
   { value: 'SELF_DESCRIBE', label: 'Prefer to self-describe' },
   { value: 'PREFER_NOT_TO_ANSWER', label: PREFER_NOT_TO_ANSWER },
 ]
@@ -53,6 +53,17 @@ export function EeocSelfIdForm({
   eeocDisabilityStatus,
   eeocVeteranStatus,
 }: EeocSelfIdFormProps) {
+  const [gender, setGender] = useState(eeocGenderIdentity ?? '')
+  const [race, setRace] = useState(eeocRaceEthnicity ?? '')
+  const [disability, setDisability] = useState(eeocDisabilityStatus ?? '')
+  const [veteran, setVeteran] = useState(eeocVeteranStatus ?? '')
+
+  const isDirty =
+    gender !== (eeocGenderIdentity ?? '') ||
+    race !== (eeocRaceEthnicity ?? '') ||
+    disability !== (eeocDisabilityStatus ?? '') ||
+    veteran !== (eeocVeteranStatus ?? '')
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
@@ -64,7 +75,7 @@ export function EeocSelfIdForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="eeocGenderIdentity">Gender identity</Label>
-            <Select name="eeocGenderIdentity" defaultValue={eeocGenderIdentity ?? undefined}>
+            <Select name="eeocGenderIdentity" value={gender || undefined} onValueChange={(v) => setGender(v ?? '')}>
               <SelectTrigger id="eeocGenderIdentity">
                 <SelectValue placeholder="Prefer not to answer">
                   {(value: EeocGenderIdentity) => GENDER_OPTIONS.find((o) => o.value === value)?.label}
@@ -82,7 +93,7 @@ export function EeocSelfIdForm({
 
           <div className="space-y-2">
             <Label htmlFor="eeocRaceEthnicity">Race / ethnicity</Label>
-            <Select name="eeocRaceEthnicity" defaultValue={eeocRaceEthnicity ?? undefined}>
+            <Select name="eeocRaceEthnicity" value={race || undefined} onValueChange={(v) => setRace(v ?? '')}>
               <SelectTrigger id="eeocRaceEthnicity">
                 <SelectValue placeholder="Prefer not to answer">
                   {(value: EeocRaceEthnicity) => RACE_OPTIONS.find((o) => o.value === value)?.label}
@@ -100,7 +111,11 @@ export function EeocSelfIdForm({
 
           <div className="space-y-2">
             <Label htmlFor="eeocDisabilityStatus">Disability status</Label>
-            <Select name="eeocDisabilityStatus" defaultValue={eeocDisabilityStatus ?? undefined}>
+            <Select
+              name="eeocDisabilityStatus"
+              value={disability || undefined}
+              onValueChange={(v) => setDisability(v ?? '')}
+            >
               <SelectTrigger id="eeocDisabilityStatus">
                 <SelectValue placeholder="Prefer not to answer">
                   {(value: EeocYesNoDecline) => YES_NO_OPTIONS.find((o) => o.value === value)?.label}
@@ -118,7 +133,7 @@ export function EeocSelfIdForm({
 
           <div className="space-y-2">
             <Label htmlFor="eeocVeteranStatus">Veteran status</Label>
-            <Select name="eeocVeteranStatus" defaultValue={eeocVeteranStatus ?? undefined}>
+            <Select name="eeocVeteranStatus" value={veteran || undefined} onValueChange={(v) => setVeteran(v ?? '')}>
               <SelectTrigger id="eeocVeteranStatus">
                 <SelectValue placeholder="Prefer not to answer">
                   {(value: EeocYesNoDecline) => YES_NO_OPTIONS.find((o) => o.value === value)?.label}
@@ -134,7 +149,7 @@ export function EeocSelfIdForm({
             </Select>
           </div>
         </div>
-        <SubmitButton variant="outline" pendingLabel="Saving…">
+        <SubmitButton variant={isDirty ? 'success' : 'outline'} disabled={!isDirty} pendingLabel="Saving…">
           Save
         </SubmitButton>
       </form>

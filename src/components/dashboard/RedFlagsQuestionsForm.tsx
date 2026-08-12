@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import type { CurrentJobStatus } from '@prisma/client'
 import { cn } from '@/lib/utils'
 
 const YES_NO_OPTIONS = [
@@ -13,36 +14,30 @@ const YES_NO_OPTIONS = [
   { value: 'no', label: 'No' },
 ] as const
 
-export function RedFlagsQuestionsForm() {
+export function RedFlagsQuestionsForm({ currentJobStatus }: { currentJobStatus: CurrentJobStatus | null }) {
   const [state, formAction, pending] = useActionState<RedFlagsState, FormData>(answerRedFlags, undefined)
-  const [drugTest, setDrugTest] = useState('')
-  const [backgroundCheck, setBackgroundCheck] = useState('')
+  const [firedForCause, setFiredForCause] = useState('')
   const [restrictiveCovenant, setRestrictiveCovenant] = useState('')
+  const [backgroundCheck, setBackgroundCheck] = useState('')
+  const [drugTest, setDrugTest] = useState('')
   const [animalFriendly, setAnimalFriendly] = useState('')
+
+  const askFiredForCause = currentJobStatus === 'LAID_OFF'
 
   return (
     <form action={formAction} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
-      <div className="space-y-2">
-        <Label>Are you willing to take a drug test if an employer requires one?</Label>
-        <ChoiceButtons
-          name="willingToTakeDrugTest"
-          options={YES_NO_OPTIONS}
-          value={drugTest || null}
-          onChange={setDrugTest}
-          columns={2}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Are you willing to undergo a background check if an employer requires one?</Label>
-        <ChoiceButtons
-          name="willingToTakeBackgroundCheck"
-          options={YES_NO_OPTIONS}
-          value={backgroundCheck || null}
-          onChange={setBackgroundCheck}
-          columns={2}
-        />
-      </div>
+      {askFiredForCause && (
+        <div className="space-y-2">
+          <Label>Were you let go for cause, rather than a no-fault layoff?</Label>
+          <ChoiceButtons
+            name="firedForCause"
+            options={YES_NO_OPTIONS}
+            value={firedForCause || null}
+            onChange={setFiredForCause}
+            columns={2}
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label>
@@ -58,6 +53,28 @@ export function RedFlagsQuestionsForm() {
         {restrictiveCovenant === 'yes' && (
           <Textarea name="restrictiveCovenantDetails" placeholder="What kind, and for how long?" />
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>Are you willing to undergo a background check if an employer requires one?</Label>
+        <ChoiceButtons
+          name="willingToTakeBackgroundCheck"
+          options={YES_NO_OPTIONS}
+          value={backgroundCheck || null}
+          onChange={setBackgroundCheck}
+          columns={2}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Are you willing to take a drug test if an employer requires one?</Label>
+        <ChoiceButtons
+          name="willingToTakeDrugTest"
+          options={YES_NO_OPTIONS}
+          value={drugTest || null}
+          onChange={setDrugTest}
+          columns={2}
+        />
       </div>
 
       <div className="space-y-2">
