@@ -30,7 +30,7 @@ import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { WhoCanHelpSection } from '@/components/dashboard/WhoCanHelpSection'
-import { contactLinkType, CONTACT_LINK_ORDER } from '@/components/dashboard/ContactQuickLink'
+import { contactLinkType, CONTACT_LINK_ORDER } from '@/lib/dashboard/contact-link-type'
 import { JobBoardLinkList } from '@/components/dashboard/JobBoardLinkList'
 import { GENERAL_JOB_BOARDS, getIndustryJobBoards } from '@/lib/constants/industry-job-boards'
 import {

@@ -3,22 +3,16 @@
 import { Mail, Link2 } from 'lucide-react'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { cn } from '@/lib/utils'
+import { contactLinkType } from '@/lib/dashboard/contact-link-type'
 
 // A contact's name, made actionable when we have a way to reach them:
 // opens Gmail compose if they have an email on file, falls back to their
 // LinkedIn profile, or just renders as plain text if we have neither. Email
 // and LinkedIn links get distinct colors + icons (not just one generic
 // "blue link" look) so a list of names sorts visually by how reachable each
-// person actually is — see contactLinkType/CONTACT_LINK_ORDER below.
-export type ContactLinkType = 'email' | 'linkedin' | 'none'
-
-export function contactLinkType(contact: { email?: string | null; linkedinUrl?: string | null }): ContactLinkType {
-  if (contact.email) return 'email'
-  if (contact.linkedinUrl) return 'linkedin'
-  return 'none'
-}
-
-export const CONTACT_LINK_ORDER: Record<ContactLinkType, number> = { email: 0, linkedin: 1, none: 2 }
+// person actually is — see contactLinkType/CONTACT_LINK_ORDER in
+// lib/dashboard/contact-link-type.ts (kept out of this 'use client' file so
+// server code can sort by them without a client-boundary crash).
 
 export function ContactQuickLink({
   name,
