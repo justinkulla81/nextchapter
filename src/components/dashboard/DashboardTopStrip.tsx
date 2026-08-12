@@ -56,6 +56,7 @@ export function DashboardTopStrip({
           valueClassName={searchExecutionAvailable ? (overDelivering ? 'text-success' : 'text-error') : undefined}
           icon={Target}
           title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
+          href="/dashboard/stats#actions"
         />
 
         <StatTile
@@ -64,6 +65,7 @@ export function DashboardTopStrip({
           accent={gradeAccent(grade.grade)}
           icon={TrendingUp}
           title="How the market currently sees you, based on your Hireability Assessment."
+          href="/dashboard/hireability-report"
         />
       </div>
 

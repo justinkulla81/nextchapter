@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import {
   CATEGORY_ORDER,
+  CATEGORY_EXPLANATION,
   CONFIDENCE_LABEL,
   CONFIDENCE_EXPLANATION,
   CONFIDENCE_STYLE,
@@ -53,51 +54,61 @@ export function MarketRealityOverview({
   return (
     <Card>
       <CardContent>
-        <div className="flex items-baseline justify-between gap-3">
-          <h3
-            className="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-            title="How the market currently sees you"
-          >
-            Market Reality
-          </h3>
-          <span className="text-xs text-muted-foreground">{weekLabel}</span>
+        <div className="-mx-6 -mt-6 rounded-t-xl bg-brand/5 px-6 pt-6 pb-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3
+              className="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+              title="How the market currently sees you"
+            >
+              Market Reality
+            </h3>
+            <span className="text-xs text-muted-foreground">{weekLabel}</span>
+          </div>
+
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className={cn('text-5xl font-bold', GRADE_TEXT_COLOR[currentGrade])}>{currentGrade}</span>
+            {previousGrade && previousGrade !== currentGrade && (
+              <span className="text-sm text-muted-foreground">from {previousGrade}</span>
+            )}
+          </div>
+          {bestWeekSentence && <p className="mt-1 text-sm text-foreground">{bestWeekSentence}</p>}
+
+          <div className="mt-3">
+            <MarketRealityTrendChart snapshots={trendSnapshots} />
+          </div>
         </div>
 
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className={cn('text-4xl font-bold', GRADE_TEXT_COLOR[currentGrade])}>{currentGrade}</span>
-          {previousGrade && previousGrade !== currentGrade && (
-            <span className="text-sm text-muted-foreground">from {previousGrade}</span>
-          )}
-        </div>
-        {bestWeekSentence && <p className="mt-1 text-sm text-foreground">{bestWeekSentence}</p>}
-
-        <div className="mt-3">
-          <MarketRealityTrendChart snapshots={trendSnapshots} />
-        </div>
-
-        <div className="mt-6 space-y-1 border-t border-border pt-4">
-          {orderedCategories.map((c) => {
-            const history = categoryHistory.get(c.key) ?? []
-            return (
-              <div key={c.key} className="flex items-center justify-between gap-3 py-1.5">
-                <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.label}</span>
-                <span className={cn('w-6 shrink-0 text-center text-sm font-semibold', GRADE_TEXT_COLOR[c.grade])}>
-                  {c.grade}
-                </span>
-                <span className="shrink-0">
-                  <CategorySparkline scores={history} />
-                </span>
-                <span
-                  className={cn(
-                    'shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-medium whitespace-nowrap',
-                    CONFIDENCE_STYLE[c.confidence]
-                  )}
-                >
-                  {CONFIDENCE_LABEL[c.confidence]}
-                </span>
-              </div>
-            )
-          })}
+        <div className="mt-6 space-y-1">
+          <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            The six categories behind this grade
+          </h4>
+          <div className="mt-2 space-y-1">
+            {orderedCategories.map((c) => {
+              const history = categoryHistory.get(c.key) ?? []
+              return (
+                <div key={c.key} className="space-y-0.5 border-b border-border py-1.5 last:border-b-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.label}</span>
+                    <span className={cn('w-6 shrink-0 text-center text-sm font-semibold', GRADE_TEXT_COLOR[c.grade])}>
+                      {c.grade}
+                    </span>
+                    <span className="shrink-0">
+                      <CategorySparkline scores={history} />
+                    </span>
+                    <span
+                      className={cn(
+                        'shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-medium whitespace-nowrap',
+                        CONFIDENCE_STYLE[c.confidence]
+                      )}
+                    >
+                      {CONFIDENCE_LABEL[c.confidence]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{CATEGORY_EXPLANATION[c.key]}</p>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {whatMoved.length > 0 && (

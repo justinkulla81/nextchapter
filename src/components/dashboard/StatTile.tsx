@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 export type StatTileAccent = 'success' | 'brand' | 'warning' | 'error' | 'neutral'
@@ -28,13 +29,16 @@ interface StatTileProps {
   // When provided, the tile becomes a <details> disclosure — click the
   // tile to reveal this content (e.g. a per-item breakdown) below it.
   children?: ReactNode
+  // When provided (and there are no children), the whole tile becomes a
+  // link to this path instead of a static box.
+  href?: string
   className?: string
   title?: string
 }
 
 // Shared "stat tile" shape for Dashboard and Network — one bordered box
 // with a big number/value and a label underneath.
-export function StatTile({ value, label, accent = 'neutral', valueClassName, icon: Icon, children, className, title }: StatTileProps) {
+export function StatTile({ value, label, accent = 'neutral', valueClassName, icon: Icon, children, href, className, title }: StatTileProps) {
   const head = (
     <div className="flex items-start gap-2 px-3 py-2.5">
       {Icon && (
@@ -55,6 +59,18 @@ export function StatTile({ value, label, accent = 'neutral', valueClassName, ico
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{head}</summary>
         <div className="border-t border-border px-3.5 py-3">{children}</div>
       </details>
+    )
+  }
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn('block overflow-hidden rounded-lg border border-border transition-colors hover:border-primary/40 hover:bg-muted/40', className)}
+        title={title}
+      >
+        {head}
+      </Link>
     )
   }
 

@@ -4,7 +4,13 @@ import { ListChecks } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
-import { WEEKLY_ENGINE_LABEL, GRADE_TEXT_COLOR, CATEGORY_ORDER, type WeeklyEngine } from '@/lib/scoring/grade'
+import {
+  WEEKLY_ENGINE_LABEL,
+  WEEKLY_ENGINE_EXPLANATION,
+  GRADE_TEXT_COLOR,
+  CATEGORY_ORDER,
+  type WeeklyEngine,
+} from '@/lib/scoring/grade'
 import type { Grade } from '@/lib/scoring/grade'
 import {
   getCategoryScoreHistory,
@@ -20,15 +26,12 @@ import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import { estimateActionEffort, engineForActionType, ACTION_TYPE_LINK } from '@/lib/weekly/action-effort'
 import { getMoodHistory } from '@/lib/daily/mood'
 import { difficultyLevelToIntensityScore } from '@/lib/scoring/search-intensity'
-import { getDailyActivity } from '@/lib/stats/activity-heatmap'
-import { getLastWeekActions } from '@/lib/stats/last-week-actions'
 import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
 import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { StreakHeroBanner } from '@/components/dashboard/StreakHeroBanner'
-import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
@@ -52,11 +55,8 @@ export default async function YourStatsPage() {
     currentSprint,
     moodHistory,
     marketRealitySnapshots,
-    dailyActivity,
-    lastWeekActions,
     weeklyBadges,
     milestoneBadges,
-    sprintTargetWeeks,
     weekNumber,
     sprintCompletionStreaks,
   ] = await Promise.all([
@@ -70,19 +70,8 @@ export default async function YourStatsPage() {
       where: { candidateId: profile.id },
       orderBy: { weekStartDate: 'asc' },
     }),
-    getDailyActivity(profile.id),
-    getLastWeekActions(profile.id),
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
-    // Sourced from WeeklyBadgeEarned, the real currently-written record —
-    // SundayNightReport.onAList is legacy and nothing writes to it anymore
-    // (see src/lib/badges/weekly-badge-archive.ts).
-    prisma.weeklyBadgeEarned.findMany({
-      where: { candidateId: profile.id, badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' },
-      orderBy: { weekStartDate: 'desc' },
-      take: 12,
-      select: { weekStartDate: true },
-    }),
     getCandidateWeekNumber(profile.id, weekStartDate),
     computeSprintCompletionStreaks(profile.id),
   ])
@@ -123,6 +112,9 @@ export default async function YourStatsPage() {
     CATEGORY_ORDER.map((key) => [key, getCategoryScoreHistory(heroSnapshots, key)])
   )
 
+  const completedActionsCount = committedActions.filter((a) => a.completed).length
+  const onTrackThisWeek = grade.weeklyPoints >= grade.weeklyPointsTarget
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -152,98 +144,7 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold text-foreground tabular-nums">
-            {grade.weeklyPoints} / {grade.weeklyPointsTarget}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">points this week</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Badges</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MotivationChart baseline={difficultyLevelToIntensityScore(profile.jobSearchDifficultyLevel)} history={moodHistory} />
-          <p className="mt-3 text-xs text-muted-foreground">
-            Private — only you and your coach (if you have one) ever see this. Never part of any
-            export, and never visible to hiring managers or recruiters.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityHeatmap activity={dailyActivity} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Last week&apos;s actions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {!lastWeekActions ? (
-            <p className="text-sm text-muted-foreground">No committed Sprint on file for last week.</p>
-          ) : (
-            <>
-              {lastWeekActions.committed.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Committed</h3>
-                  <ul className="mt-2 space-y-1">
-                    {lastWeekActions.committed.map((a, i) => (
-                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
-                        <span className={a.completed ? 'text-foreground' : 'text-muted-foreground'}>
-                          {a.completed ? '✓ ' : ''}
-                          {a.text}
-                        </span>
-                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{a.points} pts</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {lastWeekActions.fromCatalog.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                    From the catalog
-                  </h3>
-                  <ul className="mt-2 space-y-1">
-                    {lastWeekActions.fromCatalog.map((a, i) => (
-                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
-                        <span className={a.completed ? 'text-foreground' : 'text-muted-foreground'}>
-                          {a.completed ? '✓ ' : ''}
-                          {a.text}
-                        </span>
-                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{a.points} pts</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Grade history log</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality reports, week by week</CardTitle>
         </CardHeader>
         <CardContent>
           <MarketRealitySnapshotArchive
@@ -254,6 +155,13 @@ export default async function YourStatsPage() {
               namedReasons: s.namedReasons as unknown as NamedReason[],
             }))}
           />
+          <p className="mt-3 text-xs text-muted-foreground">
+            The full narrative behind any week&apos;s grade lives on your{' '}
+            <a href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
+              Market Reality Report
+            </a>
+            .
+          </p>
         </CardContent>
       </Card>
 
@@ -287,14 +195,22 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s Search Score detail</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s effort by category</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <p className="text-xs text-muted-foreground">
+            Separate from the points total above — these four grades measure how you&apos;re
+            spending your effort this week, not how much of it. They feed into your Target Fit
+            category on Market Reality, not your points.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {grade.weeklyEngines.map((e) => (
-              <div key={e.key} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <span className="text-sm text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
-                <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
+              <div key={e.key} className="rounded-lg border border-border p-3" title={WEEKLY_ENGINE_EXPLANATION[e.key]}>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
+                  <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{WEEKLY_ENGINE_EXPLANATION[e.key]}</p>
               </div>
             ))}
           </div>
@@ -303,6 +219,28 @@ export default async function YourStatsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Badges</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MotivationChart baseline={difficultyLevelToIntensityScore(profile.jobSearchDifficultyLevel)} history={moodHistory} />
+          <p className="mt-3 text-xs text-muted-foreground">
+            Private — only you and your coach (if you have one) ever see this. Never part of any
+            export, and never visible to hiring managers or recruiters.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card id="actions" className="scroll-mt-4">
+        <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Actions completed this week</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -310,33 +248,60 @@ export default async function YourStatsPage() {
             <p className="text-sm text-muted-foreground">
               You haven&apos;t committed to this week&apos;s actions yet — set them up from the dashboard.
             </p>
-          ) : completedByEngine.size === 0 ? (
-            <EmptyState
-              icon={ListChecks}
-              title="Nothing completed yet this week"
-              description="You've committed to this week's actions — check them off from the dashboard as you go."
-              cta={{ label: 'Go to dashboard', href: '/dashboard' }}
-            />
           ) : (
-            ENGINE_ORDER.map((engine) => {
-              const actions = completedByEngine.get(engine)
-              if (!actions || actions.length === 0) return null
-              return (
-                <div key={engine}>
-                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                    {WEEKLY_ENGINE_LABEL[engine]}
-                  </h3>
-                  <ul className="mt-2 space-y-1">
-                    {actions.map((a, i) => (
-                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="text-foreground">{a.text}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{a.points} pts</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            })
+            <>
+              <div
+                className={cn(
+                  'rounded-lg border p-3 text-sm font-medium',
+                  onTrackThisWeek ? 'border-success/30 bg-success/5 text-success' : 'border-error/30 bg-error/5 text-error'
+                )}
+              >
+                {onTrackThisWeek ? 'On track' : 'Behind pace'}: you&apos;ve done{' '}
+                <span className="tabular-nums">{completedActionsCount}</span> action
+                {completedActionsCount === 1 ? '' : 's'} and earned{' '}
+                <span className="tabular-nums">{grade.weeklyPoints}</span> of{' '}
+                <span className="tabular-nums">{grade.weeklyPointsTarget}</span> points this week
+              </div>
+
+              {completedByEngine.size === 0 ? (
+                <EmptyState
+                  icon={ListChecks}
+                  title="Nothing completed yet this week"
+                  description="You've committed to this week's actions — check them off from the dashboard as you go."
+                  cta={{ label: 'Go to dashboard', href: '/dashboard' }}
+                />
+              ) : (
+                ENGINE_ORDER.map((engine) => {
+                  const actions = completedByEngine.get(engine)
+                  if (!actions || actions.length === 0) return null
+                  return (
+                    <div key={engine}>
+                      <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                        {WEEKLY_ENGINE_LABEL[engine]}
+                      </h3>
+                      <ul className="mt-2 space-y-1">
+                        {actions.map((a, i) => (
+                          <li
+                            key={i}
+                            className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm"
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="shrink-0 text-success" aria-hidden>
+                                ✓
+                              </span>
+                              <span className="truncate text-foreground">{a.text}</span>
+                            </span>
+                            <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+                              {a.points} pts
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -376,41 +341,6 @@ export default async function YourStatsPage() {
           })}
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Sprint Target</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {sprintTargetWeeks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No Sprint Target weeks yet — hit your weekly points target to start your streak.
-            </p>
-          ) : (
-            <ul className="space-y-1.5">
-              {sprintTargetWeeks.map((r) => (
-                <li key={r.weekStartDate.toISOString()} className="flex items-center gap-2 text-sm">
-                  <span aria-hidden>🎯</span>
-                  <span className="text-foreground">
-                    Week of {r.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-3 text-xs text-muted-foreground">
-            Private and personal — never a public leaderboard. Only you see this.
-          </p>
-        </CardContent>
-      </Card>
-
-      <p className="text-xs text-muted-foreground">
-        Grades are explained in full on your{' '}
-        <a href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
-          Hireability Report
-        </a>
-        .
-      </p>
     </div>
   )
 }
