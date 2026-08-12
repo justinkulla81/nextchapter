@@ -2767,6 +2767,12 @@ model SupportNetworkContact {
   // relationshipTags, which capture *what* they are (recruiter, hiring
   // manager, ...), not whether the candidate has decided to prioritize them.
   isPriority          Boolean                    @default(false)
+  // Set the first time this contact earns CONTACT_PRIORITIZED points (see
+  // toggleContactPriority) — a durable per-contact "already paid" flag so
+  // star/unstar/restar can't farm points, independent of isPriority's
+  // current on/off state. Candidate-wide count of non-null rows here (capped
+  // at 5) is the lifetime progress shown in the Action Plan box.
+  priorityPointsAwardedAt DateTime?
   category            ContactCategory?
   warmth              ContactWarmth              @default(WARM)
   source              ContactSource              @default(MANUAL)

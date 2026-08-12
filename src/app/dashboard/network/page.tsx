@@ -21,6 +21,8 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { NeedsFollowUpCard } from '@/components/dashboard/NeedsFollowUpCard'
+import { PriorityContactsCard } from '@/components/dashboard/PriorityContactsCard'
+import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -433,6 +435,11 @@ export default async function NetworkPage({
     getNeedsFollowUpList(profile.id),
   ])
   const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0 }))
+  // Drops off this list the moment an outreach is logged against them — see
+  // toggleContactPriority's comment for why (they belong in Needs a
+  // Follow-up from then on instead).
+  const priorityContacts = contacts.filter((c) => c.isPriority && !c.hasReachedOut)
+  const starredCount = contacts.filter((c) => c.priorityPointsAwardedAt).length
 
   if (!profile.networkComfortLevel) {
     return (
@@ -463,6 +470,9 @@ export default async function NetworkPage({
               dismissedAlready={Boolean(profile.outreachPlanDismissedAt)}
             />
           }
+          lifetimeProgress={{
+            CONTACT_PRIORITIZED: { current: starredCount, target: PRIORITY_CONTACT_TARGET_COUNT },
+          }}
         />
       </div>
 
@@ -476,6 +486,10 @@ export default async function NetworkPage({
       <MarkBackchannelViewedOnMount />
       <ReconnectBanner candidateId={profile.id} />
 
+      <PriorityContactsCard contacts={priorityContacts} />
+
+      <NeedsFollowUpCard items={needsFollowUp} />
+
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
         <NetworkingStatsCard profile={profile} />
       </Suspense>
@@ -483,8 +497,6 @@ export default async function NetworkPage({
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <NetworkQuickActionsCard contacts={contacts} initialContactId={params.contact} />
-
-      <NeedsFollowUpCard items={needsFollowUp} />
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 

@@ -70,8 +70,12 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-medium text-foreground">{item.contactName}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {item.kind === 'meeting' ? 'Met' : 'Emailed you'} {formatDate(item.date)} —{' '}
-                {item.subject}
+                {item.kind === 'meeting'
+                  ? 'Met'
+                  : item.kind === 'inbound-email'
+                    ? 'Emailed you'
+                    : 'You emailed, no reply yet'}{' '}
+                {formatDate(item.date)} — {item.subject}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
@@ -81,7 +85,7 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
                 rel="noopener noreferrer"
                 className="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
               >
-                {item.kind === 'meeting' ? 'Send thank-you' : 'Reply'}
+                {item.kind === 'meeting' ? 'Send thank-you' : item.kind === 'inbound-email' ? 'Reply' : 'Follow up'}
               </a>
               <button
                 type="button"

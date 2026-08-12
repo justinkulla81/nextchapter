@@ -25,6 +25,9 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   OUTREACH_MESSAGE: { minutes: 15, points: 15 },
   OUTREACH_CALL: { minutes: 30, points: 30 },
   NETWORKING_LIST: { minutes: 25, points: 25 },
+  // Starring a priority contact — capped at 5 lifetime awards, see
+  // toggleContactPriority.
+  CONTACT_PRIORITIZED: { minutes: 5, points: 5 },
 
   // Engage (Support Network) — Peer Support is intentionally 0, see below.
   ENGAGE_COMMENT: { minutes: 5, points: 5 },
@@ -234,6 +237,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   OUTREACH_MESSAGE: 'connecting',
   OUTREACH_CALL: 'connecting',
   NETWORKING_LIST: 'connecting',
+  CONTACT_PRIORITIZED: 'connecting',
   ENGAGE_COMMENT: 'connecting',
   ENGAGE_EVENT: 'connecting',
   ENGAGE_POST_UPDATE: 'connecting',
@@ -362,6 +366,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   LINKEDIN_SETUP: 'Personalize',
 
   NETWORKING_LIST: 'Connecting',
+  CONTACT_PRIORITIZED: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
   OUTREACH_CALL: 'Connecting',
   REFERENCE_ADDED: 'Connecting',
@@ -413,6 +418,10 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // types below — not a candidate-chosen weekly rep count, see
   // RECURRING_ACTION_TARGET_COUNT's comment.
   'NETWORKING_LIST',
+  // Starring a contact accrues the same way — an event-driven completion,
+  // not a candidate-chosen weekly rep count. Lifetime-capped at 5, see
+  // toggleContactPriority and the lifetimeProgress wiring on the Network page.
+  'CONTACT_PRIORITIZED',
   'ENGAGE_COMMENT',
   'ENGAGE_EVENT',
   'ENGAGE_POST_UPDATE',
@@ -469,6 +478,7 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   OUTREACH_MESSAGE: 2,
   OUTREACH_CALL: 1,
   NETWORKING_LIST: 2,
+  CONTACT_PRIORITIZED: 1,
   REFERENCE_ADDED: 1,
   REFERENCE_REQUESTED: 1,
   REFERENCE_FOLLOW_UP: 1,
@@ -535,6 +545,7 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'OUTREACH_MESSAGE',
   'OUTREACH_CALL',
   'NETWORKING_LIST',
+  'CONTACT_PRIORITIZED',
   'REFERENCE_ADDED',
   'REFERENCE_REQUESTED',
   'REFERENCE_FOLLOW_UP',
@@ -567,6 +578,7 @@ export function isAutoDetectedActionType(actionType: string | undefined): boolea
 export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: string }>> = {
   SEARCH_STRATEGY_CHECKLIST: { href: '/dashboard/search-strategy', label: 'Search Strategy' },
   NETWORKING_LIST: { href: '/dashboard/network/contacts#import', label: 'My Network' },
+  CONTACT_PRIORITIZED: { href: '/dashboard/network/contacts', label: 'Contact Book' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
   REFERENCE_ADDED: { href: '/dashboard/references', label: 'My References' },
@@ -729,6 +741,7 @@ export type { PageKey } from '@/lib/dashboard/page-content'
 export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   network: [
     'NETWORKING_LIST',
+    'CONTACT_PRIORITIZED',
     'OUTREACH_MESSAGE',
     'OUTREACH_CALL',
     'NETWORK_COMFORT_CONFIRMED',

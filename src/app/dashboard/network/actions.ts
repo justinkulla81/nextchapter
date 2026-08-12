@@ -7,6 +7,7 @@ import type {
   OutreachChannel,
   MarketResponseType,
   RelationshipTag,
+  ContactSource,
 } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
@@ -16,6 +17,7 @@ import { parseLinkedInConnectionsCsv, normalizeContactKey } from '@/lib/network/
 import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 
 const NETWORKING_LIST_TARGET = 25
 
@@ -268,15 +270,55 @@ export async function updateContact(contactId: string, formData: FormData) {
   revalidatePath('/dashboard/network/contacts')
 }
 
+// Starring is the candidate's own "these people matter most" shortlist —
+// surfaced on the Network page as long as isPriority is true AND the
+// candidate hasn't reached out to them yet (see the priority-contacts query
+// in network/page.tsx). The moment an outreach is logged against them,
+// they've moved from "reach out to this person" to "did they answer me" —
+// that's what needs-follow-up.ts's unanswered-outbound branch picks up
+// instead, so the same person is never shown as both at once.
 export async function toggleContactPriority(contactId: string, isPriority: boolean) {
   const profile = await getAuthedProfile()
   if (!profile) return
+
+  const contact = await prisma.supportNetworkContact.findFirst({
+    where: { id: contactId, candidateId: profile.id },
+    select: { priorityPointsAwardedAt: true },
+  })
+  if (!contact) return
 
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
     data: { isPriority },
   })
   captureServerEvent(profile.id, 'contact_priority_toggled', { contactId, isPriority })
+
+  // Award points once per contact, capped at PRIORITY_CONTACT_TARGET_COUNT
+  // contacts total (lifetime) — encourages a real top-5 shortlist, not a
+  // star/unstar/restar farm. priorityPointsAwardedAt is the durable
+  // "already paid" flag this cap checks against.
+  if (isPriority && !contact.priorityPointsAwardedAt) {
+    const awardedCount = await prisma.supportNetworkContact.count({
+      where: { candidateId: profile.id, priorityPointsAwardedAt: { not: null } },
+    })
+    if (awardedCount < PRIORITY_CONTACT_TARGET_COUNT) {
+      await prisma.supportNetworkContact.update({
+        where: { id: contactId },
+        data: { priorityPointsAwardedAt: new Date() },
+      })
+      const sprint = await getCurrentWeekSprint(profile.id)
+      if (sprint) {
+        const effort = estimateActionEffort({ actionType: 'CONTACT_PRIORITIZED' })
+        await autoCompleteEngagementAction(profile.id, {
+          actionType: 'CONTACT_PRIORITIZED',
+          text: 'Star a priority contact',
+          points: effort.points,
+          estimatedMinutes: effort.minutes,
+        }).catch((error) => console.error('Failed to auto-complete CONTACT_PRIORITIZED action:', error))
+      }
+    }
+  }
+
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
 }
@@ -430,4 +472,63 @@ export async function logMarketResponse(type: MarketResponseType) {
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
+}
+
+// Confirms a suggestion from getSuggestedContactsToAdd (a recruiter/hiring-
+// manager email or networking-call/interview counterpart the silent
+// upsertContactFromSignal auto-add missed) into a real Contact Directory
+// row. company is best-effort domain inference — title/linkedinUrl are left
+// blank since there's no reliable way to infer either from an email address
+// alone, so the candidate fills them in by hand if they want them.
+export async function addSuggestedContact(params: {
+  name: string
+  email: string
+  connectedAt: Date
+  inferredCompany: string | null
+}) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const email = params.email.toLowerCase()
+  const existing = await prisma.supportNetworkContact.findFirst({
+    where: { candidateId: profile.id, email },
+  })
+  if (existing) return
+
+  await prisma.supportNetworkContact.create({
+    data: {
+      candidateId: profile.id,
+      name: params.name,
+      email,
+      company: params.inferredCompany,
+      source: 'EMAIL_DETECTED' as ContactSource,
+      connectedAt: params.connectedAt,
+      normalizedKey: normalizeContactKey(params.name, params.inferredCompany),
+    },
+  })
+  captureServerEvent(profile.id, 'suggested_contact_added', { email })
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+}
+
+// The "not a contact" dismiss path for a suggestion — reuses the same
+// dismissedAt columns the Needs Follow-up card already writes to
+// (dismissEmailActivity/dismissCalendarEvent), so a declined suggestion
+// never resurfaces from either list.
+export async function dismissSuggestedContact(sourceId: string, sourceKind: 'meeting' | 'inbound-email') {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  if (sourceKind === 'meeting') {
+    await prisma.trackedCalendarEvent.updateMany({
+      where: { id: sourceId, candidateId: profile.id },
+      data: { dismissedAt: new Date() },
+    })
+  } else {
+    await prisma.trackedEmailActivity.updateMany({
+      where: { id: sourceId, candidateId: profile.id },
+      data: { dismissedAt: new Date() },
+    })
+  }
+  revalidatePath('/dashboard/network/contacts')
 }

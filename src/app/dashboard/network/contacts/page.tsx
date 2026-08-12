@@ -18,6 +18,9 @@ import {
   fillGoodWordTemplate,
   fillCheckingInTemplate,
 } from '@/lib/constants/network-email-templates'
+import { getSuggestedContactsToAdd } from '@/lib/network/suggested-contacts'
+import { SuggestedContactsCard } from '@/components/dashboard/SuggestedContactsCard'
+import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 export const metadata: Metadata = { title: 'Contact Directory' }
 
 const PAGE_SIZE = 50
@@ -105,7 +108,7 @@ export default async function ContactDirectoryPage({
   else if (sortKey === 'date') orderBy.push({ connectedAt: dir }, { createdAt: dir })
   else orderBy.push({ [sortKey]: dir })
 
-  const [totalCount, removedCount, rawContacts] = await Promise.all([
+  const [totalCount, removedCount, rawContacts, starredCount, suggestions] = await Promise.all([
     prisma.supportNetworkContact.count({ where }),
     prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: { not: null } } }),
     prisma.supportNetworkContact.findMany({
@@ -115,6 +118,8 @@ export default async function ContactDirectoryPage({
       take: PAGE_SIZE,
       include: { outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 } },
     }),
+    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, priorityPointsAwardedAt: { not: null } } }),
+    getSuggestedContactsToAdd(profile.id),
   ])
   // Only looked up for the ~50 contacts on the current page, not the whole
   // list — this used to run against all 27,000+ emails at once.
@@ -136,6 +141,15 @@ export default async function ContactDirectoryPage({
         <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
         <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
       </div>
+
+      {starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
+        <p className="rounded-lg border border-brand/30 bg-brand/5 p-3 text-sm text-foreground">
+          Star at least {PRIORITY_CONTACT_TARGET_COUNT} people below as priority contacts to earn 5 points
+          each — you&apos;ve starred {starredCount} of {PRIORITY_CONTACT_TARGET_COUNT} so far.
+        </p>
+      )}
+
+      <SuggestedContactsCard suggestions={suggestions} />
 
       <ContactDirectoryTable
         contacts={contacts}

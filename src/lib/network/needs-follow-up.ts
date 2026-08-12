@@ -8,6 +8,10 @@ import { formatDisplayName } from '@/lib/format-name'
 // too stale to act on naturally.
 const MEETING_LOOKBACK_DAYS = 21
 const INBOUND_LOOKBACK_DAYS = 14
+// A message you sent to a known contact that's gone unanswered this long
+// earns its own nudge — long enough that silence is a real signal, not just
+// someone being slow to check email.
+const OUTBOUND_LOOKBACK_DAYS = 7
 
 // trackedEmailActivity.fromAddress stores the raw RFC 5322 header value
 // (sync-gmail.ts writes `from`/`to` straight from the parsed message), which
@@ -28,7 +32,7 @@ function parseAddress(raw: string): { name: string | null; email: string } {
 }
 
 export interface NeedsFollowUpItem {
-  kind: 'meeting' | 'inbound-email'
+  kind: 'meeting' | 'inbound-email' | 'unanswered-outbound'
   sourceId: string
   contactName: string
   contactEmail: string
@@ -37,13 +41,20 @@ export interface NeedsFollowUpItem {
   gmailHref: string
 }
 
-// Two real, verifiable "you owe someone something" signals, joined without
-// a new attendee table: a tracked calendar meeting (NETWORKING_CALL/
+// Three real, verifiable "you owe someone something" signals, joined
+// without a new attendee table: a tracked calendar meeting (NETWORKING_CALL/
 // INTERVIEW) whose counterpart hasn't received a detected thank-you/
-// follow-up email since, and an inbound recruiter email that hasn't been
-// replied to. Deliberately read-only/informational — this list never
-// awards points itself; the points still only come from Gmail/Calendar
-// actually detecting the real thank-you/follow-up/reply (see
+// follow-up email since; an inbound email — from a recruiter/hiring-manager/
+// coach signal OR from anyone already in the candidate's own contact list —
+// that hasn't been replied to; and an outbound email to a known contact that
+// has gone unanswered for a week (silence after reaching out is its own real
+// signal, not just someone being slow to check email). This is what a
+// starred priority contact falls into once the candidate actually reaches
+// out to them — see toggleContactPriority, which stops surfacing them as
+// "priority" the moment an outreach is logged, since from then on this list
+// is where they belong instead. Deliberately read-only/informational — this
+// list never awards points itself; the points still only come from Gmail/
+// Calendar actually detecting the real thank-you/follow-up/reply (see
 // AUTO_DETECTED_ACTION_TYPES) once the candidate acts on it.
 export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFollowUpItem[]> {
   const [calendarConnection, emailConnection] = await Promise.all([
@@ -55,6 +66,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
   const now = Date.now()
   const meetingCutoff = new Date(now - MEETING_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
   const inboundCutoff = new Date(now - INBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const outboundCutoff = new Date(now - OUTBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
 
   const [meetings, emailActivities, contacts] = await Promise.all([
     calendarConnection && !calendarConnection.disconnectedAt
@@ -98,6 +110,16 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     if (!existing || activity.detectedAt > existing) latestOutboundByAddress.set(address, activity.detectedAt)
   }
 
+  // Mirror of the map above for the other direction — "did they reply after
+  // I sent?" for the unanswered-outbound branch below.
+  const latestInboundByAddress = new Map<string, Date>()
+  for (const activity of emailActivities) {
+    if (activity.direction !== 'INBOUND' || !activity.fromAddress) continue
+    const address = parseAddress(activity.fromAddress).email
+    const existing = latestInboundByAddress.get(address)
+    if (!existing || activity.detectedAt > existing) latestInboundByAddress.set(address, activity.detectedAt)
+  }
+
   const meetingItems: NeedsFollowUpItem[] = meetings
     .filter((meeting) => {
       const address = meeting.counterpartEmail!.toLowerCase()
@@ -119,13 +141,17 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
       }
     })
 
+  // Recruiter/hiring-manager/coach-flagged senders OR anyone already on the
+  // candidate's own contact list — broadened beyond just recruiters so a
+  // reply from a regular networking contact (including one the candidate
+  // just reached out to) surfaces here too, not only cold recruiter outreach.
   const inboundItems: NeedsFollowUpItem[] = emailActivities
     .filter(
       (activity) =>
         activity.direction === 'INBOUND' &&
-        activity.isRecruiterContact &&
         activity.fromAddress &&
-        activity.detectedAt >= inboundCutoff
+        activity.detectedAt >= inboundCutoff &&
+        (activity.isRecruiterContact || contactNameByEmail.has(parseAddress(activity.fromAddress).email))
     )
     .filter((activity) => {
       const address = parseAddress(activity.fromAddress!).email
@@ -147,11 +173,43 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
       }
     })
 
+  // A message sent to a known contact that's gone unanswered for a week —
+  // scoped to contacts already on the candidate's list (never a cold-outreach
+  // or transactional address) so this only ever nudges about real people.
+  // This is the other half of the "starred priority contact, once reached
+  // out to, belongs here instead" flow described on toggleContactPriority.
+  const unansweredOutboundItems: NeedsFollowUpItem[] = emailActivities
+    .filter(
+      (activity) => activity.direction === 'OUTBOUND' && activity.fromAddress && activity.detectedAt <= outboundCutoff
+    )
+    .filter((activity) => {
+      const address = parseAddress(activity.fromAddress!).email
+      if (!contactNameByEmail.has(address)) return false
+      const reply = latestInboundByAddress.get(address)
+      return !reply || reply < activity.detectedAt
+    })
+    .map((activity) => {
+      const address = parseAddress(activity.fromAddress!).email
+      const subject = activity.subject || 'your message'
+      const rawName = contactNameByEmail.get(address) ?? address
+      return {
+        kind: 'unanswered-outbound' as const,
+        sourceId: activity.id,
+        contactName: formatDisplayName(rawName),
+        contactEmail: address,
+        date: activity.detectedAt,
+        subject,
+        gmailHref: gmailComposeHref(address, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
+      }
+    })
+
   // One row per person — someone who both met with you AND emailed you
   // should only show once, keyed to whichever signal is more recent.
   const seen = new Set<string>()
   const deduped: NeedsFollowUpItem[] = []
-  for (const item of [...meetingItems, ...inboundItems].sort((a, b) => b.date.getTime() - a.date.getTime())) {
+  for (const item of [...meetingItems, ...inboundItems, ...unansweredOutboundItems].sort(
+    (a, b) => b.date.getTime() - a.date.getTime()
+  )) {
     if (seen.has(item.contactEmail)) continue
     seen.add(item.contactEmail)
     deduped.push(item)
