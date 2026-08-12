@@ -24,7 +24,7 @@ import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { dismissPageBox, reenablePageBox, type PageKey } from '@/lib/dashboard/page-content'
+import { dismissPageBox, type PageKey } from '@/lib/dashboard/page-content'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -135,27 +135,6 @@ export async function dismissDailyMessageBox(pageKey: PageKey) {
 
   await dismissPageBox(profile.id, pageKey, 'DAILY_MESSAGE')
   captureServerEvent(profile.id, 'page_daily_message_dismissed', { pageKey })
-  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
-}
-
-// Why It Matters box's "Got it" — permanent until re-enabled from
-// /dashboard/privacy (see reenableWhyItMattersBox below).
-export async function dismissWhyItMattersBox(pageKey: PageKey) {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  await dismissPageBox(profile.id, pageKey, 'WHY_IT_MATTERS')
-  captureServerEvent(profile.id, 'page_why_it_matters_dismissed', { pageKey })
-  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
-}
-
-export async function reenableWhyItMattersBox(pageKey: PageKey) {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  await reenablePageBox(profile.id, pageKey)
-  captureServerEvent(profile.id, 'page_why_it_matters_reenabled', { pageKey })
-  revalidatePath('/dashboard/privacy')
   revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
 }
 

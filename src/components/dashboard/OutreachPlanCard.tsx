@@ -77,7 +77,7 @@ export function OutreachPlanCard({
           ))}
         </ol>
       </div>
-      <p className="rounded-md bg-orange/10 px-3 py-2 text-sm text-foreground">
+      <p className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">
         <strong className="font-semibold">Tip:</strong> star the people you most want to follow up with below —
         starred contacts show up as reminders on your Success Dashboard until you email them.
       </p>

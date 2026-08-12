@@ -55,8 +55,8 @@ export interface PageContentView {
 // sequenceOrder asc nulls-last, then createdAt asc) but is scoped per page
 // and box type, and respects a publish/expire window. DAILY_MESSAGE
 // dismissals only count for the rest of the day they were made (reappears
-// tomorrow); WHY_IT_MATTERS dismissals are permanent until the candidate
-// re-enables from /dashboard/privacy (see reenablePageBox).
+// tomorrow); WHY_IT_MATTERS dismissals are permanent (that box type is no
+// longer rendered candidate-side, but the dismissal contract stays generic).
 //
 // dynamicOverride lets a caller inject a computed, non-admin-authored
 // message (e.g. "new jobs at a company you're watching" — see
@@ -107,25 +107,3 @@ export async function dismissPageBox(candidateId: string, pageKey: PageKey, boxT
   })
 }
 
-// Deletes the dismissal row outright — re-enabling a WHY_IT_MATTERS box
-// means the candidate wants to see it again, not just "not today."
-export async function reenablePageBox(candidateId: string, pageKey: PageKey): Promise<void> {
-  await prisma.pageBoxDismissal.deleteMany({
-    where: { candidateId, pageKey, boxType: 'WHY_IT_MATTERS' },
-  })
-}
-
-export interface DismissedWhyItMattersEntry {
-  pageKey: string
-  dismissedAt: Date
-}
-
-// Feeds the "Page tips" re-enable list on /dashboard/privacy.
-export async function listDismissedWhyItMattersBoxes(candidateId: string): Promise<DismissedWhyItMattersEntry[]> {
-  const rows = await prisma.pageBoxDismissal.findMany({
-    where: { candidateId, boxType: 'WHY_IT_MATTERS' },
-    select: { pageKey: true, dismissedAt: true },
-    orderBy: { dismissedAt: 'desc' },
-  })
-  return rows
-}

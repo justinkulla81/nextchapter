@@ -174,7 +174,7 @@ export async function SprintActionCompletion({
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-success/20 bg-success/5 p-3">
+    <div className="space-y-2 rounded-lg border border-orange/30 bg-orange/5 p-3">
       <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Action Plan</p>
       <ul className="list-disc space-y-1.5 pl-5 marker:text-muted-foreground">
         {selfReportCommitted.map((action) => {

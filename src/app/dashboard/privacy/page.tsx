@@ -10,8 +10,6 @@ import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
-import { PageTipsSection } from '@/components/dashboard/PageTipsSection'
-import { listDismissedWhyItMattersBoxes } from '@/lib/dashboard/page-content'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -21,12 +19,11 @@ export const metadata: Metadata = { title: 'Privacy Settings' }
 
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
-  const [grade, coach, dismissedPageTips] = await Promise.all([
+  const [grade, coach] = await Promise.all([
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
       : Promise.resolve(null),
-    listDismissedWhyItMattersBoxes(profile.id),
   ])
 
   return (
@@ -56,17 +53,6 @@ export default async function PrivacyPage() {
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
         <ActionWindowSelector current={profile.actionWindow} />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Page tips</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            &quot;Why it matters&quot; boxes you&apos;ve dismissed on other pages. Bring one back if you want the
-            reminder again.
-          </p>
-        </div>
-        <PageTipsSection dismissed={dismissedPageTips} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

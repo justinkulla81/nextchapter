@@ -137,7 +137,7 @@ export default async function SearchStrategyPage() {
         <p className="mt-1 text-muted-foreground">
           A one-time setup for your Search Goals — editable any time your situation changes.
         </p>
-        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} showWhyItMatters={false} />
+        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
       </div>
 
       <Card id="optional-questions" className="scroll-mt-4">
