@@ -8,7 +8,7 @@ import { CONFIDENCE_LABEL, type ConfidenceLevel } from '@/lib/scoring/grade'
 // shown to the candidate, only the anchor label the mean rounds to, with n
 // alongside. "Didn't see this" (null) is excluded from both the mean and n
 // entirely, not coerced to a score.
-const DIMENSION_FIELDS = {
+export const DIMENSION_FIELDS = {
   Execution: ['perfExecutionDelivered', 'perfExecutionQuality', 'perfExecutionAutonomy'],
   Judgment: ['perfJudgmentDecisionQuality', 'perfJudgmentEscalation', 'perfJudgmentSituationalRead'],
   Composure: ['perfComposureSteadiness', 'perfComposureFeedbackResponse', 'perfComposureEffectOnOthers'],

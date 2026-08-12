@@ -1,4 +1,5 @@
 import type { CoachingNotes } from '@/lib/coach/coaching-notes'
+import { ReferenceBreakdownSection } from '@/components/coach/ReferenceBreakdownSection'
 import type { FocusLabel, VolumeAssessment } from '@/lib/network/application-trends'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { MarketRealityTrendChart } from '@/components/dashboard/MarketRealityTrendChart'
@@ -257,6 +258,8 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
           </dl>
         </div>
       )}
+
+      {notes.referenceBreakdown && <ReferenceBreakdownSection breakdown={notes.referenceBreakdown} />}
 
       {notes.financialPressureContext && (
         <div>

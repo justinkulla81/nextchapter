@@ -25,6 +25,7 @@ import {
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
+import { getAnonymizedReferenceBreakdown, type ReferenceBreakdown } from '@/lib/coach/reference-breakdown'
 
 export interface GapAnalysisGap {
   area: string
@@ -385,10 +386,14 @@ export interface CoachingNotes {
   // interim/consulting work — the Search Strategy fields with no other
   // coach-facing home.
   searchPlan: SearchPlan
+  // Every completed reference's answers, pooled by category/section rather
+  // than grouped by reviewer — see getAnonymizedReferenceBreakdown for why
+  // (referee anonymity). Null until at least one reference has completed.
+  referenceBreakdown: ReferenceBreakdown | null
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -470,6 +475,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       select: { companyName: true },
     }),
     getOpennessToLearning(candidateId),
+    getAnonymizedReferenceBreakdown(candidateId),
   ])
 
   return {
@@ -524,5 +530,6 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       skillsToBuild: candidate.skillsToBuild,
       interimConsultingInterest: candidate.interimConsultingInterest,
     },
+    referenceBreakdown,
   }
 }
