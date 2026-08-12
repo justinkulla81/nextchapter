@@ -102,10 +102,22 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   WATCHLIST_ADD: { minutes: 2, points: 2 },
   WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
 
-  // Requesting a reference — real placement-logging, weighted close to
-  // RESUME_UPDATE/NETWORKING_LIST for a comparable time cost (finding the
-  // right person, writing a real ask, not just clicking a button).
+  // A reference actually landing — the candidate has real third-party proof
+  // now, not just a name on a list. Fires on COMPLETION (see submitReference
+  // in src/app/ref/[token]/actions.ts), not on request; weighted close to
+  // RESUME_UPDATE/NETWORKING_LIST for a comparable "this changed your
+  // standing" size. Sending the request itself is REFERENCE_REQUESTED below
+  // — deliberately much smaller, since asking costs little and isn't proof
+  // of anything until the reference actually comes back.
   REFERENCE_ADDED: { minutes: 20, points: 30 },
+  // Sending a reference request — real but small: finding the right person
+  // and writing the ask. Same weight as a single outreach message, not the
+  // placement-logging weight that belongs to the reference actually landing
+  // (REFERENCE_ADDED above).
+  REFERENCE_REQUESTED: { minutes: 5, points: 5 },
+  // Following up on a reference that's been sent but hasn't come back yet —
+  // same "a nudge, not new work" weight as REFERENCE_REQUESTED.
+  REFERENCE_FOLLOW_UP: { minutes: 5, points: 5 },
 
   // Applying itself — wherever the posting actually came from (LinkedIn,
   // Indeed, a company site) — is the real job-search work; this fires when
@@ -250,6 +262,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   TRACK_RECORD_COMPLETED: 'effort',
   WHAT_I_NEED_COMPLETED: 'effort',
   REFERENCE_ADDED: 'effort',
+  REFERENCE_REQUESTED: 'effort',
+  REFERENCE_FOLLOW_UP: 'effort',
   RESUME_BOOK_UPLOAD: 'effort',
   PROFILE_CONFIRM: 'effort',
   INDUSTRY_CONFIRM: 'effort',
@@ -351,6 +365,8 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   OUTREACH_MESSAGE: 'Connecting',
   OUTREACH_CALL: 'Connecting',
   REFERENCE_ADDED: 'Connecting',
+  REFERENCE_REQUESTED: 'Connecting',
+  REFERENCE_FOLLOW_UP: 'Connecting',
   ENGAGE_COMMENT: 'Connecting',
   ENGAGE_EVENT: 'Connecting',
   ENGAGE_POST_UPDATE: 'Connecting',
@@ -423,6 +439,8 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // search — same "ongoing habit, no single finish line" shape as the rest
   // of this set.
   'REFERENCE_ADDED',
+  'REFERENCE_REQUESTED',
+  'REFERENCE_FOLLOW_UP',
   // Job searching itself has no single finish line either — you look for
   // full-time jobs again next week, same shape as the rest of this set.
   'JOB_BOARD_USAGE_CONFIRMED',
@@ -452,6 +470,8 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   OUTREACH_CALL: 1,
   NETWORKING_LIST: 1,
   REFERENCE_ADDED: 1,
+  REFERENCE_REQUESTED: 1,
+  REFERENCE_FOLLOW_UP: 1,
   ENGAGE_COMMENT: 3,
   ENGAGE_EVENT: 1,
   ENGAGE_POST_UPDATE: 1,
@@ -516,6 +536,8 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'OUTREACH_CALL',
   'NETWORKING_LIST',
   'REFERENCE_ADDED',
+  'REFERENCE_REQUESTED',
+  'REFERENCE_FOLLOW_UP',
   'FOLLOW_UP_NOTE_SENT',
   'THANK_YOU_NOTE_SENT',
   'CHECK_IN_NOTE_SENT',
@@ -548,6 +570,8 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
   REFERENCE_ADDED: { href: '/dashboard/references', label: 'My References' },
+  REFERENCE_REQUESTED: { href: '/dashboard/references', label: 'My References' },
+  REFERENCE_FOLLOW_UP: { href: '/dashboard/references', label: 'My References' },
   ENGAGE_COMMENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_EVENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_POST_UPDATE: { href: '/dashboard/community', label: 'Support Network' },
@@ -636,6 +660,8 @@ const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
   OUTREACH_CALL: 'a real conversation moves a relationship further than any message',
   NETWORKING_LIST: 'the people who already know you are your fastest path to a warm introduction',
   REFERENCE_ADDED: 'a strong reference is real proof for a hiring manager, not just your word',
+  REFERENCE_REQUESTED: 'the first step toward a real reference — ask while it\'s still fresh for them',
+  REFERENCE_FOLLOW_UP: 'a gentle nudge is often all it takes to get a pending reference across the line',
   LEARNING_MODULE: 'a new skill makes you a stronger candidate for the roles you want',
   LEARNING_CERTIFICATE: 'a credential you can point to strengthens your resume and LinkedIn',
   LEARNING_NEW_TOOL: 'staying current on the tools employers use keeps you competitive',
@@ -759,7 +785,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'LINKEDIN_PROFILE_ADDED',
   ],
   privacy: ['PRIVACY_CONFIRMED'],
-  references: ['REFERENCE_ADDED'],
+  references: ['REFERENCE_ADDED', 'REFERENCE_REQUESTED', 'REFERENCE_FOLLOW_UP'],
   'skills-assessments': [
     'WORKING_STYLE_QUIZ',
     'SKILLS_ASSESSMENT_COMPLETED',

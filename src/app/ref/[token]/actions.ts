@@ -8,6 +8,9 @@ import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { generateReferenceQuotes } from '@/lib/references/testimony-processing'
 import { applyReferenceCompletedRewrite } from '@/lib/scoring/rewrite-actions'
 import { parseReferenceFormData, parseReferenceCheckExtension } from '@/lib/references/parse-reference-form'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { sendReferenceDeclinedNotice } from '@/lib/email/send-reference-declined-notice'
 import type { RelativeRank, HireAgainLevel, DepartureContext, TakeAgainLevel, TrustedScopeLevel } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
@@ -117,5 +120,60 @@ export async function submitReference(_prevState: FormState, formData: FormData)
     console.error('Failed to apply reference-completed baseline rewrite:', error)
   }
 
+  // Weekly Sprint credit for the reference actually landing — the bigger
+  // credit that used to fire at request time (see requestReference in
+  // src/app/dashboard/references/actions.ts, which now only awards the
+  // small REFERENCE_REQUESTED credit for sending the ask).
+  try {
+    const sprint = await getCurrentWeekSprint(reference.candidateId)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'REFERENCE_ADDED' })
+      await autoCompleteEngagementAction(reference.candidateId, {
+        actionType: 'REFERENCE_ADDED',
+        text: 'Got a reference',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+    }
+  } catch (error) {
+    console.error('Failed to auto-complete REFERENCE_ADDED action:', error)
+  }
+
   redirect(`/ref/${token}/complete`)
+}
+
+// Lets a referee self-decline instead of just going silent — the candidate
+// gets a real, immediate signal (see sendReferenceDeclinedNotice) instead
+// of an unexplained REQUESTED row sitting there forever. Distinct from the
+// existing admin/candidate-settable DECLINED status: this path is the
+// referee's own action, tracked via declinedAt/declineReason.
+export async function declineReference(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const token = formData.get('token') as string | null
+  if (!token) return { error: 'Missing reference token.' }
+
+  const reason = (formData.get('reason') as string | null)?.trim() || null
+
+  const reference = await prisma.reference.findUnique({
+    where: { token },
+    include: { candidate: { select: { displayName: true } } },
+  })
+  if (!reference) return { error: 'This reference link is not valid.' }
+  if (reference.status === 'COMPLETED') return { error: 'This reference has already been submitted.' }
+
+  await prisma.reference.update({
+    where: { token },
+    data: { status: 'DECLINED', declinedAt: new Date(), declineReason: reason },
+  })
+
+  try {
+    await sendReferenceDeclinedNotice({
+      candidateId: reference.candidateId,
+      candidateName: reference.candidate.displayName || 'there',
+      refereeName: reference.refereeName,
+    })
+  } catch (error) {
+    console.error('Failed to send reference declined notice:', error)
+  }
+
+  redirect(`/ref/${token}/declined`)
 }

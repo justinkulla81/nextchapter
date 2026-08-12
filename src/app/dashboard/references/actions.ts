@@ -128,19 +128,21 @@ export async function requestReference(
 
   captureServerEvent(profile.id, 'reference_requested', { referenceId: reference.id, relationshipType })
 
-  // Weekly Sprint credit for real placement-logging — best-effort, same
-  // shape as NETWORKING_LIST's CSV-import credit: no current-week sprint
-  // to log it against just means no points this specific time, not a
-  // reason to fail the request itself.
+  // Weekly Sprint credit for sending the request itself — small on purpose.
+  // The bigger REFERENCE_ADDED credit fires separately when the reference
+  // actually comes back (see submitReference in src/app/ref/[token]/actions.ts).
+  // Best-effort, same shape as NETWORKING_LIST's CSV-import credit: no
+  // current-week sprint to log it against just means no points this
+  // specific time, not a reason to fail the request itself.
   const sprint = await getCurrentWeekSprint(profile.id)
   if (sprint) {
-    const effort = estimateActionEffort({ actionType: 'REFERENCE_ADDED' })
+    const effort = estimateActionEffort({ actionType: 'REFERENCE_REQUESTED' })
     await autoCompleteEngagementAction(profile.id, {
-      actionType: 'REFERENCE_ADDED',
-      text: 'Add a reference',
+      actionType: 'REFERENCE_REQUESTED',
+      text: 'Sent a reference request',
       points: effort.points,
       estimatedMinutes: effort.minutes,
-    }).catch((error) => console.error('Failed to auto-complete REFERENCE_ADDED action:', error))
+    }).catch((error) => console.error('Failed to auto-complete REFERENCE_REQUESTED action:', error))
   }
 
   revalidatePath('/dashboard/references')
@@ -179,6 +181,45 @@ export async function disputeReference(
   })
 
   captureServerEvent(profile.id, 'reference_disputed', { referenceId })
+
+  revalidatePath('/dashboard/references')
+}
+
+// Fired when a candidate clicks "Follow up" on a reference that's been sent
+// but hasn't come back yet — real signal (a genuine click on a genuine
+// pending reference), not a self-report claim, so it earns Sprint credit
+// like the other auto-detected action types. Fire-and-forget from the
+// client alongside the actual mailto/Gmail-compose navigation — never
+// blocks or redirects, since the email itself is the primary action.
+export async function logReferenceFollowUp(referenceId: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const reference = await prisma.reference.findUnique({ where: { id: referenceId } })
+  if (!reference || reference.candidateId !== profile.id) return
+  if (reference.status !== 'REQUESTED' && reference.status !== 'REMINDER_SENT') return
+
+  await prisma.reference.update({
+    where: { id: referenceId },
+    data: { lastFollowUpNudgedAt: new Date() },
+  })
+
+  captureServerEvent(profile.id, 'reference_followed_up', { referenceId })
+
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'REFERENCE_FOLLOW_UP' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'REFERENCE_FOLLOW_UP',
+      text: 'Followed up on a pending reference',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    }).catch((error) => console.error('Failed to auto-complete REFERENCE_FOLLOW_UP action:', error))
+  }
 
   revalidatePath('/dashboard/references')
 }

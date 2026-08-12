@@ -348,6 +348,21 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     }
   }
 
+  // Following up on a pending reference only makes sense once there's
+  // something to follow up on — surfaced only when at least one reference
+  // is REQUESTED/REMINDER_SENT, unlike REFERENCE_REQUESTED/REFERENCE_ADDED
+  // which come from the canonical menu unconditionally.
+  if (!usedTypes.has('REFERENCE_FOLLOW_UP')) {
+    const pendingReference = await prisma.reference.findFirst({
+      where: { candidateId, status: { in: ['REQUESTED', 'REMINDER_SENT'] } },
+      select: { id: true },
+    })
+    if (pendingReference) {
+      suggestions.push({ text: 'Follow up on a pending reference', actionType: 'REFERENCE_FOLLOW_UP' })
+      usedTypes.add('REFERENCE_FOLLOW_UP')
+    }
+  }
+
   // Says they like being visible (content, networking) but recent weeks
   // show none of it — surface the specific gap as its own suggestion
   // rather than leaving it implicit in the canonical menu below.

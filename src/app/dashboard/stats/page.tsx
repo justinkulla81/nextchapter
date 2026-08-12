@@ -47,6 +47,8 @@ export default async function YourStatsPage() {
   const [
     grade,
     applicationsCount,
+    referencesSentCount,
+    referencesCompletedCount,
     currentSprint,
     moodHistory,
     marketRealitySnapshots,
@@ -60,6 +62,8 @@ export default async function YourStatsPage() {
   ] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
+    prisma.reference.count({ where: { candidateId: profile.id } }),
+    prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
     getCurrentWeekSprint(profile.id),
     getMoodHistory(profile.id),
     prisma.marketRealitySnapshot.findMany({
@@ -269,6 +273,14 @@ export default async function YourStatsPage() {
           <div className="rounded-lg border border-border p-3">
             <p className="text-2xl font-bold text-foreground tabular-nums">{applicationsCount}</p>
             <p className="text-xs text-muted-foreground">applications sent</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{referencesSentCount}</p>
+            <p className="text-xs text-muted-foreground">references sent</p>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-2xl font-bold text-foreground tabular-nums">{referencesCompletedCount}</p>
+            <p className="text-xs text-muted-foreground">references completed</p>
           </div>
         </CardContent>
       </Card>

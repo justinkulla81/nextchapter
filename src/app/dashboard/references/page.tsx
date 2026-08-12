@@ -15,6 +15,7 @@ import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { aggregatePerformance } from '@/lib/references/aggregate-performance'
 import { computeRequiredMix } from '@/lib/references/required-mix'
 import { ReferenceCheckSummary } from '@/components/references/ReferenceCheckSummary'
+import { ReferenceFollowUpLink } from '@/components/references/ReferenceFollowUpLink'
 
 export const metadata: Metadata = { title: 'My References' }
 
@@ -81,6 +82,14 @@ export default async function ReferencesPage({
         />
       </div>
 
+      <ReferenceCheckSummary
+        dimensions={performanceAggregate.dimensions}
+        completedReferenceCount={performanceAggregate.completedReferenceCount}
+        confidenceTier={performanceAggregate.confidenceTier}
+        confidenceLabel={performanceAggregate.confidenceLabel}
+        mix={mix}
+      />
+
       <ReferenceQuoteReview
         quotes={pendingQuotes.map((q) => ({
           id: q.id,
@@ -91,14 +100,6 @@ export default async function ReferencesPage({
       />
 
       <ReferenceRequestForm initialName={params.name} initialEmail={params.email} />
-
-      <ReferenceCheckSummary
-        dimensions={performanceAggregate.dimensions}
-        completedReferenceCount={performanceAggregate.completedReferenceCount}
-        confidenceTier={performanceAggregate.confidenceTier}
-        confidenceLabel={performanceAggregate.confidenceLabel}
-        mix={mix}
-      />
 
       {profile.references.length === 0 && (
         <EmptyState
@@ -129,18 +130,14 @@ export default async function ReferencesPage({
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
-                        <a
+                        <ReferenceFollowUpLink
+                          referenceId={ref.id}
                           href={gmailComposeHref(
                             ref.refereeEmail,
                             `Following up on your reference for ${candidateName}`,
                             `Hi ${ref.refereeName},\n\nJust following up on the reference request I sent — would really appreciate it whenever you have a few minutes!\n\nThanks,\n${candidateName}`
                           )}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-medium text-primary underline underline-offset-4"
-                        >
-                          Follow up
-                        </a>
+                        />
                       )}
                       <span
                         className={cn(

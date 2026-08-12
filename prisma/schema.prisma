@@ -1348,6 +1348,7 @@ model Reference {
   completedAt          DateTime?
   declinedAt           DateTime? // set when the referee self-declines via /ref/[token] — distinct from an admin/candidate-set DECLINED status
   declineReason        String? // optional, referee-supplied — shown to the candidate
+  lastFollowUpNudgedAt DateTime? // set when the candidate clicks "Follow up" on a pending reference — powers the REFERENCE_FOLLOW_UP Sprint action
 
   // Which of the candidate's jobs this reference is for — lets the ref
   // token page ask the referee to verify the CANDIDATE's actual title/
