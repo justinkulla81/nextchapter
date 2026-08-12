@@ -8,6 +8,7 @@ import { validateJobBoardSubmission, reconfirmJobBoardPosting } from '@/lib/jobs
 import { fetchJobPosting } from '@/lib/jobs/fetch-job-posting'
 import { extractPostingFields, type ExtractedPostingFields } from '@/lib/jobs/extract-posting-fields'
 import { countPendingJobMatches, loadAdminFitCandidates, type PendingJobMatchCount } from '@/lib/jobs/job-fit-bucket'
+import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 
 export type FormState = { error?: string } | undefined
 
@@ -16,7 +17,7 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
 
   const input = {
     title: (formData.get('title') as string | null)?.trim() || '',
-    companyName: (formData.get('companyName') as string | null)?.trim() || '',
+    companyName: fixAllCapsCompanyName((formData.get('companyName') as string | null)?.trim() || ''),
     location: (formData.get('location') as string | null)?.trim() || null,
     url: (formData.get('url') as string | null)?.trim() || '',
     description: (formData.get('description') as string | null)?.trim() || null,

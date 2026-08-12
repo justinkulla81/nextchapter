@@ -80,3 +80,23 @@ export function orgNamesMatch(a: string, b: string): boolean {
 export function orgNamesMatchStrict(a: string, b: string): boolean {
   return normalizeOrgName(a) === normalizeOrgName(b)
 }
+
+// Display-casing fix, not a matching helper — separate from normalizeOrgName
+// above (which lowercases everything for dedup/lookup only). A company name
+// that arrives ALL CAPS (a scraped ATS feed, a shouty email subject, an
+// admin fat-fingering caps lock) reads as unpolished wherever it's shown to
+// the candidate, so every write path that stores a company name for
+// candidate-facing display (Job Board, Application Tracker, Company
+// Tracker, rejection-tracking — all the same JobPosting/ExclusiveJobPosting/
+// CompanyWatchlistEntry rows) runs it through this first. Deliberately
+// narrow: only fires when the ENTIRE string is all-caps, so real mixed-case
+// names ("McKinsey", "PwC", "eBay") are left untouched — this only catches
+// the shouting case, not every acronym.
+export function fixAllCapsCompanyName(name: string): string {
+  const trimmed = name.trim()
+  if (!trimmed) return trimmed
+  const hasLetter = /[a-zA-Z]/.test(trimmed)
+  const isAllCaps = hasLetter && trimmed === trimmed.toUpperCase() && trimmed !== trimmed.toLowerCase()
+  if (!isAllCaps) return trimmed
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+}

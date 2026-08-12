@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
+import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { guessTitleFromConfirmationSubject } from './ats-patterns'
 import { applyInterviewLandedRewrite, applyInterviewPatternConfirmedRewrite } from '@/lib/scoring/rewrite-actions'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
@@ -84,7 +84,7 @@ export async function syncJobPostingFromEmail(
         candidateId,
         source: 'EMAIL_DETECTED',
         fetchStatus: 'no_url',
-        companyName,
+        companyName: fixAllCapsCompanyName(companyName),
         title: guessTitleFromConfirmationSubject(subject),
         appliedAt: emailDate,
       },

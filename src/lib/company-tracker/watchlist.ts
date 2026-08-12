@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
+import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import type { PageContentView } from '@/lib/dashboard/page-content'
 
 export interface WatchlistPosting {
@@ -162,7 +162,7 @@ export async function addCompanyToWatchlist(
   candidateId: string,
   companyName: string
 ): Promise<{ error?: string }> {
-  const trimmed = companyName.trim()
+  const trimmed = fixAllCapsCompanyName(companyName.trim())
   if (!trimmed) return { error: 'Enter a company name.' }
 
   const normalized = normalizeOrgName(trimmed)

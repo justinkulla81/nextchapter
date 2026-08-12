@@ -4,6 +4,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 
 const jobFitSchema = z.object({
   // Pulled from the posting text itself (not the candidate's data) — reuses
@@ -96,7 +97,7 @@ ${
       where: { id: jobPostingId },
       data: {
         title: data.title,
-        companyName: data.companyName,
+        companyName: data.companyName ? fixAllCapsCompanyName(data.companyName) : data.companyName,
         location: data.location,
         fitScore: data.fitScore,
         fitFeedback: data.fitFeedback,
@@ -111,7 +112,7 @@ ${
         candidateId,
         url: jobPosting.url,
         title: data.title,
-        companyName: data.companyName,
+        companyName: data.companyName ? fixAllCapsCompanyName(data.companyName) : data.companyName,
       })
     }
   } catch {

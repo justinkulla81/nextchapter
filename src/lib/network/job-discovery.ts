@@ -6,6 +6,7 @@ import { searchJSearchJobs } from '@/lib/market/jsearch'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
+import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 
 const SURFACE_LIMIT = 10
 // Same gate for both "is there enough signal to write a real pattern" and
@@ -88,7 +89,7 @@ export async function surfaceNewJobs(candidateId: string, limit: number = SURFAC
     data: newListings.map((l) => ({
       candidateId,
       title: l.title,
-      companyName: l.companyName,
+      companyName: l.companyName ? fixAllCapsCompanyName(l.companyName) : l.companyName,
       location: l.location,
       url: l.url,
       description: l.description,

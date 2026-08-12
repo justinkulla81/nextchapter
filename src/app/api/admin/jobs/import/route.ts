@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 
 export const maxDuration = 60
 
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const data = {
       title: job.title.trim(),
-      companyName: job.companyName.trim(),
+      companyName: fixAllCapsCompanyName(job.companyName.trim()),
       location: job.location?.trim() || null,
       description: job.description?.trim() || null,
       level: job.level?.trim() || null,

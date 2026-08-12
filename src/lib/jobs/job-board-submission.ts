@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -80,7 +81,7 @@ export async function createPendingJobBoardPosting(
   return prisma.exclusiveJobPosting.create({
     data: {
       title: input.title,
-      companyName: input.companyName,
+      companyName: fixAllCapsCompanyName(input.companyName),
       location: input.location,
       url: input.url,
       description: input.description,
