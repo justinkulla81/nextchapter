@@ -84,26 +84,26 @@ export function ReachOutCarousel({
 
   return (
     <div id="reach-out-cards" className="scroll-mt-4 space-y-3 rounded-lg border border-border p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="text-sm font-medium text-foreground">Reach out to {firstName}</h2>
-          <p className="text-sm text-muted-foreground">
-            {roleContext && <span className="text-foreground">{roleContext} — </span>}
-            {contact.hasReachedOut ? "You've emailed before." : 'Starred as a priority contact.'}
-          </p>
-        </div>
+      <div className="flex items-start gap-2">
         <button
           type="button"
           onClick={toggleStar}
           aria-label={isPriority ? 'Unstar this contact' : 'Star this contact'}
           title={isPriority ? 'Unstar' : 'Star — get reminders to follow up with them'}
-          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted"
+          className="mt-0.5 shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted"
         >
           <Star className={cn('size-5', isPriority && 'fill-orange text-orange')} />
         </button>
+        <div className="min-w-0">
+          <h2 className="text-sm font-medium text-foreground">Priority Contact: {contact.name}</h2>
+          <p className="text-sm text-muted-foreground">
+            {roleContext && <span className="text-foreground">{roleContext} — </span>}
+            {contact.hasReachedOut ? "You've emailed before." : 'Starred as a priority contact.'}
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="space-y-2">
         {contact.email ? (
           <a
             href={`mailto:${contact.email}`}
@@ -116,14 +116,16 @@ export function ReachOutCarousel({
             No email on file for {firstName} — try a LinkedIn message, or log it below.
           </p>
         )}
-        <a
-          href={calendarUrl.toString()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-input px-4 text-sm font-medium text-foreground hover:bg-muted"
-        >
-          Schedule a coffee chat
-        </a>
+        <div>
+          <a
+            href={calendarUrl.toString()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-input px-4 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Reach out for a Catch-up / Coffee / Intro
+          </a>
+        </div>
       </div>
 
       {contacts.length > 1 && (

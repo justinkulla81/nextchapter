@@ -226,7 +226,7 @@ async function AutomaticTrackingSection({
     { label: 'Intro/connection requests', items: introRequestItems.map(emailItem) },
     { label: 'Networking outreach messages', items: networkingOutreachItems.map(emailItem) },
     { label: 'Resumes shared', items: resumesSharedItems.map(emailItem) },
-    { label: 'Coffees, lunches & meetings scheduled', items: networkingCallItems.map(calendarItem) },
+    { label: 'Catch-up / Coffees / Meetings', items: networkingCallItems.map(calendarItem) },
   ]
 
   // Deliberately excludes needsReview counts — most unclassified inbox mail
@@ -533,6 +533,10 @@ export default async function NetworkPage({
       <MarkBackchannelViewedOnMount />
       <ReconnectBanner candidateId={profile.id} />
 
+      <Suspense fallback={<AutomaticTrackingSkeleton />}>
+        <AutomaticTrackingSection profile={profile} params={params} />
+      </Suspense>
+
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <NetworkQuickActionsCard contacts={contacts} initialContactId={params.contact} />
@@ -540,10 +544,6 @@ export default async function NetworkPage({
       <NeedsFollowUpCard items={needsFollowUp} />
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
-
-      <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <AutomaticTrackingSection profile={profile} params={params} />
-      </Suspense>
 
       <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
     </div>

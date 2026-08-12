@@ -41,8 +41,9 @@ import { PendingEmployerReferenceBanner } from '@/components/dashboard/PendingEm
 import { EmployerInterestSection } from '@/components/dashboard/EmployerInterestSection'
 import { PortfolioAccessRequestSection } from '@/components/dashboard/PortfolioAccessRequestSection'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
-import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
-import { NetworkRemindersCard } from '@/components/dashboard/NetworkRemindersCard'
+import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
+import { getEmailReminders } from '@/lib/network/reminders'
+import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -128,7 +129,8 @@ export default async function DashboardPage() {
     profileChecklistItems,
     emailConnection,
     calendarConnection,
-    followUpItems,
+    needsFollowUp,
+    priorityContacts,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -150,7 +152,8 @@ export default async function DashboardPage() {
     getProfileChecklistItems(profile.id),
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    getUnifiedFollowUps(profile.id),
+    getNeedsFollowUpList(profile.id),
+    getEmailReminders(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
   // Same recency sort + inference as search-strategy/page.tsx so this
@@ -226,7 +229,10 @@ export default async function DashboardPage() {
 
         <ReconnectBanner candidateId={profile.id} variant="link" />
 
-        <NetworkRemindersCard items={followUpItems} />
+        <DashboardNetworkCard
+          followUps={needsFollowUp}
+          priorityContact={priorityContacts[0] ?? null}
+        />
 
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}

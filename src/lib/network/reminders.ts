@@ -8,6 +8,8 @@ export interface EmailReminder {
   contactId: string
   name: string
   company: string | null
+  email: string | null
+  linkedinUrl: string | null
   daysSinceLastOutreach: number | null // null = never reached out
   lastOutreachAt: Date | null
 }
@@ -27,6 +29,8 @@ export async function getEmailReminders(candidateId: string): Promise<EmailRemin
       id: true,
       name: true,
       company: true,
+      email: true,
+      linkedinUrl: true,
       outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1, select: { loggedAt: true } },
     },
   })
@@ -53,6 +57,8 @@ export async function getEmailReminders(candidateId: string): Promise<EmailRemin
     contactId: contact.id,
     name: contact.name,
     company: contact.company,
+    email: contact.email,
+    linkedinUrl: contact.linkedinUrl,
     daysSinceLastOutreach,
     lastOutreachAt: lastOutreach,
   }))

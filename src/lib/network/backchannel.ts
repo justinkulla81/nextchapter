@@ -4,7 +4,7 @@ import { orgNamesMatch } from '@/lib/text/org-name-match'
 
 export interface BackchannelMatch {
   job: { id: string; title: string | null; companyName: string; appliedAt: Date }
-  contacts: { id: string; name: string; title: string | null }[]
+  contacts: { id: string; name: string; title: string | null; email: string | null; linkedinUrl: string | null }[]
   isNew: boolean
 }
 
@@ -22,7 +22,16 @@ export async function getBackchannelMatches(candidateId: string, since: Date): P
     }),
     prisma.supportNetworkContact.findMany({
       where: { candidateId, OR: [{ company: { not: null } }, { inferredCompany: { not: null } }] },
-      select: { id: true, name: true, title: true, company: true, inferredCompany: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        title: true,
+        company: true,
+        inferredCompany: true,
+        createdAt: true,
+        email: true,
+        linkedinUrl: true,
+      },
     }),
   ])
 
@@ -38,7 +47,13 @@ export async function getBackchannelMatches(candidateId: string, since: Date): P
 
     matches.push({
       job: { id: job.id, title: job.title, companyName: job.companyName, appliedAt: job.appliedAt! },
-      contacts: matchedContacts.map((c) => ({ id: c.id, name: c.name, title: c.title })),
+      contacts: matchedContacts.map((c) => ({
+        id: c.id,
+        name: c.name,
+        title: c.title,
+        email: c.email,
+        linkedinUrl: c.linkedinUrl,
+      })),
       isNew: job.appliedAt! > since || matchedContacts.some((c) => c.createdAt > since),
     })
   }

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
 import type { BackchannelMatch } from '@/lib/network/backchannel'
 
 export function BackchannelMatchesCard({ matches }: { matches: BackchannelMatch[] }) {
@@ -22,9 +23,15 @@ export function BackchannelMatchesCard({ matches }: { matches: BackchannelMatch[
               {m.job.companyName}
               {m.job.title ? ` — ${m.job.title}` : ''}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              You know: {m.contacts.map((c) => c.name).join(', ')}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground">
+              <span>Who can help:</span>
+              {m.contacts.map((c, i) => (
+                <span key={c.id} className="flex items-center">
+                  <ContactQuickLink name={c.name} email={c.email} linkedinUrl={c.linkedinUrl} className="text-xs" />
+                  {i < m.contacts.length - 1 && <span className="text-muted-foreground">,</span>}
+                </span>
+              ))}
+            </div>
           </div>
         ))}
       </CardContent>
