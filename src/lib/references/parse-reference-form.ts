@@ -36,11 +36,15 @@ export interface ParsedReferenceContent {
 // complete, valid submission.
 export function parseReferenceFormData(formData: FormData): { data: ParsedReferenceContent } | { error: string } {
   const overallRating = formData.get('overallRating')
-  const wouldHireAgain = formData.get('wouldHireAgain')
+  // The form's own "hire again?" question is compWouldHireAgain (Comparative
+  // Standing) — the plain yes/no version that used to live up top duplicated
+  // it and was removed. Derive the legacy boolean column from that single
+  // remaining question instead of asking twice.
+  const compWouldHireAgain = formData.get('compWouldHireAgain') as string | null
   const strengthSummary = (formData.get('strengthSummary') as string | null)?.trim()
   const growthAreaSummary = (formData.get('growthAreaSummary') as string | null)?.trim()
 
-  if (!overallRating || !wouldHireAgain || !strengthSummary) {
+  if (!overallRating || !compWouldHireAgain || !strengthSummary) {
     return { error: 'Please complete the overall rating, hire-again question, and strengths.' }
   }
 
@@ -79,7 +83,7 @@ export function parseReferenceFormData(formData: FormData): { data: ParsedRefere
   return {
     data: {
       overallRating: Number(overallRating),
-      wouldHireAgain: wouldHireAgain === 'yes',
+      wouldHireAgain: compWouldHireAgain === 'PROBABLY' || compWouldHireAgain === 'DEFINITELY',
       strengthSummary,
       growthAreaSummary: growthAreaSummary || null,
       contextNotes: (formData.get('contextNotes') as string | null)?.trim() || null,

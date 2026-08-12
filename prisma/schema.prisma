@@ -1222,6 +1222,8 @@ model WorkHistoryEntry {
   // candidate-typed ones without a separate join table.
   resumeDerived         Boolean @default(false)
 
+  references Reference[]
+
   @@index([candidateId])
   @@index([companyNameNormalized])
 }
@@ -1336,14 +1338,25 @@ model Reference {
 
   refereeEmail         String
   refereeName          String
-  refereeTitle         String?
-  refereeCompany       String?
+  refereeTitle         String? // the REFEREE's own title (e.g. "VP Engineering"), not the candidate's — see "Their title" on ReferenceRequestForm
+  refereeCompany       String? // the REFEREE's own company, not the candidate's
   relationshipType     ReferenceType
   yearsWorkedTogether  Int?
   verifiedRelationship Boolean         @default(false)
   status               ReferenceStatus @default(REQUESTED)
   requestedAt          DateTime        @default(now())
   completedAt          DateTime?
+  declinedAt           DateTime? // set when the referee self-declines via /ref/[token] — distinct from an admin/candidate-set DECLINED status
+  declineReason        String? // optional, referee-supplied — shown to the candidate
+
+  // Which of the candidate's jobs this reference is for — lets the ref
+  // token page ask the referee to verify the CANDIDATE's actual title/
+  // company (and the resume's keyAchievement bullet for that role) instead
+  // of only re-confirming the referee's own claimed identity. Nullable:
+  // older references predate this, and some references (e.g. a peer who
+  // knew the candidate across multiple roles) don't map to one job.
+  workHistoryEntryId String?
+  workHistoryEntry   WorkHistoryEntry? @relation(fields: [workHistoryEntryId], references: [id], onDelete: SetNull)
   token                String          @unique @default(cuid())
 
   // Behavioral ratings (1-5 scale)
@@ -1485,6 +1498,15 @@ model Reference {
   // invite time, never recomputed (removing an earlier reference must not
   // reshuffle a later one's already-answered written questions).
   inviteSequence Int?
+
+  // Paginated-form autosave (see ReferenceSubmissionForm) — a raw name:value
+  // snapshot of every field answered so far, written on each "Next" click so
+  // an abandoned-partway reference still leaves real data behind instead of
+  // nothing. draftPage lets a returning referee resume where they left off.
+  // Cleared (set back to null) once status flips to COMPLETED.
+  draftAnswers   Json?
+  draftPage      Int?
+  draftUpdatedAt DateTime?
 
   @@index([candidateId, status])
   @@index([token])

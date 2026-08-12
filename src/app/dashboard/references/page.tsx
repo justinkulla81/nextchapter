@@ -60,9 +60,13 @@ export default async function ReferencesPage({
 
   const candidateName = profile.displayName || 'me'
   const providedReferences = profile.references.filter((r) => r.status === 'COMPLETED')
-  const requestedReferences = profile.references.filter((r) => r.status !== 'COMPLETED')
   const performanceAggregate = aggregatePerformance(providedReferences)
   const mix = computeRequiredMix(providedReferences.map((r) => r.relationshipType))
+
+  const allReferences = [...profile.references].sort(
+    (a, b) => b.requestedAt.getTime() - a.requestedAt.getTime()
+  )
+  const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
     <div className="space-y-8">
@@ -104,80 +108,62 @@ export default async function ReferencesPage({
         />
       )}
 
-      {requestedReferences.length > 0 && (
-        <div className="space-y-4">
+      {allReferences.length > 0 && (
+        <div className="space-y-2">
           <h2 className="text-sm font-medium text-muted-foreground">
-            Requested ({requestedReferences.length})
+            All references ({allReferences.length})
           </h2>
-          {requestedReferences.map((ref) => (
-            <Card key={ref.id}>
-              <CardContent className="flex items-center justify-between gap-4 pt-6">
-                <div className="space-y-1">
-                  <p className="font-medium">{ref.refereeName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
-                    {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
-                    <a
-                      href={gmailComposeHref(
-                        ref.refereeEmail,
-                        `Following up on your reference for ${candidateName}`,
-                        `Hi ${ref.refereeName},\n\nJust following up on the reference request I sent — would really appreciate it whenever you have a few minutes!\n\nThanks,\n${candidateName}`
+          <Card>
+            <CardContent className="divide-y divide-border p-0">
+              {allReferences.map((ref) => (
+                <div key={ref.id} className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="font-medium">{ref.refereeName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
+                        {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
+                        {' · Sent '}
+                        {dateFormatter.format(ref.requestedAt)}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
+                        <a
+                          href={gmailComposeHref(
+                            ref.refereeEmail,
+                            `Following up on your reference for ${candidateName}`,
+                            `Hi ${ref.refereeName},\n\nJust following up on the reference request I sent — would really appreciate it whenever you have a few minutes!\n\nThanks,\n${candidateName}`
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-medium text-primary underline underline-offset-4"
+                        >
+                          Follow up
+                        </a>
                       )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-medium text-primary underline underline-offset-4"
-                    >
-                      Follow up
-                    </a>
-                  )}
-                  <span
-                    className={cn(
-                      'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                      STATUS_STYLES[ref.status]
-                    )}
-                  >
-                    {STATUS_LABELS[ref.status]}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {providedReferences.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            Provided ({providedReferences.length})
-          </h2>
-          {providedReferences.map((ref) => (
-            <Card key={ref.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="font-medium">{ref.refereeName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
-                      {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
-                    </p>
+                      <span
+                        className={cn(
+                          'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
+                          STATUS_STYLES[ref.status]
+                        )}
+                      >
+                        {STATUS_LABELS[ref.status]}
+                      </span>
+                    </div>
                   </div>
-                  <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-medium', STATUS_STYLES.COMPLETED)}>
-                    {STATUS_LABELS.COMPLETED}
-                  </span>
+                  {ref.status === 'COMPLETED' && (
+                    <ReferenceDisputeControl
+                      referenceId={ref.id}
+                      disputeNote={ref.candidateDisputeNote}
+                      disputedAt={ref.candidateDisputedAt}
+                      resolvedAt={ref.disputeResolvedAt}
+                    />
+                  )}
                 </div>
-                <ReferenceDisputeControl
-                  referenceId={ref.id}
-                  disputeNote={ref.candidateDisputeNote}
-                  disputedAt={ref.candidateDisputedAt}
-                  resolvedAt={ref.disputeResolvedAt}
-                />
-              </CardContent>
-            </Card>
-          ))}
+              ))}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

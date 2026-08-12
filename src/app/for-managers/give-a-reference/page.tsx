@@ -18,7 +18,7 @@ export default function GiveAReferenceLandingPage() {
       </h1>
       <p className="mt-4 text-lg text-muted-foreground">
         A reference from you, right now, while it&apos;s fresh, is worth more than anything they
-        could round up months from now. Takes five minutes.
+        could round up months from now. Takes about 15 minutes.
       </p>
 
       <div className="mt-8 space-y-4 text-sm text-muted-foreground">

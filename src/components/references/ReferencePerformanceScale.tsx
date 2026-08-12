@@ -12,7 +12,7 @@ export function ReferencePerformanceScale({ itemKey, label }: { itemKey: string;
   return (
     <fieldset className="space-y-2">
       <legend className="text-sm text-foreground">{label}</legend>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
         {([1, 2, 3, 4] as AnchorScore[]).map((score) => (
           <label
             key={score}
@@ -22,7 +22,7 @@ export function ReferencePerformanceScale({ itemKey, label }: { itemKey: string;
             <span>{ANCHOR_LABELS[score]}</span>
           </label>
         ))}
-        <label className="flex cursor-pointer items-start gap-2 rounded-md border border-dashed border-border p-2.5 text-sm text-muted-foreground has-[:checked]:border-foreground has-[:checked]:text-foreground sm:col-span-2">
+        <label className="flex cursor-pointer items-start gap-2 rounded-md border border-dashed border-border p-2.5 text-sm text-muted-foreground has-[:checked]:border-foreground has-[:checked]:text-foreground">
           <input type="radio" name={name} value="" className="mt-0.5" />
           <span>Didn&apos;t see this</span>
         </label>

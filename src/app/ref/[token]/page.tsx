@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { ReferenceSubmissionForm } from '@/components/references/ReferenceSubmissionForm'
-import { submitReference } from './actions'
+import { submitReference, saveReferenceDraft } from './actions'
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
 
@@ -49,13 +49,22 @@ export default async function ReferenceTokenPage({
     where: { isActive: true },
     orderBy: { scalePoint: 'asc' },
   })
-  const dimensionGroups = ASSESSMENT_DIMENSIONS.map((dim) => ({
-    dimension: dim.key,
-    dimensionLabel: dim.label,
-    anchors: barsAnchors
+  const dimensionGroups = ASSESSMENT_DIMENSIONS.map((dim) => {
+    // Some dimensions have more than one active anchor row seeded for the
+    // same scalePoint (a content duplication, not intentional) — keep only
+    // the first so the rater sees exactly one description per number
+    // instead of two competing phrasings.
+    const seenScalePoints = new Set<number>()
+    const anchors = barsAnchors
       .filter((a) => a.dimension === dim.key)
-      .map((a) => ({ scalePoint: a.scalePoint, anchorText: a.anchorText })),
-  }))
+      .filter((a) => {
+        if (seenScalePoints.has(a.scalePoint)) return false
+        seenScalePoints.add(a.scalePoint)
+        return true
+      })
+      .map((a) => ({ scalePoint: a.scalePoint, anchorText: a.anchorText }))
+    return { dimension: dim.key, dimensionLabel: dim.label, anchors }
+  })
 
   const isManager = reference.relationshipType === 'DIRECT_MANAGER' || reference.relationshipType === 'SKIP_LEVEL_MANAGER'
   const writtenQuestions =
@@ -76,8 +85,10 @@ export default async function ReferenceTokenPage({
           Leave a reference for {candidateName}
         </h1>
         <p className="text-muted-foreground">
-          This takes about 5 minutes. Employers only ever see a short written summary — never
-          your raw ratings.
+          Thank you for taking the time to do this for {candidateName}
+          {' '}— it makes a real difference. This takes about 15 minutes, and your answers save as
+          you go, so it&apos;s fine to finish it in more than one sitting. Employers only ever see
+          a short written summary — never your raw ratings.
         </p>
       </div>
       <ReferenceSubmissionForm
@@ -91,6 +102,9 @@ export default async function ReferenceTokenPage({
           claimedTitle: reference.refereeTitle,
           claimedYearsTogether: reference.yearsWorkedTogether,
         }}
+        initialAnswers={(reference.draftAnswers as Record<string, string> | null) ?? undefined}
+        initialPage={reference.draftPage ?? undefined}
+        onSaveDraft={saveReferenceDraft.bind(null, token)}
       />
     </div>
   )

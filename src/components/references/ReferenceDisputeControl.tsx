@@ -39,7 +39,7 @@ export function ReferenceDisputeControl({
         onClick={() => setOpen(true)}
         className="mt-2 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
       >
-        Something not right? Flag this reference
+        Have a concern about this reference? Let us know
       </button>
     )
   }

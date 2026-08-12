@@ -70,12 +70,16 @@ const REFERENCE_CATEGORY_FIELDS: {
     Reference,
     'traitPresenceRating' | 'overallRating' | 'traitCollaborationRating' | 'traitAdaptabilityRating' | 'traitFollowThroughRating'
   >
+  // trait-* fields are still the 1-5 RatingScale; overallRating moved to the
+  // anchored 1-4 scale (AnchoredOverallScale) — each field's own max, not a
+  // shared assumed 5, is what normalizes it to a 0-100 impliedScore below.
+  maxScale: number
 }[] = [
-  { category: 'leadership', field: 'traitPresenceRating' },
-  { category: 'skillsExecution', field: 'overallRating' },
-  { category: 'communication', field: 'traitCollaborationRating' },
-  { category: 'adaptability', field: 'traitAdaptabilityRating' },
-  { category: 'ownership', field: 'traitFollowThroughRating' },
+  { category: 'leadership', field: 'traitPresenceRating', maxScale: 5 },
+  { category: 'skillsExecution', field: 'overallRating', maxScale: 4 },
+  { category: 'communication', field: 'traitCollaborationRating', maxScale: 5 },
+  { category: 'adaptability', field: 'traitAdaptabilityRating', maxScale: 5 },
+  { category: 'ownership', field: 'traitFollowThroughRating', maxScale: 5 },
 ]
 
 const WEAK_BASELINE_THRESHOLD = 70
@@ -83,11 +87,11 @@ const STRONG_RATING_THRESHOLD = 4
 const MAX_REFERENCE_BUMP = 12
 
 export async function applyReferenceCompletedRewrite(candidateId: string, reference: Reference): Promise<void> {
-  for (const { category, field } of REFERENCE_CATEGORY_FIELDS) {
+  for (const { category, field, maxScale } of REFERENCE_CATEGORY_FIELDS) {
     const rating = reference[field]
     if (rating === null || rating === undefined) continue
 
-    const impliedScore = clamp(((rating - 1) / 4) * 100)
+    const impliedScore = clamp(((rating - 1) / (maxScale - 1)) * 100)
     const current = await currentBaseline(candidateId, category)
     if (impliedScore <= current) continue
 

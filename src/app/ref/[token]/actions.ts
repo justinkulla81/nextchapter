@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { syncReferenceDelta } from '@/lib/scoring/reference-delta'
 import { REFERENCE_TOKEN_EXPIRY_DAYS } from '@/lib/constants/references'
@@ -10,6 +11,22 @@ import { parseReferenceFormData, parseReferenceCheckExtension } from '@/lib/refe
 import type { RelativeRank, HireAgainLevel, DepartureContext, TakeAgainLevel, TrustedScopeLevel } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
+
+// Fired on every "Next" click in the paginated form (see
+// ReferenceSubmissionForm) — best-effort, fire-and-forget from the client,
+// so a reference who never finishes still leaves a real, readable partial
+// answer set behind instead of nothing. Silently no-ops past COMPLETED
+// (nothing left to save over) rather than erroring, since a stray late
+// autosave racing the real submit is expected, not a bug.
+export async function saveReferenceDraft(token: string, page: number, answers: Record<string, string>): Promise<void> {
+  const reference = await prisma.reference.findUnique({ where: { token }, select: { status: true } })
+  if (!reference || reference.status === 'COMPLETED') return
+
+  await prisma.reference.update({
+    where: { token },
+    data: { draftAnswers: answers, draftPage: page, draftUpdatedAt: new Date() },
+  })
+}
 
 export async function submitReference(_prevState: FormState, formData: FormData): Promise<FormState> {
   const token = formData.get('token') as string | null
@@ -75,6 +92,8 @@ export async function submitReference(_prevState: FormState, formData: FormData)
       verificationConfidence: extension.verificationConfidence,
       status: 'COMPLETED',
       completedAt: new Date(),
+      draftAnswers: Prisma.JsonNull,
+      draftPage: null,
     },
   })
 

@@ -27,7 +27,7 @@ export default async function GiveAReferenceSubmitPage() {
         <p className="text-sm font-medium text-muted-foreground">NextChapter for managers</p>
         <h1 className="text-2xl font-semibold tracking-tight">Give a reference</h1>
         <p className="text-muted-foreground">
-          About five minutes. Nothing here becomes visible or usable anywhere until the person
+          About 15 minutes. Nothing here becomes visible or usable anywhere until the person
           you&apos;re referencing sees it themselves and chooses to accept it.
         </p>
       </div>

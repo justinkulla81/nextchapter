@@ -51,7 +51,10 @@ export default function ReferenceRequestEmail({
         a hiring platform for people between chapters of their career. A few minutes of your time
         sharing what it was like working with {candidateName} will really help them out.
       </p>
-      <p>It takes about 5 minutes — a handful of ratings and a couple of short written notes.</p>
+      <p>
+        It takes about 15 minutes — a handful of ratings and a couple of short written notes. Your
+        answers save as you go, so it&apos;s fine to finish it in more than one sitting.
+      </p>
       <a href={referenceUrl} style={button}>
         Leave a reference for {candidateName}
       </a>

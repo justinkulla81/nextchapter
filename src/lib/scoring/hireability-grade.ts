@@ -202,7 +202,11 @@ async function computeCompanySizeTransitionAdjustment(
 // there's no closer-matching trait for either.
 function averageReferenceRating(
   references: Reference[],
-  field: 'traitPresenceRating' | 'overallRating' | 'traitCollaborationRating' | 'traitAdaptabilityRating' | 'traitFollowThroughRating'
+  field: 'traitPresenceRating' | 'overallRating' | 'traitCollaborationRating' | 'traitAdaptabilityRating' | 'traitFollowThroughRating',
+  // The trait-* fields are still a 1-5 scale (RatingScale, unchanged);
+  // overallRating moved to the anchored 1-4 scale (see AnchoredOverallScale)
+  // to match the rest of the form, so its normalization needs its own max.
+  maxScale: number = 5
 ): number | null {
   const completed = references.filter((r) => r.status === 'COMPLETED')
 
@@ -220,7 +224,7 @@ function averageReferenceRating(
   const totalWeight = weighted.reduce((sum, x) => sum + x.weight, 0)
   if (totalWeight === 0) return null
   const avg = weighted.reduce((sum, x) => sum + x.value * x.weight, 0) / totalWeight
-  return clamp(((avg - 1) / 4) * 100)
+  return clamp(((avg - 1) / (maxScale - 1)) * 100)
 }
 
 function completedReferenceCount(references: Reference[]): number {
@@ -373,7 +377,7 @@ export async function computeCategoryGrades(
   // replaces functionSkillConfidence once completed (spec §3.2) — same
   // "richer instrument replaces the thin slider" treatment as Leadership.
   const skillsSelfReport = performanceSelfReport(candidate, ['executionScore']) ?? candidate.functionSkillConfidence ?? 50
-  const skillsRefRating = averageReferenceRating(refs, 'overallRating')
+  const skillsRefRating = averageReferenceRating(refs, 'overallRating', 4)
   const skillsExecutionBase =
     skillsRefRating !== null ? clamp(skillsSelfReport * 0.5 + skillsRefRating * 0.5) : clamp(skillsSelfReport)
 
