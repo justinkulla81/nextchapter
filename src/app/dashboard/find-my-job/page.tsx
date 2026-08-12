@@ -30,6 +30,7 @@ import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { WhoCanHelpSection } from '@/components/dashboard/WhoCanHelpSection'
+import { contactLinkType, CONTACT_LINK_ORDER } from '@/components/dashboard/ContactQuickLink'
 import { JobBoardLinkList } from '@/components/dashboard/JobBoardLinkList'
 import { GENERAL_JOB_BOARDS, getIndustryJobBoards } from '@/lib/constants/industry-job-boards'
 import {
@@ -58,6 +59,7 @@ import { type Grade } from '@/lib/scoring/grade'
 import { Spinner } from '@/components/ui/spinner'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
@@ -159,15 +161,18 @@ async function JobRecommendationsSection({
     linkedinUrl: string | null
   }[]
 }) {
+  const MAX_WORKS_HERE_CONTACTS = 5
   const worksHereFor = (companyName: string | null) => {
-    if (!companyName) return []
-    return contacts
+    if (!companyName) return { contacts: [], totalCount: 0 }
+    const matched = contacts
       .filter(
         (c) =>
           (c.company && orgNamesMatch(c.company, companyName)) ||
           (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName))
       )
       .map((c) => ({ id: c.id, name: c.name, email: c.email, linkedinUrl: c.linkedinUrl }))
+      .sort((a, b) => CONTACT_LINK_ORDER[contactLinkType(a)] - CONTACT_LINK_ORDER[contactLinkType(b)])
+    return { contacts: matched.slice(0, MAX_WORKS_HERE_CONTACTS), totalCount: matched.length }
   }
   // Auto-backfill the surfaced-job queue server-side so the list always
   // stays topped up at SURFACED_JOB_LIST_SIZE — reacting to one immediately
@@ -253,29 +258,33 @@ async function JobRecommendationsSection({
               />
             ))}
 
-            {visibleSurfacedJobs.map((job) => (
-              <NextSurfacedJobCard
-                key={job.id}
-                job={job}
-                fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                worksHereContacts={worksHereFor(job.companyName)}
-              />
-            ))}
+            {visibleSurfacedJobs.map((job) => {
+              const worksHere = worksHereFor(job.companyName)
+              return (
+                <NextSurfacedJobCard
+                  key={job.id}
+                  job={job}
+                  fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                  worksHereContacts={worksHere.contacts}
+                  worksHereTotalCount={worksHere.totalCount}
+                />
+              )
+            })}
           </div>
 
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-            <>
-              <UnlockAListCallout
-                grade={gradeLetter}
-                lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
-              />
-
-              <div className="space-y-3">
+            <div className="space-y-3">
+              <div className="divide-y divide-border rounded-lg border border-border">
                 {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
                   <LockedDiscoverJobCard key={posting.id} posting={posting} />
                 ))}
               </div>
-            </>
+
+              <UnlockAListCallout
+                grade={gradeLetter}
+                lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
+              />
+            </div>
           )}
         </div>
       )}
@@ -420,8 +429,9 @@ async function FindMyJobBody({
           ((c.company && orgNamesMatch(c.company, companyName)) ||
             (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName)))
       )
-      .slice(0, MAX_SUGGESTED_HELP_CONTACTS)
       .map((c) => ({ id: c.id, name: c.name, email: c.email, linkedinUrl: c.linkedinUrl }))
+      .sort((a, b) => CONTACT_LINK_ORDER[contactLinkType(a)] - CONTACT_LINK_ORDER[contactLinkType(b)])
+      .slice(0, MAX_SUGGESTED_HELP_CONTACTS)
     return { linkedContacts, suggestedContacts }
   }
 
@@ -520,6 +530,7 @@ async function FindMyJobBody({
   // itself (see PAGE_ACTION_TYPES + AUTO_DETECTED_ACTION_TYPES in
   // action-effort.ts) rather than being duplicated as a static list here.
   const industryBoards = getIndustryJobBoards(profile.targetIndustries)
+  const applicationPoints = estimateActionEffort({ actionType: 'JOB_APPLICATION_SUBMITTED' }).points
 
   return (
     <>
@@ -566,21 +577,6 @@ async function FindMyJobBody({
           <div className="p-4">
             <div className="flex items-center gap-2.5">
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
-                <Globe className="size-3.5" aria-hidden />
-              </span>
-              <p className="text-sm font-semibold text-foreground">Job Boards</p>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              A strong application to a live posting is real signal too — do this alongside networking, not instead of it.
-            </p>
-            <div className="mt-3">
-              <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
-            </div>
-          </div>
-
-          <div className="p-4">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
                 <FileText className="size-3.5" aria-hidden />
               </span>
               <p className="text-sm font-semibold text-foreground">Resume Book</p>
@@ -614,12 +610,35 @@ async function FindMyJobBody({
             )}
           </div>
 
+          <div className="p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+                <Globe className="size-3.5" aria-hidden />
+              </span>
+              <p className="text-sm font-semibold text-foreground">Job Boards</p>
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +{applicationPoints} pts
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              A strong application to a live posting is real signal too — do this alongside networking, not instead of it.
+              Jobs you apply to here get added to your Application Tracker automatically once we see the confirmation
+              email, and count toward your weekly points.
+            </p>
+            <div className="mt-3">
+              <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
+            </div>
+          </div>
+
           <div id="job-recommendations" className="scroll-mt-4 p-4">
             <div className="flex items-center gap-2.5">
               <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
                 <Sparkles className="size-3.5" aria-hidden />
               </span>
               <p className="text-sm font-semibold text-foreground">Job Recommendations For You</p>
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                +{applicationPoints} pts
+              </span>
             </div>
             <div className="mt-3">
               <Suspense fallback={<JobRecommendationsSkeleton />}>

@@ -100,7 +100,7 @@ export function DiscoverJobCard({
             ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}
         </p>
 
-        {posting.description && <p className="text-sm text-muted-foreground">{posting.description}</p>}
+        {posting.description && <p className="line-clamp-2 text-sm text-muted-foreground">{posting.description}</p>}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confidential ? (

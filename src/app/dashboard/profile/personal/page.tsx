@@ -151,6 +151,7 @@ export default async function PersonalInformationPage() {
               highestEducationLevel={profile.highestEducationLevel}
               hasJD={profile.hasJD}
               hasMD={profile.hasMD}
+              hasMBA={profile.hasMBA}
             />
           </CardContent>
         </Card>

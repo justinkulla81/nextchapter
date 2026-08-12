@@ -6,27 +6,32 @@ import { confirmEducation } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DEGREE_OPTIONS, legacyLevelToOption } from '@/lib/constants/education'
+import { DEGREE_OPTIONS, legacyLevelToOption, impliedLevels } from '@/lib/constants/education'
 import { cn } from '@/lib/utils'
 
 export function EducationConfirmForm({
   highestEducationLevel,
   hasJD,
   hasMD,
+  hasMBA,
 }: {
   highestEducationLevel: HighestEducationLevel | null
   hasJD: boolean
   hasMD: boolean
+  hasMBA: boolean
 }) {
   const [state, formAction, pending] = useActionState(confirmEducation, undefined)
 
-  const initialChecked = new Set<HighestEducationLevel>(
-    [
-      highestEducationLevel ? legacyLevelToOption(highestEducationLevel) : null,
-      hasJD ? 'JD' : null,
-      hasMD ? 'MD' : null,
-      highestEducationLevel === 'PHD' ? 'PHD' : null,
-    ].filter((v): v is HighestEducationLevel => !!v)
+  const initialChecked = impliedLevels(
+    new Set<HighestEducationLevel>(
+      [
+        highestEducationLevel ? legacyLevelToOption(highestEducationLevel) : null,
+        hasJD ? 'JD' : null,
+        hasMD ? 'MD' : null,
+        hasMBA ? 'MBA' : null,
+        highestEducationLevel === 'PHD' ? 'PHD' : null,
+      ].filter((v): v is HighestEducationLevel => !!v)
+    )
   )
   const [checked, setChecked] = useState(initialChecked)
 

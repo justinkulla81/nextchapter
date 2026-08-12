@@ -234,14 +234,14 @@ export async function confirmEducation(
   const highestEducationLevel = deriveHighestLevel(checkedDegrees)
   const hasJD = checkedDegrees.has('JD')
   const hasMD = checkedDegrees.has('MD')
+  const hasMBA = checkedDegrees.has('MBA')
 
-  // hasMBA/hasDO are intentionally left untouched — there's no checkbox for
-  // either in the current UI (see DEGREE_OPTIONS), so overwriting them here
-  // would silently erase a value set by resume extraction or an earlier
-  // version of this form.
+  // hasDO is intentionally left untouched — there's no checkbox for it in
+  // the current UI (see DEGREE_OPTIONS), so overwriting it here would
+  // silently erase a value set by resume extraction.
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { highestEducationLevel, hasJD, hasMD },
+    data: { highestEducationLevel, hasJD, hasMD, hasMBA },
   })
   revalidatePath('/dashboard/profile')
 }

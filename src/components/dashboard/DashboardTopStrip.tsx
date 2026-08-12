@@ -50,20 +50,20 @@ export function DashboardTopStrip({
         />
 
         <StatTile
+          value={searchExecutionAvailable ? `${grade.weeklyPoints} / ${grade.weeklyPointsTarget}` : 'N/A'}
+          label="Weekly Search Score"
+          accent={!searchExecutionAvailable ? 'neutral' : overDelivering ? 'success' : 'brand'}
+          valueClassName={searchExecutionAvailable ? (overDelivering ? 'text-success' : 'text-error') : undefined}
+          icon={Target}
+          title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
+        />
+
+        <StatTile
           value={grade.grade}
           label="Current Market Reality"
           accent={gradeAccent(grade.grade)}
           icon={TrendingUp}
           title="How the market currently sees you, based on your Hireability Assessment."
-        />
-
-        <StatTile
-          value={searchExecutionAvailable ? `${grade.weeklyPoints} / ${grade.weeklyPointsTarget}` : 'N/A'}
-          label="Weekly Search Score"
-          accent={!searchExecutionAvailable ? 'neutral' : overDelivering ? 'success' : 'brand'}
-          statusText={overDelivering ? 'Over-delivering' : undefined}
-          icon={Target}
-          title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
         />
       </div>
 

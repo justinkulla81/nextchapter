@@ -35,6 +35,7 @@ export function NextSurfacedJobCard({
   job,
   fitBucket,
   worksHereContacts,
+  worksHereTotalCount,
 }: {
   job: SurfacedJob
   fitBucket?: FitBucket
@@ -42,8 +43,11 @@ export function NextSurfacedJobCard({
   // unlike WhoCanHelpSection (used on applied jobs), there's no JobPosting
   // row here to link a contact to, so this is informational only: a warm
   // intro is the biggest differentiator among hundreds of applicants, so
-  // it's worth surfacing even before the candidate has applied.
+  // it's worth surfacing even before the candidate has applied. Callers
+  // pre-sort by contactLinkType (email, then LinkedIn, then neither) and cap
+  // the list — worksHereTotalCount carries the real count for a "+N more".
   worksHereContacts?: { id: string; name: string; email: string | null; linkedinUrl: string | null }[]
+  worksHereTotalCount?: number
 }) {
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
@@ -77,19 +81,22 @@ export function NextSurfacedJobCard({
             </p>
           )}
           {job.description && (
-            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{job.description}</p>
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{job.description}</p>
           )}
           {worksHereContacts && worksHereContacts.length > 0 && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              🔗{' '}
-              {worksHereContacts.map((c, i) => (
-                <span key={c.id}>
-                  {i > 0 && ', '}
-                  <ContactQuickLink name={c.name} email={c.email} linkedinUrl={c.linkedinUrl} />
-                </span>
-              ))}{' '}
-              works there — a warm intro beats a cold application
-            </p>
+            <div className="mt-1.5 space-y-1">
+              <p className="text-xs text-muted-foreground">Works there — a warm intro beats a cold application:</p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {worksHereContacts.map((c) => (
+                  <ContactQuickLink key={c.id} name={c.name} email={c.email} linkedinUrl={c.linkedinUrl} className="text-xs" />
+                ))}
+                {worksHereTotalCount !== undefined && worksHereTotalCount > worksHereContacts.length && (
+                  <span className="text-xs text-muted-foreground">
+                    +{worksHereTotalCount - worksHereContacts.length} more
+                  </span>
+                )}
+              </div>
+            </div>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">

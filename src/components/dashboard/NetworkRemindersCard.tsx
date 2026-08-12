@@ -79,7 +79,7 @@ export function NetworkRemindersCard({ items }: { items: UnifiedFollowUpItem[] }
           )
         })}
         {items.length > PREVIEW_COUNT && (
-          <div className="border-t border-border py-2.5 text-right">
+          <div className="border-t border-border py-2.5">
             <Link
               href="/dashboard/network/follow-ups"
               onClick={() => posthog?.capture('follow_up_view_all_clicked')}

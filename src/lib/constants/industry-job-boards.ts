@@ -1,13 +1,14 @@
 export interface JobBoardRecommendation {
   name: string
   url: string
+  description: string
 }
 
 // General-purpose boards shown to every candidate, regardless of industry.
 export const GENERAL_JOB_BOARDS: JobBoardRecommendation[] = [
-  { name: 'LinkedIn Jobs', url: 'https://www.linkedin.com/jobs' },
-  { name: 'Indeed', url: 'https://www.indeed.com' },
-  { name: 'TheLadders', url: 'https://www.theladders.com' },
+  { name: 'LinkedIn Jobs', url: 'https://www.linkedin.com/jobs', description: 'The broadest reach, and recruiters check it first' },
+  { name: 'Indeed', url: 'https://www.indeed.com', description: 'Largest raw volume of postings across every industry' },
+  { name: 'TheLadders', url: 'https://www.theladders.com', description: 'Curated for $100k+ roles' },
 ]
 
 // Keyed by loose keyword match against a candidate's target industries —
@@ -18,28 +19,28 @@ const INDUSTRY_JOB_BOARDS_BY_KEYWORD: { keywords: string[]; boards: JobBoardReco
   {
     keywords: ['non-profit', 'nonprofit', 'ngo', 'social impact', 'philanthropy'],
     boards: [
-      { name: 'Idealist.org', url: 'https://www.idealist.org' },
-      { name: 'On Purpose Careers', url: 'https://www.onpurposecareers.org' },
+      { name: 'Idealist.org', url: 'https://www.idealist.org', description: 'Non-profit and social-impact roles' },
+      { name: 'On Purpose Careers', url: 'https://www.onpurposecareers.org', description: 'Mission-driven and social-impact roles' },
     ],
   },
   {
     keywords: ['government', 'public sector', 'federal', 'municipal'],
-    boards: [{ name: 'USAJOBS', url: 'https://www.usajobs.gov' }],
+    boards: [{ name: 'USAJOBS', url: 'https://www.usajobs.gov', description: 'Official U.S. federal government job listings' }],
   },
   {
     keywords: ['education', 'higher ed', 'university', 'academic', 'academia'],
-    boards: [{ name: 'HigherEdJobs', url: 'https://www.higheredjobs.com' }],
+    boards: [{ name: 'HigherEdJobs', url: 'https://www.higheredjobs.com', description: 'University and higher-ed administration roles' }],
   },
   {
     keywords: ['tech', 'technology', 'software', 'engineering', 'startup', 'saas'],
     boards: [
-      { name: 'Dice', url: 'https://www.dice.com' },
-      { name: 'Wellfound', url: 'https://wellfound.com' },
+      { name: 'Dice', url: 'https://www.dice.com', description: 'Tech and engineering-focused listings' },
+      { name: 'Wellfound', url: 'https://wellfound.com', description: 'Startup roles, often with equity details listed' },
     ],
   },
   {
     keywords: ['healthcare', 'health care', 'hospital', 'medical', 'clinical'],
-    boards: [{ name: 'Health eCareers', url: 'https://www.healthecareers.com' }],
+    boards: [{ name: 'Health eCareers', url: 'https://www.healthecareers.com', description: 'Healthcare and clinical leadership roles' }],
   },
 ]
 

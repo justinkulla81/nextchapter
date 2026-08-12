@@ -56,6 +56,23 @@ export function legacyLevelToOption(level: HighestEducationLevel): HighestEducat
   return 'MASTERS'
 }
 
+// A graduate-level credential (Master's/MBA/JD/MD/PhD/etc., LEVEL_RANK 5-6)
+// necessarily means a Bachelor's was completed first, which in turn means
+// high school was — resume extraction only ever confirms the highest
+// credential it can find, so without this the lower ones stay unchecked
+// even though holding the higher one guarantees them. Associate's implies
+// high school but not a Bachelor's (that's a separate, non-guaranteed
+// path), so it's left alone.
+export function impliedLevels(checked: Set<HighestEducationLevel>): Set<HighestEducationLevel> {
+  const withImplied = new Set(checked)
+  const hasGraduateLevel = [...checked].some((level) => LEVEL_RANK[level] >= 5)
+  if (hasGraduateLevel) withImplied.add('BACHELORS')
+  if (hasGraduateLevel || withImplied.has('BACHELORS') || withImplied.has('ASSOCIATE')) {
+    withImplied.add('HIGH_SCHOOL')
+  }
+  return withImplied
+}
+
 // Picks the single highestEducationLevel to store from a set of checked
 // degree checkboxes — highest LEVEL_RANK wins; PHD > MD > JD breaks ties
 // within rank 6 since a PhD is the least ambiguous "top" signal.
