@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CalendarDays, Flame, TrendingUp, Target } from 'lucide-react'
 import type { HireabilityGrade } from '@/lib/scoring/grade'
 import { GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
@@ -38,15 +39,21 @@ export function DashboardTopStrip({
     <div className="space-y-2">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {!suppressUrgency && (
-          <StatTile value={`Wk ${weekNumber} · Day ${dayNumber}`} label="Search week" accent="neutral" />
+          <StatTile value={`Wk ${weekNumber} · Day ${dayNumber}`} label="Search week" accent="neutral" icon={CalendarDays} />
         )}
 
-        <StatTile value={`🔥 ${currentStreak}`} label="Day streak" accent={currentStreak > 0 ? 'brand' : 'neutral'} />
+        <StatTile
+          value={currentStreak}
+          label="Day streak"
+          accent={currentStreak > 0 ? 'brand' : 'neutral'}
+          icon={Flame}
+        />
 
         <StatTile
           value={grade.grade}
           label="Current Market Reality"
           accent={gradeAccent(grade.grade)}
+          icon={TrendingUp}
           title="How the market currently sees you, based on your Hireability Assessment."
         />
 
@@ -55,6 +62,7 @@ export function DashboardTopStrip({
           label="Weekly Search Score"
           accent={!searchExecutionAvailable ? 'neutral' : overDelivering ? 'success' : 'brand'}
           statusText={overDelivering ? 'Over-delivering' : undefined}
+          icon={Target}
           title="The platform-wide points target for an A this week — separate from your own Weekly Search Sprint total below, which is just the actions you personally committed to."
         />
       </div>

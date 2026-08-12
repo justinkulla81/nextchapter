@@ -1,7 +1,8 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import Link from 'next/link'
+import { User, Users, BookOpen, Sparkles, Zap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ACTION_TYPE_LINK,
@@ -182,10 +183,29 @@ function isPersonalizeType(actionType: string | undefined): boolean {
   return navCategoryForActionType(actionType) === 'Personalize'
 }
 
+// One small colored-circle icon per section — Priority gets its own accent
+// (orange, matching the row highlight it groups), everything else keys off
+// the same NavCategory buckets the hamburger nav and Action Plan boxes use.
+const GROUP_ICON: Record<string, { icon: ComponentType<{ className?: string; strokeWidth?: number }>; color: string }> = {
+  Priority: { icon: Zap, color: 'bg-orange/15 text-orange' },
+  Personalize: { icon: User, color: 'bg-brand/10 text-brand' },
+  Connecting: { icon: Users, color: 'bg-success/10 text-success' },
+  'Learning & Working': { icon: BookOpen, color: 'bg-light-blue/10 text-light-blue' },
+  Other: { icon: Sparkles, color: 'bg-muted text-muted-foreground' },
+}
+
 function ActionGroup({ title, children }: { title: string; children: ReactNode }) {
+  const iconDef = GROUP_ICON[title]
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-semibold text-foreground">{title}</p>
+      <div className="flex items-center gap-1.5">
+        {iconDef && (
+          <span className={cn('flex size-5 shrink-0 items-center justify-center rounded-full', iconDef.color)}>
+            <iconDef.icon className="size-3" strokeWidth={2.25} />
+          </span>
+        )}
+        <p className="text-xs font-semibold text-foreground">{title}</p>
+      </div>
       {children}
     </div>
   )
@@ -266,7 +286,7 @@ function ActionRow({
         <Link
           href={link?.href ?? '/dashboard'}
           className={cn(
-            'shrink-0 text-sm hover:underline',
+            'shrink-0 text-[13px] font-medium hover:underline',
             completed && !recurring ? 'text-muted-foreground line-through' : 'text-foreground'
           )}
         >

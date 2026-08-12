@@ -5,7 +5,33 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
-import { Home, Briefcase, Users, User, Menu, X } from 'lucide-react'
+import {
+  Home,
+  Briefcase,
+  Users,
+  User,
+  Menu,
+  X,
+  Target,
+  ClipboardCheck,
+  Megaphone,
+  Star,
+  MessageCircle,
+  GraduationCap,
+  Building2,
+  BookOpen,
+  Video,
+  Repeat,
+  PartyPopper,
+  Contact,
+  FolderOpen,
+  BarChart3,
+  Shield,
+  HeartHandshake,
+  LifeBuoy,
+  HelpCircle,
+  type LucideIcon,
+} from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
 
@@ -28,6 +54,7 @@ function SignOutButton() {
 interface NavLink {
   href: string
   label: string
+  icon: LucideIcon
   badge?: string
   muted?: boolean
   disabled?: boolean
@@ -52,15 +79,15 @@ function buildSections(
   return [
     {
       title: null,
-      links: [{ href: '/dashboard', label: 'Success Dashboard' }],
+      links: [{ href: '/dashboard', label: 'Success Dashboard', icon: Home }],
     },
     {
       title: 'Personalize',
       links: [
-        { href: '/dashboard/profile', label: 'My Profile' },
-        { href: '/dashboard/search-strategy', label: 'My Search Strategy' },
-        { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments' },
-        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan' },
+        { href: '/dashboard/profile', label: 'My Profile', icon: User },
+        { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
+        { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone },
       ],
     },
     {
@@ -69,16 +96,18 @@ function buildSections(
         {
           href: '/dashboard/network',
           label: 'Network with Contacts',
+          icon: Users,
           // A real "you know someone at a company you applied to" count is
           // a specific, live reason to visit right now — kept as a badge
           // since it's genuinely differentiated, unlike the old static
           // "Priority" label every item here used to carry.
           badge: newBackchannelCount > 0 ? String(newBackchannelCount) : undefined,
         },
-        { href: '/dashboard/references', label: 'My References' },
+        { href: '/dashboard/references', label: 'My References', icon: Star },
         {
           href: '/dashboard/community',
           label: 'NextChapter Community',
+          icon: MessageCircle,
           badge:
             supportNetworkUnreadCount + messagesUnreadCount > 0
               ? String(supportNetworkUnreadCount + messagesUnreadCount)
@@ -90,10 +119,11 @@ function buildSections(
         // not folded into a generic collapsed catch-all category. Real
         // monetization surface area (see Prompt 78's negotiation
         // coaching, the coaching-commission revenue stream).
-        { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
+        { href: '/coaching', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium' },
         {
           href: '/dashboard/privacy',
           label: 'Executive Recruiter',
+          icon: Building2,
           badge: 'Coming Soon',
           muted: true,
           disabled: true,
@@ -103,32 +133,33 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
-        { href: '/dashboard/learning', label: 'Learn New Skills' },
-        { href: '/dashboard/webinars', label: 'Webinars' },
-        { href: '/dashboard/interim-work', label: 'Find Interim Work' },
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job' },
-        { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
+        { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen },
+        { href: '/dashboard/webinars', label: 'Webinars', icon: Video },
+        { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat },
+        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase },
+        { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],
     },
     {
       title: 'Data',
       links: [
-        { href: '/dashboard/network/contacts', label: 'My Contacts' },
+        { href: '/dashboard/network/contacts', label: 'My Contacts', icon: Contact },
         {
           href: '/dashboard/portfolio',
           label: 'My Portfolio',
+          icon: FolderOpen,
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
         },
-        { href: '/dashboard/stats', label: 'My Stats' },
-        { href: '/dashboard/privacy', label: 'Privacy Settings' },
+        { href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
+        { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
       ],
     },
     {
       title: 'Misc',
       links: [
-        { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
-        { href: '/dashboard/support', label: "I'm Struggling" },
-        { href: '/faq', label: 'FAQ' },
+        { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
+        { href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
+        { href: '/faq', label: 'FAQ', icon: HelpCircle },
       ],
     },
   ]
@@ -168,7 +199,7 @@ function NavContent({
               type="button"
               onClick={() => onToggleSection(section.title!)}
               aria-expanded={!collapsed}
-              className="flex w-full items-center gap-1.5 px-2 pb-1 text-sm font-semibold tracking-wide text-muted-foreground uppercase hover:text-foreground"
+              className="flex w-full items-center gap-1.5 px-2 pb-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase hover:text-foreground"
             >
               {section.title}
               <svg
@@ -198,14 +229,19 @@ function NavContent({
               </span>
             )
 
+            const Icon = link.icon
+
             if (link.disabled) {
               return (
                 <div
                   key={`${section.title ?? 'top'}-${link.href}`}
                   aria-disabled="true"
-                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground/60"
+                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium whitespace-nowrap text-muted-foreground/60"
                 >
-                  <span>{link.label}</span>
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <Icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                    <span className="truncate">{link.label}</span>
+                  </span>
                   {badgeEl}
                 </div>
               )
@@ -219,7 +255,7 @@ function NavContent({
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center justify-between gap-2 rounded-md border-l-[3px] px-2 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+                  'flex items-center justify-between gap-2 rounded-md border-l-[3px] px-2 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors',
                   active
                     ? 'border-brand bg-brand/8 font-semibold text-brand'
                     : link.muted
@@ -227,7 +263,10 @@ function NavContent({
                       : 'border-transparent text-foreground/80 hover:bg-light-gray hover:text-foreground'
                 )}
               >
-                <span>{link.label}</span>
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <Icon className="size-4 shrink-0" strokeWidth={active ? 2.25 : 1.75} aria-hidden />
+                  <span className="truncate">{link.label}</span>
+                </span>
                 {badgeEl}
               </Link>
             )
