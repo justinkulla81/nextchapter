@@ -4,6 +4,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { RedFlagsQuestionsForm } from '@/components/dashboard/RedFlagsQuestionsForm'
 import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthorizationConfirmForm'
 import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
+import { AnsweredConfirmSection } from '@/components/dashboard/AnsweredConfirmSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -50,16 +51,9 @@ export default async function ScreeningPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {redFlagsAnswered ? (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-              Answered
-            </p>
-          ) : (
+          <AnsweredConfirmSection answered={redFlagsAnswered}>
             <RedFlagsQuestionsForm currentJobStatus={profile.currentJobStatus} />
-          )}
+          </AnsweredConfirmSection>
         </CardContent>
       </Card>
 
@@ -70,12 +64,14 @@ export default async function ScreeningPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <EeocSelfIdForm
-            eeocGenderIdentity={profile.eeocGenderIdentity}
-            eeocRaceEthnicity={profile.eeocRaceEthnicity}
-            eeocDisabilityStatus={profile.eeocDisabilityStatus}
-            eeocVeteranStatus={profile.eeocVeteranStatus}
-          />
+          <AnsweredConfirmSection answered={!!profile.eeocRespondedAt}>
+            <EeocSelfIdForm
+              eeocGenderIdentity={profile.eeocGenderIdentity}
+              eeocRaceEthnicity={profile.eeocRaceEthnicity}
+              eeocDisabilityStatus={profile.eeocDisabilityStatus}
+              eeocVeteranStatus={profile.eeocVeteranStatus}
+            />
+          </AnsweredConfirmSection>
         </CardContent>
       </Card>
 
@@ -86,11 +82,13 @@ export default async function ScreeningPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <WorkAuthorizationConfirmForm
-            workAuthorization={profile.workAuthorization}
-            visaStatus={profile.visaStatus}
-            confirmedAt={profile.workAuthConfirmedAt}
-          />
+          <AnsweredConfirmSection answered={!!profile.workAuthConfirmedAt}>
+            <WorkAuthorizationConfirmForm
+              workAuthorization={profile.workAuthorization}
+              visaStatus={profile.visaStatus}
+              confirmedAt={profile.workAuthConfirmedAt}
+            />
+          </AnsweredConfirmSection>
         </CardContent>
       </Card>
     </div>

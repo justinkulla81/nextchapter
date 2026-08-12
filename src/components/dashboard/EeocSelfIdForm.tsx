@@ -149,8 +149,8 @@ export function EeocSelfIdForm({
             </Select>
           </div>
         </div>
-        <SubmitButton variant={isDirty ? 'success' : 'outline'} disabled={!isDirty} pendingLabel="Saving…">
-          Save
+        <SubmitButton variant={isDirty ? 'success' : 'ghost'} disabled={!isDirty} pendingLabel="Saving…">
+          {isDirty ? 'Save' : 'Saved'}
         </SubmitButton>
       </form>
     </div>

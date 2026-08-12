@@ -42,6 +42,12 @@ interface Row {
   recurring: boolean
   completionCount?: number
   priority?: boolean
+  // When a completed one-time row was actually finished — lets openRows
+  // keep it visible (struck through) through the rest of this week instead
+  // of dropping it the instant it's done, then let it drop away once a new
+  // week starts. Undefined/null means "no timestamp available," which
+  // falls back to the old drop-immediately behavior (see openRows below).
+  completedAt?: Date | null
 }
 
 
@@ -123,28 +129,36 @@ const ONE_TIME_SETUP_CLUSTER = new Set([
 // leads when it's still open — it's the one action that makes every other
 // auto-detected action type (applications, interviews, outreach) start
 // counting, so it shouldn't get buried under whatever happens to sort
-// earlier. A completed one-time row never reaches this function at all (see
-// openRows below, which drops those before grouping/sorting ever runs), so
-// GMAIL_CONNECTED/GMAIL_RECONNECTED are guaranteed still-incomplete whenever
-// they appear here — no separate "if not completed" check needed.
+// earlier. Gmail itself is never completed-and-still-present (connecting it
+// removes its synthetic row entirely — see allRows above), so it never
+// competes with the completed-sinks-last rule below.
 // Array.prototype.sort is stable in every engine this app runs on, so rows
-// within the same tier keep their original relative order.
+// within the same tier (and same completed-state) keep their original
+// relative order.
 function sortForDisplay(rows: Row[]): Row[] {
   function tier(row: Row): number {
     if (row.actionType === 'GMAIL_CONNECTED' || row.actionType === 'GMAIL_RECONNECTED') return 0
     if (row.actionType && ONE_TIME_SETUP_CLUSTER.has(row.actionType)) return 1
     return row.recurring ? 3 : 2
   }
-  return [...rows].sort((a, b) => tier(a) - tier(b))
+  // A completed one-time row still visible this week (see openRows above)
+  // reads as "done" rather than "what's left," so it sinks to the bottom of
+  // its tier instead of sitting among still-open items.
+  function completedRank(row: Row): number {
+    return row.completed && !row.recurring ? 1 : 0
+  }
+  return [...rows].sort((a, b) => tier(a) - tier(b) || completedRank(a) - completedRank(b))
 }
 
 // Replaces every row whose actionType is in one of PROFILE_SECTION_GROUPS
 // with that group's single combined row (one row per My Profile sub-page,
 // not one row overall). Points shown are what's still earnable rather than
 // the lifetime total, so the number on screen always answers "how many
-// more points is this worth me finishing." A group with nothing left open
-// among `rows` (which only ever contains incomplete items — see openRows
-// above) simply isn't rendered.
+// more points is this worth me finishing." A group with nothing at all
+// present in `rows` simply isn't rendered — but unlike before, `rows` can
+// now include completed-this-week items too (see openRows above), so a
+// group whose every sub-item is done this week renders as one struck-through
+// row instead of vanishing the instant the last sub-item is answered.
 function consolidateProfileDataRows(rows: Row[]): Row[] {
   let remainingRows = rows
   const consolidatedRows: Row[] = []
@@ -155,16 +169,36 @@ function consolidateProfileDataRows(rows: Row[]): Row[] {
     if (groupRows.length === 0) continue
     remainingRows = remainingRows.filter((r) => !(r.actionType && groupTypes.has(r.actionType)))
 
-    // Only the sub-items still outstanding — groupRows is already filtered
-    // to incomplete rows by the time it reaches here (see openRows below),
-    // so this reads as a live to-do list, not a static list of everything
-    // the page ever asks for.
-    const remainingLabels = groupRows.map((r) => group.itemLabels[r.actionType!]).filter(Boolean)
+    const allDone = groupRows.every((r) => r.completed)
+    if (allDone) {
+      const mostRecent = groupRows.reduce<Date | null>((latest, r) => {
+        if (!r.completedAt) return latest
+        return !latest || r.completedAt > latest ? r.completedAt : latest
+      }, null)
+      consolidatedRows.push({
+        text: group.title,
+        points: 0,
+        estimatedMinutes: 0,
+        actionType: group.actionType,
+        completed: true,
+        recurring: false,
+        priority: false,
+        completedAt: mostRecent,
+      })
+      continue
+    }
+
+    // Only the sub-items still outstanding — a group that reaches here has
+    // at least one incomplete row (see `allDone` above), and any completed
+    // sibling shouldn't re-add its label/points to what reads as "what's
+    // still left to answer."
+    const openGroupRows = groupRows.filter((r) => !r.completed)
+    const remainingLabels = openGroupRows.map((r) => group.itemLabels[r.actionType!]).filter(Boolean)
 
     consolidatedRows.push({
       text: `${group.title} — ${joinWithAnd(remainingLabels)}`,
-      points: groupRows.reduce((sum, r) => sum + r.points, 0),
-      estimatedMinutes: groupRows.reduce((sum, r) => sum + r.estimatedMinutes, 0),
+      points: openGroupRows.reduce((sum, r) => sum + r.points, 0),
+      estimatedMinutes: openGroupRows.reduce((sum, r) => sum + r.estimatedMinutes, 0),
       actionType: group.actionType,
       completed: false,
       recurring: false,
@@ -273,8 +307,8 @@ function ActionRow({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 rounded-lg border px-3 py-2',
-        isPriority ? 'border-orange/40 bg-orange/5' : 'border-border bg-off-white'
+        'flex items-center justify-between gap-3 rounded-lg px-3 py-2',
+        isPriority ? 'border border-orange/40 bg-orange/5' : 'border border-transparent'
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
@@ -352,6 +386,7 @@ export function SuccessSprintCard({
   profileChecklistItems,
   searchStrategyChecklist,
   completedReferencesCount,
+  weekStartDate,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -367,6 +402,7 @@ export function SuccessSprintCard({
   profileChecklistItems: ProfileChecklistItem[]
   searchStrategyChecklist: SearchStrategyChecklist
   completedReferencesCount: number
+  weekStartDate: Date
 }) {
   // isGoalBonus rows (the one-time welcome/commitment credit) are a
   // historical point award, not a real action to show in this list — their
@@ -421,6 +457,7 @@ export function SuccessSprintCard({
       recurring: a.recurring,
       completionCount: a.completionCount,
       priority: isPriorityActionType(a.actionType),
+      completedAt: a.completedAt ? new Date(a.completedAt) : undefined,
     })),
     ...availableCatalog.map((sa) => {
       const effort = estimateActionEffort(sa)
@@ -450,6 +487,7 @@ export function SuccessSprintCard({
         completed: item.complete,
         recurring: false,
         priority: isPriorityActionType(item.actionType),
+        completedAt: item.completedAt,
       })),
     // Search Strategy's own completeness checklist — a separate data source
     // (CandidateProfile fields, not committedActions/DB timestamps) with its
@@ -492,15 +530,20 @@ export function SuccessSprintCard({
       : []),
   ]
 
-  // A completed one-time row drops out of the list immediately — same
-  // rule SprintActionCompletion already applies, and for the same reason:
-  // a struck-through row that's already done isn't "what's left to do,"
-  // it's stale clutter, and it read as confusing/wrong at the start of a
-  // fresh week (a one-time item completed weeks ago has no relationship to
-  // "this week" and shouldn't visually compete with what's actually still
-  // open). Recurring rows are unaffected — those still render "done this
-  // week" as a real, current signal, not a stale leftover.
-  const openRows = allRows.filter((r) => !(r.completed && !r.recurring))
+  // A completed one-time row stays visible (struck through) through the
+  // rest of the week it was completed in — real, current confirmation that
+  // it's done — then drops out once a new week starts, since a one-time
+  // item completed weeks ago has no relationship to "this week" and would
+  // read as stale clutter competing with what's actually still open. Rows
+  // with no completedAt (a few profile-checklist items have no discrete
+  // timestamp — see profile-checklist.ts) fall back to dropping
+  // immediately, the old behavior. Recurring rows are unaffected — those
+  // always render "done this week" as a real, current signal.
+  const openRows = allRows.filter((r) => {
+    if (!r.completed || r.recurring) return true
+    if (!r.completedAt) return false
+    return r.completedAt.getTime() >= weekStartDate.getTime()
+  })
 
   // Same "hit this week's target" logic ActionRow uses to decide whether a
   // row still gets the Priority badge/border — a recurring row that's

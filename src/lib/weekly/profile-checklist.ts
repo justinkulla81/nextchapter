@@ -30,6 +30,13 @@ export interface ProfileChecklistItem {
   label: string
   points: number
   complete: boolean
+  // When this item's completion timestamp is known — lets the Weekly
+  // Search Sprint list keep a just-answered item visible (struck through)
+  // for the rest of this week instead of dropping it the instant it's
+  // done. Null for items with no discrete timestamp (see the three
+  // exceptions in fetchCompletion below) — those keep the old
+  // drop-immediately behavior.
+  completedAt: Date | null
 }
 
 async function fetchCompletion(candidateId: string) {
@@ -106,18 +113,46 @@ async function fetchCompletion(candidateId: string) {
     BENEFITS_PRIORITIES_CONFIRMED: !!profile.benefitsPrioritiesBonusAt,
   }
 
-  return completion
+  // Mirrors `completion` above, one-to-one, except for the three items with
+  // no discrete timestamp field (WORKING_STYLE_QUIZ counts response rows,
+  // ANSWER_OPTIONAL_QUESTIONS is derived from several fields at once,
+  // PROFILE_PICTURE_UPLOADED is live-checked) — those stay null.
+  const completedAt: Record<ProfileChecklistActionType, Date | null> = {
+    WORKING_STYLE_QUIZ: null,
+    SKILLS_ASSESSMENT_COMPLETED: profile.skillsAssessmentCompletedAt,
+    PROFILE_CONFIRM: profile.profileConfirmedAt,
+    INDUSTRY_CONFIRM: profile.industryConfirmedAt,
+    FUNCTION_CONFIRM: profile.functionConfirmedAt,
+    SALARY_CONFIRM: profile.salaryConfirmedAt,
+    WORK_AUTHORIZATION: profile.workAuthConfirmedAt,
+    ANSWER_OPTIONAL_QUESTIONS: null,
+    PRIVACY_CONFIRMED: profile.privacyOpenedUpBonusAt,
+    COMFORT_CHECK_CONFIRM: profile.comfortCheckBonusAt,
+    NETWORK_COMFORT_CONFIRMED: profile.networkComfortBonusAt,
+    WORK_SAMPLE_TYPE_CONFIRMED: profile.workSampleTypeBonusAt,
+    MARKETING_PLAN_UNLOCK: profile.contentUnlockBonusAt,
+    GIG_DIRECTORY_UNLOCK: profile.gigDirectoryUnlockBonusAt,
+    LINKEDIN_UNLOCK: profile.linkedinUnlockBonusAt,
+    PROFILE_PICTURE_UPLOADED: null,
+    LINKEDIN_PROFILE_ADDED: profile.linkedInConfirmedAt,
+    RED_FLAGS_CONFIRMED: profile.redFlagsBonusAt,
+    BENEFITS_PRIORITIES_CONFIRMED: profile.benefitsPrioritiesBonusAt,
+  }
+
+  return { completion, completedAt }
 }
 
 // Full item list with labels/points/completion — used by the
 // /dashboard/complete-profile page to decide what to render.
 export async function getProfileChecklistItems(candidateId: string): Promise<ProfileChecklistItem[]> {
-  const completion = await fetchCompletion(candidateId)
-  if (!completion) return []
+  const result = await fetchCompletion(candidateId)
+  if (!result) return []
+  const { completion, completedAt } = result
   return PROFILE_CHECKLIST_ACTION_TYPES.map((actionType) => ({
     actionType,
     label: PROFILE_CHECKLIST_LABEL_BY_TYPE[actionType],
     points: estimateActionEffort({ actionType }).points,
     complete: completion[actionType],
+    completedAt: completedAt[actionType],
   }))
 }

@@ -14,6 +14,11 @@ const YES_NO_OPTIONS = [
   { value: 'no', label: 'No' },
 ] as const
 
+const PET_FRIENDLY_OPTIONS = [
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No / Indifferent' },
+] as const
+
 export function RedFlagsQuestionsForm({ currentJobStatus }: { currentJobStatus: CurrentJobStatus | null }) {
   const [state, formAction, pending] = useActionState<RedFlagsState, FormData>(answerRedFlags, undefined)
   const [firedForCause, setFiredForCause] = useState('')
@@ -81,7 +86,7 @@ export function RedFlagsQuestionsForm({ currentJobStatus }: { currentJobStatus: 
         <Label>Do you want to work somewhere that&apos;s animal/pet-friendly?</Label>
         <ChoiceButtons
           name="wantsAnimalFriendlyWorkplace"
-          options={YES_NO_OPTIONS}
+          options={PET_FRIENDLY_OPTIONS}
           value={animalFriendly || null}
           onChange={setAnimalFriendly}
           columns={2}

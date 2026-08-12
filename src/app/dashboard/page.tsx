@@ -243,6 +243,7 @@ export default async function DashboardPage() {
           profileChecklistItems={profileChecklistItems}
           searchStrategyChecklist={searchStrategyChecklist}
           completedReferencesCount={completedReferencesCount}
+          weekStartDate={weekStartDate}
         />
       </div>
 

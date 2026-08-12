@@ -19,18 +19,15 @@ const OPTIONS: { value: NetworkingAnxiety; label: string }[] = [
 export function NetworkingAnxietySelector({ current }: { current: NetworkingAnxiety[] }) {
   const [selected, setSelected] = useState<NetworkingAnxiety[]>(current)
   const [pending, startTransition] = useTransition()
-  const [saved, setSaved] = useState(false)
   const dirty = JSON.stringify([...selected].sort()) !== JSON.stringify([...current].sort())
 
   function toggle(value: NetworkingAnxiety) {
-    setSaved(false)
     setSelected((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
   }
 
   function handleSave() {
     startTransition(async () => {
       await setNetworkingConcerns(selected)
-      setSaved(true)
     })
   }
 
@@ -60,13 +57,13 @@ export function NetworkingAnxietySelector({ current }: { current: NetworkingAnxi
         <Button
           type="button"
           size="sm"
+          variant={dirty ? 'default' : 'ghost'}
           disabled={!dirty || pending}
           onClick={handleSave}
           className={cn(pending && 'cursor-progress')}
         >
-          {pending ? 'Saving…' : 'Save'}
+          {pending ? 'Saving…' : dirty ? 'Save' : 'Saved'}
         </Button>
-        {saved && !dirty && <span className="text-sm text-muted-foreground">Saved</span>}
       </div>
     </div>
   )
