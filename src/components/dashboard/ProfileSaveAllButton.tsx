@@ -15,7 +15,7 @@ export function ProfileSaveAllButton({ containerId }: { containerId: string | st
     const containerIds = Array.isArray(containerId) ? containerId : [containerId]
     for (const id of containerIds) {
       const container = document.getElementById(id)
-      const forms = container?.querySelectorAll('form') ?? []
+      const forms = container?.querySelectorAll<HTMLFormElement>('form:not([data-bulk-save-skip])') ?? []
       forms.forEach((form) => form.requestSubmit())
     }
     setSaved(true)

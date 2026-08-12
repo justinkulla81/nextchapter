@@ -37,6 +37,7 @@ export function AvatarUploadForm({
             ref={formRef}
             action={formAction}
             className={isPending ? 'cursor-wait' : undefined}
+            data-bulk-save-skip
           >
             <label className="cursor-pointer text-sm font-medium text-brand underline underline-offset-4">
               {isPending ? 'Uploading…' : currentUrl ? 'Change photo' : 'Upload photo'}
@@ -56,7 +57,7 @@ export function AvatarUploadForm({
           )}
 
           {currentUrl && (
-            <form action={removeAction}>
+            <form action={removeAction} data-bulk-save-skip>
               <SubmitButton variant="ghost" size="sm">
                 Remove
               </SubmitButton>
