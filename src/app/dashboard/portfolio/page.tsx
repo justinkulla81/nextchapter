@@ -74,19 +74,27 @@ export default async function PortfolioPage() {
     hasLearningBadge: learningBadgeCount > 0,
   })
   const completedAssetCount = coreAssets.filter((a) => a.done).length
-  const missingAssets = coreAssets.filter((a) => !a.done)
 
   return (
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">My Portfolio</h1>
         <PageHeaderBoxes pageKey="portfolio" candidateId={profile.id} />
-        <p className="mt-2 text-sm font-medium text-muted-foreground tabular-nums">
-          {completedAssetCount} of {coreAssets.length} core assets built
-          {missingAssets.length > 0 && (
-            <span className="font-normal"> — still need: {missingAssets.map((a) => a.label).join(', ')}</span>
-          )}
-        </p>
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-sm font-medium text-foreground tabular-nums">
+            {completedAssetCount} of {coreAssets.length} core assets built
+          </p>
+          <ul className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+            {coreAssets.map((a) => (
+              <li key={a.key} className="flex items-center gap-2">
+                <span className={a.done ? 'text-success' : 'text-muted-foreground'} aria-hidden>
+                  {a.done ? '✓' : '○'}
+                </span>
+                <span className={a.done ? 'text-foreground' : 'text-muted-foreground'}>{a.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -307,7 +315,7 @@ export default async function PortfolioPage() {
           <CardContent className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               {completedReferenceCount > 0
-                ? `${completedReferenceCount} completed reference${completedReferenceCount === 1 ? '' : 's'}`
+                ? `${completedReferenceCount} / 5 completed`
                 : "Someone else's word for it — none received yet."}
             </p>
             <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/references" />}>
