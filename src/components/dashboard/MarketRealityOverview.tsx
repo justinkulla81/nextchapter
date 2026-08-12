@@ -13,6 +13,7 @@ import { MarketRealityTrendChart, type TrendSnapshot } from '@/components/dashbo
 import { CategorySparkline } from '@/components/dashboard/CategorySparkline'
 import type { CategoryMover } from '@/lib/scoring/market-reality-history'
 import { Card, CardContent } from '@/components/ui/card'
+import { MarketRealitySnapshotArchive, type ArchivedSnapshot } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { cn } from '@/lib/utils'
 
 // Prompt 47/spec §9.3 — "a portfolio statement: position, movement, and
@@ -34,6 +35,7 @@ export function MarketRealityOverview({
   sprintCompletionStreak,
   longestSprintCompletionStreak,
   weeksOfImprovement,
+  archiveSnapshots,
 }: {
   weekLabel: string
   currentGrade: Grade
@@ -46,6 +48,7 @@ export function MarketRealityOverview({
   sprintCompletionStreak: number
   longestSprintCompletionStreak: number
   weeksOfImprovement: number
+  archiveSnapshots: ArchivedSnapshot[]
 }) {
   const orderedCategories = CATEGORY_ORDER.map((key) => categories.find((c) => c.key === key)).filter(
     (c): c is CategoryGrade => c !== undefined
@@ -54,21 +57,16 @@ export function MarketRealityOverview({
   return (
     <Card>
       <CardContent>
-        <div className="flex items-baseline justify-between gap-3">
-          <h3
-            className="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
-            title="How the market currently sees you"
-          >
+        <div className="flex items-center justify-between gap-3">
+          <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground" title="How the market currently sees you">
             Market Reality
-          </h3>
-          <span className="text-xs text-muted-foreground">{weekLabel}</span>
-        </div>
-
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className={cn('text-4xl font-bold', GRADE_TEXT_COLOR[currentGrade])}>{currentGrade}</span>
-          {previousGrade && previousGrade !== currentGrade && (
-            <span className="text-sm text-muted-foreground">from {previousGrade}</span>
-          )}
+          </span>
+          <span className={cn('w-6 shrink-0 text-center text-sm font-bold', GRADE_TEXT_COLOR[currentGrade])}>
+            {currentGrade}
+          </span>
+          <span className="shrink-0 text-xs text-muted-foreground">
+            {previousGrade && previousGrade !== currentGrade ? `from ${previousGrade}` : weekLabel}
+          </span>
         </div>
         {bestWeekSentence && <p className="mt-1 text-sm text-foreground">{bestWeekSentence}</p>}
 
@@ -76,9 +74,9 @@ export function MarketRealityOverview({
           <MarketRealityTrendChart snapshots={trendSnapshots} />
         </div>
 
-        <div className="mt-6 space-y-1 border-t border-border pt-4">
+        <div className="mt-4 space-y-1 border-t-2 border-border pt-4">
           <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-            The six categories behind this grade
+            The six component categories behind this grade
           </h4>
           <div className="mt-2 space-y-1">
             {orderedCategories.map((c) => {
@@ -138,26 +136,6 @@ export function MarketRealityOverview({
           </div>
         )}
 
-        {(() => {
-          const unlockable = orderedCategories.filter((c) => c.confidence !== 'HIGH')
-          if (unlockable.length === 0) return null
-          return (
-            <div className="mt-6 space-y-3 border-t border-border pt-4">
-              {unlockable.map((c) => (
-                <div key={c.key} className="rounded-lg bg-muted/40 p-3">
-                  <p className="text-sm font-medium text-foreground">
-                    {c.label} — {CONFIDENCE_LABEL[c.confidence]}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">{CONFIDENCE_EXPLANATION[c.confidence]}</p>
-                  <Link href="/dashboard/references" className="mt-1 inline-block text-xs text-primary underline underline-offset-4">
-                    Invite references →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )
-        })()}
-
         {(sprintCompletionStreak > 0 || longestSprintCompletionStreak > 0 || weeksOfImprovement > 0) && (
           <p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">
             {sprintCompletionStreak > 0 &&
@@ -168,6 +146,20 @@ export function MarketRealityOverview({
             {weeksOfImprovement > 0 && `${weeksOfImprovement} weeks of improvement`}
           </p>
         )}
+
+        <div className="mt-6 space-y-2 border-t border-border pt-4">
+          <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+            Market Reality Summaries, week by week
+          </h4>
+          <MarketRealitySnapshotArchive snapshots={archiveSnapshots} />
+          <p className="text-xs text-muted-foreground">
+            The full narrative behind any week&apos;s grade lives on your{' '}
+            <Link href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
+              Market Reality Report
+            </Link>
+            .
+          </p>
+        </div>
       </CardContent>
     </Card>
   )

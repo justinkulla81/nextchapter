@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ListChecks } from 'lucide-react'
+import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
@@ -31,12 +31,11 @@ import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
 import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
-import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
-import { StreakHeroBanner } from '@/components/dashboard/StreakHeroBanner'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
 
@@ -45,14 +44,21 @@ type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
 
 const SECTIONS = [
-  { id: 'badges', label: 'Badges' },
-  { id: 'streaks', label: 'Streak details' },
+  { id: 'your-stats', label: 'Your Stats' },
   { id: 'market-reality', label: 'Market Reality' },
   { id: 'effort', label: "This week's effort" },
   { id: 'feeling', label: "How you've felt" },
   { id: 'actions', label: 'Actions completed' },
   { id: 'available-actions', label: 'All actions' },
+  { id: 'badges', label: 'Badges' },
 ] as const
+
+// The grade color tokens double as StatTile accent keys — reuses the one
+// source of truth in grade.ts instead of a second grade->color map (same
+// pattern as DashboardTopStrip's gradeAccent).
+function gradeAccent(grade: Grade): StatTileAccent {
+  return GRADE_TEXT_COLOR[grade].replace('text-', '') as StatTileAccent
+}
 
 export default async function YourStatsPage() {
   const profile = await getDashboardData()
@@ -105,16 +111,6 @@ export default async function YourStatsPage() {
     ])
   }
 
-  // 7-day activity strip for the hero banner — "had activity" = checked in
-  // that day, same signal that drives currentStreak, so the strip and the
-  // streak number never disagree.
-  const checkedInDays = new Set(moodHistory.map((m) => m.date.toISOString().slice(0, 10)))
-  const activeDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - (6 - i))
-    return checkedInDays.has(d.toISOString().slice(0, 10))
-  })
-
   const previousMarketRealityGrade =
     marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
 
@@ -135,6 +131,9 @@ export default async function YourStatsPage() {
     MOOD_SCORE[recentMoods[1].mood] < MOOD_SCORE[recentMoods[0].mood] &&
     (recentMoods[1].mood === 'STUCK' || recentMoods[1].mood === 'GETTING_THERE')
 
+  const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
+  const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -145,109 +144,72 @@ export default async function YourStatsPage() {
           been feeling, and every action you&apos;ve done or could do.
         </p>
         <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
-        <nav aria-label="Jump to section" className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-3">
+        <nav
+          aria-label="Jump to section"
+          className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-lg border border-border bg-muted/30 px-4 py-3"
+        >
           {SECTIONS.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="text-xs text-primary underline underline-offset-4">
+            <a key={s.id} href={`#${s.id}`} className="text-xs font-medium text-primary underline underline-offset-4">
               {s.label}
             </a>
           ))}
         </nav>
       </div>
 
-      <StreakHeroBanner currentStreak={profile.currentStreak} activeDays={activeDays} />
-
-      <Card id="badges" className="scroll-mt-4">
+      <Card id="your-stats" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Badges</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Your Stats</CardTitle>
         </CardHeader>
-        <CardContent>
-          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
-        </CardContent>
-      </Card>
-
-      <Card id="streaks" className="scroll-mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Streak details</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{profile.currentStreak}</p>
-            <p className="text-xs text-muted-foreground">current streak</p>
-          </div>
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{profile.longestStreak}</p>
-            <p className="text-xs text-muted-foreground">longest streak ever</p>
-          </div>
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{applicationsCount}</p>
-            <p className="text-xs text-muted-foreground">applications sent</p>
-          </div>
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{referencesSentCount}</p>
-            <p className="text-xs text-muted-foreground">references sent</p>
-          </div>
-          <div className="rounded-lg border border-border p-3">
-            <p className="text-2xl font-bold text-foreground tabular-nums">{referencesCompletedCount}</p>
-            <p className="text-xs text-muted-foreground">references completed</p>
-          </div>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent={profile.currentStreak > 0 ? 'brand' : 'neutral'} />
+          <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="neutral" />
+          <StatTile
+            icon={TrendingUp}
+            value={grade.grade}
+            valueClassName={GRADE_TEXT_COLOR[grade.grade]}
+            label="Market Reality grade"
+            accent={gradeAccent(grade.grade)}
+            href="#market-reality"
+          />
+          <StatTile
+            icon={Target}
+            value={`${grade.weeklyPoints} / ${grade.weeklyPointsTarget}`}
+            label="points this week"
+            accent={grade.weeklyPoints >= grade.weeklyPointsTarget ? 'success' : 'brand'}
+            href="#actions"
+          />
+          <StatTile icon={Award} value={`${earnedBadgesCount} / ${totalBadgesCount}`} label="badges earned" accent="neutral" href="#badges" />
+          <StatTile icon={Send} value={`${applicationsCount}`} label="applications sent" accent="neutral" />
+          <StatTile
+            icon={UserCheck}
+            value={`${referencesCompletedCount} / ${referencesSentCount}`}
+            label="references completed"
+            accent="neutral"
+            href="/dashboard/references"
+          />
         </CardContent>
       </Card>
 
       <div id="market-reality" className="scroll-mt-4">
-        <h2 className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">Market Reality</h2>
-        <div className="space-y-4">
-          <MarketRealityOverview
-            weekLabel={`Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-            currentGrade={grade.grade}
-            previousGrade={previousMarketRealityGrade}
-            bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
-            trendSnapshots={heroSnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
-            categories={grade.categories}
-            categoryHistory={categoryHistory}
-            whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
-            sprintCompletionStreak={sprintCompletionStreaks.currentStreak}
-            longestSprintCompletionStreak={sprintCompletionStreaks.longestStreak}
-            weeksOfImprovement={computeWeeksOfImprovement(heroSnapshots)}
-          />
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality reports, week by week</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <MarketRealitySnapshotArchive
-                snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-                  id: s.id,
-                  weekStartDate: s.weekStartDate,
-                  grade: s.grade as Grade,
-                  namedReasons: s.namedReasons as unknown as NamedReason[],
-                }))}
-              />
-              <p className="mt-3 text-xs text-muted-foreground">
-                The full narrative behind any week&apos;s grade lives on your{' '}
-                <a href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
-                  Market Reality Report
-                </a>
-                .
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Search Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground tabular-nums">
-                {grade.weeklyPoints} / {grade.weeklyPointsTarget}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Points earned toward this week&apos;s target — the same number as &quot;Actions completed this
-                week&quot; below.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <MarketRealityOverview
+          weekLabel={`Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+          currentGrade={grade.grade}
+          previousGrade={previousMarketRealityGrade}
+          bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
+          trendSnapshots={heroSnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
+          categories={grade.categories}
+          categoryHistory={categoryHistory}
+          whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
+          sprintCompletionStreak={sprintCompletionStreaks.currentStreak}
+          longestSprintCompletionStreak={sprintCompletionStreaks.longestStreak}
+          weeksOfImprovement={computeWeeksOfImprovement(heroSnapshots)}
+          archiveSnapshots={[...marketRealitySnapshots].reverse().map((s) => ({
+            id: s.id,
+            weekStartDate: s.weekStartDate,
+            grade: s.grade as Grade,
+            namedReasons: s.namedReasons as unknown as NamedReason[],
+          }))}
+        />
       </div>
 
       <Card id="effort" className="scroll-mt-4">
@@ -439,6 +401,18 @@ export default async function YourStatsPage() {
               </div>
             )
           })}
+        </div>
+      </details>
+
+      <details id="badges" className="scroll-mt-4 group rounded-lg border border-border">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          Badges
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
+            — {earnedBadgesCount} of {totalBadgesCount} earned so far
+          </span>
+        </summary>
+        <div className="border-t border-border p-4">
+          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
         </div>
       </details>
     </div>
