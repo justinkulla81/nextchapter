@@ -5,6 +5,7 @@ import { usePostHog } from 'posthog-js/react'
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toggleContactPriority } from '@/app/dashboard/network/actions'
 import { cn } from '@/lib/utils'
+import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
 import type { ReachOutPoolContact } from '@/lib/network/pick-reach-out-contacts'
 
 // Rotating cards over the "reach out or starred" pool (see
@@ -95,7 +96,10 @@ export function ReachOutCarousel({
           <Star className={cn('size-5', isPriority && 'fill-orange text-orange')} />
         </button>
         <div className="min-w-0">
-          <h2 className="text-sm font-medium text-foreground">Priority Contact: {contact.name}</h2>
+          <h2 className="text-sm font-medium text-foreground">
+            Priority Contact:{' '}
+            <ContactQuickLink name={contact.name} email={contact.email} linkedinUrl={contact.linkedinUrl} />
+          </h2>
           <p className="text-sm text-muted-foreground">
             {roleContext && <span className="text-foreground">{roleContext} — </span>}
             {contact.hasReachedOut ? "You've emailed before." : 'Starred as a priority contact.'}

@@ -70,6 +70,7 @@ export function ContactDirectoryTable({
   ncFilter: 'all' | 'yes' | 'no'
 }) {
   const router = useRouter()
+  const [isNavPending, startNavTransition] = useTransition()
   const [, startTransition] = useTransition()
   const [searchInput, setSearchInput] = useState(query)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -110,7 +111,9 @@ export function ContactDirectoryTable({
     if (next.nc !== 'all') params.set('nc', next.nc)
     if (next.page !== 1) params.set('page', String(next.page))
     const qs = params.toString()
-    router.push(`/dashboard/network/contacts${qs ? `?${qs}` : ''}`)
+    startNavTransition(() => {
+      router.push(`/dashboard/network/contacts${qs ? `?${qs}` : ''}`)
+    })
   }
 
   // Debounced so typing doesn't fire a navigation per keystroke.
@@ -148,7 +151,7 @@ export function ContactDirectoryTable({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={cn('flex flex-wrap items-center gap-3', isNavPending && 'cursor-wait')}>
         <Input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}

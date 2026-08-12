@@ -12,13 +12,11 @@ export function ReferenceCheckSummary({
   dimensions,
   completedReferenceCount,
   confidenceTier,
-  confidenceLabel,
   mix,
 }: {
   dimensions: DimensionSummary[]
   completedReferenceCount: number
   confidenceTier: ConfidenceLevel
-  confidenceLabel: string
   mix: RequiredMixStatus
 }) {
   if (completedReferenceCount === 0) return null
@@ -33,7 +31,7 @@ export function ReferenceCheckSummary({
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-sm font-medium text-muted-foreground">Performance summary</CardTitle>
           <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', CONFIDENCE_STYLE[confidenceTier])}>
-            {confidenceLabel} · {completedReferenceCount} response{completedReferenceCount === 1 ? '' : 's'}
+            {completedReferenceCount} response{completedReferenceCount === 1 ? '' : 's'}
           </span>
         </div>
       </CardHeader>

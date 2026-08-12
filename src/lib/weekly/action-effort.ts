@@ -837,4 +837,29 @@ export const PAGE_ACTION_TYPE_OVERRIDE: Partial<
     },
     INTERVIEW_PREP: { href: '/dashboard/find-my-job#mock-interview', label: 'Find My Job' },
   },
+  // The global text for REFERENCE_ADDED ("Get a reference completed", see
+  // task-menu.ts) can still show up here as stale text baked into an old
+  // frozen suggestion snapshot (getPersonalizedSuggestions) — overriding it
+  // per-page guarantees the accurate label regardless of when that
+  // candidate's snapshot was generated. Anchors point at the two sections
+  // actually built for this box: the request form (where REFERENCE_REQUESTED
+  // happens) and the status list below it (where a completion or a pending
+  // follow-up shows up).
+  references: {
+    REFERENCE_ADDED: {
+      text: 'Get a reference completed',
+      href: '/dashboard/references#reference-status',
+      label: 'My References',
+    },
+    REFERENCE_REQUESTED: {
+      text: 'Send a reference request',
+      href: '/dashboard/references#send-request',
+      label: 'My References',
+    },
+    REFERENCE_FOLLOW_UP: {
+      text: 'Follow up on a pending reference',
+      href: '/dashboard/references#reference-status',
+      label: 'My References',
+    },
+  },
 }

@@ -93,7 +93,6 @@ export default async function ReferencesPage({
         dimensions={performanceAggregate.dimensions}
         completedReferenceCount={performanceAggregate.completedReferenceCount}
         confidenceTier={performanceAggregate.confidenceTier}
-        confidenceLabel={performanceAggregate.confidenceLabel}
         mix={mix}
       />
 
@@ -106,11 +105,14 @@ export default async function ReferencesPage({
         }))}
       />
 
-      <ReferenceRequestForm
-        initialName={params.name}
-        initialEmail={params.email}
-        workHistoryEntries={workHistoryEntries}
-      />
+      <div id="send-request" className="scroll-mt-4 space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">Send a Reference Request</h2>
+        <ReferenceRequestForm
+          initialName={params.name}
+          initialEmail={params.email}
+          workHistoryEntries={workHistoryEntries}
+        />
+      </div>
 
       {profile.references.length === 0 && (
         <EmptyState
@@ -121,9 +123,9 @@ export default async function ReferencesPage({
       )}
 
       {allReferences.length > 0 && (
-        <div className="space-y-2">
+        <div id="reference-status" className="scroll-mt-4 space-y-2">
           <h2 className="text-sm font-medium text-muted-foreground">
-            All references ({allReferences.length})
+            Reference Requests / Completed ({allReferences.length})
           </h2>
           <Card>
             <CardContent className="divide-y divide-border p-0">

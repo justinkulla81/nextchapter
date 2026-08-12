@@ -144,8 +144,7 @@ export default async function ContactDirectoryPage({
 
       {starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
         <p className="rounded-lg border border-brand/30 bg-brand/5 p-3 text-sm text-foreground">
-          Star at least {PRIORITY_CONTACT_TARGET_COUNT} people below as priority contacts to earn 5 points
-          each — you&apos;ve starred {starredCount} of {PRIORITY_CONTACT_TARGET_COUNT} so far.
+          {`Star at least ${PRIORITY_CONTACT_TARGET_COUNT} people below as priority contacts to earn 5 points each — you've starred ${starredCount} of ${PRIORITY_CONTACT_TARGET_COUNT} so far.`}
         </p>
       )}
 
