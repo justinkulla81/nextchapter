@@ -74,30 +74,43 @@ const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Connecting', 'Le
 // single-field rows. ANSWER_OPTIONAL_QUESTIONS lives on My Search Strategy
 // now, not one of these three, so it's deliberately not in any group here
 // — it renders as its own individual row.
-const PROFILE_SECTION_GROUPS: { text: string; actionType: string; types: Set<string> }[] = [
+const PROFILE_SECTION_GROUPS: { title: string; actionType: string; itemLabels: Record<string, string> }[] = [
   {
-    text: 'Complete My Personal Information — basics, LinkedIn, photo, education, industry, and role',
+    title: 'Complete My Personal Information',
     actionType: 'PROFILE_CONFIRM',
-    types: new Set([
-      'PROFILE_CONFIRM',
-      'INDUSTRY_CONFIRM',
-      'FUNCTION_CONFIRM',
-      'SALARY_CONFIRM',
-      'PROFILE_PICTURE_UPLOADED',
-      'LINKEDIN_PROFILE_ADDED',
-    ]),
+    itemLabels: {
+      PROFILE_CONFIRM: 'basics',
+      LINKEDIN_PROFILE_ADDED: 'LinkedIn',
+      PROFILE_PICTURE_UPLOADED: 'photo',
+      INDUSTRY_CONFIRM: 'industry',
+      FUNCTION_CONFIRM: 'role',
+      SALARY_CONFIRM: 'salary',
+    },
   },
   {
-    text: 'Complete Screening Questions — work authorization, deal-breakers, and background/drug-test willingness',
+    title: 'Complete Screening Questions',
     actionType: 'RED_FLAGS_CONFIRMED',
-    types: new Set(['WORK_AUTHORIZATION', 'RED_FLAGS_CONFIRMED']),
+    itemLabels: {
+      WORK_AUTHORIZATION: 'work authorization',
+      RED_FLAGS_CONFIRMED: 'deal-breakers and background/drug-test willingness',
+    },
   },
   {
-    text: 'Set your Search Goals — minimum comp and the benefits that matter to you',
+    title: 'Set your Search Goals',
     actionType: 'BENEFITS_PRIORITIES_CONFIRMED',
-    types: new Set(['BENEFITS_PRIORITIES_CONFIRMED']),
+    itemLabels: {
+      BENEFITS_PRIORITIES_CONFIRMED: 'minimum comp and the benefits that matter to you',
+    },
   },
 ]
+
+// "basics, LinkedIn, and photo" — Oxford comma only when there are 3+ items,
+// no "and" at all for a single item.
+function joinWithAnd(items: string[]): string {
+  if (items.length <= 1) return items.join('')
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+}
 
 // The one-time setup questionnaires — personal info, screening, skills
 // assessments, search-progress questions — read as one adjacent cluster
@@ -143,12 +156,19 @@ function consolidateProfileDataRows(rows: Row[]): Row[] {
   const consolidatedRows: Row[] = []
 
   for (const group of PROFILE_SECTION_GROUPS) {
-    const groupRows = remainingRows.filter((r) => r.actionType && group.types.has(r.actionType))
+    const groupTypes = new Set(Object.keys(group.itemLabels))
+    const groupRows = remainingRows.filter((r) => r.actionType && groupTypes.has(r.actionType))
     if (groupRows.length === 0) continue
-    remainingRows = remainingRows.filter((r) => !(r.actionType && group.types.has(r.actionType)))
+    remainingRows = remainingRows.filter((r) => !(r.actionType && groupTypes.has(r.actionType)))
+
+    // Only the sub-items still outstanding — groupRows is already filtered
+    // to incomplete rows by the time it reaches here (see openRows below),
+    // so this reads as a live to-do list, not a static list of everything
+    // the page ever asks for.
+    const remainingLabels = groupRows.map((r) => group.itemLabels[r.actionType!]).filter(Boolean)
 
     consolidatedRows.push({
-      text: group.text,
+      text: `${group.title} — ${joinWithAnd(remainingLabels)}`,
       points: groupRows.reduce((sum, r) => sum + r.points, 0),
       estimatedMinutes: groupRows.reduce((sum, r) => sum + r.estimatedMinutes, 0),
       actionType: group.actionType,
