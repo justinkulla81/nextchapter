@@ -77,11 +77,11 @@ export function MoodCheckInCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {!mood ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <p className="text-sm font-medium text-foreground">
               How are you feeling today{firstName ? `, ${firstName}` : ''}?
             </p>
-            <div className="flex flex-wrap gap-3 sm:flex-nowrap">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {MOOD_ORDER.map((option) => {
                 const Icon = MOOD_ICON[option]
                 return (
@@ -90,9 +90,9 @@ export function MoodCheckInCard({
                     type="button"
                     disabled={isPending}
                     onClick={() => handleCheckIn(option)}
-                    className="flex h-auto min-w-[45%] flex-1 flex-col items-center gap-1.5 rounded-md border border-input bg-white py-5 text-base transition-colors hover:border-brand disabled:cursor-wait sm:min-w-0"
+                    className="flex items-center justify-center gap-1.5 rounded-md border border-input bg-white px-2 py-2 text-[13px] font-medium transition-colors hover:border-brand hover:bg-brand/5 disabled:cursor-wait"
                   >
-                    <Icon aria-hidden className="size-5 text-brand" />
+                    <Icon aria-hidden className="size-3.5 shrink-0 text-brand" />
                     {MOOD_LABEL[option]}
                   </button>
                 )

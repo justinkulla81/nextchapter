@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
 import { Bell } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import type { UnifiedFollowUpItem } from '@/lib/dashboard/unified-follow-ups'
 
 // Prompt 87 point 3 — backed by getUnifiedFollowUps now, not just starred
@@ -18,25 +20,40 @@ export function NetworkRemindersCard({ items }: { items: UnifiedFollowUpItem[] }
   const isExternal = (href: string) => href.startsWith('http')
 
   return (
-    <div className="space-y-2 rounded-lg border border-orange/30 bg-orange/5 p-4">
-      <div className="flex items-center gap-1.5">
-        <Bell className="size-4 text-orange" />
-        <h2 className="text-sm font-medium text-foreground">Follow-ups</h2>
-      </div>
-      <div className="space-y-1.5">
-        {items.map((item) => {
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
+            <Bell className="size-3.5" aria-hidden />
+          </span>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Follow-ups</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="py-0">
+        {items.map((item, i) => {
           const content = (
             <>
-              <span className="min-w-0 truncate font-medium text-foreground">{item.title}</span>
-              <span className="shrink-0 text-xs text-muted-foreground">{item.subtitle}</span>
+              <span className="min-w-0 truncate text-[13px] font-medium text-foreground">{item.title}</span>
+              <span className="max-w-[45%] shrink-0 truncate text-xs text-orange" title={item.subtitle}>
+                {item.subtitle}
+              </span>
             </>
           )
-          const className =
-            'flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-muted'
+          const className = cn(
+            'flex items-center justify-between gap-3 py-2.5 text-sm transition-colors hover:text-brand',
+            i !== items.length - 1 && 'border-b border-border'
+          )
           const onClick = () => posthog?.capture('follow_up_reminder_clicked', { kind: item.kind, id: item.id })
 
           return isExternal(item.href) ? (
-            <a key={`${item.kind}-${item.id}`} href={item.href} target="_blank" rel="noopener noreferrer" onClick={onClick} className={className}>
+            <a
+              key={`${item.kind}-${item.id}`}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onClick}
+              className={className}
+            >
               {content}
             </a>
           ) : (
@@ -45,7 +62,7 @@ export function NetworkRemindersCard({ items }: { items: UnifiedFollowUpItem[] }
             </Link>
           )
         })}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

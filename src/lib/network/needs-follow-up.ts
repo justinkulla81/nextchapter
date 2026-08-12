@@ -8,6 +8,32 @@ import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 const MEETING_LOOKBACK_DAYS = 21
 const INBOUND_LOOKBACK_DAYS = 14
 
+// trackedEmailActivity.fromAddress stores the raw RFC 5322 header value
+// (sync-gmail.ts writes `from`/`to` straight from the parsed message), which
+// is frequently `"Justin Kulla" <justin@example.com>`, not a bare email —
+// left unparsed, that string became both an ugly list-row title AND a dead
+// lookup key (contactNameByEmail is keyed on plain emails from
+// SupportNetworkContact, so it could never match). Extracting the address
+// here fixes both: real contact-name matches start working, and anything
+// still unmatched falls back to a clean parsed name instead of raw header
+// soup.
+function parseAddress(raw: string): { name: string | null; email: string } {
+  const match = raw.match(/^"?([^"<]*)"?\s*<([^>]+)>\s*$/)
+  if (match) {
+    const name = match[1].trim().replace(/^['"]|['"]$/g, '')
+    return { name: name || null, email: match[2].trim().toLowerCase() }
+  }
+  return { name: null, email: raw.trim().toLowerCase() }
+}
+
+function titleCase(raw: string): string {
+  return raw
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 export interface NeedsFollowUpItem {
   kind: 'meeting' | 'inbound-email'
   sourceId: string
@@ -67,10 +93,14 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
 
   // fromAddress is the counterpart's address for BOTH directions — see
   // sync-gmail.ts, which deliberately stores `to` there for OUTBOUND rows.
+  // Parsed through parseAddress so this keys on the bare email regardless of
+  // whether the stored value is a raw "Name <email>" header or already
+  // clean — the inbound side below does the same parse, so both sides of
+  // the "already replied?" check land on the same key space.
   const latestOutboundByAddress = new Map<string, Date>()
   for (const activity of emailActivities) {
     if (activity.direction !== 'OUTBOUND' || !activity.fromAddress) continue
-    const address = activity.fromAddress.toLowerCase()
+    const address = parseAddress(activity.fromAddress).email
     const existing = latestOutboundByAddress.get(address)
     if (!existing || activity.detectedAt > existing) latestOutboundByAddress.set(address, activity.detectedAt)
   }
@@ -104,21 +134,21 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         activity.detectedAt >= inboundCutoff
     )
     .filter((activity) => {
-      const address = activity.fromAddress!.toLowerCase()
+      const address = parseAddress(activity.fromAddress!).email
       const lastReply = latestOutboundByAddress.get(address)
       return !lastReply || lastReply < activity.detectedAt
     })
     .map((activity) => {
-      const address = activity.fromAddress!.toLowerCase()
+      const parsed = parseAddress(activity.fromAddress!)
       const subject = activity.subject || 'their email'
       return {
         kind: 'inbound-email' as const,
         sourceId: activity.id,
-        contactName: contactNameByEmail.get(address) ?? address,
-        contactEmail: address,
+        contactName: contactNameByEmail.get(parsed.email) ?? (parsed.name ? titleCase(parsed.name) : parsed.email),
+        contactEmail: parsed.email,
         date: activity.detectedAt,
         subject,
-        gmailHref: gmailComposeHref(address, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
+        gmailHref: gmailComposeHref(parsed.email, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
       }
     })
 
