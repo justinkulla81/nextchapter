@@ -468,7 +468,7 @@ export function isRecurringActionType(actionType: string | undefined): boolean {
 const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   OUTREACH_MESSAGE: 2,
   OUTREACH_CALL: 1,
-  NETWORKING_LIST: 1,
+  NETWORKING_LIST: 2,
   REFERENCE_ADDED: 1,
   REFERENCE_REQUESTED: 1,
   REFERENCE_FOLLOW_UP: 1,

@@ -11,8 +11,14 @@ export function formatDisplayName(name: string): string {
   const isAllUpper = trimmed === trimmed.toUpperCase()
   if (!isAllLower && !isAllUpper) return trimmed
 
-  return trimmed
-    .split(/\s+/)
+  // Email-local-part fallback names (e.g. "dave.feller" from
+  // dave.feller@company.com when no real name was on file) arrive as one
+  // dot-separated token with no spaces — split on '.' the same way real
+  // names split on whitespace below, so it reads as "Dave Feller" instead
+  // of a single "Dave.feller" word.
+  const words = trimmed.includes(' ') ? trimmed.split(/\s+/) : trimmed.split('.').filter(Boolean)
+
+  return words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
 }
