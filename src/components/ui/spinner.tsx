@@ -60,10 +60,12 @@ export function InlineLoadingState({ label, className }: { label: string; classN
   )
 }
 
-// Full-page centered spinner for route-level loading.tsx files.
+// Full-page centered spinner for route-level loading.tsx files. min-h is
+// most of the viewport (not just 50vh) so it centers in the actual visible
+// page instead of sitting near the top of it.
 export function PageLoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
+    <div className="flex min-h-[80vh] flex-col items-center justify-center gap-3">
       <Spinner size={48} />
       <p className="text-sm text-muted-foreground">{label}</p>
     </div>

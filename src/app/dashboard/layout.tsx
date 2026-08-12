@@ -67,8 +67,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
         newBackchannelCount={newBackchannelCount}
       />
       {/* pb-24 clears the fixed mobile bottom tab bar (Prompt 83) — lg:pb-12
-          reverts to the normal bottom spacing once that bar is hidden. */}
-      <main className="bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
+          reverts to the normal bottom spacing once that bar is hidden.
+          min-h-screen keeps this white all the way to the bottom of the
+          viewport on short pages (e.g. the loading skeleton) — without it,
+          the body's own --background (a light gray-blue, see globals.css)
+          shows through below wherever this element's content ends. */}
+      <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
         <div className="mx-auto max-w-4xl">{children}</div>
       </main>
     </div>
