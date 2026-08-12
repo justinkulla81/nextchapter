@@ -29,7 +29,6 @@ import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
-import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
 import { NextStepsToggle } from '@/components/dashboard/NextStepsToggle'
 import { contactLinkType, CONTACT_LINK_ORDER } from '@/lib/dashboard/contact-link-type'
 import { JobBoardLinkList } from '@/components/dashboard/JobBoardLinkList'
@@ -250,7 +249,7 @@ async function JobRecommendationsSection({
             </p>
           )}
 
-          <div className="space-y-3">
+          <div className="divide-y divide-border rounded-md border border-border">
             {visibleBoardPostings.map((posting) => (
               <DiscoverJobCard
                 key={posting.id}
@@ -275,7 +274,7 @@ async function JobRecommendationsSection({
 
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <div className="space-y-3">
-              <div className="divide-y divide-border rounded-lg border border-border">
+              <div className="divide-y divide-border rounded-md border border-border">
                 {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
                   <LockedDiscoverJobCard key={posting.id} posting={posting} />
                 ))}
@@ -708,18 +707,10 @@ async function FindMyJobBody({
                           {status} · {posting.appliedAt?.toLocaleDateString()}
                         </p>
                         {helperNames.length > 0 && (
-                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <span className="text-xs text-muted-foreground">Who can help:</span>
-                            {[...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => (
-                              <ContactQuickLink
-                                key={c.id}
-                                name={c.name}
-                                email={c.email}
-                                linkedinUrl={c.linkedinUrl}
-                                className="text-xs"
-                              />
-                            ))}
-                          </div>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                            <span>Who can help: </span>
+                            {helperNames.join(', ')}
+                          </p>
                         )}
                       </div>
                     </summary>
@@ -818,18 +809,10 @@ async function FindMyJobBody({
                               : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
                     </p>
                     {helperNames.length > 0 && (
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="text-xs text-muted-foreground">Who can help:</span>
-                        {[...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => (
-                          <ContactQuickLink
-                            key={c.id}
-                            name={c.name}
-                            email={c.email}
-                            linkedinUrl={c.linkedinUrl}
-                            className="text-xs"
-                          />
-                        ))}
-                      </div>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        <span>Who can help: </span>
+                        {helperNames.join(', ')}
+                      </p>
                     )}
                   </div>
                 </summary>
@@ -1248,7 +1231,7 @@ async function FindMyJobBody({
 
       <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Spot Warm Intros</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Knowing someone inside is the single biggest way to stand out among hundreds of other
             applicants. Add people to your contact list with where they work, and we&apos;ll flag

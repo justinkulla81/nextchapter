@@ -47,7 +47,13 @@ const PROMOTIONAL_SUBJECT_SIGNALS = [
   /\d+%\s*off/i,
   /limited time/i,
 ]
-const BULK_SENDER_LOCAL_PART = /^(no-?reply|newsletter|news|deals?|offers?|promos?|promotions?|marketing|updates?)@/i
+// Matches anywhere in the local part, not just as a strict prefix — real
+// production mail from "LinkedIn Job Alerts" uses
+// jobalerts-noreply@linkedin.com, which the old strict-prefix version
+// (^no-?reply@) never matched, letting an automated job-alert digest slip
+// through as if it were a real recruiter contact.
+const BULK_SENDER_LOCAL_PART =
+  /(^|[.\-_])(no-?reply|donotreply|newsletter|news|deals?|offers?|promos?|promotions?|marketing|updates?|jobalerts?|job-alerts?)([.\-_@]|$)/i
 
 // A handful of platforms whose own outbound-relay domain is never a real
 // person's mailbox, regardless of subject/body phrasing — confirmed against
@@ -57,6 +63,21 @@ const BULK_SENDER_LOCAL_PART = /^(no-?reply|newsletter|news|deals?|offers?|promo
 // "recruiting"/"search"-adjacent language that let them slip past the
 // phrasing-only signals above and get flagged as real recruiter contact.
 const KNOWN_BULK_SENDER_ROOT_DOMAINS = new Set(['beehiiv.com', 'dealstream.com', 'substack.com'])
+
+// Address-only half of isLikelyBulkOrPromotional — usable anywhere only the
+// address is on hand (no stored subject/body/unsubscribe-header data), e.g.
+// re-checking an already-synced trackedEmailActivity row at read time. Catches
+// an automated sender (LinkedIn Job Alerts, a newsletter, etc.) regardless of
+// whether it's also sitting in the candidate's own contact list — a stale
+// contact row from before this pattern existed shouldn't keep making every
+// future digest from that address read as "a real person waiting on a
+// reply."
+export function isKnownBulkSenderAddress(fromAddress: string): boolean {
+  if (BULK_SENDER_LOCAL_PART.test(extractEmailAddress(fromAddress))) return true
+  const domain = extractDomain(fromAddress)
+  const rootDomain = domain?.split('.').slice(-2).join('.')
+  return !!rootDomain && KNOWN_BULK_SENDER_ROOT_DOMAINS.has(rootDomain)
+}
 
 export function isLikelyBulkOrPromotional(
   subject: string,

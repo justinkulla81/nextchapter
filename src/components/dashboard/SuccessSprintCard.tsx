@@ -59,12 +59,12 @@ function actionKey(a: { actionType?: string; text: string }): string {
 }
 
 // Personalize first (lifetime setup — flagged as priority when incomplete,
-// see ActionRow), then Connecting, Learning & Working, matching the
+// see ActionRow), then Connecting, Working and Learning, matching the
 // hamburger nav's own section order — "Other" catches personalized
 // LLM-suggested items with no fixed actionType to categorize by, and
 // deliberately sorts last since it's the least legible bucket. A group with
 // no items in it simply isn't rendered.
-const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Connecting', 'Learning & Working', 'Other']
+const GROUP_ORDER: (NavCategory | 'Other')[] = ['Personalize', 'Connecting', 'Working and Learning', 'Other']
 
 // The three sub-pages under the My Profile hub (see
 // /dashboard/profile/page.tsx) — each one's items are collapsed into a
@@ -141,13 +141,19 @@ function sortForDisplay(rows: Row[]): Row[] {
     if (row.actionType && ONE_TIME_SETUP_CLUSTER.has(row.actionType)) return 1
     return row.recurring ? 3 : 2
   }
-  // A completed one-time row still visible this week (see openRows above)
-  // reads as "done" rather than "what's left," so it sinks to the bottom of
-  // its tier instead of sitting among still-open items.
-  function completedRank(row: Row): number {
-    return row.completed && !row.recurring ? 1 : 0
+  // Any row that's done for the week — a completed one-time action, or a
+  // recurring action that's already hit its weekly target — reads as
+  // "already handled," not "what's left." Done-ness sorts before tier so a
+  // done row sinks to the very bottom of its whole section instead of just
+  // the bottom of its own tier (a completed setup-cluster item used to
+  // still rank above every still-open regular item).
+  function doneRank(row: Row): number {
+    const targetCount = row.recurring ? getRecurringTargetCount(row.actionType) : null
+    const count = row.completionCount ?? (row.completed ? 1 : 0)
+    const achieved = row.recurring && targetCount ? count >= targetCount : row.completed
+    return achieved ? 1 : 0
   }
-  return [...rows].sort((a, b) => tier(a) - tier(b) || completedRank(a) - completedRank(b))
+  return [...rows].sort((a, b) => doneRank(a) - doneRank(b) || tier(a) - tier(b))
 }
 
 // Replaces every row whose actionType is in one of PROFILE_SECTION_GROUPS
@@ -217,7 +223,7 @@ function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Reco
   const groups: Record<string, T[]> = {
     Personalize: [],
     Connecting: [],
-    'Learning & Working': [],
+    'Working and Learning': [],
     Other: [],
   }
   for (const item of items) {
@@ -234,7 +240,7 @@ const GROUP_ICON: Record<string, { icon: ComponentType<{ className?: string; str
   Priority: { icon: Zap, color: 'bg-orange/15 text-orange' },
   Personalize: { icon: User, color: 'bg-brand/10 text-brand' },
   Connecting: { icon: Users, color: 'bg-success/10 text-success' },
-  'Learning & Working': { icon: BookOpen, color: 'bg-light-blue/10 text-light-blue' },
+  'Working and Learning': { icon: BookOpen, color: 'bg-light-blue/10 text-light-blue' },
   Other: { icon: Sparkles, color: 'bg-muted text-muted-foreground' },
 }
 
@@ -352,14 +358,14 @@ function ActionRow({
           {label}
         </Link>
         {why && <span className="truncate text-xs text-muted-foreground">— {why}</span>}
-        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          {recurring ? 'Recurring' : 'Onboarding'}
-        </span>
         {isPriority && (
           <span className="shrink-0 whitespace-nowrap rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
             Priority
           </span>
         )}
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {recurring ? 'Recurring' : 'Onboarding'}
+        </span>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <span className="text-xs text-muted-foreground tabular-nums">{formatMinutes(estimatedMinutes)}</span>

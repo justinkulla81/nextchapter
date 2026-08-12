@@ -399,7 +399,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   const suppressRecurringForWeek1 = weekNumber === 1
 
   // Round-robins the canonical menu across nav categories (Building /
-  // Connecting / Learning & Working) instead of walking it top-to-bottom —
+  // Connecting / Working and Learning) instead of walking it top-to-bottom —
   // Outreach+Engage (all Connecting) sit first in the flat list and are
   // dense enough in points that a plain top-to-bottom walk exhausts the
   // buffer before Building/Learning items ever get a turn, starving the

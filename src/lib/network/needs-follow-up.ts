@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { formatDisplayName } from '@/lib/format-name'
+import { isKnownBulkSenderAddress } from '@/lib/email-tracking/ats-patterns'
 
 // How far back a meeting/inbound email still counts as "needs a follow-up"
 // — older than this and surfacing it would read as nagging about something
@@ -145,12 +146,18 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
   // candidate's own contact list — broadened beyond just recruiters so a
   // reply from a regular networking contact (including one the candidate
   // just reached out to) surfaces here too, not only cold recruiter outreach.
+  // Excludes known bulk/automated senders (e.g. LinkedIn Job Alerts) even
+  // when they happen to match the contact-list OR-condition — a stale
+  // contact row from before bulk-sender detection existed shouldn't keep
+  // making every future digest from that address read as a real person
+  // waiting on a reply.
   const inboundItems: NeedsFollowUpItem[] = emailActivities
     .filter(
       (activity) =>
         activity.direction === 'INBOUND' &&
         activity.fromAddress &&
         activity.detectedAt >= inboundCutoff &&
+        !isKnownBulkSenderAddress(activity.fromAddress) &&
         (activity.isRecruiterContact || contactNameByEmail.has(parseAddress(activity.fromAddress).email))
     )
     .filter((activity) => {

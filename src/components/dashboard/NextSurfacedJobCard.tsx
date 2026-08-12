@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { reactToSurfacedJob, recordJobClick } from '@/app/dashboard/find-my-job/actions'
 import { FIT_BUCKET_LABEL, isRecentlyListed, type FitBucket } from '@/lib/jobs/fit-bucket-types'
-import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
 import { cn } from '@/lib/utils'
 
 const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
@@ -14,6 +14,18 @@ const FIT_BUCKET_STYLE: Record<FitBucket, string> = {
   stretch: 'bg-muted text-muted-foreground',
   below_level: 'bg-muted text-muted-foreground',
   overqualified: 'bg-muted text-muted-foreground',
+}
+
+function FitBadge({ bucket }: { bucket: FitBucket }) {
+  return (
+    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[bucket])}>
+      {FIT_BUCKET_LABEL[bucket]}
+    </span>
+  )
+}
+
+function NewBadge() {
+  return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
 }
 
 const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
@@ -31,6 +43,8 @@ const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
 // One-at-a-time surfaced job — Interested/Not Interested only (no "Unsure").
 // Reacting removes it from the unreacted queue server-side, and the next
 // render naturally shows whatever's next — no client-side "advance" state.
+// Same collapsed <details> shape as DiscoverJobCard/LockedDiscoverJobCard so
+// all three sit in one shared list without a formatting seam between them.
 export function NextSurfacedJobCard({
   job,
   fitBucket,
@@ -52,97 +66,86 @@ export function NextSurfacedJobCard({
   const [showReasons, setShowReasons] = useState(false)
   const [pending, setPending] = useState(false)
 
+  function handleClick() {
+    void recordJobClick({
+      source: 'surfaced',
+      sourceId: job.id,
+      jobTitle: job.title,
+      companyName: job.companyName,
+      location: job.location,
+      url: job.url,
+      fitBucket: fitBucket ?? null,
+    })
+  }
+
   return (
-    <div className="space-y-2 px-4 py-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <a
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-primary hover:underline"
-            onClick={() => {
-              void recordJobClick({
-                source: 'surfaced',
-                sourceId: job.id,
-                jobTitle: job.title,
-                companyName: job.companyName,
-                location: job.location,
-                url: job.url,
-                fitBucket: fitBucket ?? null,
-              })
-            }}
+    <details>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="truncate text-sm font-medium text-foreground">{job.title}</span>
+          {job.companyName && <span className="truncate text-sm text-muted-foreground">at {job.companyName}</span>}
+        </span>
+        <span className="flex shrink-0 items-center gap-2">
+          {isRecentlyListed(job.surfacedAt) && <NewBadge />}
+          {fitBucket && <FitBadge bucket={fitBucket} />}
+        </span>
+      </summary>
+      <div className="space-y-3 px-4 pb-4">
+        {job.location && <p className="text-sm text-muted-foreground">{job.location}</p>}
+
+        {job.description && <p className="line-clamp-2 text-sm text-muted-foreground">{job.description}</p>}
+
+        {worksHereContacts && worksHereContacts.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            <span>Works there — a warm intro beats a cold application: </span>
+            {worksHereContacts.map((c) => c.name).join(', ')}
+            {worksHereTotalCount !== undefined && worksHereTotalCount > worksHereContacts.length && (
+              <span> +{worksHereTotalCount - worksHereContacts.length} more</span>
+            )}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          <Button
+            nativeButton={false}
+            render={<a href={job.url} target="_blank" rel="noopener noreferrer" onClick={handleClick} />}
+            variant="outline"
+            size="sm"
           >
-            {job.title}
-          </a>
-          {(job.companyName || job.location) && (
-            <p className="text-sm text-muted-foreground">
-              {[job.companyName, job.location].filter(Boolean).join(' — ')}
-            </p>
-          )}
-          {job.description && (
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{job.description}</p>
-          )}
-          {worksHereContacts && worksHereContacts.length > 0 && (
-            <div className="mt-1.5 space-y-1">
-              <p className="text-xs text-muted-foreground">Works there — a warm intro beats a cold application:</p>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                {worksHereContacts.map((c) => (
-                  <ContactQuickLink key={c.id} name={c.name} email={c.email} linkedinUrl={c.linkedinUrl} className="text-xs" />
+            View posting
+          </Button>
+
+          {!showReasons ? (
+            <>
+              <form action={reactToSurfacedJob.bind(null, job.id, 'INTERESTED', null)} onSubmit={() => setPending(true)}>
+                <SubmitButton size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
+                  Interested
+                </SubmitButton>
+              </form>
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowReasons(true)}>
+                Not Interested
+              </Button>
+            </>
+          ) : (
+            <div className="w-full space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Why not?</p>
+              <div className="flex flex-wrap gap-2">
+                {REASON_OPTIONS.map((reason) => (
+                  <form
+                    key={reason.value}
+                    action={reactToSurfacedJob.bind(null, job.id, 'NOT_INTERESTED', reason.value)}
+                    onSubmit={() => setPending(true)}
+                  >
+                    <SubmitButton variant="outline" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
+                      {reason.label}
+                    </SubmitButton>
+                  </form>
                 ))}
-                {worksHereTotalCount !== undefined && worksHereTotalCount > worksHereContacts.length && (
-                  <span className="text-xs text-muted-foreground">
-                    +{worksHereTotalCount - worksHereContacts.length} more
-                  </span>
-                )}
               </div>
             </div>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {isRecentlyListed(job.surfacedAt) && (
-            <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
-          )}
-          {fitBucket && (
-            <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', FIT_BUCKET_STYLE[fitBucket])}>
-              {FIT_BUCKET_LABEL[fitBucket]}
-            </span>
-          )}
-        </div>
       </div>
-
-      {!showReasons ? (
-        <div className="flex flex-wrap gap-2">
-          <form
-            action={reactToSurfacedJob.bind(null, job.id, 'INTERESTED', null)}
-            onSubmit={() => setPending(true)}
-          >
-            <Button type="submit" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
-              Interested
-            </Button>
-          </form>
-          <Button type="button" variant="outline" size="sm" onClick={() => setShowReasons(true)}>
-            Not Interested
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Why not?</p>
-          <div className="flex flex-wrap gap-2">
-            {REASON_OPTIONS.map((reason) => (
-              <form
-                key={reason.value}
-                action={reactToSurfacedJob.bind(null, job.id, 'NOT_INTERESTED', reason.value)}
-                onSubmit={() => setPending(true)}
-              >
-                <Button type="submit" variant="outline" size="sm" disabled={pending} className={pending ? 'cursor-progress' : ''}>
-                  {reason.label}
-                </Button>
-              </form>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    </details>
   )
 }

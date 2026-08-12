@@ -321,7 +321,7 @@ export function engineForActionType(actionType: string | undefined): SearchExecu
 // SuccessSprintCard's oneTimeTotal/oneTimeDone), same as it always was when
 // this lived on a separate /dashboard/complete-profile page; only its
 // on-screen location changed.
-export type NavCategory = 'Personalize' | 'Connecting' | 'Learning & Working'
+export type NavCategory = 'Personalize' | 'Connecting' | 'Working and Learning'
 
 const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   // Display-only sentinel for the Search Strategy completeness checklist
@@ -384,20 +384,20 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   INTRO_CONNECTION_REQUEST_SENT: 'Connecting',
   INTERVIEW_ATTENDED: 'Connecting',
 
-  LEARNING_MODULE: 'Learning & Working',
-  LEARNING_CERTIFICATE_STARTED: 'Learning & Working',
-  LEARNING_CERTIFICATE: 'Learning & Working',
-  LEARNING_NEW_TOOL_STARTED: 'Learning & Working',
-  LEARNING_NEW_TOOL: 'Learning & Working',
-  LEARNING_SESSION_ATTENDED: 'Learning & Working',
-  NEGOTIATION_ADVICE: 'Learning & Working',
-  JOB_BOARD_USAGE_CONFIRMED: 'Learning & Working',
-  INTERIM_PROFILE_CREATED: 'Learning & Working',
-  PARTNER_CLICK_THROUGH: 'Learning & Working',
-  WATCHLIST_ADD: 'Learning & Working',
-  WATCHLIST_POSTING_VIEWED: 'Learning & Working',
-  JOB_APPLICATION_SUBMITTED: 'Learning & Working',
-  JOB_INTERESTED_REACTION: 'Learning & Working',
+  LEARNING_MODULE: 'Working and Learning',
+  LEARNING_CERTIFICATE_STARTED: 'Working and Learning',
+  LEARNING_CERTIFICATE: 'Working and Learning',
+  LEARNING_NEW_TOOL_STARTED: 'Working and Learning',
+  LEARNING_NEW_TOOL: 'Working and Learning',
+  LEARNING_SESSION_ATTENDED: 'Working and Learning',
+  NEGOTIATION_ADVICE: 'Working and Learning',
+  JOB_BOARD_USAGE_CONFIRMED: 'Working and Learning',
+  INTERIM_PROFILE_CREATED: 'Working and Learning',
+  PARTNER_CLICK_THROUGH: 'Working and Learning',
+  WATCHLIST_ADD: 'Working and Learning',
+  WATCHLIST_POSTING_VIEWED: 'Working and Learning',
+  JOB_APPLICATION_SUBMITTED: 'Working and Learning',
+  JOB_INTERESTED_REACTION: 'Working and Learning',
 }
 
 export function navCategoryForActionType(actionType: string | undefined): NavCategory | undefined {
@@ -684,7 +684,7 @@ const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
 const DEFAULT_WHY_BY_NAV_CATEGORY: Partial<Record<NavCategory, string>> = {
   Personalize: 'personalizes your search so we can match you to the right jobs and skills',
   Connecting: 'networking is the single most important thing you can do to find your next role',
-  'Learning & Working': 'makes you a more employable candidate',
+  'Working and Learning': 'makes you a more employable candidate',
 }
 
 // Resolves the short reason shown next to an action row — an LLM-authored
