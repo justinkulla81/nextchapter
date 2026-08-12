@@ -162,3 +162,23 @@ export async function computeSprintCompletionStreaks(candidateId: string): Promi
 
   return { currentStreak, longestStreak }
 }
+
+export interface AGradeWeekCount {
+  aWeeks: number
+  totalWeeks: number
+}
+
+// Full-history count of closed-out weeks graded A vs. total closed-out
+// weeks — powers the Dossier's "How I Operate" grit/consistency stat
+// (dossier-sections.ts), paired with milestone-badges.ts's
+// countOverDeliveringWeeks.
+export async function countAGradeWeeks(candidateId: string): Promise<AGradeWeekCount> {
+  const rows = await prisma.marketRealitySnapshot.findMany({
+    where: { candidateId },
+    select: { grade: true },
+  })
+  return {
+    aWeeks: rows.filter((r) => r.grade === 'A').length,
+    totalWeeks: rows.length,
+  }
+}

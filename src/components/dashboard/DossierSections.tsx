@@ -1,5 +1,8 @@
+import { Sparkles, Compass } from 'lucide-react'
 import type { DossierSectionId, DossierData } from '@/lib/reports/dossier-sections'
 import { PositioningStatementApproval } from '@/components/dashboard/PositioningStatementApproval'
+import { SelfAwarenessApproval } from '@/components/dashboard/SelfAwarenessApproval'
+import { EmptyState } from '@/components/ui/empty-state'
 
 // Shared rendering for the Executive Dossier's 9 dynamically-reweighted
 // sections (Prompt 47) — used by both the candidate's own Dossier page and
@@ -118,8 +121,25 @@ function DossierSectionBlock({
       )
 
     case 'howIOperate':
-      if (dossier.howIOperate.dimensionSummaries.length === 0 && dossier.howIOperate.superpowers.length === 0)
-        return null
+      if (
+        dossier.howIOperate.dimensionSummaries.length === 0 &&
+        dossier.howIOperate.superpowers.length === 0 &&
+        !dossier.howIOperate.gritStatText
+      ) {
+        if (readOnly) return null
+        return (
+          <section>
+            <SectionHeading>{title}</SectionHeading>
+            <EmptyState
+              className="mt-2"
+              icon={Compass}
+              title="This section is waiting on your Skills Inventory"
+              description="Your work style and top strengths come from the Skills Inventory — complete it to fill in How I Operate."
+              cta={{ label: 'Go to Skills Inventory', href: '/dashboard/skills-assessment' }}
+            />
+          </section>
+        )
+      }
       return (
         <section>
           <SectionHeading>{title}</SectionHeading>
@@ -146,19 +166,8 @@ function DossierSectionBlock({
               ))}
             </div>
           )}
-        </section>
-      )
-
-    case 'whatDrivesMe':
-      if (!dossier.whatDrivesMe.effortStatText && !dossier.whatDrivesMe.motivationNarrative) return null
-      return (
-        <section>
-          <SectionHeading>{title}</SectionHeading>
-          {dossier.whatDrivesMe.effortStatText && (
-            <p className="mt-2 text-sm font-medium text-foreground">{dossier.whatDrivesMe.effortStatText}</p>
-          )}
-          {dossier.whatDrivesMe.motivationNarrative && (
-            <p className="mt-2 text-sm text-foreground">{dossier.whatDrivesMe.motivationNarrative}</p>
+          {dossier.howIOperate.gritStatText && (
+            <p className="mt-3 text-sm text-foreground">{dossier.howIOperate.gritStatText}</p>
           )}
         </section>
       )
@@ -195,15 +204,39 @@ function DossierSectionBlock({
       )
 
     case 'selfAwareness':
-      if (dossier.selfAwareness.growthEdges.length === 0) return null
+      // readOnly (coach/shared view) shows the section only once there's
+      // approved text — same rule as positioning above. The candidate's own
+      // view still shows the draft + approve control, or the empty state
+      // when there's no draft yet.
+      if (readOnly && !dossier.selfAwareness.approvedText) return null
+      if (!dossier.selfAwareness.draftText && !dossier.selfAwareness.approvedText) {
+        if (readOnly) return null
+        return (
+          <section>
+            <SectionHeading>{title}</SectionHeading>
+            <EmptyState
+              className="mt-2"
+              icon={Sparkles}
+              title="This section is waiting on your Skills Inventory"
+              description="Name a growth area in the Skills Inventory and Victoria will draft a constructively-framed Self-Awareness section for you to review and approve."
+              cta={{ label: 'Go to Skills Inventory', href: '/dashboard/skills-assessment' }}
+            />
+          </section>
+        )
+      }
       return (
         <section>
           <SectionHeading>{title}</SectionHeading>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-foreground">
-            {dossier.selfAwareness.growthEdges.map((edge, i) => (
-              <li key={i}>{edge}</li>
-            ))}
-          </ul>
+          <div className="mt-2">
+            {readOnly ? (
+              <p className="text-sm text-foreground">{dossier.selfAwareness.approvedText}</p>
+            ) : (
+              <SelfAwarenessApproval
+                draftText={dossier.selfAwareness.draftText ?? ''}
+                approvedText={dossier.selfAwareness.approvedText}
+              />
+            )}
+          </div>
         </section>
       )
 

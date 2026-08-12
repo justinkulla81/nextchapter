@@ -137,6 +137,48 @@ export const TOP_STRENGTH_OPTIONS = [
 
 export const TOP_STRENGTHS_MAX = 3
 
+// "Everyone has room to grow, too" — paired with TOP_STRENGTH_OPTIONS on
+// Skills Inventory. First 5 values intentionally align with the 5
+// reference trait keys (see testimony-processing.ts's TRAIT_RATING_FIELD)
+// so a selected growth area can be cross-referenced against reference
+// trait data as private LLM-prompt context for the Dossier's
+// Self-Awareness draft — never as a public "N of M references confirm
+// this" counter the way Superpowers does for strengths.
+export const GROWTH_AREA_OPTIONS = [
+  { value: 'adapting_to_change', label: 'Adapting to Change' },
+  { value: 'following_through_on_details', label: 'Following Through on Details' },
+  { value: 'executive_presence', label: 'Executive Presence' },
+  { value: 'collaboration_across_teams', label: 'Collaboration Across Teams' },
+  { value: 'composure_under_pressure', label: 'Composure Under Pressure' },
+  { value: 'delegating', label: 'Delegating' },
+  { value: 'strategic_thinking', label: 'Strategic Thinking' },
+] as const
+
+export const GROWTH_AREAS_MAX = 3
+
+// Personal Context — Blockers: practical constraints only, no mental-health
+// framing, structured or open-ended (explicitly decided against). Select-all,
+// no cap, matching BIGGEST_BARRIER_OPTIONS' shape.
+export const BLOCKER_OPTIONS = [
+  { value: 'family_caregiving', label: 'Family or caregiving responsibilities' },
+  { value: 'procrastination_tendency', label: 'I tend to procrastinate' },
+  { value: 'discouragement_tendency', label: 'I get discouraged and stall out' },
+] as const
+
+// Personal Context — Motivations: internal only, coaching context and
+// Victoria tone calibration — never surfaced in the Executive Dossier
+// under any circumstance.
+export const MOTIVATIONS_OPTIONS = [
+  { value: 'provide_for_family', label: 'Providing for my family' },
+  { value: 'prove_myself_again', label: 'Proving myself again' },
+  { value: 'regain_identity_purpose', label: 'Regaining a sense of identity and purpose' },
+  { value: 'financial_stability', label: 'Financial stability' },
+  { value: 'intellectual_challenge', label: 'Intellectual challenge' },
+  { value: 'make_an_impact', label: 'Making an impact' },
+] as const
+
+export const MOTIVATIONS_MAX = 3
+
 export const HIGHEST_LEVEL_OPTIONS = ['IC', 'Manager', 'Director', 'VP', 'C-Suite'] as const
 
 export const PRIMARY_FUNCTION_OPTIONS = [

@@ -7,6 +7,8 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { clampMulti } from '@/lib/forms/clamp-multi'
+import { TOP_STRENGTHS_MAX, GROWTH_AREAS_MAX } from '@/lib/constants/onboarding'
 
 export type FormState = { error?: string } | undefined
 
@@ -29,7 +31,9 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
   // managementSkillConfidence slider below, read from the profile value
   // Track Record wrote rather than from this form.
   const isPeopleManager = profile.isPeopleManager
-  const topStrengths = formData.getAll('topStrengths').map(String)
+  const topStrengths = clampMulti(formData, 'topStrengths', TOP_STRENGTHS_MAX)
+  const growthAreas = clampMulti(formData, 'growthAreas', GROWTH_AREAS_MAX)
+  const growthAreasElaboration = (formData.get('growthAreasElaboration') as string | null)?.trim() || null
   const functionSkillConfidence = formData.get('functionSkillConfidence')
   const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
   const managementSkillConfidence = formData.get('managementSkillConfidence')
@@ -44,13 +48,15 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
     where: { id: profile.id },
     data: {
       topStrengths,
+      growthAreas,
+      growthAreasElaboration,
       functionSkillConfidence: functionSkillConfidence ? Number(functionSkillConfidence) : null,
       aiFlexibilityLevel: aiFlexibilityLevel ? Number(aiFlexibilityLevel) : null,
       managementSkillConfidence: isPeopleManager && managementSkillConfidence ? Number(managementSkillConfidence) : null,
     },
   })
 
-  captureServerEvent(profile.id, 'skills_assessment_updated', {})
+  captureServerEvent(profile.id, 'skills_assessment_updated', { growthAreasCount: growthAreas.length })
 
   if (!profile.skillsAssessmentCompletedAt) {
     const sprint = await getCurrentWeekSprint(profile.id)

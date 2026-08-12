@@ -25,6 +25,8 @@ import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { dismissPageBox, type PageKey } from '@/lib/dashboard/page-content'
+import { clampMulti } from '@/lib/forms/clamp-multi'
+import { MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -380,6 +382,42 @@ export async function confirmWorkAuthorization(
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
   revalidatePath('/dashboard/hireability-report')
+}
+
+// Blockers + Motivations (Personal Context, PersonalContextForm) — stays
+// private between the candidate and their coach. Neither field is ever
+// read by dossier-sections.ts; see that file's header comment for the
+// explicit exclusion list.
+export async function updatePersonalContext(
+  _prevState: ConfirmFormState,
+  formData: FormData
+): Promise<ConfirmFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const blockers = formData.getAll('blockers').map(String)
+  const consistencySelfRating = formData.get('consistencySelfRating')
+  const blockersOpenText = (formData.get('blockersOpenText') as string | null)?.trim() || null
+  const motivations = clampMulti(formData, 'motivations', MOTIVATIONS_MAX)
+  const motivationsElaboration = (formData.get('motivationsElaboration') as string | null)?.trim() || null
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: {
+      blockers,
+      consistencySelfRating: consistencySelfRating ? Number(consistencySelfRating) : null,
+      blockersOpenText,
+      motivations,
+      motivationsElaboration,
+    },
+  })
+
+  captureServerEvent(profile.id, 'personal_context_updated', {
+    blockersCount: blockers.length,
+    motivationsCount: motivations.length,
+  })
+
+  revalidatePath('/dashboard/profile/personal')
 }
 
 export async function uploadMyProfilePicture(

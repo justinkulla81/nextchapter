@@ -77,23 +77,39 @@ function detectComeback(checkInDates: Date[]): boolean {
   return false
 }
 
-function computeOverDeliveringStreak(sprints: { weekStartDate: Date; committedActions: unknown }[]): number {
-  // Oldest-to-newest so weekNumber (and therefore the target ramp) lines up
-  // with when each week actually happened.
+// Oldest-to-newest so weekNumber (and therefore the target ramp) lines up
+// with when each week actually happened. Shared by the streak computation
+// below and by countOverDeliveringWeeks (Dossier grit stat) — same
+// per-week "did this week beat its A-grade target" boolean, two different
+// reductions of it.
+function overDeliveredByWeek(sprints: { weekStartDate: Date; committedActions: unknown }[]): boolean[] {
   const ordered = [...sprints].sort((a, b) => a.weekStartDate.getTime() - b.weekStartDate.getTime())
-  const overDeliveredByWeek = ordered.map((sprint, i) => {
+  return ordered.map((sprint, i) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]
     const achieved = actions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
     const target = pointsNeededForA(i + 1)
     return achieved > target
   })
+}
 
+function computeOverDeliveringStreak(sprints: { weekStartDate: Date; committedActions: unknown }[]): number {
+  const flags = overDeliveredByWeek(sprints)
   let streak = 0
-  for (let i = overDeliveredByWeek.length - 1; i >= 0; i--) {
-    if (!overDeliveredByWeek[i]) break
+  for (let i = flags.length - 1; i >= 0; i--) {
+    if (!flags[i]) break
     streak++
   }
   return streak
+}
+
+// Full-history count (not just the trailing streak) — powers the Dossier's
+// "How I Operate" grit/consistency stat (dossier-sections.ts).
+export async function countOverDeliveringWeeks(candidateId: string): Promise<number> {
+  const sprints = await prisma.weeklySprint.findMany({
+    where: { candidateId },
+    select: { weekStartDate: true, committedActions: true },
+  })
+  return overDeliveredByWeek(sprints).filter(Boolean).length
 }
 
 export async function computeMilestoneBadges(candidateId: string): Promise<MilestoneBadgeStatus[]> {

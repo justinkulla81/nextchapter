@@ -12,7 +12,6 @@ import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
 import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers'
-import { AiContextBanner } from '@/components/dashboard/learning/AiContextBanner'
 import { ToolsForRoleSection } from '@/components/dashboard/learning/ToolsForRoleSection'
 import { InterviewSkillsSection } from '@/components/dashboard/learning/InterviewSkillsSection'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
@@ -70,7 +69,11 @@ export default async function LearningPage() {
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Learning &amp; Training</h1>
-        <PageHeaderBoxes pageKey="learning" candidateId={profile.id} />
+        <PageHeaderBoxes
+          pageKey="learning"
+          candidateId={profile.id}
+          dailyMessageOverride={<AssessmentLinkCard hasTakenAssessment={hasTakenAssessment} />}
+        />
         {learningEvents.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
             {learningEventsThisWeek.length > 0 ? (
@@ -85,14 +88,6 @@ export default async function LearningPage() {
           </p>
         )}
       </div>
-
-      <AssessmentLinkCard hasTakenAssessment={hasTakenAssessment} />
-
-      <AiContextBanner
-        tier={plan.aiTrainingTier}
-        role={plan.contentFunction}
-        dismissedAlready={plan.aiContextBannerDismissed}
-      />
 
       <LearningSection
         title="AI Training"

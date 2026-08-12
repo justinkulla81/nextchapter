@@ -75,6 +75,61 @@ export async function computeReferenceAlignment(candidateId: string): Promise<Tr
   return results
 }
 
+// Mirrors STRENGTH_TO_TRAIT's shape but for growth areas — GROWTH_AREA_
+// OPTIONS' first 5 values were deliberately chosen to align 1:1 with the
+// same 5 reference traits (see onboarding.ts), so this map is exact rather
+// than best-fit. The 2 unmapped growth-area values (delegating, strategic
+// thinking) have no reference-trait equivalent, same as topStrengths'
+// unmapped expert_in_field/detail_oriented.
+const GROWTH_AREA_TO_TRAIT: Partial<Record<string, TraitKey>> = {
+  adapting_to_change: 'adaptability',
+  following_through_on_details: 'followThrough',
+  executive_presence: 'presence',
+  collaboration_across_teams: 'collaboration',
+  composure_under_pressure: 'composure',
+}
+
+// Private prompt-context only for the Self-Awareness draft (dossier-
+// sections.ts's getOrDraftSelfAwareness) — never returned to the client or
+// rendered anywhere. Pulls the reference's own free-text growthAreaSummary
+// plus a plain-language note when a trait rating sits below the confirmed
+// threshold, so Victoria's draft can sound grounded without ever exposing a
+// public "N of M references confirm this weakness" counter (deliberately
+// not built — see GROWTH_AREA_OPTIONS' comment).
+export async function computeGrowthAreaReferenceContext(
+  candidateId: string,
+  growthAreas: string[]
+): Promise<string | null> {
+  const completedReferences = await prisma.reference.findMany({
+    where: { candidateId, status: 'COMPLETED' },
+    select: {
+      growthAreaSummary: true,
+      traitAdaptabilityRating: true,
+      traitFollowThroughRating: true,
+      traitPresenceRating: true,
+      traitCollaborationRating: true,
+      traitComposureRating: true,
+    },
+  })
+  if (completedReferences.length === 0) return null
+
+  const notes: string[] = []
+  for (const r of completedReferences) {
+    if (r.growthAreaSummary) notes.push(`A reference noted: "${r.growthAreaSummary}"`)
+  }
+  for (const area of growthAreas) {
+    const trait = GROWTH_AREA_TO_TRAIT[area]
+    if (!trait) continue
+    const field = TRAIT_RATING_FIELD[trait]
+    const lowRatingCount = completedReferences.filter((r) => (r[field] ?? 5) < CONFIRMED_THRESHOLD).length
+    if (lowRatingCount > 0) {
+      notes.push(`This lines up with what at least one reference independently observed.`)
+      break
+    }
+  }
+  return notes.length > 0 ? notes.slice(0, 3).join(' ') : null
+}
+
 interface DraftQuote {
   theme: string
   quoteText: string

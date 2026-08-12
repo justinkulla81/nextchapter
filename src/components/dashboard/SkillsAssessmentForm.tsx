@@ -4,9 +4,15 @@ import { useActionState, useState } from 'react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
 import { MultiChoiceButtons } from '@/components/onboarding/MultiChoiceButtons'
-import { TOP_STRENGTH_OPTIONS, TOP_STRENGTHS_MAX } from '@/lib/constants/onboarding'
+import {
+  TOP_STRENGTH_OPTIONS,
+  TOP_STRENGTHS_MAX,
+  GROWTH_AREA_OPTIONS,
+  GROWTH_AREAS_MAX,
+} from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
@@ -31,6 +37,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
   // slider below, rather than asking it again.
   const isPeopleManager = profile.isPeopleManager
   const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
+  const [growthAreas, setGrowthAreas] = useState<string[]>(profile.growthAreas)
 
   const functionLabel = profile.resumeLatestJobTitle ?? profile.primaryFunction
 
@@ -51,6 +58,26 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           onChange={setTopStrengths}
           columns={2}
           max={TOP_STRENGTHS_MAX}
+        />
+      </div>
+
+      <div id="growth-areas" className="scroll-mt-4 space-y-2">
+        <Label>
+          Everyone has room to grow, too. Select up to {GROWTH_AREAS_MAX} areas you&apos;re actively working on.
+        </Label>
+        <MultiChoiceButtons
+          name="growthAreas"
+          options={GROWTH_AREA_OPTIONS}
+          value={growthAreas}
+          onChange={setGrowthAreas}
+          columns={2}
+          max={GROWTH_AREAS_MAX}
+        />
+        <Textarea
+          name="growthAreasElaboration"
+          defaultValue={profile.growthAreasElaboration ?? ''}
+          placeholder="In your own words (optional) — this helps your Dossier's Self-Awareness section sound like you, not a checklist."
+          rows={3}
         />
       </div>
 

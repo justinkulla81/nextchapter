@@ -93,22 +93,6 @@ export async function logAiProject(
   revalidatePath('/dashboard/recruiter-report')
 }
 
-export async function dismissAiContextBanner(): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { aiContextBannerDismissedAt: new Date() },
-  })
-
-  revalidatePath('/dashboard/learning')
-}
-
 // Marks a curated tool (from ai-tools-by-function.ts) as one the candidate
 // already knows — toggling off deletes the row. Curated tools carry no
 // toolUrl (the URL lives in the constants file, not the DB row).

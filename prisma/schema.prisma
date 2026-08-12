@@ -578,6 +578,8 @@ model CandidateProfile {
   isPeopleManager          Boolean? // gates teamSizeManaged + managementSkillConfidence questions — now asked from Track Record (spec §4.2 item 16), written to this same field so existing consumers are unaffected
   teamSizeManaged          Int? // 0 = IC, otherwise largest team managed — legacy raw-number field, no longer asked anywhere (Track Record's largestTeamManaged supersedes it as a band); kept as a read-only fallback for existing candidates and the several consumers that read it directly
   topStrengths             String[] @default([]) // multi-select, choose up to 3, "Select up to 3 strengths that best describe where you truly stand out" — see TOP_STRENGTH_OPTIONS
+  growthAreas              String[] @default([]) // multi-select, choose up to 3 growth areas — paired with topStrengths on Skills Inventory, see GROWTH_AREA_OPTIONS. Feeds both How I Operate (Superpowers) and the Self-Awareness draft as raw self-report input.
+  growthAreasElaboration   String?  @db.Text // optional "in your own words" elaboration on the selected growth areas — gives Victoria's Self-Awareness draft real material instead of a bare picklist
   knownFor                 String? // "How former colleagues would describe me" — required before requesting references
 
   // Executive Dossier Positioning Statement (Prompt 47) — AI-drafted from
@@ -587,6 +589,16 @@ model CandidateProfile {
   positioningStatementDraft String?   @db.Text
   positioningStatementText  String?   @db.Text
   positioningStatementSetAt DateTime?
+
+  // Executive Dossier Self-Awareness (Prompt 47 rework) — same draft/approve
+  // shape as positioningStatement* above. Drafted from growthAreas/
+  // growthAreasElaboration (never invented from raw reference weakness
+  // ratings — those only feed prompt context, never rendered directly).
+  // selfAwarenessText null = not yet approved; the draft alone is never
+  // Dossier-eligible.
+  selfAwarenessDraft String?   @db.Text
+  selfAwarenessText  String?   @db.Text
+  selfAwarenessSetAt DateTime?
 
   // Search Strategy Guidance — AI-drafted paragraph synthesizing the
   // candidate's calibrated seniority (levelRankScore/levelRankLabel) with
@@ -638,6 +650,17 @@ model CandidateProfile {
   relocationNotes     String?
   equityImportant     Boolean  @default(false)
   dealBreakers        String?
+
+  // Personal Context: Blockers + Motivations (Prompt 47 rework) — coaching
+  // context and Victoria tone calibration only. NEVER read by
+  // dossier-sections.ts, under any circumstance — see that file's
+  // exclusion comment. Same isolation pattern as dealBreakers above:
+  // plain columns, read only by getCoachingNotes.
+  blockers               String[] @default([]) // multi-select, no cap — practical constraints only, no mental-health framing, see BLOCKER_OPTIONS
+  consistencySelfRating  Int? // 0-100, 4-stop discrete scale, same shape as communicatorConfidence/managementSkillConfidence above
+  blockersOpenText       String? // free text, coach-only — "anything more personal" — never structured, never Dossier-eligible
+  motivations            String[] @default([]) // multi-select, choose up to 3 — internal only, never surfaced in the Executive Dossier under any circumstance, see MOTIVATIONS_OPTIONS
+  motivationsElaboration String?  @db.Text
 
   // Hireability Assessment (Prompt 53) — feeds Market Reality Grade
   // (Prompt 46) and the Coach Dossier's Coaching Notes (Prompt 54); never
@@ -879,7 +902,6 @@ model CandidateProfile {
   networkingConcerns         NetworkingAnxiety[] @default([])
   networkConnectPreferences  String[]            @default([])
   outreachPlanDismissedAt    DateTime? // "Your outreach plan" banner's X was clicked on Outreach Contacts
-  aiContextBannerDismissedAt DateTime? // Learning page's AI-fluency-context banner X was clicked
 
   // Admin-managed Gmail/Calendar tracking allow-list (see
   // /support/admin/tracking-testers) — replaces the old env-var-only

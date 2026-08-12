@@ -12,10 +12,16 @@ import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reaso
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
 import { translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
-import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { TOP_STRENGTH_OPTIONS, LOCATION_PREFERENCE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
-import { computeReferenceAlignment } from '@/lib/references/testimony-processing'
+import {
+  TOP_STRENGTH_OPTIONS,
+  GROWTH_AREA_OPTIONS,
+  LOCATION_PREFERENCE_OPTIONS,
+  COMPANY_STAGE_OPTIONS,
+} from '@/lib/constants/onboarding'
+import { computeReferenceAlignment, computeGrowthAreaReferenceContext } from '@/lib/references/testimony-processing'
+import { countOverDeliveringWeeks } from '@/lib/badges/milestone-badges'
+import { countAGradeWeeks } from '@/lib/scoring/market-reality-history'
 import { communityTierNarrative, computeCandidatePeerSupportCount } from '@/lib/reports/community-tier'
 import { buildReferenceVerification, type ReferenceVerification } from '@/lib/reports/reference-verification'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
@@ -28,11 +34,22 @@ import { isInternshipRole } from '@/lib/resume/work-history-facts'
 // closed-loop callout) has one clear home, and so each section can be
 // sourced from real, existing data rather than invented.
 //
-// WHAT NEVER APPEARS HERE, under any circumstance (enforced by simply never
-// querying for it): financial pressure/Benefits data, raw score numbers,
-// mood/check-in data, coaching session notes, raw Support Network message
-// content, raw calendar event details. See prisma/schema.prisma's
-// CoachSession/DailyCheckIn/EncouragementNote models — none are touched.
+// WHAT NEVER APPEARS HERE, under any circumstance: financial pressure/
+// Benefits data, raw score numbers, mood/check-in data, coaching session
+// notes, raw Support Network message content, raw calendar event details,
+// Motivations (CandidateProfile.motivations/motivationsElaboration), and raw
+// Blockers (blockers/blockersOpenText/consistencySelfRating). See
+// prisma/schema.prisma's CoachSession/DailyCheckIn/EncouragementNote models
+// and the Personal Context comment block — none of those fields are read in
+// this file. The real enforcement mechanism: every section function below
+// takes a narrow, explicitly-named parameter shape (never the full
+// `candidate` object read at the bottom of this file) — a field can only
+// reach DossierData by being named at a function signature in this file, so
+// that signature list IS the reviewable boundary. The one broad fetch this
+// file does perform (`candidate` in getDossierSections, via
+// GRADE_RELATIONS_INCLUDE) exists for scoring purposes — computeCategoryGrades/
+// computeNamedReasons need broad self-report inputs — and is never
+// destructured directly into a section or into the returned DossierData.
 
 export interface DossierSection {
   id: DossierSectionId
@@ -42,7 +59,6 @@ export interface DossierSection {
 export type DossierSectionId =
   | 'positioning'
   | 'howIOperate'
-  | 'whatDrivesMe'
   | 'aiFluency'
   | 'impactOnPeople'
   | 'selfAwareness'
@@ -53,7 +69,6 @@ export type DossierSectionId =
 const SECTION_TITLES: Record<DossierSectionId, string> = {
   positioning: 'Positioning Statement',
   howIOperate: 'How I Operate',
-  whatDrivesMe: 'What Drives Me',
   aiFluency: 'AI Fluency',
   impactOnPeople: 'Impact on People',
   selfAwareness: 'Self-Awareness',
@@ -66,11 +81,13 @@ const SECTION_TITLES: Record<DossierSectionId, string> = {
 // and which named-reason gap each section is best positioned to address —
 // used both for reordering and for the closed-loop callout. Sections not
 // listed here (selfAwareness, learningGrowth, proofPoints) have no direct
-// gap mapping and stay in their base relative position.
+// gap mapping and stay in their base relative position. "What Drives Me"
+// was removed entirely (not repurposed) — its one genuinely valuable piece,
+// the verified sustained-effort stat, now lives inside howIOperate, next to
+// Superpowers.
 const SECTION_ORDER: DossierSectionId[] = [
   'positioning',
   'howIOperate',
-  'whatDrivesMe',
   'aiFluency',
   'impactOnPeople',
   'selfAwareness',
@@ -82,7 +99,6 @@ const SECTION_ORDER: DossierSectionId[] = [
 const SECTION_ADDRESSES_GAP: Partial<Record<DossierSectionId, string>> = {
   positioning: 'presentation_gap',
   howIOperate: 'experienceMatch_gap',
-  whatDrivesMe: 'searchStrategy_gap',
   aiFluency: 'ai_fluency_gap',
   impactOnPeople: 'socialProof_gap',
   fit: 'targetComplexity_gap',
@@ -148,14 +164,21 @@ export interface DossierData {
   // per-strength reference attribution data to draw on honestly.
   verification: ReferenceVerification
   positioning: { draftText: string | null; approvedText: string | null }
-  howIOperate: { dimensionSummaries: string[]; superpowers: DossierSuperpower[] }
-  whatDrivesMe: { motivationNarrative: string | null; effortStatText: string | null }
+  // gritStatText is the one thing the deleted "What Drives Me" section got
+  // right — verified, hard-to-fake sustained effort — moved here to sit
+  // right next to Superpowers, framed explicitly as evidence of persistence.
+  howIOperate: { dimensionSummaries: string[]; superpowers: DossierSuperpower[]; gritStatText: string | null }
   aiFluencyExample: string | null
   impactOnPeople: {
     quotes: { theme: string; quoteText: string; refereeName: string }[]
     communityNarrative: string | null
   }
-  selfAwareness: { growthEdges: string[] }
+  // Same draft/approve shape as positioning above — a raw self-report growth
+  // area never reaches approvedText directly; Victoria drafts a
+  // professionally-positioned version first, and the candidate must
+  // explicitly approve it (see approveSelfAwareness) before it's
+  // Dossier-eligible.
+  selfAwareness: { draftText: string | null; approvedText: string | null }
   learningGrowth: { items: { title: string; closedGapArea: string | null }[] }
   // targetPreferences is deliberately narrow — what they're targeting, not
   // how they'd negotiate. compFlexible, equityImportant, willingToStartLower
@@ -314,7 +337,7 @@ How they're known by colleagues: ${candidate.knownFor ?? 'not given'}`
 export async function getHowIOperate(
   candidateId: string,
   candidateTopStrengths: string[]
-): Promise<{ dimensionSummaries: string[]; superpowers: DossierSuperpower[] }> {
+): Promise<{ dimensionSummaries: string[]; superpowers: DossierSuperpower[]; gritStatText: string | null }> {
   const latestAssessment = await prisma.candidateAssessmentResponse.findFirst({
     where: { candidateId },
     orderBy: { completedAt: 'desc' },
@@ -352,31 +375,21 @@ export async function getHowIOperate(
     }
   })
 
-  return { dimensionSummaries, superpowers }
-}
-
-export async function getWhatDrivesMe(
-  candidateId: string,
-  knownFor: string | null
-): Promise<{ motivationNarrative: string | null; effortStatText: string | null }> {
-  // Denominator (weeks tracked) comes from WeeklySprint — every week the
-  // candidate has committed to a sprint, whether or not it landed an A.
-  // Numerator (A weeks) is sourced from WeeklyBadgeEarned, the real
-  // currently-written record; SundayNightReport.onAList is legacy and
-  // nothing writes to it (see src/lib/badges/weekly-badge-archive.ts).
-  const [totalWeeks, sprintTargetWeekCount] = await Promise.all([
-    prisma.weeklySprint.count({ where: { candidateId } }),
-    prisma.weeklyBadgeEarned.count({ where: { candidateId, badgeKey: 'WEEKLY_SPRINT_TARGET_HIT' } }),
+  // Verified, hard-to-fake sustained effort — moved here from the deleted
+  // "What Drives Me" section, positioned right next to Superpowers. Grade
+  // count comes from MarketRealitySnapshot (one row per closed-out week);
+  // over-delivering count comes from the same full-history per-week
+  // computation the OVER_DELIVERING_STREAK milestone badge already builds.
+  const [aGradeWeeks, overDeliveringWeeks] = await Promise.all([
+    countAGradeWeeks(candidateId),
+    countOverDeliveringWeeks(candidateId),
   ])
-  const effortStatText =
-    totalWeeks > 0
-      ? `${sprintTargetWeekCount} of ${totalWeeks} weeks hit the Sprint Target. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
+  const gritStatText =
+    aGradeWeeks.totalWeeks > 0
+      ? `${aGradeWeeks.aWeeks} of ${aGradeWeeks.totalWeeks} weeks at an A${overDeliveringWeeks > 0 ? `, ${overDeliveringWeeks} week${overDeliveringWeeks === 1 ? '' : 's'} Over-Delivering` : ''}. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
       : null
 
-  // No dedicated Victoria-guided "cost me something" elicitation exists yet
-  // (flagged, not invented) — knownFor is the closest existing honest proxy
-  // for motivation/identity narrative content.
-  return { motivationNarrative: knownFor, effortStatText }
+  return { dimensionSummaries, superpowers, gritStatText }
 }
 
 async function getGapAreasAndLearningItems(candidateId: string) {
@@ -403,23 +416,68 @@ function matchClosedGapArea(itemTitle: string, gapAreas: string[]): string | nul
   return gapAreas.find((area) => normalizedTitle.includes(area.toLowerCase().split(' ')[0])) ?? null
 }
 
-// Positives only, per this module's own rule (see header comment) — this
-// used to quote the raw, unresolved "Still building: {area} — {why}" gap
-// text straight from HireabilityReport.gapAnalysis, which is exactly the
-// weakness disclosure that has no place in a document that leaves the
-// candidate's hands. Self-awareness only reads as a strength to a hiring
-// manager when it's paired with action already taken — a gap the candidate
-// spotted and then closed — not a bare admission of something unresolved.
-export async function getSelfAwareness(candidateId: string): Promise<{ growthEdges: string[] }> {
-  const { learningItems, gapAreas } = await getGapAreasAndLearningItems(candidateId)
-  const growthEdges = learningItems
-    .map((item) => {
-      const closedArea = matchClosedGapArea(item.title, gapAreas)
-      return closedArea ? `Recognized ${closedArea} as a growth area early and closed it with ${item.title}.` : null
+// Same draft/approve pattern as getOrDraftPositioningStatement — Victoria
+// drafts a professionally-positioned version of the candidate's raw
+// self-report (growthAreas + growthAreasElaboration), reframing growth
+// edges constructively and adding a feedback-story where the elaboration
+// gives real material, per this module's evidence-first-positives rule
+// (see header comment). The raw self-report itself never reaches
+// approvedText directly — only the candidate's explicit approval of
+// Victoria's draft does (see approveSelfAwareness in recruiter-report/
+// actions.ts). Returns { draftText: null, ... } when growthAreas is empty
+// rather than asking the candidate anything here — the empty-state UI in
+// DossierSectionBlock sends them to Skills Inventory to fill it in instead.
+async function getOrDraftSelfAwareness(candidate: {
+  id: string
+  growthAreas: string[]
+  growthAreasElaboration: string | null
+  selfAwarenessDraft: string | null
+  selfAwarenessText: string | null
+}): Promise<{ draftText: string | null; approvedText: string | null }> {
+  if (candidate.selfAwarenessDraft) {
+    return { draftText: candidate.selfAwarenessDraft, approvedText: candidate.selfAwarenessText }
+  }
+
+  if (candidate.growthAreas.length === 0) {
+    return { draftText: null, approvedText: candidate.selfAwarenessText }
+  }
+
+  const growthAreaLabelByValue = new Map<string, string>(GROWTH_AREA_OPTIONS.map((o) => [o.value, o.label]))
+  const growthAreaLabels = candidate.growthAreas.map((v) => growthAreaLabelByValue.get(v) ?? v)
+  const referenceContext = await computeGrowthAreaReferenceContext(candidate.id, candidate.growthAreas)
+
+  try {
+    const client = getAnthropicClient()
+    const prompt = `Draft a short, constructively-framed Self-Awareness paragraph (2-4 sentences) for a hiring document, based only on the facts below — do not invent facts not given. Name the growth area(s) plainly, frame them as areas the candidate is actively working on (not unresolved weaknesses), and if the elaboration below gives real material, include one brief feedback-story. Write in first person.
+
+Growth areas: ${growthAreaLabels.join(', ')}
+In their own words: ${candidate.growthAreasElaboration ?? 'not given'}
+${referenceContext ? `Private context, for tone only — never quote or reference this directly: ${referenceContext}` : ''}`
+
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-5',
+      max_tokens: 300,
+      thinking: { type: 'disabled' },
+      messages: [{ role: 'user', content: prompt }],
     })
-    .filter((edge): edge is string => edge !== null)
-    .slice(0, 2)
-  return { growthEdges }
+    const message = await stream.finalMessage()
+    const draftText = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim()
+
+    if (draftText) {
+      await prisma.candidateProfile.update({
+        where: { id: candidate.id },
+        data: { selfAwarenessDraft: draftText },
+      })
+    }
+    return { draftText: draftText || null, approvedText: candidate.selfAwarenessText }
+  } catch (error) {
+    console.error('Failed to draft self-awareness section for candidate', candidate.id, error)
+    return { draftText: null, approvedText: candidate.selfAwarenessText }
+  }
 }
 
 export async function getLearningGrowth(
@@ -545,31 +603,22 @@ export const getDossierSections = cache(async function getDossierSections(candid
     gapDuration: candidate.gapDuration,
   })
 
-  const [positioning, howIOperate, whatDrivesMe, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated, careerTrajectorySteps] =
+  const [positioning, howIOperate, impactQuotes, peerSupportCount, selfAwareness, learningGrowth, generated, careerTrajectorySteps] =
     await Promise.all([
       getOrDraftPositioningStatement({ ...candidate, levelRankLabel: levelRank.label }),
       getHowIOperate(candidateId, candidate.topStrengths),
-      getWhatDrivesMe(candidateId, candidate.knownFor),
       prisma.referenceQuote.findMany({
         where: { candidateId, approvedByCandidateAt: { not: null } },
         include: { reference: { select: { refereeName: true } } },
         orderBy: { approvedByCandidateAt: 'desc' },
       }),
       computeCandidatePeerSupportCount(candidateId),
-      getSelfAwareness(candidateId),
+      getOrDraftSelfAwareness(candidate),
       getLearningGrowth(candidateId),
       getCachedGenerations(candidateId, candidate.dossierGeneratedCache),
       getCareerTrajectorySteps(candidateId, candidate.careerTrajectory),
     ])
   const { patternSummary, proofPoints } = generated
-
-  // Self-Awareness is Dossier-eligible only on a 'strong' verdict —
-  // corroborated agreement across two or more independent reads. Anything
-  // less is silent here; a 'wildly_off' read never reaches this document at
-  // all, only Coaching Notes. See summarizeSelfAwareness for why the bar is
-  // set generously.
-  const selfAwarenessVerdict = summarizeSelfAwareness(categories.map((c) => c.selfAwareness))
-  const gatedSelfAwareness = selfAwarenessVerdict === 'strong' ? selfAwareness : { growthEdges: [] }
 
   return {
     namedReasons,
@@ -579,13 +628,12 @@ export const getDossierSections = cache(async function getDossierSections(candid
     verification: buildReferenceVerification(candidate.references),
     positioning,
     howIOperate,
-    whatDrivesMe,
     aiFluencyExample: latestAiProject?.judgmentCall ?? null,
     impactOnPeople: {
       quotes: impactQuotes.map((q) => ({ theme: q.theme, quoteText: q.quoteText, refereeName: q.reference.refereeName })),
       communityNarrative: communityTierNarrative(peerSupportCount),
     },
-    selfAwareness: gatedSelfAwareness,
+    selfAwareness,
     learningGrowth,
     fit: { patternSummary, targetPreferences: buildDossierTargetPreferences(candidate) },
     proofPoints,
@@ -616,9 +664,6 @@ export function getDossierSectionCompleteness(
       case 'howIOperate':
         hasContent = dossier.howIOperate.dimensionSummaries.length > 0 || dossier.howIOperate.superpowers.length > 0
         break
-      case 'whatDrivesMe':
-        hasContent = !!dossier.whatDrivesMe.effortStatText || !!dossier.whatDrivesMe.motivationNarrative
-        break
       case 'aiFluency':
         hasContent = !!dossier.aiFluencyExample
         break
@@ -626,7 +671,9 @@ export function getDossierSectionCompleteness(
         hasContent = dossier.impactOnPeople.quotes.length > 0 || !!dossier.impactOnPeople.communityNarrative
         break
       case 'selfAwareness':
-        hasContent = dossier.selfAwareness.growthEdges.length > 0
+        // Approved text only — same rule as positioning above. An
+        // unapproved Victoria draft is explicitly not Dossier-eligible.
+        hasContent = !!dossier.selfAwareness.approvedText
         break
       case 'learningGrowth':
         hasContent = dossier.learningGrowth.items.length > 0
@@ -661,30 +708,27 @@ export function getDossierSectionCompleteness(
 export async function isDossierComplete(candidateId: string): Promise<boolean> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
-    select: { positioningStatementText: true, topStrengths: true, knownFor: true },
+    select: { positioningStatementText: true, topStrengths: true, selfAwarenessText: true },
   })
   if (!candidate.positioningStatementText) return false
+  if (!candidate.selfAwarenessText) return false
 
   const [
     howIOperate,
-    whatDrivesMe,
     latestAiProject,
     impactQuoteCount,
     peerSupportCount,
-    selfAwareness,
     learningGrowth,
     reactedJobCount,
     appliedOrReviewedJobCount,
     starResponses,
   ] = await Promise.all([
     getHowIOperate(candidateId, candidate.topStrengths),
-    getWhatDrivesMe(candidateId, candidate.knownFor),
     prisma.learningBadge.findFirst({
       where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
     }),
     prisma.referenceQuote.count({ where: { candidateId, approvedByCandidateAt: { not: null } } }),
     computeCandidatePeerSupportCount(candidateId),
-    getSelfAwareness(candidateId),
     getLearningGrowth(candidateId),
     prisma.surfacedJob.count({ where: { candidateId, reaction: { not: null } } }),
     prisma.jobPosting.count({
@@ -702,10 +746,8 @@ export async function isDossierComplete(candidateId: string): Promise<boolean> {
 
   return (
     (howIOperate.dimensionSummaries.length > 0 || howIOperate.superpowers.length > 0) &&
-    (Boolean(whatDrivesMe.effortStatText) || Boolean(whatDrivesMe.motivationNarrative)) &&
     Boolean(latestAiProject?.judgmentCall) &&
     (impactQuoteCount > 0 || Boolean(communityTierNarrative(peerSupportCount))) &&
-    selfAwareness.growthEdges.length > 0 &&
     learningGrowth.items.length > 0 &&
     reactedJobCount + appliedOrReviewedJobCount >= MIN_SIGNALS_FOR_PATTERN &&
     hasStarResponse

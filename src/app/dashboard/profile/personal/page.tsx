@@ -8,6 +8,7 @@ import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
+import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -175,6 +176,17 @@ export default async function PersonalInformationPage() {
               yearsExperience={profile.yearsExperience}
               confirmedAt={profile.functionConfirmedAt}
             />
+          </CardContent>
+        </Card>
+
+        <Card id="personal-context" className="scroll-mt-4">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Personal context
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PersonalContextForm profile={profile} />
           </CardContent>
         </Card>
 

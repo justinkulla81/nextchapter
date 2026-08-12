@@ -96,8 +96,8 @@ export function NextSurfacedJobCard({
         {job.description && <p className="line-clamp-2 text-sm text-muted-foreground">{job.description}</p>}
 
         {worksHereContacts && worksHereContacts.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            <span>Works there — a warm intro beats a cold application: </span>
+          <p className="text-sm text-muted-foreground">
+            <span>Who can help: </span>
             {worksHereContacts.map((c) => c.name).join(', ')}
             {worksHereTotalCount !== undefined && worksHereTotalCount > worksHereContacts.length && (
               <span> +{worksHereTotalCount - worksHereContacts.length} more</span>

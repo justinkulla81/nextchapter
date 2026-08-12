@@ -45,7 +45,6 @@ export interface LearningPlan {
   aiTools: LearningPlanAiTool[]
   contentFunction: string | null
   aiFlexibilityLevel: number | null
-  aiContextBannerDismissed: boolean
   functionTraining: LearningPlanItem[]
   sections: LearningPlanSection[]
   interviewSkills: InterviewSkillsData
@@ -101,7 +100,6 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         activeJobDescription: true,
         storyComfort: true,
         hasMBA: true,
-        aiContextBannerDismissedAt: true,
         certifications: true,
         industryContext: true,
         targetIndustries: true,
@@ -394,7 +392,6 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     aiTools,
     contentFunction,
     aiFlexibilityLevel: candidate.aiFlexibilityLevel,
-    aiContextBannerDismissed: !!candidate.aiContextBannerDismissedAt,
     functionTraining,
     sections,
     interviewSkills,
