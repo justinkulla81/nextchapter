@@ -22,7 +22,7 @@ export async function upsertContactFromSignal(
     autoTags: RelationshipTag[]
     workHistoryCompanies: string[]
   }
-): Promise<void> {
+): Promise<{ id: string } | null> {
   const email = params.email.toLowerCase()
   const { inferredCompany, inferredSchool } = inferOrgFromEmailDomain(email)
   const isFormerColleague = inferredCompany
@@ -47,13 +47,13 @@ export async function upsertContactFromSignal(
         },
       })
     }
-    return
+    return { id: existing.id }
   }
 
   const relationshipTags = new Set<RelationshipTag>(params.autoTags)
   if (isFormerColleague) relationshipTags.add('FORMER_COLLEAGUE')
 
-  await prisma.supportNetworkContact
+  return prisma.supportNetworkContact
     .create({
       data: {
         candidateId,
@@ -65,8 +65,12 @@ export async function upsertContactFromSignal(
         inferredSchool,
         normalizedKey: normalizeContactKey(params.name, inferredCompany),
       },
+      select: { id: true },
     })
     // Race with a concurrent sync hitting the same unique key — the other
     // write already added this contact, nothing left to do.
-    .catch((error) => console.error('Failed to auto-add contact to network list:', error))
+    .catch((error) => {
+      console.error('Failed to auto-add contact to network list:', error)
+      return null
+    })
 }

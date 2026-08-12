@@ -16,6 +16,20 @@ function lowerEmails(emails: (string | null)[]): string[] {
   return Array.from(new Set(emails.filter((e): e is string => !!e).map((e) => e.toLowerCase())))
 }
 
+// Caps the size of each `email IN (...)` query below. A candidate's Contact
+// Directory can hold 27,000+ imported LinkedIn contacts, and the "On
+// NextChapter" filter used to pass every matching email into one unbounded
+// query here — chunking keeps each query's IN-list a fixed, reasonable size
+// while still resolving membership for the full input list (just in
+// parallel batches instead of one query per size N).
+const LOOKUP_CHUNK_SIZE = 2000
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size))
+  return chunks
+}
+
 // Looks up each given email against candidate, coach, recruiter, and hiring
 // manager accounts and returns a map keyed by lowercased email. Coaches and
 // recruiters store their login email directly (workEmail); hiring managers
@@ -29,21 +43,29 @@ export async function lookupNextChapterMemberships(
   const result = new Map<string, NextChapterMembership>()
   if (lowered.length === 0) return result
 
-  const [candidates, coaches, recruiters, employers] = await Promise.all([
-    prisma.candidateProfile.findMany({
-      where: { email: { in: lowered, mode: 'insensitive' }, privacyTier: { in: [...CANDIDATE_VISIBLE_TIERS] } },
-      select: { email: true },
-    }),
-    prisma.coach.findMany({ where: { workEmail: { in: lowered, mode: 'insensitive' } }, select: { workEmail: true } }),
-    prisma.recruiter.findMany({ where: { workEmail: { in: lowered, mode: 'insensitive' } }, select: { workEmail: true } }),
+  const [chunkResults, employers] = await Promise.all([
+    Promise.all(
+      chunk(lowered, LOOKUP_CHUNK_SIZE).map((batch) =>
+        Promise.all([
+          prisma.candidateProfile.findMany({
+            where: { email: { in: batch, mode: 'insensitive' }, privacyTier: { in: [...CANDIDATE_VISIBLE_TIERS] } },
+            select: { email: true },
+          }),
+          prisma.coach.findMany({ where: { workEmail: { in: batch, mode: 'insensitive' } }, select: { workEmail: true } }),
+          prisma.recruiter.findMany({ where: { workEmail: { in: batch, mode: 'insensitive' } }, select: { workEmail: true } }),
+        ])
+      )
+    ),
     prisma.employerProfile.findMany({ select: { userId: true } }),
   ])
 
-  for (const c of candidates) {
-    if (c.email) result.set(c.email.toLowerCase(), 'CANDIDATE')
+  for (const [candidates, coaches, recruiters] of chunkResults) {
+    for (const c of candidates) {
+      if (c.email) result.set(c.email.toLowerCase(), 'CANDIDATE')
+    }
+    for (const c of coaches) result.set(c.workEmail.toLowerCase(), 'COACH')
+    for (const r of recruiters) result.set(r.workEmail.toLowerCase(), 'RECRUITER')
   }
-  for (const c of coaches) result.set(c.workEmail.toLowerCase(), 'COACH')
-  for (const r of recruiters) result.set(r.workEmail.toLowerCase(), 'RECRUITER')
 
   if (employers.length > 0) {
     const authUsers = await listAllAuthUsers()

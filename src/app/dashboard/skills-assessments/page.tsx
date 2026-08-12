@@ -150,33 +150,43 @@ export default async function SkillsAssessmentsPage() {
         <PageHeaderBoxes pageKey="skills-assessments" candidateId={profile.id} />
       </div>
 
-      <div className="space-y-4">
-        {assessments.map((assessment) => (
-          <Card key={assessment.key}>
-            <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-              <CardTitle className="text-base font-medium text-foreground">{assessment.title}</CardTitle>
-              {!assessment.completedAt && (
-                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand tabular-nums">
-                  +{assessment.points} pts
-                </span>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{assessment.description}</p>
-              <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
-              <p className="text-xs text-muted-foreground">
-                {'statusLabel' in assessment
-                  ? assessment.statusLabel
-                  : assessment.completedAt
-                    ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
-                    : 'Not completed yet'}
-              </p>
-              <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
-                {assessment.ctaLabel}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-2">
+        {assessments.map((assessment) => {
+          const statusLine =
+            'statusLabel' in assessment
+              ? assessment.statusLabel
+              : assessment.completedAt
+                ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
+                : 'Not completed yet'
+
+          return (
+            <details key={assessment.key} className="group overflow-hidden rounded-lg border border-border">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{statusLine}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  {!assessment.completedAt && (
+                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand tabular-nums">
+                      +{assessment.points} pts
+                    </span>
+                  )}
+                  <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
+                    See details
+                  </span>
+                </div>
+              </summary>
+              <div className="space-y-3 border-t border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">{assessment.description}</p>
+                <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
+                <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
+                  {assessment.ctaLabel}
+                </Button>
+              </div>
+            </details>
+          )
+        })}
       </div>
 
       <Card>

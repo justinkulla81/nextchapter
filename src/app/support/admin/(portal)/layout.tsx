@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
+import { prisma } from '@/lib/prisma'
 import { AdminNav } from '@/components/admin/AdminNav'
 
 export const metadata: Metadata = {
@@ -9,12 +10,16 @@ export const metadata: Metadata = {
 
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin()
-  const { approvalsNeeded } = await getAdminHomepageSummary()
+  const [{ approvalsNeeded }, reportedMessages] = await Promise.all([
+    getAdminHomepageSummary(),
+    prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
+  ])
 
   const badges = {
     jobBoard: approvalsNeeded.pendingJobBoardListings,
     bountyClaims: approvalsNeeded.pendingBountyClaims,
     referenceDisputes: approvalsNeeded.unresolvedReferenceDisputes,
+    reportedMessages,
     // Job Board listings are their own review queue (shown on the Job Board
     // nav item above) and never appear as rows on the Requests page itself —
     // counting them here would double them into a badge for a list they

@@ -4,6 +4,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Search Goals' }
 
@@ -28,6 +29,7 @@ export default async function SearchGoalsPage() {
           What matters to you beyond salary — helps your coach and recruiter contacts steer you
           toward roles and offers that actually fit.
         </p>
+        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>
 
       <Card id="comp-benefits" className="scroll-mt-4">

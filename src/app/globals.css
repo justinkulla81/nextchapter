@@ -172,8 +172,12 @@
   }
   html {
     @apply font-sans;
-    /* Larger base size site-wide — our candidates skew 35-55, and every
-       rem-based Tailwind text/spacing utility scales from this. */
+    /* Larger base size site-wide, every rem-based Tailwind text/spacing
+       utility scales from this. Not an age or tech-comfort accommodation
+       (Prompt 83) — the design standard here is reducing cognitive load
+       under acute stress, which measurably shrinks anyone's available
+       bandwidth regardless of technical skill, and this audience is
+       mid-career to executive and often highly software-fluent. */
     font-size: 112.5%;
   }
   a {

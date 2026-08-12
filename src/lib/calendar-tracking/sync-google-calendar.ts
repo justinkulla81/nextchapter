@@ -115,13 +115,23 @@ async function addAttendeesToNetwork(
   for (const attendee of others) {
     const email = attendee.email!.toLowerCase()
     const name = attendee.displayName?.trim() || email.split('@')[0]
-    await upsertContactFromSignal(candidateId, {
+    const contact = await upsertContactFromSignal(candidateId, {
       email,
       name,
       source: 'CALENDAR_IMPORT',
       autoTags,
       workHistoryCompanies,
     })
+    // Meeting with someone IS outreach — resets their "reach out, it's been
+    // a while" staleness clock the same way an outbound email does (see
+    // sync-gmail.ts's matching OutreachLog write), so a candidate who talks
+    // to a contact regularly by call never gets nagged to "follow up" with
+    // them despite having just met.
+    if (contact) {
+      await prisma.outreachLog
+        .create({ data: { candidateId, contactId: contact.id, channel: 'MEETING' } })
+        .catch((error) => console.error('Failed to auto-log meeting outreach:', error))
+    }
   }
 }
 

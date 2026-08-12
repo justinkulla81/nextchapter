@@ -10,8 +10,95 @@ import { sendPostInterestNotification } from '@/lib/email/send-post-interest-not
 import { sendEncouragementNote, markEncouragementNoteRead } from '@/lib/community/encouragement'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import {
+  getOrCreatePeerThread,
+  sendPeerMessage,
+  reportPeerThread,
+  blockCandidate,
+  unblockCandidate,
+} from '@/lib/messaging/peer-threads'
 
 export type FormState = { error?: string } | undefined
+
+async function getAuthedProfile() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+  return getOrCreateCandidateProfile(user.id)
+}
+
+export type SendPeerMessageState = { error?: string } | undefined
+
+// Starts the thread on the caller's first send if it doesn't already exist
+// (see the "Message" link on CommunityPostCard, which deep-links here via
+// ?tab=peer&with={candidateId} without a threadId yet).
+export async function sendPeerCandidateMessage(
+  _prevState: SendPeerMessageState,
+  formData: FormData
+): Promise<SendPeerMessageState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const threadId = formData.get('threadId') as string | null
+  const otherCandidateId = formData.get('otherCandidateId') as string | null
+  const body = (formData.get('body') as string | null) ?? ''
+
+  try {
+    const thread = threadId
+      ? { id: threadId }
+      : otherCandidateId
+        ? await getOrCreatePeerThread(profile.id, otherCandidateId)
+        : null
+    if (!thread) return { error: 'Conversation not found.' }
+    await sendPeerMessage(thread.id, profile.id, body)
+    captureServerEvent(profile.id, 'peer_message_sent', { threadId: thread.id })
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not send message.' }
+  }
+
+  revalidatePath('/dashboard/community')
+  return undefined
+}
+
+export async function reportPeerThreadAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const threadId = formData.get('threadId') as string | null
+  const reason = (formData.get('reason') as string | null) ?? ''
+  if (!threadId) return { error: 'Conversation not found.' }
+
+  try {
+    await reportPeerThread(threadId, profile.id, reason)
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not report this conversation.' }
+  }
+
+  captureServerEvent(profile.id, 'peer_thread_reported', { threadId })
+  revalidatePath('/dashboard/community')
+  return { error: undefined }
+}
+
+// Immediate, candidate-controlled, no approval from the other person or an
+// admin required — the block takes effect the moment this returns.
+export async function blockPeerCandidateAction(otherCandidateId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+  await blockCandidate(profile.id, otherCandidateId)
+  captureServerEvent(profile.id, 'peer_candidate_blocked', { blockedCandidateId: otherCandidateId })
+  revalidatePath('/dashboard/community')
+}
+
+// Only the person who placed the block can lift it.
+export async function unblockPeerCandidateAction(otherCandidateId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+  await unblockCandidate(profile.id, otherCandidateId)
+  captureServerEvent(profile.id, 'peer_candidate_unblocked', { unblockedCandidateId: otherCandidateId })
+  revalidatePath('/dashboard/community')
+}
 
 // The composer only ever creates one of these two types now (message-only,
 // no type picker) — JOB/PROJECT/INTRO_OFFER remain valid enum values for

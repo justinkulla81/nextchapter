@@ -53,6 +53,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },
         { href: '/support/admin/reference-disputes', label: 'Reference Disputes', badge: badgeFor('referenceDisputes') },
         { href: '/support/admin/employer-references', label: 'Employer References' },
+        { href: '/support/admin/reported-messages', label: 'Reported Conversations', badge: badgeFor('reportedMessages') },
       ],
     },
     {
@@ -86,6 +87,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/page-content', label: 'Page Content' },
         { href: '/support/admin/email-cadence', label: 'Email Cadence' },
         { href: '/support/admin/courses', label: 'Courses' },
+        { href: '/support/admin/webinars', label: 'Webinars' },
         { href: '/support/admin/pedigree-signals', label: 'Pedigree Signals' },
         { href: '/support/admin/interim-listings', label: 'Interim Work Listings' },
         { href: '/support/admin/bias-detection', label: 'Bias Detection' },

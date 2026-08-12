@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getProfileChecklistItems, type ProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
@@ -55,13 +56,36 @@ export default async function ProfileHubPage() {
   const items = await getProfileChecklistItems(profile.id)
   const pointsByType = new Map(items.map((i) => [i.actionType, i]))
 
+  // Prompt 87 point 1 — the reassuring-tone pattern from Prompt 83 point 6
+  // ("you're in good shape, one thing would make it stronger"), applied
+  // here as an aggregate summary rather than per-section only. Computed
+  // from the same per-section completion counts the cards below use, so
+  // this can never disagree with them.
+  const allItems = SECTIONS.flatMap((s) => s.actionTypes.map((t) => pointsByType.get(t)).filter((i) => i !== undefined))
+  const totalItems = allItems.length
+  const doneItems = allItems.filter((i) => i.complete).length
+  const percentComplete = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0
+  const firstIncompleteSection = SECTIONS.find((section) =>
+    section.actionTypes.some((t) => !pointsByType.get(t)?.complete)
+  )
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      <div>
+      <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
-        <p className="mt-1 text-muted-foreground">
+        <p className="text-muted-foreground">
           Everything about you lives in one of the three sections below.
         </p>
+        {totalItems > 0 && (
+          <p className="text-sm text-foreground">
+            {percentComplete === 100
+              ? "You're fully set up — nice work."
+              : `Your profile is ${percentComplete}% complete — you're in good shape. ${
+                  firstIncompleteSection ? `One thing would make it stronger: ${firstIncompleteSection.title.toLowerCase()}.` : ''
+                }`}
+          </p>
+        )}
+        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>
 
       <div className="space-y-4">

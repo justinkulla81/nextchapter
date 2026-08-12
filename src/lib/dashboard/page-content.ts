@@ -29,6 +29,8 @@ export const PAGE_KEYS = [
   'got-hired',
   'benefits',
   'support',
+  'webinars',
+  'hireability-report',
 ] as const
 
 export type PageKey = (typeof PAGE_KEYS)[number]

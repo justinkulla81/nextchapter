@@ -517,10 +517,11 @@ export function SuccessSprintCard({
 
           {allRows.length > 0 ? (
             <>
-              <p className="text-xs text-muted-foreground">
-                One-time actions count once, ever. Recurring actions count once per week — do them
-                again next week to earn those points again.
-              </p>
+              {/* Prompt 83 point 1 — this used to be a sentence explaining
+                  that one-time vs. recurring actions count differently.
+                  Each row already carries its own "One-time"/"Recurring"
+                  tag (see ActionRow below), so the mechanic is self-evident
+                  without the explanation. */}
               <div id="weekly-actions-list" className="space-y-4 scroll-mt-4">
                 {priorityRows.length > 0 && (
                   <ActionGroup title="Priority">

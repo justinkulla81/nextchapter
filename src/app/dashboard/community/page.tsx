@@ -10,6 +10,10 @@ import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { buildSelfIntroDraft } from '@/lib/community/self-intro'
 import { getCohortInfo } from '@/lib/community/layoff-cohort'
 import { getCandidateThreads, getThreadWithMessages, getCandidateUnreadCount, markThreadRead } from '@/lib/messaging/threads'
+import { getPeerThreads, getPeerThreadWithMessages, getPeerUnreadCount, getOrCreatePeerThread, markPeerThreadRead } from '@/lib/messaging/peer-threads'
+import { PeerMessageBubbles } from '@/components/messaging/PeerMessageBubbles'
+import { PeerThreadSafetyControls } from '@/components/messaging/PeerThreadSafetyControls'
+import { sendPeerCandidateMessage } from '@/app/dashboard/community/actions'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityStreamItem } from '@/components/dashboard/CommunityStreamItem'
@@ -36,11 +40,16 @@ const PARTNER_TYPE_LABEL = {
   COACH: 'Coach',
   RECRUITER: 'Recruiter',
   EMPLOYER: 'Employer',
+  // Never actually rendered here — getCandidateThreads only returns
+  // COACH/RECRUITER/EMPLOYER threads, PEER threads have their own tab — but
+  // ThreadPartnerType now includes PEER, so this keeps the lookup exhaustive.
+  PEER: 'Community',
 } as const
 
 type SearchParams = {
   tab?: string
   thread?: string
+  with?: string
   city?: string
   function?: string
   industry?: string
@@ -79,14 +88,15 @@ export default async function SupportNetworkPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const tab = params.tab === 'messages' ? 'messages' : 'community'
+  const tab = params.tab === 'messages' ? 'messages' : params.tab === 'peer' ? 'peer' : 'community'
 
   // Computed off the profile snapshot already in hand, before CommunityTab's
   // unconditional communityLastViewedAt reset fires later in this same
   // request — reading it after that reset would always show zero.
-  const [communityUnreadCount, messagesUnreadCount] = await Promise.all([
+  const [communityUnreadCount, messagesUnreadCount, peerUnreadCount] = await Promise.all([
     getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
     getCandidateUnreadCount(profile.id),
+    getPeerUnreadCount(profile.id),
   ])
 
   return (
@@ -125,10 +135,26 @@ export default async function SupportNetworkPage({
             </span>
           )}
         </Link>
+        <Link
+          href="/dashboard/community?tab=peer"
+          className={cn(
+            'flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium transition-colors',
+            tab === 'peer' ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
+          )}
+        >
+          Community DMs
+          {peerUnreadCount > 0 && (
+            <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase tabular-nums">
+              {peerUnreadCount}
+            </span>
+          )}
+        </Link>
       </div>
 
       {tab === 'messages' ? (
         <PrivateMessagesTab candidateId={profile.id} threadId={params.thread} />
+      ) : tab === 'peer' ? (
+        <PeerMessagesTab candidateId={profile.id} threadId={params.thread} withCandidateId={params.with} />
       ) : (
         <CommunityTab
           candidateId={profile.id}
@@ -218,6 +244,117 @@ async function PrivateMessagesTab({ candidateId, threadId }: { candidateId: stri
               />
             </div>
             <MessageComposer threadId={activeThread.id} action={sendCandidateMessage} />
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Prompt 85 — community DMs, kept as its own tab and its own render function
+// rather than folded into PrivateMessagesTab above: different risk profile
+// (peer-to-peer, unmoderated by default) needs the report/block controls
+// that coach/recruiter/employer threads don't.
+async function PeerMessagesTab({
+  candidateId,
+  threadId,
+  withCandidateId,
+}: {
+  candidateId: string
+  threadId?: string
+  withCandidateId?: string
+}) {
+  // A "Message" link with no existing thread yet (?with={candidateId})
+  // creates it on the fly, same first-contact path the send action itself
+  // uses — so clicking "Message" on a post and then landing here already
+  // shows the (empty) conversation instead of an error.
+  let resolvedThreadId = threadId
+  if (!resolvedThreadId && withCandidateId && withCandidateId !== candidateId) {
+    try {
+      const thread = await getOrCreatePeerThread(candidateId, withCandidateId)
+      resolvedThreadId = thread.id
+    } catch {
+      // Blocked or rate-limited — fall through to the plain thread list;
+      // the composer below will surface the real error if they retry.
+    }
+  }
+
+  const threads = await getPeerThreads(candidateId)
+
+  let activeThread: Awaited<ReturnType<typeof getPeerThreadWithMessages>> | null = null
+  if (resolvedThreadId) {
+    activeThread = await getPeerThreadWithMessages(resolvedThreadId, candidateId)
+    if (activeThread) await markPeerThreadRead(resolvedThreadId, candidateId)
+  }
+
+  return (
+    <div className="flex flex-col gap-4 md:flex-row md:items-start">
+      <div className="shrink-0 divide-y divide-border rounded-lg border border-border md:w-64">
+        {threads.length === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">
+            No community conversations yet. Click &quot;Message&quot; on someone&apos;s post to start
+            one.
+          </p>
+        ) : (
+          threads.map((thread) => (
+            <Link
+              key={thread.id}
+              href={`/dashboard/community?tab=peer&thread=${thread.id}`}
+              className={cn(
+                'flex items-center justify-between gap-3 p-3 hover:bg-muted',
+                thread.id === resolvedThreadId && 'bg-muted'
+              )}
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <AvatarDisplay name={thread.partnerName} url={thread.partnerAvatarUrl} size={32} />
+                <p className="truncate text-sm font-medium text-foreground">{thread.partnerName}</p>
+              </div>
+              {thread.unread && (
+                <span className="shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
+                  New
+                </span>
+              )}
+            </Link>
+          ))
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1 space-y-4">
+        {!activeThread ? (
+          <p className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+            {threads.length === 0 ? 'Nothing to show yet.' : 'Pick a conversation to read and reply.'}
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <AvatarDisplay name={activeThread.partnerName} url={activeThread.partnerAvatarUrl} size={32} />
+                <h2 className="text-lg font-semibold tracking-tight">{activeThread.partnerName}</h2>
+              </div>
+              {activeThread.partnerCandidateId && (
+                <PeerThreadSafetyControls
+                  threadId={activeThread.id}
+                  otherCandidateId={activeThread.partnerCandidateId}
+                  isBlocked={activeThread.isBlocked}
+                  isReported={!!activeThread.reportedAt}
+                />
+              )}
+            </div>
+            <div className="rounded-lg border border-border">
+              <PeerMessageBubbles
+                messages={activeThread.messages}
+                selfCandidateId={candidateId}
+                partnerName={activeThread.partnerName}
+                partnerAvatarUrl={activeThread.partnerAvatarUrl}
+              />
+            </div>
+            {activeThread.isBlocked ? (
+              <p className="text-sm text-muted-foreground">
+                You can no longer message in this conversation.
+              </p>
+            ) : (
+              <MessageComposer threadId={activeThread.id} action={sendPeerCandidateMessage} />
+            )}
           </>
         )}
       </div>

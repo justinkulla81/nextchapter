@@ -9,6 +9,7 @@ import { InlineLoadingState } from '@/components/ui/spinner'
 import { StatusIcon } from '@/components/ui/status-icon'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
 import { generateHireabilityReport } from '@/lib/reports/hireability-report'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
@@ -216,6 +217,10 @@ export default async function HireabilityReportPage() {
             </form>
           )}
         </div>
+      </div>
+
+      <div className="print:hidden">
+        <PageHeaderBoxes pageKey="hireability-report" candidateId={profile.id} />
       </div>
 
       {!canRegenerate && (

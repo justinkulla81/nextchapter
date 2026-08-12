@@ -332,6 +332,9 @@ enum OutreachChannel {
   LINKEDIN
   PHONE
   TEXT
+  // Auto-logged from a detected calendar networking-call/interview with
+  // this contact — see addAttendeesToNetwork in sync-google-calendar.ts.
+  MEETING
 }
 
 // "What's your biggest concern about reaching out?" — asked once, shapes
@@ -1017,6 +1020,11 @@ model CandidateProfile {
   sourcedCandidate    SourcedCandidate?
 
   messageThreads MessageThread[]
+  peerThreadsAsA MessageThread[] @relation("PeerThreadA")
+  peerThreadsAsB MessageThread[] @relation("PeerThreadB")
+  blocksMade     CandidateBlock[] @relation("BlockerCandidate")
+  blocksReceived CandidateBlock[] @relation("BlockedCandidate")
+  webinarRegistrations WebinarRegistration[]
 
   // Coach-Candidate Matching System, Phase 1 — captured once, when the
   // candidate requests a match (see generateCoachShortlist in
@@ -2770,6 +2778,16 @@ model SupportNetworkContact {
   // ones, so the admin list's "reviewed" count means something.
   adminOutreachStatus ContactAdminOutreachStatus @default(NOT_REVIEWED)
   adminNotes          String?
+  // The candidate's own free-text notes about this person — distinct from
+  // adminNotes above, which is NextChapter's internal business-development
+  // tracking and never candidate-visible.
+  notes               String?
+  // Free-text tags a candidate adds themselves, alongside the closed
+  // RelationshipTag set above (e.g. "mentor," "old boss," "met at a
+  // conference") — RelationshipTag stays a fixed enum so admin tooling and
+  // scoring logic keep a stable set of values to key off of; this is purely
+  // for the candidate's own organization.
+  customTags          String[]                   @default([])
 
   outreachLogs   OutreachLog[]
   // Jobs this contact has been manually flagged as able to help with
@@ -3698,6 +3716,9 @@ enum ThreadPartnerType {
   COACH
   RECRUITER
   EMPLOYER
+  // Prompt 85 — candidate-to-candidate community DM, distinct risk profile
+  // from the other three (see MessageThread's peerCandidateA/BId comment).
+  PEER
 }
 
 enum MessageSenderRole {
@@ -3714,9 +3735,11 @@ enum MessageSenderRole {
 // NULL as distinct per-row in unique constraints, so the three @@unique
 // clauses below don't collide on each other's null columns).
 model MessageThread {
-  id          String            @id @default(cuid())
-  candidateId String
-  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String             @id @default(cuid())
+  // Null only for PEER threads, which have two candidates and no single
+  // "owning" side — see peerCandidateA/BId below instead.
+  candidateId String?
+  candidate   CandidateProfile?  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   partnerType ThreadPartnerType
 
   coachId     String?
@@ -3725,6 +3748,25 @@ model MessageThread {
   recruiter   Recruiter?       @relation(fields: [recruiterId], references: [id])
   employerId  String?
   employer    EmployerProfile? @relation(fields: [employerId], references: [id])
+
+  // PEER threads only — always stored with the lexicographically-smaller
+  // candidateId first (see getOrCreatePeerThread) so a thread between two
+  // candidates can never be created twice regardless of who messages first.
+  peerCandidateAId String?
+  peerCandidateA   CandidateProfile? @relation("PeerThreadA", fields: [peerCandidateAId], references: [id], onDelete: Cascade)
+  peerCandidateBId String?
+  peerCandidateB   CandidateProfile? @relation("PeerThreadB", fields: [peerCandidateBId], references: [id], onDelete: Cascade)
+  // Who sent the first message in a PEER thread — the unsolicited-first-
+  // contact rate limit counts threads by initiator, not by participant, so
+  // replying to someone else's DM never counts against your own limit.
+  initiatedByCandidateId String?
+
+  // Candidate-controlled safety state (PEER threads only, Prompt 85) — a
+  // report flags the conversation for the narrow admin review surface
+  // below; it does not itself stop messages (use CandidateBlock for that).
+  reportedAt             DateTime?
+  reportedByCandidateId  String?
+  reportReason           String?
 
   createdAt           DateTime @default(now())
   lastMessageAt       DateTime @default(now())
@@ -3736,7 +3778,10 @@ model MessageThread {
   @@unique([candidateId, coachId])
   @@unique([candidateId, recruiterId])
   @@unique([candidateId, employerId])
+  @@unique([peerCandidateAId, peerCandidateBId])
   @@index([candidateId])
+  @@index([peerCandidateAId])
+  @@index([peerCandidateBId])
 }
 
 model Message {
@@ -3744,10 +3789,80 @@ model Message {
   threadId   String
   thread     MessageThread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
   senderRole MessageSenderRole
+  // Which of the two candidates sent this — only set (and only needed) on
+  // PEER threads, where senderRole is CANDIDATE on both sides and can't by
+  // itself say who. Null for every other thread type, where senderRole
+  // already disambiguates.
+  senderCandidateId String?
   body       String            @db.Text
   createdAt  DateTime          @default(now())
 
   @@index([threadId, createdAt])
+}
+
+// Candidate-controlled, immediate, no approval needed (Prompt 85). A block
+// is directional but enforced both ways at the messaging layer (see
+// assertPeerNotBlocked) — if either side has ever blocked the other,
+// neither can send, though only the blocker's own action can lift it.
+model CandidateBlock {
+  id                 String           @id @default(cuid())
+  blockerCandidateId String
+  blocker            CandidateProfile @relation("BlockerCandidate", fields: [blockerCandidateId], references: [id], onDelete: Cascade)
+  blockedCandidateId String
+  blocked            CandidateProfile @relation("BlockedCandidate", fields: [blockedCandidateId], references: [id], onDelete: Cascade)
+  createdAt          DateTime         @default(now())
+
+  @@unique([blockerCandidateId, blockedCandidateId])
+  @@index([blockedCandidateId])
+}
+
+// Prompt 86 — live webinar scheduling. hostLabel is free text ("Coach Jane
+// Smith" / "NextChapter Team") rather than an FK to Coach — admin creates
+// every webinar (no per-coach OAuth flow, see AdminGoogleCalendarConnection
+// below), so attribution is descriptive, not a real relation.
+model Webinar {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  hostLabel       String
+  scheduledAt     DateTime
+  durationMinutes Int       @default(45)
+  // Populated once AdminGoogleCalendarConnection successfully creates the
+  // underlying Calendar event — null until then, so the admin UI can show
+  // "not yet scheduled on Google Calendar" distinctly from a real failure.
+  meetLink        String?
+  googleEventId   String?
+  createdAt       DateTime  @default(now())
+  cancelledAt     DateTime?
+
+  registrations WebinarRegistration[]
+}
+
+model WebinarRegistration {
+  id                  String           @id @default(cuid())
+  webinarId           String
+  webinar             Webinar          @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+  candidateId         String
+  candidate           CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  registeredAt        DateTime         @default(now())
+  reminderSentAt      DateTime?
+
+  @@unique([webinarId, candidateId])
+  @@index([candidateId])
+}
+
+// Singleton — a single NextChapter-owned Google Calendar connection admin
+// uses to create webinar events with an auto-generated Meet link, distinct
+// from CalendarConnection (candidate-owned, read-only, Prompt 79) and from
+// src/lib/google/oauth.ts's research-inbox client. Only ever one row.
+model AdminGoogleCalendarConnection {
+  id               String   @id @default(cuid())
+  accessToken      String
+  refreshToken     String
+  expiresAt        DateTime
+  connectedByEmail String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 // Prompt 65 — "Give a Reference." An employer/manager leaves a reference

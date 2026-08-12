@@ -6,6 +6,7 @@ import { WorkAuthorizationConfirmForm } from '@/components/dashboard/WorkAuthori
 import { EeocSelfIdForm } from '@/components/dashboard/EeocSelfIdForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Screening Questions' }
 
@@ -32,6 +33,7 @@ export default async function ScreeningPage() {
           Shared with your coach and recruiter/employer contacts — helps them match you to roles
           you&apos;re actually eligible for, and flag issues before an offer, not after.
         </p>
+        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>
 
       <Card id="screening-questions" className="scroll-mt-4">

@@ -221,6 +221,11 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
     }
   }
 
+  captureServerEvent(candidateId, 'connections_csv_imported', {
+    imported: created.count,
+    updated: updates.length,
+    skippedRemoved,
+  })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
@@ -238,6 +243,11 @@ export async function updateContact(contactId: string, formData: FormData) {
   const email = (formData.get('email') as string | null)?.trim() || null
   const phone = (formData.get('phone') as string | null)?.trim() || null
   const linkedinUrl = (formData.get('linkedinUrl') as string | null)?.trim() || null
+  const notes = (formData.get('notes') as string | null)?.trim() || null
+  const customTags = ((formData.get('customTags') as string | null) ?? '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
 
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
@@ -249,8 +259,11 @@ export async function updateContact(contactId: string, formData: FormData) {
       email,
       phone,
       linkedinUrl,
+      notes,
+      customTags,
     },
   })
+  captureServerEvent(profile.id, 'contact_updated', { contactId })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
 }
@@ -263,6 +276,7 @@ export async function toggleContactPriority(contactId: string, isPriority: boole
     where: { id: contactId, candidateId: profile.id },
     data: { isPriority },
   })
+  captureServerEvent(profile.id, 'contact_priority_toggled', { contactId, isPriority })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
 }
@@ -280,6 +294,7 @@ export async function deleteContact(contactId: string) {
     where: { id: contactId, candidateId: profile.id },
     data: { removedAt: new Date() },
   })
+  captureServerEvent(profile.id, 'contact_removed', { contactId })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
 }
@@ -295,6 +310,7 @@ export async function restoreContact(contactId: string) {
     where: { id: contactId, candidateId: profile.id },
     data: { removedAt: null },
   })
+  captureServerEvent(profile.id, 'contact_restored', { contactId })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard/network/contacts/removed')
@@ -395,6 +411,7 @@ export async function logOutreach(contactId: string | null, channel: OutreachCha
   if (!profile) return
 
   await prisma.outreachLog.create({ data: { candidateId: profile.id, contactId, channel } })
+  captureServerEvent(profile.id, 'outreach_logged', { contactId, channel })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')
@@ -409,6 +426,7 @@ export async function logMarketResponse(type: MarketResponseType) {
   if (!profile) return
 
   await prisma.marketResponseLog.create({ data: { candidateId: profile.id, type } })
+  captureServerEvent(profile.id, 'market_response_logged', { type })
   revalidatePath('/dashboard/network')
   revalidatePath('/dashboard/network/contacts')
   revalidatePath('/dashboard')

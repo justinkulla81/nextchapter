@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -8,6 +9,7 @@ import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
+import { getClientIp } from '@/lib/http/client-ip'
 
 export async function getDashboardData() {
   const supabase = await createClient()
@@ -59,7 +61,9 @@ export async function getDashboardData() {
     redirect('/onboarding/welcome')
   }
 
-  after(() => recordCandidateLoginIfDue(profile.id))
+  const [clientIp, requestHeaders] = await Promise.all([getClientIp(), headers()])
+  const userAgent = requestHeaders.get('user-agent')
+  after(() => recordCandidateLoginIfDue(profile.id, clientIp, userAgent))
 
   // First dashboard load after finishing registration — generate and email
   // the candidate's first Hireability Report now that we have a real,

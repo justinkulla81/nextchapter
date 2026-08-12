@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
+import { Home, Briefcase, Users, User, Menu, X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
 
@@ -15,7 +16,7 @@ function SignOutButton() {
       type="submit"
       disabled={pending}
       className={cn(
-        'text-sm font-medium text-white/50 transition-colors hover:text-white',
+        'text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
         pending && 'cursor-progress'
       )}
     >
@@ -37,6 +38,11 @@ interface NavSection {
   links: NavLink[]
 }
 
+// Prompt 83 point 8 — "Priority" used to sit on 5 sidebar items at once,
+// which meant it conveyed nothing. Position in the list already carries
+// priority (each section is authored most-important-first), so the static
+// label is gone; only a real, live, differentiated signal (an unread count,
+// a genuinely new backchannel match) still earns a badge.
 function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
@@ -63,12 +69,13 @@ function buildSections(
         {
           href: '/dashboard/network',
           label: 'Network with Contacts',
-          // A real "you know someone at a company you applied to" count
-          // takes priority over the generic High Priority label — it's a
-          // more specific, more actionable reason to visit right now.
-          badge: newBackchannelCount > 0 ? String(newBackchannelCount) : 'Priority',
+          // A real "you know someone at a company you applied to" count is
+          // a specific, live reason to visit right now — kept as a badge
+          // since it's genuinely differentiated, unlike the old static
+          // "Priority" label every item here used to carry.
+          badge: newBackchannelCount > 0 ? String(newBackchannelCount) : undefined,
         },
-        { href: '/dashboard/references', label: 'My References', badge: 'Priority' },
+        { href: '/dashboard/references', label: 'My References' },
         {
           href: '/dashboard/community',
           label: 'NextChapter Community',
@@ -77,6 +84,12 @@ function buildSections(
               ? String(supportNetworkUnreadCount + messagesUnreadCount)
               : undefined,
         },
+        // Deliberately protected during this redesign, not incidentally
+        // preserved — Executive Coach stays a top-level, expanded-by-
+        // default Connecting item with its own distinct "Premium" badge,
+        // not folded into a generic collapsed catch-all category. Real
+        // monetization surface area (see Prompt 78's negotiation
+        // coaching, the coaching-commission revenue stream).
         { href: '/coaching', label: 'Executive Coach', badge: 'Premium' },
         {
           href: '/dashboard/privacy',
@@ -90,9 +103,10 @@ function buildSections(
     {
       title: 'Learning & Working',
       links: [
-        { href: '/dashboard/learning', label: 'Learn New Skills', badge: 'Priority' },
-        { href: '/dashboard/interim-work', label: 'Find Interim Work', badge: 'Priority' },
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', badge: 'Priority' },
+        { href: '/dashboard/learning', label: 'Learn New Skills' },
+        { href: '/dashboard/webinars', label: 'Webinars' },
+        { href: '/dashboard/interim-work', label: 'Find Interim Work' },
+        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job' },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉' },
       ],
     },
@@ -113,7 +127,7 @@ function buildSections(
       title: 'Misc',
       links: [
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge' },
-        { href: "/dashboard/support", label: "I'm Struggling" },
+        { href: '/dashboard/support', label: "I'm Struggling" },
         { href: '/faq', label: 'FAQ' },
       ],
     },
@@ -144,7 +158,7 @@ function NavContent({
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
-      <Logo className="px-2 text-xl text-white" />
+      <Logo className="px-2 text-xl text-navy" />
       {sections.map((section, i) => {
         const collapsed = !!section.title && collapsedSections.has(section.title)
         return (
@@ -154,12 +168,12 @@ function NavContent({
               type="button"
               onClick={() => onToggleSection(section.title!)}
               aria-expanded={!collapsed}
-              className="flex w-full items-center gap-1.5 px-2 pb-1 text-[11px] font-semibold tracking-widest text-orange/60 uppercase hover:text-orange/80"
+              className="flex w-full items-center gap-1.5 px-2 pb-1 text-sm font-semibold tracking-wide text-muted-foreground uppercase hover:text-foreground"
             >
               {section.title}
               <svg
                 viewBox="0 0 24 24"
-                className={cn('size-3.5 shrink-0 text-orange transition-transform', collapsed && '-rotate-90')}
+                className={cn('size-3.5 shrink-0 text-brand transition-transform', collapsed && '-rotate-90')}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={3.5}
@@ -172,12 +186,12 @@ function NavContent({
             const badgeEl = link.badge && (
               <span
                 className={cn(
-                  'shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap tracking-wide uppercase',
+                  'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap tracking-wide uppercase',
                   link.muted
-                    ? 'bg-white/10 text-white/50'
+                    ? 'bg-light-gray text-muted-foreground'
                     : link.badge === 'Premium'
-                      ? 'bg-success/20 text-success'
-                      : 'bg-orange/20 text-orange'
+                      ? 'bg-success/15 text-success'
+                      : 'bg-brand/15 text-brand'
                 )}
               >
                 {link.badge}
@@ -189,7 +203,7 @@ function NavContent({
                 <div
                   key={`${section.title ?? 'top'}-${link.href}`}
                   aria-disabled="true"
-                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap text-white/40"
+                  className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground/60"
                 >
                   <span>{link.label}</span>
                   {badgeEl}
@@ -197,18 +211,20 @@ function NavContent({
               )
             }
 
+            const active = isActive(link.href)
             return (
               <Link
                 key={`${section.title ?? 'top'}-${link.href}`}
                 href={link.href}
                 onClick={onNavigate}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors',
-                  isActive(link.href)
-                    ? 'bg-white/15 text-white'
+                  'flex items-center justify-between gap-2 rounded-md border-l-[3px] px-2 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+                  active
+                    ? 'border-brand bg-brand/8 font-semibold text-brand'
                     : link.muted
-                      ? 'text-white/40 hover:bg-white/10 hover:text-white/60'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      ? 'border-transparent text-muted-foreground/60 hover:bg-light-gray hover:text-muted-foreground'
+                      : 'border-transparent text-foreground/80 hover:bg-light-gray hover:text-foreground'
                 )}
               >
                 <span>{link.label}</span>
@@ -227,6 +243,17 @@ function NavContent({
     </nav>
   )
 }
+
+// Prompt 83 point 11 — mobile bottom navigation, limited to 5 destinations,
+// consistent with the simplified sidebar's own top priorities. "More" opens
+// the same full drawer as the old hamburger, so nothing in the fuller nav
+// list becomes unreachable on mobile.
+const MOBILE_TABS = [
+  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/dashboard/find-my-job', label: 'Jobs', icon: Briefcase },
+  { href: '/dashboard/network', label: 'Network', icon: Users },
+  { href: '/dashboard/profile', label: 'Profile', icon: User },
+] as const
 
 export function DashboardNav({
   portfolioAssetCount = 0,
@@ -263,16 +290,15 @@ export function DashboardNav({
     })
   }
 
-  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, messagesUnreadCount, newBackchannelCount)
-  const current = sections
-    .flatMap((s) => s.links)
-    .filter((link) => (link.href === '/dashboard' ? pathname === link.href : pathname.startsWith(link.href)))
-    .sort((a, b) => b.href.length - a.href.length)[0]
+  const isMobileTabActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
+  const onKnownMobileTab = MOBILE_TABS.some((t) => isMobileTabActive(t.href))
 
   return (
     <>
-      {/* Desktop: persistent sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 bg-navy lg:block">
+      {/* Desktop: persistent light sidebar (Prompt 83 — replaces the dark-
+          navy container from Prompt 66; Prompt 66's icon set, grade colors,
+          and status colors are untouched, only this shell changed). */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-border bg-white lg:block">
         <NavContent
           pathname={pathname}
           portfolioAssetCount={portfolioAssetCount}
@@ -284,7 +310,7 @@ export function DashboardNav({
         />
       </aside>
 
-      {/* Mobile: top bar with toggle + slide-out drawer */}
+      {/* Mobile: top bar (logo + full-menu toggle) */}
       <div className="border-b border-border bg-background lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Logo className="text-lg" />
@@ -292,21 +318,66 @@ export function DashboardNav({
             type="button"
             onClick={() => setOpen(true)}
             aria-expanded={open}
-            aria-label="Open navigation menu"
+            aria-label="Open full navigation menu"
             className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground"
           >
-            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            {current?.label ?? 'Menu'}
+            <Menu className="size-5" />
+            Menu
           </button>
         </div>
       </div>
 
+      {/* Mobile: persistent bottom tab bar, 5 destinations */}
+      <nav
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+      >
+        {MOBILE_TABS.map((tab) => {
+          const active = isMobileTabActive(tab.href)
+          const Icon = tab.icon
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium',
+                active ? 'text-brand' : 'text-muted-foreground'
+              )}
+            >
+              <Icon className="size-5" strokeWidth={active ? 2.5 : 2} />
+              {tab.label}
+            </Link>
+          )
+        })}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open full navigation menu"
+          className={cn(
+            'flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium',
+            !onKnownMobileTab ? 'text-brand' : 'text-muted-foreground'
+          )}
+        >
+          <Menu className="size-5" strokeWidth={!onKnownMobileTab ? 2.5 : 2} />
+          More
+        </button>
+      </nav>
+
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-72 bg-navy shadow-xl">
+          <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-xl">
+            <div className="flex items-center justify-end px-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close navigation menu"
+                className="rounded-md p-2 text-muted-foreground hover:bg-light-gray hover:text-foreground"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
             <NavContent
               pathname={pathname}
               onNavigate={() => setOpen(false)}

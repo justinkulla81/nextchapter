@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { SupportNetworkContact, RelationshipTag } from '@prisma/client'
 import { Star } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
@@ -22,12 +23,13 @@ const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
 export interface ContactRowData extends SupportNetworkContact {
   hasReachedOut: boolean
   lastOutreachChannel: string | null
+  lastOutreachAt: Date | null
   membership: NextChapterMembership | null
 }
 
-function relationshipSummary(tags: RelationshipTag[]): string {
-  if (tags.length === 0) return '—'
-  return tags.map((t) => RELATIONSHIP_LABEL[t]).join(', ')
+function relationshipSummary(tags: RelationshipTag[], customTags: string[]): string {
+  const labels = [...tags.map((t) => RELATIONSHIP_LABEL[t]), ...customTags]
+  return labels.length === 0 ? '—' : labels.join(', ')
 }
 
 const SORTABLE_COLUMNS: { key: ContactSortKey; label: string }[] = [
@@ -364,10 +366,15 @@ function ContactRowExpandable({
         <td className="px-3 py-2 text-muted-foreground">
           {contact.connectedAt ? contact.connectedAt.toLocaleDateString() : '—'}
         </td>
-        <td className="px-3 py-2 text-muted-foreground">{relationshipSummary(contact.relationshipTags)}</td>
+        <td className="px-3 py-2 text-muted-foreground">
+          {relationshipSummary(contact.relationshipTags, contact.customTags)}
+        </td>
         <td className="px-3 py-2">
           {contact.hasReachedOut ? (
-            <span className="text-brand">✓{contact.lastOutreachChannel ? ` ${contact.lastOutreachChannel.toLowerCase()}` : ''}</span>
+            <span className="text-brand">
+              ✓{contact.lastOutreachChannel ? ` ${contact.lastOutreachChannel.toLowerCase()}` : ''}
+              {contact.lastOutreachAt && ` — ${contact.lastOutreachAt.toLocaleDateString()}`}
+            </span>
           ) : (
             <span className="text-muted-foreground">—</span>
           )}
@@ -435,10 +442,25 @@ function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
             inferredCompany={contact.inferredCompany}
             inferredSchool={contact.inferredSchool}
           />
-          <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
-            Save
-          </SubmitButton>
         </div>
+
+        <LabeledInput
+          name="customTags"
+          label="Custom tags (comma-separated)"
+          defaultValue={contact.customTags.join(', ')}
+          className="max-w-none"
+        />
+
+        <div className="space-y-1">
+          <label htmlFor="notes" className="text-xs font-medium text-muted-foreground">
+            Notes
+          </label>
+          <Textarea id="notes" name="notes" defaultValue={contact.notes ?? ''} rows={2} />
+        </div>
+
+        <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
+          Save
+        </SubmitButton>
       </form>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">

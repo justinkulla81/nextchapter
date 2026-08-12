@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import type { Prisma } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { getPageBoxContent } from '@/lib/dashboard/page-content'
-import { WhyItMattersBox } from '@/components/dashboard/WhyItMattersBox'
+import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ContactDirectoryTable } from '@/components/dashboard/ContactDirectoryTable'
 import { lookupNextChapterMemberships } from '@/lib/network/member-lookup'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
@@ -124,18 +123,19 @@ export default async function ContactDirectoryPage({
     ...c,
     hasReachedOut: c.outreachLogs.length > 0,
     lastOutreachChannel: c.outreachLogs[0]?.channel ?? null,
+    lastOutreachAt: c.outreachLogs[0]?.loggedAt ?? null,
     membership: c.email ? (memberships.get(c.email.toLowerCase()) ?? null) : null,
   }))
   const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   const networkScriptsGuide = GUIDES.find((g) => g.slug === 'network-scripts')
-  const proTips = await getPageBoxContent(profile.id, 'network-contacts', 'WHY_IT_MATTERS')
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
-
-      <WhyItMattersBox pageKey="network-contacts" content={proTips} />
+      <div className="space-y-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
+        <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
+      </div>
 
       <ContactDirectoryTable
         contacts={contacts}

@@ -54,7 +54,12 @@ export function MarketRealityOverview({
     <Card>
       <CardContent>
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Market Reality</h3>
+          <h3
+            className="text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+            title="How the market currently sees you"
+          >
+            Market Reality
+          </h3>
           <span className="text-xs text-muted-foreground">{weekLabel}</span>
         </div>
 

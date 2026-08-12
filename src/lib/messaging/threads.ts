@@ -12,7 +12,7 @@ import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
 // already-consent-gated surface (coachDossierConsentedAt) that messaging
 // must not bypass. profilePictureUrl is likewise never selected anywhere
 // else in this app's report/dossier generators — see the schema comment.
-const CANDIDATE_DISPLAY_SELECT = {
+export const CANDIDATE_DISPLAY_SELECT = {
   id: true,
   firstName: true,
   lastName: true,
@@ -22,14 +22,14 @@ const CANDIDATE_DISPLAY_SELECT = {
 
 const PARTNER_AVATAR_SELECT = { profilePictureUrl: true, profilePictureVisible: true } as const
 
-function candidateDisplayName(candidate: { firstName: string | null; lastName: string | null } | null): string {
+export function candidateDisplayName(candidate: { firstName: string | null; lastName: string | null } | null): string {
   if (!candidate) return 'Candidate'
   const name = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ')
   return name || 'Candidate'
 }
 
 // Respects the owner's own visibility toggle — never surface a picture they've hidden.
-function visibleAvatarUrl(person: { profilePictureUrl: string | null; profilePictureVisible: boolean } | null | undefined): string | null {
+export function visibleAvatarUrl(person: { profilePictureUrl: string | null; profilePictureVisible: boolean } | null | undefined): string | null {
   if (!person || !person.profilePictureVisible) return null
   return person.profilePictureUrl
 }
@@ -58,8 +58,18 @@ function partnerWhere(partnerType: ThreadPartnerType, partnerId: string): Partne
 //     candidate.
 async function assertThreadAllowed(candidateId: string, partnerType: ThreadPartnerType, partnerId: string) {
   if (partnerType === 'COACH') {
-    const candidate = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { coachId: true } })
+    const candidate = await prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: { coachId: true, coachDossierConsentedAt: true },
+    })
     if (candidate?.coachId !== partnerId) throw new Error('This coach is not connected to this candidate.')
+    // Prompt 85 — coach messaging reuses the SAME consent decision as Coach
+    // Dossier access (coachDossierConsentedAt), not a second toggle. A coach
+    // relationship can exist before that consent is given (matching happens
+    // first), so this is a real gate, not a formality.
+    if (!candidate.coachDossierConsentedAt) {
+      throw new Error('Messaging opens once you consent to share your Coach Dossier with this coach.')
+    }
     return
   }
   if (partnerType === 'RECRUITER') {
@@ -103,7 +113,10 @@ async function notifyNewMessage(threadId: string, senderRole: MessageSenderRole)
         employer: { select: { userId: true, contactName: true, companyName: true } },
       },
     })
-    if (!thread) return
+    // This helper only ever fires for COACH/RECRUITER/EMPLOYER threads (see
+    // sendMessage's callers) — PEER threads use notifyNewPeerMessage instead
+    // — so candidate is always present here despite the nullable column.
+    if (!thread || !thread.candidate) return
 
     const senderName =
       senderRole === 'CANDIDATE'
@@ -151,12 +164,18 @@ async function notifyNewMessage(threadId: string, senderRole: MessageSenderRole)
   }
 }
 
-export async function sendMessage(threadId: string, senderRole: MessageSenderRole, body: string) {
+export async function sendMessage(
+  threadId: string,
+  senderRole: MessageSenderRole,
+  body: string,
+  // Only meaningful (and only passed) for PEER threads — see Message.senderCandidateId.
+  senderCandidateId?: string
+) {
   const trimmed = body.trim()
   if (!trimmed) throw new Error('Message cannot be empty.')
 
   const [message] = await prisma.$transaction([
-    prisma.message.create({ data: { threadId, senderRole, body: trimmed } }),
+    prisma.message.create({ data: { threadId, senderRole, body: trimmed, senderCandidateId } }),
     prisma.messageThread.update({
       where: { id: threadId },
       data:

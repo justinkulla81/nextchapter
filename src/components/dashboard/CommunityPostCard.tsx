@@ -1,4 +1,5 @@
 import type { CommunityPost } from '@prisma/client'
+import Link from 'next/link'
 import { deactivateCommunityPost, expressInterest } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { anonymize } from '@/lib/community/community-feed'
@@ -36,11 +37,19 @@ export function CommunityPostCard({
               </SubmitButton>
             </form>
           ) : (
-            <form action={expressInterest.bind(null, post.id)}>
-              <SubmitButton variant="outline" size="sm">
-                I&apos;m interested
-              </SubmitButton>
-            </form>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href={`/dashboard/community?tab=peer&with=${post.candidateId}`}
+                className="text-xs font-medium text-primary underline underline-offset-4"
+              >
+                Message
+              </Link>
+              <form action={expressInterest.bind(null, post.id)}>
+                <SubmitButton variant="outline" size="sm">
+                  I&apos;m interested
+                </SubmitButton>
+              </form>
+            </div>
           )}
         </div>
         <p className="text-sm text-muted-foreground">{post.description}</p>
