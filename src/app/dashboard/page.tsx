@@ -91,6 +91,7 @@ async function SessionImpactSection({ candidateId }: { candidateId: string }) {
 export default async function DashboardPage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
+  const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // The registration-time after() callback in getDashboardData that
   // normally generates AND emails the first report can get cut off by the
@@ -241,6 +242,7 @@ export default async function DashboardPage() {
           hasCalendarConnection={!!calendarConnection}
           profileChecklistItems={profileChecklistItems}
           searchStrategyChecklist={searchStrategyChecklist}
+          completedReferencesCount={completedReferencesCount}
         />
       </div>
 

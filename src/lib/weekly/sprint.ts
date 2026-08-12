@@ -366,7 +366,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
     }
     if (!usedTypes.has('OUTREACH_MESSAGE') && visibilityCalibration.networkingLevel === 2) {
       suggestions.push({
-        text: 'Send a personalized outreach message',
+        text: 'Send networking notes',
         actionType: 'OUTREACH_MESSAGE',
       })
       usedTypes.add('OUTREACH_MESSAGE')

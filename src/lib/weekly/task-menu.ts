@@ -11,7 +11,7 @@ export interface CanonicalTask extends SuggestedActionLike {
 
 export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   // Outreach
-  { text: 'Send a personalized outreach message', actionType: 'OUTREACH_MESSAGE' },
+  { text: 'Send networking notes', actionType: 'OUTREACH_MESSAGE' },
   { text: 'Have a coffee chat or call', actionType: 'OUTREACH_CALL' },
   { text: 'Follow up on a previous outreach', actionType: 'FOLLOW_UP_NOTE_SENT' },
   { text: 'Add new contacts to your networking list', actionType: 'NETWORKING_LIST' },
@@ -59,5 +59,5 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: 'Apply to a new job', actionType: 'JOB_APPLICATION_SUBMITTED' },
   { text: 'React to a job recommendation', actionType: 'JOB_INTERESTED_REACTION' },
   { text: 'Add a company to your tracker', actionType: 'WATCHLIST_ADD' },
-  { text: 'Get an interim job to fill the gap', actionType: 'INTERIM_PROFILE_CREATED' },
+  { text: 'Explore an interim job', actionType: 'INTERIM_PROFILE_CREATED' },
 ]

@@ -44,12 +44,6 @@ interface Row {
   priority?: boolean
 }
 
-// No field tracks a literal "date last employed" (see the same tradeoff
-// documented in directness-level.ts) — weekNumber (weeklySprintsCount) is
-// this codebase's established stand-in for how long a search has been going.
-// 13 weeks ~= 3 months, the same cutover directness-level.ts uses for its
-// most direct "reckoning" tier.
-const LONG_SEARCH_WEEK_THRESHOLD = 13
 
 // A committed action's identity for de-duplication against the catalog —
 // actionType when there is one (canonical Search Actions), otherwise the
@@ -199,10 +193,6 @@ function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Reco
   return groups
 }
 
-function isPersonalizeType(actionType: string | undefined): boolean {
-  return navCategoryForActionType(actionType) === 'Personalize'
-}
-
 // One small colored-circle icon per section — Priority gets its own accent
 // (orange, matching the row highlight it groups), everything else keys off
 // the same NavCategory buckets the hamburger nav and Action Plan boxes use.
@@ -256,7 +246,8 @@ function ActionRow({
   priority,
   hasEmailConnection,
   hasCalendarConnection,
-}: Row & { hasEmailConnection: boolean; hasCalendarConnection: boolean }) {
+  completedReferencesCount,
+}: Row & { hasEmailConnection: boolean; hasCalendarConnection: boolean; completedReferencesCount: number }) {
   let link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
   // "Have a coffee chat or call" only pays out automatically once Calendar
   // is connected — if it isn't, route straight to connecting it instead of
@@ -287,7 +278,21 @@ function ActionRow({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        {recurring && targetCount ? (
+        {actionType === 'REFERENCE_ADDED' ? (
+          // References accumulate over the whole search, not per week — a
+          // "this week" badge reset every Monday would misrepresent
+          // progress toward the real 5-reference target this row is tracking
+          // (see isPriorityActionType). Same pill classes as the "this week"
+          // badge below so it reads as the same kind of progress indicator.
+          <span
+            className={cn(
+              'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+              completedReferencesCount >= 5 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+            )}
+          >
+            {completedReferencesCount} / 5
+          </span>
+        ) : recurring && targetCount ? (
           <span
             className={cn(
               'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
@@ -314,7 +319,7 @@ function ActionRow({
         </Link>
         {why && <span className="truncate text-xs text-muted-foreground">— {why}</span>}
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          {recurring ? 'Recurring' : 'One-time'}
+          {recurring ? 'Recurring' : 'Onboarding'}
         </span>
         {isPriority && (
           <span className="shrink-0 whitespace-nowrap rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
@@ -346,6 +351,7 @@ export function SuccessSprintCard({
   hasCalendarConnection,
   profileChecklistItems,
   searchStrategyChecklist,
+  completedReferencesCount,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -360,6 +366,7 @@ export function SuccessSprintCard({
   hasCalendarConnection: boolean
   profileChecklistItems: ProfileChecklistItem[]
   searchStrategyChecklist: SearchStrategyChecklist
+  completedReferencesCount: number
 }) {
   // isGoalBonus rows (the one-time welcome/commitment credit) are a
   // historical point award, not a real action to show in this list — their
@@ -376,46 +383,21 @@ export function SuccessSprintCard({
   // points-by-kind breakdown needed alongside it.
   const actionsDoneCount = realActions.filter((a) => a.completed).length
 
-  // Only a curated, explicit set of Personalize items are flagged
-  // high-priority — genuinely foundational/blocking setup (connecting
-  // Gmail/Calendar so activity auto-detects, choosing a privacy tier,
-  // opting into network-comfort tracking) or a real inventory unlock
-  // (the Interim/Gig Directory). Everything else in Personalize — profile
-  // fields, screening questions, skills assessments, search-progress
-  // questions, resume/LinkedIn/interview-prep tools — is real one-time
-  // setup but not urgent, so it doesn't compete for attention with what
-  // actually is. Deliberately an allowlist, not "every Personalize item is
-  // priority unless excluded": that exclusion-list shape is what silently
-  // promoted resume/skills-translator/interview-prep/LinkedIn-setup to
-  // Priority the moment they were reassigned off the retired 'Building'
-  // category — an allowlist can't repeat that mistake, since adding a new
-  // Personalize action type is a no-op here until someone deliberately
-  // opts it in.
-  const PRIORITIZED_PERSONALIZE_TYPES = new Set([
-    'PRIVACY_CONFIRMED',
-    'NETWORK_COMFORT_CONFIRMED',
-    'MARKETING_PLAN_UNLOCK',
-    'GIG_DIRECTORY_UNLOCK',
-    'GMAIL_CONNECTED',
-    'GMAIL_RECONNECTED',
-    'CALENDAR_CONNECTED',
-    'CALENDAR_RECONNECTED',
-  ])
-  // The core, always-available job-search actions — applying, networking
-  // outreach, adding contacts, and lining up references — carry real weekly
-  // point value and are never blocked on anything else being done first, so
-  // they get the same priority visual as foundational Personalize setup.
-  const CORE_SEARCH_ACTION_TYPES = new Set([
-    'JOB_APPLICATION_SUBMITTED',
-    'OUTREACH_MESSAGE',
-    'NETWORKING_LIST',
-    'REFERENCE_ADDED',
-  ])
+  // Connecting Gmail is the one action that makes every other auto-detected
+  // action type (applications, interviews, outreach) start counting, so
+  // until it's connected it's the ONLY priority — everything else waits
+  // rather than competing with it for attention. Once it's connected, a
+  // small fixed set takes over: networking outreach, references (until 5
+  // are in), applying, and interim work, plus Search Strategy setup while
+  // it's still incomplete (handled separately below, not through this
+  // allowlist, since it isn't a real actionType).
   function isPriorityActionType(actionType: string | undefined): boolean {
     if (!actionType) return false
-    if (isPersonalizeType(actionType)) return PRIORITIZED_PERSONALIZE_TYPES.has(actionType)
-    if (CORE_SEARCH_ACTION_TYPES.has(actionType)) return true
-    if (actionType === 'INTERIM_PROFILE_CREATED') return weeklySprintsCount >= LONG_SEARCH_WEEK_THRESHOLD
+    if (!hasEmailConnection) return false
+    if (actionType === 'OUTREACH_MESSAGE') return true
+    if (actionType === 'REFERENCE_ADDED') return completedReferencesCount < 5
+    if (actionType === 'JOB_APPLICATION_SUBMITTED') return true
+    if (actionType === 'INTERIM_PROFILE_CREATED') return true
     return false
   }
 
@@ -474,6 +456,8 @@ export function SuccessSprintCard({
     // own points scale that never feeds weeklyPoints/weeklyPointsTarget (see
     // search-strategy-checklist.ts doc comment). Only rendered while
     // something's unanswered; disappears once the last field is filled in.
+    // Not flagged priority until Gmail is connected — see
+    // isPriorityActionType's doc comment above.
     ...(searchStrategyChecklist.incomplete.length > 0
       ? [
           {
@@ -481,6 +465,25 @@ export function SuccessSprintCard({
             points: searchStrategyChecklist.totalPointsRemaining,
             estimatedMinutes: searchStrategyChecklist.incomplete.length * 2,
             actionType: 'SEARCH_STRATEGY_CHECKLIST',
+            completed: false,
+            recurring: false,
+            priority: hasEmailConnection,
+          },
+        ]
+      : []),
+    // Not a real Search Action — connecting Gmail has its own connect/
+    // reconnect UI on the Network page (see profile-checklist.ts's doc
+    // comment), so there's no committed/suggested/checklist row for it to
+    // ride along on. Injected directly here instead, so it's always visible
+    // — and always the sole Priority (see isPriorityActionType) — for as
+    // long as the candidate hasn't connected.
+    ...(!hasEmailConnection
+      ? [
+          {
+            text: 'Connect Gmail — so we can detect your job search activity automatically',
+            points: estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).points,
+            estimatedMinutes: estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).minutes,
+            actionType: 'GMAIL_CONNECTED',
             completed: false,
             recurring: false,
             priority: true,
@@ -559,7 +562,7 @@ export function SuccessSprintCard({
             <>
               {/* Prompt 83 point 1 — this used to be a sentence explaining
                   that one-time vs. recurring actions count differently.
-                  Each row already carries its own "One-time"/"Recurring"
+                  Each row already carries its own "Onboarding"/"Recurring"
                   tag (see ActionRow below), so the mechanic is self-evident
                   without the explanation. */}
               <div id="weekly-actions-list" className="space-y-4 scroll-mt-4">
@@ -571,6 +574,7 @@ export function SuccessSprintCard({
                         {...row}
                         hasEmailConnection={hasEmailConnection}
                         hasCalendarConnection={hasCalendarConnection}
+                        completedReferencesCount={completedReferencesCount}
                       />
                     ))}
                   </ActionGroup>
@@ -586,6 +590,7 @@ export function SuccessSprintCard({
                           {...row}
                           hasEmailConnection={hasEmailConnection}
                           hasCalendarConnection={hasCalendarConnection}
+                          completedReferencesCount={completedReferencesCount}
                         />
                       ))}
                     </ActionGroup>
