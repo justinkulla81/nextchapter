@@ -9,7 +9,6 @@ import {
   type CategoryGrade,
   type Grade,
 } from '@/lib/scoring/grade'
-import { MarketRealityTrendChart, type TrendSnapshot } from '@/components/dashboard/MarketRealityTrendChart'
 import { CategorySparkline } from '@/components/dashboard/CategorySparkline'
 import type { CategoryMover } from '@/lib/scoring/market-reality-history'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,26 +27,18 @@ export function MarketRealityOverview({
   currentGrade,
   previousGrade,
   bestWeekSentence,
-  trendSnapshots,
   categories,
   categoryHistory,
   whatMoved,
-  sprintCompletionStreak,
-  longestSprintCompletionStreak,
-  weeksOfImprovement,
   archiveSnapshots,
 }: {
   weekLabel: string
   currentGrade: Grade
   previousGrade: Grade | null
   bestWeekSentence: string | null
-  trendSnapshots: TrendSnapshot[]
   categories: CategoryGrade[]
   categoryHistory: Map<CategoryGrade['key'], number[]>
   whatMoved: CategoryMover[]
-  sprintCompletionStreak: number
-  longestSprintCompletionStreak: number
-  weeksOfImprovement: number
   archiveSnapshots: ArchivedSnapshot[]
 }) {
   const orderedCategories = CATEGORY_ORDER.map((key) => categories.find((c) => c.key === key)).filter(
@@ -57,21 +48,26 @@ export function MarketRealityOverview({
   return (
     <Card>
       <CardContent>
-        <div className="flex items-center justify-between gap-3">
-          <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground" title="How the market currently sees you">
-            Market Reality
-          </span>
-          <span className={cn('w-6 shrink-0 text-center text-sm font-bold', GRADE_TEXT_COLOR[currentGrade])}>
-            {currentGrade}
-          </span>
-          <span className="shrink-0 text-xs text-muted-foreground">
-            {previousGrade && previousGrade !== currentGrade ? `from ${previousGrade}` : weekLabel}
-          </span>
-        </div>
-        {bestWeekSentence && <p className="mt-1 text-sm text-foreground">{bestWeekSentence}</p>}
-
-        <div className="mt-3">
-          <MarketRealityTrendChart snapshots={trendSnapshots} />
+        <div className="space-y-0.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground" title="How the market currently sees you">
+              Market Reality
+            </span>
+            <span className={cn('w-6 shrink-0 text-center text-sm font-bold', GRADE_TEXT_COLOR[currentGrade])}>
+              {currentGrade}
+            </span>
+            {previousGrade && previousGrade !== currentGrade && (
+              <span
+                className={cn(
+                  'shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-medium whitespace-nowrap',
+                  currentGrade < previousGrade ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+                )}
+              >
+                {currentGrade < previousGrade ? '↑' : '↓'} from {previousGrade}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{bestWeekSentence ?? weekLabel}</p>
         </div>
 
         <div className="mt-4 space-y-1 border-t-2 border-border pt-4">
@@ -134,17 +130,6 @@ export function MarketRealityOverview({
               ))}
             </ul>
           </div>
-        )}
-
-        {(sprintCompletionStreak > 0 || longestSprintCompletionStreak > 0 || weeksOfImprovement > 0) && (
-          <p className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground">
-            {sprintCompletionStreak > 0 &&
-              `${sprintCompletionStreak} week${sprintCompletionStreak === 1 ? '' : 's'} of Sprint Target hit in a row`}
-            {sprintCompletionStreak > 0 && (longestSprintCompletionStreak > 0 || weeksOfImprovement > 0) && ' · '}
-            {longestSprintCompletionStreak > 0 && `Longest streak: ${longestSprintCompletionStreak} weeks`}
-            {longestSprintCompletionStreak > 0 && weeksOfImprovement > 0 && ' · '}
-            {weeksOfImprovement > 0 && `${weeksOfImprovement} weeks of improvement`}
-          </p>
         )}
 
         <div className="mt-6 space-y-2 border-t border-border pt-4">

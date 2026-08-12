@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck } from 'lucide-react'
+import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
@@ -16,8 +16,6 @@ import {
   getCategoryScoreHistory,
   computeBestWeekSentence,
   computeWhatMovedThisWeek,
-  computeWeeksOfImprovement,
-  computeSprintCompletionStreaks,
 } from '@/lib/scoring/market-reality-history'
 import { MarketRealityOverview } from '@/components/dashboard/MarketRealityOverview'
 import { cn } from '@/lib/utils'
@@ -45,12 +43,11 @@ const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting'
 
 const SECTIONS = [
   { id: 'your-stats', label: 'Your Stats' },
-  { id: 'market-reality', label: 'Market Reality' },
-  { id: 'effort', label: "This week's effort" },
-  { id: 'feeling', label: "How you've felt" },
-  { id: 'actions', label: 'Actions completed' },
-  { id: 'available-actions', label: 'All actions' },
   { id: 'badges', label: 'Badges' },
+  { id: 'market-reality', label: 'Market Reality' },
+  { id: 'actions', label: "This week's effort & actions" },
+  { id: 'feeling', label: "How you've felt" },
+  { id: 'available-actions', label: 'All actions' },
 ] as const
 
 // The grade color tokens double as StatTile accent keys — reuses the one
@@ -67,6 +64,7 @@ export default async function YourStatsPage() {
   const [
     grade,
     applicationsCount,
+    applicationsThisWeekCount,
     referencesSentCount,
     referencesCompletedCount,
     currentSprint,
@@ -75,10 +73,10 @@ export default async function YourStatsPage() {
     weeklyBadges,
     milestoneBadges,
     weekNumber,
-    sprintCompletionStreaks,
   ] = await Promise.all([
     computeHireabilityGrade(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
+    prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),
     prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
     getCurrentWeekSprint(profile.id),
@@ -90,7 +88,6 @@ export default async function YourStatsPage() {
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
     getCandidateWeekNumber(profile.id, weekStartDate),
-    computeSprintCompletionStreaks(profile.id),
   ])
 
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
@@ -161,8 +158,8 @@ export default async function YourStatsPage() {
           <CardTitle className="text-sm font-medium text-muted-foreground">Your Stats</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent={profile.currentStreak > 0 ? 'brand' : 'neutral'} />
-          <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="neutral" />
+          <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent="warning" />
+          <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="brand" />
           <StatTile
             icon={TrendingUp}
             value={grade.grade}
@@ -178,17 +175,30 @@ export default async function YourStatsPage() {
             accent={grade.weeklyPoints >= grade.weeklyPointsTarget ? 'success' : 'brand'}
             href="#actions"
           />
-          <StatTile icon={Award} value={`${earnedBadgesCount} / ${totalBadgesCount}`} label="badges earned" accent="neutral" href="#badges" />
-          <StatTile icon={Send} value={`${applicationsCount}`} label="applications sent" accent="neutral" />
+          <StatTile icon={Award} value={`${earnedBadgesCount} / ${totalBadgesCount}`} label="badges earned" accent="success" href="#badges" />
+          <StatTile icon={Send} value={`${applicationsCount}`} label="jobs applied — total" accent="brand" />
+          <StatTile icon={Briefcase} value={`${applicationsThisWeekCount}`} label="jobs applied — this week" accent="warning" />
           <StatTile
             icon={UserCheck}
             value={`${referencesCompletedCount} / ${referencesSentCount}`}
             label="references completed"
-            accent="neutral"
+            accent="success"
             href="/dashboard/references"
           />
         </CardContent>
       </Card>
+
+      <details id="badges" className="scroll-mt-4 group rounded-lg border border-border">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          Badges
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
+            — {earnedBadgesCount} of {totalBadgesCount} earned so far
+          </span>
+        </summary>
+        <div className="border-t border-border p-4">
+          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
+        </div>
+      </details>
 
       <div id="market-reality" className="scroll-mt-4">
         <MarketRealityOverview
@@ -196,13 +206,9 @@ export default async function YourStatsPage() {
           currentGrade={grade.grade}
           previousGrade={previousMarketRealityGrade}
           bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
-          trendSnapshots={heroSnapshots.map((s) => ({ weekStartDate: s.weekStartDate, grade: s.grade as Grade }))}
           categories={grade.categories}
           categoryHistory={categoryHistory}
           whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
-          sprintCompletionStreak={sprintCompletionStreaks.currentStreak}
-          longestSprintCompletionStreak={sprintCompletionStreaks.longestStreak}
-          weeksOfImprovement={computeWeeksOfImprovement(heroSnapshots)}
           archiveSnapshots={[...marketRealitySnapshots].reverse().map((s) => ({
             id: s.id,
             weekStartDate: s.weekStartDate,
@@ -212,31 +218,94 @@ export default async function YourStatsPage() {
         />
       </div>
 
-      <Card id="effort" className="scroll-mt-4">
+      <Card id="actions" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s effort by category</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s effort &amp; actions</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-xs text-muted-foreground">
-            Separate from the points total above — these four grades measure how you&apos;re spending your effort
-            this week, not how much of it. Click a category to see the actions behind it.
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {grade.weeklyEngines.map((e) => (
-              <a
-                key={e.key}
-                href={`#available-${e.key}`}
-                className="block rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/40"
-                title={WEEKLY_ENGINE_EXPLANATION[e.key]}
+        <CardContent className="space-y-5">
+          {committedActions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              You haven&apos;t committed to this week&apos;s actions yet — set them up from the dashboard.
+            </p>
+          ) : (
+            <>
+              <div
+                className={cn(
+                  'rounded-lg border p-3 text-sm font-medium',
+                  onTrackThisWeek ? 'border-success/30 bg-success/5 text-success' : 'border-error/30 bg-error/5 text-error'
+                )}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
-                  <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{WEEKLY_ENGINE_EXPLANATION[e.key]}</p>
-              </a>
-            ))}
-          </div>
+                {onTrackThisWeek ? 'On track' : 'Behind pace'}: you&apos;ve done{' '}
+                <span className="tabular-nums">{completedActionsCount}</span> action
+                {completedActionsCount === 1 ? '' : 's'} and earned{' '}
+                <span className="tabular-nums">{grade.weeklyPoints}</span> of{' '}
+                <span className="tabular-nums">{grade.weeklyPointsTarget}</span> points this week
+              </div>
+
+              {completedByEngine.size === 0 && (
+                <EmptyState
+                  icon={ListChecks}
+                  title="Nothing completed yet this week"
+                  description="You've committed to this week's actions — check them off from the dashboard as you go."
+                  cta={{ label: 'Go to dashboard', href: '/dashboard' }}
+                />
+              )}
+
+              {grade.weeklyEngines.map((e) => {
+                const actions = completedByEngine.get(e.key)
+                return (
+                  <div key={e.key}>
+                    <a
+                      href={`#available-${e.key}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/40"
+                      title={WEEKLY_ENGINE_EXPLANATION[e.key]}
+                    >
+                      <span className="text-sm font-medium text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
+                      <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
+                    </a>
+                    {actions && actions.length > 0 ? (
+                      <ul className="mt-2 space-y-1">
+                        {actions.map((a, i) => {
+                          const targetCount = a.recurring ? getRecurringTargetCount(a.actionType) : null
+                          const count = a.completionCount ?? (a.completed ? 1 : 0)
+                          return (
+                            <li
+                              key={i}
+                              className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm"
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                <span className="shrink-0 text-success" aria-hidden>
+                                  ✓
+                                </span>
+                                <span className="truncate text-foreground">{a.text}</span>
+                              </span>
+                              <span className="flex shrink-0 items-center gap-2">
+                                {targetCount && (
+                                  <span
+                                    className={cn(
+                                      'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+                                      count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                                    )}
+                                  >
+                                    {count} / {targetCount} this week
+                                  </span>
+                                )}
+                                <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+                                  {a.points} pts
+                                </span>
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-foreground">Nothing completed here yet this week.</p>
+                    )}
+                  </div>
+                )
+              })}
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -282,89 +351,6 @@ export default async function YourStatsPage() {
         </CardContent>
       </Card>
 
-      <Card id="actions" className="scroll-mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Actions completed this week</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {committedActions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              You haven&apos;t committed to this week&apos;s actions yet — set them up from the dashboard.
-            </p>
-          ) : (
-            <>
-              <div
-                className={cn(
-                  'rounded-lg border p-3 text-sm font-medium',
-                  onTrackThisWeek ? 'border-success/30 bg-success/5 text-success' : 'border-error/30 bg-error/5 text-error'
-                )}
-              >
-                {onTrackThisWeek ? 'On track' : 'Behind pace'}: you&apos;ve done{' '}
-                <span className="tabular-nums">{completedActionsCount}</span> action
-                {completedActionsCount === 1 ? '' : 's'} and earned{' '}
-                <span className="tabular-nums">{grade.weeklyPoints}</span> of{' '}
-                <span className="tabular-nums">{grade.weeklyPointsTarget}</span> points this week
-              </div>
-
-              {completedByEngine.size === 0 ? (
-                <EmptyState
-                  icon={ListChecks}
-                  title="Nothing completed yet this week"
-                  description="You've committed to this week's actions — check them off from the dashboard as you go."
-                  cta={{ label: 'Go to dashboard', href: '/dashboard' }}
-                />
-              ) : (
-                ENGINE_ORDER.map((engine) => {
-                  const actions = completedByEngine.get(engine)
-                  if (!actions || actions.length === 0) return null
-                  return (
-                    <div key={engine}>
-                      <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                        {WEEKLY_ENGINE_LABEL[engine]}
-                      </h3>
-                      <ul className="mt-2 space-y-1">
-                        {actions.map((a, i) => {
-                          const targetCount = a.recurring ? getRecurringTargetCount(a.actionType) : null
-                          const count = a.completionCount ?? (a.completed ? 1 : 0)
-                          return (
-                            <li
-                              key={i}
-                              className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm"
-                            >
-                              <span className="flex min-w-0 items-center gap-2">
-                                <span className="shrink-0 text-success" aria-hidden>
-                                  ✓
-                                </span>
-                                <span className="truncate text-foreground">{a.text}</span>
-                              </span>
-                              <span className="flex shrink-0 items-center gap-2">
-                                {targetCount && (
-                                  <span
-                                    className={cn(
-                                      'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
-                                      count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
-                                    )}
-                                  >
-                                    {count} / {targetCount} this week
-                                  </span>
-                                )}
-                                <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
-                                  {a.points} pts
-                                </span>
-                              </span>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    </div>
-                  )
-                })
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
       <details id="available-actions" className="scroll-mt-4 group rounded-lg border border-border">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
           See all actions you can do
@@ -401,18 +387,6 @@ export default async function YourStatsPage() {
               </div>
             )
           })}
-        </div>
-      </details>
-
-      <details id="badges" className="scroll-mt-4 group rounded-lg border border-border">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
-          Badges
-          <span className="ml-2 text-xs font-normal text-muted-foreground">
-            — {earnedBadgesCount} of {totalBadgesCount} earned so far
-          </span>
-        </summary>
-        <div className="border-t border-border p-4">
-          <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
         </div>
       </details>
     </div>
