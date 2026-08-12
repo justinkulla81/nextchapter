@@ -9,6 +9,7 @@ export interface EmailReminder {
   name: string
   company: string | null
   daysSinceLastOutreach: number | null // null = never reached out
+  lastOutreachAt: Date | null
 }
 
 // Surfaced on the Success Dashboard so starring someone actually does
@@ -48,11 +49,12 @@ export async function getEmailReminders(candidateId: string): Promise<EmailRemin
     })
     .slice(0, MAX_REMINDERS)
 
-  return due.map(({ contact, daysSinceLastOutreach }) => ({
+  return due.map(({ contact, lastOutreach, daysSinceLastOutreach }) => ({
     contactId: contact.id,
     name: contact.name,
     company: contact.company,
     daysSinceLastOutreach,
+    lastOutreachAt: lastOutreach,
   }))
 }
 
@@ -64,6 +66,7 @@ export interface StaleContact {
   company: string | null
   isPriority: boolean
   daysSinceLastOutreach: number | null // null = never reached out
+  lastOutreachAt: Date | null
 }
 
 // General-purpose version of getEmailReminders above — every contact, not
@@ -105,11 +108,12 @@ export async function getStaleContacts(
       if (!a.lastOutreach && !b.lastOutreach) return 0
       return a.lastOutreach!.getTime() - b.lastOutreach!.getTime()
     })
-    .map(({ contact, daysSinceLastOutreach }) => ({
+    .map(({ contact, lastOutreach, daysSinceLastOutreach }) => ({
       contactId: contact.id,
       name: contact.name,
       company: contact.company,
       isPriority: contact.isPriority,
       daysSinceLastOutreach,
+      lastOutreachAt: lastOutreach,
     }))
 }

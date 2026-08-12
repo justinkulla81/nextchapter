@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
+import { formatDisplayName } from '@/lib/format-name'
 
 // How far back a meeting/inbound email still counts as "needs a follow-up"
 // — older than this and surfacing it would read as nagging about something
@@ -24,14 +25,6 @@ function parseAddress(raw: string): { name: string | null; email: string } {
     return { name: name || null, email: match[2].trim().toLowerCase() }
   }
   return { name: null, email: raw.trim().toLowerCase() }
-}
-
-function titleCase(raw: string): string {
-  return raw
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
 }
 
 export interface NeedsFollowUpItem {
@@ -114,10 +107,11 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     .map((meeting) => {
       const address = meeting.counterpartEmail!.toLowerCase()
       const subject = meeting.title || (meeting.eventType === 'INTERVIEW' ? 'Interview' : 'Networking call')
+      const rawName = contactNameByEmail.get(address) ?? meeting.counterpartName ?? address
       return {
         kind: 'meeting' as const,
         sourceId: meeting.id,
-        contactName: contactNameByEmail.get(address) ?? meeting.counterpartName ?? address,
+        contactName: formatDisplayName(rawName),
         contactEmail: address,
         date: meeting.startTime,
         subject,
@@ -141,10 +135,11 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     .map((activity) => {
       const parsed = parseAddress(activity.fromAddress!)
       const subject = activity.subject || 'their email'
+      const rawName = contactNameByEmail.get(parsed.email) ?? parsed.name ?? parsed.email
       return {
         kind: 'inbound-email' as const,
         sourceId: activity.id,
-        contactName: contactNameByEmail.get(parsed.email) ?? (parsed.name ? titleCase(parsed.name) : parsed.email),
+        contactName: formatDisplayName(rawName),
         contactEmail: parsed.email,
         date: activity.detectedAt,
         subject,

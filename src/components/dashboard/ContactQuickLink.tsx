@@ -1,11 +1,14 @@
 'use client'
 
+import { Mail } from 'lucide-react'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { cn } from '@/lib/utils'
 
 // A contact's name, made actionable when we have a way to reach them:
 // opens Gmail compose if they have an email on file, falls back to their
-// LinkedIn profile, or just renders as plain text if we have neither.
+// LinkedIn profile, or just renders as plain text if we have neither. The
+// Mail icon is the visible cue that clicking the name opens an email —
+// without it the link looked identical to any other blue text.
 export function ContactQuickLink({
   name,
   email,
@@ -26,8 +29,9 @@ export function ContactQuickLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn('font-medium text-brand hover:underline', className)}
+      className={cn('inline-flex items-center gap-1 font-medium text-brand hover:underline', className)}
     >
+      {email && <Mail className="size-3.5 shrink-0" aria-hidden />}
       {name}
     </a>
   )

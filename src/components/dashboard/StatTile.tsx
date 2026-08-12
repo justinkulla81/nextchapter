@@ -50,17 +50,17 @@ export function StatTile({ value, label, accent = 'neutral', statusText, icon: I
   const head = (
     <div className="flex items-stretch">
       <div className={cn('w-[3px] shrink-0', ACCENT_BAR[accent])} aria-hidden="true" />
-      <div className="flex flex-1 items-start gap-2.5 px-3.5 py-3">
+      <div className="flex flex-1 items-start gap-2 px-3 py-2.5">
         {Icon && (
-          <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-full', ICON_BADGE[accent])}>
-            <Icon className="size-3.5" strokeWidth={2} aria-hidden />
+          <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-full', ICON_BADGE[accent])}>
+            <Icon className="size-3" strokeWidth={2} aria-hidden />
           </span>
         )}
         <div className="min-w-0">
-          <p className="text-xl font-bold tabular-nums text-foreground">{value}</p>
+          <p className="text-lg font-bold tabular-nums text-foreground">{value}</p>
           <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">{label}</p>
           {statusText && (
-            <div className="mt-1.5 flex items-center gap-1.5">
+            <div className="mt-1 flex items-center gap-1.5">
               <span className={cn('h-1.5 w-1.5 rounded-full', ACCENT_DOT[accent])} aria-hidden="true" />
               <span className="text-[11px] text-muted-foreground">{statusText}</span>
             </div>

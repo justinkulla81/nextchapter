@@ -533,6 +533,7 @@ export async function linkContactToJob(jobPostingId: string, contactId: string) 
     where: { id: jobPostingId },
     data: { helpfulContacts: { connect: { id: contactId } } },
   })
+  captureServerEvent(user.id, 'job_contact_confirmed', { jobPostingId, contactId })
   revalidatePath('/dashboard/find-my-job')
 }
 

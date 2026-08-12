@@ -90,9 +90,9 @@ export function MoodCheckInCard({
                     type="button"
                     disabled={isPending}
                     onClick={() => handleCheckIn(option)}
-                    className="flex items-center justify-center gap-1.5 rounded-md border border-input bg-white px-2 py-2 text-[13px] font-medium transition-colors hover:border-brand hover:bg-brand/5 disabled:cursor-wait"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border border-input bg-white px-2 py-3.5 text-xs font-medium transition-colors hover:border-brand hover:bg-brand/5 disabled:cursor-wait"
                   >
-                    <Icon aria-hidden className="size-3.5 shrink-0 text-brand" />
+                    <Icon aria-hidden className="size-4 shrink-0 text-brand" />
                     {MOOD_LABEL[option]}
                   </button>
                 )

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import Link from 'next/link'
+import { Globe, FileText, Users, Sparkles } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
@@ -552,7 +553,7 @@ async function FindMyJobBody({
         <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
       </div>
 
-      <div id="apply-new-jobs" className="scroll-mt-4 space-y-4">
+      <div id="apply-new-jobs" className="scroll-mt-4 space-y-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Apply to New Jobs</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -561,49 +562,66 @@ async function FindMyJobBody({
           </p>
         </div>
 
-        <div className="space-y-6 rounded-lg border border-border bg-card p-4">
-          <div>
-            <p className="text-base font-semibold text-foreground">
-              Job Boards <span className="font-normal text-muted-foreground">
-                — applying directly still matters. Networking is the fastest path in, but a strong
-                application to a live posting is real signal too — do both.
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          <div className="p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+                <Globe className="size-3.5" aria-hidden />
               </span>
+              <p className="text-sm font-semibold text-foreground">Job Boards</p>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              A strong application to a live posting is real signal too — do this alongside networking, not instead of it.
             </p>
-            <div className="mt-2">
+            <div className="mt-3">
               <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
             </div>
           </div>
 
-          <div>
-            <p className="text-base font-semibold text-foreground">Resume Book</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+                <FileText className="size-3.5" aria-hidden />
+              </span>
+              <p className="text-sm font-semibold text-foreground">Resume Book</p>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
               Recruiters and hiring managers browsing by role can find your resume here.
             </p>
-            <div className="mt-2">
+            <div className="mt-3">
               <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
             </div>
           </div>
 
-          <div>
-            <p className="text-base font-semibold text-foreground">Executive Recruiters</p>
+          <div className="p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-light-blue/10 text-light-blue">
+                <Users className="size-3.5" aria-hidden />
+              </span>
+              <p className="text-sm font-semibold text-foreground">Executive Recruiters</p>
+            </div>
             {isAList && profile.recruiterDatabaseOptIn ? (
-              <p className="mt-1 text-sm text-muted-foreground">You&apos;re an A — recruiters can already find you.</p>
+              <p className="mt-1 text-xs text-muted-foreground">You&apos;re an A — recruiters can already find you.</p>
             ) : (
               <>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Recruiters can find and reach out to you directly once you hit an A grade — opt in any
-                  time so you&apos;re ready.
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Recruiters can find and reach out to you directly once you hit an A grade — opt in any time so you&apos;re ready.
                 </p>
-                <div className="mt-2">
+                <div className="mt-3">
                   <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
                 </div>
               </>
             )}
           </div>
 
-          <div id="job-recommendations" className="scroll-mt-4">
-            <p className="text-base font-semibold text-foreground">Job Recommendations For You</p>
-            <div className="mt-2">
+          <div id="job-recommendations" className="scroll-mt-4 p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
+                <Sparkles className="size-3.5" aria-hidden />
+              </span>
+              <p className="text-sm font-semibold text-foreground">Job Recommendations For You</p>
+            </div>
+            <div className="mt-3">
               <Suspense fallback={<JobRecommendationsSkeleton />}>
                 <JobRecommendationsSection
                   profile={profile}
@@ -626,6 +644,10 @@ async function FindMyJobBody({
         <div className="space-y-6 rounded-lg border border-border bg-card p-4">
         {jobPostings.length > 0 && (
           <div className="space-y-3">
+            <p className="px-1 text-sm font-medium text-muted-foreground">
+              {jobPostings.length} application{jobPostings.length === 1 ? '' : 's'}
+            </p>
+            <div className="divide-y divide-border rounded-md border border-border">
             <ShowMoreList initialCount={10} totalCount={jobPostings.length}>
             {jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)
@@ -666,7 +688,7 @@ async function FindMyJobBody({
                           {status} · {posting.appliedAt?.toLocaleDateString()}
                         </p>
                         {helperNames.length > 0 && (
-                          <p className="truncate text-xs font-medium text-brand">
+                          <p className="truncate text-sm font-medium text-brand">
                             Who can help: {helperNames.join(', ')}
                           </p>
                         )}
@@ -695,7 +717,6 @@ async function FindMyJobBody({
                               {posting.url}
                             </a>
                           )}
-                          <p className="text-xs text-muted-foreground">Detected from email</p>
                         </div>
                         <form action={deleteJobPosting.bind(null, posting.id)}>
                           <SubmitButton variant="ghost" size="sm">
@@ -733,13 +754,13 @@ async function FindMyJobBody({
                           </form>
                         )}
                       </div>
+                      <WhoCanHelpSection {...helpInfo} jobId={posting.id} />
                       <JobDetailsEditor
                         initialTitle={posting.title}
                         initialUrl={posting.url}
                         companyName={posting.companyName}
                         action={updateApplicationDetails.bind(null, posting.id)}
                       />
-                      <WhoCanHelpSection {...helpInfo} jobId={posting.id} />
                     </div>
                   </details>
                 )
@@ -769,7 +790,7 @@ async function FindMyJobBody({
                               : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
                     </p>
                     {helperNames.length > 0 && (
-                      <p className="truncate text-xs font-medium text-brand">
+                      <p className="truncate text-sm font-medium text-brand">
                         Who can help: {helperNames.join(', ')}
                       </p>
                     )}
@@ -1058,6 +1079,7 @@ async function FindMyJobBody({
               )
             })}
             </ShowMoreList>
+            </div>
 
             <details>
               <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-foreground">

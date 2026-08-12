@@ -70,7 +70,7 @@ export default async function ProfileHubPage() {
   )
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
         <p className="text-muted-foreground">
@@ -96,7 +96,7 @@ export default async function ProfileHubPage() {
           const allDone = sectionItems.length > 0 && sectionItems.every((i) => i.complete)
 
           return (
-            <Link key={section.href} href={section.href}>
+            <Link key={section.href} href={section.href} className="block">
               <Card className="transition-colors hover:border-brand/40">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-2">
