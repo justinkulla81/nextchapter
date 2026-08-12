@@ -4,7 +4,8 @@ interface BackchannelMatchEmailProps {
   firstName: string | null
   companyName: string
   contactNames: string[]
-  networkUrl: string
+  otherCompanyCount: number
+  applicationTrackerUrl: string
   unsubscribeUrl: string
 }
 
@@ -44,7 +45,8 @@ export default function BackchannelMatchEmail({
   firstName,
   companyName,
   contactNames,
-  networkUrl,
+  otherCompanyCount,
+  applicationTrackerUrl,
   unsubscribeUrl,
 }: BackchannelMatchEmailProps) {
   const namesText = contactNames.join(', ')
@@ -60,6 +62,13 @@ export default function BackchannelMatchEmail({
         you applied to {companyName}, and {namesText} {contactNames.length === 1 ? 'is' : 'are'}{' '}
         already in your networking list.
       </p>
+      {otherCompanyCount > 0 && (
+        <p>
+          That&apos;s not the only one — you have connections at{' '}
+          <strong>{otherCompanyCount} other {otherCompanyCount === 1 ? 'company' : 'companies'}</strong> you&apos;ve
+          applied to as well.
+        </p>
+      )}
       <p>
         A referral or a quick heads-up from someone inside a company puts your application in
         front of a real person instead of sitting in a queue with hundreds of others —
@@ -67,7 +76,7 @@ export default function BackchannelMatchEmail({
         already sent. A short message like &quot;I just applied for the [role] — would you mind
         mentioning it to the hiring manager?&quot; is usually all it takes.
       </p>
-      <a href={networkUrl} style={button}>
+      <a href={applicationTrackerUrl} style={button}>
         See who you know →
       </a>
       <p style={footer}>

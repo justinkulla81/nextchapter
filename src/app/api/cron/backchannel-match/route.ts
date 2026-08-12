@@ -15,6 +15,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Selects every applied job with a company name (not just still-unnotified
+  // ones) so the email can tell the candidate how many OTHER companies
+  // they've applied to also have a network connection, beyond the one this
+  // particular send calls out — backchannelEmailSentAt is filtered in code
+  // below to find which one to actually notify about.
   const eligible = await prisma.candidateProfile.findMany({
     where: { registrationCompletedAt: { not: null }, weeklyReportOptedOut: false },
     select: {
@@ -23,8 +28,8 @@ export async function GET(request: NextRequest) {
       firstName: true,
       notificationTier: true,
       jobPostings: {
-        where: { appliedAt: { not: null }, companyName: { not: null }, backchannelEmailSentAt: null },
-        select: { id: true, companyName: true },
+        where: { appliedAt: { not: null }, companyName: { not: null } },
+        select: { id: true, companyName: true, backchannelEmailSentAt: true },
       },
     },
   })
@@ -41,8 +46,24 @@ export async function GET(request: NextRequest) {
       })
       if (contacts.length === 0) continue
 
+      // Every distinct applied company with at least one matched contact —
+      // this candidate's full backchannel picture, independent of whether
+      // they've already been emailed about a given one. Used to tell them
+      // how many OTHER companies they have this same leverage at.
+      const matchedCompanyNames = new Set(
+        candidate.jobPostings
+          .filter((job) =>
+            contacts.some(
+              (c) =>
+                (c.company && orgNamesMatch(c.company, job.companyName!)) ||
+                (c.inferredCompany && orgNamesMatch(c.inferredCompany, job.companyName!))
+            )
+          )
+          .map((job) => job.companyName!.toLowerCase().trim())
+      )
+
       for (const job of candidate.jobPostings) {
-        if (!job.companyName) continue
+        if (!job.companyName || job.backchannelEmailSentAt) continue
         const matchedContacts = contacts.filter(
           (c) =>
             (c.company && orgNamesMatch(c.company, job.companyName!)) ||
@@ -50,10 +71,12 @@ export async function GET(request: NextRequest) {
         )
         if (matchedContacts.length === 0) continue
 
+        const otherCompanyCount = Math.max(0, matchedCompanyNames.size - 1)
         const result = await sendBackchannelMatchEmail(
           candidate,
           job.companyName,
-          matchedContacts.map((c) => c.name)
+          matchedContacts.map((c) => c.name),
+          otherCompanyCount
         )
         await prisma.jobPosting.update({ where: { id: job.id }, data: { backchannelEmailSentAt: new Date() } })
         if (result.sent) sentCount += 1

@@ -6,7 +6,8 @@ import BackchannelMatchEmail from '@/emails/backchannel-match'
 export async function sendBackchannelMatchEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   companyName: string,
-  contactNames: string[]
+  contactNames: string[],
+  otherCompanyCount: number
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping backchannel match email.')
@@ -19,7 +20,10 @@ export async function sendBackchannelMatchEmail(
   if (!email) return { sent: false as const }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const networkUrl = `${appUrl}/dashboard/network`
+  // #jobs-applied is the Application Tracker section's scroll anchor on
+  // Find Full-Time Jobs (see find-my-job/page.tsx) — takes the candidate
+  // straight to their applications instead of the top of the Network page.
+  const applicationTrackerUrl = `${appUrl}/dashboard/find-my-job#jobs-applied`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -32,7 +36,8 @@ export async function sendBackchannelMatchEmail(
       firstName: candidate.firstName,
       companyName,
       contactNames,
-      networkUrl,
+      otherCompanyCount,
+      applicationTrackerUrl,
       unsubscribeUrl,
     }),
   })
