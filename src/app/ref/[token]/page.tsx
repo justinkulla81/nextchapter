@@ -14,7 +14,7 @@ export default async function ReferenceTokenPage({
 
   const reference = await prisma.reference.findUnique({
     where: { token },
-    include: { candidate: true },
+    include: { candidate: true, workHistoryEntry: true },
   })
 
   if (!reference) {
@@ -100,7 +100,9 @@ export default async function ReferenceTokenPage({
         isManager={isManager}
         writtenQuestions={writtenQuestions}
         verification={{
-          claimedTitle: reference.refereeTitle,
+          claimedTitle: reference.workHistoryEntry?.roleTitle ?? null,
+          claimedCompany: reference.workHistoryEntry?.companyName ?? null,
+          claimedBullet: reference.workHistoryEntry?.keyAchievement ?? null,
           claimedYearsTogether: reference.yearsWorkedTogether,
         }}
         initialAnswers={(reference.draftAnswers as Record<string, string> | null) ?? undefined}

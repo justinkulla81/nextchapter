@@ -73,8 +73,18 @@ export async function requestReference(
   }
 
   const yearsWorkedTogether = formData.get('yearsWorkedTogether')
+  const workHistoryEntryIdRaw = (formData.get('workHistoryEntryId') as string | null) || null
 
   const profile = await getOrCreateCandidateProfile(user.id)
+
+  // Only ever accept an entry ID that actually belongs to this candidate —
+  // the dropdown is scoped to their own list, but formData is client input.
+  const workHistoryEntryId = workHistoryEntryIdRaw
+    ? (await prisma.workHistoryEntry.findFirst({
+        where: { id: workHistoryEntryIdRaw, candidateId: profile.id },
+        select: { id: true },
+      }))?.id ?? null
+    : null
 
   if (!profile.assessmentComplete) {
     return {
@@ -109,6 +119,7 @@ export async function requestReference(
       refereeCompany: (formData.get('refereeCompany') as string | null) || null,
       relationshipType,
       yearsWorkedTogether: yearsWorkedTogether ? Number(yearsWorkedTogether) : null,
+      workHistoryEntryId,
       inviteSequence,
       writtenQuestion1Key: q1.key,
       writtenQuestion1Text: q1.text,

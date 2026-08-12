@@ -1484,8 +1484,12 @@ model Reference {
   // additive here since Track Record (candidate-side scope claims) doesn't
   // exist yet — these fields work standalone against whatever context the
   // reference was given at invite time.
-  verifiedTitleCorrect     Boolean?
+  verifiedTitleCorrect     Boolean? // verifies the CANDIDATE's job title (workHistoryEntry.roleTitle), not the referee's own title
   correctedTitle           String?
+  verifiedCompanyCorrect   Boolean? // verifies the CANDIDATE's employer (workHistoryEntry.companyName) for that role
+  correctedCompany         String?
+  verifiedBulletCorrect    Boolean? // verifies the resume's keyAchievement bullet for that role
+  correctedBullet          String?
   verifiedDatesCorrect     Boolean?
   correctedDates           String?
   verifiedReportingCorrect Boolean?

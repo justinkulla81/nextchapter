@@ -128,6 +128,10 @@ export interface ParsedReferenceCheckExtension {
   writtenResponse2: string | null
   verifiedTitleCorrect: boolean | null
   correctedTitle: string | null
+  verifiedCompanyCorrect: boolean | null
+  correctedCompany: string | null
+  verifiedBulletCorrect: boolean | null
+  correctedBullet: string | null
   verifiedDatesCorrect: boolean | null
   correctedDates: string | null
   verifiedReportingCorrect: boolean | null
@@ -171,6 +175,10 @@ export function parseReferenceCheckExtension(formData: FormData): ParsedReferenc
     writtenResponse2: (formData.get('writtenResponse2') as string | null)?.trim() || null,
     verifiedTitleCorrect: parseYesNo(formData.get('verifiedTitleCorrect')),
     correctedTitle: (formData.get('correctedTitle') as string | null)?.trim() || null,
+    verifiedCompanyCorrect: parseYesNo(formData.get('verifiedCompanyCorrect')),
+    correctedCompany: (formData.get('correctedCompany') as string | null)?.trim() || null,
+    verifiedBulletCorrect: parseYesNo(formData.get('verifiedBulletCorrect')),
+    correctedBullet: (formData.get('correctedBullet') as string | null)?.trim() || null,
     verifiedDatesCorrect: parseYesNo(formData.get('verifiedDatesCorrect')),
     correctedDates: (formData.get('correctedDates') as string | null)?.trim() || null,
     verifiedReportingCorrect: parseYesNo(formData.get('verifiedReportingCorrect')),

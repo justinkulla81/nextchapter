@@ -53,11 +53,18 @@ export default async function ReferencesPage({
   const profile = await getDashboardData()
   const params = await searchParams
 
-  const pendingQuotes = await prisma.referenceQuote.findMany({
-    where: { candidateId: profile.id, approvedByCandidateAt: null, rejectedAt: null },
-    include: { reference: { select: { refereeName: true } } },
-    orderBy: { createdAt: 'asc' },
-  })
+  const [pendingQuotes, workHistoryEntries] = await Promise.all([
+    prisma.referenceQuote.findMany({
+      where: { candidateId: profile.id, approvedByCandidateAt: null, rejectedAt: null },
+      include: { reference: { select: { refereeName: true } } },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.workHistoryEntry.findMany({
+      where: { candidateId: profile.id },
+      orderBy: [{ isCurrent: 'desc' }, { startDate: 'desc' }],
+      select: { id: true, companyName: true, roleTitle: true },
+    }),
+  ])
 
   const candidateName = profile.displayName || 'me'
   const providedReferences = profile.references.filter((r) => r.status === 'COMPLETED')
@@ -99,7 +106,11 @@ export default async function ReferencesPage({
         }))}
       />
 
-      <ReferenceRequestForm initialName={params.name} initialEmail={params.email} />
+      <ReferenceRequestForm
+        initialName={params.name}
+        initialEmail={params.email}
+        workHistoryEntries={workHistoryEntries}
+      />
 
       {profile.references.length === 0 && (
         <EmptyState

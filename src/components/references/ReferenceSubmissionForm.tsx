@@ -115,9 +115,15 @@ export function ReferenceSubmissionForm({
   // invite time (see written-question-pool.ts). Omitted entirely on
   // older/legacy links that predate this feature.
   writtenQuestions?: { key: string; text: string }[]
-  // Part D — pre-filled from the candidate's own claim, for the reference
-  // to confirm or correct.
-  verification?: { claimedTitle: string | null; claimedYearsTogether: number | null }
+  // Part D — pre-filled from the candidate's own claim (sourced from the
+  // linked WorkHistoryEntry, when the invite was tied to one job — see
+  // workHistoryEntryId), for the reference to confirm or correct.
+  verification?: {
+    claimedTitle: string | null
+    claimedCompany: string | null
+    claimedBullet: string | null
+    claimedYearsTogether: number | null
+  }
   // Resume-in-progress support: a previously autosaved draft (see
   // saveReferenceDraft) and the page it was saved from. Omitted (or empty)
   // on a fresh, never-started reference.
@@ -138,9 +144,23 @@ export function ReferenceSubmissionForm({
   // in lockstep with every page change via goToPage.
   const [answerSnapshot, setAnswerSnapshot] = useState<Record<string, string>>(initialAnswers ?? {})
 
-  const verificationRows: { claimedTitle: boolean; claimedYears: boolean } | null =
-    verification && (verification.claimedTitle || verification.claimedYearsTogether != null)
-      ? { claimedTitle: !!verification.claimedTitle, claimedYears: verification.claimedYearsTogether != null }
+  const verificationRows: {
+    claimedTitle: boolean
+    claimedCompany: boolean
+    claimedBullet: boolean
+    claimedYears: boolean
+  } | null =
+    verification &&
+    (verification.claimedTitle ||
+      verification.claimedCompany ||
+      verification.claimedBullet ||
+      verification.claimedYearsTogether != null)
+      ? {
+          claimedTitle: !!verification.claimedTitle,
+          claimedCompany: !!verification.claimedCompany,
+          claimedBullet: !!verification.claimedBullet,
+          claimedYears: verification.claimedYearsTogether != null,
+        }
       : null
 
   const performanceFieldNames = PERFORMANCE_ITEMS.flatMap((g) => g.items.map((i) => `perf-${i.key}`))
@@ -149,6 +169,8 @@ export function ReferenceSubmissionForm({
   const verificationFieldNames = verificationRows
     ? [
         ...(verificationRows.claimedTitle ? ['verifiedTitleCorrect', 'correctedTitle'] : []),
+        ...(verificationRows.claimedCompany ? ['verifiedCompanyCorrect', 'correctedCompany'] : []),
+        ...(verificationRows.claimedBullet ? ['verifiedBulletCorrect', 'correctedBullet'] : []),
         ...(verificationRows.claimedYears ? ['verifiedDatesCorrect', 'correctedDates'] : []),
         'verifiedReportingCorrect',
         'correctedReporting',
@@ -328,10 +350,26 @@ export function ReferenceSubmissionForm({
               <>
                 {verificationRows.claimedTitle && (
                   <VerifyRow
-                    label={`${candidateName} listed their title as "${verification!.claimedTitle}." Correct?`}
+                    label={`${candidateName} says their title was "${verification!.claimedTitle}" in this role. Correct?`}
                     correctName="verifiedTitleCorrect"
                     correctionName="correctedTitle"
                     correctionLabel="What should it say instead?"
+                  />
+                )}
+                {verificationRows.claimedCompany && (
+                  <VerifyRow
+                    label={`They said this was at ${verification!.claimedCompany}. Correct?`}
+                    correctName="verifiedCompanyCorrect"
+                    correctionName="correctedCompany"
+                    correctionLabel="What's the actual company?"
+                  />
+                )}
+                {verificationRows.claimedBullet && (
+                  <VerifyRow
+                    label={`Their resume includes this from that role: "${verification!.claimedBullet}." Does that match what you saw them do?`}
+                    correctName="verifiedBulletCorrect"
+                    correctionName="correctedBullet"
+                    correctionLabel="What's off about it?"
                   />
                 )}
                 {verificationRows.claimedYears && (

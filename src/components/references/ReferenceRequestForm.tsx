@@ -18,9 +18,16 @@ import { cn } from '@/lib/utils'
 export function ReferenceRequestForm({
   initialName,
   initialEmail,
+  workHistoryEntries = [],
 }: {
   initialName?: string
   initialEmail?: string
+  // Lets the candidate tie this reference to one of their own jobs, so the
+  // ref token page can ask the referee to verify that job's title/company/
+  // resume bullet instead of nothing at all. Optional — omit entirely for
+  // references that don't map to a single role (e.g. a peer who knew the
+  // candidate across several).
+  workHistoryEntries?: { id: string; companyName: string; roleTitle: string }[]
 } = {}) {
   const [state, formAction, pending] = useActionState(requestReference, undefined)
 
@@ -53,6 +60,27 @@ export function ReferenceRequestForm({
           <Input id="refereeCompany" name="refereeCompany" />
         </div>
       </div>
+
+      {workHistoryEntries.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="workHistoryEntryId">Which job was this for? (optional)</Label>
+          <Select name="workHistoryEntryId">
+            <SelectTrigger id="workHistoryEntryId" className="w-full">
+              <SelectValue placeholder="Not tied to one specific job" />
+            </SelectTrigger>
+            <SelectContent>
+              {workHistoryEntries.map((entry) => (
+                <SelectItem key={entry.id} value={entry.id}>
+                  {entry.roleTitle} at {entry.companyName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Lets them confirm your title, company, and one resume highlight from that role.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="relationshipType">How did you work together?</Label>
