@@ -82,9 +82,7 @@ export function GoalsForm({
           checked={isPivoting}
           onCheckedChange={(checked) => setIsPivoting(checked === true)}
         />
-        <Label htmlFor="isPivoting" className="font-normal">
-          I&apos;m <em>considering</em> pivoting to a different role or function, not just changing employers
-        </Label>
+        <Label htmlFor="isPivoting" className="font-normal">I&apos;m considering a <em>career pivot</em> to a different role or function, not just changing employers</Label>
       </div>
 
       {isPivoting && (
@@ -102,6 +100,7 @@ export function GoalsForm({
               name="targetIndustries"
               defaultValue={profile.targetIndustries.length > 0 ? profile.targetIndustries : inferredIndustries}
               placeholder="e.g. Healthcare, Fintech"
+              capitalizeFirstLetter
             />
           </div>
 

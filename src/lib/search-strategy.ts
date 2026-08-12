@@ -45,3 +45,31 @@ export function getSearchStage(candidate: {
   if (!candidate.gapDuration) return null
   return GAP_DURATION_TO_STAGE[candidate.gapDuration]
 }
+
+// The full "Your Search Goals" section (SearchStrategyForm) is considered
+// complete once every field that actually drives matching/guidance is set —
+// deliberately excludes fields that are genuinely optional or conditional
+// (secondaryFunction, applicationVolumeGoal has a 15/week default,
+// dealBreakers, relocationNotes, startLowerRationale, targetFunction only
+// applies when isPivoting). Gates both Strategy Guidance from Victoria and
+// its appearance in the Market Reality Report — job guidance shouldn't be
+// drafted off a half-filled form.
+export function isSearchGoalsComplete(candidate: {
+  targetRoleType: string | null
+  primaryFunction: string | null
+  targetIndustries: string[]
+  targetCompanySize: string | null
+  targetCompanyStage: string | null
+  remotePreference: string | null
+  highestLevelReached: string | null
+}): boolean {
+  return !!(
+    candidate.targetRoleType &&
+    candidate.primaryFunction &&
+    candidate.targetIndustries.length > 0 &&
+    candidate.targetCompanySize &&
+    candidate.targetCompanyStage &&
+    candidate.remotePreference &&
+    candidate.highestLevelReached
+  )
+}

@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import { isSearchGoalsComplete } from '@/lib/search-strategy'
 
 export interface SearchStrategyGuidance {
   pros: string
@@ -40,6 +41,8 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
         targetIndustries: true,
         targetCompanySize: true,
         targetCompanyStage: true,
+        remotePreference: true,
+        highestLevelReached: true,
         targetCompMin: true,
         compFlexible: true,
         willingToStartLower: true,
@@ -60,9 +63,10 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
   const cached = parseCachedGuidance(candidate.searchStrategyGuidance)
   if (cached) return cached
 
-  // Not enough signal to draft anything useful yet — mirrors the
-  // positioning-statement guard in dossier-sections.ts.
-  if (!candidate.targetRoleType && !candidate.primaryFunction) return null
+  // Only draft once the full Search Goals section is filled in — a partial
+  // form produces guidance that reads confident but is really guessing at
+  // the missing fields.
+  if (!isSearchGoalsComplete(candidate)) return null
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}

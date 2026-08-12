@@ -7,6 +7,7 @@ import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
+import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -58,6 +59,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
+      <HashScrollFix />
       <DashboardNav
         portfolioAssetCount={portfolioAssetCount}
         supportNetworkUnreadCount={supportNetworkUnreadCount}

@@ -8,16 +8,24 @@ export function TagInput({
   name,
   defaultValue,
   placeholder,
+  capitalizeFirstLetter,
 }: {
   name: string
   defaultValue: string[]
   placeholder?: string
+  // On for proper-noun-like tags (e.g. industries) so "fintech" saves as
+  // "Fintech" — off by default since not every use of this component is
+  // capitalization-safe (e.g. free-text resume keywords).
+  capitalizeFirstLetter?: boolean
 }) {
   const [tags, setTags] = useState<string[]>(defaultValue)
   const [draft, setDraft] = useState('')
 
   function addTag() {
-    const value = draft.trim()
+    let value = draft.trim()
+    if (capitalizeFirstLetter && value) {
+      value = value[0].toUpperCase() + value.slice(1)
+    }
     if (value && !tags.includes(value)) {
       setTags((prev) => [...prev, value])
     }

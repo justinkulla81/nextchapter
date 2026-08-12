@@ -544,7 +544,7 @@ export function isAutoDetectedActionType(actionType: string | undefined): boolea
 // instead of just toggling a checkbox in place.
 export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: string }>> = {
   SEARCH_STRATEGY_CHECKLIST: { href: '/dashboard/search-strategy', label: 'Search Strategy' },
-  NETWORKING_LIST: { href: '/dashboard/network#import', label: 'My Network' },
+  NETWORKING_LIST: { href: '/dashboard/network/contacts#import', label: 'My Network' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
   REFERENCE_ADDED: { href: '/dashboard/references', label: 'My References' },

@@ -21,6 +21,7 @@ export async function PageHeaderBoxes({
   candidateId,
   lifetimeProgress,
   dailyMessageOverride,
+  showWhyItMatters = true,
 }: {
   pageKey: PageKey
   candidateId: string
@@ -31,18 +32,22 @@ export async function PageHeaderBoxes({
   // rotation — avoids stacking two near-identical "personalized message"
   // cards on the same page.
   dailyMessageOverride?: ReactNode
+  // Search Strategy folds its "why it matters" explanation into the Daily
+  // Message/Pro-Tips rotation instead (job guidance only appears once the
+  // questionnaire is complete) — set false there to skip the redundant box.
+  showWhyItMatters?: boolean
 }) {
   const watchlistAlert = WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
 
   const [dailyMessage, whyItMatters] = await Promise.all([
     dailyMessageOverride ? null : getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert),
-    getPageBoxContent(candidateId, pageKey, 'WHY_IT_MATTERS'),
+    showWhyItMatters ? getPageBoxContent(candidateId, pageKey, 'WHY_IT_MATTERS') : null,
   ])
 
   return (
     <div className="space-y-3">
       {dailyMessageOverride ?? <DailyMessageBox pageKey={pageKey} content={dailyMessage} />}
-      <WhyItMattersBox pageKey={pageKey} content={whyItMatters} />
+      {showWhyItMatters && <WhyItMattersBox pageKey={pageKey} content={whyItMatters} />}
       <ActionPlanBox pageKey={pageKey} candidateId={candidateId} lifetimeProgress={lifetimeProgress} />
     </div>
   )

@@ -52,7 +52,7 @@ export default async function InterimWorkPage() {
       </div>
 
       {/* Section 1 — Set Up Your Own Consultancy */}
-      <section className="space-y-6 border-b border-border pb-10">
+      <section id="launch-phase-1" className="scroll-mt-4 space-y-6 border-b border-border pb-10">
         <div>
           <h2 className="text-lg font-semibold">1. Set up your own consultancy</h2>
           <p className="text-sm text-muted-foreground">

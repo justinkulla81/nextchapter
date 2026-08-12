@@ -3,14 +3,12 @@ import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { getSearchStage } from '@/lib/search-strategy'
+import { getSearchStage, isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
-import { regenerateSearchStrategyGuidance } from '@/app/dashboard/search-strategy/actions'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -25,56 +23,42 @@ export const metadata: Metadata = { title: 'My Search Strategy' }
 // above it. Isolated in its own Suspense boundary so the form and Search
 // Stage card render immediately regardless of how long guidance takes.
 async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfile }) {
-  const strategyGuidance = await getOrDraftSearchStrategyGuidance(profile.id)
+  const goalsComplete = isSearchGoalsComplete(profile)
+  const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+    <Card className="border-brand/20 bg-brand/5">
+      <CardHeader>
         <div className="flex items-center gap-3">
           <VictoriaAvatar size={36} />
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Strategy Guidance from Victoria
-          </CardTitle>
+          <CardTitle className="text-sm font-medium text-foreground">Strategy Guidance from Victoria</CardTitle>
         </div>
-        {strategyGuidance && (
-          <form action={regenerateSearchStrategyGuidance}>
-            <SubmitButton variant="outline" size="sm" pendingLabel="Regenerating…">
-              Regenerate guidance
-            </SubmitButton>
-          </form>
-        )}
       </CardHeader>
       <CardContent>
         {strategyGuidance ? (
           <div className="space-y-4">
-            <div className="space-y-3 rounded-lg bg-muted p-4 text-sm">
-              <div>
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  What&apos;s working
-                </p>
+            <div className="space-y-3 text-sm">
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-semibold tracking-wide text-success uppercase">What&apos;s working</p>
                 <p className="mt-1 text-foreground">{strategyGuidance.pros}</p>
               </div>
-              <div>
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  What to watch
-                </p>
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-semibold tracking-wide text-warning uppercase">What to watch</p>
                 <p className="mt-1 text-foreground">{strategyGuidance.cons}</p>
               </div>
-              <div>
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  What I&apos;d change
-                </p>
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-semibold tracking-wide text-brand uppercase">What I&apos;d change</p>
                 <p className="mt-1 text-foreground">{strategyGuidance.suggestedChanges}</p>
               </div>
             </div>
             <div>
               <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
-              <div className="mt-1.5 flex flex-wrap gap-2">
+              <div className="mt-1.5 flex flex-col gap-2">
                 {getSearchStrategyActions(profile).map((action) => (
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="rounded-full border border-border bg-white px-3 py-1 text-xs text-foreground transition-colors hover:border-brand/40 hover:text-brand"
+                    className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground transition-colors hover:border-brand/40 hover:text-brand"
                   >
                     {action.label} →
                   </Link>
@@ -84,8 +68,9 @@ async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfi
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Fill in your target role or function above in Your Search Goals, then come back — we&apos;ll
-            turn your goals into specific strategic guidance here.
+            Complete every question in Your Search Goals below, then come back — we&apos;ll turn your
+            goals into specific strategic guidance here, and it&apos;ll automatically refresh any time
+            you update them.
           </p>
         )}
       </CardContent>
@@ -150,7 +135,7 @@ export default async function SearchStrategyPage() {
         <p className="mt-1 text-muted-foreground">
           A one-time setup for your Search Goals — editable any time your situation changes.
         </p>
-        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
+        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} showWhyItMatters={false} />
       </div>
 
       <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>

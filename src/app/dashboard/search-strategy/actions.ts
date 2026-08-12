@@ -114,28 +114,3 @@ export async function updateSearchStrategy(
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/hireability-report')
 }
-
-// Explicit refresh for the self-caching Search Strategy Guidance paragraph —
-// same shape as regenerateDossierSections (recruiter-report/actions.ts).
-// Clearing the cache column is all that's needed; the next render
-// regenerates and re-caches via getOrDraftSearchStrategyGuidance.
-// Deliberately candidate-initiated, for a fresh take without changing any
-// form inputs — keeps generation cost tied to intent, never to page views.
-export async function regenerateSearchStrategyGuidance(): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { searchStrategyGuidance: null, searchStrategyGuidanceGeneratedAt: null },
-  })
-
-  captureServerEvent(profile.id, 'search_strategy_guidance_regenerated', {})
-
-  revalidatePath('/dashboard/search-strategy')
-}

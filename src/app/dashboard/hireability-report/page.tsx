@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { isSearchGoalsComplete } from '@/lib/search-strategy'
+import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
+import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './actions'
@@ -32,6 +36,71 @@ export const metadata: Metadata = { title: 'Market Reality Report' }
 // N/A instead until a second report exists to actually compare against.
 function displayGrade(grade: Grade, isFirstReport: boolean): Grade | 'N/A' {
   return isFirstReport && grade === 'F' ? 'N/A' : grade
+}
+
+// Same self-caching guidance shown on /dashboard/search-strategy — reading
+// it here is just a cache hit in the common case (see
+// getOrDraftSearchStrategyGuidance's self-cache), so this rarely triggers a
+// fresh LLM call, but it's isolated in its own Suspense boundary anyway in
+// case it does. Only renders once the full Search Goals section is filled
+// in — see isSearchGoalsComplete.
+async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: string }) {
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
+    where: { id: candidateId },
+    select: {
+      targetRoleType: true,
+      primaryFunction: true,
+      targetIndustries: true,
+      targetCompanySize: true,
+      targetCompanyStage: true,
+      remotePreference: true,
+      highestLevelReached: true,
+      applicationVolumeGoal: true,
+      isPivoting: true,
+      interimConsultingInterest: true,
+    },
+  })
+  if (!isSearchGoalsComplete(candidate)) return null
+
+  const guidance = await getOrDraftSearchStrategyGuidance(candidateId)
+  if (!guidance) return null
+
+  return (
+    <div className="mt-10 border-t border-border pt-8 print:hidden">
+      <div className="flex items-center gap-3">
+        <VictoriaAvatar size={36} />
+        <SectionHeading>Strategy Guidance from Victoria</SectionHeading>
+      </div>
+      <div className="mt-4 space-y-3 text-sm">
+        <div className="rounded-lg border border-border bg-white p-4">
+          <p className="text-xs font-semibold tracking-wide text-success uppercase">What&apos;s working</p>
+          <p className="mt-1 text-foreground">{guidance.pros}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-white p-4">
+          <p className="text-xs font-semibold tracking-wide text-warning uppercase">What to watch</p>
+          <p className="mt-1 text-foreground">{guidance.cons}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-white p-4">
+          <p className="text-xs font-semibold tracking-wide text-brand uppercase">What I&apos;d change</p>
+          <p className="mt-1 text-foreground">{guidance.suggestedChanges}</p>
+        </div>
+      </div>
+      <div className="mt-4">
+        <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
+        <div className="mt-1.5 flex flex-col gap-2">
+          {getSearchStrategyActions(candidate).map((action) => (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground transition-colors hover:border-brand/40 hover:text-brand"
+            >
+              {action.label} →
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 interface Strength {
@@ -406,6 +475,10 @@ export default async function HireabilityReportPage() {
               ))}
             </div>
           </div>
+
+          <Suspense fallback={null}>
+            <SearchStrategyGuidanceSection candidateId={profile.id} />
+          </Suspense>
 
           {/* Hill to Climb */}
           {report.hillToClimb !== null && (
