@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
+import { Suspense, cache } from 'react'
 import Link from 'next/link'
 import type { EmailActivityType } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
-import { isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { extractEmailAddress } from '@/lib/email-tracking/email-address'
@@ -26,7 +24,6 @@ import { NeedsFollowUpCard } from '@/components/dashboard/NeedsFollowUpCard'
 import { OutreachPlanCard } from '@/components/dashboard/OutreachPlanCard'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
-import { TrackingTabs } from '@/components/dashboard/TrackingTabs'
 import { EmailActivitySyncButton, EmailActivityForceResyncButton } from '@/components/dashboard/EmailActivityControls'
 import { CalendarActivitySyncButton } from '@/components/dashboard/CalendarActivityControls'
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
@@ -120,18 +117,17 @@ function AutomaticTrackingSkeleton() {
 // messages/events used to block the ENTIRE page (contacts, backchannel
 // matches, quick actions, needs-follow-up) behind this. Now only the
 // Networking Stats + Automatic Tracking sections themselves wait on it.
-async function AutomaticTrackingSection({
-  profile,
-  params,
-}: {
+//
+// Wrapped in cache() so NetworkingStatsCard (top of page) and
+// AutomaticTrackingSection (bottom of page) — two separate Suspense
+// boundaries so they can sit apart — share one execution of this instead of
+// each triggering its own live Gmail/Calendar sync.
+const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData(
   profile: Awaited<ReturnType<typeof getDashboardData>>
-  params: NetworkSearchParams
-}) {
-  const [emailConnection, calendarConnection, emailTester, calendarTester, jobRelevantContactEmails] = await Promise.all([
+) {
+  const [emailConnection, calendarConnection, jobRelevantContactEmails] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
-    profile.email ? isGmailTrackingTester(profile.email) : false,
-    profile.email ? isCalendarTrackingTester(profile.email) : false,
     getJobRelevantContactEmails(profile.id),
   ])
 
@@ -229,247 +225,194 @@ async function AutomaticTrackingSection({
     { label: 'Catch-up / Coffees / Meetings', items: networkingCallItems.map(calendarItem) },
   ]
 
-  // Deliberately excludes needsReview counts — most unclassified inbox mail
-  // and calendar events are just everyday noise (newsletters, personal
-  // meetings), not something the candidate needs to act on.
-  const emailAlertCount = emailConnection?.needsReconnectAt ? 1 : 0
-  const calendarAlertCount = calendarConnection?.needsReconnectAt ? 1 : 0
+  return {
+    networkingStatTiles,
+    emailConnection,
+    calendarConnection,
+    reconciliation,
+    networkingEmailCount,
+    calendarNetworkingCount,
+    interviewCount,
+  }
+})
 
-  const emailContent = (
-    <div className="space-y-4">
-      {params.gmailError && <ErrorBanner code={params.gmailError} kind="gmail" />}
-      {params.gmailConnected && (
-        <p className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
-          Gmail connected — your activity will start showing up here.
-        </p>
-      )}
-
-      {!emailConnection ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Gmail connection</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Before you connect, here&apos;s exactly what this does:</p>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>
-                  <strong>Read-only.</strong> NextChapter can never send, modify, or delete anything in your
-                  mailbox.
-                </li>
-                <li>
-                  <strong>What we look at:</strong> the sender, subject line, date, and text of messages in your
-                  Inbox and Sent folder — only to detect things like thank-you notes, follow-ups, and application
-                  activity. Nothing is ever shown to anyone else.
-                </li>
-                <li>
-                  <strong>Why:</strong> so applications, interviews, rejections, offers, and networking notes
-                  count toward your grade automatically, without you logging each one by hand.
-                </li>
-              </ul>
-            </div>
-            {emailTester ? (
-              <Button nativeButton={false} render={<a href="/api/auth/gmail/start" />}>
-                Connect Gmail
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Gmail tracking is in internal testing right now — it&apos;s not yet open to all candidates.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      ) : emailConnection.needsReconnectAt ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Gmail connection</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-              Your Gmail connection expired (this happens periodically while this feature is in testing).{' '}
-              <a href="/api/auth/gmail/start" className="underline">
-                Reconnect
-              </a>
-              .
-            </p>
-            <div className="flex gap-2">
-              <EmailActivitySyncButton />
-              <form action={disconnectGmail}>
-                <Button type="submit" variant="outline" size="sm">
-                  Disconnect
-                </Button>
-              </form>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
-          <p className="text-sm text-foreground">
-            Gmail connected
-            {emailConnection.lastSyncAt && (
-              <span className="text-muted-foreground"> · last checked {emailConnection.lastSyncAt.toLocaleString()}</span>
-            )}
-            <span className="text-muted-foreground">
-              {' '}
-              · {networkingEmailCount} networking message{networkingEmailCount === 1 ? '' : 's'} detected
-            </span>
-          </p>
-          <details className="text-sm">
-            <summary className="cursor-pointer font-medium text-primary">Manage</summary>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <EmailActivitySyncButton />
-              <EmailActivityForceResyncButton />
-              <form action={disconnectGmail}>
-                <Button type="submit" variant="outline" size="sm">
-                  Disconnect
-                </Button>
-              </form>
-            </div>
-          </details>
-        </div>
-      )}
-
-      {emailConnection && reconciliation?.networkingNote && (
-        <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
-          {reconciliation.networkingNote}
-        </p>
-      )}
-    </div>
+async function NetworkingStatsCard({ profile }: { profile: Awaited<ReturnType<typeof getDashboardData>> }) {
+  const { networkingStatTiles } = await loadAutomaticTrackingData(profile)
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Networking Stats</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {networkingStatTiles.map((tile) => (
+          <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
+        ))}
+      </CardContent>
+    </Card>
   )
+}
 
-  const calendarContent = (
-    <div className="space-y-4">
-      {params.calendarError && <ErrorBanner code={params.calendarError} kind="calendar" />}
-      {params.calendarConnected && (
-        <p className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
-          Calendar connected — your activity will start showing up here.
-        </p>
-      )}
+// Deliberately at the bottom of the page — this is status/plumbing, not
+// something that needs top billing on every visit. Each connected service
+// collapses to one line ("Gmail connected · last checked ... · N detected")
+// and only expands into a full card when it actually needs attention (an
+// expired connection). No separate Email/Calendar tab buttons — they only
+// ever showed one thing each, so a switcher just added a click. Initial
+// connect/pitch UI lives in GoogleConnectPrompt (rendered higher up the
+// page), so there's no redundant "before you connect" card down here.
+async function AutomaticTrackingSection({
+  profile,
+  params,
+}: {
+  profile: Awaited<ReturnType<typeof getDashboardData>>
+  params: NetworkSearchParams
+}) {
+  const { emailConnection, calendarConnection, reconciliation, networkingEmailCount, calendarNetworkingCount, interviewCount } =
+    await loadAutomaticTrackingData(profile)
 
-      {!calendarConnection ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Calendar connection</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Before you connect, here&apos;s exactly what this does:</p>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>
-                  <strong>Read-only.</strong> NextChapter can never create, edit, or delete anything on your
-                  calendar.
-                </li>
-                <li>
-                  <strong>What we look at:</strong> the title and time of events you&apos;ve already attended —
-                  never anything on your calendar that hasn&apos;t happened yet.
-                </li>
-                <li>
-                  <strong>Why:</strong> so interviews and networking calls count toward your grade
-                  automatically, without you logging each one by hand.
-                </li>
-              </ul>
-            </div>
-            {calendarTester ? (
-              <Button nativeButton={false} render={<a href="/api/auth/calendar/start" />}>
-                Connect Calendar
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Calendar tracking is in internal testing right now — it&apos;s not yet open to all candidates.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      ) : calendarConnection.needsReconnectAt ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Calendar connection</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-              Your calendar connection expired (this happens periodically while this feature is in testing).{' '}
-              <a href="/api/auth/calendar/start" className="underline">
-                Reconnect
-              </a>
-              .
-            </p>
-            <div className="flex gap-2">
-              <CalendarActivitySyncButton />
-              <form action={disconnectCalendar}>
-                <Button type="submit" variant="outline" size="sm">
-                  Disconnect
-                </Button>
-              </form>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
-          <p className="text-sm text-foreground">
-            Calendar connected
-            {calendarConnection.lastSyncAt && (
-              <span className="text-muted-foreground">
-                {' '}
-                · last checked {calendarConnection.lastSyncAt.toLocaleString()}
-              </span>
-            )}
-            <span className="text-muted-foreground">
-              {' '}
-              · {calendarNetworkingCount} networking call{calendarNetworkingCount === 1 ? '' : 's'},{' '}
-              {interviewCount} interview{interviewCount === 1 ? '' : 's'} detected
-            </span>
-          </p>
-          <details className="text-sm">
-            <summary className="cursor-pointer font-medium text-primary">Manage</summary>
-            <div className="mt-2 flex gap-2">
-              <CalendarActivitySyncButton />
-              <form action={disconnectCalendar}>
-                <Button type="submit" variant="outline" size="sm">
-                  Disconnect
-                </Button>
-              </form>
-            </div>
-          </details>
-        </div>
-      )}
-
-      {calendarConnection && reconciliation?.interviewNote && (
-        <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
-          {reconciliation.interviewNote}
-        </p>
-      )}
-    </div>
-  )
+  if (!emailConnection && !calendarConnection) return null
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Networking Stats</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {networkingStatTiles.map((tile) => (
-            <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
-          ))}
-        </CardContent>
-      </Card>
-
-      {(emailConnection || calendarConnection) && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Automatic tracking</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            What your connected Gmail and Calendar have picked up automatically.
+    <div className="space-y-3">
+      <h2 className="text-lg font-semibold">Automatic tracking</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        What your connected Gmail and Calendar have picked up automatically.
+      </p>
+      <div className="space-y-3">
+        {params.gmailError && <ErrorBanner code={params.gmailError} kind="gmail" />}
+        {params.calendarError && <ErrorBanner code={params.calendarError} kind="calendar" />}
+        {(params.gmailConnected || params.calendarConnected) && (
+          <p className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">
+            {params.gmailConnected && params.calendarConnected
+              ? 'Gmail and Calendar connected'
+              : params.gmailConnected
+                ? 'Gmail connected'
+                : 'Calendar connected'}{' '}
+            — your activity will start showing up here.
           </p>
-          <TrackingTabs
-            emailContent={emailContent}
-            calendarContent={calendarContent}
-            emailAlertCount={emailAlertCount}
-            calendarAlertCount={calendarAlertCount}
-            defaultTab={emailAlertCount >= calendarAlertCount ? 'email' : 'calendar'}
-          />
-        </div>
-      )}
-    </>
+        )}
+
+        {emailConnection &&
+          (emailConnection.needsReconnectAt ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Gmail connection</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  Your Gmail connection expired (this happens periodically while this feature is in testing).{' '}
+                  <a href="/api/auth/gmail/start" className="underline">
+                    Reconnect
+                  </a>
+                  .
+                </p>
+                <div className="flex gap-2">
+                  <EmailActivitySyncButton />
+                  <form action={disconnectGmail}>
+                    <Button type="submit" variant="outline" size="sm">
+                      Disconnect
+                    </Button>
+                  </form>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
+              <p className="text-sm text-foreground">
+                Gmail connected
+                {emailConnection.lastSyncAt && (
+                  <span className="text-muted-foreground">
+                    {' '}
+                    · last checked {emailConnection.lastSyncAt.toLocaleString()}
+                  </span>
+                )}
+                <span className="text-muted-foreground">
+                  {' '}
+                  · {networkingEmailCount} networking message{networkingEmailCount === 1 ? '' : 's'} detected
+                </span>
+              </p>
+              <details className="text-sm">
+                <summary className="cursor-pointer font-medium text-primary">Manage</summary>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <EmailActivitySyncButton />
+                  <EmailActivityForceResyncButton />
+                  <form action={disconnectGmail}>
+                    <Button type="submit" variant="outline" size="sm">
+                      Disconnect
+                    </Button>
+                  </form>
+                </div>
+              </details>
+            </div>
+          ))}
+
+        {emailConnection && reconciliation?.networkingNote && (
+          <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
+            {reconciliation.networkingNote}
+          </p>
+        )}
+
+        {calendarConnection &&
+          (calendarConnection.needsReconnectAt ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Calendar connection</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  Your calendar connection expired (this happens periodically while this feature is in testing).{' '}
+                  <a href="/api/auth/calendar/start" className="underline">
+                    Reconnect
+                  </a>
+                  .
+                </p>
+                <div className="flex gap-2">
+                  <CalendarActivitySyncButton />
+                  <form action={disconnectCalendar}>
+                    <Button type="submit" variant="outline" size="sm">
+                      Disconnect
+                    </Button>
+                  </form>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
+              <p className="text-sm text-foreground">
+                Calendar connected
+                {calendarConnection.lastSyncAt && (
+                  <span className="text-muted-foreground">
+                    {' '}
+                    · last checked {calendarConnection.lastSyncAt.toLocaleString()}
+                  </span>
+                )}
+                <span className="text-muted-foreground">
+                  {' '}
+                  · {calendarNetworkingCount} networking call{calendarNetworkingCount === 1 ? '' : 's'},{' '}
+                  {interviewCount} interview{interviewCount === 1 ? '' : 's'} detected
+                </span>
+              </p>
+              <details className="text-sm">
+                <summary className="cursor-pointer font-medium text-primary">Manage</summary>
+                <div className="mt-2 flex gap-2">
+                  <CalendarActivitySyncButton />
+                  <form action={disconnectCalendar}>
+                    <Button type="submit" variant="outline" size="sm">
+                      Disconnect
+                    </Button>
+                  </form>
+                </div>
+              </details>
+            </div>
+          ))}
+
+        {calendarConnection && reconciliation?.interviewNote && (
+          <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-foreground">
+            {reconciliation.interviewNote}
+          </p>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -534,7 +477,7 @@ export default async function NetworkPage({
       <ReconnectBanner candidateId={profile.id} />
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <AutomaticTrackingSection profile={profile} params={params} />
+        <NetworkingStatsCard profile={profile} />
       </Suspense>
 
       <BackchannelMatchesCard matches={backchannelMatches} />
@@ -546,6 +489,10 @@ export default async function NetworkPage({
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
       <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
+
+      <Suspense fallback={<AutomaticTrackingSkeleton />}>
+        <AutomaticTrackingSection profile={profile} params={params} />
+      </Suspense>
     </div>
   )
 }
