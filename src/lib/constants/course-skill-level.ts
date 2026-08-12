@@ -1,6 +1,6 @@
 // Pure constants/helpers for CourseSkillLevel — split out from
 // src/lib/learning/courses.ts (which is 'server-only', Prisma-backed) so
-// client components (AiTrainingTiers, AiContextBanner) can import the
+// client components (AiTrainingTiers) can import the
 // labels/mapping without pulling a server-only module into the client
 // bundle.
 import type { CourseSkillLevel } from '@prisma/client'
