@@ -29,7 +29,8 @@ import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
-import { WhoCanHelpSection } from '@/components/dashboard/WhoCanHelpSection'
+import { ContactQuickLink } from '@/components/dashboard/ContactQuickLink'
+import { NextStepsToggle } from '@/components/dashboard/NextStepsToggle'
 import { contactLinkType, CONTACT_LINK_ORDER } from '@/lib/dashboard/contact-link-type'
 import { JobBoardLinkList } from '@/components/dashboard/JobBoardLinkList'
 import { GENERAL_JOB_BOARDS, getIndustryJobBoards } from '@/lib/constants/industry-job-boards'
@@ -707,9 +708,18 @@ async function FindMyJobBody({
                           {status} · {posting.appliedAt?.toLocaleDateString()}
                         </p>
                         {helperNames.length > 0 && (
-                          <p className="truncate text-sm font-medium text-brand">
-                            Who can help: {helperNames.join(', ')}
-                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span className="text-xs text-muted-foreground">Who can help:</span>
+                            {[...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => (
+                              <ContactQuickLink
+                                key={c.id}
+                                name={c.name}
+                                email={c.email}
+                                linkedinUrl={c.linkedinUrl}
+                                className="text-xs"
+                              />
+                            ))}
+                          </div>
                         )}
                       </div>
                     </summary>
@@ -743,7 +753,7 @@ async function FindMyJobBody({
                           </SubmitButton>
                         </form>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <NextStepsToggle>
                         {!posting.declinedAt && !posting.offerReceivedAt && !posting.interviewLandedAt && (
                           <form action={markInterviewLanded.bind(null, posting.id)}>
                             <SubmitButton variant="outline" size="sm">
@@ -772,8 +782,7 @@ async function FindMyJobBody({
                             </SubmitButton>
                           </form>
                         )}
-                      </div>
-                      <WhoCanHelpSection {...helpInfo} jobId={posting.id} />
+                      </NextStepsToggle>
                       <JobDetailsEditor
                         initialTitle={posting.title}
                         initialUrl={posting.url}
@@ -809,9 +818,18 @@ async function FindMyJobBody({
                               : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
                     </p>
                     {helperNames.length > 0 && (
-                      <p className="truncate text-sm font-medium text-brand">
-                        Who can help: {helperNames.join(', ')}
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="text-xs text-muted-foreground">Who can help:</span>
+                        {[...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => (
+                          <ContactQuickLink
+                            key={c.id}
+                            name={c.name}
+                            email={c.email}
+                            linkedinUrl={c.linkedinUrl}
+                            className="text-xs"
+                          />
+                        ))}
+                      </div>
                     )}
                   </div>
                 </summary>
@@ -861,8 +879,6 @@ async function FindMyJobBody({
                       </form>
                     </div>
                   </div>
-
-                  <WhoCanHelpSection {...helpInfo} jobId={posting.id} />
 
                   {posting.fetchError && (
                     <p className="text-sm text-destructive">{posting.fetchError}</p>
@@ -944,45 +960,49 @@ async function FindMyJobBody({
                           </SubmitButton>
                         </form>
                       )}
-                      {posting.appliedAt && !posting.interviewLandedAt && (
-                        <>
-                          <form action={markInterviewLanded.bind(null, posting.id)}>
-                            <SubmitButton variant="outline" size="sm">
-                              I got an interview
-                            </SubmitButton>
-                          </form>
-                          <form action={prepForPhoneScreen.bind(null, posting.id)}>
-                            <SubmitButton variant="outline" size="sm">
-                              Prep for the phone screen →
-                            </SubmitButton>
-                          </form>
-                        </>
-                      )}
-                      {posting.appliedAt && !posting.offerReceivedAt && (
-                        <form action={markOfferReceived.bind(null, posting.id)}>
-                          <SubmitButton variant="outline" size="sm">
-                            Offer Received
-                          </SubmitButton>
-                        </form>
-                      )}
-                      {posting.appliedAt && !posting.offerReceivedAt && (
-                        <>
-                          <form action={markDeclined.bind(null, posting.id, 'COMPANY')}>
-                            <SubmitButton variant="outline" size="sm">
-                              They passed on me
-                            </SubmitButton>
-                          </form>
-                          <form action={markDeclined.bind(null, posting.id, 'CANDIDATE')}>
-                            <SubmitButton variant="outline" size="sm">
-                              I passed on them
-                            </SubmitButton>
-                          </form>
-                        </>
-                      )}
-                      {posting.offerReceivedAt && (
-                        <Button nativeButton={false} render={<Link href="/dashboard/got-hired" />} size="sm">
-                          Offer Accepted
-                        </Button>
+                      {(posting.appliedAt || posting.offerReceivedAt) && (
+                        <NextStepsToggle>
+                          {posting.appliedAt && !posting.interviewLandedAt && (
+                            <>
+                              <form action={markInterviewLanded.bind(null, posting.id)}>
+                                <SubmitButton variant="outline" size="sm">
+                                  I got an interview
+                                </SubmitButton>
+                              </form>
+                              <form action={prepForPhoneScreen.bind(null, posting.id)}>
+                                <SubmitButton variant="outline" size="sm">
+                                  Prep for the phone screen →
+                                </SubmitButton>
+                              </form>
+                            </>
+                          )}
+                          {posting.appliedAt && !posting.offerReceivedAt && (
+                            <form action={markOfferReceived.bind(null, posting.id)}>
+                              <SubmitButton variant="outline" size="sm">
+                                Offer Received
+                              </SubmitButton>
+                            </form>
+                          )}
+                          {posting.appliedAt && !posting.offerReceivedAt && (
+                            <>
+                              <form action={markDeclined.bind(null, posting.id, 'COMPANY')}>
+                                <SubmitButton variant="outline" size="sm">
+                                  They passed on me
+                                </SubmitButton>
+                              </form>
+                              <form action={markDeclined.bind(null, posting.id, 'CANDIDATE')}>
+                                <SubmitButton variant="outline" size="sm">
+                                  I passed on them
+                                </SubmitButton>
+                              </form>
+                            </>
+                          )}
+                          {posting.offerReceivedAt && (
+                            <Button nativeButton={false} render={<Link href="/dashboard/got-hired" />} size="sm">
+                              Offer Accepted
+                            </Button>
+                          )}
+                        </NextStepsToggle>
                       )}
                     </div>
                   )}

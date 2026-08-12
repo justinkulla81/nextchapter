@@ -68,9 +68,9 @@ async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfi
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Complete every question in Your Search Goals below, then come back — we&apos;ll turn your
-            goals into specific strategic guidance here, and it&apos;ll automatically refresh any time
-            you update them.
+            Complete every question in Your Target Role &amp; Company below, then come back — we&apos;ll
+            turn your goals into specific strategic guidance here, and it&apos;ll automatically refresh
+            any time you update them.
           </p>
         )}
       </CardContent>
@@ -199,7 +199,7 @@ export default async function SearchStrategyPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Goals</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
         </CardHeader>
         <CardContent>
           <SearchStrategyForm

@@ -439,19 +439,6 @@ export async function removeMyProfilePicture(): Promise<void> {
   revalidatePath('/dashboard/profile')
 }
 
-export async function toggleMyProfilePictureVisible(current: boolean): Promise<void> {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { profilePictureVisible: !current },
-  })
-
-  captureServerEvent(profile.id, 'profile_picture_visibility_toggled', { visible: !current })
-  revalidatePath('/dashboard/profile')
-}
-
 // Prompt 69 — optional EEOC self-ID. Every field is independently optional;
 // an empty string from the form means "leave unanswered," not "clear a
 // previous answer to null" — a candidate can answer some questions and

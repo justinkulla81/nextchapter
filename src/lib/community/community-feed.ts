@@ -17,9 +17,8 @@ export function anonymize(firstName: string | null, lastName: string | null): st
   return `${firstName} ${lastName ? `${lastName[0]}.` : ''}`.trim()
 }
 
-// Respects the candidate's own visibility toggle — same rule as messaging.
-function visibleAvatarUrl(candidate: { profilePictureUrl: string | null; profilePictureVisible: boolean }): string | null {
-  return candidate.profilePictureVisible ? candidate.profilePictureUrl : null
+function visibleAvatarUrl(candidate: { profilePictureUrl: string | null }): string | null {
+  return candidate.profilePictureUrl
 }
 
 const FEED_WINDOW_DAYS = 14

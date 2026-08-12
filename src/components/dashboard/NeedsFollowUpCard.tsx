@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Bell } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import type { NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
 import { dismissEmailActivity } from '@/app/dashboard/email-activity/actions'
 import { dismissCalendarEvent } from '@/app/dashboard/calendar-activity/actions'
@@ -45,47 +47,53 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
   return (
     <Card id="needs-follow-up" className="scroll-mt-4">
       <CardHeader>
-        <CardTitle>Needs a follow-up</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
+            <Bell className="size-3.5" aria-hidden />
+          </span>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Needs a follow-up</CardTitle>
+        </div>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           People you&apos;ve met with or heard from who haven&apos;t gotten a thank-you or follow-up
           yet. Send one to earn the points — we&apos;ll detect it automatically.
         </p>
-        <div className="space-y-2">
-          {visibleItems.map((item) => (
-            <div
-              key={item.sourceId}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">{item.contactName}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {item.kind === 'meeting' ? 'Met' : 'Emailed you'} {formatDate(item.date)} —{' '}
-                  {item.subject}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <a
-                  href={item.gmailHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-md border border-input px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
-                >
-                  {item.kind === 'meeting' ? 'Send thank-you' : 'Reply'}
-                </a>
-                <button
-                  type="button"
-                  onClick={() => handleDismiss(item)}
-                  className="h-8 rounded-md px-2 text-sm font-medium text-muted-foreground hover:bg-muted"
-                  title="Not a real person or conversation — remove from this list and your stats for good"
-                >
-                  ✕
-                </button>
-              </div>
+      </CardHeader>
+      <CardContent className="py-0">
+        {visibleItems.map((item, i) => (
+          <div
+            key={item.sourceId}
+            className={cn(
+              'flex items-center justify-between gap-3 py-2.5 text-sm',
+              i !== visibleItems.length - 1 && 'border-b border-border'
+            )}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-medium text-foreground">{item.contactName}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {item.kind === 'meeting' ? 'Met' : 'Emailed you'} {formatDate(item.date)} —{' '}
+                {item.subject}
+              </p>
             </div>
-          ))}
-        </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <a
+                href={item.gmailHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+              >
+                {item.kind === 'meeting' ? 'Send thank-you' : 'Reply'}
+              </a>
+              <button
+                type="button"
+                onClick={() => handleDismiss(item)}
+                className="h-7 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted"
+                title="Not a real person or conversation — remove from this list and your stats for good"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   )

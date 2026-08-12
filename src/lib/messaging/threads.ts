@@ -17,10 +17,9 @@ export const CANDIDATE_DISPLAY_SELECT = {
   firstName: true,
   lastName: true,
   profilePictureUrl: true,
-  profilePictureVisible: true,
 } as const
 
-const PARTNER_AVATAR_SELECT = { profilePictureUrl: true, profilePictureVisible: true } as const
+const PARTNER_AVATAR_SELECT = { profilePictureUrl: true } as const
 
 export function candidateDisplayName(candidate: { firstName: string | null; lastName: string | null } | null): string {
   if (!candidate) return 'Candidate'
@@ -28,10 +27,8 @@ export function candidateDisplayName(candidate: { firstName: string | null; last
   return name || 'Candidate'
 }
 
-// Respects the owner's own visibility toggle — never surface a picture they've hidden.
-export function visibleAvatarUrl(person: { profilePictureUrl: string | null; profilePictureVisible: boolean } | null | undefined): string | null {
-  if (!person || !person.profilePictureVisible) return null
-  return person.profilePictureUrl
+export function visibleAvatarUrl(person: { profilePictureUrl: string | null } | null | undefined): string | null {
+  return person?.profilePictureUrl ?? null
 }
 
 type PartnerKey = { coachId?: string; recruiterId?: string; employerId?: string }

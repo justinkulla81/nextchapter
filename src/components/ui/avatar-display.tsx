@@ -10,8 +10,7 @@ function initials(name: string): string {
 // Shared avatar for messaging, community recognition, and admin surfaces —
 // never used on resumes/dossiers/hiring-manager-facing reports (see the
 // profilePictureUrl schema comment for why). Pass null/undefined url to
-// always fall back to initials, e.g. when the owner's profilePictureVisible
-// is false — callers must apply that check before passing a url in.
+// always fall back to initials, e.g. when the owner hasn't uploaded a photo.
 export function AvatarDisplay({
   name,
   url,

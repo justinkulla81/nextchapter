@@ -33,7 +33,6 @@ export async function getWeeklyBadgeArchive(limit = 12): Promise<WeeklyBadgeArch
             firstName: true,
             lastName: true,
             profilePictureUrl: true,
-            profilePictureVisible: true,
             registrationCompletedAt: true,
             createdAt: true,
           },
@@ -66,7 +65,7 @@ export async function getWeeklyBadgeArchive(limit = 12): Promise<WeeklyBadgeArch
       candidateMap.set(row.candidateId, {
         candidateId: row.candidateId,
         name,
-        avatarUrl: row.candidate.profilePictureVisible ? row.candidate.profilePictureUrl : null,
+        avatarUrl: row.candidate.profilePictureUrl,
         badgeLabels: [],
         onSprintTarget: false,
         weeksInSystem,

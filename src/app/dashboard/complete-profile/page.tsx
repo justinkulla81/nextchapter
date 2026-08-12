@@ -14,7 +14,7 @@ import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeade
 import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
-import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from '@/app/dashboard/actions'
+import { uploadMyProfilePicture, removeMyProfilePicture } from '@/app/dashboard/actions'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import Link from 'next/link'
 
@@ -210,10 +210,8 @@ export default async function CompleteProfilePage() {
             <AvatarUploadForm
               displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
               currentUrl={profile.profilePictureUrl}
-              visible={profile.profilePictureVisible}
               uploadAction={uploadMyProfilePicture}
               removeAction={removeMyProfilePicture}
-              toggleVisibilityAction={toggleMyProfilePictureVisible}
             />
           </div>
         )}

@@ -4,7 +4,7 @@ import { CoachBrandingForm } from '@/components/coach/CoachBrandingForm'
 import { OnboardingTemplateEditor } from '@/components/coach/OnboardingTemplateEditor'
 import { getCoachTemplate } from '@/lib/coach/onboarding-form'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
-import { uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from './actions'
+import { uploadMyProfilePicture, removeMyProfilePicture } from './actions'
 
 export default async function CoachSettingsPage({
   params,
@@ -54,10 +54,8 @@ export default async function CoachSettingsPage({
         <AvatarUploadForm
           displayName={coach.fullName}
           currentUrl={coach.profilePictureUrl}
-          visible={coach.profilePictureVisible}
           uploadAction={uploadMyProfilePicture.bind(null, token)}
           removeAction={removeMyProfilePicture.bind(null, token)}
-          toggleVisibilityAction={toggleMyProfilePictureVisible.bind(null, token)}
         />
       </div>
 

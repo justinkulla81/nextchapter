@@ -12,18 +12,14 @@ export type AvatarUploadState = { error?: string } | undefined
 export function AvatarUploadForm({
   displayName,
   currentUrl,
-  visible,
   uploadAction,
   removeAction,
-  toggleVisibilityAction,
   points,
 }: {
   displayName: string
   currentUrl: string | null
-  visible: boolean
   uploadAction: (prevState: AvatarUploadState, formData: FormData) => Promise<AvatarUploadState>
   removeAction: () => Promise<void>
-  toggleVisibilityAction: (currentlyVisible: boolean) => Promise<void>
   // Only the candidate portal earns Weekly Search Sprint points for this —
   // coach/recruiter/employer settings pages simply omit this prop.
   points?: number
@@ -69,14 +65,6 @@ export function AvatarUploadForm({
         </div>
 
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-
-        {currentUrl && (
-          <form action={toggleVisibilityAction.bind(null, visible)}>
-            <SubmitButton variant="outline" size="sm">
-              {visible ? 'Visible to others' : 'Hidden from others'}
-            </SubmitButton>
-          </form>
-        )}
       </div>
     </div>
   )

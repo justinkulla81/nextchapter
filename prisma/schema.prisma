@@ -906,8 +906,7 @@ model CandidateProfile {
   // hiring manager alongside a candidate's grade/report would invite bias
   // accusations, so those generators must keep sourcing name-only display
   // fields, never this one.
-  profilePictureUrl     String?
-  profilePictureVisible Boolean @default(true)
+  profilePictureUrl String?
 
   // Onboarding completion tracking
   part1Complete         Boolean   @default(false)
@@ -1814,10 +1813,9 @@ model EmployerProfile {
   isSampleData               Boolean   @default(false)
 
   // Personal profile picture for the hiring-manager user (distinct from the
-  // company logoUrl above) — shown in messaging only, subject to
-  // profilePictureVisible. Never surfaced to candidates elsewhere.
-  profilePictureUrl     String?
-  profilePictureVisible Boolean @default(true)
+  // company logoUrl above) — shown in messaging only. Never surfaced to
+  // candidates elsewhere.
+  profilePictureUrl String?
 
   // No-Ghosting Commitment — signup-time acknowledgment only (P0). The
   // response-rate/badge tracking system this later feeds is P1/P2, not built.
@@ -3084,10 +3082,8 @@ model Coach {
   userId String? @unique
 
   // Personal profile picture (distinct from the branding logoUrl below) —
-  // shown in messaging and candidate-facing recognition surfaces, subject
-  // to profilePictureVisible.
-  profilePictureUrl     String?
-  profilePictureVisible Boolean @default(true)
+  // shown in messaging and candidate-facing recognition surfaces.
+  profilePictureUrl String?
 
   // Branding-only white-label (Batch 13) — same domain, no custom domains.
   // Applied to the coach's own settings/tools chrome and, when set, to a
@@ -3286,8 +3282,7 @@ model Recruiter {
   // accessToken model — nullable for the same reason as Coach.userId above.
   userId String? @unique
 
-  profilePictureUrl     String?
-  profilePictureVisible Boolean @default(true)
+  profilePictureUrl String?
 
   marketDigestOptedOut       Boolean @default(false)
   // Separate opt-out from marketDigestOptedOut above — "a new A-grade

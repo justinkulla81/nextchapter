@@ -112,12 +112,3 @@ export async function removeMyProfilePicture(token: string): Promise<void> {
   captureServerEvent(coach.id, 'profile_picture_removed')
   revalidatePath(`/support/coach/settings/${token}`)
 }
-
-export async function toggleMyProfilePictureVisible(token: string, current: boolean): Promise<void> {
-  const coach = await getCoachByToken(token)
-  if (!coach) return
-
-  await prisma.coach.update({ where: { id: coach.id }, data: { profilePictureVisible: !current } })
-  captureServerEvent(coach.id, 'profile_picture_visibility_toggled', { visible: !current })
-  revalidatePath(`/support/coach/settings/${token}`)
-}

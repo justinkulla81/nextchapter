@@ -66,12 +66,3 @@ export async function removeMyProfilePicture(): Promise<void> {
   captureServerEvent(employer.id, 'profile_picture_removed')
   revalidatePath('/talent/settings')
 }
-
-export async function toggleMyProfilePictureVisible(current: boolean): Promise<void> {
-  const employer = await requireEmployer()
-  if (!employer) return
-
-  await prisma.employerProfile.update({ where: { id: employer.id }, data: { profilePictureVisible: !current } })
-  captureServerEvent(employer.id, 'profile_picture_visibility_toggled', { visible: !current })
-  revalidatePath('/talent/settings')
-}

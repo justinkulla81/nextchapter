@@ -14,11 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import {
-  uploadMyProfilePicture,
-  removeMyProfilePicture,
-  toggleMyProfilePictureVisible,
-} from '@/app/dashboard/actions'
+import { uploadMyProfilePicture, removeMyProfilePicture } from '@/app/dashboard/actions'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import Link from 'next/link'
 
@@ -133,10 +129,8 @@ export default async function PersonalInformationPage() {
             <AvatarUploadForm
               displayName={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
               currentUrl={profile.profilePictureUrl}
-              visible={profile.profilePictureVisible}
               uploadAction={uploadMyProfilePicture}
               removeAction={removeMyProfilePicture}
-              toggleVisibilityAction={toggleMyProfilePictureVisible}
               points={estimateActionEffort({ actionType: 'PROFILE_PICTURE_UPLOADED' }).points}
             />
           </CardContent>

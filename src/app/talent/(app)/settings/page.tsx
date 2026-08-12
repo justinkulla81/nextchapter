@@ -1,5 +1,5 @@
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
-import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture, toggleMyProfilePictureVisible } from './actions'
+import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture } from './actions'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
@@ -81,10 +81,8 @@ export default async function TalentSettingsPage() {
         <AvatarUploadForm
           displayName={employer.contactName || employer.companyName}
           currentUrl={employer.profilePictureUrl}
-          visible={employer.profilePictureVisible}
           uploadAction={uploadMyProfilePicture}
           removeAction={removeMyProfilePicture}
-          toggleVisibilityAction={toggleMyProfilePictureVisible}
         />
       </div>
 
