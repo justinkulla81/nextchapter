@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X } from 'lucide-react'
+import { X, ChevronDown } from 'lucide-react'
 import type { NetworkComfortLevel, NetworkingAnxiety } from '@prisma/client'
 import { getOutreachPlan } from '@/lib/network/scripts'
 import { dismissOutreachPlan } from '@/app/dashboard/network/actions'
@@ -81,8 +81,11 @@ export function OutreachPlanCard({
         <strong className="font-semibold">Tip:</strong> star the people you most want to follow up with below —
         starred contacts show up as reminders on your Success Dashboard until you email them.
       </p>
-      <details className="pt-1 text-sm">
-        <summary className="cursor-pointer font-medium text-primary">Not resonating? Adjust your answers</summary>
+      <details className="group pt-1 text-sm">
+        <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-primary">
+          Not resonating? Adjust your answers
+          <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
         <div className="mt-3 space-y-4">
           <NetworkingAnxietySelector current={concerns} />
           <NetworkConnectPreferenceSelector current={connectPreferences} />

@@ -8,6 +8,7 @@ import { registerForWebinar } from '@/lib/webinars/webinars'
 import { toggleContentLike } from '@/lib/content/content-likes'
 import { dislikeContent } from '@/lib/content/content-dislikes'
 import { logContentClick } from '@/lib/content/content-clicks'
+import { logCatalogAction } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 async function getAuthedProfile() {
@@ -34,8 +35,27 @@ export async function toggleContentLikeAction(contentType: ContentLikeType, cont
   if (!profile) return
   const result = await toggleContentLike(profile.id, { contentType, contentId, title })
   captureServerEvent(profile.id, 'content_liked', { contentType, contentId, liked: result.liked })
+  if (contentType === 'CURATED_VIDEO' && result.liked) {
+    await logVideoReaction(profile.id)
+  }
   revalidatePath('/dashboard/webinars')
   revalidatePath('/dashboard/community')
+}
+
+// Small recurring weekly bonus for reacting to a video — same shape as
+// WATCHLIST_ADD/WATCHLIST_POSTING_VIEWED (Prompt 77): a one-tap reaction on
+// something already opened costs nothing and proves nothing beyond
+// "reacted to it," so it's a flat once-a-week bonus via logCatalogAction,
+// not a per-video accumulator. Shared by toggleContentLikeAction (only on
+// the like transition, not the unlike one) and dislikeContentAction below.
+async function logVideoReaction(candidateId: string) {
+  await logCatalogAction(candidateId, {
+    text: 'Like or dislike a video',
+    actionType: 'VIDEO_REACTION',
+    points: 1,
+    estimatedMinutes: 1,
+    recurring: true,
+  })
 }
 
 // Backing action for ContentDislikeButton, shared by all four carousels.
@@ -50,6 +70,9 @@ export async function dislikeContentAction(contentType: ContentLikeType, content
   if (!profile) return
   await dislikeContent(profile.id, { contentType, contentId })
   captureServerEvent(profile.id, 'content_disliked', { contentType, contentId })
+  if (contentType === 'CURATED_VIDEO') {
+    await logVideoReaction(profile.id)
+  }
   revalidatePath('/dashboard/webinars')
 }
 
@@ -63,4 +86,16 @@ export async function logContentClickAction(contentType: ContentLikeType, conten
   if (!profile) return
   await logContentClick(profile.id, contentType, contentId)
   captureServerEvent(profile.id, 'content_clicked', { contentType, contentId })
+  // Small recurring weekly bonus for watching a video — same flat,
+  // once-a-week shape as logVideoReaction above, recorded under the
+  // Learning engine (see ENGINE_BY_ACTION_TYPE in action-effort.ts).
+  if (contentType === 'CURATED_VIDEO') {
+    await logCatalogAction(profile.id, {
+      text: 'Watch a video',
+      actionType: 'VIDEO_WATCHED',
+      points: 2,
+      estimatedMinutes: 5,
+      recurring: true,
+    })
+  }
 }

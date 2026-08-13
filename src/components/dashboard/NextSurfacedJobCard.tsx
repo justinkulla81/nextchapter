@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import type { SurfacedJob, NotInterestedReason } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -79,7 +80,7 @@ export function NextSurfacedJobCard({
   }
 
   return (
-    <details>
+    <details className="group">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="truncate text-sm font-medium text-foreground">{job.title}</span>
@@ -88,6 +89,7 @@ export function NextSurfacedJobCard({
         <span className="flex shrink-0 items-center gap-2">
           {isRecentlyListed(job.surfacedAt) && <NewBadge />}
           {fitBucket && <FitBadge bucket={fitBucket} />}
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </span>
       </summary>
       <div className="space-y-3 px-4 pb-4">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useTransition } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, X, ChevronDown } from 'lucide-react'
 import { toggleToolFamiliarity, addCustomAiTool, removeCustomAiTool, type AddCustomAiToolState } from '@/app/dashboard/learning/actions'
 import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 import { LogAiProjectForm } from '@/components/dashboard/LogAiProjectForm'
@@ -152,8 +152,9 @@ export function ToolsForRoleSection({
       )}
 
       <details className="group">
-        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+        <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           Built something real with AI recently? Log it as proof.
+          <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
         </summary>
         <div className="mt-3">
           <LogAiProjectForm />

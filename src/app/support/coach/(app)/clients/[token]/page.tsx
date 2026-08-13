@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCoachByToken } from '@/lib/coach/access'
 import { getCoachClientSummaries } from '@/lib/coach/client-summary'
@@ -65,7 +66,7 @@ export default async function CoachClientsPage({
         {clients.map((client) => {
           const detail = profileById.get(client.id)
           return (
-            <details key={client.id} className="rounded-lg border border-border p-4">
+            <details key={client.id} className="group rounded-lg border border-border p-4">
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-medium text-foreground">{client.name}</p>
@@ -74,20 +75,23 @@ export default async function CoachClientsPage({
                     {client.lastActiveAt && ` · Last active ${client.lastActiveAt.toLocaleDateString()}`}
                   </p>
                 </div>
-                <div className="text-right text-sm">
-                  {client.executionGrade ? (
-                    <p className="font-medium text-foreground">
-                      {client.executionGrade}{' '}
-                      <span className="text-muted-foreground">
-                        ({GRADE_LABEL[client.executionGrade]})
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground">No grade yet</p>
-                  )}
-                  {client.trend && (
-                    <p className="text-xs text-muted-foreground">{TREND_LABEL[client.trend]}</p>
-                  )}
+                <div className="flex shrink-0 items-center gap-3">
+                  <div className="text-right text-sm">
+                    {client.executionGrade ? (
+                      <p className="font-medium text-foreground">
+                        {client.executionGrade}{' '}
+                        <span className="text-muted-foreground">
+                          ({GRADE_LABEL[client.executionGrade]})
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground">No grade yet</p>
+                    )}
+                    {client.trend && (
+                      <p className="text-xs text-muted-foreground">{TREND_LABEL[client.trend]}</p>
+                    )}
+                  </div>
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                 </div>
               </summary>
               <div className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">

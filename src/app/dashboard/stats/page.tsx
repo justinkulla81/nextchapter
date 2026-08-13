@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase } from 'lucide-react'
+import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
@@ -189,11 +189,14 @@ export default async function YourStatsPage() {
       </Card>
 
       <details id="badges" className="scroll-mt-4 group rounded-lg border border-border">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
-          Badges
-          <span className="ml-2 text-xs font-normal text-muted-foreground">
-            — {earnedBadgesCount} of {totalBadgesCount} earned so far
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          <span>
+            Badges
+            <span className="ml-2 text-xs font-normal text-muted-foreground">
+              — {earnedBadgesCount} of {totalBadgesCount} earned so far
+            </span>
           </span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </summary>
         <div className="border-t border-border p-4">
           <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
@@ -352,11 +355,14 @@ export default async function YourStatsPage() {
       </Card>
 
       <details id="available-actions" className="scroll-mt-4 group rounded-lg border border-border">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
-          See all actions you can do
-          <span className="ml-2 text-xs font-normal text-muted-foreground">
-            — every action across the app and where it lives, for browsing. Not required.
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          <span>
+            See all actions you can do
+            <span className="ml-2 text-xs font-normal text-muted-foreground">
+              — every action across the app and where it lives, for browsing. Not required.
+            </span>
           </span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </summary>
         <div className="space-y-5 border-t border-border p-4">
           {ENGINE_ORDER.map((engine) => {

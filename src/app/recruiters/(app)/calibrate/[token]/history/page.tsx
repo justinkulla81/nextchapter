@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
 export default async function CalibrationMemoHistoryPage({
@@ -32,8 +33,11 @@ export default async function CalibrationMemoHistoryPage({
           {memos.map((memo) => (
             <div key={memo.id} className="rounded-lg border border-border p-4">
               <p className="text-xs font-medium text-muted-foreground">{memo.createdAt.toLocaleString()}</p>
-              <details className="mt-2 text-sm">
-                <summary className="cursor-pointer font-medium text-foreground">Client brief</summary>
+              <details className="group mt-2 text-sm">
+                <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-foreground">
+                  Client brief
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{memo.briefText}</p>
               </details>
               <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{memo.memoText}</p>

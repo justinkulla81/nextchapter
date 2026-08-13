@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type StatTileAccent = 'success' | 'brand' | 'warning' | 'error' | 'neutral'
@@ -55,8 +56,11 @@ export function StatTile({ value, label, accent = 'neutral', valueClassName, ico
 
   if (children) {
     return (
-      <details className={cn('overflow-hidden rounded-lg border border-border', className)} title={title}>
-        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{head}</summary>
+      <details className={cn('group overflow-hidden rounded-lg border border-border', className)} title={title}>
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+          {head}
+          <ChevronDown className="mr-3 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
         <div className="border-t border-border px-3.5 py-3">{children}</div>
       </details>
     )

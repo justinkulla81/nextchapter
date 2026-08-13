@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'
 
@@ -38,11 +39,14 @@ export function JobDetailsEditor({
 
   return (
     <details
-      className="rounded-md border border-border p-3 text-xs"
+      className="group rounded-md border border-border p-3 text-xs"
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
-      <summary className="cursor-pointer font-medium text-foreground">Personalize &amp; see your fit</summary>
+      <summary className="flex cursor-pointer items-center justify-between gap-2 font-medium text-foreground">
+        Personalize &amp; see your fit
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
       <form action={action} className="mt-3 space-y-3">
         <CollapseOnSuccess onDone={() => setOpen(false)} />
         <div className="space-y-1">

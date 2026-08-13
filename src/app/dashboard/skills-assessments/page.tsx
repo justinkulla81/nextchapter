@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -196,6 +197,7 @@ export default async function SkillsAssessmentsPage() {
                     <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
                       See details
                     </span>
+                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                   </div>
                 </summary>
                 <div className="space-y-3 border-t border-border px-4 py-3">
@@ -211,8 +213,11 @@ export default async function SkillsAssessmentsPage() {
                       <details className="group/have overflow-hidden rounded-lg border border-border">
                         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
                           <p className="text-sm font-medium text-foreground">Skills You Have</p>
-                          <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
-                            Show
+                          <span className="flex shrink-0 items-center gap-3">
+                            <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
+                              Show
+                            </span>
+                            <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open/have:rotate-180" aria-hidden />
                           </span>
                         </summary>
                         <div className="space-y-2 border-t border-border p-3">

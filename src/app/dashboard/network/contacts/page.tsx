@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { Prisma } from '@prisma/client'
+import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -185,8 +186,9 @@ export default async function ContactDirectoryPage({
               </div>
 
               <details className="group">
-                <summary className="cursor-pointer text-sm font-medium text-primary underline underline-offset-4">
+                <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">
                   Need to export your connections first? See the step-by-step instructions.
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                 </summary>
                 {/* Steps 1-2 are one workflow: export → clean up → (import above). The
                     connecting line + numbered circles below are the only thing that

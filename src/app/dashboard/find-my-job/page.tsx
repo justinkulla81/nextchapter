@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import Link from 'next/link'
-import { Globe, FileText, Users, Sparkles } from 'lucide-react'
+import { Globe, FileText, Users, Sparkles, ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
@@ -85,12 +85,6 @@ const SURFACED_JOB_FREE_PREVIEW = 3
 // keeps the number bounded and keeps the nav badge and this page's own
 // count from ever drifting apart.
 const SURFACED_JOB_POOL_TARGET = 10
-// The locked A-List teaser board can have dozens of approved postings once
-// a candidate isn't A-List — showing all of them as individual dashed cards
-// is noise, not information. A few examples plus a summary line makes the
-// same point without the wall.
-const LOCKED_PREVIEW_COUNT = 3
-
 const FIT_SCORE_BADGE_CLASS: Record<FitScoreLabel, string> = {
   'Perfect Fit': 'bg-success/10 text-success',
   'Strong Fit': 'bg-success/10 text-success',
@@ -328,41 +322,41 @@ async function JobRecommendationsSection({
           )}
 
           <div className="divide-y divide-border rounded-md border border-border">
-            {visibleBoardPostings.map((posting) => (
-              <DiscoverJobCard
-                key={posting.id}
-                posting={posting}
-                fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-              />
-            ))}
-
-            {visibleSurfacedJobs.map((job) => {
-              const worksHere = worksHereFor(job.companyName)
-              return (
-                <NextSurfacedJobCard
-                  key={job.id}
-                  job={job}
-                  fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                  worksHereContacts={worksHere.contacts}
-                  worksHereTotalCount={worksHere.totalCount}
-                />
-              )
-            })}
+            <ShowMoreList pageSize={5}>
+              {[
+                ...visibleBoardPostings.map((posting) => (
+                  <DiscoverJobCard
+                    key={posting.id}
+                    posting={posting}
+                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                  />
+                )),
+                ...visibleSurfacedJobs.map((job) => {
+                  const worksHere = worksHereFor(job.companyName)
+                  return (
+                    <NextSurfacedJobCard
+                      key={job.id}
+                      job={job}
+                      fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                      worksHereContacts={worksHere.contacts}
+                      worksHereTotalCount={worksHere.totalCount}
+                    />
+                  )
+                }),
+                // Locked A-List-only postings paginate right after the real,
+                // unlocked ones in this same list — once you've paged past
+                // what's actually visible to you, the remaining pages are
+                // just the locked rows, not a separately boxed callout.
+                ...lockedBoardPostings.map((posting) => <LockedDiscoverJobCard key={posting.id} posting={posting} />),
+              ]}
+            </ShowMoreList>
           </div>
 
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-            <div className="space-y-3">
-              <div className="divide-y divide-border rounded-md border border-border">
-                {lockedBoardPostings.slice(0, LOCKED_PREVIEW_COUNT).map((posting) => (
-                  <LockedDiscoverJobCard key={posting.id} posting={posting} />
-                ))}
-              </div>
-
-              <UnlockAListCallout
-                grade={gradeLetter}
-                lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
-              />
-            </div>
+            <UnlockAListCallout
+              grade={gradeLetter}
+              lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
+            />
           )}
         </div>
       )}
@@ -770,7 +764,7 @@ async function FindMyJobBody({
               {jobPostings.length} application{jobPostings.length === 1 ? '' : 's'}
             </p>
             <div className="divide-y divide-border rounded-md border border-border">
-            <ShowMoreList initialCount={10} totalCount={jobPostings.length}>
+            <ShowMoreList pageSize={5}>
             {jobPostings.map((posting) => {
               const openRoles = boardPostingCountFor(posting.companyName)
 
@@ -799,7 +793,7 @@ async function FindMyJobBody({
                 const helpInfo = whoCanHelpFor(posting.id, posting.companyName)
                 const helperNames = [...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => c.name)
                 return (
-                  <details key={posting.id}>
+                  <details key={posting.id} className="group">
                     <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">
@@ -816,6 +810,7 @@ async function FindMyJobBody({
                           </p>
                         )}
                       </div>
+                      <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                     </summary>
                     <div className="space-y-3 px-4 pb-4">
                       <div className="flex items-start justify-between gap-4">
@@ -891,7 +886,7 @@ async function FindMyJobBody({
               const helpInfo = whoCanHelpFor(posting.id, posting.companyName)
               const helperNames = [...helpInfo.linkedContacts, ...helpInfo.suggestedContacts].map((c) => c.name)
               return (
-              <details key={posting.id}>
+              <details key={posting.id} className="group">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">
@@ -918,6 +913,7 @@ async function FindMyJobBody({
                       </p>
                     )}
                   </div>
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                 </summary>
                 <div className="space-y-3 px-4 pb-4">
                   <div className="flex items-start justify-between gap-4">
@@ -1105,8 +1101,11 @@ async function FindMyJobBody({
                   )}
 
                   {posting.coverLetter && (
-                    <details className="rounded-md border border-border p-3">
-                      <summary className="cursor-pointer text-sm font-medium">Cover letter</summary>
+                    <details className="group rounded-md border border-border p-3">
+                      <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium">
+                        Cover letter
+                        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                      </summary>
                       <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
                         {posting.coverLetter}
                       </p>
@@ -1206,9 +1205,10 @@ async function FindMyJobBody({
             </ShowMoreList>
             </div>
 
-            <details>
-              <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-foreground">
+            <details className="group">
+              <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground">
                 Add a job manually (paste a URL for fit-check + cover letter tools)
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
               </summary>
               <div className="space-y-3 px-4 pb-4">
                 {atCap ? (
@@ -1223,9 +1223,10 @@ async function FindMyJobBody({
           </div>
         )}
         {jobPostings.length === 0 && (
-          <details className="rounded-lg border border-border p-3 text-sm">
-            <summary className="cursor-pointer font-medium text-foreground">
+          <details className="group rounded-lg border border-border p-3 text-sm">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 font-medium text-foreground">
               Add a job manually (paste a URL for fit-check + cover letter tools)
+              <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
             </summary>
             <div className="mt-3 space-y-3">
               <JobUrlForm />

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -242,9 +243,10 @@ export default async function ExclusiveJobsAdminPage() {
         </p>
       </div>
 
-      <details className="rounded-lg border border-border">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+      <details className="group rounded-lg border border-border">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
           + Add a job manually
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </summary>
         <div className="border-t border-border p-4">
           <ExclusiveJobPostingForm action={createExclusiveJobPosting} />
@@ -283,11 +285,12 @@ export default async function ExclusiveJobsAdminPage() {
             <div className="space-y-3">
               <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">By company</h3>
               {pendingCompanies.map(([companyName, rows]) => (
-                <details key={companyName} className="rounded-lg border border-border">
+                <details key={companyName} className="group rounded-lg border border-border">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
                     <span>
                       {companyName} <span className="font-normal text-muted-foreground">({rows.length} pending)</span>
                     </span>
+                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
                   </summary>
                   <div className="space-y-3 border-t border-border p-3">
                     <div className="flex items-center gap-2">
@@ -509,12 +512,15 @@ export default async function ExclusiveJobsAdminPage() {
         <div className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">Archived / rejected ({archived.length})</h2>
           {archivedCompanies.map(([companyName, companyPostings]) => (
-            <details key={companyName} className="rounded-lg border border-border">
-              <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
-                {companyName}{' '}
-                <span className="font-normal text-muted-foreground">
-                  ({companyPostings.length} archived/rejected)
+            <details key={companyName} className="group rounded-lg border border-border">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+                <span>
+                  {companyName}{' '}
+                  <span className="font-normal text-muted-foreground">
+                    ({companyPostings.length} archived/rejected)
+                  </span>
                 </span>
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
               </summary>
               <div className="space-y-1 border-t border-border p-3">
                 {companyPostings.map((posting) => (

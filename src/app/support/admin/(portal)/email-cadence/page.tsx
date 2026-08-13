@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { updateEmailSchedule, toggleEmailScheduleActive } from './actions'
@@ -58,8 +59,11 @@ export default async function EmailCadenceAdminPage() {
                   </form>
                 </div>
               </div>
-              <details>
-                <summary className="cursor-pointer text-sm font-medium text-brand">Edit</summary>
+              <details className="group">
+                <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-brand">
+                  Edit
+                  <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
                 <div className="mt-3">
                   <EmailCadenceForm action={updateEmailSchedule.bind(null, row.id)} existing={row} />
                 </div>

@@ -127,6 +127,14 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   WATCHLIST_ADD: { minutes: 2, points: 2 },
   WATCHLIST_POSTING_VIEWED: { minutes: 2, points: 2 },
 
+  // Videos and Webinars page. Same click-through weight as
+  // WATCHLIST_POSTING_VIEWED — opening a video costs nothing and proves
+  // nothing beyond "looked at it," so it's a small recurring weekly bonus,
+  // not a real Learning credential. Liking/disliking is weighted even
+  // smaller — a one-tap reaction on something already opened.
+  VIDEO_WATCHED: { minutes: 5, points: 2 },
+  VIDEO_REACTION: { minutes: 1, points: 1 },
+
   // A reference actually landing — the candidate has real third-party proof
   // now, not just a name on a list. Fires on COMPLETION (see submitReference
   // in src/app/ref/[token]/actions.ts), not on request; weighted close to
@@ -284,6 +292,8 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   LEARNING_NEW_TOOL_STARTED: 'learning',
   LEARNING_NEW_TOOL: 'learning',
   LEARNING_SESSION_ATTENDED: 'learning',
+  VIDEO_WATCHED: 'learning',
+  VIDEO_REACTION: 'learning',
 
   INTERVIEW_PREP: 'effort',
   INTERVIEW_BEHAVIORAL_PRACTICE: 'effort',
@@ -843,6 +853,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'SHARE_NARRATIVE_FOR_FEEDBACK',
   ],
   learning: ['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED'],
+  webinars: ['VIDEO_WATCHED', 'VIDEO_REACTION'],
   linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK'],
   'interim-work': ['INTERIM_PROFILE_CREATED', 'GIG_DIRECTORY_UNLOCK'],
   'work-samples': ['WORK_SAMPLE_TYPE_CONFIRMED'],

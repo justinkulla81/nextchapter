@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { Lock } from 'lucide-react'
+import { Lock, ChevronDown } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -37,21 +37,19 @@ function NewBadge() {
 
 // A-List-only listing a non-A candidate can't see yet — shown masked
 // rather than omitted, so the board itself is a visible reason to reach an
-// A instead of a wall these candidates never even know exists.
-export function LockedDiscoverJobCard({ posting }: { posting: Pick<ExclusiveJobPosting, 'postingType' | 'location' | 'salaryCurrency' | 'salaryMin' | 'salaryMax'> }) {
+// A instead of a wall these candidates never even know exists. Real title
+// and location are shown (never the company name, which is the actual A-
+// List-only reveal) — a flush row in the same list as the unlocked cards
+// above it, styled like Application Tracker rows rather than a separately
+// boxed/tinted callout, so the list reads as one continuous list.
+export function LockedDiscoverJobCard({ posting }: { posting: Pick<ExclusiveJobPosting, 'title' | 'location'> }) {
   return (
-    <div className="space-y-1 bg-off-white/60 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <Lock className="size-4 text-orange" />
-        <p className="text-sm font-medium text-orange">A-List-exclusive opportunity — locked</p>
+    <div className="flex items-start gap-2 px-4 py-3">
+      <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-foreground">{posting.title}</p>
+        {posting.location && <p className="truncate text-sm text-muted-foreground">{posting.location}</p>}
       </div>
-      <p className="text-sm text-muted-foreground">
-        {posting.postingType && POSTING_TYPE_LABEL[posting.postingType]}
-        {posting.location && ` · ${posting.location}`}
-        {posting.salaryMin && posting.salaryMax &&
-          ` · ${posting.salaryCurrency ?? 'USD'} ${posting.salaryMin.toLocaleString()}–${posting.salaryMax.toLocaleString()}`}
-      </p>
-      <p className="text-sm text-muted-foreground">Reach an A grade to see who&apos;s hiring and apply.</p>
     </div>
   )
 }
@@ -79,7 +77,7 @@ export function DiscoverJobCard({
   }
 
   return (
-    <details>
+    <details className="group">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <span className="truncate text-sm font-medium text-foreground">{posting.title}</span>
@@ -90,6 +88,7 @@ export function DiscoverJobCard({
         <span className="flex shrink-0 items-center gap-2">
           {isRecentlyListed(posting.createdAt) && <NewBadge />}
           <FitBadge bucket={fitBucket} />
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </span>
       </summary>
       <div className="space-y-3 px-4 pb-4">

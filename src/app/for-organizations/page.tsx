@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, type LucideIcon } from 'lucide-react'
+import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, ChevronDown, type LucideIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -82,8 +82,9 @@ export default function ForOrganizationsPage() {
               For candidates
             </Link>
             <details className="group relative">
-              <summary className="cursor-pointer list-none rounded-md border border-border px-3 py-1.5 font-medium text-foreground marker:content-none hover:border-brand hover:text-brand">
+              <summary className="flex cursor-pointer list-none items-center gap-1 rounded-md border border-border px-3 py-1.5 font-medium text-foreground marker:content-none hover:border-brand hover:text-brand">
                 Log in
+                <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
               </summary>
               <div className="absolute right-0 z-10 mt-2 w-44 rounded-md border border-border bg-white py-1 shadow-md">
                 <Link

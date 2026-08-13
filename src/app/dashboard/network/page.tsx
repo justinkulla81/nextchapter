@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense, cache } from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import type { EmailActivityType, OutreachChannel } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -364,8 +365,11 @@ async function AutomaticTrackingSection({
                   · {networkingEmailCount} networking message{networkingEmailCount === 1 ? '' : 's'} detected
                 </span>
               </p>
-              <details className="text-sm">
-                <summary className="cursor-pointer font-medium text-primary">Manage</summary>
+              <details className="group text-sm">
+                <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-primary">
+                  Manage
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <EmailActivitySyncButton />
                   <EmailActivityForceResyncButton />
@@ -425,8 +429,11 @@ async function AutomaticTrackingSection({
                   {interviewCount} interview{interviewCount === 1 ? '' : 's'} detected
                 </span>
               </p>
-              <details className="text-sm">
-                <summary className="cursor-pointer font-medium text-primary">Manage</summary>
+              <details className="group text-sm">
+                <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-primary">
+                  Manage
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
                 <div className="mt-2 flex gap-2">
                   <CalendarActivitySyncButton />
                   <form action={disconnectCalendar}>
