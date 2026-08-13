@@ -32,6 +32,17 @@ export interface ClassificationResult {
   companyName: string | null
 }
 
+// Subdomain labels that describe a mail *purpose*, not a company — real
+// employers routinely route recruiting mail through one of these
+// (talent.icims.com, jobalerts.omers.com, app.bamboohr.com, careers.<co>.com).
+// Confirmed against real production mail: without this, "Talent
+// Acquisition" mail from talent.icims.com stored the company as "Talent",
+// and OMERS's own jobalerts.omers.com stored it as "Jobalerts" — the domain
+// itself (omers.com) has the real employer name one level up.
+const GENERIC_MAIL_SUBDOMAIN_LABELS = new Set([
+  'app', 'talent', 'jobalerts', 'careers', 'jobs', 'hr', 'mail', 'notifications', 'no-reply', 'noreply', 'recruiting',
+])
+
 // Best-effort company-name guess from the sender's domain — deliberately
 // rough (this is a nice-to-have annotation, not load-bearing for
 // classification itself). Returns null rather than guessing on consumer/ATS
@@ -40,10 +51,15 @@ function guessCompanyFromDomain(fromAddress: string): string | null {
   const match = extractEmailAddress(fromAddress).match(/@([a-z0-9.-]+)$/i)
   if (!match) return null
   const domain = match[1].toLowerCase()
-  const root = domain.split('.').slice(-2).join('.')
+  const labels = domain.split('.')
+  const root = labels.slice(-2).join('.')
   if (NON_COMPANY_DOMAINS.has(root)) return null
-  const name = domain.split('.')[0]
-  return name.charAt(0).toUpperCase() + name.slice(1)
+  const name = labels[0]
+  // A generic purpose-label subdomain (talent.omers.com) tells us nothing —
+  // fall back to the root domain's own name (omers.com -> "Omers") instead
+  // of surfacing the generic label as if it were the company.
+  const resolved = GENERIC_MAIL_SUBDOMAIN_LABELS.has(name) && labels.length > 2 ? root.split('.')[0] : name
+  return resolved.charAt(0).toUpperCase() + resolved.slice(1)
 }
 
 export function classifyInboundEmail(

@@ -182,13 +182,18 @@ export function matchApplicationConfirmation(subject: string, bodyPreview: strin
 // /i because some senders title-case the whole subject ("Thank You for
 // Applying to BGBx") — confirmed against real production mail that the
 // case-sensitive version silently lost the company name on those.
-const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/i
+//
+// Trailing [!.?]* absorbs sentence-ending punctuation after the company name
+// ("Thanks for applying to Cohere!") — without it, the end-anchored \s*$
+// never matches once anything follows the name, and the whole regex fails
+// closed instead of just dropping the punctuation from the capture.
+const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})[!.?]*\s*$/i
 
 // The "your application to <role> at <company>" subject shape names the
 // company after "at" instead of after "applying to"/"sent to" — needs its
 // own pattern since the company here is NOT at a fixed distance from a
 // shared keyword the way the suffix pattern above assumes.
-const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})\s*$/i
+const CONFIRMATION_COMPANY_AT_SUFFIX = /\bat\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})[!.?]*\s*$/i
 
 // A third shape leads with the company name instead of ending with it —
 // Ashby's own confirmation template ("Legora - Thank you for applying -
@@ -227,11 +232,23 @@ export function guessCompanyFromConfirmationSubject(subject: string): string | n
 const CONFIRMATION_COMPANY_MENTION_IN_BODY =
   /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to|items? were sent to)\s+([A-Z][\w&.'-]*(?:\s[\w&.'-]+){0,6}?)(?:\.\s|,\s|\s+—|\s+-\s|\s*$)/
 
+// Last-resort body fallback for confirmations whose body never uses
+// "applying to"/"sent to" at all but does name the company after "at" —
+// e.g. "...for the role at Hyland." — the same shape the subject-only
+// CONFIRMATION_COMPANY_AT_SUFFIX above catches, just not anchored to
+// end-of-string since bodies keep going after the company name. Kept as the
+// very last fallback (after the "applying to" body match) since a bare "at"
+// is common enough in ordinary sentences that it should only fire once
+// nothing more specific has already matched.
+const CONFIRMATION_COMPANY_AT_MENTION_IN_BODY = /\bat\s+([A-Z][\w&.'-]*(?:\s[\w&.'-]+){0,4}?)(?:\.\s|,\s|!|\s+—|\s+-\s|\s*$)/
+
 export function guessCompanyFromConfirmationText(subject: string, bodyPreview: string): string | null {
   const fromSubject = guessCompanyFromConfirmationSubject(subject)
   if (fromSubject) return fromSubject
-  const match = bodyPreview.match(CONFIRMATION_COMPANY_MENTION_IN_BODY)
-  return match ? match[1].trim().replace(/[.,]+$/, '') : null
+  const bodyMatch = bodyPreview.match(CONFIRMATION_COMPANY_MENTION_IN_BODY)
+  if (bodyMatch) return bodyMatch[1].trim().replace(/[.,]+$/, '')
+  const atMatch = bodyPreview.match(CONFIRMATION_COMPANY_AT_MENTION_IN_BODY)
+  return atMatch ? atMatch[1].trim().replace(/[.,]+$/, '') : null
 }
 
 // Best-effort only — most confirmation subjects never name the role

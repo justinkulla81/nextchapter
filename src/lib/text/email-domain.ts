@@ -5,8 +5,9 @@
 // catch a real person's title, so mail from these domains should never set
 // those flags no matter what boilerplate copy the notification contains.
 export const ATS_AND_JOB_BOARD_DOMAINS = new Set([
-  'greenhouse.io', 'lever.co', 'myworkday.com', 'ashbyhq.com', 'smartrecruiters.com',
-  'linkedin.com', 'indeed.com', 'workablemail.com',
+  'greenhouse.io', 'lever.co', 'myworkday.com', 'myworkdayjobs.com', 'ashbyhq.com', 'smartrecruiters.com',
+  'linkedin.com', 'indeed.com', 'workablemail.com', 'icims.com', 'bamboohr.com', 'comeet.co',
+  'comeet-notifications.com', 'jobvite.com', 'breezy.hr', 'applytojob.com', 'recruitee.com', 'teamtailor.com',
 ])
 
 // Shared consumer/ATS domain set — a match here means "this email address
