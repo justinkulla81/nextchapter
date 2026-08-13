@@ -208,8 +208,15 @@ const AI_TOOL_TOPICS: { industry: string | null; query: string }[] = [
 // up correctly tagged AI_TOOLS (the more specific category) regardless of
 // search order.
 async function refreshAiToolVideos(apiKey: string): Promise<void> {
-  for (const topic of AI_TOOL_TOPICS) {
-    const ids = await searchVideoIds(apiKey, topic.query)
+  // Searches run concurrently (independent network calls, no shared state) —
+  // sequential awaits here were the main contributor to a real
+  // FUNCTION_INVOCATION_TIMEOUT once this ran alongside refreshYouTubeVideos'
+  // own expanded search set. Ingestion (DB writes) stays sequential per
+  // topic to avoid piling concurrent writes onto the connection pool.
+  const searches = await Promise.all(
+    AI_TOOL_TOPICS.map(async (topic) => ({ topic, ids: await searchVideoIds(apiKey, topic.query) }))
+  )
+  for (const { topic, ids } of searches) {
     await ingestVideoIds(apiKey, ids, { category: 'AI_TOOLS', aiToolIndustry: topic.industry })
   }
 }
@@ -230,18 +237,24 @@ export async function refreshYouTubeVideos(): Promise<void> {
     return
   }
 
+  // Every keyword's general + shorts-duration search runs concurrently —
+  // these are independent network calls, and running them sequentially
+  // (as this originally did) was the other main contributor to a real
+  // FUNCTION_INVOCATION_TIMEOUT once the shorts-duration pass and
+  // refreshAiToolVideos' own searches were added alongside it.
+  const searchResults = await Promise.all(
+    SEARCH_KEYWORDS.flatMap((keyword) => [
+      searchVideoIds(apiKey, keyword),
+      // Dedicated shorts-duration pass per keyword — without this, the
+      // Shorts carousel only ever gets the rare video that happens to run
+      // under 3 minutes out of an otherwise long-form-heavy result set
+      // (most job-search content is long-form). See searchVideoIds' own
+      // comment.
+      searchVideoIds(apiKey, keyword, 'short'),
+    ])
+  )
   const idSet = new Set<string>()
-  for (const keyword of SEARCH_KEYWORDS) {
-    const generalIds = await searchVideoIds(apiKey, keyword)
-    generalIds.forEach((id) => idSet.add(id))
-    // Dedicated shorts-duration pass per keyword — without this, the Shorts
-    // carousel only ever gets the rare video that happens to run under 3
-    // minutes out of an otherwise long-form-heavy result set (most
-    // job-search content is long-form), leaving it much thinner than the
-    // Videos carousel. See searchVideoIds' own comment.
-    const shortIds = await searchVideoIds(apiKey, keyword, 'short')
-    shortIds.forEach((id) => idSet.add(id))
-  }
+  searchResults.forEach((ids) => ids.forEach((id) => idSet.add(id)))
   await ingestVideoIds(apiKey, [...idSet], { category: 'GENERAL', aiToolIndustry: null })
 
   await refreshAiToolVideos(apiKey)
