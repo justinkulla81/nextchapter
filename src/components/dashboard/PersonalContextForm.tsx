@@ -7,9 +7,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
 import { MultiChoiceButtons } from '@/components/onboarding/MultiChoiceButtons'
-import { BLOCKER_OPTIONS, MOTIVATIONS_OPTIONS, MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import {
+  BLOCKER_OPTIONS,
+  MOTIVATIONS_OPTIONS,
+  MOTIVATIONS_MAX,
+  COACHING_STYLE_OPTIONS,
+  CHANGE_PACE_OPTIONS,
+  CHANGE_READINESS_OPTIONS,
+} from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
-import type { CandidateProfile } from '@prisma/client'
+import type { CandidateProfile, CoachingStylePreference, ChangePacePreference, ChangeReadiness } from '@prisma/client'
 
 const CONSISTENCY_LABELS = [
   'I start strong, then fall off',
@@ -18,15 +26,24 @@ const CONSISTENCY_LABELS = [
   'I show up every single week',
 ] as const
 
-// Blockers + Motivations (Prisma CandidateProfile.blockers/motivations
-// block) — this stays private between the candidate and their coach.
-// Neither field ever appears in the Executive Dossier: blockers inform
-// coaching only, and motivations calibrate Victoria's tone. See the
-// "never in Dossier" header comment in dossier-sections.ts.
+// Blockers and Motivations — the second of the two required buckets
+// (alongside SearchStrategyForm) before Victoria drafts Search Strategy
+// guidance, see isBlockersAndMotivationsComplete. This stays private between
+// the candidate and their coach. None of these fields ever appear in the
+// Executive Dossier: blockers/coaching-style/pace/readiness inform coaching
+// only, and motivations calibrate Victoria's tone. See the "never in
+// Dossier" header comment in dossier-sections.ts.
 export function PersonalContextForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updatePersonalContext, undefined)
   const [blockers, setBlockers] = useState<string[]>(profile.blockers)
   const [motivations, setMotivations] = useState<string[]>(profile.motivations)
+  const [coachingStylePreference, setCoachingStylePreference] = useState<CoachingStylePreference | null>(
+    profile.coachingStylePreference
+  )
+  const [changePacePreference, setChangePacePreference] = useState<ChangePacePreference | null>(
+    profile.changePacePreference
+  )
+  const [changeReadiness, setChangeReadiness] = useState<ChangeReadiness | null>(profile.changeReadiness)
 
   return (
     <form
@@ -35,12 +52,13 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
     >
       <p className="text-xs text-muted-foreground">
         This stays private between you and your coach — it never appears in your Executive Dossier,
-        no matter what you select.
+        no matter what you select. Victoria uses it to shape her guidance above and how she talks
+        to you.
       </p>
 
       <div className="space-y-2">
         <Label>What tends to get in the way, if anything? Select all that apply.</Label>
-        <MultiChoiceButtons name="blockers" options={BLOCKER_OPTIONS} value={blockers} onChange={setBlockers} columns={1} />
+        <MultiChoiceButtons name="blockers" options={BLOCKER_OPTIONS} value={blockers} onChange={setBlockers} columns={2} />
       </div>
 
       <ConfidenceSlider
@@ -77,8 +95,41 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
         <Textarea
           name="motivationsElaboration"
           defaultValue={profile.motivationsElaboration ?? ''}
-          placeholder="In your own words (optional)"
+          placeholder="What gets you up in the morning? What helps you shift your attitude on a hard day? (optional, in your own words)"
           rows={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>When you&apos;re stuck, what kind of push works better for you?</Label>
+        <ChoiceButtons
+          name="coachingStylePreference"
+          options={COACHING_STYLE_OPTIONS}
+          value={coachingStylePreference}
+          onChange={setCoachingStylePreference}
+          columns={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>How do you like to make progress?</Label>
+        <ChoiceButtons
+          name="changePacePreference"
+          options={CHANGE_PACE_OPTIONS}
+          value={changePacePreference}
+          onChange={setChangePacePreference}
+          columns={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Are you looking for a big change, or more of the same?</Label>
+        <ChoiceButtons
+          name="changeReadiness"
+          options={CHANGE_READINESS_OPTIONS}
+          value={changeReadiness}
+          onChange={setChangeReadiness}
+          columns={1}
         />
       </div>
 

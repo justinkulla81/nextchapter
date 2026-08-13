@@ -158,11 +158,18 @@ export const GROWTH_AREAS_MAX = 3
 
 // Personal Context — Blockers: practical constraints only, no mental-health
 // framing, structured or open-ended (explicitly decided against). Select-all,
-// no cap, matching BIGGEST_BARRIER_OPTIONS' shape.
+// no cap, matching BIGGEST_BARRIER_OPTIONS' shape. Lives in the Blockers and
+// Motivations section on Search Strategy — see isBlockersAndMotivationsComplete
+// in search-strategy.ts.
 export const BLOCKER_OPTIONS = [
-  { value: 'family_caregiving', label: 'Family or caregiving responsibilities' },
+  { value: 'family_caregiving', label: 'Family, caregiving, or other life constraints' },
   { value: 'procrastination_tendency', label: 'I tend to procrastinate' },
   { value: 'discouragement_tendency', label: 'I get discouraged and stall out' },
+  { value: 'networking_discomfort', label: "I'm shy, or I don't like networking" },
+  { value: 'search_embarrassment', label: 'I feel embarrassed being unemployed or job-searching' },
+  { value: 'financial_pressure', label: 'I need money soon, which limits how picky I can be' },
+  { value: 'career_clarity', label: "I don't fully know what I want to do next" },
+  { value: 'dead_end_feeling', label: 'My current role or industry feels like a dead end' },
 ] as const
 
 // Personal Context — Motivations: internal only, coaching context and
@@ -178,6 +185,29 @@ export const MOTIVATIONS_OPTIONS = [
 ] as const
 
 export const MOTIVATIONS_MAX = 3
+
+// Coaching-tone calibration (Search Strategy's Blockers and Motivations
+// section) — how Victoria should push, not what she should push toward.
+// Distinct from CandidateProfile.coachCommunicationStylePreference, which
+// is scoped to matching a human coach (direct vs. context-first), not
+// calibrating Victoria's AI tone.
+export const COACHING_STYLE_OPTIONS = [
+  { value: 'TOUGH_LOVE', label: 'Tough love — tell me straight' },
+  { value: 'GENTLE_ENCOURAGEMENT', label: 'Gentle encouragement' },
+  { value: 'SOMEWHERE_IN_BETWEEN', label: 'A mix of both' },
+] as const
+
+export const CHANGE_PACE_OPTIONS = [
+  { value: 'BABY_STEPS', label: 'Small, steady steps' },
+  { value: 'BIG_LEAPS', label: 'Bigger leaps' },
+  { value: 'SOMEWHERE_IN_BETWEEN', label: 'A mix of both' },
+] as const
+
+export const CHANGE_READINESS_OPTIONS = [
+  { value: 'NOT_LOOKING_FOR_BIG_CHANGE', label: "More of the same — I liked what I was doing" },
+  { value: 'WANT_CHANGE_NOT_READY_YET', label: "I want something different, but I'm still working up to it" },
+  { value: 'WANT_CHANGE_AND_READY', label: "I want something different, and I'm ready to go for it" },
+] as const
 
 export const HIGHEST_LEVEL_OPTIONS = ['IC', 'Manager', 'Director', 'VP', 'C-Suite'] as const
 

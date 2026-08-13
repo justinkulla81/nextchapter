@@ -10,6 +10,9 @@ import type {
   EeocYesNoDecline,
   PublicDisclosureComfort,
   HighestEducationLevel,
+  CoachingStylePreference,
+  ChangePacePreference,
+  ChangeReadiness,
 } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -400,6 +403,9 @@ export async function updatePersonalContext(
   const blockersOpenText = (formData.get('blockersOpenText') as string | null)?.trim() || null
   const motivations = clampMulti(formData, 'motivations', MOTIVATIONS_MAX)
   const motivationsElaboration = (formData.get('motivationsElaboration') as string | null)?.trim() || null
+  const coachingStylePreference = (formData.get('coachingStylePreference') as CoachingStylePreference | null) || null
+  const changePacePreference = (formData.get('changePacePreference') as ChangePacePreference | null) || null
+  const changeReadiness = (formData.get('changeReadiness') as ChangeReadiness | null) || null
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
@@ -409,6 +415,15 @@ export async function updatePersonalContext(
       blockersOpenText,
       motivations,
       motivationsElaboration,
+      coachingStylePreference,
+      changePacePreference,
+      changeReadiness,
+      // Blockers and Motivations is one of the two required buckets that
+      // feed search-strategy-guidance.ts — null the cache so the next page
+      // load regenerates against the freshly-saved values, same
+      // invalidation pattern as updateSearchStrategy.
+      searchStrategyGuidance: null,
+      searchStrategyGuidanceGeneratedAt: null,
     },
   })
 
@@ -417,7 +432,8 @@ export async function updatePersonalContext(
     motivationsCount: motivations.length,
   })
 
-  revalidatePath('/dashboard/profile/personal')
+  revalidatePath('/dashboard/search-strategy')
+  revalidatePath('/dashboard')
 }
 
 export async function uploadMyProfilePicture(

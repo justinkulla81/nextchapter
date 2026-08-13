@@ -100,10 +100,13 @@ export function ReachOutCarousel({
             Priority Contact:{' '}
             <ContactQuickLink name={contact.name} email={contact.email} linkedinUrl={contact.linkedinUrl} />
           </h2>
-          <p className="text-sm text-muted-foreground">
-            {roleContext && <span className="text-foreground">{roleContext} — </span>}
-            {contact.hasReachedOut ? "You've emailed before." : 'Starred as a priority contact.'}
-          </p>
+          {(roleContext || contact.hasReachedOut) && (
+            <p className="text-sm text-muted-foreground">
+              {roleContext && <span className="text-foreground">{roleContext}</span>}
+              {roleContext && contact.hasReachedOut && ' — '}
+              {contact.hasReachedOut && "You've emailed before."}
+            </p>
+          )}
         </div>
       </div>
 

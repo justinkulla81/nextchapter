@@ -32,17 +32,40 @@ const YES_NO_OPTIONS = [
   { value: 'no', label: 'No' },
 ] as const
 
-export function OptionalQuestionsForm() {
+function yesNoToString(value: boolean | null) {
+  return value === true ? 'yes' : value === false ? 'no' : ''
+}
+
+export function OptionalQuestionsForm({
+  initial,
+}: {
+  initial?: {
+    jobsAppliedBucket: string | null
+    interviewsReceivedCount: number | null
+    networkingLevel: number | null
+    learnedNewSkillsLevel: number | null
+    triedPartTimeOrConsulting: boolean | null
+    triedExecutiveCoaching: boolean | null
+    connectedWithRecruiters: boolean | null
+    recruiterConnectionCount: number | null
+  }
+}) {
   const [state, formAction, pending] = useActionState<OptionalQuestionsState, FormData>(
     answerOptionalQuestions,
     undefined
   )
-  const [jobsAppliedBucket, setJobsAppliedBucket] = useState('')
-  const [networkingLevel, setNetworkingLevel] = useState('')
-  const [learnedNewSkillsLevel, setLearnedNewSkillsLevel] = useState('')
-  const [triedPartTimeOrConsulting, setTriedPartTimeOrConsulting] = useState('')
-  const [triedExecutiveCoaching, setTriedExecutiveCoaching] = useState('')
-  const [connectedWithRecruiters, setConnectedWithRecruiters] = useState('')
+  const [jobsAppliedBucket, setJobsAppliedBucket] = useState(initial?.jobsAppliedBucket ?? '')
+  const [networkingLevel, setNetworkingLevel] = useState(initial?.networkingLevel?.toString() ?? '')
+  const [learnedNewSkillsLevel, setLearnedNewSkillsLevel] = useState(initial?.learnedNewSkillsLevel?.toString() ?? '')
+  const [triedPartTimeOrConsulting, setTriedPartTimeOrConsulting] = useState(
+    yesNoToString(initial?.triedPartTimeOrConsulting ?? null)
+  )
+  const [triedExecutiveCoaching, setTriedExecutiveCoaching] = useState(
+    yesNoToString(initial?.triedExecutiveCoaching ?? null)
+  )
+  const [connectedWithRecruiters, setConnectedWithRecruiters] = useState(
+    yesNoToString(initial?.connectedWithRecruiters ?? null)
+  )
 
   return (
     <form action={formAction} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
@@ -59,7 +82,14 @@ export function OptionalQuestionsForm() {
 
       <div className="space-y-2">
         <Label htmlFor="interviewsReceivedCount">How many interviews have you received?</Label>
-        <Input id="interviewsReceivedCount" name="interviewsReceivedCount" type="number" min={0} className="max-w-32" />
+        <Input
+          id="interviewsReceivedCount"
+          name="interviewsReceivedCount"
+          type="number"
+          min={0}
+          defaultValue={initial?.interviewsReceivedCount ?? undefined}
+          className="max-w-32"
+        />
       </div>
 
       <div className="space-y-2">
@@ -116,7 +146,14 @@ export function OptionalQuestionsForm() {
           columns={2}
         />
         {connectedWithRecruiters === 'yes' && (
-          <Input name="recruiterConnectionCount" type="number" min={0} placeholder="How many?" className="max-w-32" />
+          <Input
+            name="recruiterConnectionCount"
+            type="number"
+            min={0}
+            placeholder="How many?"
+            defaultValue={initial?.recruiterConnectionCount ?? undefined}
+            className="max-w-32"
+          />
         )}
       </div>
 

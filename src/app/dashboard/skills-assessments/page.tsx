@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getOrGenerateSkillGapSuggestions } from '@/lib/skills/skill-gap-suggestions'
+import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'Skills & Behavioral Assessments' }
 
@@ -147,10 +148,13 @@ export default async function SkillsAssessmentsPage() {
       sharedWith:
         'Who sees it: always shared — the references you invite see and answer these questions about you, and, once your Executive Dossier is unlocked, hiring managers see the comparison to your own answers.',
       completedAt: completedReferenceCount > 0 ? new Date(0) : null,
+      // 5 is the same reference-count threshold referenceCountToTier
+      // (src/lib/references/reference-count-tier.ts) uses for HIGH
+      // confidence, and the count RefSurvey P5 unlocks the Market Reality
+      // summary at — shown as a target here so candidates know how many
+      // more to request.
       statusLabel:
-        completedReferenceCount > 0
-          ? `${completedReferenceCount} reference${completedReferenceCount === 1 ? '' : 's'} completed`
-          : 'Not completed yet',
+        completedReferenceCount > 0 ? `${completedReferenceCount} / 5 references` : 'Not completed yet',
       points: estimateActionEffort({ actionType: 'REFERENCE_ADDED' }).points,
       href: '/dashboard/references',
       ctaLabel: completedReferenceCount > 0 ? 'Manage references' : 'Request references',
@@ -186,7 +190,14 @@ export default async function SkillsAssessmentsPage() {
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
-                    <p className="truncate text-xs text-muted-foreground">{statusLine}</p>
+                    <p
+                      className={cn(
+                        'truncate text-xs',
+                        assessment.completedAt ? 'font-medium text-success' : 'text-muted-foreground'
+                      )}
+                    >
+                      {statusLine}
+                    </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     {!assessment.completedAt && (

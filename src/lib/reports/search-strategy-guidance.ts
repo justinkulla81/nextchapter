@@ -2,7 +2,22 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { isSearchGoalsComplete } from '@/lib/search-strategy'
+import { isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
+import {
+  BLOCKER_OPTIONS,
+  MOTIVATIONS_OPTIONS,
+  COACHING_STYLE_OPTIONS,
+  CHANGE_PACE_OPTIONS,
+  CHANGE_READINESS_OPTIONS,
+} from '@/lib/constants/onboarding'
+
+function labelsFor(options: readonly { value: string; label: string }[], values: string[]) {
+  return values.map((v) => options.find((o) => o.value === v)?.label ?? v).join(', ') || 'not specified'
+}
+
+function labelFor(options: readonly { value: string; label: string }[], value: string | null) {
+  return (value && options.find((o) => o.value === value)?.label) || 'not specified'
+}
 
 export interface SearchStrategyGuidance {
   pros: string
@@ -56,6 +71,11 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
         gapDuration: true,
         searchStrategyGuidance: true,
         searchStrategyFirstAnsweredAt: true,
+        blockers: true,
+        motivations: true,
+        coachingStylePreference: true,
+        changePacePreference: true,
+        changeReadiness: true,
       },
     }),
     getCandidateLevelRank(candidateId),
@@ -64,10 +84,10 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
   const cached = parseCachedGuidance(candidate.searchStrategyGuidance)
   if (cached) return cached
 
-  // Only draft once the full Search Goals section is filled in — a partial
-  // form produces guidance that reads confident but is really guessing at
-  // the missing fields.
-  if (!isSearchGoalsComplete(candidate)) return null
+  // Only draft once both required buckets are filled in — Search Goals and
+  // Blockers and Motivations — a partial form produces guidance that reads
+  // confident but is really guessing at the missing fields.
+  if (!isSearchGoalsComplete(candidate) || !isBlockersAndMotivationsComplete(candidate)) return null
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}
@@ -89,6 +109,11 @@ Open to relocation: ${candidate.openToRelocation ? 'yes' : 'no'}
 Open to fractional/interim consulting while searching: ${candidate.interimConsultingInterest ? 'yes' : 'no'}
 Application volume goal (per week): ${candidate.applicationVolumeGoal ?? 'not specified'} (we recommend 15/week as a baseline)
 Other deal-breakers/considerations: ${candidate.dealBreakers ?? 'not specified'}
+What's getting in their way: ${labelsFor(BLOCKER_OPTIONS, candidate.blockers)}
+What's driving their search: ${labelsFor(MOTIVATIONS_OPTIONS, candidate.motivations)}
+Coaching push they respond to: ${labelFor(COACHING_STYLE_OPTIONS, candidate.coachingStylePreference)}
+How they like to make progress: ${labelFor(CHANGE_PACE_OPTIONS, candidate.changePacePreference)}
+Appetite for a big change right now: ${labelFor(CHANGE_READINESS_OPTIONS, candidate.changeReadiness)}
 `.trim()
 
   const prompt = `You are Victoria, an executive coach, giving a candidate your honest read on their search strategy, based only on the facts below — do not invent facts not given. Write in second person, coaching tone, never generic career-advice filler.
@@ -99,6 +124,8 @@ Return strict JSON with this exact shape, no markdown, no extra keys:
 - pros: 1-2 sentences on what's genuinely working or well-calibrated about their strategy (e.g. a realistic target given their level, good comp flexibility, a sensible application volume goal). Be specific, not generic praise.
 - cons: 1-2 sentences on the real risk or mismatch in their current strategy — e.g. if their real experience reads more senior than their raw title (or vice versa) given the size of company it was earned at, say what that implies; if their stated target company size or level looks like a mismatch for their real experience, raise it constructively as something worth reconsidering, not as a criticism; if their application volume goal is below the 15/week baseline, name that directly (e.g. "too few applications planned this week").
 - suggestedChanges: 1-2 sentences of concrete, specific changes to make and why — the single most useful adjustment given everything above. If they've been searching for a while and their trajectory shows a real gap, and they're open to fractional/interim consulting, seriously consider whether the single most useful change is adding that interim/fractional work to their resume and story — it fills the title/experience gap with something concrete rather than a blank stretch, and is often more valuable advice than generic positioning tips.
+
+Calibrate your tone to the coaching push and pace they said works for them (tough love vs. gentle, baby steps vs. big leaps) — never mention that you're doing this, just write in that register. If a blocker they named (e.g. financial pressure, networking discomfort, not knowing what's next) plausibly explains a gap in their strategy, it's fine to name it directly and matter-of-factly, in the tone they asked for — never softened into vague euphemism, but never clinical or diagnostic either.
 
 Never state a numeric score, never use the words "level rank," "calibrated," or "tier," and never say anything like "based on your internal score" — this should read as if it came from a human coach who simply knows the candidate's real experience level, not from a computed signal.
 

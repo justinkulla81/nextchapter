@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { getSearchStage, isSearchGoalsComplete } from '@/lib/search-strategy'
+import { getSearchStage, isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
+import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -31,7 +33,7 @@ async function SearchStrategyGuidanceCard({
   profile: CandidateProfile
   checklist: SearchStrategyChecklist
 }) {
-  const goalsComplete = isSearchGoalsComplete(profile)
+  const goalsComplete = isSearchGoalsComplete(profile) && isBlockersAndMotivationsComplete(profile)
   const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
 
   return (
@@ -131,7 +133,7 @@ function SearchStrategyGuidanceSkeleton() {
 // searchStrategyFirstAnsweredAt, and the next page load renders the real
 // SearchStrategyGuidanceCard above instead of this.
 async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidateProfile }) {
-  if (isSearchGoalsComplete(profile)) {
+  if (isSearchGoalsComplete(profile) && isBlockersAndMotivationsComplete(profile)) {
     await getOrDraftSearchStrategyGuidance(profile.id)
   }
   return null
@@ -141,6 +143,8 @@ export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
+  const targetRoleComplete = isSearchGoalsComplete(profile)
+  const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
   // actually reflects most-recent-first, matching onboarding/goals/page.tsx.
@@ -170,29 +174,48 @@ export default async function SearchStrategyPage() {
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   const searchStrategySoFarCard = (
-    <Card id="optional-questions" className="scroll-mt-4">
-      <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Strategy So Far</CardTitle>
-          {!optionalQuestionsAnswered && (
-            <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-              +5 pts
-            </span>
+    <Card id="optional-questions" className="scroll-mt-4 overflow-hidden p-0">
+      <details className="group" open={!optionalQuestionsAnswered}>
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Strategy So Far</CardTitle>
+            {optionalQuestionsAnswered && (
+              <span className="text-success" aria-hidden>
+                ✓
+              </span>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
+            {!optionalQuestionsAnswered && (
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">+5 pts</span>
+            )}
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </div>
+        </summary>
+        <CardContent className="space-y-4 border-t border-border pt-4">
+          {optionalQuestionsAnswered && (
+            <p className="text-sm text-muted-foreground">
+              Update any answer below as your search progresses — Victoria&apos;s guidance above
+              refreshes based on what you report here.
+            </p>
           )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        {optionalQuestionsAnswered ? (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="text-success" aria-hidden>
-              ✓
-            </span>
-            Answered
-          </p>
-        ) : (
-          <OptionalQuestionsForm />
-        )}
-      </CardContent>
+          <OptionalQuestionsForm
+            initial={{
+              jobsAppliedBucket: profile.jobsAppliedBucket,
+              interviewsReceivedCount: profile.interviewsReceivedCount,
+              networkingLevel: profile.networkingLevel,
+              learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
+              triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
+              triedExecutiveCoaching: profile.triedExecutiveCoaching,
+              connectedWithRecruiters: profile.connectedWithRecruiters,
+              recruiterConnectionCount: profile.recruiterConnectionCount,
+            }}
+          />
+        </CardContent>
+      </details>
     </Card>
   )
 
@@ -231,8 +254,9 @@ export default async function SearchStrategyPage() {
         </p>
         {!hasAnsweredOnce && (
           <p className="text-sm text-muted-foreground">
-            Once you&apos;ve answered the questions below, Victoria will review your search strategy
-            and give you personalized feedback right here on this page.
+            Once you&apos;ve answered Your Target Role &amp; Company and Blockers and Motivations
+            below, Victoria will review your search strategy and give you personalized feedback
+            right here on this page.
           </p>
         )}
         <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
@@ -252,18 +276,58 @@ export default async function SearchStrategyPage() {
 
       {actionPlanCard}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SearchStrategyForm
-            profile={profile}
-            inferredIndustries={inferredIndustries}
-            inferredFunction={inferredFunction}
-            completedReferencesCount={completedReferencesCount}
-          />
-        </CardContent>
+      <Card className="overflow-hidden p-0">
+        <details className="group" open={!targetRoleComplete}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <CardContent className="space-y-4 border-t border-border pt-4">
+            {targetRoleComplete && (
+              <p className="text-sm text-muted-foreground">
+                Update this any time your target changes — a new role, a new industry, a different
+                seniority — and Victoria&apos;s guidance above and your job matches will refresh to
+                match.
+              </p>
+            )}
+            <SearchStrategyForm
+              profile={profile}
+              inferredIndustries={inferredIndustries}
+              inferredFunction={inferredFunction}
+              completedReferencesCount={completedReferencesCount}
+            />
+          </CardContent>
+        </details>
+      </Card>
+
+      <Card className="overflow-hidden p-0">
+        <details className="group" open={!blockersMotivationsComplete}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</CardTitle>
+              {blockersMotivationsComplete && (
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <CardContent className="space-y-4 border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">
+              {blockersMotivationsComplete
+                ? "Update this any time it changes — Victoria's guidance above and her tone with you refresh to match."
+                : "Required, alongside Your Target Role & Company above, before Victoria will review your strategy — what's actually in your way, and what's pulling you forward, shapes her advice as much as your target role does."}
+            </p>
+            <PersonalContextForm profile={profile} />
+          </CardContent>
+        </details>
       </Card>
 
       {stage === 'QUIETLY_LOOKING' && (

@@ -370,6 +370,27 @@ enum PublicDisclosureComfort {
   FULLY_COMFORTABLE
 }
 
+// Blockers and Motivations coaching-tone calibration (Search Strategy) —
+// how Victoria should push, not what she should push toward. See
+// CandidateProfile.coachingStylePreference/changePacePreference/changeReadiness.
+enum CoachingStylePreference {
+  TOUGH_LOVE
+  GENTLE_ENCOURAGEMENT
+  SOMEWHERE_IN_BETWEEN
+}
+
+enum ChangePacePreference {
+  BABY_STEPS
+  BIG_LEAPS
+  SOMEWHERE_IN_BETWEEN
+}
+
+enum ChangeReadiness {
+  NOT_LOOKING_FOR_BIG_CHANGE
+  WANT_CHANGE_NOT_READY_YET
+  WANT_CHANGE_AND_READY
+}
+
 // How recently a candidate was last networked/referred into a job —
 // lightweight, not a detailed history capture (Prompt 53).
 enum ReferralRecency {
@@ -669,16 +690,24 @@ model CandidateProfile {
   equityImportant     Boolean  @default(false)
   dealBreakers        String?
 
-  // Personal Context: Blockers + Motivations (Prompt 47 rework) — coaching
-  // context and Victoria tone calibration only. NEVER read by
-  // dossier-sections.ts, under any circumstance — see that file's
+  // Personal Context: Blockers + Motivations (Prompt 47 rework, consolidated
+  // onto Search Strategy as its own required "Blockers and Motivations"
+  // bucket) — coaching context and Victoria tone calibration only. NEVER
+  // read by dossier-sections.ts, under any circumstance — see that file's
   // exclusion comment. Same isolation pattern as dealBreakers above:
-  // plain columns, read only by getCoachingNotes.
+  // plain columns, read only by getCoachingNotes and (labels/options only,
+  // never the raw open-text fields) search-strategy-guidance.ts.
   blockers               String[] @default([]) // multi-select, no cap — practical constraints only, no mental-health framing, see BLOCKER_OPTIONS
   consistencySelfRating  Int? // 0-100, 4-stop discrete scale, same shape as communicatorConfidence/managementSkillConfidence above
   blockersOpenText       String? // free text, coach-only — "anything more personal" — never structured, never Dossier-eligible
   motivations            String[] @default([]) // multi-select, choose up to 3 — internal only, never surfaced in the Executive Dossier under any circumstance, see MOTIVATIONS_OPTIONS
   motivationsElaboration String?  @db.Text
+  // Coaching-tone calibration — same "never in Dossier" isolation as the
+  // block above. Required (with blockers/motivations) before Victoria's
+  // Search Strategy guidance is drafted — see isBlockersAndMotivationsComplete.
+  coachingStylePreference CoachingStylePreference?
+  changePacePreference    ChangePacePreference?
+  changeReadiness         ChangeReadiness?
 
   // Hireability Assessment (Prompt 53) — feeds Market Reality Grade
   // (Prompt 46) and the Coach Dossier's Coaching Notes (Prompt 54); never

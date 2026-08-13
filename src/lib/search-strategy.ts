@@ -1,4 +1,4 @@
-import type { CurrentJobStatus, GapDurationBucket } from '@prisma/client'
+import type { ChangePacePreference, ChangeReadiness, CoachingStylePreference, CurrentJobStatus, GapDurationBucket } from '@prisma/client'
 
 // Search Stage is deliberately not stored — it's derived from data already
 // captured during onboarding (currentJobStatus + gapDuration), so it can
@@ -71,5 +71,27 @@ export function isSearchGoalsComplete(candidate: {
     candidate.targetCompanyStage &&
     candidate.remotePreference &&
     candidate.highestLevelReached
+  )
+}
+
+// The "Blockers and Motivations" section on Search Strategy — a second,
+// independent required bucket (alongside isSearchGoalsComplete above)
+// before Victoria will draft Search Strategy guidance. Deliberately
+// excludes the genuinely optional fields in that section
+// (consistencySelfRating, blockersOpenText, motivationsElaboration) — see
+// PersonalContextForm.
+export function isBlockersAndMotivationsComplete(candidate: {
+  blockers: string[]
+  motivations: string[]
+  coachingStylePreference: CoachingStylePreference | null
+  changePacePreference: ChangePacePreference | null
+  changeReadiness: ChangeReadiness | null
+}): boolean {
+  return !!(
+    candidate.blockers.length > 0 &&
+    candidate.motivations.length > 0 &&
+    candidate.coachingStylePreference &&
+    candidate.changePacePreference &&
+    candidate.changeReadiness
   )
 }

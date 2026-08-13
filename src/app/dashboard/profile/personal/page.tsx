@@ -8,7 +8,6 @@ import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
-import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -24,9 +23,10 @@ export const metadata: Metadata = { title: 'My Personal Information' }
 // One of three sub-pages under the My Profile hub (see
 // /dashboard/profile/page.tsx) — Work authorization, screening questions,
 // and demographics live on the Screening Questions sub-page instead; comp
-// and benefits live on Search Goals. Section order: Email, Basics,
-// LinkedIn, Profile picture, Education, Industry, Function & experience,
-// Salary, Resume keywords. Basics and Salary each carry an explicit
+// and benefits live on Search Goals; Personal Context (Blockers and
+// Motivations) lives on Search Strategy — see PersonalContextForm. Section
+// order: Email, Basics, LinkedIn, Profile picture, Education, Industry,
+// Function & experience, Salary, Resume keywords. Basics and Salary each carry an explicit
 // disclosure of exactly who sees them (phone/address are the only fields
 // on this page that are genuinely never shared — see coaching-notes.ts and
 // recruiter-report.ts for what name/city/state/salary actually surface to).
@@ -176,17 +176,6 @@ export default async function PersonalInformationPage() {
               yearsExperience={profile.yearsExperience}
               confirmedAt={profile.functionConfirmedAt}
             />
-          </CardContent>
-        </Card>
-
-        <Card id="personal-context" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Personal context
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PersonalContextForm profile={profile} />
           </CardContent>
         </Card>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { uploadResume } from '@/app/dashboard/resume/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 
 export function ResumeUploadForm() {
   const [state, formAction, pending] = useActionState(uploadResume, undefined)
+  const [hasFile, setHasFile] = useState(false)
 
   if (state?.existingAccountFound) {
     return <ExistingAccountNotice needsPassword={false} />
@@ -30,6 +31,10 @@ export function ResumeUploadForm() {
     >
       <div className="space-y-2">
         <Label htmlFor="file">Upload your resume (PDF or DOCX, up to 10MB)</Label>
+        {/* The "Choose File" pseudo-button (the input's ::file-selector-button)
+            starts green — the one thing to do — and turns gray once a file is
+            picked, handing the "next action" spotlight to the Upload button
+            below instead. */}
         <Input
           id="file"
           name="file"
@@ -37,13 +42,17 @@ export function ResumeUploadForm() {
           accept=".pdf,.docx"
           required
           disabled={pending}
-          className={pending ? 'file:cursor-progress' : undefined}
+          onChange={(e) => setHasFile(e.target.files !== null && e.target.files.length > 0)}
+          className={cn(
+            !hasFile && 'file:bg-success file:text-white hover:file:bg-success-hover',
+            pending && 'file:cursor-progress'
+          )}
         />
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending || !hasFile} variant={hasFile ? 'success' : 'secondary'}>
         {pending ? 'Uploading and analyzing…' : 'Upload resume'}
       </Button>
       {pending && <InlineLoadingState label="This takes a few seconds — analyzing your resume…" />}
