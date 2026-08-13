@@ -15,9 +15,24 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { InterimListingCategory } from '@prisma/client'
 import { setBoardDiversityListingsOptIn } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
+import { prisma } from '@/lib/prisma'
+import { signupCountToTier } from '@/lib/interim-work/signup-count-tier'
+import { computeMarketplaceSignupMix } from '@/lib/interim-work/marketplace-signup-mix'
 
 export const metadata: Metadata = { title: 'Interim Work' }
 
+// Modest by design — just the marketplace names, not a category breakdown
+// like ApplicationTrendsContent on the Find a Job page.
+function InterimSignupBreakdownContent({ signups }: { signups: { listing: { name: string } }[] }) {
+  return (
+    <ul className="space-y-1 text-sm text-foreground">
+      {signups.map((s) => (
+        <li key={s.listing.name}>{s.listing.name}</li>
+      ))}
+    </ul>
+  )
+}
 
 export default async function InterimWorkPage() {
   const profile = await getDashboardData()
@@ -27,14 +42,24 @@ export default async function InterimWorkPage() {
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds] = await Promise.all([
+  const [marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups] = await Promise.all([
     getActiveListings(marketplaceCategories),
     getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
     getActiveListings([
       boardReady ? InterimListingCategory.BOARD_ADVISORY : InterimListingCategory.NONPROFIT_BOARD,
     ]),
     getSignedUpListingIds(profile.id),
+    // Powers the Interim Work progressive-unlock card below — every
+    // marketplace/expert-network/board listing this candidate has signed up
+    // for, with the listing's name and category (the category feeds the
+    // "well-rounded pursuit" mix checklist).
+    prisma.interimMarketplaceSignup.findMany({
+      where: { candidateId: profile.id },
+      select: { listing: { select: { name: true, category: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
   ])
+  const interimSignupMix = computeMarketplaceSignupMix(interimSignups.map((s) => s.listing.category))
 
   // WOMEN_FOCUSED listings (Athena Alliance, theBoardlist) only show once the
   // candidate has directly opted in via boardDiversityListingsOptIn — never
@@ -143,6 +168,24 @@ export default async function InterimWorkPage() {
         </div>
       ) : (
         <>
+          {interimSignups.length > 0 && (
+            <TierSummaryCard
+              title="Interim Work Signups"
+              count={interimSignups.length}
+              unitLabel="signup"
+              tier={signupCountToTier(interimSignups.length)}
+              buildingAt={3}
+              highAt={5}
+              unlockedContent={<InterimSignupBreakdownContent signups={interimSignups} />}
+              mixTitle="A well-rounded pursuit"
+              mixItems={[
+                { label: 'A fractional or talent marketplace', done: interimSignupMix.hasMarketplaceSignup },
+                { label: 'An expert network', done: interimSignupMix.hasExpertNetworkSignup },
+                { label: 'A board or advisory listing', done: interimSignupMix.hasBoardSignup },
+              ]}
+            />
+          )}
+
           {/* Section 2 — Fractional / Talent Marketplaces */}
           <section className="space-y-3 border-b border-border pb-10">
             <div>
