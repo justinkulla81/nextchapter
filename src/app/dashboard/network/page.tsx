@@ -20,6 +20,8 @@ import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActionsCard'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
+import { AlumniNetworkCarousel } from '@/components/dashboard/AlumniNetworkCarousel'
+import { getMatchedAlumniGroups } from '@/lib/network/alumni-groups'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
@@ -463,7 +465,7 @@ export default async function NetworkPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const [rawContacts, backchannelMatches, needsFollowUp, outreachLogs] = await Promise.all([
+  const [rawContacts, backchannelMatches, needsFollowUp, outreachLogs, alumniGroups] = await Promise.all([
     prisma.supportNetworkContact.findMany({
       where: { candidateId: profile.id, removedAt: null },
       orderBy: { createdAt: 'desc' },
@@ -479,6 +481,7 @@ export default async function NetworkPage({
       where: { candidateId: profile.id },
       select: { channel: true, contact: { select: { relationshipTags: true } } },
     }),
+    getMatchedAlumniGroups(profile.id),
   ])
   const outreachMix = computeOutreachRelationshipMix(outreachLogs.map((l) => l.contact?.relationshipTags ?? []))
   const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0 }))
@@ -563,6 +566,8 @@ export default async function NetworkPage({
       )}
 
       <BackchannelMatchesCard matches={backchannelMatches} />
+
+      <AlumniNetworkCarousel groups={alumniGroups} />
 
       <NetworkQuickActionsCard contacts={contacts} initialContactId={params.contact} />
 

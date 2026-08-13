@@ -3832,6 +3832,40 @@ model Course {
   @@index([isActive])
 }
 
+enum AlumniGroupMatchType {
+  EMPLOYER
+  SCHOOL
+}
+
+// Network page "Alumni & Employer Networks" carousel — admin-curated, same
+// shape as Course above (no reliable public API exists for "does this
+// employer/school have an alumni group and what's its real URL," so this is
+// hand-maintained rather than ingested). Matched against a candidate's own
+// WorkHistoryEntry.companyName (EMPLOYER rows) or
+// EducationEntry.schoolNameNormalized (SCHOOL rows) — see
+// getMatchedAlumniGroups() in src/lib/network/alumni-groups.ts.
+model AlumniNetworkGroup {
+  id        String               @id @default(cuid())
+  name      String // "Xoogler", "HKS Alumni Network"
+  matchType AlumniGroupMatchType
+  // Case-insensitive substring match, checked BOTH directions against the
+  // candidate's company/school text (handles "Google" matching "Google LLC"
+  // and "Alphabet Inc (Google)" alike) — see matchesKeyword() in
+  // alumni-groups.ts.
+  keywords    String[] @default([])
+  url         String
+  logoUrl     String?
+  description String? // short line shown on the card, e.g. "Google's alumni community"
+  isActive    Boolean  @default(true)
+  sortOrder   Int?
+
+  addedByAdminId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([matchType, isActive])
+}
+
 // Account-Based Job Search watchlist (Prompt 77) — a candidate names a
 // specific target company and gets notified when a new posting from it
 // shows up. Deliberately no new sourcing here: notifications are computed
