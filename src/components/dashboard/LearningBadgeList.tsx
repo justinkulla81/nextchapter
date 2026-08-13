@@ -2,7 +2,7 @@ import type { LearningBadge } from '@prisma/client'
 import { deleteLearningBadge } from '@/app/dashboard/learning/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
-const BADGE_TYPE_LABEL: Record<string, string> = {
+export const BADGE_TYPE_LABEL: Record<string, string> = {
   course_completed: 'Course completed',
   certification: 'Certification',
   ai_project: 'AI project',

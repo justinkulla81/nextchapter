@@ -5,19 +5,43 @@ import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { formatMinutes } from '@/lib/weekly/action-effort'
+import type { LearningBadge } from '@prisma/client'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { AssessmentLinkCard } from '@/components/dashboard/learning/AssessmentLinkCard'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
-import { LearningBadgeList } from '@/components/dashboard/LearningBadgeList'
+import { LearningBadgeList, BADGE_TYPE_LABEL } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
 import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers'
 import { ToolsForRoleSection } from '@/components/dashboard/learning/ToolsForRoleSection'
 import { InterviewSkillsSection } from '@/components/dashboard/learning/InterviewSkillsSection'
+import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
+import { badgeCountToTier } from '@/lib/learning/badge-count-tier'
+import { computeBadgeTypeMix } from '@/lib/learning/badge-type-mix'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
 
 export const metadata: Metadata = { title: 'Learning & Training' }
 
+
+// Modest by design — a plain count-by-type line, not a full trends
+// breakdown like ApplicationTrendsContent on the Find a Job page.
+function BadgeBreakdownContent({ badges }: { badges: LearningBadge[] }) {
+  const counts = badges.reduce<Record<string, number>>((acc, badge) => {
+    acc[badge.badgeType] = (acc[badge.badgeType] ?? 0) + 1
+    return acc
+  }, {})
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
+
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      {entries.map(([badgeType, count]) => (
+        <span key={badgeType} className="text-foreground">
+          {BADGE_TYPE_LABEL[badgeType] ?? badgeType} <span className="text-muted-foreground">({count})</span>
+        </span>
+      ))}
+    </div>
+  )
+}
 
 function renderSection(section: LearningPlanSection, completedTitles: Set<string>) {
   return (
@@ -52,6 +76,7 @@ export default async function LearningPage() {
     prisma.candidateAssessmentResponse.count({ where: { candidateId: profile.id } }),
   ])
   const hasTakenAssessment = assessmentResponseCount > 0
+  const badgeMix = computeBadgeTypeMix(badges.map((b) => b.badgeType))
 
   const completedTitles = new Set(badges.map((b) => b.title))
   const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
@@ -88,6 +113,24 @@ export default async function LearningPage() {
           </p>
         )}
       </div>
+
+      {badges.length > 0 && (
+        <TierSummaryCard
+          title="New Skills"
+          count={badges.length}
+          unitLabel="badge"
+          tier={badgeCountToTier(badges.length)}
+          buildingAt={3}
+          highAt={5}
+          unlockedContent={<BadgeBreakdownContent badges={badges} />}
+          mixTitle="A well-rounded mix"
+          mixItems={[
+            { label: 'Structured learning (a course or certification)', done: badgeMix.hasStructuredLearning },
+            { label: 'Applied practice (an AI project)', done: badgeMix.hasAppliedPractice },
+            { label: 'Public credibility (a talk or published piece)', done: badgeMix.hasPublicCredibility },
+          ]}
+        />
+      )}
 
       <LearningSection
         title="AI Training"
