@@ -7,6 +7,15 @@ const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.postho
 const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^https:\/\/(\w+)\./, "https://$1-assets.");
 
 const nextConfig: NextConfig = {
+  // Lets verification builds run into a throwaway directory
+  // (NEXT_DIST_DIR=.next-verify-foo next build) instead of overwriting the
+  // real .next a dev server or the deployed build might be using — this
+  // var was referenced by verification steps throughout this project's
+  // history but was never actually wired up here, so every "isolated"
+  // build silently built into the normal .next instead (harmless, since
+  // .next is gitignored, but not actually isolated). Defaults to Next's
+  // own default when unset.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     // Default is 1MB — a real LinkedIn "Connections.csv" export (the file
     // the Networking page's CSV import Server Action reads) can exceed that
