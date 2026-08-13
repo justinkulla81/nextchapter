@@ -39,6 +39,13 @@ function displayGrade(grade: Grade, isFirstReport: boolean): Grade | 'N/A' {
   return isFirstReport && grade === 'F' ? 'N/A' : grade
 }
 
+// Mirrors the "5 is on target" language already used on Search Strategy
+// (SearchStrategyForm) and the Weekly Sprint's REFERENCE_ADDED row
+// (SuccessSprintCard) — same threshold, same counting convention (COMPLETED
+// only), just surfaced here too since this is the one place a candidate
+// reads their actual grades and should see what's still backing them.
+const REFERENCE_CONFIDENCE_TARGET = 5
+
 // Same self-caching guidance shown on /dashboard/search-strategy — reading
 // it here is just a cache hit in the common case (see
 // getOrDraftSearchStrategyGuidance's self-cache), so this rarely triggers a
@@ -255,6 +262,7 @@ export default async function HireabilityReportPage() {
     await sendHireabilityReportEmail(profile.id)
   }
 
+  const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
   const weekNumber = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date()))
@@ -475,6 +483,26 @@ export default async function HireabilityReportPage() {
                     for this week&apos;s exact commitment.
                   </p>
                 </>
+              )}
+            </div>
+            <div className="mt-4 rounded-lg border border-border bg-white p-4">
+              <p className="text-sm font-medium text-foreground">
+                {completedReferencesCount >= REFERENCE_CONFIDENCE_TARGET
+                  ? `Backed by ${completedReferencesCount} completed references.`
+                  : `Reference-backed confidence: ${completedReferencesCount} of ${REFERENCE_CONFIDENCE_TARGET}.`}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {completedReferencesCount >= REFERENCE_CONFIDENCE_TARGET
+                  ? "Most categories above now read at High confidence because former colleagues and managers have verified your work directly — that's real, external validation, not just self-report."
+                  : `Every category above leans more on your own self-report until real references back it up. At ${REFERENCE_CONFIDENCE_TARGET} completed references, your grades carry full outside validation — it's the single biggest lever you have left, and it costs you nothing but an ask.`}
+              </p>
+              {completedReferencesCount < REFERENCE_CONFIDENCE_TARGET && (
+                <Link
+                  href="/dashboard/references"
+                  className="mt-2 inline-block text-xs text-primary underline underline-offset-4"
+                >
+                  Request a reference →
+                </Link>
               )}
             </div>
           </div>

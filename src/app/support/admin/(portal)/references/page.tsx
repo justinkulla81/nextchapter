@@ -33,6 +33,7 @@ const STATUS_FILTERS: { value: string; label: string }[] = [
   { value: 'REQUESTED,REMINDER_SENT', label: 'Sent' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'DECLINED', label: 'Declined' },
+  { value: 'EXPIRED', label: 'Expired' },
 ]
 
 export default async function AdminReferencesPage({
@@ -47,7 +48,7 @@ export default async function AdminReferencesPage({
   const statusFilter = params.filters.status
   const where = statusFilter ? { status: { in: statusFilter.split(',') as ReferenceStatus[] } } : {}
 
-  const [references, total, sentCount, completedCount, declinedCount] = await Promise.all([
+  const [references, total, sentCount, completedCount, declinedCount, expiredCount] = await Promise.all([
     prisma.reference.findMany({
       where,
       orderBy: { requestedAt: 'desc' },
@@ -59,6 +60,7 @@ export default async function AdminReferencesPage({
     prisma.reference.count({ where: { status: { in: ['REQUESTED', 'REMINDER_SENT'] } } }),
     prisma.reference.count({ where: { status: 'COMPLETED' } }),
     prisma.reference.count({ where: { status: 'DECLINED' } }),
+    prisma.reference.count({ where: { status: 'EXPIRED' } }),
   ])
 
   const rows: Row[] = references.map((r) => ({
@@ -114,6 +116,7 @@ export default async function AdminReferencesPage({
         <h1 className="text-2xl font-semibold tracking-tight">References</h1>
         <p className="mt-1 text-muted-foreground">
           {sentCount} awaiting response · {completedCount} completed · {declinedCount} declined
+          {expiredCount > 0 && ` · ${expiredCount} expired`}
         </p>
       </div>
 
