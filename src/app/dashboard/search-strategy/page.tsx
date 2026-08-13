@@ -33,8 +33,15 @@ async function SearchStrategyGuidanceCard({
   profile: CandidateProfile
   checklist: SearchStrategyChecklist
 }) {
-  const goalsComplete = isSearchGoalsComplete(profile) && isBlockersAndMotivationsComplete(profile)
+  const targetRoleComplete = isSearchGoalsComplete(profile)
+  const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
+  const goalsComplete = targetRoleComplete && blockersMotivationsComplete
   const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
+
+  const missingSections = [
+    !targetRoleComplete && 'Your Target Role & Company',
+    !blockersMotivationsComplete && 'Blockers and Motivations',
+  ].filter((v): v is string => !!v)
 
   return (
     <Card className="border-brand/20 bg-brand/5">
@@ -95,6 +102,10 @@ async function SearchStrategyGuidanceCard({
               </div>
             </div>
           </div>
+        ) : missingSections.length > 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Complete {missingSections.join(' and ')} below to get your Strategy Guidance from me.
+          </p>
         ) : (
           <p className="text-sm text-muted-foreground">
             I&apos;m updating your guidance based on your latest answers — check back in a moment.
@@ -279,7 +290,14 @@ export default async function SearchStrategyPage() {
       <Card className="overflow-hidden p-0">
         <details className="group" open={!targetRoleComplete}>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
+              {targetRoleComplete && (
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </div>
             <ChevronDown
               className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
               aria-hidden
