@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { ContentVenue } from '@prisma/client'
+import type { ContentVenue, PublicDisclosureComfort } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -133,6 +133,26 @@ export async function generateHardQuestionsAction() {
 
   await generateHardQuestions(profile.id)
   captureServerEvent(profile.id, 'hard_questions_generated')
+  revalidatePath('/dashboard/marketing-plan')
+}
+
+// publicDisclosureComfort was previously only ever set once, during
+// onboarding (GoalsForm.tsx) — there was no route to update it afterward,
+// even though it now drives real branching on this page (isLowComfort).
+// A candidate's comfort with being visible genuinely changes over a search;
+// this lets them re-answer anytime, mirroring setNetworkComfortLevel's
+// always-editable pattern. Re-answering never re-awards or claws back the
+// one-time PUBLIC_VISIBILITY_COMFORT_CONFIRMED bonus below — that's keyed
+// off "answered at all, ever," not the specific value.
+export async function updatePublicDisclosureComfort(value: PublicDisclosureComfort) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { publicDisclosureComfort: value },
+  })
+  captureServerEvent(profile.id, 'public_disclosure_comfort_updated', { value })
   revalidatePath('/dashboard/marketing-plan')
 }
 

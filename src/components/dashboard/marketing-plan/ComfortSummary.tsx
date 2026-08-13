@@ -3,6 +3,7 @@ import type { PublicDisclosureComfort, NetworkComfortLevel } from '@prisma/clien
 import { PUBLIC_DISCLOSURE_COMFORT_OPTIONS } from '@/lib/constants/onboarding'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { PublicVisibilityComfortEditor } from '@/components/dashboard/marketing-plan/PublicVisibilityComfortEditor'
 import { confirmPublicVisibilityComfort } from '@/app/dashboard/marketing-plan/actions'
 
 // Same 4-value scale/labels as NetworkComfortCheck.tsx's OPTIONS.
@@ -60,25 +61,26 @@ export function ComfortSummary({
         <CardTitle className="text-base font-medium">Your comfort level</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <p className="font-medium text-foreground">Being publicly visible in your search</p>
-            <p className="text-muted-foreground">
-              {publicLabel ?? "You haven't answered this yet."}
-            </p>
-            {!publicDisclosureComfort && (
-              <Link href="/dashboard" className="text-sm font-medium text-primary underline underline-offset-4">
-                Answer this on your dashboard →
-              </Link>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="font-medium text-foreground">Being publicly visible in your search</p>
+              <p className="text-muted-foreground">
+                {publicLabel ?? "You haven't answered this yet."}
+              </p>
+            </div>
+            {publicDisclosureComfort && !publicVisibilityComfortBonusAt && (
+              <form action={confirmPublicVisibilityComfort}>
+                <SubmitButton size="sm" variant="outline" pendingLabel="Claiming…">
+                  Claim +5 points
+                </SubmitButton>
+              </form>
             )}
           </div>
-          {publicDisclosureComfort && !publicVisibilityComfortBonusAt && (
-            <form action={confirmPublicVisibilityComfort}>
-              <SubmitButton size="sm" variant="outline" pendingLabel="Claiming…">
-                Claim +5 points
-              </SubmitButton>
-            </form>
-          )}
+          {/* Always editable, not just first-time — this used to be
+              onboarding-only with no way to update it later, even though it
+              now drives real branching on this page. */}
+          <PublicVisibilityComfortEditor current={publicDisclosureComfort} />
         </div>
 
         <div>
