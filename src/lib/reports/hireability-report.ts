@@ -30,6 +30,7 @@ import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } fr
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { hasStartedSprint, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
+import { computeWhatMovedThisWeek, computeWeeksOfImprovement } from '@/lib/scoring/market-reality-history'
 import {
   CURRENT_JOB_STATUS_LABELS,
   isVagueTargetRole,
@@ -92,6 +93,10 @@ const hireabilityReportSchema = z.object({
       narrative: z.array(z.string()).min(1).max(4),
     })
     .nullable(),
+  executiveSummary: z.object({
+    improvementNarrative: z.array(z.string()).min(1).max(4),
+    whatToDoMore: z.array(z.string()).min(1).max(4),
+  }),
 })
 
 type RawActionPlan = z.infer<typeof hireabilityReportSchema>['actionPlan']
@@ -150,6 +155,11 @@ Write:
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, weight networking and story-building remediation (translating prior achievements into the target function/industry's language, warm introductions into that space) more heavily than generic upskilling — keyword-matched job boards are the least effective channel for an unconventional background, and the gaps/remediation should reflect that honestly.
    - If "Location preference" below is "remote", include one honest, non-judgmental note somewhere in the strengths/weaknesses/hill-to-climb sections acknowledging that on-site presence is genuinely a plus for many employers, that remote work matters a great deal to many people too, that there are real benefits to in-person work (mentorship, visibility, spontaneous collaboration), and that they might consider hybrid as a middle ground worth weighing — framed as an option to consider, never as pressure to abandon a real preference.
 6. Market conditions: if "Market data available" below is "yes", write 1-4 short bullet points of honest commentary on local job availability and occupational trend using ONLY the facts provided — never invent a number that isn't given. Weave in "Openings matching their exact target title" and "Openings matching their target function + industry" below wherever they say a real count (skip either one entirely if it says "not available" — do not mention a number for it or explain why it's missing). End with one direct sentence connecting these facts to how hard their search will realistically be — this should agree with, not contradict, the hill-to-climb tone above. If "Market data available" is "no", set marketConditions to null rather than speculating or estimating.
+7. Executive Summary (this appears at the very top of the report, before the grades — write it so it stands alone): two parts, each 1-4 sentences.
+   - improvementNarrative: see "Report-over-report change" below.
+     - HARD REQUIREMENT: if "Is this the candidate's first-ever report" is "yes", there is nothing to compare against — say so plainly and frame this as their baseline ("this is where you stand today"), never claim improvement or decline.
+     - Otherwise, credit them SPECIFICALLY by name for any real new data they added since their last report (e.g. "two new completed references," "an updated resume," "your work-style assessment") — never a vague "you've been active." Connect it to what it actually did ONLY if the grade movement data below supports that connection (e.g. a category moving up, a category's confidence improving) — never invent a causal link the data doesn't support. If nothing new was added and nothing moved, say so plainly and honestly rather than manufacturing false credit — that's a real, useful signal too (nudge toward action, don't scold).
+   - whatToDoMore: the single highest-leverage thing(s) they should do more of right now, grounded in "Currently open gaps" above and any category still graded low — concrete and specific, not generic advice.
 
 Candidate data:
 `
@@ -238,16 +248,43 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
     candidate.targetRoleType
   )
 
-  const [grade, startedSprint, latestAiProject, jobPattern, applicationTrends] = await Promise.all([
-    computeHireabilityGrade(candidate),
-    hasStartedSprint(candidateId),
-    prisma.learningBadge.findFirst({
-      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
-      orderBy: { completedAt: 'desc' },
-    }),
-    generateJobPattern(candidateId),
-    computeApplicationTrends(candidateId),
-  ])
+  const [grade, startedSprint, latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
+    await Promise.all([
+      computeHireabilityGrade(candidate),
+      hasStartedSprint(candidateId),
+      prisma.learningBadge.findFirst({
+        where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+        orderBy: { completedAt: 'desc' },
+      }),
+      generateJobPattern(candidateId),
+      computeApplicationTrends(candidateId),
+      // The most recent EXISTING report — relative to the new one about to
+      // be generated below, this is "last time." Null on a candidate's
+      // first-ever report, handled explicitly in the Executive Summary
+      // prompt instructions above rather than fabricating a comparison.
+      prisma.hireabilityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
+      prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
+    ])
+
+  // Real, verified "what's new since last report" — every count here is a
+  // genuine created/completed timestamp compared against the prior report's
+  // generatedAt, never a guess. Only computed when a prior report exists;
+  // see the Executive Summary prompt's first-report branch above.
+  const [referencesCompletedSinceLastReport, applicationsSinceLastReport, outreachSinceLastReport] = priorReport
+    ? await Promise.all([
+        candidate.references.filter((r) => r.completedAt && r.completedAt > priorReport.generatedAt).length,
+        prisma.jobPosting.count({ where: { candidateId, appliedAt: { gt: priorReport.generatedAt } } }),
+        prisma.outreachLog.count({ where: { candidateId, loggedAt: { gt: priorReport.generatedAt } } }),
+      ])
+    : [0, 0, 0]
+  const resumeUpdatedSinceLastReport = !!(latestResume && priorReport && latestResume.uploadedAt > priorReport.generatedAt)
+  const assessmentCompletedSinceLastReport = !!(
+    latestAssessment &&
+    priorReport &&
+    latestAssessment.completedAt > priorReport.generatedAt
+  )
+  const categoryMovers = priorReport ? computeWhatMovedThisWeek(marketRealitySnapshots) : []
+  const weeksOfImprovement = priorReport ? computeWeeksOfImprovement(marketRealitySnapshots) : 0
 
   // Same structured gap list the Market Reality Report UI and Executive
   // Dossier already compute (see named-reasons.ts) — passed into the action
@@ -395,6 +432,26 @@ Market facts: ${
   }
 Openings matching their exact target title: ${titleSpecificCount !== null ? `${titleSpecificCount} listed` : 'not available — do not mention a specific count'}
 Openings matching their target function + industry: ${industrySpecificCount !== null ? `${industrySpecificCount} listed` : 'not available — do not mention a specific count'}
+
+--- Report-over-report change (for the Executive Summary section only) ---
+Is this the candidate's first-ever report: ${priorReport ? 'no' : 'yes'}
+${
+  priorReport
+    ? `Previous report generated: ${priorReport.generatedAt.toISOString().slice(0, 10)}
+Category grade changes since then: ${
+        categoryMovers.length > 0
+          ? categoryMovers.map((m) => `${m.label}: ${m.fromGrade} -> ${m.toGrade}`).join(', ')
+          : 'no category changed letter grade'
+      }
+Consecutive weeks of real improvement: ${weeksOfImprovement}
+New data added since the previous report (credit these specifically, by name, only where true):
+  - Completed references: ${referencesCompletedSinceLastReport}
+  - Resume: ${resumeUpdatedSinceLastReport ? 'uploaded or updated' : 'no change'}
+  - Work-style assessment: ${assessmentCompletedSinceLastReport ? 'completed' : 'no change'}
+  - Applications submitted: ${applicationsSinceLastReport}
+  - Networking outreach logged: ${outreachSinceLastReport}`
+    : 'No prior report exists — this is their baseline, nothing to compare against.'
+}
 `.trim()
 
   let data: ReturnType<typeof hireabilityReportSchema.parse> | null | undefined
@@ -442,6 +499,7 @@ Openings matching their target function + industry: ${industrySpecificCount !== 
         minRequired: MIN_SIGNALS_FOR_PATTERN,
         applicationTrends,
       } as unknown as Prisma.InputJsonValue,
+      executiveSummary: data.executiveSummary as unknown as Prisma.InputJsonValue,
     },
   })
 

@@ -2367,6 +2367,16 @@ model HireabilityReport {
   // snapshot above. Null on reports generated before this field existed.
   hireabilityGradeAtGeneration Json?
 
+  // {improvementNarrative: string[], whatToDoMore: string[]} — generated in
+  // the same LLM call as everything else above (no added cost), grounded in
+  // real report-over-report grade movement (MarketRealitySnapshot history)
+  // and real data added since the prior report (new completed references,
+  // resume update, assessment completion, applications, outreach). Null on
+  // reports generated before this field existed, and on a candidate's
+  // first-ever report there's nothing to compare against — the prompt frames
+  // that case as a baseline rather than fabricating improvement.
+  executiveSummary Json?
+
   emailSentAt DateTime?
   generatedAt DateTime  @default(now())
 

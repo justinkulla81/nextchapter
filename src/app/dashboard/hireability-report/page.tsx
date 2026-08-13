@@ -213,6 +213,11 @@ interface HillToClimb {
   narrative: string[]
 }
 
+interface ExecutiveSummary {
+  improvementNarrative: string[]
+  whatToDoMore: string[]
+}
+
 const HILL_TO_CLIMB_LABELS: Record<HillToClimb['tone'], string> = {
   very_positive: 'You are well positioned',
   positive_with_work: 'A solid path, with real work ahead',
@@ -369,15 +374,41 @@ export default async function HireabilityReportPage() {
             consent.
           </p>
 
-          {/* Grade System Explainer — first, so the grades below are read in context */}
-          <div className="mt-8 border-t border-border pt-8 print:hidden">
-            <SectionHeading>Understanding your grades</SectionHeading>
-            <div className="mt-4">
-              <GradeSystemExplainer />
+          {/* Executive Summary — real report-over-report grade movement plus
+              credit for any data actually added since the last report,
+              generated in the same LLM call as everything else below (see
+              hireability-report.ts's "Report-over-report change" prompt
+              block) — never a separate, additional cost. Null on reports
+              generated before this field existed. */}
+          {report.executiveSummary !== null && (
+            <div className="mt-8 border-t border-border pt-8">
+              <SectionHeading>Executive Summary</SectionHeading>
+              <div className="mt-4 space-y-4 text-sm">
+                <div>
+                  <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    Where you stand
+                  </p>
+                  <div className="mt-1 space-y-1 text-foreground">
+                    {(report.executiveSummary as unknown as ExecutiveSummary).improvementNarrative.map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    Do more of this
+                  </p>
+                  <div className="mt-1 space-y-1 text-foreground">
+                    {(report.executiveSummary as unknown as ExecutiveSummary).whatToDoMore.map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Executive Summary — grades */}
+          {/* Grade breakdown */}
           <div className="mt-10 border-t border-border pt-8">
             <SectionHeading>Your Grades</SectionHeading>
             {report.hireabilityGradeAtGeneration === null ? (
@@ -740,6 +771,15 @@ export default async function HireabilityReportPage() {
           <Suspense fallback={null}>
             <WeeklyFocusSection candidateId={profile.id} />
           </Suspense>
+
+          {/* Glossary — moved to the back so the report leads with the
+              candidate's own results, not the explainer. */}
+          <div className="mt-10 border-t border-border pt-8 print:hidden">
+            <SectionHeading>Understanding your grades</SectionHeading>
+            <div className="mt-4">
+              <GradeSystemExplainer />
+            </div>
+          </div>
         </div>
       )}
     </div>
