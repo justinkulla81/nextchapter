@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import type { CuratedVideo } from '@prisma/client'
 import { Play } from 'lucide-react'
-import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
-import { ContentDislikeButton } from '@/components/dashboard/ContentDislikeButton'
+import { ContentReactionButtons } from '@/components/dashboard/ContentReactionButtons'
 import { VideoPlayerModal } from '@/components/dashboard/VideoPlayerModal'
 import { logContentClickAction } from '@/app/dashboard/webinars/actions'
 import { cn } from '@/lib/utils'
@@ -27,7 +26,9 @@ function formatDuration(totalSeconds: number): string {
 // would be a real perf/UX cost for no benefit over a thumbnail + click.
 export function CuratedVideoCard({ video, isLiked }: { video: CuratedVideo; isLiked: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
   const isShort = video.format === 'SHORT'
+  if (dismissed) return null
   return (
     <div
       className={cn(
@@ -71,14 +72,14 @@ export function CuratedVideoCard({ video, isLiked }: { video: CuratedVideo; isLi
           <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
         </div>
       </button>
-      <div className="flex items-center justify-end gap-1 px-1.5 pb-1.5">
-        <ContentLikeButton
+      <div className="px-1.5 pb-1.5">
+        <ContentReactionButtons
           contentType="CURATED_VIDEO"
           contentId={video.id}
           title={video.title}
           isLiked={isLiked}
+          onDislike={() => setDismissed(true)}
         />
-        <ContentDislikeButton contentType="CURATED_VIDEO" contentId={video.id} />
       </div>
       <VideoPlayerModal
         open={isPlaying}

@@ -4,8 +4,7 @@ import { useState } from 'react'
 import type { Podcast } from '@prisma/client'
 import { Mic } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
-import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
-import { ContentDislikeButton } from '@/components/dashboard/ContentDislikeButton'
+import { ContentReactionButtons } from '@/components/dashboard/ContentReactionButtons'
 import { VideoPlayerModal } from '@/components/dashboard/VideoPlayerModal'
 import { logContentClickAction } from '@/app/dashboard/webinars/actions'
 import { extractYouTubeVideoId } from '@/lib/content/youtube-video-id'
@@ -19,7 +18,9 @@ import { extractYouTubeVideoId } from '@/lib/content/youtube-video-id'
 // once the user supplies them.
 export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: boolean }) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
   const youtubeVideoId = podcast.youtubeUrl ? extractYouTubeVideoId(podcast.youtubeUrl) : null
+  if (dismissed) return null
   return (
     <div className="w-72 shrink-0 space-y-2 rounded-lg border border-border bg-card p-3">
       <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
@@ -84,15 +85,13 @@ export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: b
             </a>
           ))}
       </div>
-      <div className="flex justify-end gap-1">
-        <ContentLikeButton
-          contentType="PODCAST"
-          contentId={podcast.id}
-          title={podcast.title}
-          isLiked={isLiked}
-        />
-        <ContentDislikeButton contentType="PODCAST" contentId={podcast.id} />
-      </div>
+      <ContentReactionButtons
+        contentType="PODCAST"
+        contentId={podcast.id}
+        title={podcast.title}
+        isLiked={isLiked}
+        onDislike={() => setDismissed(true)}
+      />
       {youtubeVideoId && (
         <VideoPlayerModal
           open={isPlaying}

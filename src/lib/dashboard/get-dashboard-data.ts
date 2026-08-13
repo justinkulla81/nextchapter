@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { after } from 'next/server'
@@ -11,7 +12,14 @@ import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
 import { getClientIp } from '@/lib/http/client-ip'
 
-export async function getDashboardData() {
+// Wrapped in React's cache() — this does a Supabase auth call plus a
+// 13-relation Prisma query, and every dashboard page.tsx calls this AGAIN
+// after dashboard/layout.tsx already called it once for the same request
+// (nav badges, IdentifyUser). Without cache(), that's the same expensive
+// fetch running twice on every single page load — cache() dedupes repeat
+// calls within one request to a single execution, so the second call is
+// free. Request-scoped only: a fresh navigation gets a fresh (uncached) run.
+export const getDashboardData = cache(async () => {
   const supabase = await createClient()
   const {
     data: { user },
@@ -82,4 +90,4 @@ export async function getDashboardData() {
   }
 
   return profile
-}
+})

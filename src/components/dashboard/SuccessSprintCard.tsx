@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
-  formatMinutes,
   getActionWhy,
   getRecurringTargetCount,
   isRecurringActionType,
@@ -278,7 +277,6 @@ function connectHref(hasEmailConnection: boolean, hasCalendarConnection: boolean
 function ActionRow({
   text,
   points,
-  estimatedMinutes,
   actionType,
   completed,
   recurring,
@@ -318,36 +316,13 @@ function ActionRow({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        {actionType === 'REFERENCE_ADDED' ? (
-          // References accumulate over the whole search, not per week — a
-          // "this week" badge reset every Monday would misrepresent
-          // progress toward the real 5-reference target this row is tracking
-          // (see isPriorityActionType). Same pill classes as the "this week"
-          // badge below so it reads as the same kind of progress indicator.
-          <span
-            className={cn(
-              'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
-              completedReferencesCount >= 5 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
-            )}
-          >
-            {completedReferencesCount} / 5
-          </span>
-        ) : recurring && targetCount ? (
-          <span
-            className={cn(
-              'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
-              count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
-            )}
-          >
-            {count} / {targetCount} this week
-          </span>
-        ) : completed && recurring ? (
-          <span className="shrink-0 text-xs font-semibold text-brand tabular-nums">✓ {points} pts this week</span>
-        ) : completed && !recurring ? (
-          <span className="shrink-0 text-success" aria-hidden>
-            ✓
-          </span>
-        ) : null}
+        {/* Fixed width so every row's title starts at the same x position,
+            regardless of which tag it carries — this used to sit after the
+            title (and only some rows had a leading progress badge before
+            it), so titles zig-zagged depending on row type. */}
+        <span className="w-[74px] shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-[11px] font-medium text-muted-foreground">
+          {recurring ? 'Recurring' : 'Onboarding'}
+        </span>
         <Link
           href={link?.href ?? '/dashboard'}
           className={cn(
@@ -363,12 +338,38 @@ function ActionRow({
             Priority
           </span>
         )}
-        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          {recurring ? 'Recurring' : 'Onboarding'}
-        </span>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
-        <span className="text-xs text-muted-foreground tabular-nums">{formatMinutes(estimatedMinutes)}</span>
+        {actionType === 'REFERENCE_ADDED' ? (
+          // References accumulate over the whole search, not per week — a
+          // "this week" badge reset every Monday would misrepresent
+          // progress toward the real 5-reference target this row is tracking
+          // (see isPriorityActionType). Same pill classes as the "this week"
+          // badge below so it reads as the same kind of progress indicator.
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+              completedReferencesCount >= 5 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+            )}
+          >
+            {completedReferencesCount} / 5
+          </span>
+        ) : recurring && targetCount ? (
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+              count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+            )}
+          >
+            {count} / {targetCount} this week
+          </span>
+        ) : completed && recurring ? (
+          <span className="text-xs font-semibold text-brand">✓ this week</span>
+        ) : completed && !recurring ? (
+          <span className="text-success" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
           {points} pts
         </span>

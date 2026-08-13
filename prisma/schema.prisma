@@ -4083,6 +4083,16 @@ enum VideoContentSource {
   ADMIN_ADDED
 }
 
+// GENERAL is the existing Videos/Shorts carousel pool; AI_TOOLS is the
+// "Tools for You" carousel — AI-tool explainer content, tagged by industry
+// (aiToolIndustry) for personalization. Same underlying table/ingestion
+// pipeline as GENERAL, just a different search pass and a second tag field
+// — see youtube-ingest.ts's refreshAiToolVideos().
+enum VideoCategory {
+  GENERAL
+  AI_TOOLS
+}
+
 model CuratedVideo {
   id              String             @id @default(cuid())
   youtubeVideoId  String             @unique
@@ -4094,6 +4104,12 @@ model CuratedVideo {
   durationSeconds Int
   format          VideoFormat
   source          VideoContentSource
+  category        VideoCategory      @default(GENERAL)
+  // Only set when category = AI_TOOLS — one of INDUSTRY_BUCKET_NAMES
+  // (src/lib/constants/industry-buckets.ts), or null for a
+  // general/cross-industry AI-tools video (the fallback the Tools for You
+  // carousel shows when a candidate's own industryBucket has no match yet).
+  aiToolIndustry  String?
   addedByAdminId  String?
   // Admin soft-delete. refreshYouTubeVideos() must never resurrect a video
   // that has this set on a later ingest run (see youtube-ingest.ts).
@@ -4101,6 +4117,7 @@ model CuratedVideo {
   createdAt       DateTime           @default(now())
 
   @@index([format, removedAt])
+  @@index([category, removedAt])
 }
 
 // Podcasts carousel — admin-curated only, no auto-pull (no podcast-search

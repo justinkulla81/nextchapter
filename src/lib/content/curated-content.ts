@@ -30,9 +30,17 @@ export function sortCuratedVideos(videos: CuratedVideo[]): CuratedVideo[] {
 // (src/app/support/admin/(portal)/webinars/page.tsx) deliberately — dislikes
 // are per-candidate personalization, not a global removal, so admin always
 // sees the full unfiltered catalog to curate it.
+//
+// aiTools is the "Tools for You" carousel (category = AI_TOOLS, see
+// youtube-ingest.ts's refreshAiToolVideos). With a candidateId, it's
+// narrowed to that candidate's industryBucket when there's a match,
+// falling back to the cross-industry pool (aiToolIndustry === null) when
+// there isn't — never an empty section just because their specific
+// industry hasn't been ingested yet. No candidateId (admin) returns every
+// AI_TOOLS video unfiltered by industry, same rationale as dislikes above.
 export async function getCarouselVideos(
   candidateId?: string
-): Promise<{ longForm: CuratedVideo[]; shorts: CuratedVideo[] }> {
+): Promise<{ longForm: CuratedVideo[]; shorts: CuratedVideo[]; aiTools: CuratedVideo[] }> {
   const videos = await prisma.curatedVideo.findMany({ where: { removedAt: null } })
 
   let filtered = videos
@@ -58,9 +66,25 @@ export async function getCarouselVideos(
     )
   }
 
+  const general = filtered.filter((v) => v.category === 'GENERAL')
+  const aiToolVideos = filtered.filter((v) => v.category === 'AI_TOOLS')
+
+  let aiTools = aiToolVideos
+  if (candidateId) {
+    const profile = await prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: { industryBucket: true },
+    })
+    const matching = profile?.industryBucket
+      ? aiToolVideos.filter((v) => v.aiToolIndustry === profile.industryBucket)
+      : []
+    aiTools = matching.length > 0 ? matching : aiToolVideos.filter((v) => v.aiToolIndustry === null)
+  }
+
   return {
-    longForm: sortCuratedVideos(filtered.filter((v) => v.format === 'LONG_FORM')),
-    shorts: sortCuratedVideos(filtered.filter((v) => v.format === 'SHORT')),
+    longForm: sortCuratedVideos(general.filter((v) => v.format === 'LONG_FORM')),
+    shorts: sortCuratedVideos(general.filter((v) => v.format === 'SHORT')),
+    aiTools: sortCuratedVideos(aiTools),
   }
 }
 

@@ -25,7 +25,7 @@ export default async function AdminWebinarsPage({
   await requireAdmin()
   const params = await searchParams
 
-  const [connection, webinars, { longForm, shorts }, podcasts, stats] = await Promise.all([
+  const [connection, webinars, { longForm, shorts, aiTools }, podcasts, stats] = await Promise.all([
     prisma.adminGoogleCalendarConnection.findFirst(),
     prisma.webinar.findMany({
       where: { cancelledAt: null },
@@ -33,8 +33,8 @@ export default async function AdminWebinarsPage({
       include: { registrations: { select: { id: true } } },
     }),
     // No candidateId passed here deliberately — admin's curation view stays
-    // unfiltered by candidate dislikes (those are per-candidate
-    // personalization, not a global removal); see getCarouselVideos.
+    // unfiltered by candidate dislikes AND by industry personalization
+    // (both are per-candidate, not a global removal); see getCarouselVideos.
     getCarouselVideos(),
     getCarouselPodcasts(),
     getAdminContentStats(),
@@ -47,9 +47,10 @@ export default async function AdminWebinarsPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Videos and Webinars</h1>
         <p className="mt-1 text-muted-foreground">
-          Curate all four candidate-facing carousels — YouTube Videos, YouTube Shorts, live
-          Webinars, and Podcasts. Pre-recorded video used elsewhere on the site has its own,
-          separate embed system (PageContent&apos;s video fields) — unrelated to this page.
+          Curate all five candidate-facing carousels — Career and Interview Advice (long-form),
+          Career and Interview Tips (Shorts), Tools for You (AI-tool demos), live Webinars, and
+          Podcasts. Pre-recorded video used elsewhere on the site has its own, separate embed
+          system (PageContent&apos;s video fields) — unrelated to this page.
         </p>
       </div>
 
@@ -69,6 +70,9 @@ export default async function AdminWebinarsPage({
             </TabsTrigger>
             <TabsTrigger value="shorts" className="shrink-0 px-3 py-2">
               Shorts ({shorts.length})
+            </TabsTrigger>
+            <TabsTrigger value="ai-tools" className="shrink-0 px-3 py-2">
+              Tools for You ({aiTools.length})
             </TabsTrigger>
             <TabsTrigger value="webinars" className="shrink-0 px-3 py-2">
               Webinars ({webinars.length})
@@ -126,6 +130,37 @@ export default async function AdminWebinarsPage({
                     <p className="truncate text-sm font-medium text-foreground">{video.title}</p>
                     <p className="text-xs text-muted-foreground">
                       {video.channelTitle} ·{' '}
+                      {video.source === 'ADMIN_ADDED' ? 'Added by admin' : 'Auto-pulled'}
+                    </p>
+                  </div>
+                  <RemoveCuratedContentButton kind="video" id={video.id} itemLabel={video.title} />
+                </div>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ai-tools" className="mt-6 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            AI-tool explainer/demo videos, auto-pulled by industry (see AI_TOOL_TOPICS in
+            youtube-ingest.ts) and shown to candidates matching that industry — falls back to the
+            &quot;General&quot; (cross-industry) rows for candidates whose industry isn&apos;t
+            covered yet. Add one manually the same way as Videos, then re-tag its category
+            directly in the database if it needs to land here instead of General.
+          </p>
+          <div className="space-y-2">
+            {aiTools.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No Tools for You videos yet.</p>
+            ) : (
+              aiTools.map((video) => (
+                <div
+                  key={video.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{video.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {video.channelTitle} · {video.aiToolIndustry ?? 'General (all industries)'} ·{' '}
                       {video.source === 'ADMIN_ADDED' ? 'Added by admin' : 'Auto-pulled'}
                     </p>
                   </div>

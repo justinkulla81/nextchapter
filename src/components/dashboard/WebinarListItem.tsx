@@ -1,14 +1,16 @@
+'use client'
+
+import { useState } from 'react'
 import type { Webinar } from '@prisma/client'
 import { registerForWebinarAction } from '@/app/dashboard/webinars/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { buttonVariants } from '@/components/ui/button'
-import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
-import { ContentDislikeButton } from '@/components/dashboard/ContentDislikeButton'
+import { ContentReactionButtons } from '@/components/dashboard/ContentReactionButtons'
 
 // Extracted from the Webinars section markup so the same row can also be
 // used in "My Favorites" (a liked webinar resolved back to its Webinar
-// row). Server component — only the Like/Dislike buttons nested inside are
-// 'use client'.
+// row). Client component (needs local dismissed state for instant-hide on
+// Dislike — see ContentReactionButtons).
 export function WebinarListItem({
   webinar,
   isRegistered,
@@ -18,6 +20,8 @@ export function WebinarListItem({
   isRegistered: boolean
   isLiked: boolean
 }) {
+  const [dismissed, setDismissed] = useState(false)
+  if (dismissed) return null
   return (
     <div className="space-y-2 rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -63,10 +67,13 @@ export function WebinarListItem({
             Join link isn&apos;t ready yet — check back closer to the session.
           </p>
         ))}
-      <div className="flex justify-end gap-1">
-        <ContentLikeButton contentType="WEBINAR" contentId={webinar.id} title={webinar.title} isLiked={isLiked} />
-        <ContentDislikeButton contentType="WEBINAR" contentId={webinar.id} />
-      </div>
+      <ContentReactionButtons
+        contentType="WEBINAR"
+        contentId={webinar.id}
+        title={webinar.title}
+        isLiked={isLiked}
+        onDislike={() => setDismissed(true)}
+      />
     </div>
   )
 }

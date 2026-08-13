@@ -7,7 +7,7 @@ export interface ContentStatsRow {
   contentType: ContentLikeType
   contentId: string
   title: string
-  formatLabel: 'Video' | 'Short' | 'Webinar' | 'Podcast'
+  formatLabel: 'Video' | 'Short' | 'AI Tool Video' | 'AI Tool Short' | 'Webinar' | 'Podcast'
   likeCount: number
   dislikeCount: number
   clickCount: number
@@ -60,7 +60,13 @@ export async function getAdminContentStats(): Promise<{ items: ContentStatsRow[]
       contentType: 'CURATED_VIDEO' as const,
       contentId: v.id,
       title: v.title,
-      formatLabel: (v.format === 'SHORT' ? 'Short' : 'Video') as ContentStatsRow['formatLabel'],
+      formatLabel: (v.category === 'AI_TOOLS'
+        ? v.format === 'SHORT'
+          ? 'AI Tool Short'
+          : 'AI Tool Video'
+        : v.format === 'SHORT'
+          ? 'Short'
+          : 'Video') as ContentStatsRow['formatLabel'],
       likeCount: countFor(likeMap, 'CURATED_VIDEO', v.id),
       dislikeCount: countFor(dislikeMap, 'CURATED_VIDEO', v.id),
       clickCount: countFor(clickMap, 'CURATED_VIDEO', v.id),

@@ -24,8 +24,8 @@ function EmptyCarousel({ label = 'Nothing here yet — check back soon.' }: { la
 
 export default async function WebinarsPage() {
   const profile = await getDashboardData()
-  const [webinars, registeredIds, { longForm, shorts }, podcasts, likedKeys, favorites] = await Promise.all([
-    getUpcomingWebinars(),
+  const [webinars, registeredIds, { longForm, shorts, aiTools }, podcasts, likedKeys, favorites] = await Promise.all([
+    getUpcomingWebinars(profile.id),
     getCandidateWebinarRegistrations(profile.id),
     getCarouselVideos(profile.id),
     getCarouselPodcasts(profile.id),
@@ -48,10 +48,107 @@ export default async function WebinarsPage() {
         <PageHeaderBoxes pageKey="webinars" candidateId={profile.id} />
       </div>
 
-      {/* My Favorites — every liked item across all 4 content types, visually
+      {/* Career and Interview Advice (long-form) */}
+      <section className="space-y-3 border-t border-border pt-6">
+        <SectionHeading>Career and Interview Advice</SectionHeading>
+        {longForm.length === 0 ? (
+          <EmptyCarousel />
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {longForm.map((video) => (
+              <CuratedVideoCard
+                key={video.id}
+                video={video}
+                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Career and Interview Tips (Shorts) */}
+      <section className="space-y-3 border-t border-border pt-6">
+        <SectionHeading>Career and Interview Tips</SectionHeading>
+        {shorts.length === 0 ? (
+          <EmptyCarousel />
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {shorts.map((video) => (
+              <CuratedVideoCard
+                key={video.id}
+                video={video}
+                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Tools for You — AI-tool explainer/demo videos, personalized to the
+          candidate's industryBucket where a match exists (falls back to the
+          cross-industry pool otherwise — see getCarouselVideos). */}
+      <section className="space-y-3 border-t border-border pt-6">
+        <SectionHeading>Tools for You</SectionHeading>
+        {aiTools.length === 0 ? (
+          <EmptyCarousel />
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {aiTools.map((video) => (
+              <CuratedVideoCard
+                key={video.id}
+                video={video}
+                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Webinars — existing register/join flow, unchanged, with Like/Dislike
+          added. Row markup extracted to WebinarListItem, shared with the
+          Favorites section below. */}
+      <section className="space-y-3 border-t border-border pt-6">
+        <SectionHeading>Webinars</SectionHeading>
+        {webinars.length === 0 ? (
+          <EmptyCarousel label="Nothing scheduled right now — check back soon." />
+        ) : (
+          <div className="space-y-3">
+            {webinars.map((w) => (
+              <WebinarListItem
+                key={w.id}
+                webinar={w}
+                isRegistered={registeredIds.has(w.id)}
+                isLiked={likedKeys.has(contentLikeKey('WEBINAR', w.id))}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Podcasts */}
+      <section className="space-y-3 border-t border-border pt-6">
+        <SectionHeading>Podcasts</SectionHeading>
+        {podcasts.length === 0 ? (
+          <EmptyCarousel />
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {podcasts.map((podcast) => (
+              <PodcastCard
+                key={podcast.id}
+                podcast={podcast}
+                isLiked={likedKeys.has(contentLikeKey('PODCAST', podcast.id))}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* My Favorites — every liked item across all 5 content types, visually
           set apart (tinted card, not just a top border like the source
-          carousels below) since it's a derived/personalized view rather than
-          a content source of its own. */}
+          carousels above) since it's a derived/personalized view rather than
+          a content source of its own. Moved to the bottom — this is a
+          "look back at what you've saved" section, not the first thing to
+          scan on the page. */}
       <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
         <SectionHeading>My Favorites</SectionHeading>
         {!hasFavorites ? (
@@ -92,81 +189,6 @@ export default async function WebinarsPage() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-      </section>
-
-      {/* YouTube Videos */}
-      <section className="space-y-3 border-t border-border pt-6">
-        <SectionHeading>YouTube Videos</SectionHeading>
-        {longForm.length === 0 ? (
-          <EmptyCarousel />
-        ) : (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {longForm.map((video) => (
-              <CuratedVideoCard
-                key={video.id}
-                video={video}
-                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* YouTube Shorts */}
-      <section className="space-y-3 border-t border-border pt-6">
-        <SectionHeading>YouTube Shorts</SectionHeading>
-        {shorts.length === 0 ? (
-          <EmptyCarousel />
-        ) : (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {shorts.map((video) => (
-              <CuratedVideoCard
-                key={video.id}
-                video={video}
-                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Webinars — existing register/join flow, unchanged, with Like/Dislike
-          added. Row markup extracted to WebinarListItem, shared with the
-          Favorites section above. */}
-      <section className="space-y-3 border-t border-border pt-6">
-        <SectionHeading>Webinars</SectionHeading>
-        {webinars.length === 0 ? (
-          <EmptyCarousel label="Nothing scheduled right now — check back soon." />
-        ) : (
-          <div className="space-y-3">
-            {webinars.map((w) => (
-              <WebinarListItem
-                key={w.id}
-                webinar={w}
-                isRegistered={registeredIds.has(w.id)}
-                isLiked={likedKeys.has(contentLikeKey('WEBINAR', w.id))}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Podcasts */}
-      <section className="space-y-3 border-t border-border pt-6">
-        <SectionHeading>Podcasts</SectionHeading>
-        {podcasts.length === 0 ? (
-          <EmptyCarousel />
-        ) : (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {podcasts.map((podcast) => (
-              <PodcastCard
-                key={podcast.id}
-                podcast={podcast}
-                isLiked={likedKeys.has(contentLikeKey('PODCAST', podcast.id))}
-              />
-            ))}
           </div>
         )}
       </section>

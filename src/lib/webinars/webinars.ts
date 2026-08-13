@@ -75,11 +75,23 @@ export async function createWebinar(input: CreateWebinarInput) {
   }
 }
 
-export async function getUpcomingWebinars() {
-  return prisma.webinar.findMany({
+// candidateId optional — same admin-vs-candidate personalization pattern as
+// getCarouselVideos/getCarouselPodcasts (src/lib/content/curated-content.ts).
+// Webinars have no "author" concept, so only individual dislikes are
+// filtered, same as podcasts.
+export async function getUpcomingWebinars(candidateId?: string) {
+  const webinars = await prisma.webinar.findMany({
     where: { cancelledAt: null, scheduledAt: { gte: new Date() } },
     orderBy: { scheduledAt: 'asc' },
   })
+  if (!candidateId) return webinars
+
+  const dislikes = await prisma.contentDislike.findMany({
+    where: { candidateId, contentType: 'WEBINAR' },
+    select: { contentId: true },
+  })
+  const dislikedIds = new Set(dislikes.map((d) => d.contentId))
+  return webinars.filter((w) => !dislikedIds.has(w.id))
 }
 
 // Registration itself is the verified, real action credited here — not a
