@@ -308,6 +308,16 @@ const CONFIRMATION_TITLE_PATTERNS = [
 // endings, so this pattern matches against it directly.
 const LINKEDIN_SENT_TO_TITLE_IN_BODY = /Your application was sent to [^\r\n]+(?:\r?\n)+([^\r\n]+)(?:\r?\n)/i
 
+// Workable's own confirmation body ("Your application for the Vice
+// President, The AI Access Initiative job was submitted successfully.") —
+// unlike LinkedIn's template, Workable's subject line never names the role
+// at all ("Thanks for applying to <Company>"), so this is the only place
+// the title shows up. Confirmed against a real Workable confirmation body
+// fetched via the Gmail API. Non-greedy up to " job was submitted" so a
+// title containing its own comma (as in the example above) is captured
+// whole rather than truncated at the first comma.
+const WORKABLE_APPLICATION_FOR_TITLE_IN_BODY = /application for (?:the )?(.+?) job was submitted/i
+
 export function guessTitleFromConfirmationSubject(subject: string): string | null {
   for (const pattern of CONFIRMATION_TITLE_PATTERNS) {
     const match = subject.match(pattern)
@@ -319,8 +329,10 @@ export function guessTitleFromConfirmationSubject(subject: string): string | nul
 export function guessTitleFromConfirmationText(subject: string, bodyPreview: string): string | null {
   const fromSubject = guessTitleFromConfirmationSubject(subject)
   if (fromSubject) return fromSubject
-  const bodyMatch = bodyPreview.match(LINKEDIN_SENT_TO_TITLE_IN_BODY)
-  return bodyMatch ? bodyMatch[1].trim() : null
+  const linkedInMatch = bodyPreview.match(LINKEDIN_SENT_TO_TITLE_IN_BODY)
+  if (linkedInMatch) return linkedInMatch[1].trim()
+  const workableMatch = bodyPreview.match(WORKABLE_APPLICATION_FOR_TITLE_IN_BODY)
+  return workableMatch ? workableMatch[1].trim() : null
 }
 
 // Real recruiter outreach — especially from executive-search firms — very

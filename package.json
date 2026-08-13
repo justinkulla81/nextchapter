@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts",
     "seed:page-content": "tsx --env-file=.env.local scripts/seed-page-content.ts",
     "seed:test-candidates": "tsx --env-file=.env.local scripts/seed-test-candidates.ts",
@@ -61,6 +62,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
     "typescript": "^5",
+    "vitest": "^4.1.10",
     "zod": "^4.4.3"
   },
   "allowScripts": {
