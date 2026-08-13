@@ -13,6 +13,8 @@ import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/
 import { ComfortSummary } from '@/components/dashboard/marketing-plan/ComfortSummary'
 import { HardQuestionsSection } from '@/components/dashboard/marketing-plan/HardQuestionsSection'
 import { LowComfortActions } from '@/components/dashboard/marketing-plan/LowComfortActions'
+import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
+import { linkedInActivityCountToTier } from '@/lib/marketing/linkedin-activity-count-tier'
 import { isLinkedInPostingConfigured } from '@/lib/linkedin/oauth'
 import { shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
@@ -86,6 +88,12 @@ export default async function MarketingPlanPage({
   const alternativeNarratives = narratives.slice(1)
   const hardQuestions = (defaultNarrative?.hardQuestions as unknown as HardQuestionAnswers | null) ?? null
   const linkedin = { configured: linkedinConfigured, connected: !!linkedinConnection && !linkedinConnection.disconnectedAt }
+
+  // All-time count, matching the existing convention this same field is
+  // already counted with in unlock-tier.ts — no new query needed since
+  // getDashboardData() already includes linkedInActivityLogs.
+  const linkedInActivityCount = profile.linkedInActivityLogs.length
+  const directPostCount = profile.linkedInActivityLogs.filter((l) => l.source === 'DIRECT_POST').length
 
   return (
     <div className="space-y-8">
@@ -188,6 +196,27 @@ export default async function MarketingPlanPage({
               ))
             )}
           </div>
+        </div>
+      )}
+
+      {linkedInActivityCount > 0 && (
+        <div className="border-t border-border pt-8">
+          <TierSummaryCard
+            title="LinkedIn Activity"
+            count={linkedInActivityCount}
+            unitLabel="day"
+            tier={linkedInActivityCountToTier(linkedInActivityCount)}
+            buildingAt={3}
+            highAt={5}
+            unlockedContent={
+              <p className="text-sm text-muted-foreground">
+                {linkedInActivityCount} day{linkedInActivityCount === 1 ? '' : 's'} of LinkedIn activity logged
+                {directPostCount > 0 &&
+                  ` — ${directPostCount} posted directly through NextChapter, the rest self-reported`}
+                .
+              </p>
+            }
+          />
         </div>
       )}
 
