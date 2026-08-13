@@ -136,10 +136,11 @@ export async function generateHardQuestionsAction() {
   revalidatePath('/dashboard/marketing-plan')
 }
 
-// publicDisclosureComfort was previously only ever set once, during
-// onboarding (GoalsForm.tsx) — there was no route to update it afterward,
-// even though it now drives real branching on this page (isLowComfort).
-// A candidate's comfort with being visible genuinely changes over a search;
+// publicDisclosureComfort is first set on Search Strategy's Marketing Plan
+// Willingness section, but drives real branching on this page (isLowComfort)
+// too, so it needs its own live edit surface here — see
+// PublicVisibilityComfortEditor. A candidate's comfort with being visible
+// genuinely changes over a search;
 // this lets them re-answer anytime, mirroring setNetworkComfortLevel's
 // always-editable pattern. Re-answering never re-awards or claws back the
 // one-time PUBLIC_VISIBILITY_COMFORT_CONFIRMED bonus below — that's keyed

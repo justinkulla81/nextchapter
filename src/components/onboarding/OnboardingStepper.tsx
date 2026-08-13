@@ -7,19 +7,17 @@ const STEPS = [
   { href: '/onboarding/resume', label: 'Resume' },
   { href: '/onboarding/desire', label: 'Your Path' },
   { href: '/onboarding/circumstances', label: 'Your Situation' },
-  { href: '/onboarding/experience', label: 'Experience' },
-  { href: '/onboarding/goals', label: 'Goals' },
 ]
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
 
   // The shared onboarding layout renders this on every /onboarding/** page,
-  // but these 5 steps are only the pre-account assessment — welcome,
-  // contract, create-account, score, working-style, and the coach forms
-  // all happen after that's already done. Showing "step 3 of 5" progress
-  // dots on a page that isn't part of that sequence at all just reads as
-  // stale/wrong, so render nothing outside the actual 5 step routes.
+  // but these 3 steps are only the pre-account assessment — contract,
+  // create-account, score, working-style, and the coach forms all happen
+  // after that's already done. Showing "step 3 of 3" progress dots on a
+  // page that isn't part of that sequence at all just reads as
+  // stale/wrong, so render nothing outside the actual 3 step routes.
   if (!STEPS.some((step) => step.href === pathname)) return null
 
   return (

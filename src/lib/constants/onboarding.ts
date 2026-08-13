@@ -359,7 +359,7 @@ export function isVagueTargetRole(targetRoleType: string | null): boolean {
 
 // A candidate saying they prefer to be an individual contributor (the
 // management-confidence scale's 2nd stop, value 50 — see MANAGEMENT_LABELS
-// in ExperienceForm.tsx) while also having managed a large team, or while
+// in SkillsAssessmentForm.tsx) while also having managed a large team, or while
 // targeting a clearly executive title, is a real tension worth surfacing —
 // not a reason to override their stated preference. We trust what they said
 // (they want IC); the report should just name the gap so they can either

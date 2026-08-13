@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
 import { MultiChoiceButtons } from '@/components/onboarding/MultiChoiceButtons'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { FourStopSlider } from '@/components/onboarding/FourStopSlider'
 import {
   BLOCKER_OPTIONS,
   MOTIVATIONS_OPTIONS,
@@ -15,6 +16,8 @@ import {
   COACHING_STYLE_OPTIONS,
   CHANGE_PACE_OPTIONS,
   CHANGE_READINESS_OPTIONS,
+  JOB_SEARCH_DIFFICULTY_OPTIONS,
+  BIGGEST_BARRIER_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 import type { CandidateProfile, CoachingStylePreference, ChangePacePreference, ChangeReadiness } from '@prisma/client'
@@ -35,6 +38,10 @@ const CONSISTENCY_LABELS = [
 // Dossier" header comment in dossier-sections.ts.
 export function PersonalContextForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updatePersonalContext, undefined)
+  const [jobSearchDifficultyLevel, setJobSearchDifficultyLevel] = useState<number | null>(
+    profile.jobSearchDifficultyLevel
+  )
+  const [biggestBarriers, setBiggestBarriers] = useState<string[]>(profile.biggestBarriers)
   const [blockers, setBlockers] = useState<string[]>(profile.blockers)
   const [motivations, setMotivations] = useState<string[]>(profile.motivations)
   const [coachingStylePreference, setCoachingStylePreference] = useState<CoachingStylePreference | null>(
@@ -55,6 +62,27 @@ export function PersonalContextForm({ profile }: { profile: CandidateProfile }) 
         no matter what you select. Victoria uses it to shape her guidance above and how she talks
         to you.
       </p>
+
+      <div className="space-y-2">
+        <Label>How difficult has your job search been so far?</Label>
+        <FourStopSlider
+          name="jobSearchDifficultyLevel"
+          choices={JOB_SEARCH_DIFFICULTY_OPTIONS}
+          defaultValue={jobSearchDifficultyLevel}
+          onChange={setJobSearchDifficultyLevel}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>What do you think are the biggest barriers to getting a new job? Select all that apply.</Label>
+        <MultiChoiceButtons
+          name="biggestBarriers"
+          options={BIGGEST_BARRIER_OPTIONS}
+          value={biggestBarriers}
+          onChange={setBiggestBarriers}
+          columns={2}
+        />
+      </div>
 
       <div className="space-y-2">
         <Label>What tends to get in the way, if anything? Select all that apply.</Label>

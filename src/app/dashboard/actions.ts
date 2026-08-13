@@ -398,6 +398,9 @@ export async function updatePersonalContext(
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
+  const jobSearchDifficultyRaw = formData.get('jobSearchDifficultyLevel')
+  const jobSearchDifficultyLevel = jobSearchDifficultyRaw ? Number(jobSearchDifficultyRaw) : null
+  const biggestBarriers = formData.getAll('biggestBarriers').map(String)
   const blockers = formData.getAll('blockers').map(String)
   const consistencySelfRating = formData.get('consistencySelfRating')
   const blockersOpenText = (formData.get('blockersOpenText') as string | null)?.trim() || null
@@ -410,6 +413,8 @@ export async function updatePersonalContext(
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
+      jobSearchDifficultyLevel,
+      biggestBarriers,
       blockers,
       consistencySelfRating: consistencySelfRating ? Number(consistencySelfRating) : null,
       blockersOpenText,

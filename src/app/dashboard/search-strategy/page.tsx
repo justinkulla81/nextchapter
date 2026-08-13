@@ -168,14 +168,14 @@ export default async function SearchStrategyPage() {
   const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
-  // actually reflects most-recent-first, matching onboarding/goals/page.tsx.
+  // actually reflects most-recent-first.
   const workHistoryByRecency = [...profile.workHistory].sort((a, b) => {
     if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1
     return b.startDate.getTime() - a.startDate.getTime()
   })
   const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
-  // Same "more of the same" default as onboarding/goals/page.tsx — a guess at
-  // the pivot target, not a separate inference pass. Editable right there.
+  // "More of the same" default — a guess at the pivot target, not a
+  // separate inference pass. Editable right here via SearchStrategyForm.
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 

@@ -9,7 +9,14 @@ import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import type { ContentVenue, GapDurationBucket, NetworkComfortLevel, NetworkingAnxiety, ReferralRecency } from '@prisma/client'
+import type {
+  ContentVenue,
+  GapDurationBucket,
+  NetworkComfortLevel,
+  NetworkingAnxiety,
+  PublicDisclosureComfort,
+  ReferralRecency,
+} from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
@@ -158,6 +165,7 @@ export async function updateMarketingPlanWillingness(
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
+  const publicDisclosureComfort = (formData.get('publicDisclosureComfort') as PublicDisclosureComfort | null) || null
   const contentVenues = formData.getAll('contentVenues') as ContentVenue[]
   const contentComfortLevelRaw = formData.get('contentComfortLevel') as string | null
   const contentComfortLevel = contentComfortLevelRaw ? Number(contentComfortLevelRaw) : null
@@ -166,6 +174,9 @@ export async function updateMarketingPlanWillingness(
   const linkedinUsageFrequency = (formData.get('linkedinUsageFrequency') as string | null) || null
   const profileUpToDateRaw = (formData.get('linkedinProfileUpToDate') as string | null) || null
 
+  if (!publicDisclosureComfort) {
+    return { error: 'Please answer how comfortable you are being publicly visible as job-searching.' }
+  }
   if (contentVenues.length === 0 || contentComfortLevel === null) {
     return { error: 'Please answer the thought leadership questions.' }
   }
@@ -176,6 +187,7 @@ export async function updateMarketingPlanWillingness(
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
+      publicDisclosureComfort,
       contentVenues,
       contentComfortLevel,
       linkedinOpennessComfort,

@@ -3,8 +3,8 @@ import type { WorkHistoryEntry } from '@prisma/client'
 // Ranks by total time spent in each industry, not just recency — a single
 // long tenure early in a career is as strong a signal as a short recent
 // stint. Recency only breaks ties between industries of similar duration.
-// Shared by GoalsForm (onboarding) and SearchStrategyForm (dashboard) so
-// both surfaces pre-populate "target industries" the same way.
+// Used by SearchStrategyForm to pre-populate "target industries" from the
+// candidate's work history.
 export function inferIndustriesFromWorkHistory(workHistory: WorkHistoryEntry[]): string[] {
   const durationByIndustry = new Map<string, number>()
   const recencyRankByIndustry = new Map<string, number>()

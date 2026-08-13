@@ -5,15 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import {
-  Prisma,
-  NotificationTier,
-  type CurrentJobStatus,
-  type GapDurationBucket,
-  type SearchIntensity,
-  type PublicDisclosureComfort,
-  type ReferralRecency,
-} from '@prisma/client'
+import { Prisma, NotificationTier, type CurrentJobStatus } from '@prisma/client'
 import {
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   SITUATION_TO_JOB_STATUS,
@@ -88,65 +80,25 @@ export async function updateCircumstances(
     return { error: 'Please answer all required questions.' }
   }
 
-  const isNewGrad = currentJobStatus === 'NEW_GRADUATE_FIRST_JOB'
-  const gapDurationRequired = currentJobStatus !== 'EMPLOYED_CONSIDERING_MOVE' && !isNewGrad
-  const gapDurationRaw = (formData.get('gapDuration') as string) || null
-
-  if (gapDurationRequired && !gapDurationRaw) {
-    return { error: 'Please answer all required questions.' }
-  }
-
-  const gapDuration = isNewGrad
-    ? 'ZERO_TO_THREE_MONTHS'
-    : currentJobStatus === 'EMPLOYED_CONSIDERING_MOVE'
-      ? null
-      : (gapDurationRaw as GapDurationBucket)
-
-  const jobSearchDifficultyRaw = formData.get('jobSearchDifficultyLevel')
-  const jobSearchDifficultyLevel = jobSearchDifficultyRaw ? Number(jobSearchDifficultyRaw) : null
-  const biggestBarriers = formData.getAll('biggestBarriers').map(String)
-  const searchIntensityRaw = (formData.get('searchIntensity') as string) || null
-  const searchIntensity = searchIntensityRaw as SearchIntensity | null
-
-  // Job search activity self-report — every field here is optional.
-  const jobsAppliedBucket = (formData.get('jobsAppliedBucket') as string) || null
-  const interviewsReceivedRaw = formData.get('interviewsReceivedCount')
-  const interviewsReceivedCount = interviewsReceivedRaw ? Number(interviewsReceivedRaw) : null
-  const networkingLevelRaw = formData.get('networkingLevel')
-  const networkingLevel = networkingLevelRaw ? Number(networkingLevelRaw) : null
-  const learnedNewSkillsLevelRaw = formData.get('learnedNewSkillsLevel')
-  const learnedNewSkillsLevel = learnedNewSkillsLevelRaw ? Number(learnedNewSkillsLevelRaw) : null
-  const triedPartTimeOrConsultingRaw = formData.get('triedPartTimeOrConsulting') as string | null
-  const triedPartTimeOrConsulting =
-    triedPartTimeOrConsultingRaw === 'yes' ? true : triedPartTimeOrConsultingRaw === 'no' ? false : null
-  const triedExecutiveCoachingRaw = formData.get('triedExecutiveCoaching') as string | null
-  const triedExecutiveCoaching =
-    triedExecutiveCoachingRaw === 'yes' ? true : triedExecutiveCoachingRaw === 'no' ? false : null
-  const connectedWithRecruitersRaw = formData.get('connectedWithRecruiters') as string | null
-  const connectedWithRecruiters =
-    connectedWithRecruitersRaw === 'yes' ? true : connectedWithRecruitersRaw === 'no' ? false : null
-  const recruiterConnectionCountRaw = formData.get('recruiterConnectionCount')
-  const recruiterConnectionCount =
-    connectedWithRecruiters && recruiterConnectionCountRaw ? Number(recruiterConnectionCountRaw) : null
-
   try {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
       data: {
         currentJobStatus,
-        gapDuration,
-        jobSearchDifficultyLevel,
-        biggestBarriers,
-        searchIntensity,
-        jobsAppliedBucket,
-        interviewsReceivedCount,
-        networkingLevel,
-        learnedNewSkillsLevel,
-        triedPartTimeOrConsulting,
-        triedExecutiveCoaching,
-        connectedWithRecruiters,
-        recruiterConnectionCount,
         part1Complete: true,
+        // The Experience and Goals onboarding steps were removed — their
+        // content already lives on Skills & Behavioral Assessments and
+        // Search Strategy respectively, both hard-gated immediately after
+        // this in the new candidate flow (see #929/#930), so there's
+        // nothing left to collect before the initial grade can compute.
+        // gapDuration/jobSearchDifficultyLevel/biggestBarriers moved to
+        // Search Strategy and Blockers and Motivations — deliberately left
+        // null here rather than asked twice; the score-reveal page already
+        // frames the initial grade as rough until those are answered.
+        part3Complete: true,
+        part4Complete: true,
+        assessmentComplete: true,
+        assessmentCompletedAt: new Date(),
       },
     })
   } catch {
@@ -156,7 +108,7 @@ export async function updateCircumstances(
   captureServerEvent(candidateId, 'onboarding_part_complete', { part: 1 })
 
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/experience')
+  redirect('/onboarding/contract')
 }
 
 // The contract screen is the last question before the score reveal — both
@@ -370,96 +322,6 @@ export async function updateAssessment(
   revalidatePath('/onboarding', 'layout')
   revalidatePath('/dashboard')
   redirect('/dashboard')
-}
-
-export async function updateExperience(
-  _prevState: FormState,
-  formData: FormData
-): Promise<FormState> {
-  const candidateId = await requireCandidateId()
-
-  // isPeopleManager/teamSizeManaged are no longer asked here — moved to
-  // Track Record (spec §4.2 item 16). isPeopleManager still gates the
-  // managementSkillConfidence slider below, read from whatever's already on
-  // the profile (null pre-Track-Record, same as any other not-yet-answered
-  // profile field) rather than required in this form.
-  const existing = await prisma.candidateProfile.findUnique({
-    where: { id: candidateId },
-    select: { isPeopleManager: true },
-  })
-  const isPeopleManager = existing?.isPeopleManager ?? false
-  const topStrengths = formData.getAll('topStrengths').map(String)
-  const functionSkillConfidence = formData.get('functionSkillConfidence')
-  const aiFlexibilityLevel = formData.get('aiFlexibilityLevel')
-  const managementSkillConfidence = formData.get('managementSkillConfidence')
-
-  // actionOrientedConfidence/creativityConfidence/communicatorConfidence are
-  // deliberately not read here — see the matching comment in
-  // src/app/dashboard/skills-assessment/actions.ts.
-  try {
-    await prisma.candidateProfile.update({
-      where: { id: candidateId },
-      data: {
-        topStrengths,
-        functionSkillConfidence: functionSkillConfidence ? Number(functionSkillConfidence) : null,
-        aiFlexibilityLevel: aiFlexibilityLevel ? Number(aiFlexibilityLevel) : null,
-        managementSkillConfidence: isPeopleManager && managementSkillConfidence
-          ? Number(managementSkillConfidence)
-          : null,
-        part3Complete: true,
-      },
-    })
-  } catch {
-    return { error: 'Something went wrong saving your answers. Please try again.' }
-  }
-
-  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 3 })
-
-  revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/goals')
-}
-
-export async function updateGoals(_prevState: FormState, formData: FormData): Promise<FormState> {
-  const candidateId = await requireCandidateId()
-
-  const openToRelocation = formData.get('openToRelocation') === 'on'
-
-  try {
-    await prisma.candidateProfile.update({
-      where: { id: candidateId },
-      data: {
-        targetRoleType: (formData.get('targetRoleType') as string) || null,
-        targetIndustries: formData.getAll('targetIndustries').map(String),
-        targetFunction: (formData.get('targetFunction') as string) || null,
-        targetCompanySize: (formData.get('targetCompanySize') as string) || null,
-        targetCompanyStage: (formData.get('targetCompanyStage') as string) || null,
-        primaryFunction: (formData.get('primaryFunction') as string) || null,
-        remotePreference: (formData.get('remotePreference') as string) || null,
-        compFlexible: formData.get('compFlexible') === 'on',
-        willingToStartLower: formData.get('willingToStartLower') === 'on',
-        startLowerRationale: (formData.get('startLowerRationale') as string) || null,
-        isPivoting: formData.get('isPivoting') === 'on',
-        openToRelocation,
-        relocationNotes: openToRelocation ? (formData.get('relocationNotes') as string) || null : null,
-        publicDisclosureComfort: (formData.get('publicDisclosureComfort') as PublicDisclosureComfort) || null,
-        hasBeenReferredBefore: formData.get('hasBeenReferredBefore') === 'on',
-        referralRecency:
-          formData.get('hasBeenReferredBefore') === 'on'
-            ? (formData.get('referralRecency') as ReferralRecency) || null
-            : null,
-        part4Complete: true,
-        assessmentComplete: true,
-        assessmentCompletedAt: new Date(),
-      },
-    })
-  } catch {
-    return { error: 'Something went wrong saving your answers. Please try again.' }
-  }
-
-  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 4 })
-
-  revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/contract')
 }
 
 // Mandatory, specific consent gate (Prompt 54) — being assigned a coachId

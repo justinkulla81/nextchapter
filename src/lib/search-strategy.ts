@@ -112,6 +112,7 @@ export function isBlockersAndMotivationsComplete(candidate: {
 // gates (isSearchGoalsComplete/isBlockersAndMotivationsComplete) — this is
 // informational/unlocking, not a scoring input.
 export function isMarketingPlanWillingnessComplete(candidate: {
+  publicDisclosureComfort: string | null
   contentComfortLevel: number | null
   contentVenues: string[]
   linkedinOpennessComfort: number | null
@@ -119,6 +120,7 @@ export function isMarketingPlanWillingnessComplete(candidate: {
   linkedinProfileUpToDate: boolean | null
 }): boolean {
   return !!(
+    candidate.publicDisclosureComfort &&
     candidate.contentComfortLevel !== null &&
     candidate.contentVenues.length > 0 &&
     candidate.linkedinOpennessComfort !== null &&

@@ -39,8 +39,6 @@ export default async function OnboardingLayout({ children }: { children: React.R
             profile?.resumeStepComplete ?? false,
             profile?.desireComplete ?? false,
             profile?.part1Complete ?? false,
-            profile?.part3Complete ?? false,
-            profile?.part4Complete ?? false,
           ]}
         />
       </header>

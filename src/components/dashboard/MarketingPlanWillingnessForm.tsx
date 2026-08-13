@@ -1,13 +1,15 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import type { CandidateProfile, ContentVenue } from '@prisma/client'
+import type { CandidateProfile, ContentVenue, PublicDisclosureComfort } from '@prisma/client'
 import { updateMarketingPlanWillingness } from '@/app/dashboard/search-strategy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FourStopSlider } from '@/components/onboarding/FourStopSlider'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { COMFORT_LEVEL_CHOICES, CONTENT_VENUE_OPTIONS } from '@/lib/constants/content-venues'
+import { PUBLIC_DISCLOSURE_COMFORT_OPTIONS } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 
 const OPENNESS_CHOICES = [
@@ -26,6 +28,9 @@ const USAGE_OPTIONS = [
 
 export function MarketingPlanWillingnessForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateMarketingPlanWillingness, undefined)
+  const [publicDisclosureComfort, setPublicDisclosureComfort] = useState<PublicDisclosureComfort | null>(
+    profile.publicDisclosureComfort
+  )
   const [contentComfortLevel, setContentComfortLevel] = useState<number | null>(profile.contentComfortLevel)
   const [usageFrequency, setUsageFrequency] = useState<string | null>(profile.linkedinUsageFrequency)
   const [profileUpToDate, setProfileUpToDate] = useState<string | null>(
@@ -37,6 +42,21 @@ export function MarketingPlanWillingnessForm({ profile }: { profile: CandidatePr
       action={formAction}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <div className="space-y-2">
+        <Label>
+          How comfortable are you with being publicly visible as job-searching — things like
+          LinkedIn&apos;s &quot;Open to Work&quot; or a public post — separate from telling people you know
+          directly?
+        </Label>
+        <ChoiceButtons
+          name="publicDisclosureComfort"
+          options={PUBLIC_DISCLOSURE_COMFORT_OPTIONS}
+          value={publicDisclosureComfort}
+          onChange={setPublicDisclosureComfort}
+          columns={2}
+        />
+      </div>
+
       <div className="space-y-2">
         <Label>What kind of thought leadership have you done, or would you try?</Label>
         <div className="flex flex-wrap gap-4">
