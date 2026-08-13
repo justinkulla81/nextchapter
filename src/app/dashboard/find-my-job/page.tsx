@@ -52,6 +52,9 @@ import { MarkAppliedForm } from '@/components/dashboard/MarkAppliedForm'
 import { ConversionDiagnosticCard } from '@/components/dashboard/ConversionDiagnosticCard'
 import { NegotiationPracticeTab } from '@/components/dashboard/NegotiationPracticeTab'
 import { Card, CardContent } from '@/components/ui/card'
+import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
+import { applicationCountToTier } from '@/lib/network/application-count-tier'
+import { MIN_APPLICATIONS_FOR_TRENDS, type ApplicationTrendsResult } from '@/lib/network/application-trends'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -100,6 +103,81 @@ const FIT_SCORE_TEXT_CLASS: Record<FitScoreLabel, string> = {
   'Strong Fit': 'text-success',
   'Good Fit': 'text-foreground',
   'Poor Fit': 'text-destructive',
+}
+
+const APPLICATION_FOCUS_LABEL: Record<NonNullable<ApplicationTrendsResult['functionFocus']>, string> = {
+  focused: 'Focused',
+  mixed: 'A mix',
+  scattered: 'Scattered',
+}
+
+const APPLICATION_VOLUME_LABEL: Record<NonNullable<ApplicationTrendsResult['volumeAssessment']>, string> = {
+  too_few: 'Below a healthy pace',
+  on_track: 'On pace',
+  too_many: 'Very high volume',
+}
+
+// Mirrors the Application Trends block on the Market Reality Report — same
+// data, same labels, just rendered inside a TierSummaryCard here instead of
+// a full report section.
+function ApplicationTrendsContent({ trends }: { trends: ApplicationTrendsResult }) {
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-4 sm:grid-cols-2">
+        {trends.functionFocus && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Job function</p>
+            <p className="mt-1 text-sm text-foreground">{APPLICATION_FOCUS_LABEL[trends.functionFocus]}</p>
+            {trends.functionBreakdown && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {trends.functionBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+              </p>
+            )}
+          </div>
+        )}
+        {trends.industryFocus && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Industry</p>
+            <p className="mt-1 text-sm text-foreground">{APPLICATION_FOCUS_LABEL[trends.industryFocus]}</p>
+            {trends.industryBreakdown && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {trends.industryBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+              </p>
+            )}
+          </div>
+        )}
+        {trends.geographyFocus && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Geography</p>
+            <p className="mt-1 text-sm text-foreground">{APPLICATION_FOCUS_LABEL[trends.geographyFocus]}</p>
+            {trends.geographyBreakdown && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {trends.geographyBreakdown.map((b) => `${b.label} (${b.count})`).join(', ')}
+              </p>
+            )}
+          </div>
+        )}
+        {trends.volumeAssessment && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Application pace</p>
+            <p className="mt-1 text-sm text-foreground">
+              {APPLICATION_VOLUME_LABEL[trends.volumeAssessment]}
+              {trends.applicationsPerWeek !== null && ` — ${trends.applicationsPerWeek}/week`}
+            </p>
+            {trends.volumeGoalPerWeek && (
+              <p className="mt-0.5 text-xs text-muted-foreground">Your goal: {trends.volumeGoalPerWeek}/week</p>
+            )}
+          </div>
+        )}
+      </div>
+      {(!trends.industryBreakdown || !trends.geographyBreakdown) && (
+        <p className="text-xs text-muted-foreground">
+          Industry and geography need more of your applications to have a company name or a fit check run — they&apos;ll
+          fill in as you add more.
+        </p>
+      )}
+    </div>
+  )
 }
 
 interface InterviewPrep {
@@ -372,7 +450,7 @@ async function FindMyJobBody({
   // LLM call for any company name seen for the first time) — both live
   // entirely inside JobRecommendationsSection below now, wrapped in
   // Suspense, so the rest of the page never blocks on them.
-  const [grade, boardPostings] = await Promise.all([
+  const [grade, boardPostings, latestReport] = await Promise.all([
     computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
     prisma.exclusiveJobPosting.findMany({
       where: {
@@ -383,7 +461,20 @@ async function FindMyJobBody({
       },
       orderBy: { createdAt: 'desc' },
     }),
+    // Reads the same application-trends breakdown the Market Reality Report
+    // shows, computed once at report-generation time — never recomputed
+    // live here, since computeApplicationTrends calls resolveCompanyIndustry
+    // (a real LLM call for a genuinely new company) and this page renders on
+    // every visit, not just once a week like the report does.
+    prisma.hireabilityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+      select: { jobSearchPattern: true },
+    }),
   ])
+  const applicationTrends =
+    (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
+      ?.applicationTrends ?? null
 
   const isAList = grade.grade === 'A'
   // Needs isAList to decide which A_LIST_ONLY postings this candidate can
@@ -657,6 +748,18 @@ async function FindMyJobBody({
 
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Application Tracker</h2>
+
+        {applicationTrends && (
+          <TierSummaryCard
+            title="Application Trends"
+            count={applicationTrends.totalApplications}
+            unitLabel="application"
+            tier={applicationCountToTier(applicationTrends.totalApplications)}
+            buildingAt={MIN_APPLICATIONS_FOR_TRENDS}
+            highAt={MIN_APPLICATIONS_FOR_TRENDS}
+            unlockedContent={<ApplicationTrendsContent trends={applicationTrends} />}
+          />
+        )}
 
         <ConversionDiagnosticCard jobPostings={jobPostings} />
 
