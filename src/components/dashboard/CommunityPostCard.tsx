@@ -53,7 +53,7 @@ export function CommunityPostCard({
               >
                 Message
               </Link>
-              {post.postType !== 'MILESTONE' && (
+              {post.postType !== 'MILESTONE' && post.postType !== 'LIKED_CONTENT' && (
                 <form action={expressInterest.bind(null, post.id)}>
                   <SubmitButton variant="outline" size="sm">
                     I&apos;m interested

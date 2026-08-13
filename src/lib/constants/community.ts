@@ -7,4 +7,5 @@ export const COMMUNITY_POST_TYPE_LABELS: Record<CommunityPostType, string> = {
   SELF_INTRO: 'Introduction',
   UPDATE: 'Update',
   MILESTONE: 'Milestone',
+  LIKED_CONTENT: 'Liked',
 }

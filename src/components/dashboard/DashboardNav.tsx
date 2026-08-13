@@ -136,7 +136,7 @@ function buildSections(
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase },
         { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen },
-        { href: '/dashboard/webinars', label: 'Webinars', icon: Video },
+        { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],
     },

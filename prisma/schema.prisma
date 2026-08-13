@@ -996,6 +996,7 @@ model CandidateProfile {
   communityPosts                 CommunityPost[]
   expressedInterests             CommunityPostInterest[]
   communityPostReactions         CommunityPostReaction[]
+  contentLikes                   ContentLike[]
   communityMemberships           CommunityMembership[]
   hireabilityReports             HireabilityReport[]
   linkedInActivityLogs           LinkedInActivityLog[]
@@ -2195,6 +2196,7 @@ enum CommunityPostType {
   SELF_INTRO // "introduce yourself" gate post — presence of one (not a boolean flag) unlocks the board
   UPDATE // default type for the message-only composer, post Community+Circle merge
   MILESTONE // system-generated on a real milestone badge (e.g. WEEKLY_SPRINT_TARGET_HIT) — see maybeCreateMilestonePost
+  LIKED_CONTENT // system-generated on a candidate's first Like of a Videos and Webinars carousel item — see maybeCreateContentLikePost
 }
 
 model CommunityPost {
@@ -4005,6 +4007,85 @@ model WebinarRegistration {
 
   @@unique([webinarId, candidateId])
   @@index([candidateId])
+}
+
+// "Videos and Webinars" candidate page — YouTube long-form + Shorts carousel
+// content, auto-pulled via src/lib/content/youtube-ingest.ts (gated on
+// YOUTUBE_API_KEY being configured) and/or added directly by an admin.
+// Distinct from PageContent.videoProvider/videoUrl (a single embed inside
+// arbitrary admin-authored page content elsewhere in the site) — this is a
+// searched/curated LIST rendered as its own carousel, not a single embed.
+enum VideoFormat {
+  LONG_FORM
+  SHORT
+}
+
+enum VideoContentSource {
+  AUTO_PULLED
+  ADMIN_ADDED
+}
+
+model CuratedVideo {
+  id              String             @id @default(cuid())
+  youtubeVideoId  String             @unique
+  title           String
+  description     String?            @db.Text
+  thumbnailUrl    String
+  channelTitle    String
+  publishedAt     DateTime
+  durationSeconds Int
+  format          VideoFormat
+  source          VideoContentSource
+  addedByAdminId  String?
+  // Admin soft-delete. refreshYouTubeVideos() must never resurrect a video
+  // that has this set on a later ingest run (see youtube-ingest.ts).
+  removedAt       DateTime?
+  createdAt       DateTime           @default(now())
+
+  @@index([format, removedAt])
+}
+
+// Podcasts carousel — admin-curated only, no auto-pull (no podcast-search
+// API is wired up). All three platform links are optional since not every
+// episode has all three.
+model Podcast {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?   @db.Text
+  thumbnailUrl String?
+  appleUrl     String?
+  spotifyUrl   String?
+  youtubeUrl   String?
+  publishedAt  DateTime
+  removedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([removedAt])
+}
+
+enum ContentLikeType {
+  // Shorts share this type too, distinguished by CuratedVideo.format, not a
+  // separate like-type.
+  CURATED_VIDEO
+  WEBINAR
+  PODCAST
+}
+
+// One Like posts to the Support Network feed on the FIRST like only (see
+// maybeCreateContentLikePost in src/lib/content/content-likes.ts, which
+// bypasses SUBMITTABLE_POST_TYPES the same way maybeCreateMilestonePost
+// does). The unique constraint makes a second click on an already-liked item
+// an unlike (row deleted) rather than a duplicate feed post.
+model ContentLike {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  contentType ContentLikeType
+  contentId   String
+  likedAt     DateTime         @default(now())
+
+  @@unique([candidateId, contentType, contentId])
+  @@index([contentType, contentId])
 }
 
 // Singleton — a single NextChapter-owned Google Calendar connection admin

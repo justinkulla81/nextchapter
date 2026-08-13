@@ -1,0 +1,74 @@
+import type { Podcast } from '@prisma/client'
+import { Mic } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
+import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
+
+// Placeholder text/outline link-out buttons, NOT the official Apple
+// Podcasts / Spotify badge images — this build has no image-download
+// tooling to fetch and bundle the real official badge assets, and
+// hand-drawing a recreation of those logos would be exactly the kind of
+// custom-logo-recreation to avoid. Follow-up: swap these for the real
+// official badge images (or confirm plain text links are fine as final)
+// once the user supplies them.
+export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: boolean }) {
+  return (
+    <div className="w-72 shrink-0 space-y-2 rounded-lg border border-border bg-card p-3">
+      <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
+        {podcast.thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- external podcast artwork; no remote-image domain is configured for next/image
+          <img src={podcast.thumbnailUrl} alt="" className="size-full object-cover" />
+        ) : (
+          <div className="flex size-full items-center justify-center text-muted-foreground">
+            <Mic className="size-8" aria-hidden />
+          </div>
+        )}
+      </div>
+      <div>
+        <p className="line-clamp-2 text-sm font-medium text-foreground">{podcast.title}</p>
+        {podcast.description && (
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{podcast.description}</p>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {podcast.appleUrl && (
+          <a
+            href={podcast.appleUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({ variant: 'outline', size: 'xs' })}
+          >
+            Listen on Apple Podcasts
+          </a>
+        )}
+        {podcast.spotifyUrl && (
+          <a
+            href={podcast.spotifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({ variant: 'outline', size: 'xs' })}
+          >
+            Listen on Spotify
+          </a>
+        )}
+        {podcast.youtubeUrl && (
+          <a
+            href={podcast.youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({ variant: 'outline', size: 'xs' })}
+          >
+            Watch on YouTube
+          </a>
+        )}
+      </div>
+      <div className="flex justify-end">
+        <ContentLikeButton
+          contentType="PODCAST"
+          contentId={podcast.id}
+          title={podcast.title}
+          isLiked={isLiked}
+        />
+      </div>
+    </div>
+  )
+}

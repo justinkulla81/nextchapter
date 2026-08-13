@@ -88,7 +88,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/page-content', label: 'Page Content' },
         { href: '/support/admin/email-cadence', label: 'Email Cadence' },
         { href: '/support/admin/courses', label: 'Courses' },
-        { href: '/support/admin/webinars', label: 'Webinars' },
+        { href: '/support/admin/webinars', label: 'Videos and Webinars' },
         { href: '/support/admin/pedigree-signals', label: 'Pedigree Signals' },
         { href: '/support/admin/interim-listings', label: 'Interim Work Listings' },
         { href: '/support/admin/bias-detection', label: 'Bias Detection' },
