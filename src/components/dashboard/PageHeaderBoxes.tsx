@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { getPageBoxContent, type PageKey } from '@/lib/dashboard/page-content'
 import { getWatchlistAlertContent } from '@/lib/company-tracker/watchlist'
+import { getSearchStrategyDailyMessageOverride } from '@/lib/weekly/search-strategy-checklist'
 import { DailyMessageBox } from '@/components/dashboard/DailyMessageBox'
 import { ActionPlanBox } from '@/components/dashboard/ActionPlanBox'
 
@@ -30,10 +31,12 @@ export async function PageHeaderBoxes({
   dailyMessageOverride?: ReactNode
 }) {
   const watchlistAlert = WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
+  const searchStrategyAlert =
+    pageKey === 'search-strategy' ? await getSearchStrategyDailyMessageOverride(candidateId) : null
 
   const dailyMessage = dailyMessageOverride
     ? null
-    : await getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert)
+    : await getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert ?? searchStrategyAlert)
 
   return (
     <div className="space-y-3">

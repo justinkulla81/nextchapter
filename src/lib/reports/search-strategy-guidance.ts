@@ -55,6 +55,7 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
         careerTrajectory: true,
         gapDuration: true,
         searchStrategyGuidance: true,
+        searchStrategyFirstAnsweredAt: true,
       },
     }),
     getCandidateLevelRank(candidateId),
@@ -97,7 +98,7 @@ Return strict JSON with this exact shape, no markdown, no extra keys:
 
 - pros: 1-2 sentences on what's genuinely working or well-calibrated about their strategy (e.g. a realistic target given their level, good comp flexibility, a sensible application volume goal). Be specific, not generic praise.
 - cons: 1-2 sentences on the real risk or mismatch in their current strategy — e.g. if their real experience reads more senior than their raw title (or vice versa) given the size of company it was earned at, say what that implies; if their stated target company size or level looks like a mismatch for their real experience, raise it constructively as something worth reconsidering, not as a criticism; if their application volume goal is below the 15/week baseline, name that directly (e.g. "too few applications planned this week").
-- suggestedChanges: 1-2 sentences of concrete, specific changes to make and why — the single most useful adjustment given everything above.
+- suggestedChanges: 1-2 sentences of concrete, specific changes to make and why — the single most useful adjustment given everything above. If they've been searching for a while and their trajectory shows a real gap, and they're open to fractional/interim consulting, seriously consider whether the single most useful change is adding that interim/fractional work to their resume and story — it fills the title/experience gap with something concrete rather than a blank stretch, and is often more valuable advice than generic positioning tips.
 
 Never state a numeric score, never use the words "level rank," "calibrated," or "tier," and never say anything like "based on your internal score" — this should read as if it came from a human coach who simply knows the candidate's real experience level, not from a computed signal.
 
@@ -131,7 +132,15 @@ ${summary}`
 
     await prisma.candidateProfile.update({
       where: { id: candidateId },
-      data: { searchStrategyGuidance: JSON.stringify(guidance), searchStrategyGuidanceGeneratedAt: new Date() },
+      data: {
+        searchStrategyGuidance: JSON.stringify(guidance),
+        searchStrategyGuidanceGeneratedAt: new Date(),
+        // Only ever set, never cleared — see the field's schema comment.
+        // updateSearchStrategy nulls searchStrategyGuidance/GeneratedAt on
+        // every save so this cache regenerates, but never touches this
+        // field, so it survives every future regeneration.
+        ...(!candidate.searchStrategyFirstAnsweredAt && { searchStrategyFirstAnsweredAt: new Date() }),
+      },
     })
     return guidance
   } catch (error) {

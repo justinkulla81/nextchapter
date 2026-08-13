@@ -6,6 +6,9 @@
 // the weekly points ramp. Points here are a completeness metric only — they
 // don't feed weeklyPoints/weeklyPointsTarget anywhere. Mirrors the same
 // non-invasive pattern as profile-checklist.ts.
+import 'server-only'
+import { prisma } from '@/lib/prisma'
+import type { PageContentView } from '@/lib/dashboard/page-content'
 
 export interface SearchStrategyChecklistItem {
   key: string
@@ -92,4 +95,42 @@ export function computeSearchStrategyChecklist(profile: SearchStrategyChecklistP
     href: `/dashboard/search-strategy#${f.anchor}`,
   }))
   return { incomplete, totalPointsRemaining: incomplete.length * POINTS_PER_ITEM }
+}
+
+// A computed Daily Message override for the search-strategy page — see
+// getWatchlistAlertContent (src/lib/company-tracker/watchlist.ts) for the
+// established pattern this mirrors. Only fires once the candidate has seen
+// Victoria's guidance at least once (searchStrategyFirstAnsweredAt set) —
+// before that, the page's own top-of-page explainer already covers "answer
+// these to unlock guidance," so this would just be a duplicate nag. Null
+// once nothing's left, so the admin-authored rotation resumes normally.
+export async function getSearchStrategyDailyMessageOverride(candidateId: string): Promise<PageContentView | null> {
+  const profile = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: {
+      searchStrategyFirstAnsweredAt: true,
+      gapDuration: true,
+      targetIndustries: true,
+      primaryFunction: true,
+      highestLevelReached: true,
+      targetRoleType: true,
+      remotePreference: true,
+    },
+  })
+  if (!profile?.searchStrategyFirstAnsweredAt) return null
+
+  const { incomplete } = computeSearchStrategyChecklist(profile)
+  if (incomplete.length === 0) return null
+
+  return {
+    id: 'search-strategy-unanswered',
+    title: 'A few Search Strategy questions are still unanswered',
+    leadIn: null,
+    bullets: incomplete.map((item) => item.label),
+    footer: 'Answer these on Search Strategy for more personalized guidance from Victoria.',
+    videoProvider: null,
+    videoUrl: null,
+    useInlineEmbed: false,
+    isPinned: true,
+  }
 }

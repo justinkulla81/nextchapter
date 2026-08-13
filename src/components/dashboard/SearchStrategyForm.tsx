@@ -28,6 +28,18 @@ import {
 import { cn } from '@/lib/utils'
 import type { CandidateProfile } from '@prisma/client'
 
+// A quiet visual flag next to a Label — not answered yet, in-context, no
+// separate legend needed. Only used on the fields search-strategy-checklist.ts
+// tracks as real completeness gaps (see FIELDS there) — every other field on
+// this form is genuinely optional and shouldn't be flagged.
+function UnansweredBadge() {
+  return (
+    <span className="ml-2 rounded-full bg-warning/10 px-2 py-0.5 align-middle text-[10px] font-medium text-warning">
+      Not answered yet
+    </span>
+  )
+}
+
 export function SearchStrategyForm({
   profile,
   inferredIndustries,
@@ -57,7 +69,10 @@ export function SearchStrategyForm({
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <div className="space-y-2">
-        <Label htmlFor="gapDuration">How long have you been searching?</Label>
+        <Label htmlFor="gapDuration">
+          How long have you been searching?
+          {!profile.gapDuration && <UnansweredBadge />}
+        </Label>
         <p className="text-xs text-muted-foreground">
           Keep this current as your search goes on — it&apos;s a real input to how your Market
           Reality grade reads a longer search.
@@ -91,7 +106,10 @@ export function SearchStrategyForm({
             We&apos;ve added these below — remove any that don&apos;t apply, or add more.
           </p>
         )}
-        <Label>Target industries</Label>
+        <Label>
+          Target industries
+          {profile.targetIndustries.length === 0 && inferredIndustries.length === 0 && <UnansweredBadge />}
+        </Label>
         <div id="targetIndustries" className="scroll-mt-4">
           <TagInput
             name="targetIndustries"
@@ -103,7 +121,10 @@ export function SearchStrategyForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="primaryFunction">Your primary job function</Label>
+        <Label htmlFor="primaryFunction">
+          Your primary job function
+          {!profile.primaryFunction && <UnansweredBadge />}
+        </Label>
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
           <SelectTrigger id="primaryFunction" className="w-full scroll-mt-4">
             <SelectValue placeholder="Select one" />
@@ -139,47 +160,55 @@ export function SearchStrategyForm({
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="highestLevelReached">Seniority — highest level reached</Label>
-        <p className="text-xs text-muted-foreground">Drives how jobs are matched to you.</p>
-        <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
-          <SelectTrigger id="highestLevelReached" className="w-full scroll-mt-4">
-            <SelectValue placeholder="Select one">
-              {(value: string | null) => (value && value !== 'none' ? value : 'Not set')}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Not set</SelectItem>
-            {HIGHEST_LEVEL_OPTIONS.map((level) => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="targetRoleType">Target role</Label>
-        {/* Disabled inputs aren't included in FormData, so the real
-            submitted value lives in this hidden input instead. */}
-        <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
-        <Input
-          id="targetRoleType"
-          className="scroll-mt-4"
-          value={isTargetFlexible ? 'Flexible' : targetRoleType}
-          onChange={(e) => setTargetRoleType(e.target.value)}
-          disabled={isTargetFlexible}
-        />
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="targetRoleFlexible"
-            checked={isTargetFlexible}
-            onCheckedChange={(checked) => setIsTargetFlexible(checked === true)}
-          />
-          <Label htmlFor="targetRoleFlexible" className="font-normal text-muted-foreground">
-            I&apos;m flexible — open to a range of roles
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="highestLevelReached">
+            Seniority — highest level reached
+            {!profile.highestLevelReached && <UnansweredBadge />}
           </Label>
+          <p className="text-xs text-muted-foreground">Drives how jobs are matched to you.</p>
+          <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
+            <SelectTrigger id="highestLevelReached" className="w-full scroll-mt-4">
+              <SelectValue placeholder="Select one">
+                {(value: string | null) => (value && value !== 'none' ? value : 'Not set')}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Not set</SelectItem>
+              {HIGHEST_LEVEL_OPTIONS.map((level) => (
+                <SelectItem key={level} value={level}>
+                  {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="targetRoleType">
+            Target role
+            {!profile.targetRoleType && <UnansweredBadge />}
+          </Label>
+          {/* Disabled inputs aren't included in FormData, so the real
+              submitted value lives in this hidden input instead. */}
+          <input type="hidden" name="targetRoleType" value={isTargetFlexible ? 'Flexible' : targetRoleType} />
+          <Input
+            id="targetRoleType"
+            className="scroll-mt-4"
+            value={isTargetFlexible ? 'Flexible' : targetRoleType}
+            onChange={(e) => setTargetRoleType(e.target.value)}
+            disabled={isTargetFlexible}
+          />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="targetRoleFlexible"
+              checked={isTargetFlexible}
+              onCheckedChange={(checked) => setIsTargetFlexible(checked === true)}
+            />
+            <Label htmlFor="targetRoleFlexible" className="font-normal text-muted-foreground">
+              I&apos;m flexible — open to a range of roles
+            </Label>
+          </div>
         </div>
       </div>
 
@@ -280,7 +309,10 @@ export function SearchStrategyForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="remotePreference">Location preference</Label>
+        <Label htmlFor="remotePreference">
+          Location preference
+          {!profile.remotePreference && <UnansweredBadge />}
+        </Label>
         <Select
           name="remotePreference"
           value={remotePreference}

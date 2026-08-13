@@ -610,6 +610,13 @@ model CandidateProfile {
   // explicit "Regenerate guidance" action — never on a plain page read.
   searchStrategyGuidance            String?   @db.Text
   searchStrategyGuidanceGeneratedAt DateTime?
+  // Set once, the first time guidance is ever successfully drafted, and never
+  // cleared again (unlike searchStrategyGuidanceGeneratedAt above, which gets
+  // nulled on every form save so the cache regenerates). This is the "has the
+  // candidate seen Victoria's take at least once" flag the Search Strategy
+  // page uses to decide whether to show her card at all, or a plain
+  // explainer promising it's coming once they finish the form.
+  searchStrategyFirstAnsweredAt     DateTime?
 
   // "This Week's Focus" — Victoria's weekly strategic read (increase/adjust/
   // maintain/start-new), synthesizing Search Strategy + this week's Sprint
