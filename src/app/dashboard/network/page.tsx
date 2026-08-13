@@ -516,11 +516,15 @@ export default async function NetworkPage({
         />
       </div>
 
+      <Suspense fallback={<AutomaticTrackingSkeleton />}>
+        <NetworkingStatsCard profile={profile} />
+      </Suspense>
+
       <Link
         href="/dashboard/network/contacts?buildList=1#import"
         className="inline-flex h-10 w-fit items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90"
       >
-        Build Your Networking List ({contacts.length})
+        Go to / Add to Networking List ({contacts.length.toLocaleString()})
       </Link>
 
       <MarkBackchannelViewedOnMount />
@@ -529,10 +533,6 @@ export default async function NetworkPage({
       <PriorityContactsCard contacts={priorityContacts} />
 
       <NeedsFollowUpCard items={needsFollowUp} />
-
-      <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <NetworkingStatsCard profile={profile} />
-      </Suspense>
 
       {outreachLogs.length > 0 && (
         <TierSummaryCard

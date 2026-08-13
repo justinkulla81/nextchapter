@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Bell } from 'lucide-react'
+import { Bell, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
 import { dismissEmailActivity } from '@/app/dashboard/email-activity/actions'
 import { dismissCalendarEvent } from '@/app/dashboard/calendar-activity/actions'
+
+const PAGE_SIZE = 5
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -23,13 +25,21 @@ function formatDate(date: Date): string {
 // classifier itself no longer recommends bulk/newsletter senders going
 // forward — see isBulk gating in sync-gmail.ts). This is a client component
 // so the row disappears the instant it's clicked instead of waiting on a
-// full server round-trip.
+// full server round-trip. Paginated at 5 per page, same as
+// PriorityContactsCard, so a long list doesn't turn into an unscannable wall.
 export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(0)
   const [, startTransition] = useTransition()
 
   const visibleItems = items.filter((item) => !dismissedIds.has(item.sourceId))
   if (visibleItems.length === 0) return null
+
+  const pageCount = Math.ceil(visibleItems.length / PAGE_SIZE)
+  // Clamped rather than stored in state — dismissing the last item on the
+  // last page shouldn't strand the view on a now-empty page.
+  const effectivePage = Math.min(page, pageCount - 1)
+  const pagedItems = visibleItems.slice(effectivePage * PAGE_SIZE, effectivePage * PAGE_SIZE + PAGE_SIZE)
 
   function handleDismiss(item: NeedsFollowUpItem) {
     setDismissedIds((prev) => new Set(prev).add(item.sourceId))
@@ -59,12 +69,12 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
         </p>
       </CardHeader>
       <CardContent className="py-0">
-        {visibleItems.map((item, i) => (
+        {pagedItems.map((item, i) => (
           <div
             key={item.sourceId}
             className={cn(
               'flex items-center justify-between gap-3 py-2.5 text-sm',
-              i !== visibleItems.length - 1 && 'border-b border-border'
+              i !== pagedItems.length - 1 && 'border-b border-border'
             )}
           >
             <div className="min-w-0 flex-1">
@@ -98,6 +108,34 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
             </div>
           </div>
         ))}
+
+        {pageCount > 1 && (
+          <div className="flex items-center justify-between border-t border-border py-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={effectivePage === 0}
+              aria-label="Previous page"
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+            >
+              <ChevronLeft className="size-4" />
+              Prev
+            </button>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {effectivePage + 1} of {pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={effectivePage === pageCount - 1}
+              aria-label="Next page"
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+            >
+              Next
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
