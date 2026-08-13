@@ -12,6 +12,7 @@ import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
 
@@ -214,6 +215,8 @@ export default async function PortfolioPage() {
               </Button>
             </div>
           ))}
+
+        {!profile.coachId && <CoachingCTACard />}
       </div>
 
       <div className="space-y-4">

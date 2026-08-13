@@ -232,6 +232,47 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.personalContext && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Blockers &amp; motivations</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            In their own words — coach context only, never shown in the Dossier or to the candidate.
+          </p>
+          <dl className="mt-2 space-y-3 text-sm">
+            {notes.personalContext.blockerLabels.length > 0 && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Practical blockers</dt>
+                <dd className="text-foreground">{notes.personalContext.blockerLabels.join(', ')}</dd>
+              </div>
+            )}
+            {notes.personalContext.blockersOpenText && (
+              <div>
+                <dt className="text-xs text-muted-foreground">More, in their own words</dt>
+                <dd className="text-foreground">{notes.personalContext.blockersOpenText}</dd>
+              </div>
+            )}
+            {notes.personalContext.consistencySelfRating !== null && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Self-rated consistency</dt>
+                <dd className="text-foreground tabular-nums">{notes.personalContext.consistencySelfRating}/100</dd>
+              </div>
+            )}
+            {notes.personalContext.motivationLabels.length > 0 && (
+              <div>
+                <dt className="text-xs text-muted-foreground">What&apos;s driving them</dt>
+                <dd className="text-foreground">{notes.personalContext.motivationLabels.join(', ')}</dd>
+              </div>
+            )}
+            {notes.personalContext.motivationsElaboration && (
+              <div>
+                <dt className="text-xs text-muted-foreground">More, in their own words</dt>
+                <dd className="text-foreground">{notes.personalContext.motivationsElaboration}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+
       {(notes.searchPlan.applicationVolumeGoal !== null ||
         notes.searchPlan.skillsToBuild.length > 0 ||
         notes.searchPlan.interimConsultingInterest) && (

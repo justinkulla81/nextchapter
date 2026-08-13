@@ -27,6 +27,7 @@ import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coac
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
 import { getAnonymizedReferenceBreakdown, type ReferenceBreakdown } from '@/lib/coach/reference-breakdown'
 import { getJobActivityBreakdown, type JobActivityBreakdown } from '@/lib/coach/job-activity'
+import { BLOCKER_OPTIONS, MOTIVATIONS_OPTIONS } from '@/lib/constants/onboarding'
 
 export interface GapAnalysisGap {
   area: string
@@ -167,6 +168,44 @@ export interface SearchPlan {
   applicationVolumeGoal: number | null
   skillsToBuild: string[]
   interimConsultingInterest: boolean
+}
+
+// Personal Context: Blockers + Motivations (Prompt 47 rework) — coaching
+// context and Victoria tone calibration only, per the schema's own comment
+// ("read only by getCoachingNotes"). Never read by dossier-sections.ts —
+// see that file's exclusion comment. Null when the candidate hasn't
+// answered PersonalContextForm at all yet.
+export interface PersonalContext {
+  blockerLabels: string[]
+  blockersOpenText: string | null
+  consistencySelfRating: number | null
+  motivationLabels: string[]
+  motivationsElaboration: string | null
+}
+
+function buildPersonalContext(candidate: {
+  blockers: string[]
+  blockersOpenText: string | null
+  consistencySelfRating: number | null
+  motivations: string[]
+  motivationsElaboration: string | null
+}): PersonalContext | null {
+  if (
+    candidate.blockers.length === 0 &&
+    !candidate.blockersOpenText &&
+    candidate.consistencySelfRating === null &&
+    candidate.motivations.length === 0 &&
+    !candidate.motivationsElaboration
+  ) {
+    return null
+  }
+  return {
+    blockerLabels: candidate.blockers.map((v) => BLOCKER_OPTIONS.find((o) => o.value === v)?.label ?? v),
+    blockersOpenText: candidate.blockersOpenText,
+    consistencySelfRating: candidate.consistencySelfRating,
+    motivationLabels: candidate.motivations.map((v) => MOTIVATIONS_OPTIONS.find((o) => o.value === v)?.label ?? v),
+    motivationsElaboration: candidate.motivationsElaboration,
+  }
 }
 
 function buildFlexibilitySummary(candidate: {
@@ -391,6 +430,11 @@ export interface CoachingNotes {
   // than grouped by reviewer — see getAnonymizedReferenceBreakdown for why
   // (referee anonymity). Null until at least one reference has completed.
   referenceBreakdown: ReferenceBreakdown | null
+  // Practical constraints (blockers) and what's driving the search
+  // (motivations) — captured on Profile > Personal Context, coach-only, never
+  // in the Executive Dossier. Null until the candidate has answered any part
+  // of that form. See buildPersonalContext.
+  personalContext: PersonalContext | null
   // Full all-time job-search activity: applications, rejections, interviews,
   // offers, networking outreach, calendar meetings, follow-ups made/pending,
   // and which applied jobs have a Support Network connection attached. See
@@ -441,6 +485,11 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
         applicationVolumeGoal: true,
         skillsToBuild: true,
         interimConsultingInterest: true,
+        blockers: true,
+        blockersOpenText: true,
+        consistencySelfRating: true,
+        motivations: true,
+        motivationsElaboration: true,
       },
     }),
     getMoodHistory(candidateId),
@@ -539,6 +588,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       interimConsultingInterest: candidate.interimConsultingInterest,
     },
     referenceBreakdown,
+    personalContext: buildPersonalContext(candidate),
     jobActivity,
   }
 }

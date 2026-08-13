@@ -256,6 +256,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section 5a — Executive Coach teaser, links to the existing /coaching
+          waitlist page rather than duplicating its form here */}
+      <section className="bg-off-white py-16">
+        <div className="mx-auto max-w-2xl px-6 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-navy">Want a real human in your corner too?</h2>
+          <p className="mt-3 text-muted-foreground">
+            Victoria, your AI coach, stays free. Executive Coach adds a human career coach on
+            top — mock interviews, resume review, a second opinion on hard calls.
+          </p>
+          <div className="mt-6">
+            <Button nativeButton={false} size="default" variant="outline" render={<Link href="/coaching" />}>
+              Learn more about Executive Coach
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Section 5b — product-fact stat callouts */}
       <section className="bg-off-white py-16">
         <div className="mx-auto max-w-3xl px-6">
