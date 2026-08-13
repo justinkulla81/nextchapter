@@ -4,7 +4,9 @@ import { useState } from 'react'
 import type { CuratedVideo } from '@prisma/client'
 import { Play } from 'lucide-react'
 import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
+import { ContentDislikeButton } from '@/components/dashboard/ContentDislikeButton'
 import { VideoPlayerModal } from '@/components/dashboard/VideoPlayerModal'
+import { logContentClickAction } from '@/app/dashboard/webinars/actions'
 import { cn } from '@/lib/utils'
 
 function formatDuration(totalSeconds: number): string {
@@ -33,7 +35,16 @@ export function CuratedVideoCard({ video, isLiked }: { video: CuratedVideo; isLi
         isShort ? 'w-40' : 'w-72'
       )}
     >
-      <button type="button" onClick={() => setIsPlaying(true)} className="group block w-full text-left">
+      <button
+        type="button"
+        onClick={() => {
+          setIsPlaying(true)
+          // Fire-and-forget — the video must open immediately regardless of
+          // this call's latency, see logContentClickAction's own comment.
+          void logContentClickAction('CURATED_VIDEO', video.id)
+        }}
+        className="group block w-full text-left"
+      >
         <div
           className={cn(
             'relative w-full overflow-hidden bg-muted',
@@ -60,13 +71,14 @@ export function CuratedVideoCard({ video, isLiked }: { video: CuratedVideo; isLi
           <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
         </div>
       </button>
-      <div className="flex items-center justify-end px-1.5 pb-1.5">
+      <div className="flex items-center justify-end gap-1 px-1.5 pb-1.5">
         <ContentLikeButton
           contentType="CURATED_VIDEO"
           contentId={video.id}
           title={video.title}
           isLiked={isLiked}
         />
+        <ContentDislikeButton contentType="CURATED_VIDEO" contentId={video.id} />
       </div>
       <VideoPlayerModal
         open={isPlaying}

@@ -5,7 +5,9 @@ import type { Podcast } from '@prisma/client'
 import { Mic } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
+import { ContentDislikeButton } from '@/components/dashboard/ContentDislikeButton'
 import { VideoPlayerModal } from '@/components/dashboard/VideoPlayerModal'
+import { logContentClickAction } from '@/app/dashboard/webinars/actions'
 import { extractYouTubeVideoId } from '@/lib/content/youtube-video-id'
 
 // Placeholder text/outline link-out buttons, NOT the official Apple
@@ -61,7 +63,12 @@ export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: b
           (youtubeVideoId ? (
             <button
               type="button"
-              onClick={() => setIsPlaying(true)}
+              onClick={() => {
+                setIsPlaying(true)
+                // Fire-and-forget — the video must open immediately regardless
+                // of this call's latency, see logContentClickAction's own comment.
+                void logContentClickAction('PODCAST', podcast.id)
+              }}
               className={buttonVariants({ variant: 'outline', size: 'xs' })}
             >
               Watch on YouTube
@@ -77,13 +84,14 @@ export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: b
             </a>
           ))}
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-1">
         <ContentLikeButton
           contentType="PODCAST"
           contentId={podcast.id}
           title={podcast.title}
           isLiked={isLiked}
         />
+        <ContentDislikeButton contentType="PODCAST" contentId={podcast.id} />
       </div>
       {youtubeVideoId && (
         <VideoPlayerModal

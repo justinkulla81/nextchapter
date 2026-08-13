@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import type { ContentLikeType } from '@prisma/client'
+import type { ContentLikeType, CuratedVideo, Podcast, Webinar } from '@prisma/client'
 
 interface LikeableContent {
   contentType: ContentLikeType
@@ -55,6 +55,10 @@ async function maybeCreateContentLikePost(candidateId: string, content: Likeable
 // This is the documented choice for the spec's "no-op or unlike, your call"
 // — unlike was chosen so the Like button stays an honest, reversible
 // toggle rather than a one-way action.
+//
+// Liking something also clears any existing ContentDislike for the same
+// item — Like and Dislike are mutually exclusive (see dislikeContent in
+// content-dislikes.ts for the symmetric direction).
 export async function toggleContentLike(
   candidateId: string,
   content: LikeableContent
@@ -77,6 +81,9 @@ export async function toggleContentLike(
   await prisma.contentLike.create({
     data: { candidateId, contentType: content.contentType, contentId: content.contentId },
   })
+  await prisma.contentDislike.deleteMany({
+    where: { candidateId, contentType: content.contentType, contentId: content.contentId },
+  })
   await maybeCreateContentLikePost(candidateId, content)
   return { liked: true }
 }
@@ -93,4 +100,55 @@ export async function getCandidateContentLikeKeys(candidateId: string): Promise<
 
 export function contentLikeKey(contentType: ContentLikeType, contentId: string): string {
   return `${contentType}:${contentId}`
+}
+
+export interface CandidateFavorites {
+  // CURATED_VIDEO covers both long-form and Shorts (format field on the
+  // row distinguishes them, same as everywhere else) — a liked Short is a
+  // favorite exactly like a liked long-form video.
+  videos: CuratedVideo[]
+  podcasts: Podcast[]
+  webinars: Webinar[]
+}
+
+// Resolves a candidate's ContentLike rows back to their real source rows
+// for the "My Favorites" section (src/app/dashboard/webinars/page.tsx). A
+// liked item whose source row was removed (CuratedVideo/Podcast
+// removedAt, or Webinar cancelledAt) is silently skipped — it simply isn't
+// in the `in: [...ids]` result set, no error path needed. Each list is
+// ordered by likedAt (most recently liked first) since `findMany({ id: {
+// in } })` does not preserve the input array's order.
+export async function getCandidateFavorites(candidateId: string): Promise<CandidateFavorites> {
+  const likes = await prisma.contentLike.findMany({
+    where: { candidateId },
+    orderBy: { likedAt: 'desc' },
+  })
+  if (likes.length === 0) return { videos: [], podcasts: [], webinars: [] }
+
+  const likedAtByContentId = new Map(likes.map((l) => [l.contentId, l.likedAt.getTime()]))
+  const idsFor = (type: ContentLikeType) => likes.filter((l) => l.contentType === type).map((l) => l.contentId)
+  const byLikedAtDesc = <T extends { id: string }>(rows: T[]): T[] =>
+    [...rows].sort((a, b) => (likedAtByContentId.get(b.id) ?? 0) - (likedAtByContentId.get(a.id) ?? 0))
+
+  const videoIds = idsFor('CURATED_VIDEO')
+  const podcastIds = idsFor('PODCAST')
+  const webinarIds = idsFor('WEBINAR')
+
+  const [videos, podcasts, webinars] = await Promise.all([
+    videoIds.length
+      ? prisma.curatedVideo.findMany({ where: { id: { in: videoIds }, removedAt: null } })
+      : Promise.resolve([]),
+    podcastIds.length
+      ? prisma.podcast.findMany({ where: { id: { in: podcastIds }, removedAt: null } })
+      : Promise.resolve([]),
+    webinarIds.length
+      ? prisma.webinar.findMany({ where: { id: { in: webinarIds }, cancelledAt: null } })
+      : Promise.resolve([]),
+  ])
+
+  return {
+    videos: byLikedAtDesc(videos),
+    podcasts: byLikedAtDesc(podcasts),
+    webinars: byLikedAtDesc(webinars),
+  }
 }

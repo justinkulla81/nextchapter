@@ -1011,6 +1011,8 @@ model CandidateProfile {
   expressedInterests             CommunityPostInterest[]
   communityPostReactions         CommunityPostReaction[]
   contentLikes                   ContentLike[]
+  contentDislikes                ContentDislike[]
+  contentClicks                  ContentClick[]
   communityMemberships           CommunityMembership[]
   hireabilityReports             HireabilityReport[]
   linkedInActivityLogs           LinkedInActivityLog[]
@@ -4141,6 +4143,45 @@ model ContentLike {
   likedAt     DateTime         @default(now())
 
   @@unique([candidateId, contentType, contentId])
+  @@index([contentType, contentId])
+}
+
+// One-directional "not interested" signal — no undo UI (matches the user's
+// own casual phrasing for this ask; keep it simple). Disliking something
+// deletes any existing ContentLike for the same item (mutual exclusivity,
+// see toggleContentLike/dislikeContentAction), and once disliked an item is
+// excluded from that candidate's future carousel queries
+// (getCarouselVideos/getCarouselPodcasts). channelTitle is denormalized
+// (only ever populated for CURATED_VIDEO) so the "2 dislikes from the same
+// author blocks the whole author" rule (see getCarouselVideos) can query it
+// directly without a join back to CuratedVideo.
+model ContentDislike {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  contentType   ContentLikeType
+  contentId     String
+  channelTitle  String?
+  dislikedAt    DateTime         @default(now())
+
+  @@unique([candidateId, contentType, contentId])
+  @@index([candidateId, contentType])
+}
+
+// Logged on every "open the video/podcast player" click (see
+// logContentClickAction, fired fire-and-forget from CuratedVideoCard.tsx /
+// PodcastCard.tsx alongside opening VideoPlayerModal). Feeds the admin Stats
+// tab's per-item click counts — write-mostly, so no unique constraint here
+// (every click is its own row, unlike Like/Dislike which toggle a single row
+// per candidate+item).
+model ContentClick {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  contentType ContentLikeType
+  contentId   String
+  clickedAt   DateTime         @default(now())
+
   @@index([contentType, contentId])
 }
 

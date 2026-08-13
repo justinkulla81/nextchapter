@@ -8,6 +8,7 @@ import { CuratedVideoAddForm } from '@/components/admin/CuratedVideoAddForm'
 import { PodcastCreateForm } from '@/components/admin/PodcastCreateForm'
 import { RemoveCuratedContentButton } from '@/components/admin/RemoveCuratedContentButton'
 import { getCarouselVideos, getCarouselPodcasts } from '@/lib/content/curated-content'
+import { getAdminContentStats } from '@/lib/content/content-stats'
 import { isYouTubeIngestConfigured } from '@/lib/content/youtube-ingest'
 
 export const maxDuration = 30
@@ -24,15 +25,19 @@ export default async function AdminWebinarsPage({
   await requireAdmin()
   const params = await searchParams
 
-  const [connection, webinars, { longForm, shorts }, podcasts] = await Promise.all([
+  const [connection, webinars, { longForm, shorts }, podcasts, stats] = await Promise.all([
     prisma.adminGoogleCalendarConnection.findFirst(),
     prisma.webinar.findMany({
       where: { cancelledAt: null },
       orderBy: { scheduledAt: 'asc' },
       include: { registrations: { select: { id: true } } },
     }),
+    // No candidateId passed here deliberately — admin's curation view stays
+    // unfiltered by candidate dislikes (those are per-candidate
+    // personalization, not a global removal); see getCarouselVideos.
     getCarouselVideos(),
     getCarouselPodcasts(),
+    getAdminContentStats(),
   ])
 
   const youtubeConfigured = isYouTubeIngestConfigured()
@@ -70,6 +75,9 @@ export default async function AdminWebinarsPage({
             </TabsTrigger>
             <TabsTrigger value="podcasts" className="shrink-0 px-3 py-2">
               Podcasts ({podcasts.length})
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="shrink-0 px-3 py-2">
+              Stats
             </TabsTrigger>
           </TabsList>
         </div>
@@ -222,6 +230,94 @@ export default async function AdminWebinarsPage({
                   <RemoveCuratedContentButton kind="podcast" id={podcast.id} itemLabel={podcast.title} />
                 </div>
               ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="stats" className="mt-6 space-y-8">
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">By item</h2>
+              <p className="text-sm text-muted-foreground">
+                Videos, Shorts, webinars, and podcasts currently in the carousels — sorted
+                most-disliked first (ties broken by most-clicked), so problem content surfaces at
+                the top.
+              </p>
+            </div>
+            {stats.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No content yet.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+                      <th className="px-3 py-2 font-medium">Title</th>
+                      <th className="px-3 py-2 font-medium">Type</th>
+                      <th className="px-3 py-2 font-medium">Likes</th>
+                      <th className="px-3 py-2 font-medium">Dislikes</th>
+                      <th className="px-3 py-2 font-medium">Clicks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.items.map((item) => (
+                      <tr key={`${item.contentType}:${item.contentId}`} className="border-b border-border last:border-0">
+                        <td className="max-w-xs truncate px-3 py-2 text-foreground">{item.title}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{item.formatLabel}</td>
+                        <td className="px-3 py-2 text-foreground">{item.likeCount}</td>
+                        <td className="px-3 py-2 text-foreground">{item.dislikeCount}</td>
+                        <td className="px-3 py-2 text-foreground">{item.clickCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">By author</h2>
+              <p className="text-sm text-muted-foreground">
+                YouTube channels (Videos + Shorts only — podcasts and webinars have no comparable
+                &quot;author&quot;), sorted with actually-blocked channels first, then
+                most-disliked. A channel is blocked for a candidate once they&apos;ve disliked 2 of
+                its videos — computed live, not a stored flag.
+              </p>
+            </div>
+            {stats.authors.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No video likes or dislikes yet.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+                      <th className="px-3 py-2 font-medium">Channel</th>
+                      <th className="px-3 py-2 font-medium">Likes</th>
+                      <th className="px-3 py-2 font-medium">Dislikes</th>
+                      <th className="px-3 py-2 font-medium">Blocked for</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.authors.map((author) => (
+                      <tr key={author.channelTitle} className="border-b border-border last:border-0">
+                        <td className="max-w-xs truncate px-3 py-2 text-foreground">{author.channelTitle}</td>
+                        <td className="px-3 py-2 text-foreground">{author.likeCount}</td>
+                        <td className="px-3 py-2 text-foreground">{author.dislikeCount}</td>
+                        <td className="px-3 py-2">
+                          {author.blockedForCandidates > 0 ? (
+                            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                              Blocked for {author.blockedForCandidates}{' '}
+                              {author.blockedForCandidates === 1 ? 'candidate' : 'candidates'}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Not blocked</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </TabsContent>
