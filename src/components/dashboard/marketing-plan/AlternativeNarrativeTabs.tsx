@@ -13,16 +13,7 @@ import {
   updateNarrativeStatement,
 } from '@/app/dashboard/portfolio/actions'
 import { NewNarrativeForm, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
-import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-
-const ADAPTATION_LABELS: Record<keyof NarrativeAdaptations, string> = {
-  emailOpening: 'Email Opening',
-  verbal30s: '30-Second Verbal Pitch',
-  linkedinHeadline: 'LinkedIn Headline',
-  linkedinAbout: 'LinkedIn About',
-  resumeSummary: 'Resume Summary',
-  tellMeAboutYourself: '"Tell Me About Yourself"',
-}
+import { WaysToSayIt } from '@/components/dashboard/marketing-plan/WaysToSayIt'
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -42,7 +33,13 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-function AlternativeNarrativeTabContent({ narrative }: { narrative: NarrativeItem }) {
+function AlternativeNarrativeTabContent({
+  narrative,
+  linkedin,
+}: {
+  narrative: NarrativeItem
+  linkedin?: { configured: boolean; connected: boolean }
+}) {
   const [isPending, startTransition] = useTransition()
   const [renaming, setRenaming] = useState(false)
   const [labelDraft, setLabelDraft] = useState(narrative.label)
@@ -154,23 +151,7 @@ function AlternativeNarrativeTabContent({ narrative }: { narrative: NarrativeIte
         </CardContent>
       </Card>
 
-      {narrative.adaptations && (
-        <div className="space-y-3">
-          {(Object.keys(ADAPTATION_LABELS) as (keyof NarrativeAdaptations)[]).map((key) => (
-            <Card key={key}>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {ADAPTATION_LABELS[key]}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="whitespace-pre-line text-sm text-foreground">{narrative.adaptations![key]}</p>
-                <CopyButton text={narrative.adaptations![key]} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      {narrative.adaptations && <WaysToSayIt adaptations={narrative.adaptations} linkedin={linkedin} />}
 
       <div className="border-t border-border pt-3">
         {confirmingDelete ? (
@@ -197,10 +178,12 @@ export function AlternativeNarrativeTabs({
   alternatives,
   initialLabel,
   initialScenario,
+  linkedin,
 }: {
   alternatives: NarrativeItem[]
   initialLabel?: string
   initialScenario?: string
+  linkedin?: { configured: boolean; connected: boolean }
 }) {
   return (
     <div className="space-y-4">
@@ -217,7 +200,7 @@ export function AlternativeNarrativeTabs({
           </div>
           {alternatives.map((n) => (
             <TabsContent key={n.id} value={n.id} className="mt-6">
-              <AlternativeNarrativeTabContent narrative={n} />
+              <AlternativeNarrativeTabContent narrative={n} linkedin={linkedin} />
             </TabsContent>
           ))}
         </Tabs>

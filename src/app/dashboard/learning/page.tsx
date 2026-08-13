@@ -45,7 +45,7 @@ function BadgeBreakdownContent({ badges }: { badges: LearningBadge[] }) {
 
 function renderSection(section: LearningPlanSection, completedTitles: Set<string>) {
   return (
-    <LearningSection key={section.id} title={section.title}>
+    <LearningSection key={section.id} id={section.id} title={section.title}>
       <div className="grid gap-3 sm:grid-cols-2">
         {section.items.map((item) => (
           <LearningResourceCard

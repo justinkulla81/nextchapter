@@ -909,10 +909,24 @@ model CandidateProfile {
   // privacyOpenedUpBonusAt. This is also the one-time unlock gate for the
   // recurring INTERVIEW_BEHAVIORAL_PRACTICE action (guides.tsx already
   // treats storyComfort !== null as "interview-prep guide unlocked").
-  comfortCheckBonusAt        DateTime?
-  networkingConcerns         NetworkingAnxiety[] @default([])
-  networkConnectPreferences  String[]            @default([])
-  outreachPlanDismissedAt    DateTime? // "Your outreach plan" banner's X was clicked on Outreach Contacts
+  comfortCheckBonusAt       DateTime?
+  networkingConcerns        NetworkingAnxiety[] @default([])
+  networkConnectPreferences String[]            @default([])
+
+  // My Marketing Plan redesign — one-time Weekly Sprint bonus flags. Each
+  // mirrors the networkComfortBonusAt/comfortCheckBonusAt shape above: set
+  // once, the first time its underlying content is saved, never re-awarded.
+  coreNarrativeBonusAt           DateTime? // CORE_NARRATIVE_COMPLETE — first time the default narrative's coreStatement is saved
+  waysToSayItBonusAt             DateTime? // WAYS_TO_SAY_IT_COMPLETE — first time the default narrative's adaptations populate
+  hardQuestionsBonusAt           DateTime? // HARD_QUESTIONS_COMPLETE — first time generateHardQuestions populates hardQuestions
+  publicVisibilityComfortBonusAt DateTime? // PUBLIC_VISIBILITY_COMFORT_CONFIRMED — explicit "claim my points" click, never auto-awarded
+  // Recurring self-report confirms (their own weekly cap is display-only,
+  // see RECURRING_ACTION_TARGET_COUNT) — these two timestamps track the
+  // MOST RECENT confirm, not a lifetime flag, so the button UI can show
+  // "you already logged this today" without a separate table.
+  pitchPracticeWithCoachAt       DateTime? // PITCH_PRACTICE_WITH_COACH
+  sharedNarrativeForFeedbackAt   DateTime? // SHARE_NARRATIVE_FOR_FEEDBACK
+  outreachPlanDismissedAt        DateTime? // "Your outreach plan" banner's X was clicked on Outreach Contacts
 
   // Admin-managed Gmail/Calendar tracking allow-list (see
   // /support/admin/tracking-testers) — replaces the old env-var-only
@@ -1028,6 +1042,7 @@ model CandidateProfile {
   adminEmailLogs                 AdminEmailLog[]
   calendarConnection             CalendarConnection?
   trackedCalendarEvents          TrackedCalendarEvent[]
+  linkedInConnection             LinkedInConnection?
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -1058,11 +1073,11 @@ model CandidateProfile {
   sourcingRecruiter   Recruiter?        @relation(fields: [sourcingRecruiterId], references: [id])
   sourcedCandidate    SourcedCandidate?
 
-  messageThreads MessageThread[]
-  peerThreadsAsA MessageThread[] @relation("PeerThreadA")
-  peerThreadsAsB MessageThread[] @relation("PeerThreadB")
-  blocksMade     CandidateBlock[] @relation("BlockerCandidate")
-  blocksReceived CandidateBlock[] @relation("BlockedCandidate")
+  messageThreads       MessageThread[]
+  peerThreadsAsA       MessageThread[]       @relation("PeerThreadA")
+  peerThreadsAsB       MessageThread[]       @relation("PeerThreadB")
+  blocksMade           CandidateBlock[]      @relation("BlockerCandidate")
+  blocksReceived       CandidateBlock[]      @relation("BlockedCandidate")
   webinarRegistrations WebinarRegistration[]
 
   // Coach-Candidate Matching System, Phase 1 — captured once, when the
@@ -1206,7 +1221,19 @@ model CandidateNarrative {
 
   label         String @default("My Story") // candidate-facing name for this narrative/scenario
   coreStatement String // 2-3 sentence "Core Narrative Statement", candidate-editable
-  adaptations   Json // {linkedinHeadline, linkedinAbout, resumeSummary, emailOpening, verbal30s, tellMeAboutYourself}
+  adaptations   Json // {linkedinHeadline, linkedinAbout, resumeSummary, emailOpening, verbal30s, tellMeAboutYourself, friendsAndFamily, conversationOpener, coverLetterTemplate}
+
+  // "Answers to the Hard Questions" — casual-register answers to
+  // what-happened/why-are-you-looking/how's-it-going, generated once per
+  // candidate and stored on the DEFAULT narrative row only (never on a
+  // tailored-narrative row). See src/lib/narrative/hard-questions.ts.
+  hardQuestions            Json?
+  hardQuestionsGeneratedAt DateTime?
+  // One-time per-row Weekly Sprint bonus for TAILORED_NARRATIVE_COMPLETE —
+  // set the first time this row's `adaptations` populate. Only ever set on
+  // non-default (tailored) rows; the default row's equivalent bonus is
+  // CandidateProfile.waysToSayItBonusAt instead.
+  tailoredBonusAwardedAt   DateTime?
 
   generatedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1394,7 +1421,7 @@ model Reference {
   // knew the candidate across multiple roles) don't map to one job.
   workHistoryEntryId String?
   workHistoryEntry   WorkHistoryEntry? @relation(fields: [workHistoryEntryId], references: [id], onDelete: SetNull)
-  token                String          @unique @default(cuid())
+  token              String            @unique @default(cuid())
 
   // Behavioral ratings (1-5 scale)
   ratingReliability   Int?
@@ -2542,13 +2569,42 @@ model MarketConditionsSnapshot {
 // calendar-day is enforced in the server action (findFirst on today's
 // range), not a DB constraint — same trust level already extended to
 // counting Community Board posts.
+// Distinguishes a verified direct-API post from a self-reported "I posted
+// this" click — both award the identical LINKEDIN_POST_IDEA point value (see
+// action-effort.ts), this is provenance only, same shape as ContactSource.
+enum LinkedInPostSource {
+  SELF_REPORT
+  DIRECT_POST
+}
+
 model LinkedInActivityLog {
-  id          String           @id @default(cuid())
+  id          String             @id @default(cuid())
   candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  loggedAt    DateTime         @default(now())
+  candidate   CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  loggedAt    DateTime           @default(now())
+  source      LinkedInPostSource @default(SELF_REPORT)
 
   @@index([candidateId, loggedAt])
+}
+
+// Per-candidate LinkedIn OAuth connection for the direct "Post to LinkedIn"
+// button (My Marketing Plan redesign) — mirrors CalendarConnection's shape.
+// Gated entirely on LINKEDIN_CLIENT_ID/LINKEDIN_CLIENT_SECRET being set (see
+// isLinkedInPostingConfigured in src/lib/linkedin/oauth.ts); neither exists
+// in this environment yet, so this table has no real rows today. No
+// refreshToken column — LinkedIn's standard "Share on LinkedIn" product
+// issues a long-lived (~60 day) access token and does not grant refresh
+// tokens without a separate approved product; a lapsed connection is simply
+// reconnected via the OAuth flow again.
+model LinkedInConnection {
+  id             String           @id @default(cuid())
+  candidateId    String           @unique
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  accessToken    String           @db.Text
+  personUrn      String // LinkedIn member URN (urn:li:person:{sub} from /v2/userinfo), required to post as this member
+  expiresAt      DateTime
+  connectedAt    DateTime         @default(now())
+  disconnectedAt DateTime?
 }
 
 // Append-only daily mood check-in log — one row per day per candidate
@@ -2883,35 +2939,35 @@ model SupportNetworkContact {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  name                String
-  company             String?
-  title               String?
-  email               String?
-  phone               String?
-  linkedinUrl         String?
+  name                    String
+  company                 String?
+  title                   String?
+  email                   String?
+  phone                   String?
+  linkedinUrl             String?
   // Candidate-flagged "this person matters most" — independent of
   // relationshipTags, which capture *what* they are (recruiter, hiring
   // manager, ...), not whether the candidate has decided to prioritize them.
-  isPriority          Boolean                    @default(false)
+  isPriority              Boolean                    @default(false)
   // Set the first time this contact earns CONTACT_PRIORITIZED points (see
   // toggleContactPriority) — a durable per-contact "already paid" flag so
   // star/unstar/restar can't farm points, independent of isPriority's
   // current on/off state. Candidate-wide count of non-null rows here (capped
   // at 5) is the lifetime progress shown in the Action Plan box.
   priorityPointsAwardedAt DateTime?
-  category            ContactCategory?
-  warmth              ContactWarmth              @default(WARM)
-  source              ContactSource              @default(MANUAL)
-  createdAt           DateTime                   @default(now())
+  category                ContactCategory?
+  warmth                  ContactWarmth              @default(WARM)
+  source                  ContactSource              @default(MANUAL)
+  createdAt               DateTime                   @default(now())
   // Multi-select "who is this person" tags — see RelationshipTag's comment.
-  relationshipTags    RelationshipTag[]          @default([])
+  relationshipTags        RelationshipTag[]          @default([])
   // Set when the candidate marks SAME_SCHOOL and names the school.
-  schoolName          String?
+  schoolName              String?
   // Best-effort guesses from a non-consumer email domain (see
   // matchRecruiterRoleMention-adjacent logic in sync-google-calendar.ts) —
   // shown as a hint, never overwrites the candidate-confirmed `company`.
-  inferredCompany     String?
-  inferredSchool      String?
+  inferredCompany         String?
+  inferredSchool          String?
   // Lower-trimmed "name|company" dedup key, computed at write time by
   // normalizeContactKey() in src/lib/network/csv-import.ts. Stops
   // re-uploading the same LinkedIn export from creating duplicate rows
@@ -2919,36 +2975,36 @@ model SupportNetworkContact {
   // identifies genuinely-new contacts for the weekly NETWORKING_LIST Sprint
   // credit. Nullable so pre-migration rows are unaffected — Postgres treats
   // each NULL as distinct in a unique index, so legacy rows never collide.
-  normalizedKey       String?
+  normalizedKey           String?
   // Soft-delete — set instead of a real delete so a later CSV re-import can
   // tell "this person was never imported" apart from "the candidate removed
   // this person on purpose" and skip resurrecting them. Filtered out of the
   // main directory list; surfaced on its own Removed Contacts page with a
   // restore action that just clears this field.
-  removedAt           DateTime?
+  removedAt               DateTime?
   // The actual LinkedIn connection date ("Connected On" in their export) —
   // distinct from createdAt, which is when this row was imported into
   // NextChapter and could be months/years after the real connection date.
   // Only ever populated from a LinkedIn CSV upload; left null for
   // manually-added contacts rather than guessed at.
-  connectedAt         DateTime?
+  connectedAt             DateTime?
   // NextChapter admin's own outreach tracking for recruiters/coaches/hiring
   // managers surfaced through candidates' networks — a business-development
   // lead list, entirely separate from the candidate's own relationship to
   // this person. Defaults NOT_REVIEWED for every contact, not just tagged
   // ones, so the admin list's "reviewed" count means something.
-  adminOutreachStatus ContactAdminOutreachStatus @default(NOT_REVIEWED)
-  adminNotes          String?
+  adminOutreachStatus     ContactAdminOutreachStatus @default(NOT_REVIEWED)
+  adminNotes              String?
   // The candidate's own free-text notes about this person — distinct from
   // adminNotes above, which is NextChapter's internal business-development
   // tracking and never candidate-visible.
-  notes               String?
+  notes                   String?
   // Free-text tags a candidate adds themselves, alongside the closed
   // RelationshipTag set above (e.g. "mentor," "old boss," "met at a
   // conference") — RelationshipTag stays a fixed enum so admin tooling and
   // scoring logic keep a stable set of values to key off of; this is purely
   // for the candidate's own organization.
-  customTags          String[]                   @default([])
+  customTags              String[]                   @default([])
 
   outreachLogs   OutreachLog[]
   // Jobs this contact has been manually flagged as able to help with
@@ -3893,11 +3949,11 @@ enum MessageSenderRole {
 // NULL as distinct per-row in unique constraints, so the three @@unique
 // clauses below don't collide on each other's null columns).
 model MessageThread {
-  id          String             @id @default(cuid())
+  id          String            @id @default(cuid())
   // Null only for PEER threads, which have two candidates and no single
   // "owning" side — see peerCandidateA/BId below instead.
   candidateId String?
-  candidate   CandidateProfile?  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   partnerType ThreadPartnerType
 
   coachId     String?
@@ -3910,10 +3966,10 @@ model MessageThread {
   // PEER threads only — always stored with the lexicographically-smaller
   // candidateId first (see getOrCreatePeerThread) so a thread between two
   // candidates can never be created twice regardless of who messages first.
-  peerCandidateAId String?
-  peerCandidateA   CandidateProfile? @relation("PeerThreadA", fields: [peerCandidateAId], references: [id], onDelete: Cascade)
-  peerCandidateBId String?
-  peerCandidateB   CandidateProfile? @relation("PeerThreadB", fields: [peerCandidateBId], references: [id], onDelete: Cascade)
+  peerCandidateAId       String?
+  peerCandidateA         CandidateProfile? @relation("PeerThreadA", fields: [peerCandidateAId], references: [id], onDelete: Cascade)
+  peerCandidateBId       String?
+  peerCandidateB         CandidateProfile? @relation("PeerThreadB", fields: [peerCandidateBId], references: [id], onDelete: Cascade)
   // Who sent the first message in a PEER thread — the unsolicited-first-
   // contact rate limit counts threads by initiator, not by participant, so
   // replying to someone else's DM never counts against your own limit.
@@ -3922,9 +3978,9 @@ model MessageThread {
   // Candidate-controlled safety state (PEER threads only, Prompt 85) — a
   // report flags the conversation for the narrow admin review surface
   // below; it does not itself stop messages (use CandidateBlock for that).
-  reportedAt             DateTime?
-  reportedByCandidateId  String?
-  reportReason           String?
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
 
   createdAt           DateTime @default(now())
   lastMessageAt       DateTime @default(now())
@@ -3943,17 +3999,17 @@ model MessageThread {
 }
 
 model Message {
-  id         String            @id @default(cuid())
-  threadId   String
-  thread     MessageThread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  senderRole MessageSenderRole
+  id                String            @id @default(cuid())
+  threadId          String
+  thread            MessageThread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderRole        MessageSenderRole
   // Which of the two candidates sent this — only set (and only needed) on
   // PEER threads, where senderRole is CANDIDATE on both sides and can't by
   // itself say who. Null for every other thread type, where senderRole
   // already disambiguates.
   senderCandidateId String?
-  body       String            @db.Text
-  createdAt  DateTime          @default(now())
+  body              String            @db.Text
+  createdAt         DateTime          @default(now())
 
   @@index([threadId, createdAt])
 }
@@ -3997,13 +4053,13 @@ model Webinar {
 }
 
 model WebinarRegistration {
-  id                  String           @id @default(cuid())
-  webinarId           String
-  webinar             Webinar          @relation(fields: [webinarId], references: [id], onDelete: Cascade)
-  candidateId         String
-  candidate           CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  registeredAt        DateTime         @default(now())
-  reminderSentAt      DateTime?
+  id             String           @id @default(cuid())
+  webinarId      String
+  webinar        Webinar          @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  registeredAt   DateTime         @default(now())
+  reminderSentAt DateTime?
 
   @@unique([webinarId, candidateId])
   @@index([candidateId])

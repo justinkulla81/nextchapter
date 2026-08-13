@@ -6,16 +6,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { generateNarrative, updateCoreStatement } from '@/app/dashboard/interview-prep/actions'
+import { WaysToSayIt } from '@/components/dashboard/marketing-plan/WaysToSayIt'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-
-const ADAPTATION_LABELS: Record<keyof NarrativeAdaptations, string> = {
-  linkedinHeadline: 'LinkedIn Headline',
-  linkedinAbout: 'LinkedIn About',
-  resumeSummary: 'Resume Summary',
-  emailOpening: 'Email Opening',
-  verbal30s: '30-Second Verbal',
-  tellMeAboutYourself: '"Tell Me About Yourself"',
-}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -38,9 +30,14 @@ function CopyButton({ text }: { text: string }) {
 export function MyStoryTab({
   coreStatement,
   adaptations,
+  linkedin,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
+  // Only passed on the Marketing Plan page — Interview Prep (the other
+  // renderer of this shared tab) never shows the LinkedIn direct-post
+  // button, since posting isn't this page's job.
+  linkedin?: { configured: boolean; connected: boolean }
 }) {
   const [isPending, startTransition] = useTransition()
   const [draft, setDraft] = useState(coreStatement ?? '')
@@ -112,26 +109,7 @@ export function MyStoryTab({
         </CardContent>
       </Card>
 
-      {adaptations && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">
-            Six ways to say it
-          </h2>
-          {(Object.keys(ADAPTATION_LABELS) as (keyof NarrativeAdaptations)[]).map((key) => (
-            <Card key={key}>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {ADAPTATION_LABELS[key]}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="whitespace-pre-line text-sm text-foreground">{adaptations[key]}</p>
-                <CopyButton text={adaptations[key]} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      {adaptations && <WaysToSayIt adaptations={adaptations} linkedin={linkedin} />}
     </div>
   )
 }

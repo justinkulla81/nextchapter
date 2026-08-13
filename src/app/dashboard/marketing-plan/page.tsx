@@ -10,11 +10,20 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
 import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/AlternativeNarrativeTabs'
+import { ComfortSummary } from '@/components/dashboard/marketing-plan/ComfortSummary'
+import { HardQuestionsSection } from '@/components/dashboard/marketing-plan/HardQuestionsSection'
+import { LowComfortActions } from '@/components/dashboard/marketing-plan/LowComfortActions'
+import { isLinkedInPostingConfigured } from '@/lib/linkedin/oauth'
+import { shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
+import type { HardQuestionAnswers } from '@/lib/narrative/hard-questions'
 
 export const metadata: Metadata = { title: 'My Marketing Plan' }
 
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-lg font-semibold">{children}</h2>
+}
 
 export default async function MarketingPlanPage({
   searchParams,
@@ -41,12 +50,30 @@ export default async function MarketingPlanPage({
     )
   }
 
+  // A candidate who has explicitly said they want this kept private or
+  // close-contacts-only isn't ready for "post publicly" to be the headline
+  // ask — PRIVATE_ONLY/CLOSE_CONTACTS_ONLY are the two answers that mean
+  // "not comfortable being visible yet," the other two
+  // (BECOMING_COMFORTABLE/FULLY_COMFORTABLE) mean they're at least
+  // open to it. A candidate who hasn't answered yet (null) is treated as
+  // NOT low-comfort — defaulting to the standard framing rather than
+  // assuming discomfort they haven't expressed.
+  const isLowComfort =
+    profile.publicDisclosureComfort === 'PRIVATE_ONLY' || profile.publicDisclosureComfort === 'CLOSE_CONTACTS_ONLY'
+
   const relevantTutorials = CONTENT_TUTORIALS.filter((t) => profile.contentVenues.includes(t.venue))
 
-  const narrativeRows = await prisma.candidateNarrative.findMany({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'asc' },
-  })
+  const linkedinConfigured = isLinkedInPostingConfigured()
+  const [narrativeRows, linkedinConnection, routeHardQuestionsToCoach] = await Promise.all([
+    prisma.candidateNarrative.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'asc' },
+    }),
+    linkedinConfigured
+      ? prisma.linkedInConnection.findUnique({ where: { candidateId: profile.id } })
+      : Promise.resolve(null),
+    shouldRouteHardQuestionsToCoach(profile.id),
+  ])
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
     id: n.id,
     label: n.label,
@@ -54,8 +81,11 @@ export default async function MarketingPlanPage({
     adaptations: (n.adaptations as unknown as NarrativeAdaptations | null) ?? null,
     isDefault: i === 0,
   }))
-  const defaultNarrative = narratives[0] as NarrativeItem | undefined
+  const defaultNarrative = narrativeRows[0]
+  const defaultNarrativeItem = narratives[0] as NarrativeItem | undefined
   const alternativeNarratives = narratives.slice(1)
+  const hardQuestions = (defaultNarrative?.hardQuestions as unknown as HardQuestionAnswers | null) ?? null
+  const linkedin = { configured: linkedinConfigured, connected: !!linkedinConnection && !linkedinConnection.disconnectedAt }
 
   return (
     <div className="space-y-8">
@@ -67,32 +97,49 @@ export default async function MarketingPlanPage({
       <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
         <p>
           <span className="font-medium text-foreground">Core Narrative</span> is your default
-          professional story — draft it once and everything you post can adapt from it, including
-          your LinkedIn headline, resume summary, and email openings.
+          professional story — draft it once and everything below adapts from it, grouped by who
+          you&apos;re talking to.
         </p>
         <p>
           <span className="font-medium text-foreground">Tailored narratives</span> let you tell
           a different version of your story for a specific scenario — a specific job, a layoff, a
-          pivot, a return after time off — each with its own email opening, 30-second verbal
-          pitch, and more.
+          pivot, a return after time off.
         </p>
-        <p>
-          <span className="font-medium text-foreground">Tutorials</span> below are matched to the
-          venues you said you&apos;d post on. Everything you post shows up on your Certified
-          Executive Dossier as real, visible activity — not just a resume claim.
-        </p>
+        {isLowComfort ? (
+          <p>
+            Not everyone is ready to be public yet, and that&apos;s fine — this page also gives
+            you private ways to sharpen your story: practicing with your coach, sharing it with a
+            trusted contact, and the casual answers to the questions people actually ask you.
+          </p>
+        ) : (
+          <p>
+            <span className="font-medium text-foreground">Tutorials</span> below are matched to the
+            venues you said you&apos;d post on. Everything you post shows up on your Certified
+            Executive Dossier as real, visible activity — not just a resume claim.
+          </p>
+        )}
       </div>
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Core Narrative</h2>
+      <ComfortSummary
+        publicDisclosureComfort={profile.publicDisclosureComfort}
+        publicVisibilityComfortBonusAt={profile.publicVisibilityComfortBonusAt}
+        storyComfort={profile.storyComfort}
+        interviewComfort={profile.interviewComfort}
+        elevatorPitchReady={profile.elevatorPitchReady}
+        networkComfortLevel={profile.networkComfortLevel}
+      />
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <SectionHeading>Core Narrative</SectionHeading>
         <MyStoryTab
-          coreStatement={defaultNarrative?.coreStatement ?? null}
-          adaptations={defaultNarrative?.adaptations ?? null}
+          coreStatement={defaultNarrativeItem?.coreStatement ?? null}
+          adaptations={defaultNarrativeItem?.adaptations ?? null}
+          linkedin={linkedin}
         />
       </div>
 
-      <div id="tailored-narratives" className="scroll-mt-4 space-y-3">
-        <h2 className="text-lg font-semibold">Tailored Narratives</h2>
+      <div id="tailored-narratives" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+        <SectionHeading>Tailored Narratives</SectionHeading>
         <p className="text-sm text-muted-foreground">
           Need a different story for a specific scenario — a specific job, a layoff, a pivot?
           Draft as many tailored narratives as you need, each in its own tab below.
@@ -101,12 +148,20 @@ export default async function MarketingPlanPage({
           alternatives={alternativeNarratives}
           initialLabel={initialLabel}
           initialScenario={initialScenario}
+          linkedin={linkedin}
         />
       </div>
 
+      {defaultNarrativeItem?.coreStatement && (
+        <div className="space-y-3 border-t border-border pt-8">
+          <SectionHeading>Answers to the Hard Questions</SectionHeading>
+          <HardQuestionsSection hardQuestions={hardQuestions} routeToCoach={routeHardQuestionsToCoach} />
+        </div>
+      )}
+
       {relevantTutorials.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Tutorials for your venues</h2>
+        <div className="space-y-3 border-t border-border pt-8">
+          <SectionHeading>Tutorials for your venues</SectionHeading>
           <div className="grid gap-3 sm:grid-cols-2">
             {relevantTutorials.flatMap((group) =>
               group.tutorials.map((tutorial) => (
@@ -136,7 +191,32 @@ export default async function MarketingPlanPage({
         </div>
       )}
 
-      <ThoughtLeadershipStudio venues={profile.contentVenues} />
+      <div className="space-y-6 border-t border-border pt-8">
+        {isLowComfort ? (
+          <>
+            <div className="space-y-3">
+              <SectionHeading>Practice quietly</SectionHeading>
+              <p className="text-sm text-muted-foreground">
+                You said you&apos;d rather keep this private or close-contacts-only for now — these
+                count as real progress too.
+              </p>
+              <LowComfortActions />
+            </div>
+            <div className="space-y-3 border-t border-border pt-8">
+              <SectionHeading>When you&apos;re ready to post</SectionHeading>
+              <p className="text-sm text-muted-foreground">
+                No pressure — these are here whenever being more public starts to feel okay.
+              </p>
+              <ThoughtLeadershipStudio venues={profile.contentVenues} />
+            </div>
+          </>
+        ) : (
+          <div className="space-y-3">
+            <SectionHeading>Post your story</SectionHeading>
+            <ThoughtLeadershipStudio venues={profile.contentVenues} />
+          </div>
+        )}
+      </div>
 
       <div className="rounded-lg border border-border p-4">
         <p className="text-sm text-foreground">

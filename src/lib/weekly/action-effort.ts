@@ -40,6 +40,27 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   LINKEDIN_POST_IDEA: { minutes: 20, points: 20 },
   THOUGHT_LEADERSHIP_SHARE: { minutes: 10, points: 10 },
 
+  // My Marketing Plan redesign — narrative-building one-time milestones.
+  // CORE_NARRATIVE_COMPLETE is the largest of the one-time confirms here
+  // since it's real drafting work, not a quick confirm click.
+  CORE_NARRATIVE_COMPLETE: { minutes: 15, points: 25 },
+  WAYS_TO_SAY_IT_COMPLETE: { minutes: 10, points: 20 },
+  // Smaller than WAYS_TO_SAY_IT_COMPLETE — the same generation step, but
+  // this fires again per tailored narrative rather than once total.
+  TAILORED_NARRATIVE_COMPLETE: { minutes: 10, points: 15 },
+  HARD_QUESTIONS_COMPLETE: { minutes: 10, points: 15 },
+  // One-time confirm bonus — same weight as COMFORT_CHECK_CONFIRM/
+  // NETWORK_COMFORT_CONFIRMED below, claimed with an explicit click rather
+  // than auto-awarded on render (design-principles.md: every state change
+  // needs visible feedback).
+  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
+  // Low-comfort alternatives to LINKEDIN_POST_IDEA/THOUGHT_LEADERSHIP_SHARE
+  // above — same self-report shape and comparable point weight to their
+  // public-posting counterparts, for a candidate who isn't ready to post
+  // publicly yet.
+  PITCH_PRACTICE_WITH_COACH: { minutes: 20, points: 20 },
+  SHARE_NARRATIVE_FOR_FEEDBACK: { minutes: 10, points: 10 },
+
   // Learning
   LEARNING_MODULE: { minutes: 20, points: 20 },
   // Split into a small "started" click (self-reported, no verification —
@@ -246,6 +267,13 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
 
   LINKEDIN_POST_IDEA: 'working',
   THOUGHT_LEADERSHIP_SHARE: 'working',
+  CORE_NARRATIVE_COMPLETE: 'working',
+  WAYS_TO_SAY_IT_COMPLETE: 'working',
+  TAILORED_NARRATIVE_COMPLETE: 'working',
+  HARD_QUESTIONS_COMPLETE: 'working',
+  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: 'working',
+  PITCH_PRACTICE_WITH_COACH: 'working',
+  SHARE_NARRATIVE_FOR_FEEDBACK: 'working',
   RESUME_UPDATE: 'working',
   SKILLS_TRANSLATOR: 'working',
   LINKEDIN_SETUP: 'working',
@@ -364,6 +392,13 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   INTERVIEW_BEHAVIORAL_PRACTICE: 'Personalize',
   LINKEDIN_POST_IDEA: 'Personalize',
   THOUGHT_LEADERSHIP_SHARE: 'Personalize',
+  CORE_NARRATIVE_COMPLETE: 'Personalize',
+  WAYS_TO_SAY_IT_COMPLETE: 'Personalize',
+  TAILORED_NARRATIVE_COMPLETE: 'Personalize',
+  HARD_QUESTIONS_COMPLETE: 'Personalize',
+  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: 'Personalize',
+  PITCH_PRACTICE_WITH_COACH: 'Personalize',
+  SHARE_NARRATIVE_FOR_FEEDBACK: 'Personalize',
   LINKEDIN_SETUP: 'Personalize',
 
   NETWORKING_LIST: 'Connecting',
@@ -429,6 +464,10 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   'ENGAGE_PEER_SUPPORT',
   'LINKEDIN_POST_IDEA',
   'THOUGHT_LEADERSHIP_SHARE',
+  // Low-comfort alternatives to the two public-posting types above — same
+  // "ongoing habit, no single finish line" shape.
+  'PITCH_PRACTICE_WITH_COACH',
+  'SHARE_NARRATIVE_FOR_FEEDBACK',
   'INTERVIEW_BEHAVIORAL_PRACTICE',
   // Prompt 76 — a candidate can send more than one thank-you/follow-up/
   // check-in/intro-request in a week; each detected instance earns points
@@ -489,6 +528,8 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   ENGAGE_PEER_SUPPORT: 1,
   LINKEDIN_POST_IDEA: 1,
   THOUGHT_LEADERSHIP_SHARE: 2,
+  PITCH_PRACTICE_WITH_COACH: 1,
+  SHARE_NARRATIVE_FOR_FEEDBACK: 2,
   INTERVIEW_BEHAVIORAL_PRACTICE: 2,
   THANK_YOU_NOTE_SENT: 1,
   FOLLOW_UP_NOTE_SENT: 1,
@@ -592,6 +633,13 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LINKEDIN_SETUP: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   LINKEDIN_POST_IDEA: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   THOUGHT_LEADERSHIP_SHARE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  CORE_NARRATIVE_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  WAYS_TO_SAY_IT_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  TAILORED_NARRATIVE_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  HARD_QUESTIONS_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  PITCH_PRACTICE_WITH_COACH: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
+  SHARE_NARRATIVE_FOR_FEEDBACK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   LEARNING_MODULE: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_CERTIFICATE_STARTED: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_CERTIFICATE: { href: '/dashboard/learning', label: 'Learning' },
@@ -782,7 +830,18 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   ],
   resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
-  'marketing-plan': ['LINKEDIN_POST_IDEA', 'THOUGHT_LEADERSHIP_SHARE', 'MARKETING_PLAN_UNLOCK'],
+  'marketing-plan': [
+    'LINKEDIN_POST_IDEA',
+    'THOUGHT_LEADERSHIP_SHARE',
+    'MARKETING_PLAN_UNLOCK',
+    'CORE_NARRATIVE_COMPLETE',
+    'WAYS_TO_SAY_IT_COMPLETE',
+    'TAILORED_NARRATIVE_COMPLETE',
+    'HARD_QUESTIONS_COMPLETE',
+    'PUBLIC_VISIBILITY_COMFORT_CONFIRMED',
+    'PITCH_PRACTICE_WITH_COACH',
+    'SHARE_NARRATIVE_FOR_FEEDBACK',
+  ],
   learning: ['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED'],
   linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK'],
   'interim-work': ['INTERIM_PROFILE_CREATED', 'GIG_DIRECTORY_UNLOCK'],

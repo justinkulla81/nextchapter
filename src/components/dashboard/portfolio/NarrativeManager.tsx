@@ -30,6 +30,9 @@ const ADAPTATION_LABELS: Record<keyof NarrativeAdaptations, string> = {
   emailOpening: 'Email Opening',
   verbal30s: '30-Second Verbal',
   tellMeAboutYourself: '"Tell Me About Yourself"',
+  friendsAndFamily: 'For Friends & Family',
+  conversationOpener: 'Conversation Opener',
+  coverLetterTemplate: 'Cover Letter',
 }
 
 function CopyButton({ text }: { text: string }) {

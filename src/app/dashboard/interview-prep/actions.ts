@@ -23,12 +23,40 @@ async function getAuthedProfile() {
   return getOrCreateCandidateProfile(user.id)
 }
 
+// One-time CORE_NARRATIVE_COMPLETE bonus — the default narrative's
+// coreStatement can only ever be first-created via generateNarrative() or
+// updateCoreStatement() below (confirmed: generateCoreNarrative's no-id path
+// has no other caller), so this single guarded helper covers both.
+async function creditCoreNarrativeIfFirstTime(candidateId: string) {
+  const profile = await prisma.candidateProfile.findUnique({
+    where: { id: candidateId },
+    select: { coreNarrativeBonusAt: true },
+  })
+  if (!profile || profile.coreNarrativeBonusAt) return
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: { coreNarrativeBonusAt: new Date() },
+  })
+  const sprint = await getCurrentWeekSprint(candidateId)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'CORE_NARRATIVE_COMPLETE' })
+    await autoCompleteEngagementAction(candidateId, {
+      actionType: 'CORE_NARRATIVE_COMPLETE',
+      text: 'Draft your Core Narrative Statement',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+}
+
 export async function generateNarrative() {
   const profile = await getAuthedProfile()
   if (!profile) return
 
   await generateCoreNarrative(profile.id)
   await generateAdaptations(profile.id)
+  await creditCoreNarrativeIfFirstTime(profile.id)
   revalidatePath('/dashboard/interview-prep')
   revalidatePath('/dashboard/marketing-plan')
 }
@@ -53,6 +81,7 @@ export async function updateCoreStatement(newStatement: string) {
     })
   }
   await generateAdaptations(profile.id)
+  await creditCoreNarrativeIfFirstTime(profile.id)
   revalidatePath('/dashboard/interview-prep')
   revalidatePath('/dashboard/marketing-plan')
 }

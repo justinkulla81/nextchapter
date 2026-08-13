@@ -9,6 +9,8 @@ import { generatePostIdeas, draftPost, type PostIdea } from '@/lib/network/thoug
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { generateHardQuestions, shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
+import { isLinkedInPostingConfigured, publishLinkedInPost } from '@/lib/linkedin/oauth'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -117,5 +119,153 @@ export async function generateArticleAction(
 
   const draft = await draftPost(profile.id, { title: topic, angle: topic }, 'SUBSTACK')
   return { draft }
+}
+
+// "Answers to the Hard Questions" — casual-register content, a separate
+// generation from the six/nine-way narrative adaptations above. Routes to a
+// coach-only note instead of generating when shouldRouteHardQuestionsToCoach
+// is true (always false today — see that stub's comment).
+export async function generateHardQuestionsAction() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  if (await shouldRouteHardQuestionsToCoach(profile.id)) return
+
+  await generateHardQuestions(profile.id)
+  captureServerEvent(profile.id, 'hard_questions_generated')
+  revalidatePath('/dashboard/marketing-plan')
+}
+
+// One-time PUBLIC_VISIBILITY_COMFORT_CONFIRMED bonus — an explicit "claim my
+// points" click, never auto-awarded on render (design-principles.md: every
+// state change needs visible feedback, so the click itself IS that
+// feedback). Requires publicDisclosureComfort to already be answered.
+export async function confirmPublicVisibilityComfort() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+  if (!profile.publicDisclosureComfort || profile.publicVisibilityComfortBonusAt) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { publicVisibilityComfortBonusAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'public_visibility_comfort_confirmed')
+
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'PUBLIC_VISIBILITY_COMFORT_CONFIRMED' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'PUBLIC_VISIBILITY_COMFORT_CONFIRMED',
+      text: 'Confirm your public visibility comfort level',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+  revalidatePath('/dashboard/marketing-plan')
+}
+
+// Recurring low-comfort alternative to LINKEDIN_POST_IDEA — self-report, no
+// verification, same trust level as that action. Once-per-day guard mirrors
+// markLinkedInActivity's day-based dedupe. Returns whether this call
+// actually logged a new one (false if already logged today), so the button
+// can give honest immediate feedback either way.
+export async function pitchPracticeWithCoachAction(): Promise<boolean> {
+  const profile = await getAuthedProfile()
+  if (!profile) return false
+
+  const startOfTodayUTC = new Date()
+  startOfTodayUTC.setUTCHours(0, 0, 0, 0)
+  if (profile.pitchPracticeWithCoachAt && profile.pitchPracticeWithCoachAt >= startOfTodayUTC) return false
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { pitchPracticeWithCoachAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'pitch_practice_with_coach_logged')
+
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'PITCH_PRACTICE_WITH_COACH' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'PITCH_PRACTICE_WITH_COACH',
+      text: 'Practice your pitch with your coach',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+  revalidatePath('/dashboard/marketing-plan')
+  return true
+}
+
+// Recurring low-comfort alternative to THOUGHT_LEADERSHIP_SHARE — same
+// shape as pitchPracticeWithCoachAction above.
+export async function shareNarrativeForFeedbackAction(): Promise<boolean> {
+  const profile = await getAuthedProfile()
+  if (!profile) return false
+
+  const startOfTodayUTC = new Date()
+  startOfTodayUTC.setUTCHours(0, 0, 0, 0)
+  if (profile.sharedNarrativeForFeedbackAt && profile.sharedNarrativeForFeedbackAt >= startOfTodayUTC) return false
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { sharedNarrativeForFeedbackAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'narrative_shared_for_feedback_logged')
+
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'SHARE_NARRATIVE_FOR_FEEDBACK' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'SHARE_NARRATIVE_FOR_FEEDBACK',
+      text: 'Share your narrative with a trusted contact for feedback',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+  revalidatePath('/dashboard/marketing-plan')
+  return true
+}
+
+// Direct LinkedIn posting — publishes the given text as a real feed update
+// via the UGC Posts API, then awards the SAME LINKEDIN_POST_IDEA point value
+// a self-reported "I posted this" click earns (see markLinkedInActivity in
+// dashboard/actions.ts, left entirely unmodified). LinkedInActivityLog.source
+// is the only thing that differs between the two paths (DIRECT_POST here vs.
+// the column's SELF_REPORT default there) — pure provenance, same points.
+// Unreachable in practice today: isLinkedInPostingConfigured() is false with
+// no LINKEDIN_CLIENT_ID/SECRET set, and the page never renders a path to
+// call this without that being true first.
+export async function postToLinkedInAction(text: string): Promise<boolean> {
+  const profile = await getAuthedProfile()
+  if (!profile) return false
+  if (!isLinkedInPostingConfigured()) return false
+  if (!text.trim()) return false
+
+  const connection = await prisma.linkedInConnection.findUnique({ where: { candidateId: profile.id } })
+  if (!connection || connection.disconnectedAt) return false
+
+  try {
+    await publishLinkedInPost(connection.accessToken, connection.personUrn, text)
+  } catch (error) {
+    console.error('Failed to publish LinkedIn post for candidate', profile.id, error)
+    return false
+  }
+
+  await prisma.linkedInActivityLog.create({ data: { candidateId: profile.id, source: 'DIRECT_POST' } })
+  captureServerEvent(profile.id, 'linkedin_post_published', { source: 'direct_post' })
+
+  const sprint = await getCurrentWeekSprint(profile.id)
+  if (sprint) {
+    const effort = estimateActionEffort({ actionType: 'LINKEDIN_POST_IDEA' })
+    await autoCompleteEngagementAction(profile.id, {
+      actionType: 'LINKEDIN_POST_IDEA',
+      text: 'Publish a LinkedIn post',
+      points: effort.points,
+      estimatedMinutes: effort.minutes,
+    })
+  }
+  revalidatePath('/dashboard/marketing-plan')
+  return true
 }
 
