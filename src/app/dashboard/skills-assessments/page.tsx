@@ -5,6 +5,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { SkillsToBuildForm } from '@/components/dashboard/SkillsToBuildForm'
+import { SkillsYouHaveCard } from '@/components/dashboard/SkillsYouHaveCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -17,9 +18,17 @@ export const metadata: Metadata = { title: 'Skills & Behavioral Assessments' }
 // re-upload, changed target role/industries) — isolated here so that cost
 // never blocks the two assessment cards above it, same pattern as
 // SearchStrategyGuidanceCard on the Search Strategy page.
-async function SkillsToBuildCard({ candidateId, skillsToBuild }: { candidateId: string; skillsToBuild: string[] }) {
+async function SkillsToBuildCard({
+  candidateId,
+  skillsToBuild,
+  targetRole,
+}: {
+  candidateId: string
+  skillsToBuild: string[]
+  targetRole: string | null
+}) {
   const suggestions = await getOrGenerateSkillGapSuggestions(candidateId)
-  return <SkillsToBuildForm initialSkills={skillsToBuild} suggestions={suggestions} />
+  return <SkillsToBuildForm initialSkills={skillsToBuild} suggestions={suggestions} targetRole={targetRole} />
 }
 
 function SkillsToBuildSkeleton() {
@@ -71,6 +80,8 @@ export default async function SkillsAssessmentsPage() {
       description:
         'A quick self-report on your working style — how you operate, decide, and collaborate. Your references answer these same questions about you.',
       feeds: 'Feeds: Executive Dossier · Hiring Manager Notes · Coaching Notes',
+      sharedWith:
+        'Who sees it: your Coach, and — once your Executive Dossier is unlocked — recruiters and hiring managers.',
       completedAt: latestWorkStyleResponse?.completedAt ?? null,
       points: estimateActionEffort({ actionType: 'WORKING_STYLE_QUIZ' }).points,
       href: '/dashboard/retake-assessment',
@@ -82,6 +93,8 @@ export default async function SkillsAssessmentsPage() {
       description:
         'How you execute, decide, hold up under pressure, and get things done through other people. Your references answer these same questions about you.',
       feeds: 'Feeds: Hireability Report category grades · Hiring Manager Notes',
+      sharedWith:
+        'Who sees it: your Coach, and — once your Executive Dossier is unlocked — recruiters and hiring managers. It also shapes your own Hireability Report grades.',
       completedAt: latestPerformanceResponse?.completedAt ?? null,
       points: estimateActionEffort({ actionType: 'PERFORMANCE_ASSESSMENT_COMPLETED' }).points,
       href: '/dashboard/how-i-perform',
@@ -93,6 +106,7 @@ export default async function SkillsAssessmentsPage() {
       description:
         'A candid self-read on your core function, AI fluency, and a few other skills that drive how jobs and courses get matched to you.',
       feeds: 'Feeds: Job Recommendations · Skills Recommendations · Hireability Report',
+      sharedWith: 'Who sees it: no one — personalization only, used to match jobs and courses to you.',
       completedAt: profile.skillsAssessmentCompletedAt,
       points: estimateActionEffort({ actionType: 'SKILLS_ASSESSMENT_COMPLETED' }).points,
       href: '/dashboard/skills-assessment',
@@ -104,6 +118,8 @@ export default async function SkillsAssessmentsPage() {
       description:
         'Scope, ownership, and the kind of situations you’ve operated in — verified against what your references say.',
       feeds: 'Feeds: Executive Dossier · Hiring Manager Notes',
+      sharedWith:
+        'Who sees it: your Coach, and — once your Executive Dossier is unlocked — recruiters and hiring managers.',
       completedAt: trackRecordCompletedAt,
       points: estimateActionEffort({ actionType: 'TRACK_RECORD_COMPLETED' }).points,
       href: '/dashboard/track-record',
@@ -115,6 +131,7 @@ export default async function SkillsAssessmentsPage() {
       description:
         'The work values you’re not willing to trade away, ranked — comp, flexibility, growth, stability, and more.',
       feeds: 'Feeds: Search Strategy · Coaching Notes',
+      sharedWith: 'Who sees it: your Coach. Otherwise personalization only, used to shape your own Search Strategy.',
       completedAt: whatINeedCompletedAt,
       points: estimateActionEffort({ actionType: 'WHAT_I_NEED_COMPLETED' }).points,
       href: '/dashboard/what-i-need',
@@ -126,6 +143,8 @@ export default async function SkillsAssessmentsPage() {
       description:
         'The people who worked with you rate the same things you rated yourself on — the comparison is what a hiring manager actually wants to see.',
       feeds: 'Feeds: Hiring Manager Notes · self-vs-reference friction · Executive Dossier',
+      sharedWith:
+        'Who sees it: always shared — the references you invite see and answer these questions about you, and, once your Executive Dossier is unlocked, hiring managers see the comparison to your own answers.',
       completedAt: completedReferenceCount > 0 ? new Date(0) : null,
       statusLabel:
         completedReferenceCount > 0
@@ -150,59 +169,82 @@ export default async function SkillsAssessmentsPage() {
         <PageHeaderBoxes pageKey="skills-assessments" candidateId={profile.id} />
       </div>
 
-      <div className="space-y-2">
-        {assessments.map((assessment) => {
-          const statusLine =
-            'statusLabel' in assessment
-              ? assessment.statusLabel
-              : assessment.completedAt
-                ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
-                : 'Not completed yet'
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">Your Assessments</h2>
+        <div className="space-y-2">
+          {assessments.map((assessment) => {
+            const statusLine =
+              'statusLabel' in assessment
+                ? assessment.statusLabel
+                : assessment.completedAt
+                  ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
+                  : 'Not completed yet'
 
-          return (
-            <details key={assessment.key} className="group overflow-hidden rounded-lg border border-border">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">{statusLine}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  {!assessment.completedAt && (
-                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand tabular-nums">
-                      +{assessment.points} pts
+            return (
+              <details key={assessment.key} className="group overflow-hidden rounded-lg border border-border">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{statusLine}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {!assessment.completedAt && (
+                      <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand tabular-nums">
+                        +{assessment.points} pts
+                      </span>
+                    )}
+                    <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
+                      See details
                     </span>
-                  )}
-                  <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
-                    See details
-                  </span>
-                </div>
-              </summary>
-              <div className="space-y-3 border-t border-border px-4 py-3">
-                <p className="text-sm text-muted-foreground">{assessment.description}</p>
-                <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
-                <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
-                  {assessment.ctaLabel}
-                </Button>
-              </div>
-            </details>
-          )
-        })}
-      </div>
+                  </div>
+                </summary>
+                <div className="space-y-3 border-t border-border px-4 py-3">
+                  <p className="text-sm text-muted-foreground">{assessment.description}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{assessment.sharedWith}</p>
+                  <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
+                    {assessment.ctaLabel}
+                  </Button>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-medium text-foreground">Skills You Need to Build</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Skills worth building for your next job — pick from the suggestions below or add your
-            own. Feeds your Learning recommendations and Coaching Notes.
-          </p>
-          <Suspense fallback={<SkillsToBuildSkeleton />}>
-            <SkillsToBuildCard candidateId={profile.id} skillsToBuild={profile.skillsToBuild} />
-          </Suspense>
-        </CardContent>
-      </Card>
+                  {assessment.key === 'skills' && (
+                    <div className="space-y-4 border-t border-border pt-3">
+                      <details className="group/have overflow-hidden rounded-lg border border-border">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
+                          <p className="text-sm font-medium text-foreground">Skills You Have</p>
+                          <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
+                            Show
+                          </span>
+                        </summary>
+                        <div className="space-y-2 border-t border-border p-3">
+                          <p className="text-xs text-muted-foreground">
+                            Pulled from your resume — read-only here; re-upload your resume to refresh it.
+                          </p>
+                          <SkillsYouHaveCard resumeKeywords={profile.resumeKeywords} />
+                        </div>
+                      </details>
+
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-foreground">Skills You Need to Build</p>
+                        <p className="text-sm text-muted-foreground">
+                          Skills worth building for your next job — pick from the suggestions below or
+                          add your own. Feeds your Learning recommendations and Coaching Notes.
+                        </p>
+                        <Suspense fallback={<SkillsToBuildSkeleton />}>
+                          <SkillsToBuildCard
+                            candidateId={profile.id}
+                            skillsToBuild={profile.skillsToBuild}
+                            targetRole={profile.targetRoleType}
+                          />
+                        </Suspense>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </details>
+            )
+          })}
+        </div>
+      </div>
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight text-foreground">Coming soon</h2>

@@ -8,22 +8,27 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import type { SkillGapSuggestions } from '@/lib/skills/skill-gap-suggestions'
 
-const SUGGESTION_GROUPS: { key: keyof SkillGapSuggestions; label: string }[] = [
-  { key: 'resumeGaps', label: 'Common for your background, not on your resume' },
-  { key: 'roleGaps', label: 'For your target role' },
-  { key: 'modernSkills', label: 'Modern & AI skills' },
-]
-
 export function SkillsToBuildForm({
   initialSkills,
   suggestions,
+  targetRole,
 }: {
   initialSkills: string[]
   suggestions: SkillGapSuggestions | null
+  // Names the real target role in the group label instead of a generic
+  // "your target role" — falls back to that generic phrasing only when the
+  // candidate hasn't set one yet (Search Strategy).
+  targetRole: string | null
 }) {
   const [state, formAction] = useActionState(updateSkillsToBuild, undefined)
   const [skills, setSkills] = useState<string[]>(initialSkills)
   const [draft, setDraft] = useState('')
+
+  const suggestionGroups: { key: keyof SkillGapSuggestions; label: string }[] = [
+    { key: 'resumeGaps', label: 'Common for your background, not on your resume' },
+    { key: 'roleGaps', label: targetRole ? `For ${targetRole}` : 'For your target role' },
+    { key: 'modernSkills', label: 'Modern & AI skills' },
+  ]
 
   function addSkill(value: string) {
     const trimmed = value.trim()
@@ -46,7 +51,7 @@ export function SkillsToBuildForm({
     }
   }
 
-  const hasSuggestions = SUGGESTION_GROUPS.some((g) => (suggestions?.[g.key]?.length ?? 0) > 0)
+  const hasSuggestions = suggestionGroups.some((g) => (suggestions?.[g.key]?.length ?? 0) > 0)
 
   return (
     <form action={formAction} className="space-y-4">
@@ -82,7 +87,7 @@ export function SkillsToBuildForm({
 
       {hasSuggestions && (
         <div className="space-y-3">
-          {SUGGESTION_GROUPS.map((group) => {
+          {suggestionGroups.map((group) => {
             const items = suggestions?.[group.key] ?? []
             if (items.length === 0) return null
             return (
