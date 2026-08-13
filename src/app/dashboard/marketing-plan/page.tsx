@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
-import { ThoughtLeadershipUnlockForm } from '@/components/dashboard/ThoughtLeadershipUnlockForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -50,7 +49,19 @@ export default async function MarketingPlanPage({
             so it sounds like you, and post.
           </p>
         </div>
-        <ThoughtLeadershipUnlockForm />
+        <div className="rounded-lg border border-border p-4 text-sm">
+          <p className="font-medium text-foreground">Answer Marketing Plan Willingness on Search Strategy first</p>
+          <p className="mt-1 text-muted-foreground">
+            What you&apos;re willing to do publicly — thought leadership and LinkedIn openness — now
+            lives on Search Strategy so you only answer it once.
+          </p>
+          <Link
+            href="/dashboard/search-strategy"
+            className="mt-2 inline-block text-sm text-primary underline underline-offset-4"
+          >
+            Go to Search Strategy →
+          </Link>
+        </div>
       </div>
     )
   }

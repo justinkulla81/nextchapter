@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import { LinkedInUrlForm } from '@/components/dashboard/LinkedInUrlForm'
-import { LinkedInUnlockForm } from '@/components/dashboard/LinkedInUnlockForm'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -68,7 +68,19 @@ export default async function LinkedInPage() {
         {postGeneratorUnlocked ? (
           <ThoughtLeadershipStudio venues={['LINKEDIN']} />
         ) : (
-          <LinkedInUnlockForm />
+          <div className="rounded-lg border border-border p-4 text-sm">
+            <p className="font-medium text-foreground">Answer Marketing Plan Willingness on Search Strategy first</p>
+            <p className="mt-1 text-muted-foreground">
+              How open you are about your search on LinkedIn now lives on Search Strategy so you
+              only answer it once.
+            </p>
+            <Link
+              href="/dashboard/search-strategy"
+              className="mt-2 inline-block text-sm text-primary underline underline-offset-4"
+            >
+              Go to Search Strategy →
+            </Link>
+          </div>
         )}
       </div>
     </div>

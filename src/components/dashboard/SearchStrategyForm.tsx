@@ -350,6 +350,18 @@ export function SearchStrategyForm({
         />
       </div>
 
+      <label className="flex items-start gap-2 text-sm">
+        <Checkbox
+          name="willingToFollowUpOnApplications"
+          value="on"
+          defaultChecked={profile.willingToFollowUpOnApplications ?? undefined}
+        />
+        <span>
+          I&apos;m willing to follow up on applications I&apos;ve submitted (a short note to a
+          recruiter or hiring manager a week or two after applying)
+        </span>
+      </label>
+
       <div className="space-y-1 rounded-lg border border-border bg-muted/40 p-3">
         <Label className="text-sm font-semibold">References target</Label>
         <p className="text-sm text-muted-foreground">

@@ -4,12 +4,20 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { getSearchStage, isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
+import {
+  getSearchStage,
+  isSearchGoalsComplete,
+  isBlockersAndMotivationsComplete,
+  isMarketingPlanWillingnessComplete,
+  isNetworkingWillingnessComplete,
+} from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
+import { MarketingPlanWillingnessForm } from '@/components/dashboard/MarketingPlanWillingnessForm'
+import { NetworkingWillingnessForm } from '@/components/dashboard/NetworkingWillingnessForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -156,6 +164,8 @@ export default async function SearchStrategyPage() {
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
+  const marketingPlanWillingnessComplete = isMarketingPlanWillingnessComplete(profile)
+  const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
   // actually reflects most-recent-first, matching onboarding/goals/page.tsx.
@@ -344,6 +354,60 @@ export default async function SearchStrategyPage() {
                 : "Required, alongside Your Target Role & Company above, before Victoria will review your strategy — what's actually in your way, and what's pulling you forward, shapes her advice as much as your target role does."}
             </p>
             <PersonalContextForm profile={profile} />
+          </CardContent>
+        </details>
+      </Card>
+
+      <Card className="overflow-hidden p-0">
+        <details className="group" open={!marketingPlanWillingnessComplete}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Marketing Plan Willingness</CardTitle>
+              {marketingPlanWillingnessComplete && (
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <CardContent className="space-y-4 border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">
+              {marketingPlanWillingnessComplete
+                ? 'Update this any time your comfort level changes — it unlocks My Marketing Plan and the LinkedIn post generator.'
+                : "What you're willing to do publicly shapes your Marketing Plan and unlocks the LinkedIn post generator — answer these once here instead of hitting two separate locked pages."}
+            </p>
+            <MarketingPlanWillingnessForm profile={profile} />
+          </CardContent>
+        </details>
+      </Card>
+
+      <Card className="overflow-hidden p-0">
+        <details className="group" open={!networkingWillingnessComplete}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Networking Willingness</CardTitle>
+              {networkingWillingnessComplete && (
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <CardContent className="space-y-4 border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">
+              {networkingWillingnessComplete
+                ? 'Update this any time it changes — it unlocks My Network and calibrates your outreach scripts.'
+                : "What you're willing to do to reach out — and what's holding you back — shapes your outreach scripts and unlocks My Network."}
+            </p>
+            <NetworkingWillingnessForm profile={profile} />
           </CardContent>
         </details>
       </Card>

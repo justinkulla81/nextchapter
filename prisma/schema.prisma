@@ -720,6 +720,10 @@ model CandidateProfile {
   // Stage itself isn't stored here — it's derived from currentJobStatus +
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
   applicationVolumeGoal          Int? // target applications per week
+  // Job Applications Willingness gate (Search Strategy) — "are you willing
+  // to follow up on applications you've submitted?" Paired with
+  // applicationVolumeGoal above under the same gate section.
+  willingToFollowUpOnApplications Boolean?
   isPivoting                     Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
@@ -948,6 +952,10 @@ model CandidateProfile {
   comfortCheckBonusAt       DateTime?
   networkingConcerns        NetworkingAnxiety[] @default([])
   networkConnectPreferences String[]            @default([])
+  // Networking Willingness gate (Search Strategy) — a self-set weekly
+  // outreach target, same "personal target + suggested baseline" shape as
+  // applicationVolumeGoal (15/week baseline) — see NETWORKING_OUTREACH_SUGGESTED_TARGET.
+  networkingOutreachTargetPerWeek Int?
 
   // My Marketing Plan redesign — one-time Weekly Sprint bonus flags. Each
   // mirrors the networkComfortBonusAt/comfortCheckBonusAt shape above: set

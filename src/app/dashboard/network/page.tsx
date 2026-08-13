@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { outreachCountToTier } from '@/lib/network/outreach-count-tier'
 import { computeOutreachRelationshipMix } from '@/lib/network/outreach-relationship-mix'
-import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActionsCard'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
@@ -498,8 +497,19 @@ export default async function NetworkPage({
           <h1 className="text-2xl font-semibold tracking-tight">Network with My Contacts</h1>
           <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
         </div>
-        <div className="rounded-lg border border-border p-4">
-          <NetworkComfortCheck />
+        <div className="rounded-lg border border-border p-4 text-sm">
+          <p className="font-medium text-foreground">Answer Networking Willingness on Search Strategy first</p>
+          <p className="mt-1 text-muted-foreground">
+            How comfortable you are letting your network know you&apos;re searching now lives on
+            Search Strategy so you only answer it once, alongside your outreach target and
+            concerns — it also calibrates the scripts we give you.
+          </p>
+          <Link
+            href="/dashboard/search-strategy"
+            className="mt-2 inline-block text-sm text-primary underline underline-offset-4"
+          >
+            Go to Search Strategy →
+          </Link>
         </div>
       </div>
     )

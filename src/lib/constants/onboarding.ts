@@ -431,3 +431,11 @@ export const REFERRAL_RECENCY_OPTIONS: { value: ReferralRecency; label: string }
   { value: 'PAST_TWO_YEARS', label: 'Past 2 years' },
   { value: 'LONGER_AGO', label: 'Longer ago' },
 ]
+
+// Suggested baseline for networkingOutreachTargetPerWeek (Search Strategy's
+// Networking Willingness gate) — same "personal target + suggested
+// baseline" shape as applicationVolumeGoal's 15/week default. Set above the
+// passive OUTREACH_MESSAGE(2)+OUTREACH_CALL(1) weekly point targets
+// (action-effort.ts) since this is the willingness ceiling to aim for, not
+// the passive credit floor.
+export const NETWORKING_OUTREACH_SUGGESTED_TARGET = 5

@@ -1,4 +1,11 @@
-import type { ChangePacePreference, ChangeReadiness, CoachingStylePreference, CurrentJobStatus, GapDurationBucket } from '@prisma/client'
+import type {
+  ChangePacePreference,
+  ChangeReadiness,
+  CoachingStylePreference,
+  CurrentJobStatus,
+  GapDurationBucket,
+  NetworkComfortLevel,
+} from '@prisma/client'
 
 // Search Stage is deliberately not stored — it's derived from data already
 // captured during onboarding (currentJobStatus + gapDuration), so it can
@@ -94,4 +101,43 @@ export function isBlockersAndMotivationsComplete(candidate: {
     candidate.changePacePreference &&
     candidate.changeReadiness
   )
+}
+
+// The "Marketing Plan Willingness" section on Search Strategy — consolidates
+// the two unlock gates that used to live directly on My Marketing Plan
+// (contentComfortLevel/contentVenues) and LinkedIn (linkedinOpennessComfort/
+// linkedinUsageFrequency/linkedinProfileUpToDate), so a candidate answers
+// "what am I willing to do publicly" once, up front, instead of hitting two
+// separate locked pages later. Not one of the two required-for-Victoria
+// gates (isSearchGoalsComplete/isBlockersAndMotivationsComplete) — this is
+// informational/unlocking, not a scoring input.
+export function isMarketingPlanWillingnessComplete(candidate: {
+  contentComfortLevel: number | null
+  contentVenues: string[]
+  linkedinOpennessComfort: number | null
+  linkedinUsageFrequency: string | null
+  linkedinProfileUpToDate: boolean | null
+}): boolean {
+  return !!(
+    candidate.contentComfortLevel !== null &&
+    candidate.contentVenues.length > 0 &&
+    candidate.linkedinOpennessComfort !== null &&
+    candidate.linkedinUsageFrequency &&
+    candidate.linkedinProfileUpToDate !== null
+  )
+}
+
+// The "Networking Willingness" section on Search Strategy — consolidates
+// the network comfort gate that used to block My Network directly
+// (networkComfortLevel) plus the new self-set weekly outreach target. Same
+// non-required, unlocking-not-scoring status as
+// isMarketingPlanWillingnessComplete above. networkingConcerns and
+// hasBeenReferredBefore/referralRecency are deliberately excluded — genuinely
+// optional context, not gating fields, same as the optional fields excluded
+// from isBlockersAndMotivationsComplete above.
+export function isNetworkingWillingnessComplete(candidate: {
+  networkComfortLevel: NetworkComfortLevel | null
+  networkingOutreachTargetPerWeek: number | null
+}): boolean {
+  return !!(candidate.networkComfortLevel && candidate.networkingOutreachTargetPerWeek !== null)
 }
