@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense, cache } from 'react'
 import Link from 'next/link'
-import type { EmailActivityType } from '@prisma/client'
+import type { EmailActivityType, OutreachChannel } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
@@ -11,6 +11,9 @@ import { getActivityReconciliation } from '@/lib/weekly/activity-reconciliation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
+import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
+import { outreachCountToTier } from '@/lib/network/outreach-count-tier'
+import { computeOutreachRelationshipMix } from '@/lib/network/outreach-relationship-mix'
 import { NetworkComfortCheck } from '@/components/dashboard/NetworkComfortCheck'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActionsCard'
@@ -69,6 +72,34 @@ type NetworkSearchParams = {
   calendarConnected?: string
   calendarError?: string
   contact?: string
+}
+
+const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
+  EMAIL: 'Email',
+  LINKEDIN: 'LinkedIn',
+  PHONE: 'Phone',
+  TEXT: 'Text',
+  MEETING: 'Meeting',
+}
+
+// Modest by design — a plain count-by-channel line, not a full trends
+// breakdown like ApplicationTrendsContent on the Find a Job page.
+function OutreachBreakdownContent({ logs }: { logs: { channel: OutreachChannel }[] }) {
+  const counts = logs.reduce<Partial<Record<OutreachChannel, number>>>((acc, log) => {
+    acc[log.channel] = (acc[log.channel] ?? 0) + 1
+    return acc
+  }, {})
+  const entries = (Object.entries(counts) as [OutreachChannel, number][]).sort((a, b) => b[1] - a[1])
+
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      {entries.map(([channel, count]) => (
+        <span key={channel} className="text-foreground">
+          {OUTREACH_CHANNEL_LABEL[channel]} <span className="text-muted-foreground">({count})</span>
+        </span>
+      ))}
+    </div>
+  )
 }
 
 // A contact counts as job-relevant two ways: manually flagged as able to
@@ -425,7 +456,7 @@ export default async function NetworkPage({
 }) {
   const profile = await getDashboardData()
   const params = await searchParams
-  const [rawContacts, backchannelMatches, needsFollowUp] = await Promise.all([
+  const [rawContacts, backchannelMatches, needsFollowUp, outreachLogs] = await Promise.all([
     prisma.supportNetworkContact.findMany({
       where: { candidateId: profile.id, removedAt: null },
       orderBy: { createdAt: 'desc' },
@@ -433,7 +464,16 @@ export default async function NetworkPage({
     }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
     getNeedsFollowUpList(profile.id),
+    // Powers the Outreach Log progressive-unlock card below — every manually
+    // logged outreach for this candidate, plus the relationship tag(s) of
+    // whichever contact it was logged against (null when logged without a
+    // specific contact), which feeds the "well-rounded mix" checklist.
+    prisma.outreachLog.findMany({
+      where: { candidateId: profile.id },
+      select: { channel: true, contact: { select: { relationshipTags: true } } },
+    }),
   ])
+  const outreachMix = computeOutreachRelationshipMix(outreachLogs.map((l) => l.contact?.relationshipTags ?? []))
   const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0 }))
   // Drops off this list the moment an outreach is logged against them — see
   // toggleContactPriority's comment for why (they belong in Needs a
@@ -493,6 +533,27 @@ export default async function NetworkPage({
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
         <NetworkingStatsCard profile={profile} />
       </Suspense>
+
+      {outreachLogs.length > 0 && (
+        <TierSummaryCard
+          title="Outreach Log"
+          count={outreachLogs.length}
+          unitLabel="touchpoint"
+          tier={outreachCountToTier(outreachLogs.length)}
+          buildingAt={3}
+          highAt={5}
+          unlockedContent={<OutreachBreakdownContent logs={outreachLogs} />}
+          mixTitle="A well-rounded outreach mix"
+          mixItems={[
+            { label: 'A hiring connection (recruiter or hiring manager)', done: outreachMix.hasHiringConnection },
+            {
+              label: 'Someone who knows your work (former colleague, professional contact, classmate)',
+              done: outreachMix.hasProfessionalContact,
+            },
+            { label: 'Personal support (coach, friend, or someone helping you)', done: outreachMix.hasPersonalSupport },
+          ]}
+        />
+      )}
 
       <BackchannelMatchesCard matches={backchannelMatches} />
 
