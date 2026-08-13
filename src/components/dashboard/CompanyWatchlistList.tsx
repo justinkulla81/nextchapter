@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { removeWatchlistCompany, viewWatchlistPosting } from '@/app/dashboard/company-tracker/actions'
 import { Button } from '@/components/ui/button'
 import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
+
+const PAGE_SIZE = 5
 
 export interface WatchlistPosting {
   id: string
@@ -25,6 +28,7 @@ export interface WatchlistEntry {
 
 export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [page, setPage] = useState(0)
   const [isPending, startTransition] = useTransition()
 
   if (entries.length === 0) {
@@ -35,9 +39,16 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
     )
   }
 
+  const pageCount = Math.ceil(entries.length / PAGE_SIZE)
+  const visibleEntries = entries.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border">
-      {entries.map((entry) => {
+    <div className="space-y-3">
+      <p className="text-sm font-medium text-muted-foreground">
+        {entries.length} compan{entries.length === 1 ? 'y' : 'ies'}
+      </p>
+      <ul className="divide-y divide-border rounded-lg border border-border">
+      {visibleEntries.map((entry) => {
         const openCount = entry.visiblePostings.length
         const canExpand = openCount > 0
         const expanded = canExpand && expandedId === entry.id
@@ -110,6 +121,35 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
           </li>
         )
       })}
-    </ul>
+      </ul>
+
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            aria-label="Previous page"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+          >
+            <ChevronLeft className="size-4" />
+            Prev
+          </button>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {page + 1} of {pageCount}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            disabled={page === pageCount - 1}
+            aria-label="Next page"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+          >
+            Next
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
