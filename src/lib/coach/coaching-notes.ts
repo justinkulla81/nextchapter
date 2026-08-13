@@ -26,6 +26,7 @@ import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
 import { getAnonymizedReferenceBreakdown, type ReferenceBreakdown } from '@/lib/coach/reference-breakdown'
+import { getJobActivityBreakdown, type JobActivityBreakdown } from '@/lib/coach/job-activity'
 
 export interface GapAnalysisGap {
   area: string
@@ -390,10 +391,16 @@ export interface CoachingNotes {
   // than grouped by reviewer — see getAnonymizedReferenceBreakdown for why
   // (referee anonymity). Null until at least one reference has completed.
   referenceBreakdown: ReferenceBreakdown | null
+  // Full all-time job-search activity: applications, rejections, interviews,
+  // offers, networking outreach, calendar meetings, follow-ups made/pending,
+  // and which applied jobs have a Support Network connection attached. See
+  // getJobActivityBreakdown — the coach-facing, all-time counterpart to the
+  // candidate-facing weekly outcomes.
+  jobActivity: JobActivityBreakdown
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown, jobActivity] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -476,6 +483,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     }),
     getOpennessToLearning(candidateId),
     getAnonymizedReferenceBreakdown(candidateId),
+    getJobActivityBreakdown(candidateId),
   ])
 
   return {
@@ -531,5 +539,6 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       interimConsultingInterest: candidate.interimConsultingInterest,
     },
     referenceBreakdown,
+    jobActivity,
   }
 }

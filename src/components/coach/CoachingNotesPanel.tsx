@@ -398,6 +398,90 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">Job search activity (all-time)</p>
+        <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4 text-sm">
+          <div>
+            <dt className="text-xs text-muted-foreground">Applications</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.totalApplications}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Rejections</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.totalRejections}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Interviews landed</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.totalInterviewsLanded}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Offers received</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.totalOffersReceived}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Networking outreaches</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.totalNetworkingOutreach}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Calendar meetings</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.totalCalendarMeetings}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Follow-ups sent</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.followUpsSentCount}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Follow-ups currently owed</dt>
+            <dd className="text-lg font-semibold text-foreground tabular-nums">{notes.jobActivity.followUpsPendingCount}</dd>
+          </div>
+        </dl>
+        {(notes.jobActivity.applicationToInterviewRate !== null || notes.jobActivity.interviewToOfferRate !== null) && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {notes.jobActivity.applicationToInterviewRate !== null &&
+              `${notes.jobActivity.applicationToInterviewRate}% of applications have led to an interview`}
+            {notes.jobActivity.applicationToInterviewRate !== null && notes.jobActivity.interviewToOfferRate !== null && ' — '}
+            {notes.jobActivity.interviewToOfferRate !== null &&
+              `${notes.jobActivity.interviewToOfferRate}% of interviews have led to an offer`}
+          </p>
+        )}
+
+        {notes.jobActivity.rejectedJobs.length > 0 && (
+          <div className="mt-3">
+            <dt className="text-xs text-muted-foreground">Rejected</dt>
+            <ul className="mt-1 max-h-48 space-y-1 overflow-y-auto text-sm">
+              {notes.jobActivity.rejectedJobs.map((j, i) => (
+                <li key={i} className="flex items-center justify-between gap-2 text-foreground">
+                  <span className="truncate">
+                    {j.title ?? 'Unknown title'}
+                    {j.companyName ? ` — ${j.companyName}` : ''}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {j.declinedAt.toLocaleDateString()}
+                    {j.declinedBy === 'CANDIDATE' ? ' (they passed)' : j.declinedBy === 'COMPANY' ? ' (company passed)' : ''}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {notes.jobActivity.jobsWithConnections.length > 0 && (
+          <div className="mt-3">
+            <dt className="text-xs text-muted-foreground">Applications with a Support Network connection attached</dt>
+            <ul className="mt-1 max-h-48 space-y-1 overflow-y-auto text-sm">
+              {notes.jobActivity.jobsWithConnections.map((j, i) => (
+                <li key={i} className="text-foreground">
+                  <span className="truncate">
+                    {j.title ?? 'Unknown title'}
+                    {j.companyName ? ` — ${j.companyName}` : ''}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">Via: {j.contactNames.join(', ')}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
       {notes.watchedCompanies.length > 0 && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">Companies they&apos;re tracking</p>

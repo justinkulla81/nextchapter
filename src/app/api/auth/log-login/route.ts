@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
+import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
 
 // Called client-side right after a successful sign-in (LoginForm,
 // CallbackHandler) — auth itself happens via the browser Supabase SDK with
@@ -12,6 +13,13 @@ import { getClientIp } from '@/lib/http/client-ip'
 // sign-in. No-ops for non-candidate accounts (coach/recruiter/employer/admin
 // logins share this same LoginForm) since CandidateLoginEvent only tracks
 // candidate app usage.
+//
+// Shares recordCandidateLoginIfDue with getDashboardData's after() callback
+// rather than inserting directly — this route fires client-side right before
+// navigating to /dashboard, so its request routinely races the dashboard
+// SSR's own login-recording call. Two independent unguarded inserts for the
+// same real login produced back-to-back duplicate rows; routing both callers
+// through the same dedupe-checked helper collapses them to one.
 export async function POST() {
   const supabase = await createClient()
   const {
@@ -26,9 +34,7 @@ export async function POST() {
   if (!candidate) return NextResponse.json({ ok: true })
 
   const [ip, h] = await Promise.all([getClientIp(), headers()])
-  await prisma.candidateLoginEvent.create({
-    data: { candidateId: candidate.id, ip, userAgent: h.get('user-agent') },
-  })
+  await recordCandidateLoginIfDue(candidate.id, ip, h.get('user-agent'))
 
   return NextResponse.json({ ok: true })
 }
