@@ -29,11 +29,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // toggleContactPriority.
   CONTACT_PRIORITIZED: { minutes: 5, points: 5 },
 
-  // Engage (Support Network) — Peer Support is intentionally 0, see below.
+  // Engage (Support Network)
   ENGAGE_COMMENT: { minutes: 5, points: 5 },
   ENGAGE_EVENT: { minutes: 30, points: 30 },
   ENGAGE_POST_UPDATE: { minutes: 10, points: 10 },
-  ENGAGE_PEER_SUPPORT: { minutes: 0, points: 0 },
+  // Same weight as ENGAGE_COMMENT — a single lightweight peer interaction.
+  ENGAGE_PEER_SUPPORT: { minutes: 5, points: 5 },
 
   // Thought Leadership
   LINKEDIN_POST_IDEA: { minutes: 20, points: 20 },

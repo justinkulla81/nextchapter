@@ -266,14 +266,23 @@ export async function getPeerThreadWithMessages(threadId: string, candidateId: s
 
 // Flags the conversation for the narrow admin surface below — does not
 // itself stop messages (block does that) and needs no approval to take
-// effect: the report is recorded immediately, full stop.
-export async function reportPeerThread(threadId: string, reporterCandidateId: string, reason: string): Promise<void> {
+// effect: the report is recorded immediately, full stop. Generalized
+// (Phase 3 of the Community/Messaging rework) to cover Coach/Recruiter/
+// Employer threads too, not just PEER — the reportedAt/reportedByCandidateId/
+// reportReason columns were never DB-constrained to PEER, only gated by
+// application code, which is what this function now checks against either
+// shape of the thread.
+export async function reportMessageThread(threadId: string, reporterCandidateId: string, reason: string): Promise<void> {
   const thread = await prisma.messageThread.findUnique({
     where: { id: threadId },
-    select: { peerCandidateAId: true, peerCandidateBId: true },
+    select: { candidateId: true, peerCandidateAId: true, peerCandidateBId: true },
   })
   if (!thread) return
-  if (reporterCandidateId !== thread.peerCandidateAId && reporterCandidateId !== thread.peerCandidateBId) {
+  const isParticipant =
+    thread.candidateId === reporterCandidateId ||
+    thread.peerCandidateAId === reporterCandidateId ||
+    thread.peerCandidateBId === reporterCandidateId
+  if (!isParticipant) {
     throw new Error('You are not part of this conversation.')
   }
   await prisma.messageThread.update({
@@ -283,27 +292,45 @@ export async function reportPeerThread(threadId: string, reporterCandidateId: st
 }
 
 // Admin-only — deliberately the ONLY query in this module that reads
-// arbitrary peer threads rather than scoping to a single candidate's own
+// arbitrary threads rather than scoping to a single candidate's own
 // conversations. Narrow on purpose: reported conversations only, never a
 // general DM-browsing surface (same principle as Coaching Notes' access
-// gating — see threads.ts's module header).
-export async function getReportedPeerThreads() {
+// gating — see threads.ts's module header). Generalized (Phase 3) to cover
+// every partnerType, not just PEER, since reportMessageThread now does too.
+export async function getReportedThreads() {
   const threads = await prisma.messageThread.findMany({
-    where: { partnerType: 'PEER', reportedAt: { not: null } },
+    where: { reportedAt: { not: null } },
     orderBy: { reportedAt: 'desc' },
     include: {
       messages: { orderBy: { createdAt: 'asc' } },
+      candidate: { select: CANDIDATE_DISPLAY_SELECT },
+      coach: { select: { fullName: true } },
+      recruiter: { select: { fullName: true } },
+      employer: { select: { companyName: true } },
       peerCandidateA: { select: CANDIDATE_DISPLAY_SELECT },
       peerCandidateB: { select: CANDIDATE_DISPLAY_SELECT },
     },
   })
-  return threads.map((thread) => ({
-    id: thread.id,
-    reportedAt: thread.reportedAt,
-    reportedByCandidateId: thread.reportedByCandidateId,
-    reportReason: thread.reportReason,
-    candidateA: { id: thread.peerCandidateA?.id, name: candidateDisplayName(thread.peerCandidateA ?? null) },
-    candidateB: { id: thread.peerCandidateB?.id, name: candidateDisplayName(thread.peerCandidateB ?? null) },
-    messages: thread.messages,
-  }))
+  return threads.map((thread) => {
+    const partnerLabel =
+      thread.coach?.fullName ?? thread.recruiter?.fullName ?? thread.employer?.companyName ?? null
+    const sideA =
+      thread.partnerType === 'PEER'
+        ? { id: thread.peerCandidateA?.id, name: candidateDisplayName(thread.peerCandidateA ?? null) }
+        : { id: thread.candidate?.id, name: candidateDisplayName(thread.candidate ?? null) }
+    const sideB =
+      thread.partnerType === 'PEER'
+        ? { id: thread.peerCandidateB?.id, name: candidateDisplayName(thread.peerCandidateB ?? null) }
+        : { id: null, name: partnerLabel ?? thread.partnerType }
+    return {
+      id: thread.id,
+      partnerType: thread.partnerType,
+      reportedAt: thread.reportedAt,
+      reportedByCandidateId: thread.reportedByCandidateId,
+      reportReason: thread.reportReason,
+      candidateA: sideA,
+      candidateB: sideB,
+      messages: thread.messages,
+    }
+  })
 }

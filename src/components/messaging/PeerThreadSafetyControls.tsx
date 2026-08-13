@@ -2,17 +2,22 @@
 
 import { useState, useActionState } from 'react'
 import {
-  reportPeerThreadAction,
+  reportMessageThreadAction,
   blockPeerCandidateAction,
   unblockPeerCandidateAction,
 } from '@/app/dashboard/community/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Textarea } from '@/components/ui/textarea'
 
-// Prompt 85 — one-tap report + immediate, candidate-controlled block, both
-// fully self-service: neither needs the other person's or an admin's
-// approval to take effect. Report and block are independent — reporting
-// doesn't block, and blocking doesn't require a report first.
+// Prompt 85, generalized (Phase 3 of the Community/Messaging rework) to
+// render on Coach/Recruiter/Employer threads too, not just Peer — one-tap
+// report + immediate, candidate-controlled block, both fully self-service:
+// neither needs the other person's or an admin's approval to take effect.
+// Report and block are independent — reporting doesn't block, and blocking
+// doesn't require a report first. otherCandidateId is null for Coach/
+// Recruiter/Employer threads (blocking is inherently candidate-to-candidate
+// — CandidateBlock has no institutional-partner shape), which hides the
+// Block control and leaves Report available on all 4 relationship tabs.
 export function PeerThreadSafetyControls({
   threadId,
   otherCandidateId,
@@ -20,13 +25,13 @@ export function PeerThreadSafetyControls({
   isReported,
 }: {
   threadId: string
-  otherCandidateId: string
+  otherCandidateId: string | null
   isBlocked: boolean
   isReported: boolean
 }) {
   const [reporting, setReporting] = useState(false)
   const [confirmingBlock, setConfirmingBlock] = useState(false)
-  const [reportState, reportAction] = useActionState(reportPeerThreadAction, undefined)
+  const [reportState, reportAction] = useActionState(reportMessageThreadAction, undefined)
   const reported = isReported || (!!reportState && !reportState.error)
 
   return (
@@ -42,21 +47,22 @@ export function PeerThreadSafetyControls({
       )}
       {reported && <span className="font-medium text-muted-foreground">Reported</span>}
 
-      {isBlocked ? (
-        <form action={unblockPeerCandidateAction.bind(null, otherCandidateId)}>
-          <SubmitButton variant="ghost" size="sm" className="h-auto p-0 text-xs font-medium">
-            Unblock
-          </SubmitButton>
-        </form>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setConfirmingBlock(true)}
-          className="text-xs font-medium text-destructive hover:underline"
-        >
-          Block
-        </button>
-      )}
+      {otherCandidateId &&
+        (isBlocked ? (
+          <form action={unblockPeerCandidateAction.bind(null, otherCandidateId)}>
+            <SubmitButton variant="ghost" size="sm" className="h-auto p-0 text-xs font-medium">
+              Unblock
+            </SubmitButton>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmingBlock(true)}
+            className="text-xs font-medium text-destructive hover:underline"
+          >
+            Block
+          </button>
+        ))}
 
       {reporting && !reported && (
         <form action={reportAction} className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -85,7 +91,7 @@ export function PeerThreadSafetyControls({
         </form>
       )}
 
-      {confirmingBlock && (
+      {confirmingBlock && otherCandidateId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm space-y-3 rounded-lg border border-border bg-card p-4">
             <p className="text-sm font-medium text-foreground">Block this person?</p>

@@ -22,10 +22,6 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: "Comment thoughtfully on a peer's post", actionType: 'ENGAGE_COMMENT' },
   { text: 'Attend a community event or session', actionType: 'ENGAGE_EVENT' },
   { text: 'Post an update on your own progress', actionType: 'ENGAGE_POST_UPDATE' },
-  // Deliberately 0 points (see action-effort.ts) — once a behavior earns
-  // points its frequency stops being clean evidence someone would do it
-  // without incentive. Shown in the canonical menu anyway so it's a real,
-  // selectable option, not just a point-table entry nobody can ever pick.
   { text: 'Help a peer in Support Network', actionType: 'ENGAGE_PEER_SUPPORT' },
 
   // Thought Leadership

@@ -57,7 +57,7 @@ export default function ProductPositioningFlagEmail({
       <a href={url} style={button}>
         Read the source →
       </a>
-      <p style={footer}>Flagged from the Research Library — relevant to Victoria/Dossier copy.</p>
+      <p style={footer}>Flagged from Market Pulse — relevant to Victoria/Dossier copy.</p>
     </div>
   )
 }

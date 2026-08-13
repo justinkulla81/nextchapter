@@ -66,7 +66,7 @@ export default function PrHookAlertEmail({ title, url, summary, suggestedAction 
         Read the source →
       </a>
       <p style={footer}>
-        Flagged by the Research Library as high-priority — this does not wait for the weekly digest.
+        Flagged by Market Pulse as high-priority — this does not wait for the weekly digest.
       </p>
     </div>
   )

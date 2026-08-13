@@ -30,7 +30,7 @@ See also: [PRODUCT_VISION_CANDIDATE.md](./PRODUCT_VISION_CANDIDATE.md), [PRODUCT
 | **Adzuna** | Job-market data for the Hireability Report's market-conditions context | Optional — market module degrades gracefully without it |
 | **BLS (Bureau of Labor Statistics) API** | Same market-conditions context as Adzuna | Optional |
 | **Google Gemini** | Headshot/banner image generation for org landing pages | Optional — only that one feature needs it |
-| **Google Cloud OAuth (Client ID/Secret)** | Gmail-readonly ingestion for the admin Research Library feature (an internal company research inbox, not candidate-facing) | Optional — only Research Library ingestion needs it |
+| **Google Cloud OAuth (Client ID/Secret)** | Gmail-readonly ingestion for the admin Market Pulse feature (an internal company research inbox, not candidate-facing) | Optional — only Market Pulse ingestion needs it |
 | **RapidAPI (JSearch)** | One leg of the job-source waterfall for job listings | Optional — waterfall falls back to other sources |
 | **Stripe** | **Configured but not wired into any code yet** — see `IDEAS.md` Monetization section. Keys exist in `.env.local` for when this gets built. | No — unused today |
 | **Twilio (SMS)** | **Not configured, not wired in** — SMS accountability nudges are built in schema/UI but deactivated pending this. See `IDEAS.md`. | No |
@@ -71,13 +71,13 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 **Images**
 - `GEMINI_API_KEY`
 
-**Google OAuth (Research Library Gmail ingestion only — not candidate auth)**
+**Google OAuth (Market Pulse Gmail ingestion only — not candidate auth)**
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
 **Admin**
 - `ADMIN_EMAILS` — comma-separated allowlist checked against the logged-in Supabase user's email to gate `/support/admin/*` pages
-- `RESEARCH_LIBRARY_ALERT_EMAIL` — where Research Library pipeline alerts get sent
+- `RESEARCH_LIBRARY_ALERT_EMAIL` — where Market Pulse pipeline alerts get sent (env var name kept as-is)
 
 **Cron**
 - `CRON_SECRET` — Vercel Cron sends this as a Bearer token; every `/api/cron/*` route checks it before running
@@ -157,7 +157,7 @@ Defined in `vercel.json`, all authenticated via `CRON_SECRET`. All times UTC:
 | `/api/cron/interim-role-reverify` | 14:00 daily | Re-verification cadence for interim/fractional roles |
 | `/api/cron/expire-job-postings` | 10:00 daily | Expires stale job board postings |
 | `/api/cron/ats-job-board-feed` | 10:30 daily | Pulls the ATS feed (Greenhouse/Lever/Ashby) into the job board |
-| `/api/cron/research-inbox-sweep` | 12:00 daily | Sweeps the Gmail research inbox into the Research Library pipeline |
+| `/api/cron/research-inbox-sweep` | 12:00 daily | Sweeps the Gmail research inbox into the Market Pulse pipeline (route path kept as-is) |
 | `/api/cron/auto-assign-sprint` | Mon 09:00 (~5am ET) | Auto-assigns every candidate's Weekly Search Sprint (fully automatic, no manual goal-setting step exists anymore) + sends the "weekly goal assigned" recap/preview email |
 | `/api/cron/market-reality-snapshot` | Mon 20:20 | Archives that week's Market Reality grade snapshot (well after auto-assign-sprint, so every candidate's week is already set) |
 | `/api/cron/weekly-gap-nudge` | Fri 21:00 | "Close the gap to an A" email |

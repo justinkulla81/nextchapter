@@ -136,7 +136,7 @@ export default async function AdminResearchPage({
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Research Library</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Market Pulse</h1>
         <p className="mt-1 text-muted-foreground">
           Every article ingested via the research inbox or manual add — fetched, summarized, and triaged.
         </p>

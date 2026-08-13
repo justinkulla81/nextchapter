@@ -1,19 +1,28 @@
 import type { CommunityPost } from '@prisma/client'
 import Link from 'next/link'
-import { deactivateCommunityPost, expressInterest } from '@/app/dashboard/community/actions'
+import { ThumbsUp } from 'lucide-react'
+import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { anonymize } from '@/lib/community/community-feed'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { CommunityPostReportButton } from '@/components/dashboard/CommunityPostReportButton'
+import { cn } from '@/lib/utils'
 
 export function CommunityPostCard({
   post,
   isOwnPost,
 }: {
-  post: CommunityPost & { candidate: { firstName: string | null; lastName: string | null } }
+  post: CommunityPost & {
+    candidate: { firstName: string | null; lastName: string | null }
+    reactions: { id: string }[]
+    _count: { reactions: number }
+  }
   isOwnPost: boolean
 }) {
   const posterName = anonymize(post.candidate.firstName, post.candidate.lastName)
+  const isCheered = post.reactions.length > 0
+  const cheerCount = post._count.reactions
 
   return (
     <Card>
@@ -39,16 +48,18 @@ export function CommunityPostCard({
           ) : (
             <div className="flex shrink-0 items-center gap-2">
               <Link
-                href={`/dashboard/community?tab=peer&with=${post.candidateId}`}
+                href={`/dashboard/community?tab=messages&relation=peers&with=${post.candidateId}`}
                 className="text-xs font-medium text-primary underline underline-offset-4"
               >
                 Message
               </Link>
-              <form action={expressInterest.bind(null, post.id)}>
-                <SubmitButton variant="outline" size="sm">
-                  I&apos;m interested
-                </SubmitButton>
-              </form>
+              {post.postType !== 'MILESTONE' && (
+                <form action={expressInterest.bind(null, post.id)}>
+                  <SubmitButton variant="outline" size="sm">
+                    I&apos;m interested
+                  </SubmitButton>
+                </form>
+              )}
             </div>
           )}
         </div>
@@ -63,9 +74,26 @@ export function CommunityPostCard({
             View link
           </a>
         )}
-        <p className="text-xs text-muted-foreground">
-          {[post.postCity, post.postFunction, post.postIndustry].filter(Boolean).join(' · ')}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            {[post.postCity, post.postFunction, post.postIndustry].filter(Boolean).join(' · ')}
+          </p>
+          {!isOwnPost && (
+            <div className="flex items-center gap-3">
+              <form action={toggleCheerPostAction.bind(null, post.id)}>
+                <SubmitButton
+                  variant="ghost"
+                  size="sm"
+                  className={cn('h-auto gap-1.5 px-2 py-1 text-xs', isCheered && 'text-primary')}
+                >
+                  <ThumbsUp className={cn('size-3.5', isCheered && 'fill-current')} aria-hidden />
+                  {cheerCount > 0 && <span className="tabular-nums">{cheerCount}</span>}
+                </SubmitButton>
+              </form>
+              <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

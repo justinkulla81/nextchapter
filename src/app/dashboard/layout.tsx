@@ -4,6 +4,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
+import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
@@ -30,7 +31,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     marketRealitySnapshotCount,
     learningBadgeCount,
     supportNetworkUnreadCount,
-    messagesUnreadCount,
+    candidateMessagesUnreadCount,
+    peerUnreadCount,
     backchannelMatches,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profile.id } }),
@@ -38,8 +40,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     prisma.learningBadge.count({ where: { candidateId: profile.id } }),
     getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
     getCandidateUnreadCount(profile.id),
+    getPeerUnreadCount(profile.id),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
   ])
+  // Sidebar's single "Messages" badge covers all 4 relationship tabs
+  // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
+  // see community/page.tsx's MessagesTab.
+  const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
   const newBackchannelCount = backchannelMatches.filter((m) => m.isNew).length
 
   // See buildPortfolioAssetChecklist — the Portfolio page computes this

@@ -1,15 +1,17 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 
-export type CommunityFeedItemType = 'sprintTarget' | 'activity' | 'victoria_insight' | 'comeback'
+export type CommunityFeedItemType = 'activity' | 'victoria_insight' | 'comeback' | 'marketBrief'
 
 export interface CommunityFeedItem {
   id: string
   type: CommunityFeedItemType
-  displayName: string | null // null for victoria_insight — platform-wide, not tied to a candidate
+  displayName: string | null // null for victoria_insight/marketBrief — not tied to a candidate
   avatarUrl: string | null
   detail: string
   occurredAt: Date
+  // Only set for marketBrief items — links out to the source article.
+  url?: string | null
 }
 
 export function anonymize(firstName: string | null, lastName: string | null): string | null {
@@ -54,27 +56,11 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   const windowStart = new Date(Date.now() - FEED_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   const items: CommunityFeedItem[] = [getVictoriaInsight()]
 
-  // Sourced from WeeklyBadgeEarned, the real currently-written record —
-  // SundayNightReport.onAList is legacy and nothing writes to it anymore
-  // (see src/lib/badges/weekly-badge-archive.ts).
-  const sprintTargetBadges = await prisma.weeklyBadgeEarned.findMany({
-    where: { badgeKey: 'WEEKLY_SPRINT_TARGET_HIT', earnedAt: { gte: windowStart } },
-    include: { candidate: true },
-    orderBy: { earnedAt: 'desc' },
-  })
-  for (const badge of sprintTargetBadges) {
-    if (badge.candidate.weeklySprintTargetOptOut || badge.candidate.privacyTier === 'LOCKED') continue
-    const name = anonymize(badge.candidate.firstName, badge.candidate.lastName)
-    if (!name) continue
-    items.push({
-      id: `sprint-target-${badge.id}`,
-      type: 'sprintTarget',
-      displayName: name,
-      avatarUrl: visibleAvatarUrl(badge.candidate),
-      detail: 'hit this week’s Sprint Target',
-      occurredAt: badge.earnedAt,
-    })
-  }
+  // Sprint Target hits used to be synthesized here straight off
+  // WeeklyBadgeEarned. Now maybeCreateMilestonePost (src/lib/community/milestone-posts.ts)
+  // writes a real CommunityPost when the badge is earned, so it flows
+  // through as a normal reactable/removable post instead of a synthetic
+  // feed item — see computeWeeklyBadges' call site.
 
   const recentReferences = await prisma.reference.findMany({
     where: { status: 'COMPLETED', completedAt: { gte: windowStart } },
@@ -188,4 +174,23 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   }
 
   return items.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime()).slice(0, limit)
+}
+
+// Admin-only — mirrors getReportedThreads' scoping in peer-threads.ts:
+// reported posts only, never a general feed-browsing surface for admin.
+export async function getReportedCommunityPosts() {
+  const posts = await prisma.communityPost.findMany({
+    where: { reportedAt: { not: null } },
+    orderBy: { reportedAt: 'desc' },
+    include: { candidate: { select: { firstName: true, lastName: true } } },
+  })
+  return posts.map((post) => ({
+    id: post.id,
+    postType: post.postType,
+    description: post.description,
+    authorName: anonymize(post.candidate.firstName, post.candidate.lastName) ?? 'Candidate',
+    reportedAt: post.reportedAt,
+    reportedByCandidateId: post.reportedByCandidateId,
+    reportReason: post.reportReason,
+  }))
 }

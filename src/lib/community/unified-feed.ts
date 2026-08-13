@@ -4,6 +4,10 @@ import type { CommunityFeedItem } from '@/lib/community/community-feed'
 
 export type CommunityPostWithCandidate = CommunityPost & {
   candidate: { firstName: string | null; lastName: string | null }
+  // Scoped to the viewing candidate's own row only (query filters by
+  // candidateId) — length > 0 means "I cheered this," never a full list.
+  reactions: { id: string }[]
+  _count: { reactions: number }
 }
 
 export type UnifiedStreamItem =

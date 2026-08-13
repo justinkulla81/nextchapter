@@ -76,7 +76,7 @@ export default async function AdminDigestPage({
         <p className="mt-1 text-sm text-muted-foreground">
           Market Brief items queued from the{' '}
           <a href="/support/admin/research" className="underline underline-offset-4">
-            Research Library
+            Market Pulse
           </a>
           . Nothing is auto-published — the scheduled send pulls from this queue as-is.
         </p>

@@ -310,6 +310,45 @@ export async function getEmployerUnreadCount(employerId: string): Promise<number
 // ── Shared thread detail (both sides use this, guarded by caller's own
 // ownership check on candidateId/coachId/recruiterId/employerId) ───────────
 
+// ── Candidate-initiated contact (Recruiters/Hiring Managers messaging tabs)
+// ────────────────────────────────────────────────────────────────────────
+// Candidate-initiated contact never existed before this — getOrCreateThread
+// was only ever called from the recruiter/employer side. These two queries
+// deliberately use only relationships that already exist elsewhere in the
+// app (a signup through a specific recruiter, an employer reveal) rather
+// than exposing a new browse-any-recruiter surface — assertThreadAllowed's
+// existing RECRUITER/EMPLOYER branches already permit exactly these pairs.
+
+export async function getCandidateEligibleRecruiters(candidateId: string) {
+  const sourced = await prisma.sourcedCandidate.findMany({
+    where: { candidateId, status: 'SIGNED_UP' },
+    select: { recruiter: { select: { id: true, fullName: true, ...PARTNER_AVATAR_SELECT } } },
+  })
+  const existingThreads = await prisma.messageThread.findMany({
+    where: { candidateId, partnerType: 'RECRUITER' },
+    select: { recruiterId: true },
+  })
+  const alreadyThreaded = new Set(existingThreads.map((t) => t.recruiterId))
+  const seen = new Set<string>()
+  return sourced
+    .map((s) => s.recruiter)
+    .filter((r): r is NonNullable<typeof r> => !!r && !alreadyThreaded.has(r.id))
+    .filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)))
+}
+
+export async function getCandidateEligibleEmployers(candidateId: string) {
+  const approved = await prisma.approvedEmployer.findMany({
+    where: { candidateId },
+    select: { employer: { select: { id: true, companyName: true, ...PARTNER_AVATAR_SELECT } } },
+  })
+  const existingThreads = await prisma.messageThread.findMany({
+    where: { candidateId, partnerType: 'EMPLOYER' },
+    select: { employerId: true },
+  })
+  const alreadyThreaded = new Set(existingThreads.map((t) => t.employerId))
+  return approved.map((a) => a.employer).filter((e) => !alreadyThreaded.has(e.id))
+}
+
 export async function getThreadWithMessages(threadId: string) {
   const thread = await prisma.messageThread.findUnique({
     where: { id: threadId },

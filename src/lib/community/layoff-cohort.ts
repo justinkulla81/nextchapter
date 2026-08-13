@@ -4,10 +4,17 @@ import type { CommunityPost } from '@prisma/client'
 export interface CohortInfo {
   companyName: string
   layoffDate: Date
-  memberCount: number
-  posts: (CommunityPost & { candidate: { firstName: string | null; lastName: string | null } })[]
+  posts: (CommunityPost & {
+    candidate: { firstName: string | null; lastName: string | null }
+    reactions: { id: string }[]
+    _count: { reactions: number }
+  })[]
 }
 
+// No memberCount in the return shape — a raw cross-candidate count is
+// exactly the aggregate-usage-statistic the Community rework's honesty-first
+// requirement rules out, even scoped to one cohort. Posts alone tell the
+// candidate this cohort is real and active.
 export async function getCohortInfo(layoffCohortId: string, candidateId: string): Promise<CohortInfo | null> {
   const cohort = await prisma.layoffCohort.findUnique({
     where: { id: layoffCohortId },
@@ -23,7 +30,11 @@ export async function getCohortInfo(layoffCohortId: string, candidateId: string)
 
   const posts = await prisma.communityPost.findMany({
     where: { isActive: true, candidateId: { in: cohortCandidateIds } },
-    include: { candidate: { select: { firstName: true, lastName: true } } },
+    include: {
+      candidate: { select: { firstName: true, lastName: true } },
+      reactions: { where: { candidateId } },
+      _count: { select: { reactions: true } },
+    },
     orderBy: { createdAt: 'desc' },
     take: 20,
   })
@@ -31,7 +42,6 @@ export async function getCohortInfo(layoffCohortId: string, candidateId: string)
   return {
     companyName: cohort.companyName,
     layoffDate: cohort.layoffDate,
-    memberCount: cohortCandidateIds.length,
     posts,
   }
 }

@@ -984,6 +984,8 @@ model CandidateProfile {
   jobPostings                    JobPosting[]
   communityPosts                 CommunityPost[]
   expressedInterests             CommunityPostInterest[]
+  communityPostReactions         CommunityPostReaction[]
+  communityMemberships           CommunityMembership[]
   hireabilityReports             HireabilityReport[]
   linkedInActivityLogs           LinkedInActivityLog[]
   coachConversation              CoachConversation?
@@ -2064,6 +2066,7 @@ model LayoffCohort {
   createdAt     DateTime @default(now())
 
   candidates CandidateProfile[]
+  community  Community?
 }
 
 // ── CANDIDATE HIREABILITY REPORT ──────────────────────────────────────────────
@@ -2180,6 +2183,7 @@ enum CommunityPostType {
   INTRO_OFFER
   SELF_INTRO // "introduce yourself" gate post — presence of one (not a boolean flag) unlocks the board
   UPDATE // default type for the message-only composer, post Community+Circle merge
+  MILESTONE // system-generated on a real milestone badge (e.g. WEEKLY_SPRINT_TARGET_HIT) — see maybeCreateMilestonePost
 }
 
 model CommunityPost {
@@ -2212,6 +2216,15 @@ model CommunityPost {
   createdAt DateTime @default(now())
 
   interests CommunityPostInterest[]
+  reactions CommunityPostReaction[]
+
+  // Candidate-controlled safety state, generalized from MessageThread's
+  // identical PEER-thread report fields (Prompt 85) to cover feed posts too.
+  // A report flags the post for the shared admin review surface below; it
+  // does not itself hide the post.
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
 
   @@index([postType, isActive, createdAt])
   @@index([postCity, postFunction, postIndustry])
@@ -2250,6 +2263,74 @@ model CommunityPostInterest {
   createdAt             DateTime         @default(now())
 
   @@unique([postId, interestedCandidateId])
+}
+
+// A single lightweight "cheer" reaction (toggle, not a picker — a 5+-option
+// reaction bar would force a dropdown per design-principles.md). Per-post
+// count is fine to show (not a cross-candidate site-wide aggregate); the
+// unique constraint gives the same idempotent toggle behavior as
+// CommunityPostInterest above.
+model CommunityPostReaction {
+  id          String           @id @default(cuid())
+  postId      String
+  post        CommunityPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@unique([postId, candidateId])
+}
+
+enum CommunityType {
+  CITY
+  FUNCTION
+  INDUSTRY
+  EX_COMPANY
+}
+
+enum CommunityJoinSource {
+  AUTO
+  MANUAL
+}
+
+// City/Function/Industry communities mirror CandidateProfile's existing
+// free-text fields (currentCity/primaryFunction/industryContext) — same
+// snapshot-free-text convention CommunityPost already uses, no new
+// taxonomy. EX_COMPANY communities are 1:1 with a LayoffCohort.
+model Community {
+  id             String        @id @default(cuid())
+  type           CommunityType
+  value          String
+  label          String
+  layoffCohortId String?       @unique
+  layoffCohort   LayoffCohort? @relation(fields: [layoffCohortId], references: [id])
+  createdAt      DateTime      @default(now())
+
+  memberships CommunityMembership[]
+
+  @@unique([type, value])
+}
+
+// notifiedAt null = a pending, not-yet-acknowledged auto-join to surface in
+// the explicit "You've been added to: X, Y" banner (see
+// getPendingAutoJoinNotices/acknowledgeAutoJoinNotice). leftAt set = the
+// candidate left; syncAutoJoinedCommunities never re-creates a row for a
+// dimension the candidate already has a row for, matched or left, so
+// leaving is permanent even if the underlying profile field still matches.
+model CommunityMembership {
+  id          String              @id @default(cuid())
+  communityId String
+  community   Community           @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  joinedVia   CommunityJoinSource
+  joinedAt    DateTime            @default(now())
+  notifiedAt  DateTime?
+  leftAt      DateTime?
+
+  @@unique([communityId, candidateId])
+  @@index([candidateId, leftAt])
+  @@index([candidateId, notifiedAt])
 }
 
 // Append-only — "regenerate" creates a new row rather than updating,

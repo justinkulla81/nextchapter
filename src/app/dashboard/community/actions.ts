@@ -8,12 +8,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { sendPostInterestNotification } from '@/lib/email/send-post-interest-notification'
 import { sendEncouragementNote, markEncouragementNoteRead } from '@/lib/community/encouragement'
+import { acknowledgeAutoJoinNotices, leaveCommunity } from '@/lib/community/communities'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import {
   getOrCreatePeerThread,
   sendPeerMessage,
-  reportPeerThread,
+  reportMessageThread,
   blockCandidate,
   unblockCandidate,
 } from '@/lib/messaging/peer-threads'
@@ -62,7 +63,10 @@ export async function sendPeerCandidateMessage(
   return undefined
 }
 
-export async function reportPeerThreadAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+// Generalized (Phase 3 of the Community/Messaging rework) to cover Coach/
+// Recruiter/Employer threads too, not just Peer — see reportMessageThread's
+// own comment.
+export async function reportMessageThreadAction(_prevState: FormState, formData: FormData): Promise<FormState> {
   const profile = await getAuthedProfile()
   if (!profile) return { error: 'You need to be logged in to do this.' }
 
@@ -71,12 +75,33 @@ export async function reportPeerThreadAction(_prevState: FormState, formData: Fo
   if (!threadId) return { error: 'Conversation not found.' }
 
   try {
-    await reportPeerThread(threadId, profile.id, reason)
+    await reportMessageThread(threadId, profile.id, reason)
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not report this conversation.' }
   }
 
-  captureServerEvent(profile.id, 'peer_thread_reported', { threadId })
+  captureServerEvent(profile.id, 'message_thread_reported', { threadId })
+  revalidatePath('/dashboard/community')
+  return { error: undefined }
+}
+
+// Extends the same report mechanism to feed posts (Phase 3), reusing
+// CommunityPost.reportedAt/reportedByCandidateId/reportReason added in the
+// schema phase of this rework.
+export async function reportCommunityPostAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const postId = formData.get('postId') as string | null
+  const reason = (formData.get('reason') as string | null) ?? ''
+  if (!postId) return { error: 'Post not found.' }
+
+  await prisma.communityPost.update({
+    where: { id: postId },
+    data: { reportedAt: new Date(), reportedByCandidateId: profile.id, reportReason: reason.trim() || null },
+  })
+
+  captureServerEvent(profile.id, 'community_post_reported', { postId })
   revalidatePath('/dashboard/community')
   return { error: undefined }
 }
@@ -328,5 +353,59 @@ export async function expressInterest(postId: string) {
 
   captureServerEvent(profile.id, 'community_interest_expressed', { postId })
 
+  revalidatePath('/dashboard/community')
+}
+
+// Single toggle-only reaction (not a picker — see CommunityPostReaction's
+// schema comment). Mirrors expressInterest's unique-constraint idempotency
+// pattern for the "on" side; the "off" side is a plain delete since leaving
+// a reaction is never itself an error condition.
+export async function toggleCheerPostAction(postId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const existing = await prisma.communityPostReaction.findUnique({
+    where: { postId_candidateId: { postId, candidateId: profile.id } },
+  })
+
+  if (existing) {
+    await prisma.communityPostReaction.delete({ where: { id: existing.id } })
+    captureServerEvent(profile.id, 'community_post_cheered', { postId, cheered: false })
+  } else {
+    try {
+      await prisma.communityPostReaction.create({ data: { postId, candidateId: profile.id } })
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        // Already cheered from a concurrent request — no-op.
+      } else {
+        throw error
+      }
+    }
+    captureServerEvent(profile.id, 'community_post_cheered', { postId, cheered: true })
+  }
+
+  revalidatePath('/dashboard/community')
+}
+
+export async function acknowledgeAutoJoinNoticesAction() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await acknowledgeAutoJoinNotices(profile.id)
+  captureServerEvent(profile.id, 'community_auto_join_acknowledged', {})
+  revalidatePath('/dashboard/community')
+}
+
+export async function leaveCommunityAction(communityId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await leaveCommunity(profile.id, communityId)
+  captureServerEvent(profile.id, 'community_left', { communityId })
   revalidatePath('/dashboard/community')
 }

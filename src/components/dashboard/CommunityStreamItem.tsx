@@ -1,10 +1,13 @@
-import { deactivateCommunityPost, expressInterest } from '@/app/dashboard/community/actions'
+import { ThumbsUp } from 'lucide-react'
+import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { anonymize } from '@/lib/community/community-feed'
 import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import type { UnifiedStreamItem } from '@/lib/community/unified-feed'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { CommunityPostReportButton } from '@/components/dashboard/CommunityPostReportButton'
+import { cn } from '@/lib/utils'
 
 // One shared row shell for both real candidate posts and auto-generated
 // activity — same padding/typography, connected via divide-y in the parent
@@ -20,7 +23,13 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
         <Icon aria-hidden className={`mt-0.5 size-4 shrink-0 ${colorClass}`} />
         <p className="text-sm text-foreground">
           {item.item.displayName && <span className="font-medium">{item.item.displayName}</span>}{' '}
-          {item.item.detail}
+          {item.item.url ? (
+            <a href={item.item.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+              {item.item.detail}
+            </a>
+          ) : (
+            item.item.detail
+          )}
           <span className="ml-2 text-xs text-muted-foreground">
             {item.item.occurredAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
@@ -32,6 +41,8 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
   const post = item.post
   const posterName = anonymize(post.candidate.firstName, post.candidate.lastName)
   const isOwnPost = post.candidateId === candidateId
+  const isCheered = post.reactions.length > 0
+  const cheerCount = post._count.reactions
 
   return (
     <div className="space-y-2 p-4">
@@ -57,11 +68,13 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
             </SubmitButton>
           </form>
         ) : (
-          <form action={expressInterest.bind(null, post.id)}>
-            <SubmitButton variant="outline" size="sm">
-              I&apos;m interested
-            </SubmitButton>
-          </form>
+          post.postType !== 'MILESTONE' && (
+            <form action={expressInterest.bind(null, post.id)}>
+              <SubmitButton variant="outline" size="sm">
+                I&apos;m interested
+              </SubmitButton>
+            </form>
+          )
         )}
       </div>
       <p className="text-sm text-muted-foreground">{post.description}</p>
@@ -75,9 +88,26 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
           View link
         </a>
       )}
-      <p className="text-xs text-muted-foreground">
-        {[post.postCity, post.postFunction, post.postIndustry].filter(Boolean).join(' · ')}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          {[post.postCity, post.postFunction, post.postIndustry].filter(Boolean).join(' · ')}
+        </p>
+        {!isOwnPost && (
+          <div className="flex items-center gap-3">
+            <form action={toggleCheerPostAction.bind(null, post.id)}>
+              <SubmitButton
+                variant="ghost"
+                size="sm"
+                className={cn('h-auto gap-1.5 px-2 py-1 text-xs', isCheered && 'text-primary')}
+              >
+                <ThumbsUp className={cn('size-3.5', isCheered && 'fill-current')} aria-hidden />
+                {cheerCount > 0 && <span className="tabular-nums">{cheerCount}</span>}
+              </SubmitButton>
+            </form>
+            <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

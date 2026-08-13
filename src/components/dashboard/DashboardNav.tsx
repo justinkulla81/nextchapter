@@ -106,7 +106,7 @@ function buildSections(
         { href: '/dashboard/references', label: 'My References', icon: Star },
         {
           href: '/dashboard/community',
-          label: 'NextChapter Community',
+          label: 'Support Network',
           icon: MessageCircle,
           badge:
             supportNetworkUnreadCount + messagesUnreadCount > 0

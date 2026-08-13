@@ -3,7 +3,7 @@
 Zero-context handoff doc covering everything in the app that is **not** the candidate-facing
 dashboard/onboarding flow: the internal admin portal, the coach portal, the recruiter portal, the
 employer/hiring-manager portal, the NC Job Board submission pipeline, the Employer Reference
-feature, the Research Library, weekly digest emails, the cross-portal messaging system, and the
+feature, the Market Pulse, weekly digest emails, the cross-portal messaging system, and the
 org-facing marketing/landing pages.
 
 Stack: Next.js App Router (route groups + Server Actions), Prisma ORM against Postgres, Supabase
@@ -81,7 +81,10 @@ Filterable by employment-status segment, sortable, searchable. (2) An **action a
 every canonical Search Action type (`CANONICAL_TASK_MENU`), how many times it's ever been
 completed across all candidates, and how many this week, independently sortable.
 
-### Layoff Cohorts — `.../layoff-cohorts/page.tsx` + `actions.ts` *(nav shows "Coming soon", disabled)*
+### Layoff Cohorts — `.../layoff-cohorts/page.tsx` + `actions.ts`
+Live nav link (un-greyed in the Community rework) — creating a cohort or confirming a match now
+also creates/updates the matching `Community(type: EX_COMPANY)` row and fires the candidate's named
+auto-join notice (`src/lib/community/communities.ts`).
 Groups candidates from the same layoff event so they can find each other in Community. Admin
 creates a cohort (company, layoff date, estimated size, news URL) via `LayoffCohortForm`. The page
 computes **suggested matches**: unassigned candidates (`currentJobStatus: LAID_OFF,
@@ -199,7 +202,7 @@ dashboard. One message is always pinned (the original "How NextChapter works" me
 messages created here are never pinned by default, just added to the active rotation. Actions:
 `createDashboardMessage`, `toggleDashboardMessageActive`.
 
-### Research Library — `.../research/page.tsx` + `actions.ts`
+### Market Pulse — `.../research/page.tsx` + `actions.ts`
 Full triage UI for `ResearchLibraryItem` — see section 7 for the ingestion pipeline. Shows Gmail
 inbox connection status (connect/disconnect), a manual "add URL" quick-submit form
 (`AddResearchItemForm` → `addResearchItem` → `ingestResearchUrl`), a contradicts-locked-decision
@@ -209,7 +212,7 @@ actions: queue/unqueue for digest (`MARKET_BRIEF` bucket only), flag to copy own
 mark reviewed/actioned/dismissed.
 
 ### Weekly Market Digest — `.../digest/page.tsx` *(nav shows "Coming soon", disabled)*
-Two panels: items currently queued for the next digest send (pulled from the Research Library's
+Two panels: items currently queued for the next digest send (pulled from the Market Pulse's
 `queuedForDigest` flag, with a "remove from queue" action), and send history per audience
 (candidate/coach/recruiter/employer), filterable. See section 8 for the actual sending crons.
 
@@ -554,7 +557,7 @@ something concrete. Files: `src/lib/employer-references/submission.ts`,
 
 ---
 
-## 7. Research Library
+## 7. Market Pulse
 
 Ingests external articles/links, classifies them, and routes them to the right internal consumer.
 Core pipeline: `src/lib/research/ingest.ts` — `ingestResearchUrl(url, source)`:
@@ -571,7 +574,7 @@ Core pipeline: `src/lib/research/ingest.ts` — `ingestResearchUrl(url, source)`
    bucket/summary, flagged `needsReview: true`.
 
 Two ingestion sources:
-- **Manual** — the admin Research Library page's quick-add form (`addResearchItem` action).
+- **Manual** — the admin Market Pulse page's quick-add form (`addResearchItem` action).
 - **Inbox** — Gmail OAuth sweep. `src/lib/google/connection.ts` (`getActiveGoogleConnection`,
   `getValidAccessToken`) and `src/lib/google/gmail.ts` (`listAlertMessages`, `getMessageHtml`,
   `extractAlertUrls`, `markMessageRead`) drive `/api/cron/research-inbox-sweep` (daily, 12:00 UTC,
@@ -599,7 +602,7 @@ header against `process.env.CRON_SECRET`, all on Tuesdays (`vercel.json`):
 | Cron | Time (UTC) | Audience filter | Content |
 |---|---|---|---|
 | `market-digest-candidates` | 14:00 | — (candidate-facing, out of scope) | — |
-| `market-digest-coaches` | 14:30 | `Coach` where `marketDigestOptedOut: false` | Up to 3 unique target-role lines aggregated across the coach's whole caseload (never an individual client's identity/score — code comment stresses this is aggregate-only), each enriched with live Adzuna market-condition counts (`getMarketConditions`), plus a shared `PERSONA_RESEARCH` nugget from the Research Library queue |
+| `market-digest-coaches` | 14:30 | `Coach` where `marketDigestOptedOut: false` | Up to 3 unique target-role lines aggregated across the coach's whole caseload (never an individual client's identity/score — code comment stresses this is aggregate-only), each enriched with live Adzuna market-condition counts (`getMarketConditions`), plus a shared `PERSONA_RESEARCH` nugget from the Market Pulse queue |
 | `market-digest-recruiters` | 15:00 | `Recruiter` where `marketDigestOptedOut: false` | Market conditions for the recruiter's own `specialty`, plus a shared `MARKET_BRIEF` nugget |
 | `market-digest-employers` | 15:30 | `EmployerProfile` where `marketDigestOptedOut: false` | Up to 3 unique active-role lines with market conditions, plus a shared `MARKET_BRIEF` nugget |
 

@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { maybeCreateMilestonePost } from '@/lib/community/milestone-posts'
 
 // Weekly badges (Prompt 51) — reset every week, re-earned fresh each week.
 // Deliberately NOT persisted: every one of these is a simple derived fact
@@ -124,6 +125,15 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
           })
           .catch((error) => console.error('Failed to persist weekly badge:', error))
       )
+    )
+  }
+
+  // Turns the badge into a real, reactable feed post — see
+  // maybeCreateMilestonePost's own dedupe (per candidate+week), which makes
+  // this safe to call on every recomputation, not just the first.
+  if (earned.WEEKLY_SPRINT_TARGET_HIT) {
+    await maybeCreateMilestonePost(candidateId, weekStartDate).catch((error) =>
+      console.error('Failed to create milestone post:', error)
     )
   }
 
