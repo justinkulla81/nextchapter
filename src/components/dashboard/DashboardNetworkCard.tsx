@@ -8,6 +8,7 @@ import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import type { NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
 import { dismissEmailActivity } from '@/app/dashboard/email-activity/actions'
 import { dismissCalendarEvent } from '@/app/dashboard/calendar-activity/actions'
+import { toggleContactPriority } from '@/app/dashboard/network/actions'
 
 const FOLLOW_UP_PREVIEW_COUNT = 2
 
@@ -36,13 +37,24 @@ export function DashboardNetworkCard({
   priorityContact: PriorityContactPreview | null
 }) {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+  const [unstarred, setUnstarred] = useState(false)
   const [, startTransition] = useTransition()
 
   const visibleFollowUps = followUps
     .filter((item) => !dismissedIds.has(item.sourceId))
     .slice(0, FOLLOW_UP_PREVIEW_COUNT)
+  const visiblePriorityContact = unstarred ? null : priorityContact
 
-  if (visibleFollowUps.length === 0 && !priorityContact) return null
+  if (visibleFollowUps.length === 0 && !visiblePriorityContact) return null
+
+  function handleUnstar(contactId: string) {
+    setUnstarred(true)
+    startTransition(() => {
+      toggleContactPriority(contactId, false).catch(() => {
+        // Same reconcile-on-next-load fallback as handleDismiss below.
+      })
+    })
+  }
 
   function handleDismiss(item: NeedsFollowUpItem) {
     setDismissedIds((prev) => new Set(prev).add(item.sourceId))
@@ -55,12 +67,12 @@ export function DashboardNetworkCard({
     })
   }
 
-  const reachOutHref = priorityContact
-    ? priorityContact.email
-      ? gmailComposeHref(priorityContact.email, '')
-      : priorityContact.linkedinUrl
-        ? priorityContact.linkedinUrl
-        : `/dashboard/network?contact=${priorityContact.contactId}#reach-out-cards`
+  const reachOutHref = visiblePriorityContact
+    ? visiblePriorityContact.email
+      ? gmailComposeHref(visiblePriorityContact.email, '')
+      : visiblePriorityContact.linkedinUrl
+        ? visiblePriorityContact.linkedinUrl
+        : `/dashboard/network?contact=${visiblePriorityContact.contactId}#reach-out-cards`
     : null
 
   return (
@@ -82,7 +94,7 @@ export function DashboardNetworkCard({
             key={item.sourceId}
             className={cn(
               'flex items-center justify-between gap-3 py-2.5 text-sm',
-              (i !== visibleFollowUps.length - 1 || priorityContact) && 'border-b border-border'
+              (i !== visibleFollowUps.length - 1 || visiblePriorityContact) && 'border-b border-border'
             )}
           >
             <div className="min-w-0 flex-1">
@@ -111,27 +123,34 @@ export function DashboardNetworkCard({
             </div>
           </div>
         ))}
-        {priorityContact && (
+        {visiblePriorityContact && (
           <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
             <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-foreground">
-                <Star className="size-3.5 shrink-0 fill-orange text-orange" aria-hidden />
-                {priorityContact.name}
-              </p>
+              <p className="truncate text-[13px] font-medium text-foreground">{visiblePriorityContact.name}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {priorityContact.company ? `Starred — ${priorityContact.company}` : 'Starred contact'}
+                {visiblePriorityContact.company ? `Starred — ${visiblePriorityContact.company}` : 'Starred contact'}
               </p>
             </div>
-            {reachOutHref && (
-              <a
-                href={reachOutHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+            <div className="flex shrink-0 items-center gap-1.5">
+              {reachOutHref && (
+                <a
+                  href={reachOutHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+                >
+                  Reach out
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => handleUnstar(visiblePriorityContact.contactId)}
+                className="flex size-7 shrink-0 items-center justify-center rounded-md text-orange hover:bg-muted"
+                title="Unstar — remove from priority contacts"
               >
-                Reach out
-              </a>
-            )}
+                <Star className="size-3.5 fill-orange text-orange" aria-hidden />
+              </button>
+            </div>
           </div>
         )}
       </CardContent>

@@ -59,6 +59,7 @@ export async function upsertContactFromSignal(
         candidateId,
         name: params.name,
         email,
+        emails: [email],
         source: params.source,
         relationshipTags: Array.from(relationshipTags),
         inferredCompany,

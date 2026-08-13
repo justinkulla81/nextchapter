@@ -30,7 +30,9 @@ export async function WeeklyFocusCard({ candidateId, isMonday }: { candidateId: 
           <div className="flex items-center gap-3">
             <VictoriaAvatar size={36} />
             <div>
-              <CardTitle className="text-sm font-medium text-foreground">This Week&apos;s Focus</CardTitle>
+              <CardTitle className="text-sm font-medium text-foreground">
+                Victoria&apos;s Advice for Your Weekly Search Strategy
+              </CardTitle>
               <p className="text-xs text-muted-foreground">Victoria&apos;s strategic read for this week</p>
             </div>
           </div>
@@ -40,7 +42,10 @@ export async function WeeklyFocusCard({ candidateId, isMonday }: { candidateId: 
             {FOCUS_SECTIONS.map((section) => (
               <div key={section.key} className="rounded-lg border border-border bg-white p-4">
                 <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
-                <p className="mt-1 text-sm text-foreground">{focus[section.key]}</p>
+                <p className="mt-1 text-sm text-foreground">{focus[section.key].text}</p>
+                <p className="mt-3 text-sm text-foreground">
+                  <span className="font-semibold">Recommendation:</span> {focus[section.key].recommendation}
+                </p>
               </div>
             ))}
           </div>
@@ -56,7 +61,9 @@ export function WeeklyFocusSkeleton() {
       <CardHeader>
         <div className="flex items-center gap-3">
           <VictoriaAvatar size={36} />
-          <CardTitle className="text-sm font-medium text-muted-foreground">This Week&apos;s Focus</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Victoria&apos;s Advice for Your Weekly Search Strategy
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent>

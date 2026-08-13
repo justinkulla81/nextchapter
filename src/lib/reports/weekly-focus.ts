@@ -10,11 +10,16 @@ import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { computeWhatMovedThisWeek, type MarketRealitySnapshotLike } from '@/lib/scoring/market-reality-history'
 
+export interface WeeklyFocusSection {
+  text: string
+  recommendation: string
+}
+
 export interface WeeklyFocus {
-  increase: string
-  adjust: string
-  maintain: string
-  startNew: string
+  increase: WeeklyFocusSection
+  adjust: WeeklyFocusSection
+  maintain: WeeklyFocusSection
+  startNew: WeeklyFocusSection
 }
 
 // "This Week's Focus" — Victoria's weekly strategic read, synthesizing
@@ -141,12 +146,16 @@ ${strengthLines}
 You're giving this candidate their strategic read for the week ahead — not a to-do list (that's the separate Weekly Search Sprint card), but the "why" above it: what to increase, adjust, maintain, or start doing new, based only on the real facts below. Never invent a fact not given below.
 
 Return strict JSON with this exact shape, no markdown, no extra keys:
-{"increase": "...", "adjust": "...", "maintain": "...", "startNew": "..."}
+{"increase": {"text": "...", "recommendation": "..."}, "adjust": {"text": "...", "recommendation": "..."}, "maintain": {"text": "...", "recommendation": "..."}, "startNew": {"text": "...", "recommendation": "..."}}
 
-- increase: 1-2 sentences on what they should do MORE of this week, citing a real number or fact from below (e.g. an outcome count below target, or an incomplete Sprint action).
-- adjust: 1-2 sentences on what needs to change in HOW they're approaching something — citing a real gap, a category that moved down, or a mismatch in the data below. If nothing needs adjusting, say so honestly and cite what's working instead.
-- maintain: 1-2 sentences on what's genuinely working and should keep going as-is — citing a real strength, a category that moved up, or a real outcome count that's on pace.
-- startNew: 1-2 sentences on one concrete new thing worth starting — grounded in a real gap or an unused lever from the data below (e.g. calendar meetings at zero, follow-ups piling up, application volume below goal).
+Each of the four keys has two parts:
+- text: 1-2 sentences of the read itself, citing a real number or fact from below. Never restate the recommendation here.
+- recommendation: ONE short, concrete, actionable sentence — a single specific next step the candidate can actually go do, not a restatement of the read above it.
+
+- increase.text/recommendation: what they should do MORE of this week, citing a real number or fact from below (e.g. an outcome count below target, or an incomplete Sprint action).
+- adjust.text/recommendation: what needs to change in HOW they're approaching something — citing a real gap, a category that moved down, or a mismatch in the data below. If nothing needs adjusting, say so honestly in text and recommend they keep doing what's working instead.
+- maintain.text/recommendation: what's genuinely working and should keep going as-is — citing a real strength, a category that moved up, or a real outcome count that's on pace.
+- startNew.text/recommendation: one concrete new thing worth starting — grounded in a real gap or an unused lever from the data below (e.g. calendar meetings at zero, follow-ups piling up, application volume below goal).
 
 Never state a numeric score, never use the words "level rank," "calibrated," or "tier." Be specific — cite the real number or fact, never generic career-advice filler.
 
@@ -169,15 +178,9 @@ ${summary}`
 
     const match = text.match(/\{[\s\S]*\}/)
     if (!match) return null
-    const parsed = JSON.parse(match[0]) as Partial<WeeklyFocus>
-    if (!parsed.increase || !parsed.adjust || !parsed.maintain || !parsed.startNew) return null
-
-    const focus: WeeklyFocus = {
-      increase: parsed.increase,
-      adjust: parsed.adjust,
-      maintain: parsed.maintain,
-      startNew: parsed.startNew,
-    }
+    const parsed = JSON.parse(match[0]) as Partial<Record<keyof WeeklyFocus, Partial<WeeklyFocusSection>>>
+    const focus = normalizeWeeklyFocus(parsed)
+    if (!focus) return null
 
     await prisma.candidateProfile.update({
       where: { id: candidateId },
@@ -190,14 +193,26 @@ ${summary}`
   }
 }
 
+// Validates all four sections have both text and recommendation. A cached
+// blob written before the {text, recommendation} split (or a malformed LLM
+// response) fails this and is treated as a cache miss, triggering a fresh
+// draft rather than rendering a broken card.
+function normalizeWeeklyFocus(parsed: Partial<Record<keyof WeeklyFocus, Partial<WeeklyFocusSection>>>): WeeklyFocus | null {
+  const keys: (keyof WeeklyFocus)[] = ['increase', 'adjust', 'maintain', 'startNew']
+  const sections = {} as WeeklyFocus
+  for (const key of keys) {
+    const section = parsed[key]
+    if (!section?.text || !section?.recommendation) return null
+    sections[key] = { text: section.text, recommendation: section.recommendation }
+  }
+  return sections
+}
+
 function parseCachedWeeklyFocus(raw: string | null): WeeklyFocus | null {
   if (!raw) return null
   try {
-    const parsed = JSON.parse(raw) as Partial<WeeklyFocus>
-    if (parsed.increase && parsed.adjust && parsed.maintain && parsed.startNew) {
-      return { increase: parsed.increase, adjust: parsed.adjust, maintain: parsed.maintain, startNew: parsed.startNew }
-    }
-    return null
+    const parsed = JSON.parse(raw) as Partial<Record<keyof WeeklyFocus, Partial<WeeklyFocusSection>>>
+    return normalizeWeeklyFocus(parsed)
   } catch {
     return null
   }

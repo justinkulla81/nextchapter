@@ -132,7 +132,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // nothing beyond "looked at it," so it's a small recurring weekly bonus,
   // not a real Learning credential. Liking/disliking is weighted even
   // smaller — a one-tap reaction on something already opened.
-  VIDEO_WATCHED: { minutes: 5, points: 2 },
+  VIDEO_WATCHED: { minutes: 5, points: 3 },
   VIDEO_REACTION: { minutes: 1, points: 1 },
 
   // A reference actually landing — the candidate has real third-party proof

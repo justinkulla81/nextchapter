@@ -131,13 +131,16 @@ async function WeeklyFocusSection({ candidateId }: { candidateId: string }) {
     <div className="mt-10 border-t border-border pt-8 print:hidden">
       <div className="flex items-center gap-3">
         <VictoriaAvatar size={36} />
-        <SectionHeading>This Week&apos;s Focus</SectionHeading>
+        <SectionHeading>Victoria&apos;s Advice for Your Weekly Search Strategy</SectionHeading>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {WEEKLY_FOCUS_SECTIONS.map((section) => (
           <div key={section.key} className="rounded-lg border border-border bg-white p-4">
             <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
-            <p className="mt-1 text-sm text-foreground">{focus[section.key]}</p>
+            <p className="mt-1 text-sm text-foreground">{focus[section.key].text}</p>
+            <p className="mt-3 text-sm text-foreground">
+              <span className="font-semibold">Recommendation:</span> {focus[section.key].recommendation}
+            </p>
           </div>
         ))}
       </div>

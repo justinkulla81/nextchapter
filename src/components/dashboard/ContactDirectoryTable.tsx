@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
+import { TagInput } from '@/components/onboarding/TagInput'
 import { updateContact, deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
 import { MEMBERSHIP_LABEL, type NextChapterMembership } from '@/lib/network/next-chapter-membership'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
@@ -358,6 +359,9 @@ function ContactRowExpandable({
                 className="text-xs font-medium text-primary hover:underline"
               >
                 Email
+                {contact.emails.length > 1 && (
+                  <span className="text-muted-foreground"> +{contact.emails.length - 1}</span>
+                )}
               </a>
             )}
           </div>
@@ -434,9 +438,19 @@ function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
           <LabeledInput name="name" label="Name" defaultValue={contact.name} required className="max-w-[220px]" />
           <LabeledInput name="company" label="Company" defaultValue={contact.company ?? ''} className="max-w-[220px]" />
           <LabeledInput name="title" label="Title" defaultValue={contact.title ?? ''} />
-          <LabeledInput name="email" label="Email" type="email" defaultValue={contact.email ?? ''} />
           <LabeledInput name="phone" label="Phone" type="tel" defaultValue={contact.phone ?? ''} />
           <LabeledInput name="linkedinUrl" label="LinkedIn URL" type="url" defaultValue={contact.linkedinUrl ?? ''} />
+        </div>
+
+        <div className="max-w-[320px] space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Emails (up to 3, first is primary)</label>
+          <TagInput
+            name="emails"
+            defaultValue={contact.emails.length > 0 ? contact.emails : contact.email ? [contact.email] : []}
+            placeholder="Add an email and press Enter"
+            maxTags={3}
+            inputType="email"
+          />
         </div>
 
         <div className="flex flex-wrap items-end gap-3">

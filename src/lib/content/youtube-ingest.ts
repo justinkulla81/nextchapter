@@ -136,6 +136,7 @@ async function ingestVideoIds(
   categoryData: {
     category: 'GENERAL' | 'AI_TOOLS' | 'LINKEDIN_TIPS'
     aiToolIndustry: string | null
+    aiToolFunction?: string | null
     aiToolFocus?: string | null
   }
 ): Promise<void> {
@@ -186,64 +187,139 @@ async function ingestVideoIds(
 // well-represented industry bucket (chosen from
 // src/lib/constants/industry-buckets.ts as the buckets that reliably surface
 // real AI-tool vendor/explainer content on YouTube; the full ~27-bucket list
-// would mostly return nothing for niches like Aerospace & Defense). Query
-// phrasing leans on "demo"/"explainer" language since that's what actually
-// surfaces vendor-made content (e.g. a "Stacks AI for CFOs" style video)
-// rather than third-party listicles — best-effort, not guaranteed, same as
-// the Shorts duration heuristic above.
-// focus is a short, skill-framed label — distinct from the raw industry
-// name — shown on the candidate-facing card as "why this was recommended"
-// alongside the industry match (see CuratedVideoCard). Right now there's
-// exactly one topic per industry, so focus and industry carry the same
-// information; kept as a separate field so a later split into multiple
-// topics per industry (e.g. two distinct AI-skill angles under Marketing)
-// doesn't require another migration.
-const AI_TOOL_TOPICS: { industry: string | null; focus: string; query: string }[] = [
-  { industry: null, focus: 'General AI productivity skills', query: 'best AI tools for professionals 2026 demo' },
+// would mostly return nothing for niches like Aerospace & Defense), PLUS one
+// per well-represented job function (PRIMARY_FUNCTION_OPTIONS in
+// src/lib/constants/onboarding.ts) — a candidate's target/secondary function
+// often matters more to which AI tool is relevant than their industry (a
+// salesperson wants Salesforce/HubSpot AI regardless of what industry they
+// sell into). Every topic sets exactly one of industry/function (never
+// both) — see aiToolIndustry/aiToolFunction on the CuratedVideo model.
+// Query phrasing leans on "demo"/"explainer" language since that's what
+// actually surfaces vendor-made content (e.g. a "Stacks AI for CFOs" style
+// video or a "HubSpot AI features" walkthrough) rather than third-party
+// listicles — best-effort, not guaranteed, same as the Shorts duration
+// heuristic above.
+// focus is a short, skill-framed label — distinct from the raw
+// industry/function name — shown on the candidate-facing card as "why this
+// was recommended" alongside the match (see CuratedVideoCard).
+const AI_TOOL_TOPICS: { industry: string | null; function: string | null; focus: string; query: string }[] = [
+  { industry: null, function: null, focus: 'General AI productivity skills', query: 'best AI tools for professionals 2026 demo' },
   {
     industry: 'Financial Services & Banking',
+    function: null,
     focus: 'AI skills for finance & banking',
     query: 'AI tools for finance teams CFO demo explainer',
   },
   {
     industry: 'Technology & Software',
+    function: null,
     focus: 'AI coding & engineering skills',
     query: 'AI coding tools for software engineers demo',
   },
   {
     industry: 'Advertising, Marketing & PR',
+    function: null,
     focus: 'AI content & marketing skills',
     query: 'AI tools for marketers demo explainer',
   },
   {
     industry: 'Healthcare & Hospital Systems',
+    function: null,
     focus: 'AI skills for healthcare workflows',
     query: 'AI tools for healthcare professionals demo',
   },
   {
     industry: 'Legal Services',
+    function: null,
     focus: 'AI skills for legal research & drafting',
     query: 'AI tools for lawyers legal teams demo',
   },
   {
     industry: 'Staffing & Human Capital',
+    function: null,
     focus: 'AI skills for HR & recruiting',
     query: 'AI tools for HR recruiting teams demo',
   },
   {
     industry: 'Transportation & Logistics',
+    function: null,
     focus: 'AI skills for supply chain & logistics',
     query: 'AI tools for supply chain logistics demo',
   },
   {
     industry: 'Retail & E-commerce',
+    function: null,
     focus: 'AI skills for retail & e-commerce',
     query: 'AI tools for retail e-commerce teams demo',
   },
   {
     industry: 'Professional Services & Consulting',
+    function: null,
     focus: 'AI skills for consulting & client work',
     query: 'AI tools for consultants demo explainer',
+  },
+  // Function-tagged topics — job-function AI tools, cross-industry (e.g.
+  // HubSpot/Salesforce AI for Sales applies whether you sell software or
+  // industrial equipment).
+  {
+    industry: null,
+    function: 'Sales',
+    focus: 'AI skills for sales (HubSpot, Salesforce AI)',
+    query: 'AI tools for sales teams HubSpot Salesforce demo',
+  },
+  {
+    industry: null,
+    function: 'Marketing',
+    focus: 'AI skills for marketing (HubSpot, Jasper)',
+    query: 'AI marketing tools HubSpot Jasper demo explainer',
+  },
+  {
+    industry: null,
+    function: 'Product',
+    focus: 'AI skills for product management',
+    query: 'AI tools for product managers demo explainer',
+  },
+  {
+    industry: null,
+    function: 'Design',
+    focus: 'AI skills for design (Figma AI, Midjourney)',
+    query: 'AI design tools Figma Midjourney demo explainer',
+  },
+  {
+    industry: null,
+    function: 'Data & Analytics',
+    focus: 'AI skills for data & analytics (ChatGPT, Tableau AI)',
+    query: 'AI tools for data analysts ChatGPT Tableau demo',
+  },
+  {
+    industry: null,
+    function: 'Operations',
+    focus: 'AI skills for operations (Notion AI, Asana AI)',
+    query: 'AI tools for operations teams Notion Asana demo',
+  },
+  {
+    industry: null,
+    function: 'Customer Success',
+    focus: 'AI skills for customer success (Intercom, Zendesk AI)',
+    query: 'AI tools for customer success Intercom Zendesk demo',
+  },
+  {
+    industry: null,
+    function: 'Human Resources',
+    focus: 'AI skills for HR',
+    query: 'AI tools for HR professionals demo explainer',
+  },
+  {
+    industry: null,
+    function: 'Finance',
+    focus: 'AI skills for finance professionals',
+    query: 'AI tools for finance professionals ChatGPT demo',
+  },
+  {
+    industry: null,
+    function: 'Engineering',
+    focus: 'AI skills for engineering (Copilot, Cursor)',
+    query: 'AI coding tools GitHub Copilot Cursor demo',
   },
 ]
 
@@ -264,7 +340,12 @@ async function refreshAiToolVideos(apiKey: string): Promise<void> {
     AI_TOOL_TOPICS.map(async (topic) => ({ topic, ids: await searchVideoIds(apiKey, topic.query) }))
   )
   for (const { topic, ids } of searches) {
-    await ingestVideoIds(apiKey, ids, { category: 'AI_TOOLS', aiToolIndustry: topic.industry, aiToolFocus: topic.focus })
+    await ingestVideoIds(apiKey, ids, {
+      category: 'AI_TOOLS',
+      aiToolIndustry: topic.industry,
+      aiToolFunction: topic.function,
+      aiToolFocus: topic.focus,
+    })
   }
 }
 

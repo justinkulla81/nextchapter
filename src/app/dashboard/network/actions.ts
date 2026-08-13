@@ -20,6 +20,9 @@ import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 
 const NETWORKING_LIST_TARGET = 25
+// Soft cap on SupportNetworkContact.emails — enforced here, not in the DB,
+// since Postgres array columns don't have a native length constraint.
+const MAX_CONTACT_EMAILS = 3
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -93,6 +96,7 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
       company: true,
       title: true,
       email: true,
+      emails: true,
       linkedinUrl: true,
       connectedAt: true,
     },
@@ -114,6 +118,11 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
 
   const toCreate: Prisma.SupportNetworkContactCreateManyInput[] = []
   const updates: { id: string; data: Record<string, string | Date> }[] = []
+  // Same-person-different-email merges (see below) — a separate batch from
+  // `updates` because it sets a whole array column rather than filling a
+  // blank scalar field, so it needs its own CASE-based raw update with an
+  // explicit ::text[] cast.
+  const emailAppends: { id: string; emails: string[] }[] = []
   let skippedRemoved = 0
 
   for (const c of contacts) {
@@ -148,6 +157,22 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
       // strict name+company key so future imports match it directly too.
       if (match.normalizedKey !== key) fill.normalizedKey = key
       if (Object.keys(fill).length > 0) updates.push({ id: match.id, data: fill })
+
+      // Same person (matched by name+company/normalizedKey above), but the
+      // CSV row's email isn't one this contact already has on file — append
+      // it instead of dropping it on the floor, so re-importing (or a
+      // person who's since started using a different address) doesn't lose
+      // the new email just because it didn't match `email` exactly. `email`
+      // itself is untouched here — the fill loop above already set it if it
+      // was previously blank; once set, `email` always stays the original
+      // primary.
+      if (c.email) {
+        const knownEmails = match.emails ?? []
+        const alreadyKnown = knownEmails.some((e) => e.toLowerCase() === c.email!.toLowerCase())
+        if (!alreadyKnown && knownEmails.length < MAX_CONTACT_EMAILS) {
+          emailAppends.push({ id: match.id, emails: [...knownEmails, c.email] })
+        }
+      }
       continue
     }
 
@@ -157,6 +182,7 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
       company: c.company,
       title: c.title,
       email: c.email,
+      emails: c.email ? [c.email] : [],
       linkedinUrl: c.linkedinUrl,
       connectedAt: c.connectedAt,
       source: 'CSV_IMPORT' as const,
@@ -204,6 +230,23 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
     }
   }
 
+  // Same batched CASE-statement approach as above, but for `emails` itself
+  // — a separate loop since it sets a whole array column rather than a
+  // scalar, and the CASE branches need an explicit ::text[] cast.
+  for (let i = 0; i < emailAppends.length; i += UPDATE_BATCH_SIZE) {
+    const batch = emailAppends.slice(i, i + UPDATE_BATCH_SIZE)
+    const cases = Prisma.join(
+      batch.map((e) => Prisma.sql`WHEN ${e.id} THEN ${e.emails}::text[]`),
+      ' '
+    )
+    const ids = Prisma.join(batch.map((e) => e.id))
+    await prisma.$executeRaw`
+      UPDATE "SupportNetworkContact"
+      SET "emails" = CASE id ${cases} END
+      WHERE id IN (${ids}) AND "candidateId" = ${candidateId}
+    `
+  }
+
   await markNetworkingListSubmittedIfThresholdMet(candidateId)
 
   // Weekly Sprint credit only for genuinely new contacts — re-uploading the
@@ -242,7 +285,6 @@ export async function updateContact(contactId: string, formData: FormData) {
   const name = (formData.get('name') as string | null)?.trim()
   const company = (formData.get('company') as string | null)?.trim() || null
   const title = (formData.get('title') as string | null)?.trim() || null
-  const email = (formData.get('email') as string | null)?.trim() || null
   const phone = (formData.get('phone') as string | null)?.trim() || null
   const linkedinUrl = (formData.get('linkedinUrl') as string | null)?.trim() || null
   const notes = (formData.get('notes') as string | null)?.trim() || null
@@ -250,6 +292,20 @@ export async function updateContact(contactId: string, formData: FormData) {
     .split(',')
     .map((t) => t.trim())
     .filter(Boolean)
+
+  // Up to 3 emails, submitted in display order by the EmailsField chip
+  // input (see ContactDirectoryTable) — the first one is always the
+  // primary and is what `email` gets set to, same convention the CSV
+  // import merge logic (doImportConnectionsCsv) uses.
+  const emails: string[] = []
+  for (const raw of formData.getAll('emails') as string[]) {
+    const trimmed = raw.trim()
+    if (!trimmed) continue
+    if (emails.some((e) => e.toLowerCase() === trimmed.toLowerCase())) continue
+    if (emails.length >= MAX_CONTACT_EMAILS) continue
+    emails.push(trimmed)
+  }
+  const email = emails[0] ?? null
 
   await prisma.supportNetworkContact.updateMany({
     where: { id: contactId, candidateId: profile.id },
@@ -259,6 +315,7 @@ export async function updateContact(contactId: string, formData: FormData) {
       company,
       title,
       email,
+      emails,
       phone,
       linkedinUrl,
       notes,
@@ -500,6 +557,7 @@ export async function addSuggestedContact(params: {
       candidateId: profile.id,
       name: params.name,
       email,
+      emails: [email],
       company: params.inferredCompany,
       source: 'EMAIL_DETECTED' as ContactSource,
       connectedAt: params.connectedAt,

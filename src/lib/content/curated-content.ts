@@ -1,22 +1,66 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { CuratedVideo } from '@prisma/client'
+import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
+
+// Popularity signal for "order by most liked/viewed" — a like counts more
+// than a click since it's an active, considered signal (and the same
+// weighting the Videos points system implicitly uses: liking is worth more
+// than merely opening — see VIDEO_REACTION vs VIDEO_WATCHED in
+// action-effort.ts). Ties (most commonly: two videos with zero engagement
+// yet) fall through to sortCuratedVideos' existing admin-first-then-recency
+// order, so a freshly-added, not-yet-watched video doesn't sort to the
+// bottom of an otherwise-empty carousel.
+const LIKE_WEIGHT = 3
+const CLICK_WEIGHT = 1
+
+async function getPopularityScores(videoIds: string[]): Promise<Map<string, number>> {
+  if (videoIds.length === 0) return new Map()
+  const [likeCounts, clickCounts] = await Promise.all([
+    prisma.contentLike.groupBy({
+      by: ['contentId'],
+      where: { contentType: 'CURATED_VIDEO', contentId: { in: videoIds } },
+      _count: { contentId: true },
+    }),
+    prisma.contentClick.groupBy({
+      by: ['contentId'],
+      where: { contentType: 'CURATED_VIDEO', contentId: { in: videoIds } },
+      _count: { contentId: true },
+    }),
+  ])
+  const scores = new Map<string, number>()
+  for (const row of likeCounts) scores.set(row.contentId, (scores.get(row.contentId) ?? 0) + row._count.contentId * LIKE_WEIGHT)
+  for (const row of clickCounts) scores.set(row.contentId, (scores.get(row.contentId) ?? 0) + row._count.contentId * CLICK_WEIGHT)
+  return scores
+}
 
 // Manually-added items must sort BEFORE auto-pulled items within each
-// format group (per spec), each group then sorted by recency.
+// format group (per spec), each group then sorted by recency. This is the
+// fallback/tiebreak order — sortCuratedVideosByPopularity (below) is the
+// one actually used for candidate-facing carousels now that videos sort by
+// most liked/viewed first.
 //
 // This can't be done with `orderBy: [{ source: 'asc' }, ...]` — Prisma
 // sorts enums by their DECLARATION order in schema.prisma, not
 // alphabetically, and VideoContentSource is declared `AUTO_PULLED` then
 // `ADMIN_ADDED`, so a plain ascending orderBy would put AUTO_PULLED first,
 // the opposite of what's needed. Sorted explicitly in application code
-// instead. Shared by both the candidate carousel (getCarouselVideos) and
-// the admin curation page so both read the same order.
+// instead. Used as-is by the admin curation page (which has no popularity
+// concept — admins curate by recency, not by candidate engagement).
 export function sortCuratedVideos(videos: CuratedVideo[]): CuratedVideo[] {
   return [...videos].sort((a, b) => {
     if (a.source !== b.source) return a.source === 'ADMIN_ADDED' ? -1 : 1
     return b.publishedAt.getTime() - a.publishedAt.getTime()
   })
+}
+
+// Candidate-facing sort: most liked/viewed first, falling back to
+// sortCuratedVideos' admin-first-then-recency order to break ties (most
+// commonly zero-engagement videos, which are the majority of any freshly
+// ingested pool).
+async function sortCuratedVideosByPopularity(videos: CuratedVideo[]): Promise<CuratedVideo[]> {
+  const scores = await getPopularityScores(videos.map((v) => v.id))
+  return sortCuratedVideos(videos).sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0))
 }
 
 // candidateId is optional and personalizes the result two ways when given:
@@ -32,16 +76,25 @@ export function sortCuratedVideos(videos: CuratedVideo[]): CuratedVideo[] {
 // sees the full unfiltered catalog to curate it.
 //
 // toolsForYou is the personalized "Tools for You" carousel — category =
-// AI_TOOLS rows whose aiToolIndustry matches the candidate's own
-// industryBucket. No candidateId (admin) returns every AI_TOOLS row
-// regardless of industry, same rationale as dislikes above.
+// AI_TOOLS rows whose aiToolIndustry or aiToolFunction matches the
+// candidate's own industry, secondary industry, target function, or
+// secondary function (either dimension matching is enough — a video tagged
+// for the candidate's function is just as relevant as one tagged for their
+// industry). No candidateId (admin) returns every tagged AI_TOOLS row
+// regardless of match, same rationale as dislikes above.
+//
+// If nothing is tagged for any of the candidate's four signals, toolsForYou
+// falls back to the same cross-industry/cross-function pool aiTips reads
+// (industry-leading tools like ChatGPT/HubSpot that apply broadly) rather
+// than rendering empty — a candidate should never see "nothing here" when
+// there's genuinely useful AI-tool content available, even if it isn't
+// precision-matched to them.
 //
 // aiTips is the separate, non-personalized "AI Tips & Tools" carousel —
-// the AI_TOOLS rows with aiToolIndustry === null (the cross-industry pool).
-// This used to be a silent fallback shown inside toolsForYou when a
-// candidate's industry had no match; it's now its own always-visible
-// section instead, so "why was this recommended" stays honest per section
-// rather than mixing matched and unmatched reasons in one list.
+// the AI_TOOLS rows with BOTH aiToolIndustry and aiToolFunction null (the
+// true cross-industry/cross-function pool). Always visible to everyone
+// regardless of match, so "why was this recommended" stays honest per
+// section rather than mixing matched and unmatched reasons in one list.
 export async function getCarouselVideos(candidateId?: string): Promise<{
   longForm: CuratedVideo[]
   shorts: CuratedVideo[]
@@ -75,24 +128,35 @@ export async function getCarouselVideos(candidateId?: string): Promise<{
 
   const general = filtered.filter((v) => v.category === 'GENERAL')
   const aiToolVideos = filtered.filter((v) => v.category === 'AI_TOOLS')
-  const aiTips = aiToolVideos.filter((v) => v.aiToolIndustry === null)
+  const aiTips = aiToolVideos.filter((v) => v.aiToolIndustry === null && v.aiToolFunction === null)
+  const taggedAiTools = aiToolVideos.filter((v) => v.aiToolIndustry !== null || v.aiToolFunction !== null)
 
-  let toolsForYou = aiToolVideos.filter((v) => v.aiToolIndustry !== null)
+  let toolsForYou = taggedAiTools
   if (candidateId) {
     const profile = await prisma.candidateProfile.findUnique({
       where: { id: candidateId },
-      select: { industryBucket: true },
+      select: { industryBucket: true, secondaryIndustryContext: true, targetFunction: true, secondaryFunction: true },
     })
-    toolsForYou = profile?.industryBucket
-      ? toolsForYou.filter((v) => v.aiToolIndustry === profile.industryBucket)
-      : []
+    const industryMatches = new Set(
+      [profile?.industryBucket, normalizeIndustryBucket(profile?.secondaryIndustryContext ?? null)].filter(
+        (v): v is string => !!v
+      )
+    )
+    const functionMatches = new Set([profile?.targetFunction, profile?.secondaryFunction].filter((v): v is string => !!v))
+
+    const matched = taggedAiTools.filter(
+      (v) =>
+        (v.aiToolIndustry !== null && industryMatches.has(v.aiToolIndustry)) ||
+        (v.aiToolFunction !== null && functionMatches.has(v.aiToolFunction))
+    )
+    toolsForYou = matched.length > 0 ? matched : aiTips
   }
 
   return {
-    longForm: sortCuratedVideos(general.filter((v) => v.format === 'LONG_FORM')),
-    shorts: sortCuratedVideos(general.filter((v) => v.format === 'SHORT')),
-    toolsForYou: sortCuratedVideos(toolsForYou),
-    aiTips: sortCuratedVideos(aiTips),
+    longForm: await sortCuratedVideosByPopularity(general.filter((v) => v.format === 'LONG_FORM')),
+    shorts: await sortCuratedVideosByPopularity(general.filter((v) => v.format === 'SHORT')),
+    toolsForYou: await sortCuratedVideosByPopularity(toolsForYou),
+    aiTips: await sortCuratedVideosByPopularity(aiTips),
   }
 }
 

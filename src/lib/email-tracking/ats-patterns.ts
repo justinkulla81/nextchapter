@@ -105,6 +105,14 @@ const REJECTION_HIGH_CONFIDENCE = [
   /after (careful|further) (consideration|review)[,]? we (have )?decided not to/i,
   /not selected for (this|the) (role|position)/i,
   /we will not be (proceeding|continuing) with your application/i,
+  // "Position cancelled/withdrawn" rejections — the employer never picked
+  // someone else, they stopped hiring for the role entirely. Distinct
+  // phrasing from the "went with another candidate" patterns above, but
+  // just as real a rejection for the candidate's own tracking purposes.
+  // Confirmed against a real production miss: "At this time, we have
+  // decided not to fill this position due to business needs."
+  /(have )?decided not to (fill|move forward with) (this|the) (position|role)/i,
+  /this position (has been|is no longer being) (filled|pursued|closed)/i,
 ]
 // "Unfortunately" alone used to be in this list — dropped because it's a
 // single common English word that matches any unrelated marketing or

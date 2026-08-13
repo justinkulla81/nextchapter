@@ -85,31 +85,40 @@ export default async function WebinarsPage() {
       </section>
 
       {/* Tools for You — AI-tool explainer/demo videos matched to the
-          candidate's own industryBucket (see getCarouselVideos). Empty
-          until an admin/ingest run has real content tagged for their
-          specific industry — no silent fallback to the general pool, since
-          that's now its own separate section below. */}
+          candidate's industry, secondary industry, target function, or
+          secondary function (see getCarouselVideos). Falls back to the
+          general cross-industry/function pool (industry-leading tools like
+          ChatGPT/HubSpot) when nothing is tagged for any of the four
+          signals, so this only renders empty when there's no AI-tools
+          content in the catalog at all. */}
       <section className="space-y-3 border-t border-border pt-6">
         <SectionHeading>Tools for You</SectionHeading>
         {toolsForYou.length === 0 ? (
-          <EmptyCarousel label="Nothing tagged for your industry yet — check back soon, or see AI Tips & Tools below." />
+          <EmptyCarousel label="Nothing here yet — check back soon." />
         ) : (
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {toolsForYou.map((video) => (
-              <CuratedVideoCard
-                key={video.id}
-                video={video}
-                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
-                citation={`Recommended for ${video.aiToolIndustry}${video.aiToolFocus ? ` — ${video.aiToolFocus}` : ''}`}
-              />
-            ))}
+            {toolsForYou.map((video) => {
+              const matchLabel = video.aiToolIndustry ?? video.aiToolFunction
+              const citation = matchLabel
+                ? `Recommended for ${matchLabel}${video.aiToolFocus ? ` — ${video.aiToolFocus}` : ''}`
+                : (video.aiToolFocus ?? 'General AI tip')
+              return (
+                <CuratedVideoCard
+                  key={video.id}
+                  video={video}
+                  isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+                  citation={citation}
+                />
+              )
+            })}
           </div>
         )}
       </section>
 
-      {/* AI Tips & Tools — the cross-industry AI_TOOLS pool (aiToolIndustry
-          === null), always visible to everyone regardless of industry match
-          — previously a silent fallback folded into Tools for You above. */}
+      {/* AI Tips & Tools — the cross-industry/function AI_TOOLS pool
+          (aiToolIndustry and aiToolFunction both null), always visible to
+          everyone regardless of match — previously a silent fallback folded
+          into Tools for You above. */}
       <section className="space-y-3 border-t border-border pt-6">
         <SectionHeading>AI Tips &amp; Tools</SectionHeading>
         {aiTips.length === 0 ? (

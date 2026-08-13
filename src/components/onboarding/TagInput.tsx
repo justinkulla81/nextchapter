@@ -9,6 +9,8 @@ export function TagInput({
   defaultValue,
   placeholder,
   capitalizeFirstLetter,
+  maxTags,
+  inputType,
 }: {
   name: string
   defaultValue: string[]
@@ -17,11 +19,21 @@ export function TagInput({
   // "Fintech" — off by default since not every use of this component is
   // capitalization-safe (e.g. free-text resume keywords).
   capitalizeFirstLetter?: boolean
+  // Caps the list at N tags — once reached, the draft input hides instead
+  // of silently accepting (and dropping) more. Undefined means unlimited,
+  // the existing behavior every other caller of this component keeps.
+  maxTags?: number
+  // Passed through to the draft <Input> so e.g. an emails list gets the
+  // browser's email keyboard/validation affordances. Defaults to the
+  // Input component's own default (text).
+  inputType?: string
 }) {
   const [tags, setTags] = useState<string[]>(defaultValue)
   const [draft, setDraft] = useState('')
+  const atLimit = maxTags !== undefined && tags.length >= maxTags
 
   function addTag() {
+    if (atLimit) return
     let value = draft.trim()
     if (capitalizeFirstLetter && value) {
       value = value[0].toUpperCase() + value.slice(1)
@@ -63,13 +75,18 @@ export function TagInput({
           ))}
         </div>
       )}
-      <Input
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={addTag}
-        placeholder={placeholder ?? 'Type and press Enter'}
-      />
+      {atLimit ? (
+        <p className="text-xs text-muted-foreground">Limit of {maxTags} reached — remove one to add another.</p>
+      ) : (
+        <Input
+          type={inputType}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={addTag}
+          placeholder={placeholder ?? 'Type and press Enter'}
+        />
+      )}
     </div>
   )
 }

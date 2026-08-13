@@ -171,7 +171,7 @@ export default async function AdminWebinarsPage({
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">{video.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {video.channelTitle} · {video.aiToolIndustry ?? 'General (all industries)'} ·{' '}
+                      {video.channelTitle} · {video.aiToolIndustry ?? video.aiToolFunction ?? 'General (all industries)'} ·{' '}
                       {video.source === 'ADMIN_ADDED' ? 'Added by admin' : 'Auto-pulled'}
                     </p>
                   </div>

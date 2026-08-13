@@ -34,12 +34,13 @@ import { EmptyState } from '@/components/ui/empty-state'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
+import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewedOnMount'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
 
 
 type EngineKey = WeeklyEngine['key']
-const ENGINE_ORDER: EngineKey[] = ['learning', 'effort', 'working', 'connecting']
+const ENGINE_ORDER: EngineKey[] = ['effort', 'connecting', 'working', 'learning']
 
 const SECTIONS = [
   { id: 'your-stats', label: 'Your Stats' },
@@ -188,7 +189,11 @@ export default async function YourStatsPage() {
         </CardContent>
       </Card>
 
-      <details id="badges" className="scroll-mt-4 group rounded-lg border border-border">
+      <details
+        id="badges"
+        className="scroll-mt-4 group rounded-lg border border-border"
+        open={profile.badgesLastSeenCount === null || earnedBadgesCount > profile.badgesLastSeenCount}
+      >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
           <span>
             Badges
@@ -202,6 +207,7 @@ export default async function YourStatsPage() {
           <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
         </div>
       </details>
+      <MarkBadgesViewedOnMount earnedBadgesCount={earnedBadgesCount} />
 
       <div id="market-reality" className="scroll-mt-4">
         <MarketRealityOverview

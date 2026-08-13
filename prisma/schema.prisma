@@ -1136,6 +1136,14 @@ model CandidateProfile {
   // this timestamp, not a historical backlog.
   networkBackchannelLastViewedAt DateTime @default(now())
 
+  // Stats page Badges section — tracks earnedBadgesCount as of the
+  // candidate's last visit. Null means never viewed (first-ever visit).
+  // The Badges <details> defaults open whenever badgesLastSeenCount is null
+  // or lower than the current earned count (a new badge since last visit),
+  // and is set to the current count on every page load via
+  // markBadgesViewed — see src/app/dashboard/stats/actions.ts.
+  badgesLastSeenCount Int?
+
   // Prompt 62 — job-board usage check-in (Find a Job / Job Fit page).
   // jobBoardUsage: { linkedin, indeed, theladders, company_pages } -> 'daily' | 'few_times_week' | 'rarely' | 'never'
   // ZipRecruiter was dropped — its posting mix skews well below the level
@@ -2951,7 +2959,19 @@ model SupportNetworkContact {
   name                    String
   company                 String?
   title                   String?
+  // Primary email — always the first entry of `emails` below (or null if
+  // that list is empty). Kept as its own column, unmodified in shape, so
+  // every existing consumer (Message buttons, gmailComposeHref call sites,
+  // admin outreach pages, CSV export, ...) keeps working untouched; `emails`
+  // is purely additive on top of it.
   email                   String?
+  // Up to 3 emails for this contact (soft cap enforced in application code,
+  // not the DB). Lets a re-imported/re-added contact with a different email
+  // than the one on file get merged into the existing row instead of
+  // creating a duplicate (see doImportConnectionsCsv in
+  // src/app/dashboard/network/actions.ts) — the new address is appended
+  // here rather than silently dropped or overwriting `email`.
+  emails                  String[]                   @default([])
   phone                   String?
   linkedinUrl             String?
   // Candidate-flagged "this person matters most" — independent of
@@ -4118,15 +4138,24 @@ model CuratedVideo {
   // Only set when category = AI_TOOLS — one of INDUSTRY_BUCKET_NAMES
   // (src/lib/constants/industry-buckets.ts), or null for a
   // general/cross-industry AI-tools video. Personalized "Tools for You"
-  // shows only industry-matched rows; the null-industry rows populate the
-  // separate "AI Tips & Tools" section instead (see curated-content.ts) —
-  // no longer a silent fallback for an unmatched industry.
+  // shows industry- and/or function-matched rows; a video tagged neither
+  // populates the separate "AI Tips & Tools" section instead (see
+  // curated-content.ts) — no longer a silent fallback for an unmatched
+  // industry.
   aiToolIndustry  String?
+  // Only set when category = AI_TOOLS — one of PRIMARY_FUNCTION_OPTIONS
+  // (src/lib/constants/onboarding.ts), or null. A video can be tagged by
+  // industry, by function, or (rarely) neither — never both dimensions at
+  // once in practice, since AI_TOOL_TOPICS entries are written one-or-the-
+  // other. "Tools for You" matches against a candidate's industry AND
+  // function signals, so either dimension matching is enough to surface a
+  // video — see getCarouselVideos.
+  aiToolFunction  String?
   // Only set when category = AI_TOOLS — a short human label of what AI
   // capability the video actually covers (e.g. "AI video & content
   // creation"), set from AI_TOOL_TOPICS at ingest time. Shown on the
   // candidate-facing card as part of "why this was recommended," alongside
-  // the industry match.
+  // the industry/function match.
   aiToolFocus     String?
   addedByAdminId  String?
   // Admin soft-delete. refreshYouTubeVideos() must never resurrect a video
