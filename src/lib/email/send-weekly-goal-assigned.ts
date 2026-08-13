@@ -34,6 +34,8 @@ export async function sendWeeklyGoalAssignedEmail(
     grade: Grade
     weeklySprintsCount: number
     laggingEngines: WeeklyEngine['key'][]
+    completedLastWeek: string[]
+    thisWeekPlan: string[]
   },
   introCopy?: string | null
 ) {
@@ -49,9 +51,19 @@ export async function sendWeeklyGoalAssignedEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const dashboardUrl = `${appUrl}/dashboard`
+  const marketRealityReportUrl = `${appUrl}/dashboard/hireability-report`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
 
-  const { lastWeekPoints, lastWeekTarget, thisWeekTarget, grade, weeklySprintsCount, laggingEngines } = params
+  const {
+    lastWeekPoints,
+    lastWeekTarget,
+    thisWeekTarget,
+    grade,
+    weeklySprintsCount,
+    laggingEngines,
+    completedLastWeek,
+    thisWeekPlan,
+  } = params
   const hitLastWeekTarget = lastWeekPoints >= lastWeekTarget
   const targetDelta = thisWeekTarget - lastWeekTarget
   const gapSummary = buildGapSummary(grade, weeklySprintsCount, laggingEngines)
@@ -72,7 +84,10 @@ export async function sendWeeklyGoalAssignedEmail(
       targetDelta,
       grade,
       gapSummary,
+      completedLastWeek,
+      thisWeekPlan,
       dashboardUrl,
+      marketRealityReportUrl,
       unsubscribeUrl,
     }),
   })

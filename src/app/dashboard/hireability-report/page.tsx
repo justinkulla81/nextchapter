@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
+import { getOrDraftWeeklyFocus } from '@/lib/reports/weekly-focus'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -98,6 +99,40 @@ async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: str
             </Link>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+const WEEKLY_FOCUS_SECTIONS: { key: 'increase' | 'adjust' | 'maintain' | 'startNew'; label: string; color: string }[] = [
+  { key: 'increase', label: 'Do more of', color: 'text-success' },
+  { key: 'adjust', label: 'Adjust', color: 'text-warning' },
+  { key: 'maintain', label: 'Keep doing', color: 'text-brand' },
+  { key: 'startNew', label: 'Start new', color: 'text-orange' },
+]
+
+// Reads the same self-cached weekly guidance the dashboard's WeeklyFocusCard
+// shows — a cache hit in the common case, so this essentially never
+// triggers a second Anthropic call for the same week. Isolated in its own
+// Suspense boundary anyway, same reasoning as SearchStrategyGuidanceSection
+// above. Renders nothing until the candidate has started a Search Sprint.
+async function WeeklyFocusSection({ candidateId }: { candidateId: string }) {
+  const focus = await getOrDraftWeeklyFocus(candidateId)
+  if (!focus) return null
+
+  return (
+    <div className="mt-10 border-t border-border pt-8 print:hidden">
+      <div className="flex items-center gap-3">
+        <VictoriaAvatar size={36} />
+        <SectionHeading>This Week&apos;s Focus</SectionHeading>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {WEEKLY_FOCUS_SECTIONS.map((section) => (
+          <div key={section.key} className="rounded-lg border border-border bg-white p-4">
+            <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
+            <p className="mt-1 text-sm text-foreground">{focus[section.key]}</p>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -673,6 +708,10 @@ export default async function HireabilityReportPage() {
               })()}
             </div>
           )}
+
+          <Suspense fallback={null}>
+            <WeeklyFocusSection candidateId={profile.id} />
+          </Suspense>
         </div>
       )}
     </div>

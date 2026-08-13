@@ -11,7 +11,10 @@ interface WeeklyGoalAssignedEmailProps {
   targetDelta: number
   grade: Grade
   gapSummary: string | null
+  completedLastWeek: string[]
+  thisWeekPlan: string[]
   dashboardUrl: string
+  marketRealityReportUrl: string
   unsubscribeUrl: string
 }
 
@@ -54,6 +57,26 @@ const benefitsList: React.CSSProperties = {
   marginTop: '8px',
 }
 
+const winsBox: React.CSSProperties = {
+  marginTop: '20px',
+  padding: '16px',
+  borderRadius: '8px',
+  backgroundColor: '#eaf4ef',
+}
+
+const planList: React.CSSProperties = {
+  paddingLeft: '20px',
+  marginTop: '8px',
+  ...emailStyles.body,
+  fontSize: '15px',
+}
+
+const secondaryLink: React.CSSProperties = {
+  color: '#1d4e89',
+  fontWeight: 600,
+  textDecoration: 'none',
+}
+
 const footer: React.CSSProperties = {
   marginTop: '32px',
   ...emailStyles.muted,
@@ -76,7 +99,10 @@ export default function WeeklyGoalAssignedEmail({
   targetDelta,
   grade,
   gapSummary,
+  completedLastWeek,
+  thisWeekPlan,
   dashboardUrl,
+  marketRealityReportUrl,
   unsubscribeUrl,
 }: WeeklyGoalAssignedEmailProps) {
   const deltaCopy =
@@ -95,6 +121,17 @@ export default function WeeklyGoalAssignedEmail({
 
       {introCopy && <p style={{ marginTop: '12px' }}>{introCopy}</p>}
 
+      {completedLastWeek.length > 0 && (
+        <div style={winsBox}>
+          <p style={{ margin: 0, fontWeight: 600 }}>Look what you got done last week</p>
+          <ul style={planList}>
+            {completedLastWeek.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div style={statBox}>
         <p style={{ margin: 0, fontWeight: 600 }}>
           Last week: {lastWeekPoints} of {lastWeekTarget} points —{' '}
@@ -105,10 +142,18 @@ export default function WeeklyGoalAssignedEmail({
         </p>
       </div>
 
-      <p style={{ marginTop: '20px' }}>
-        This week&apos;s Search Actions have already been picked for you and are ready on your
-        dashboard — no setup needed, just get started.
-      </p>
+      <p style={{ marginTop: '20px', fontWeight: 600 }}>Your Search Plan this week:</p>
+      {thisWeekPlan.length > 0 ? (
+        <ul style={planList}>
+          {thisWeekPlan.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p style={{ marginTop: '4px' }}>
+          Already picked for you and ready on your dashboard — no setup needed, just get started.
+        </p>
+      )}
 
       {grade === 'A' ? (
         <>
@@ -129,8 +174,14 @@ export default function WeeklyGoalAssignedEmail({
         )
       )}
 
+      <p style={{ marginTop: '12px' }}>
+        <a href={marketRealityReportUrl} style={secondaryLink}>
+          See your full Market Reality Report →
+        </a>
+      </p>
+
       <a href={dashboardUrl} style={button}>
-        See this week&apos;s plan →
+        Let&apos;s go →
       </a>
 
       <p style={footer}>

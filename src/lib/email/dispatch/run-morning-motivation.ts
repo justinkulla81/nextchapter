@@ -8,6 +8,16 @@ import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
+
+// isGoalBonus rows are the one-time welcome/commitment credit, not a real
+// action — same filter SuccessSprintCard.tsx applies before rendering.
+// Labels are looked up live via CANONICAL_ACTION_LABEL rather than trusting
+// the stored `text` snapshot, so a copy edit to a catalog label is reflected
+// here too (see canonical-labels.ts).
+function actionLabels(actions: CommittedAction[]): string[] {
+  return actions.filter((a) => !a.isGoalBonus).map((a) => CANONICAL_ACTION_LABEL[a.actionType ?? ''] ?? a.text)
+}
 
 // Monday — "Morning Motivation." The auto-assign-sprint cron (still its own
 // vercel.json entry, 9:00 UTC Mondays) creates this week's WeeklySprint row;
@@ -63,6 +73,8 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
       const lastWeekPoints = priorActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
       const lastWeekTarget = pointsNeededForA(weekNumber - 1)
       const thisWeekTarget = pointsNeededForA(weekNumber)
+      const completedLastWeek = actionLabels(priorActions.filter((a) => a.completed))
+      const thisWeekPlan = actionLabels(currentSprint.committedActions as unknown as CommittedAction[]).slice(0, 5)
 
       const grade = await computeHireabilityGrade(candidate as CandidateWithGradeRelations)
 
@@ -75,6 +87,8 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
           grade: grade.grade,
           weeklySprintsCount: weekNumber,
           laggingEngines: grade.laggingEngines,
+          completedLastWeek,
+          thisWeekPlan,
         },
         introCopy
       )

@@ -611,6 +611,17 @@ model CandidateProfile {
   searchStrategyGuidance            String?   @db.Text
   searchStrategyGuidanceGeneratedAt DateTime?
 
+  // "This Week's Focus" — Victoria's weekly strategic read (increase/adjust/
+  // maintain/start-new), synthesizing Search Strategy + this week's Sprint
+  // progress + real outcomes (outreach, applications, interviews, calendar
+  // meetings). Self-caches as a JSON blob, same pattern as
+  // searchStrategyGuidance above, but keyed to a WEEK boundary rather than
+  // form-save invalidation: stale whenever weeklyFocusWeekStartDate doesn't
+  // match this week's Monday (getMondayOfWeek) — see
+  // src/lib/reports/weekly-focus.ts.
+  weeklyFocusGuidance      String?   @db.Text
+  weeklyFocusWeekStartDate DateTime?
+
   // Cache for the Dossier's two genuinely per-view LLM generations
   // (proof-point follow-ups, job-reaction pattern summary). Unlike
   // positioningStatementDraft above — which self-caches on first draft —

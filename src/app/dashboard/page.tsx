@@ -24,6 +24,7 @@ import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
+import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
@@ -108,6 +109,7 @@ export default async function DashboardPage() {
 
   const weekStartDate = getMondayOfWeek(new Date())
   const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
+  const isMonday = new Date().getUTCDay() === 1
 
   // All of these are independent of one another — issuing them together
   // instead of one-by-one turns ~9 sequential round trips into one parallel
@@ -216,6 +218,10 @@ export default async function DashboardPage() {
 
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />
+
+      <Suspense fallback={<WeeklyFocusSkeleton />}>
+        <WeeklyFocusCard candidateId={profile.id} isMonday={isMonday} />
+      </Suspense>
 
       <div className="space-y-3">
         <MoodCheckInCard
