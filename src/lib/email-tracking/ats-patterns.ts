@@ -256,12 +256,57 @@ export function guessCompanyFromConfirmationText(subject: string, bodyPreview: s
 // do ("...for the Senior PM role at Foo", "application for Product
 // Manager has been received"). Returning null (common) just means no
 // title shows up on that application; nothing downstream treats this as
-// authoritative the way a real job-posting fetch would.
+// authoritative the way a real job-posting fetch would. Every pattern here
+// is grounded in a real confirmation subject seen in production mail —
+// see the pattern-specific comments below for the exact example.
 const CONFIRMATION_TITLE_PATTERNS = [
   /for the ([A-Z][\w\s/&-]{2,60}?) (?:role|position) at/i,
   /application for (?:the )?([A-Z][\w\s/&-]{2,60}?) (?:role|position)?\s*(?:has been|was) (?:received|submitted|sent)/i,
   /applying (?:for|to) the ([A-Z][\w\s/&-]{2,60}?) (?:role|position)/i,
+  // "Indeed Application: VP/Director of Buy-Side Advisory" — Indeed's own
+  // confirmation subject leads with a fixed prefix and nothing else follows
+  // the title, so a broad end-of-string capture (commas, slashes, anything)
+  // is safe here in a way it wouldn't be for a subject with more after it.
+  /^Indeed Application:\s*(.+)$/i,
+  // "Legora - Thank you for applying - Director of Corporate Development" —
+  // company-dash-thankyou-dash-title. The company itself is already pulled
+  // separately by CONFIRMATION_COMPANY_PREFIX above.
+  /thank you for applying\s*[-–—:]\s*(.+)$/i,
+  // "We have received your application for Director (Principal), Private
+  // Equity" — the reversed word order (received-then-application-then-title)
+  // that CONFIRMATION_TITLE_PATTERNS[1] above doesn't cover; requires "for"
+  // specifically so it doesn't also fire on "...application to <Company>"
+  // subjects that have no title at all.
+  /(?:have received|received) your application for (.+)$/i,
+  // "We Got It: Thanks for applying for Director, Corporate Development &
+  // Special Projects" — "applying for" (not "applying to a company") is
+  // reliably title-shaped, unlike the ambiguous "applying to X" shape.
+  /thanks for applying for (.+)$/i,
+  // "Your application to Strategic Business Development Manager at
+  // AscendHire" — title sits between "application to" and " at <Company>";
+  // needs the " at [A-Z]" lookahead so it doesn't swallow a bare "your
+  // application to <Company>" subject that has no title at all.
+  /application to ([A-Z][\w\s/&-]+?) at [A-Z]/,
 ]
+
+// LinkedIn's "Justin, your application was sent to <Company>" confirmation
+// — by far the most common shape in real inboxes — never names the role in
+// the subject at all; it's the first line of the body instead, immediately
+// after the repeated "Your application was sent to <Company>" line:
+//   Your application was sent to Madison Hunt
+//
+//   Director - M&A
+//   Madison Hunt
+//   New York City Metropolitan Area
+// Confirmed against several real LinkedIn confirmation bodies fetched
+// directly via the Gmail API — the raw text/plain part uses \r\n line
+// endings (Gmail's actual wire format, not the \n-only shape a hand-typed
+// test fixture would use), so this must match (?:\r?\n)+ as one logical
+// line break, not \n+ alone — a \n-only version silently failed to extract
+// anything from every one of these real bodies. bodyPreview's plain-text
+// part (see extractBodyPreview in sync-gmail.ts) keeps the real line
+// endings, so this pattern matches against it directly.
+const LINKEDIN_SENT_TO_TITLE_IN_BODY = /Your application was sent to [^\r\n]+(?:\r?\n)+([^\r\n]+)(?:\r?\n)/i
 
 export function guessTitleFromConfirmationSubject(subject: string): string | null {
   for (const pattern of CONFIRMATION_TITLE_PATTERNS) {
@@ -269,6 +314,13 @@ export function guessTitleFromConfirmationSubject(subject: string): string | nul
     if (match) return match[1].trim()
   }
   return null
+}
+
+export function guessTitleFromConfirmationText(subject: string, bodyPreview: string): string | null {
+  const fromSubject = guessTitleFromConfirmationSubject(subject)
+  if (fromSubject) return fromSubject
+  const bodyMatch = bodyPreview.match(LINKEDIN_SENT_TO_TITLE_IN_BODY)
+  return bodyMatch ? bodyMatch[1].trim() : null
 }
 
 // Real recruiter outreach — especially from executive-search firms — very

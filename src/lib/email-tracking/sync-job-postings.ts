@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
-import { guessTitleFromConfirmationSubject } from './ats-patterns'
+import { guessTitleFromConfirmationText } from './ats-patterns'
 import { applyInterviewLandedRewrite, applyInterviewPatternConfirmedRewrite } from '@/lib/scoring/rewrite-actions'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -34,6 +34,7 @@ export async function syncJobPostingFromEmail(
   activityType: EmailActivityType,
   companyName: string | null,
   subject: string,
+  bodyPreview: string,
   emailDate: Date
 ): Promise<void> {
   if (!companyName) return
@@ -85,7 +86,7 @@ export async function syncJobPostingFromEmail(
         source: 'EMAIL_DETECTED',
         fetchStatus: 'no_url',
         companyName: fixAllCapsCompanyName(companyName),
-        title: guessTitleFromConfirmationSubject(subject),
+        title: guessTitleFromConfirmationText(subject, bodyPreview),
         appliedAt: emailDate,
       },
     })

@@ -428,6 +428,7 @@ async function processMessage(
       classification.activityType,
       classification.companyName,
       subject,
+      bodyPreview,
       emailDate
     ).catch((error) => console.error('Failed to sync job posting from email:', error))
   }

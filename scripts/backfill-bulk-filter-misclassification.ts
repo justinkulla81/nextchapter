@@ -73,7 +73,7 @@ async function main() {
       data: { activityType: result.activityType, confidence: result.confidence, companyName: result.companyName },
     })
 
-    await syncJobPostingFromEmail(row.candidateId, result.activityType, result.companyName, row.subject, row.detectedAt)
+    await syncJobPostingFromEmail(row.candidateId, result.activityType, result.companyName, row.subject, '', row.detectedAt)
   }
 
   console.log(`\n${dryRun ? 'Would reclassify' : 'Reclassified'} ${reclassified} of ${candidates.length}:`)
