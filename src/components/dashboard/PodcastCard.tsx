@@ -1,7 +1,12 @@
+'use client'
+
+import { useState } from 'react'
 import type { Podcast } from '@prisma/client'
 import { Mic } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
+import { VideoPlayerModal } from '@/components/dashboard/VideoPlayerModal'
+import { extractYouTubeVideoId } from '@/lib/content/youtube-video-id'
 
 // Placeholder text/outline link-out buttons, NOT the official Apple
 // Podcasts / Spotify badge images — this build has no image-download
@@ -11,6 +16,8 @@ import { ContentLikeButton } from '@/components/dashboard/ContentLikeButton'
 // official badge images (or confirm plain text links are fine as final)
 // once the user supplies them.
 export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: boolean }) {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const youtubeVideoId = podcast.youtubeUrl ? extractYouTubeVideoId(podcast.youtubeUrl) : null
   return (
     <div className="w-72 shrink-0 space-y-2 rounded-lg border border-border bg-card p-3">
       <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
@@ -50,16 +57,25 @@ export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: b
             Listen on Spotify
           </a>
         )}
-        {podcast.youtubeUrl && (
-          <a
-            href={podcast.youtubeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonVariants({ variant: 'outline', size: 'xs' })}
-          >
-            Watch on YouTube
-          </a>
-        )}
+        {podcast.youtubeUrl &&
+          (youtubeVideoId ? (
+            <button
+              type="button"
+              onClick={() => setIsPlaying(true)}
+              className={buttonVariants({ variant: 'outline', size: 'xs' })}
+            >
+              Watch on YouTube
+            </button>
+          ) : (
+            <a
+              href={podcast.youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: 'outline', size: 'xs' })}
+            >
+              Watch on YouTube
+            </a>
+          ))}
       </div>
       <div className="flex justify-end">
         <ContentLikeButton
@@ -69,6 +85,15 @@ export function PodcastCard({ podcast, isLiked }: { podcast: Podcast; isLiked: b
           isLiked={isLiked}
         />
       </div>
+      {youtubeVideoId && (
+        <VideoPlayerModal
+          open={isPlaying}
+          onOpenChange={setIsPlaying}
+          youtubeVideoId={youtubeVideoId}
+          title={podcast.title}
+          isShort={false}
+        />
+      )}
     </div>
   )
 }

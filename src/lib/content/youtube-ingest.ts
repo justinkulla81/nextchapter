@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { VideoFormat } from '@prisma/client'
+import { extractYouTubeVideoId } from './youtube-video-id'
 
 const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search'
 const YOUTUBE_VIDEOS_URL = 'https://www.googleapis.com/youtube/v3/videos'
@@ -218,26 +219,4 @@ export async function fetchYouTubeVideoMetadata(videoIdOrUrl: string): Promise<F
   }
 }
 
-// Accepts a bare 11-character video ID, or common YouTube URL shapes
-// (watch?v=, youtu.be/, /shorts/).
-export function extractYouTubeVideoId(input: string): string | null {
-  const trimmed = input.trim()
-  if (/^[\w-]{11}$/.test(trimmed)) return trimmed
-
-  try {
-    const url = new URL(trimmed)
-    if (url.hostname.includes('youtu.be')) {
-      const id = url.pathname.slice(1)
-      return /^[\w-]{11}$/.test(id) ? id : null
-    }
-    if (url.hostname.includes('youtube.com')) {
-      const vParam = url.searchParams.get('v')
-      if (vParam && /^[\w-]{11}$/.test(vParam)) return vParam
-      const shortsMatch = /\/shorts\/([\w-]{11})/.exec(url.pathname)
-      if (shortsMatch) return shortsMatch[1]
-    }
-  } catch {
-    return null
-  }
-  return null
-}
+export { extractYouTubeVideoId }
