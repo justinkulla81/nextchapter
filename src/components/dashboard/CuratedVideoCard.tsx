@@ -24,7 +24,20 @@ function formatDuration(totalSeconds: number): string {
 // experience — rather than embedding an iframe per-card, since a carousel
 // can hold many items at once and loading that many embeds simultaneously
 // would be a real perf/UX cost for no benefit over a thumbnail + click.
-export function CuratedVideoCard({ video, isLiked }: { video: CuratedVideo; isLiked: boolean }) {
+export function CuratedVideoCard({
+  video,
+  isLiked,
+  citation,
+}: {
+  video: CuratedVideo
+  isLiked: boolean
+  // Optional "why this was recommended" line — the caller (page.tsx)
+  // computes this from the section the card is rendered in (e.g. industry
+  // match for Tools for You, "General AI tip" for AI Tips & Tools) rather
+  // than this component inferring it from video.category, so a generic
+  // reusable card never has to know about section-specific business logic.
+  citation?: string
+}) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const isShort = video.format === 'SHORT'
@@ -70,6 +83,7 @@ export function CuratedVideoCard({ video, isLiked }: { video: CuratedVideo; isLi
             {video.title}
           </p>
           <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+          {citation && <p className="text-[0.7rem] text-muted-foreground italic">{citation}</p>}
         </div>
       </button>
       <div className="px-1.5 pb-1.5">

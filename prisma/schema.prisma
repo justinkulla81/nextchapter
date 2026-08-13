@@ -4085,12 +4085,15 @@ enum VideoContentSource {
 
 // GENERAL is the existing Videos/Shorts carousel pool; AI_TOOLS is the
 // "Tools for You" carousel — AI-tool explainer content, tagged by industry
-// (aiToolIndustry) for personalization. Same underlying table/ingestion
-// pipeline as GENERAL, just a different search pass and a second tag field
-// — see youtube-ingest.ts's refreshAiToolVideos().
+// (aiToolIndustry) for personalization. LINKEDIN_TIPS is the "LinkedIn
+// Posting Tips" carousel on the Marketing Plan page — not personalized,
+// same catalog for everyone. Same underlying table/ingestion pipeline as
+// GENERAL, just different search passes — see youtube-ingest.ts's
+// refreshAiToolVideos()/refreshLinkedInTipsVideos().
 enum VideoCategory {
   GENERAL
   AI_TOOLS
+  LINKEDIN_TIPS
 }
 
 model CuratedVideo {
@@ -4107,9 +4110,17 @@ model CuratedVideo {
   category        VideoCategory      @default(GENERAL)
   // Only set when category = AI_TOOLS — one of INDUSTRY_BUCKET_NAMES
   // (src/lib/constants/industry-buckets.ts), or null for a
-  // general/cross-industry AI-tools video (the fallback the Tools for You
-  // carousel shows when a candidate's own industryBucket has no match yet).
+  // general/cross-industry AI-tools video. Personalized "Tools for You"
+  // shows only industry-matched rows; the null-industry rows populate the
+  // separate "AI Tips & Tools" section instead (see curated-content.ts) —
+  // no longer a silent fallback for an unmatched industry.
   aiToolIndustry  String?
+  // Only set when category = AI_TOOLS — a short human label of what AI
+  // capability the video actually covers (e.g. "AI video & content
+  // creation"), set from AI_TOOL_TOPICS at ingest time. Shown on the
+  // candidate-facing card as part of "why this was recommended," alongside
+  // the industry match.
+  aiToolFocus     String?
   addedByAdminId  String?
   // Admin soft-delete. refreshYouTubeVideos() must never resurrect a video
   // that has this set on a later ingest run (see youtube-ingest.ts).

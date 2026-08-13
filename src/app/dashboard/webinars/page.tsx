@@ -24,7 +24,7 @@ function EmptyCarousel({ label = 'Nothing here yet — check back soon.' }: { la
 
 export default async function WebinarsPage() {
   const profile = await getDashboardData()
-  const [webinars, registeredIds, { longForm, shorts, aiTools }, podcasts, likedKeys, favorites] = await Promise.all([
+  const [webinars, registeredIds, { longForm, shorts, toolsForYou, aiTips }, podcasts, likedKeys, favorites] = await Promise.all([
     getUpcomingWebinars(profile.id),
     getCandidateWebinarRegistrations(profile.id),
     getCarouselVideos(profile.id),
@@ -84,20 +84,44 @@ export default async function WebinarsPage() {
         )}
       </section>
 
-      {/* Tools for You — AI-tool explainer/demo videos, personalized to the
-          candidate's industryBucket where a match exists (falls back to the
-          cross-industry pool otherwise — see getCarouselVideos). */}
+      {/* Tools for You — AI-tool explainer/demo videos matched to the
+          candidate's own industryBucket (see getCarouselVideos). Empty
+          until an admin/ingest run has real content tagged for their
+          specific industry — no silent fallback to the general pool, since
+          that's now its own separate section below. */}
       <section className="space-y-3 border-t border-border pt-6">
         <SectionHeading>Tools for You</SectionHeading>
-        {aiTools.length === 0 ? (
-          <EmptyCarousel />
+        {toolsForYou.length === 0 ? (
+          <EmptyCarousel label="Nothing tagged for your industry yet — check back soon, or see AI Tips & Tools below." />
         ) : (
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {aiTools.map((video) => (
+            {toolsForYou.map((video) => (
               <CuratedVideoCard
                 key={video.id}
                 video={video}
                 isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+                citation={`Recommended for ${video.aiToolIndustry}${video.aiToolFocus ? ` — ${video.aiToolFocus}` : ''}`}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* AI Tips & Tools — the cross-industry AI_TOOLS pool (aiToolIndustry
+          === null), always visible to everyone regardless of industry match
+          — previously a silent fallback folded into Tools for You above. */}
+      <section className="space-y-3 border-t border-border pt-6">
+        <SectionHeading>AI Tips &amp; Tools</SectionHeading>
+        {aiTips.length === 0 ? (
+          <EmptyCarousel />
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {aiTips.map((video) => (
+              <CuratedVideoCard
+                key={video.id}
+                video={video}
+                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+                citation={video.aiToolFocus ?? 'General AI tip'}
               />
             ))}
           </div>

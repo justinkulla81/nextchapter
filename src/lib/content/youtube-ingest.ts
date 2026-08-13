@@ -133,7 +133,11 @@ function bestThumbnail(thumbnails: YouTubeVideoItem['snippet']['thumbnails']): s
 async function ingestVideoIds(
   apiKey: string,
   ids: string[],
-  categoryData: { category: 'GENERAL' | 'AI_TOOLS'; aiToolIndustry: string | null }
+  categoryData: {
+    category: 'GENERAL' | 'AI_TOOLS' | 'LINKEDIN_TIPS'
+    aiToolIndustry: string | null
+    aiToolFocus?: string | null
+  }
 ): Promise<void> {
   if (ids.length === 0) return
 
@@ -187,17 +191,60 @@ async function ingestVideoIds(
 // surfaces vendor-made content (e.g. a "Stacks AI for CFOs" style video)
 // rather than third-party listicles — best-effort, not guaranteed, same as
 // the Shorts duration heuristic above.
-const AI_TOOL_TOPICS: { industry: string | null; query: string }[] = [
-  { industry: null, query: 'best AI tools for professionals 2026 demo' },
-  { industry: 'Financial Services & Banking', query: 'AI tools for finance teams CFO demo explainer' },
-  { industry: 'Technology & Software', query: 'AI coding tools for software engineers demo' },
-  { industry: 'Advertising, Marketing & PR', query: 'AI tools for marketers demo explainer' },
-  { industry: 'Healthcare & Hospital Systems', query: 'AI tools for healthcare professionals demo' },
-  { industry: 'Legal Services', query: 'AI tools for lawyers legal teams demo' },
-  { industry: 'Staffing & Human Capital', query: 'AI tools for HR recruiting teams demo' },
-  { industry: 'Transportation & Logistics', query: 'AI tools for supply chain logistics demo' },
-  { industry: 'Retail & E-commerce', query: 'AI tools for retail e-commerce teams demo' },
-  { industry: 'Professional Services & Consulting', query: 'AI tools for consultants demo explainer' },
+// focus is a short, skill-framed label — distinct from the raw industry
+// name — shown on the candidate-facing card as "why this was recommended"
+// alongside the industry match (see CuratedVideoCard). Right now there's
+// exactly one topic per industry, so focus and industry carry the same
+// information; kept as a separate field so a later split into multiple
+// topics per industry (e.g. two distinct AI-skill angles under Marketing)
+// doesn't require another migration.
+const AI_TOOL_TOPICS: { industry: string | null; focus: string; query: string }[] = [
+  { industry: null, focus: 'General AI productivity skills', query: 'best AI tools for professionals 2026 demo' },
+  {
+    industry: 'Financial Services & Banking',
+    focus: 'AI skills for finance & banking',
+    query: 'AI tools for finance teams CFO demo explainer',
+  },
+  {
+    industry: 'Technology & Software',
+    focus: 'AI coding & engineering skills',
+    query: 'AI coding tools for software engineers demo',
+  },
+  {
+    industry: 'Advertising, Marketing & PR',
+    focus: 'AI content & marketing skills',
+    query: 'AI tools for marketers demo explainer',
+  },
+  {
+    industry: 'Healthcare & Hospital Systems',
+    focus: 'AI skills for healthcare workflows',
+    query: 'AI tools for healthcare professionals demo',
+  },
+  {
+    industry: 'Legal Services',
+    focus: 'AI skills for legal research & drafting',
+    query: 'AI tools for lawyers legal teams demo',
+  },
+  {
+    industry: 'Staffing & Human Capital',
+    focus: 'AI skills for HR & recruiting',
+    query: 'AI tools for HR recruiting teams demo',
+  },
+  {
+    industry: 'Transportation & Logistics',
+    focus: 'AI skills for supply chain & logistics',
+    query: 'AI tools for supply chain logistics demo',
+  },
+  {
+    industry: 'Retail & E-commerce',
+    focus: 'AI skills for retail & e-commerce',
+    query: 'AI tools for retail e-commerce teams demo',
+  },
+  {
+    industry: 'Professional Services & Consulting',
+    focus: 'AI skills for consulting & client work',
+    query: 'AI tools for consultants demo explainer',
+  },
 ]
 
 // Populates the "Tools for You" carousel — same YOUTUBE_API_KEY gate and
@@ -217,8 +264,35 @@ async function refreshAiToolVideos(apiKey: string): Promise<void> {
     AI_TOOL_TOPICS.map(async (topic) => ({ topic, ids: await searchVideoIds(apiKey, topic.query) }))
   )
   for (const { topic, ids } of searches) {
-    await ingestVideoIds(apiKey, ids, { category: 'AI_TOOLS', aiToolIndustry: topic.industry })
+    await ingestVideoIds(apiKey, ids, { category: 'AI_TOOLS', aiToolIndustry: topic.industry, aiToolFocus: topic.focus })
   }
+}
+
+// "LinkedIn Posting Tips" carousel on the Marketing Plan page — not
+// personalized (same catalog for everyone, no industry tagging), covers
+// writing/growth/engagement mechanics generally plus a couple of
+// AI-assisted-posting angles ("esp but not only AI" per spec).
+const LINKEDIN_TIP_KEYWORDS = [
+  'how to write a viral LinkedIn post',
+  'LinkedIn personal branding tips',
+  'how to get noticed on LinkedIn',
+  'LinkedIn engagement tips for job seekers',
+  'how to start posting on LinkedIn without feeling awkward',
+  'LinkedIn commenting strategy grow your network',
+  'LinkedIn content ideas for job seekers',
+  'AI tools for writing LinkedIn posts',
+] as const
+
+// Same upsert mechanics as refreshAiToolVideos, single search pass per
+// keyword (no shorts-duration split — keeps this addition's quota/timeout
+// footprint small; LinkedIn-tip content that happens to be short-form still
+// gets pulled in incidentally, same as the original general pass before the
+// dedicated shorts search was added).
+async function refreshLinkedInTipsVideos(apiKey: string): Promise<void> {
+  const searches = await Promise.all(LINKEDIN_TIP_KEYWORDS.map((keyword) => searchVideoIds(apiKey, keyword)))
+  const idSet = new Set<string>()
+  searches.forEach((ids) => ids.forEach((id) => idSet.add(id)))
+  await ingestVideoIds(apiKey, [...idSet], { category: 'LINKEDIN_TIPS', aiToolIndustry: null })
 }
 
 // Gated entirely on YOUTUBE_API_KEY. When absent, this no-ops cleanly (logs
@@ -258,6 +332,7 @@ export async function refreshYouTubeVideos(): Promise<void> {
   await ingestVideoIds(apiKey, [...idSet], { category: 'GENERAL', aiToolIndustry: null })
 
   await refreshAiToolVideos(apiKey)
+  await refreshLinkedInTipsVideos(apiKey)
 }
 
 export interface FetchedVideoMetadata {

@@ -31,16 +31,23 @@ export function sortCuratedVideos(videos: CuratedVideo[]): CuratedVideo[] {
 // are per-candidate personalization, not a global removal, so admin always
 // sees the full unfiltered catalog to curate it.
 //
-// aiTools is the "Tools for You" carousel (category = AI_TOOLS, see
-// youtube-ingest.ts's refreshAiToolVideos). With a candidateId, it's
-// narrowed to that candidate's industryBucket when there's a match,
-// falling back to the cross-industry pool (aiToolIndustry === null) when
-// there isn't — never an empty section just because their specific
-// industry hasn't been ingested yet. No candidateId (admin) returns every
-// AI_TOOLS video unfiltered by industry, same rationale as dislikes above.
-export async function getCarouselVideos(
-  candidateId?: string
-): Promise<{ longForm: CuratedVideo[]; shorts: CuratedVideo[]; aiTools: CuratedVideo[] }> {
+// toolsForYou is the personalized "Tools for You" carousel — category =
+// AI_TOOLS rows whose aiToolIndustry matches the candidate's own
+// industryBucket. No candidateId (admin) returns every AI_TOOLS row
+// regardless of industry, same rationale as dislikes above.
+//
+// aiTips is the separate, non-personalized "AI Tips & Tools" carousel —
+// the AI_TOOLS rows with aiToolIndustry === null (the cross-industry pool).
+// This used to be a silent fallback shown inside toolsForYou when a
+// candidate's industry had no match; it's now its own always-visible
+// section instead, so "why was this recommended" stays honest per section
+// rather than mixing matched and unmatched reasons in one list.
+export async function getCarouselVideos(candidateId?: string): Promise<{
+  longForm: CuratedVideo[]
+  shorts: CuratedVideo[]
+  toolsForYou: CuratedVideo[]
+  aiTips: CuratedVideo[]
+}> {
   const videos = await prisma.curatedVideo.findMany({ where: { removedAt: null } })
 
   let filtered = videos
@@ -68,24 +75,46 @@ export async function getCarouselVideos(
 
   const general = filtered.filter((v) => v.category === 'GENERAL')
   const aiToolVideos = filtered.filter((v) => v.category === 'AI_TOOLS')
+  const aiTips = aiToolVideos.filter((v) => v.aiToolIndustry === null)
 
-  let aiTools = aiToolVideos
+  let toolsForYou = aiToolVideos.filter((v) => v.aiToolIndustry !== null)
   if (candidateId) {
     const profile = await prisma.candidateProfile.findUnique({
       where: { id: candidateId },
       select: { industryBucket: true },
     })
-    const matching = profile?.industryBucket
-      ? aiToolVideos.filter((v) => v.aiToolIndustry === profile.industryBucket)
+    toolsForYou = profile?.industryBucket
+      ? toolsForYou.filter((v) => v.aiToolIndustry === profile.industryBucket)
       : []
-    aiTools = matching.length > 0 ? matching : aiToolVideos.filter((v) => v.aiToolIndustry === null)
   }
 
   return {
     longForm: sortCuratedVideos(general.filter((v) => v.format === 'LONG_FORM')),
     shorts: sortCuratedVideos(general.filter((v) => v.format === 'SHORT')),
-    aiTools: sortCuratedVideos(aiTools),
+    toolsForYou: sortCuratedVideos(toolsForYou),
+    aiTips: sortCuratedVideos(aiTips),
   }
+}
+
+// The "LinkedIn Posting Tips" carousel on the Marketing Plan page —
+// category = LINKEDIN_TIPS, same catalog for every candidate (no industry
+// personalization, per spec). candidateId optional, same
+// dislike-only-no-author-block rationale as getCarouselPodcasts (LinkedIn
+// tip videos have no "author block" concept — one channel posting a bad
+// tip video doesn't mean their other content is bad).
+export async function getLinkedInTipsVideos(candidateId?: string): Promise<CuratedVideo[]> {
+  const videos = await prisma.curatedVideo.findMany({
+    where: { removedAt: null, category: 'LINKEDIN_TIPS' },
+  })
+
+  if (!candidateId) return sortCuratedVideos(videos)
+
+  const dislikes = await prisma.contentDislike.findMany({
+    where: { candidateId, contentType: 'CURATED_VIDEO' },
+    select: { contentId: true },
+  })
+  const dislikedIds = new Set(dislikes.map((d) => d.contentId))
+  return sortCuratedVideos(videos.filter((v) => !dislikedIds.has(v.id)))
 }
 
 // candidateId optional, same admin-vs-candidate rationale as

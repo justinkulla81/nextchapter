@@ -11,6 +11,9 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
 import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/AlternativeNarrativeTabs'
 import { ComfortSummary } from '@/components/dashboard/marketing-plan/ComfortSummary'
+import { CuratedVideoCard } from '@/components/dashboard/CuratedVideoCard'
+import { getLinkedInTipsVideos } from '@/lib/content/curated-content'
+import { getCandidateContentLikeKeys, contentLikeKey } from '@/lib/content/content-likes'
 import { HardQuestionsSection } from '@/components/dashboard/marketing-plan/HardQuestionsSection'
 import { LowComfortActions } from '@/components/dashboard/marketing-plan/LowComfortActions'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
@@ -66,7 +69,7 @@ export default async function MarketingPlanPage({
   const relevantTutorials = CONTENT_TUTORIALS.filter((t) => profile.contentVenues.includes(t.venue))
 
   const linkedinConfigured = isLinkedInPostingConfigured()
-  const [narrativeRows, linkedinConnection, routeHardQuestionsToCoach] = await Promise.all([
+  const [narrativeRows, linkedinConnection, routeHardQuestionsToCoach, linkedInTips, likedKeys] = await Promise.all([
     prisma.candidateNarrative.findMany({
       where: { candidateId: profile.id },
       orderBy: { generatedAt: 'asc' },
@@ -75,6 +78,8 @@ export default async function MarketingPlanPage({
       ? prisma.linkedInConnection.findUnique({ where: { candidateId: profile.id } })
       : Promise.resolve(null),
     shouldRouteHardQuestionsToCoach(profile.id),
+    getLinkedInTipsVideos(profile.id),
+    getCandidateContentLikeKeys(profile.id),
   ])
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
     id: n.id,
@@ -136,6 +141,31 @@ export default async function MarketingPlanPage({
         elevatorPitchReady={profile.elevatorPitchReady}
         networkComfortLevel={profile.networkComfortLevel}
       />
+
+      {/* LinkedIn Posting Tips — writing/growth/engagement mechanics, not
+          personalized (same catalog for everyone, no industry match) — see
+          getLinkedInTipsVideos. Liking one adds it to My Favorites on the
+          Videos and Webinars page (getCandidateFavorites resolves any liked
+          CuratedVideo row regardless of category); clicks/likes/dislikes all
+          roll up into the admin Stats tab the same as every other carousel. */}
+      <div className="space-y-3 border-t border-border pt-8">
+        <SectionHeading>LinkedIn Posting Tips</SectionHeading>
+        {linkedInTips.length === 0 ? (
+          <p className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+            Nothing here yet — check back soon.
+          </p>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {linkedInTips.map((video) => (
+              <CuratedVideoCard
+                key={video.id}
+                video={video}
+                isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-3 border-t border-border pt-8">
         <SectionHeading>Core Narrative</SectionHeading>

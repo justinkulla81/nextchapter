@@ -1,16 +1,22 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import type { ContentLikeType } from '@prisma/client'
+import type { ContentLikeType, CuratedVideo } from '@prisma/client'
 import { contentLikeKey } from '@/lib/content/content-likes'
 
 export interface ContentStatsRow {
   contentType: ContentLikeType
   contentId: string
   title: string
-  formatLabel: 'Video' | 'Short' | 'AI Tool Video' | 'AI Tool Short' | 'Webinar' | 'Podcast'
+  formatLabel: 'Video' | 'Short' | 'AI Tool Video' | 'AI Tool Short' | 'LinkedIn Tip' | 'Webinar' | 'Podcast'
   likeCount: number
   dislikeCount: number
   clickCount: number
+}
+
+function videoFormatLabel(v: Pick<CuratedVideo, 'category' | 'format'>): ContentStatsRow['formatLabel'] {
+  if (v.category === 'LINKEDIN_TIPS') return 'LinkedIn Tip'
+  if (v.category === 'AI_TOOLS') return v.format === 'SHORT' ? 'AI Tool Short' : 'AI Tool Video'
+  return v.format === 'SHORT' ? 'Short' : 'Video'
 }
 
 export interface AuthorStatsRow {
@@ -60,13 +66,7 @@ export async function getAdminContentStats(): Promise<{ items: ContentStatsRow[]
       contentType: 'CURATED_VIDEO' as const,
       contentId: v.id,
       title: v.title,
-      formatLabel: (v.category === 'AI_TOOLS'
-        ? v.format === 'SHORT'
-          ? 'AI Tool Short'
-          : 'AI Tool Video'
-        : v.format === 'SHORT'
-          ? 'Short'
-          : 'Video') as ContentStatsRow['formatLabel'],
+      formatLabel: videoFormatLabel(v),
       likeCount: countFor(likeMap, 'CURATED_VIDEO', v.id),
       dislikeCount: countFor(dislikeMap, 'CURATED_VIDEO', v.id),
       clickCount: countFor(clickMap, 'CURATED_VIDEO', v.id),
