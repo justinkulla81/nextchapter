@@ -4,6 +4,8 @@
 // dependencies here, so client components can import the plain types
 // without pulling in Prisma/Anthropic.
 
+import type { IssueCode } from '@/lib/analytics/issue-taxonomy'
+
 export type SeniorityBand = 'EARLY' | 'MID' | 'SENIOR' | 'EXECUTIVE'
 
 export type FunctionFamily =
@@ -92,6 +94,12 @@ export interface Finding {
   candidateFacingCopy: string
   fix: string
   estimatedPointGain: number
+  // Stable analytics code — Phase 2 Master Script Part B Prompt 1. Every
+  // push-site in dimensions.ts/modifiers.ts must set this; see
+  // src/lib/analytics/issue-taxonomy.ts for the registry and the mapping
+  // tables (ATS flag kind / mechanics issue kind -> IssueCode) most
+  // push-sites should go through rather than hand-picking a literal.
+  issueCode: IssueCode
 }
 
 export type DimensionScores = Record<DimensionKey, number>

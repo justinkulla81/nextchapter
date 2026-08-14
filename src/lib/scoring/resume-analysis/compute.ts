@@ -24,6 +24,7 @@ import { detectReviewerQuestions } from './reviewer-questions'
 import { simulateAtsCompatibility } from './ats-matrix'
 import { selfCheckResumeAnalysis } from './self-check'
 import { scoreToExperienceBand, scoreToResumeBand } from './types'
+import { captureResumeIssues } from '@/lib/analytics/capture-resume-issues'
 
 export interface ComputeResumeAnalysisResult {
   resumeAnalysisId: string
@@ -145,6 +146,21 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
         })),
       },
     },
+    include: { reviewerQuestions: true },
+  })
+
+  // Part B Prompt 3 — explode this analysis's detections into the
+  // ResumeIssue analytics spine. Every input here is already in scope from
+  // this same function (dimensionFindings/reconciliation.findings now carry
+  // issueCode per Prompt 1; analysis.reviewerQuestions are the rows just
+  // created above, with real ids) — see capture-resume-issues.ts for why
+  // this happens here rather than after computeResumeAnalysis() returns.
+  await captureResumeIssues({
+    candidateId: resume.candidateId,
+    resumeAnalysisId: analysis.id,
+    dimensionFindings,
+    reconciliationFindings: reconciliation.findings,
+    reviewerQuestions: analysis.reviewerQuestions,
   })
 
   return { resumeAnalysisId: analysis.id, experienceScore, experienceBand, resumeScore, resumeBand }

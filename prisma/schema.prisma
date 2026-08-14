@@ -1158,6 +1158,10 @@ model CandidateProfile {
   marketRealityComponentScore    MarketRealityComponentScore?
   marketDifficultySnapshots      MarketDifficultySnapshot[]
   milestoneBadges                MilestoneBadge[]
+  // Phase 2 Part B — analytics spine (see the ADMIN ANALYTICS section at
+  // the end of this file for both models).
+  resumeIssues                   ResumeIssue[]
+  adminAccessLogViews            AdminAccessLog[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -2384,6 +2388,7 @@ model ResumeAnalysis {
   atsParseResults   AtsParseResult[]
   reviewerQuestions ReviewerQuestion[]
   prestigeAudit     PrestigeAudit?
+  resumeIssues      ResumeIssue[]
 
   createdAt DateTime @default(now())
 
@@ -2769,12 +2774,12 @@ model CommunityPost {
   // anyone but its author, so a status of PUBLISHED here always means "the
   // classifier already ran and cleared it" (or crisis-flagged it for
   // priority human review without hiding it — see the enum comment).
-  moderationStatus      CommunityModerationStatus    @default(PENDING)
-  moderationCategory    CommunityModerationCategory?
-  moderationConfidence  Float?
-  moderationReasoning   String?
-  moderatedAt           DateTime?
-  moderationReviewedAt  DateTime?
+  moderationStatus          CommunityModerationStatus    @default(PENDING)
+  moderationCategory        CommunityModerationCategory?
+  moderationConfidence      Float?
+  moderationReasoning       String?
+  moderatedAt               DateTime?
+  moderationReviewedAt      DateTime?
   moderationReviewedByEmail String?
 
   @@index([postType, isActive, createdAt])
@@ -5050,4 +5055,126 @@ model TrackingTesterAllowlistEntry {
   email     String   @unique
   addedBy   String? // admin auth email, for audit purposes
   createdAt DateTime @default(now())
+}
+
+// ── ADMIN ANALYTICS (Phase 2 Master Script, Part B) ─────────────────────────
+// Three additive tables: the resume-issue analytics spine, precomputed
+// weekly population snapshots, and an admin individual-record access log.
+// None of these has a Postgres RLS policy — this schema doesn't use RLS
+// anywhere for admin-only data (see PrestigeAudit above, the one existing
+// precedent: "This table is service-role read only by convention — no
+// application code may select it from a request that renders to the
+// candidate, even though Prisma doesn't enforce that automatically").
+// Protection here is the same convention: these three models must only ever
+// be imported from server-only, admin-gated modules (src/lib/admin/*,
+// gated by requireAdmin()/isAdminEmail() in src/lib/admin/auth.ts) — never
+// from a path a candidate-facing request can reach. Admin identity
+// throughout is a plain email string (ADMIN_EMAILS allowlist — there is no
+// Admin/AdminUser model in this schema), matching AdminEmailLog.sentByEmail's
+// existing convention above.
+
+// One row per detected issue per ResumeAnalysis — the analytics spine for
+// Part B's prevalence/fix-rate/point-impact admin views. Exploded from a
+// completed ResumeAnalysis by src/lib/analytics/capture-resume-issues.ts
+// (called from resume-analysis/compute.ts immediately after the analysis
+// + its ReviewerQuestion rows are created), from three sources: every
+// dimensionFindings Finding across all 11 dimensions (now carrying its own
+// issueCode — see Finding.issueCode), every modifiers.ts reconciliation
+// Finding (ReconciliationFinding.issueCode), and every ReviewerQuestion
+// created alongside the analysis (mapped via
+// REVIEWER_DETECTION_TYPE_TO_ISSUE_CODE in issue-taxonomy.ts).
+model ResumeIssue {
+  id               String           @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeAnalysisId String
+  resumeAnalysis   ResumeAnalysis   @relation(fields: [resumeAnalysisId], references: [id], onDelete: Cascade)
+
+  issueCode String // IssueCode (src/lib/analytics/issue-taxonomy.ts) — permanent, see that file's header comment before ever touching an existing value
+  category  String // IssueCategory — denormalized from ISSUE_TAXONOMY[issueCode].category at write time, so a prevalence-by-category query never has to join back to the taxonomy module
+  severity  String // "low" | "medium" | "high" | "critical" — this instance's severity (mapped from the source Finding where one exists; falls back to ISSUE_TAXONOMY[issueCode]'s "typical" severity for reviewer-question-sourced rows, which have no per-instance severity)
+  dimension String // "your_experience" | "your_resume" — denormalized from ISSUE_TAXONOMY[issueCode].dimension
+
+  // estimatedPointGain / |penalty|, where the source Finding or
+  // ReconciliationFinding carried one. Null for reviewer-question-sourced
+  // rows — ReviewerDetection carries no per-instance point estimate, and
+  // fabricating one would overstate precision the engine doesn't have (see
+  // ISSUE_TAXONOMY[issueCode].typicalPointImpact for a population-level
+  // planning figure instead).
+  pointImpact Int?
+
+  detectedAt DateTime @default(now())
+
+  resolvedAt     DateTime?
+  // "fixed" | "dismissed_not_applicable" | "declined_leave_as_is" |
+  // "corrected_source_data" | "superseded" — String, not a Prisma enum,
+  // matching ReviewerQuestion.resolutionType's existing convention.
+  resolutionType String?
+
+  surfacedInWalkthrough Boolean @default(false)
+  walkthroughStep       String?
+
+  // Correlation keys back to the two live walkthrough resolution surfaces —
+  // plain strings, not Prisma relations, since this table's job is
+  // analytics correlation, not referential integrity. At most one of the
+  // two is ever set on a given row.
+  //
+  // findingKey: `${DimensionKey}:${arrayIndex}` for dimensionFindings-sourced
+  // rows (exactly matches walkthrough/mechanical-findings.ts's existing key
+  // format) or `reconciliation:${index}` for modifiers.ts-sourced rows —
+  // lets resolveMechanicalFindingAction (walkthrough/actions.ts) update this
+  // exact row instead of guessing. Null for reviewer-question-sourced rows.
+  findingKey         String?
+  // Set only for rows sourced from a ReviewerQuestion detection — lets
+  // resolveReviewerQuestionAction (walkthrough/actions.ts) update this row
+  // by id instead of text-matching. Null for dimensionFindings/reconciliation-
+  // sourced rows.
+  reviewerQuestionId String? @unique
+
+  @@index([issueCode, detectedAt])
+  @@index([candidateId])
+  @@index([category, detectedAt])
+}
+
+// One row per week per segment — precomputed so Part B Prompt 5's trend
+// views never recompute live (Prompt 6: "A dashboard that recomputes 40
+// weeks of history on load will be abandoned"). Written by the Monday
+// 00:15 UTC weekly snapshot job (Prompt 6), not modeled in this pass —
+// this table is schema-only foundation for that job and for the Prompt 4/5
+// admin views built on top of it.
+model PopulationSnapshot {
+  id            String   @id @default(cuid())
+  weekStartDate DateTime // Monday 00:00 UTC for the week this snapshot covers
+  segmentType   String // "all" | "seniority" | "function" | "industry" | "metro" | "persona" | "employment_status" | "usage_tier"
+  segmentValue  String // e.g. "EXECUTIVE" for segmentType "seniority"; "all" for segmentType "all" — never empty, so the unique constraint below always has a real key
+  memberCount   Int
+  metrics       Json // whatever Part B Prompt 4/5's metric set computes for this segment/week — shape owned by the snapshot job, not fixed here
+  computedAt    DateTime @default(now())
+
+  // "Rerunning a week overwrites cleanly" (Prompt 6) — the snapshot job
+  // upserts on this constraint rather than a skip-if-exists check. Postgres
+  // backs a unique constraint with a real index, so this also satisfies
+  // the spec's index requirement on the same three columns — no separate
+  // @@index needed.
+  @@unique([weekStartDate, segmentType, segmentValue])
+}
+
+// Every individual-record view by an admin — Part B Prompt 8: "Log every
+// individual-record view... with a required reason field. Not optional,
+// not a text box that accepts empty." The empty-reason rejection is
+// enforced at the server-action layer (Prisma can't express "non-empty
+// string" as a constraint); this table only records what already passed
+// that check.
+model AdminAccessLog {
+  id                String           @id @default(cuid())
+  // Plain email string, not a relation — see this section's header comment.
+  adminEmail        String
+  viewedCandidateId String
+  viewedCandidate   CandidateProfile @relation(fields: [viewedCandidateId], references: [id], onDelete: Cascade)
+  surface           String // e.g. "admin/issues", "admin/population", "admin/companies/[id]" — which panel triggered the view
+  reason            String // required, never empty (enforced at the server-action layer)
+  viewedAt          DateTime         @default(now())
+
+  @@index([viewedCandidateId, viewedAt])
+  @@index([adminEmail, viewedAt])
 }

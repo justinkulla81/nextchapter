@@ -100,6 +100,24 @@ export async function resolveMechanicalFindingAction(
     return { error: 'You need to be logged in to do this.' }
   }
 
+  // Resolution tracking (Phase 2 Master Script Part B, Prompt 3) — `key`
+  // is exactly the `findingKey` format captured on the corresponding
+  // ResumeIssue row (mechanical-findings.ts: `${dimension}:${index}`).
+  // Best-effort: only the candidate's own, still-unresolved row for this
+  // key is touched, and a stray/late resolve (e.g. a second click after
+  // the row was already superseded by a re-upload) is a silent no-op
+  // rather than an error, matching this action's existing tolerance for
+  // late duplicate calls (see saveBulletDraft's comment).
+  await prisma.resumeIssue.updateMany({
+    where: { candidateId: profile.id, findingKey: key, resolvedAt: null },
+    data: {
+      resolvedAt: new Date(),
+      resolutionType: action === 'fixed' ? 'fixed' : 'declined_leave_as_is',
+      surfacedInWalkthrough: true,
+      walkthroughStep: 'mechanical',
+    },
+  })
+
   await advanceStep(profile.id, { mechanicalHandled: { [key]: action } }, nextStep, 'mechanical', action, { key })
   redirect(stepPath(nextStep))
 }
@@ -287,6 +305,31 @@ export async function resolveReviewerQuestionAction(
       resolutionType,
       resolvedAt: new Date(),
       ...(explanation ? { candidateExplanation: explanation } : {}),
+    },
+  })
+
+  // Resolution tracking (Phase 2 Master Script Part B, Prompt 3) — the
+  // canonical write is above (ReviewerQuestion.resolutionType, unchanged);
+  // this is the second write alongside it, on the ResumeIssue row captured
+  // for this exact detection (see capture-resume-issues.ts's
+  // reviewerQuestionId). Maps the walkthrough's 3-way
+  // CORRECTED/NOT_APPLICABLE/LEAVE_AS_IS onto ResumeIssue's resolutionType
+  // vocabulary — CORRECTED means the candidate told us the detection was
+  // wrong and source data was fixed, matching 'corrected_source_data' more
+  // precisely than a generic 'fixed'.
+  const resumeIssueResolutionType =
+    resolutionType === 'CORRECTED'
+      ? 'corrected_source_data'
+      : resolutionType === 'NOT_APPLICABLE'
+        ? 'dismissed_not_applicable'
+        : 'declined_leave_as_is'
+  await prisma.resumeIssue.updateMany({
+    where: { reviewerQuestionId: id, resolvedAt: null },
+    data: {
+      resolvedAt: new Date(),
+      resolutionType: resumeIssueResolutionType,
+      surfacedInWalkthrough: true,
+      walkthroughStep: stepLabel,
     },
   })
 

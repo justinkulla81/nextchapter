@@ -8,6 +8,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { SeniorityBand } from './types'
+import type { IssueCode } from '@/lib/analytics/issue-taxonomy'
 
 // ── Prestige (spec §4.13) — 0 to +6 on the Record composite, 0 to +10 on
 // First Glance. Never negative, never displayed, logged to PrestigeAudit.
@@ -71,6 +72,13 @@ export async function computeResumePrestige(facts: ResumeAnalysisFacts): Promise
 export interface ReconciliationFinding {
   candidateFacingCopy: string
   penalty: number
+  // Stable analytics code — see this Finding-shaped interface's sibling,
+  // resume-analysis/types.ts's Finding.issueCode, and
+  // src/lib/analytics/issue-taxonomy.ts for the registry. All four
+  // reconciliation checks below are 'reconciliation'-category codes, which
+  // apply to the Resume composite only (see this module's own comment on
+  // the reconciliation penalty).
+  issueCode: IssueCode
 }
 
 export function computeReconciliation(facts: ResumeAnalysisFacts): { penalty: number; findings: ReconciliationFinding[] } {
@@ -90,7 +98,11 @@ export function computeReconciliation(facts: ResumeAnalysisFacts): { penalty: nu
   for (let i = 1; i < dated.length; i++) {
     if (dated[i].start < dated[i - 1].end - 1000 * 60 * 60 * 24 * 30) {
       // more than ~30 days of overlap
-      findings.push({ candidateFacingCopy: `${dated[i - 1].title} and ${dated[i].title} overlap by more than a month.`, penalty: -3 })
+      findings.push({
+        candidateFacingCopy: `${dated[i - 1].title} and ${dated[i].title} overlap by more than a month.`,
+        penalty: -3,
+        issueCode: 'overlapping_full_time',
+      })
       penalty -= 3
     }
   }
@@ -98,7 +110,11 @@ export function computeReconciliation(facts: ResumeAnalysisFacts): { penalty: nu
   // Credential without a granting institution.
   const missingInstitution = facts.education.filter((e) => !e.hasGrantingInstitution)
   if (missingInstitution.length > 0) {
-    findings.push({ candidateFacingCopy: `${missingInstitution[0].degree ?? 'A credential'} is listed without the granting institution.`, penalty: -2 })
+    findings.push({
+      candidateFacingCopy: `${missingInstitution[0].degree ?? 'A credential'} is listed without the granting institution.`,
+      penalty: -2,
+      issueCode: 'credential_without_institution',
+    })
     penalty -= 2
   }
 
@@ -111,13 +127,18 @@ export function computeReconciliation(facts: ResumeAnalysisFacts): { penalty: nu
       findings.push({
         candidateFacingCopy: `Your summary states ${facts.statedYearsExperience} years; your dates show roughly ${Math.round(actualYears)}.`,
         penalty: -3,
+        issueCode: 'years_experience_mismatch',
       })
       penalty -= 3
     }
   }
 
   if (!facts.summaryClaimsOverlapWithTimeline) {
-    findings.push({ candidateFacingCopy: 'A claim in your summary doesn\'t line up with your role timeline.', penalty: -2 })
+    findings.push({
+      candidateFacingCopy: 'A claim in your summary doesn\'t line up with your role timeline.',
+      penalty: -2,
+      issueCode: 'tenure_date_mismatch',
+    })
     penalty -= 2
   }
 

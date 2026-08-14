@@ -11,6 +11,7 @@
 import type { ResumeAnalysisFacts } from './extract-facts'
 import { getFunctionFamilyDefinition } from './weights'
 import type { DimensionFindings, DimensionKey, DimensionScores, FunctionFamily, Finding, SeniorityBand } from './types'
+import { ATS_FLAG_KIND_TO_ISSUE_CODE, MECHANICS_ISSUE_KIND_TO_ISSUE_CODE } from '@/lib/analytics/issue-taxonomy'
 
 function normalizeIndustry(value: string): string {
   return value.trim().toLowerCase()
@@ -64,6 +65,7 @@ function scoreQuantification(facts: ResumeAnalysisFacts, ctx: DimensionContext):
       candidateFacingCopy: `"${activityBullet.text}" describes a duty, not a result. Reviewers skim past bullets like this.`,
       fix: 'Add the number: what changed, from what, to what.',
       estimatedPointGain: 8,
+      issueCode: 'activity_not_outcome',
     })
   }
   if (baselineRatio < 0.2 && allBullets.length >= 5) {
@@ -72,6 +74,7 @@ function scoreQuantification(facts: ResumeAnalysisFacts, ctx: DimensionContext):
       candidateFacingCopy: 'Most of your quantified bullets state a single number rather than a from/to pair — the strongest form of evidence.',
       fix: 'Where you can, show the baseline: "from $X to $Y" beats "grew 40%."',
       estimatedPointGain: 5,
+      issueCode: 'metric_without_baseline',
     })
   }
 
@@ -82,6 +85,7 @@ function scoreQuantification(facts: ResumeAnalysisFacts, ctx: DimensionContext):
       candidateFacingCopy: 'Fewer than a third of your bullets carry a number of any kind.',
       fix: 'Every bullet should end with a measurable result, even an estimate.',
       estimatedPointGain: 10,
+      issueCode: 'low_quantification_density',
     })
   }
 
@@ -99,6 +103,7 @@ function scoreNarrativePositioning(facts: ResumeAnalysisFacts): { score: number;
       candidateFacingCopy: 'Your resume records what you\'ve done but never says what you want next.',
       fix: 'Add a target line under your name: role, level, industry, company size.',
       estimatedPointGain: 12,
+      issueCode: 'no_target_line',
     })
   } else if (!facts.hasSummary || !facts.summaryIsForwardLooking) {
     findings.push({
@@ -106,6 +111,7 @@ function scoreNarrativePositioning(facts: ResumeAnalysisFacts): { score: number;
       candidateFacingCopy: 'Your target is inferable, but nothing at the top of the document states it plainly.',
       fix: 'Make the target explicit in one line — don\'t make a reviewer infer it.',
       estimatedPointGain: 6,
+      issueCode: 'no_summary',
     })
   }
   return { score: clamp(facts.narrativePositioningScore), findings }
@@ -122,6 +128,7 @@ function scoreAtsLegibility(facts: ResumeAnalysisFacts): { score: number; findin
       candidateFacingCopy: `${hardFailure.detail} — this causes near-total parse loss in most applicant tracking systems.`,
       fix: 'Rebuild this section as plain single-column text, no tables or embedded graphics.',
       estimatedPointGain: 20,
+      issueCode: ATS_FLAG_KIND_TO_ISSUE_CODE[hardFailure.kind],
     })
     return { score: clamp(Math.min(25, 25 - facts.atsFlags.filter((f) => f.isHardFailure).length * 5)), findings }
   }
@@ -134,6 +141,7 @@ function scoreAtsLegibility(facts: ResumeAnalysisFacts): { score: number; findin
       candidateFacingCopy: flag.detail,
       fix: 'Standard spacing, standard section names, embedded standard fonts.',
       estimatedPointGain: 4,
+      issueCode: ATS_FLAG_KIND_TO_ISSUE_CODE[flag.kind],
     })
   }
   return { score: clamp(score), findings }
@@ -161,6 +169,7 @@ function scoreScopeLevel(facts: ResumeAnalysisFacts, ctx: DimensionContext): { s
       candidateFacingCopy: 'No role states a budget, headcount, quota, or reporting scope — reviewers can\'t size your responsibility from the numbers alone.',
       fix: 'Add at least one scope number per recent role: budget, team size, or geography.',
       estimatedPointGain: 8,
+      issueCode: 'no_metrics',
     })
     return { score: 45, findings }
   }
@@ -239,6 +248,10 @@ function scoreTenurePattern(facts: ResumeAnalysisFacts, ctx: DimensionContext): 
       candidateFacingCopy: 'Several roles run shorter than typical for your function.',
       fix: 'This is worth addressing directly — see "How a recruiter will read this" below.',
       estimatedPointGain: 0, // explanation neutralizes the reviewer-question effect, not this dimension's score directly
+      // Same real-world issue reviewer-questions.ts's SHORT_TENURE_CLUSTER
+      // detects independently — reused rather than minting a second code
+      // for one underlying pattern surfaced by two pipelines.
+      issueCode: 'short_tenure_cluster',
     })
   }
   return { score: clamp(score), findings }
@@ -318,6 +331,7 @@ function scoreMechanicsPresentation(facts: ResumeAnalysisFacts): { score: number
             ? 'Lead with an action verb: led, owned, built, shipped.'
             : 'Mechanical fix — see the resume updater for a one-click correction.',
     estimatedPointGain: issue.kind === 'TYPO' ? 3 : 1,
+    issueCode: MECHANICS_ISSUE_KIND_TO_ISSUE_CODE[issue.kind],
   }))
   return { score: clamp(facts.mechanicsPresentationScore), findings }
 }
@@ -334,6 +348,7 @@ function scoreSkillCurrency(facts: ResumeAnalysisFacts): { score: number; findin
       candidateFacingCopy: `Terms like "${facts.staleTerminologyFound[0]}" read as dated for your function.`,
       fix: 'Swap in the current vocabulary for the same skill.',
       estimatedPointGain: 2,
+      issueCode: 'stale_terminology',
     })
   }
   return { score: clamp(score), findings }
@@ -350,6 +365,7 @@ function scoreContactability(facts: ResumeAnalysisFacts): { score: number; findi
       candidateFacingCopy: 'No LinkedIn URL on the document.',
       fix: 'Add your LinkedIn profile URL near your contact info.',
       estimatedPointGain: 1,
+      issueCode: 'missing_linkedin',
     })
   }
   if (facts.emailNameMismatch) {
@@ -358,6 +374,7 @@ function scoreContactability(facts: ResumeAnalysisFacts): { score: number; findi
       candidateFacingCopy: 'The email on your resume doesn\'t match your name — worth a look, ignore if intentional.',
       fix: 'Confirm this is the email you want reviewers to use.',
       estimatedPointGain: 0,
+      issueCode: 'name_email_mismatch',
     })
   }
   return { score: clamp(score), findings }
