@@ -1,0 +1,31 @@
+name: Resume template parse-verification
+
+# First CI workflow in this repo. Scoped to exactly one thing: the resume
+# export templates (Master Build Script §13.2 — "all parse-verified in
+# CI"). It generates a docx from a fixture for each of the 3 templates and
+# asserts the text round-trips cleanly through the same extraction path
+# the app uses for uploaded resumes (see scripts/verify-resume-templates.ts).
+# Not a general app CI pipeline — that's out of scope here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify-resume-templates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No engines field in package.json and no .nvmrc at time of writing —
+      # pinned to match the version this template code was developed and
+      # verified against locally.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npx tsx scripts/verify-resume-templates.ts
