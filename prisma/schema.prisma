@@ -705,11 +705,11 @@ model CandidateProfile {
   // exclusion comment. Same isolation pattern as dealBreakers above:
   // plain columns, read only by getCoachingNotes and (labels/options only,
   // never the raw open-text fields) search-strategy-guidance.ts.
-  blockers               String[] @default([]) // multi-select, no cap — practical constraints only, no mental-health framing, see BLOCKER_OPTIONS
-  consistencySelfRating  Int? // 0-100, 4-stop discrete scale, same shape as communicatorConfidence/managementSkillConfidence above
-  blockersOpenText       String? // free text, coach-only — "anything more personal" — never structured, never Dossier-eligible
-  motivations            String[] @default([]) // multi-select, choose up to 3 — internal only, never surfaced in the Executive Dossier under any circumstance, see MOTIVATIONS_OPTIONS
-  motivationsElaboration String?  @db.Text
+  blockers                String[]                 @default([]) // multi-select, no cap — practical constraints only, no mental-health framing, see BLOCKER_OPTIONS
+  consistencySelfRating   Int? // 0-100, 4-stop discrete scale, same shape as communicatorConfidence/managementSkillConfidence above
+  blockersOpenText        String? // free text, coach-only — "anything more personal" — never structured, never Dossier-eligible
+  motivations             String[]                 @default([]) // multi-select, choose up to 3 — internal only, never surfaced in the Executive Dossier under any circumstance, see MOTIVATIONS_OPTIONS
+  motivationsElaboration  String?                  @db.Text
   // Coaching-tone calibration — same "never in Dossier" isolation as the
   // block above. Required (with blockers/motivations) before Victoria's
   // Search Strategy guidance is drafted — see isBlockersAndMotivationsComplete.
@@ -727,47 +727,47 @@ model CandidateProfile {
   // Search Strategy — a standalone, editable-anytime setup step. Search
   // Stage itself isn't stored here — it's derived from currentJobStatus +
   // gapDuration, see searchStage() in src/lib/search-strategy.ts.
-  applicationVolumeGoal          Int? // target applications per week
+  applicationVolumeGoal           Int? // target applications per week
   // Job Applications Willingness gate (Search Strategy) — "are you willing
   // to follow up on applications you've submitted?" Paired with
   // applicationVolumeGoal above under the same gate section.
   willingToFollowUpOnApplications Boolean?
-  isPivoting                     Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
-  skillsToBuild                  String[]  @default([])
+  skillsToBuild                   String[]  @default([])
   // Cached LLM-generated suggestions for the box above — {resumeGaps,
   // roleGaps, modernSkills}, each a string[]. Regenerated only when
   // skillGapSuggestionsFingerprint no longer matches the candidate's
   // current resume/target-role/industries (see skill-gap-suggestions.ts) —
   // this is a real per-candidate LLM cost, so it must never fire on every
   // page view.
-  skillGapSuggestions            Json?
-  skillGapSuggestionsFingerprint String?
-  interimConsultingInterest      Boolean   @default(false)
-  searchStrategyConfirmedAt      DateTime?
+  skillGapSuggestions             Json?
+  skillGapSuggestionsFingerprint  String?
+  interimConsultingInterest       Boolean   @default(false)
+  searchStrategyConfirmedAt       DateTime?
   // Restrictive covenant from a current/former employer (non-compete,
   // non-solicit, non-disparagement, garden leave, etc.) — a real Red Line
   // for coaches/recruiters, since it can literally block or delay a
   // candidate from certain roles or employers. Nullable tri-state: null
   // means not asked yet, distinct from an explicit "No."
-  hasRestrictiveCovenant         Boolean?
-  restrictiveCovenantDetails     String? // which type + scope/duration, in the candidate's own words
+  hasRestrictiveCovenant          Boolean?
+  restrictiveCovenantDetails      String? // which type + scope/duration, in the candidate's own words
   // Only asked when currentJobStatus is LAID_OFF — a real, material signal
   // for recruiters, distinct from a no-fault layoff. Same nullable
   // tri-state as its siblings.
-  firedForCause                  Boolean?
+  firedForCause                   Boolean?
   // Screening questions — real Red Lines for recruiters/hiring managers,
   // same nullable tri-state shape as hasRestrictiveCovenant above (null =
   // not asked yet). Bundled with it into one RED_FLAGS_CONFIRMED one-time
   // bonus (see complete-profile/actions.ts) rather than separate bonuses
   // per question, same "small related-question bundle" shape as
   // ANSWER_OPTIONAL_QUESTIONS/COMFORT_CHECK_CONFIRM.
-  willingToTakeDrugTest          Boolean?
-  willingToTakeBackgroundCheck   Boolean?
-  wantsAnimalFriendlyWorkplace   Boolean?
-  redFlagsBonusAt                DateTime?
+  willingToTakeDrugTest           Boolean?
+  willingToTakeBackgroundCheck    Boolean?
+  wantsAnimalFriendlyWorkplace    Boolean?
+  redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
   // (targetCompMin) and expanded with real benefit-importance questions
@@ -882,10 +882,10 @@ model CandidateProfile {
   whatINeedCompletedAt        DateTime?
 
   // LinkedIn & job-search behaviors
-  linkedInUrl               String?
-  linkedInConfirmedAt       DateTime? // set once candidate provides a URL or explicitly says they don't have one yet — mandatory first action-plan item
-  networkingListSubmittedAt DateTime? // "25 people" networking assignment
-  askedForHelpAt            DateTime?
+  linkedInUrl                   String?
+  linkedInConfirmedAt           DateTime? // set once candidate provides a URL or explicitly says they don't have one yet — mandatory first action-plan item
+  networkingListSubmittedAt     DateTime? // "25 people" networking assignment
+  askedForHelpAt                DateTime?
   // Set once, the first time a LinkedIn Connections.csv import actually
   // parses real connections (see doImportConnectionsCsv) — the "LinkedIn
   // connected" half of the dashboard-wide activation gate (see
@@ -964,9 +964,9 @@ model CandidateProfile {
   // privacyOpenedUpBonusAt. This is also the one-time unlock gate for the
   // recurring INTERVIEW_BEHAVIORAL_PRACTICE action (guides.tsx already
   // treats storyComfort !== null as "interview-prep guide unlocked").
-  comfortCheckBonusAt       DateTime?
-  networkingConcerns        NetworkingAnxiety[] @default([])
-  networkConnectPreferences String[]            @default([])
+  comfortCheckBonusAt             DateTime?
+  networkingConcerns              NetworkingAnxiety[] @default([])
+  networkConnectPreferences       String[]            @default([])
   // Networking Willingness gate (Search Strategy) — a self-set weekly
   // outreach target, same "personal target + suggested baseline" shape as
   // applicationVolumeGoal (15/week baseline) — see NETWORKING_OUTREACH_SUGGESTED_TARGET.
@@ -992,7 +992,7 @@ model CandidateProfile {
   // GMAIL_TRACKING_TESTER_EMAILS list with a per-candidate toggle an admin
   // can flip without a deploy. isGmailTrackingTester() checks this OR the
   // env var OR the manual TrackingTesterAllowlistEntry table.
-  gmailTrackingTesterEnabled Boolean @default(false)
+  gmailTrackingTesterEnabled Boolean   @default(false)
   // Set once, the first time this candidate hits the Gmail/Calendar OAuth
   // hard gate while not yet an approved tester — triggers an admin
   // notification email (name/email/link to add them as a Google Cloud
@@ -1000,7 +1000,7 @@ model CandidateProfile {
   // automatically instead of the admin having to notice it themselves.
   // Never re-sent for the same candidate — see notifyAdminGmailAccessNeeded
   // in gmail-oauth.ts.
-  gmailAccessRequestedAt    DateTime?
+  gmailAccessRequestedAt     DateTime?
 
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp     Int?
@@ -1038,7 +1038,7 @@ model CandidateProfile {
   // at profile creation, in getOrCreateCandidateProfile — existing rows get
   // the schema default (false = exempt/grandfathered) automatically.
   // Deliberately never flipped after creation.
-  subjectToHardGate      Boolean   @default(false)
+  subjectToHardGate     Boolean   @default(false)
 
   // Deferred signup (resume-first onboarding, account creation last)
   email                        String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
@@ -1119,6 +1119,11 @@ model CandidateProfile {
   calendarConnection             CalendarConnection?
   trackedCalendarEvents          TrackedCalendarEvent[]
   linkedInConnection             LinkedInConnection?
+  resumeAnalyses                 ResumeAnalysis[]
+  reviewerQuestions              ReviewerQuestion[]
+  marketRealityComponentScore    MarketRealityComponentScore?
+  marketDifficultySnapshots      MarketDifficultySnapshot[]
+  milestoneBadges                MilestoneBadge[]
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
@@ -2228,7 +2233,200 @@ model Resume {
 
   uploadedAt DateTime @default(now())
 
+  analyses ResumeAnalysis[]
+
   @@index([candidateId, uploadedAt])
+}
+
+// ── MARKET REALITY GRADE 2.0 ───────────────────────────────────────────────
+// One headline (Market Reality Grade), decomposed into four independently-
+// scored components that never blend into each other: Record (this resume,
+// on its own), Evidence (references + assessments), Market (role scarcity
+// for the stated target), Channels (network + outreach activity). This is
+// a different decomposition axis than the six legacy CategoryKey categories
+// above (targetFit/leadership/etc, which blend evidence types together
+// within each competency) — the two systems compute from an overlapping
+// data set but never share a row. See docs/specs/NextChapter_Resume_Scoring_Spec.md
+// and companions for the full design.
+
+// One row per resume upload — versioned, append-only, like Resume itself.
+// Supersedes Resume.atsScore/resultsScore/experienceScore for the Record
+// component; those legacy fields are left in place (still read by older
+// call sites) until every consumer migrates to this model.
+model ResumeAnalysis {
+  id          String           @id @default(cuid())
+  resumeId    String
+  resume      Resume           @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  seniorityBand  String // "EARLY" | "MID" | "SENIOR" | "EXECUTIVE" — spec §5
+  functionFamily String // "REVENUE" | "MARKETING" | "ENGINEERING" | "PRODUCT" | "FINANCE" | "OPERATIONS" | "PEOPLE" | "LEGAL" | "CLINICAL" | "GENERAL_MANAGEMENT" — spec §6
+
+  // Keyed by the 10 weighted dimensions (spec §3.4/§4): evidenceQuality,
+  // narrativePositioning, atsLegibility, scopeLevel, trajectory,
+  // mechanicsPresentation, tenurePattern, relevanceRecency, skillCurrency,
+  // contactability. Each 0-100. Findings carry the candidate-facing copy,
+  // fix, and estimated point gain per dimension (spec §4 Finding shape).
+  dimensionScores   Json
+  dimensionFindings Json
+
+  // Additive/penalty-only modifiers, kept out of dimensionScores so the
+  // subtotal-vs-modifier split (spec §3.4) stays auditable at a glance.
+  prestigeBonus         Int @default(0) // 0-6, resume-grade scale (spec §4.13) — never surfaced in any candidate-facing copy
+  reconciliationPenalty Int @default(0) // -12-0 (spec §4.11)
+  extracurricularBonus  Int @default(0) // 0-3 (spec §4.12)
+
+  composite Int // 0-100, subtotal + modifiers, clamped
+  band      String // "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "D" | "F" — spec §3.1
+
+  // First Glance (spec §2.2) — an internal diagnostic only, never rendered
+  // as its own headline grade (there is exactly one headline: the Market
+  // Reality Grade). Feeds which fixes surface first in "What to fix on
+  // your resume" and the opening line of "Where you stand" — e.g. a
+  // resume that reads well on careful read but buries its best number can
+  // still show up as a weak First Glance, and that divergence is worth
+  // surfacing in prose even though it never becomes a displayed number.
+  firstGlanceScore  Int? // 0-100, spec §3.5 weights — different inputs from the Record composite above
+  firstGlanceResult String? // "PASS" | "BORDERLINE" | "LIKELY_SKIP"
+  firstGlanceTopFix String? @db.Text
+
+  atsParseResults   AtsParseResult[]
+  reviewerQuestions ReviewerQuestion[]
+
+  createdAt DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+// Per-parser-engine round-trip result for one ResumeAnalysis — a matrix,
+// not a single score (Report Structure Spec §4.3/§4.5). parserKey values
+// mirror the engine/platform list already known to the ncrawl ATS adapters
+// (src/lib/market/ats-*.ts) — Textkernel, Daxtra, HireAbility, Affinda,
+// RChilli, plus Workday/Taleo/BrassRing/iCIMS/SuccessFactors/Greenhouse/
+// Lever/Ashby/Workable, which parse in-house and behave distinctly.
+model AtsParseResult {
+  id               String         @id @default(cuid())
+  resumeAnalysisId String
+  resumeAnalysis   ResumeAnalysis @relation(fields: [resumeAnalysisId], references: [id], onDelete: Cascade)
+
+  parserKey       String
+  parserLabel     String
+  fieldsExpected  Int
+  fieldsRecovered Int
+  failures        Json // string[] — which fields/sections were lost, in plain language
+  severity        String // "CLEAN" | "PARTIAL" | "FAILING"
+
+  @@index([resumeAnalysisId])
+}
+
+// "What a reviewer will ask about" (spec §7) — same detections as a red-flag
+// scan, opposite register: framed as interview prep, not a defect list.
+// Recording candidateExplanation neutralizes the item — it stops affecting
+// First Glance and drops off the report's detection list, but never
+// retroactively changes a permanent penalty (reconciliationPenalty above is
+// the only true penalty in this system, and explanations don't touch it).
+model ReviewerQuestion {
+  id               String           @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  resumeAnalysisId String?
+  resumeAnalysis   ResumeAnalysis?  @relation(fields: [resumeAnalysisId], references: [id], onDelete: SetNull)
+
+  // "UNEXPLAINED_RECENT_GAP" | "UNEXPLAINED_CURRENT_GAP" | "SHORT_TENURE_RECENT" |
+  // "SHORT_TENURE_CLUSTER" | "SCOPE_DECREASE" | "THIN_RECENT_ENTRY" |
+  // "EXTENDED_TENURE_NO_CHANGE" | "TITLE_INFLATION" | "OVERLAPPING_ROLES" |
+  // "CREDENTIAL_NO_INSTITUTION" | "PORTFOLIO_CAREER" | "COMP_FIT_RISK" — spec §7 table
+  detectionType   String
+  detectedContext Json // e.g. { role, company, dateRange } — whatever the detection needs to render its copy
+
+  candidateExplanation String?   @db.Text
+  resolvedAt           DateTime?
+  createdAt            DateTime  @default(now())
+
+  @@index([candidateId, resolvedAt])
+}
+
+// One row per candidate — the current, live Market Reality Grade and its
+// four components. Upserted on every recompute of any one component
+// (recompute cadence is per-component, not synchronized — see Voice/Intake
+// Spec §3.1): Record only on resume upload; Evidence when a reference or
+// assessment lands; Market weekly (smoothed against MarketDifficultySnapshot
+// history below); Channels on network/outreach activity. The composite and
+// band are recomputed and re-stored whenever any one component changes, so
+// this row is always the single source of truth the report and dashboard
+// render from — never recomputed ad hoc in more than one place.
+model MarketRealityComponentScore {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  recordScore   Int? // 0-100 — from the latest ResumeAnalysis.composite
+  evidenceScore Int? // 0-100 — references + assessments
+  marketScore   Int? // 0-100 — role scarcity for the stated target, smoothed weekly
+  channelsScore Int? // 0-100 — network + outreach activity
+
+  compositeScore Int?
+  grade          String? // "A" | "B" | "C" | "D" | "F" — reuses the existing Grade scale (grade.ts)
+
+  // Which component the headline names as the primary constraint, and
+  // which it names as the strength — e.g. "Market Reality: C — moderate
+  // difficulty. Your record is an A; the constraint is that roles at your
+  // level are scarce and your network is unused." Both recomputed with the
+  // composite so the headline template never has to re-derive them at
+  // render time.
+  drivingComponent   String? // "RECORD" | "EVIDENCE" | "MARKET" | "CHANNELS"
+  strongestComponent String?
+
+  recordComputedAt   DateTime?
+  evidenceComputedAt DateTime?
+  marketComputedAt   DateTime?
+  channelsComputedAt DateTime?
+
+  updatedAt DateTime @updatedAt
+}
+
+// Weekly time series of posting volume for a candidate's stated target
+// (function + level + geography), the input to the Market component's
+// trailing-baseline comparison (Voice/Intake Spec §3.2-3.3). Sourced from
+// already-imported postings (JobPosting/ExclusiveJobPosting — fed by
+// ncrawl, JSearch, Adzuna, and direct ATS feeds), not a new crawler.
+// Deliberately separate from MarketConditionsSnapshot above, which upserts
+// one row per query+location and overwrites on every fetch (a live cache,
+// not a history) — this table is append-only so a trailing baseline
+// actually exists to compare against.
+model MarketDifficultySnapshot {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  targetRoleQuery String // normalized, same convention as MarketConditionsSnapshot.roleQuery
+  location        String
+  postingCount    Int
+  weekOf          DateTime // Monday of the week this snapshot represents
+
+  createdAt DateTime @default(now())
+
+  @@unique([candidateId, weekOf])
+  @@index([targetRoleQuery, location, weekOf])
+}
+
+// The 7 milestone badges from the Payoff Map spec (§7) — Cleaned Up,
+// Connected, Asked, Backed, Known, Consistent, Documented. One-time,
+// permanent, never re-earned — distinct from WeeklyBadgeEarned above
+// (which is keyed per-week for streak-style badges) and LearningBadge
+// (course/certification completions). Community unlocks on the first row
+// any candidate earns here, regardless of which badge it is.
+model MilestoneBadge {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  badgeKey String // "CLEANED_UP" | "CONNECTED" | "ASKED" | "BACKED" | "KNOWN" | "CONSISTENT" | "DOCUMENTED"
+  earnedAt DateTime @default(now())
+
+  @@unique([candidateId, badgeKey])
+  @@index([candidateId])
 }
 
 // Job-fit feedback. Max 5 per candidate enforced in the server action, not
@@ -3913,18 +4111,18 @@ enum AlumniGroupMatchType {
 // EducationEntry.schoolNameNormalized (SCHOOL rows) — see
 // getMatchedAlumniGroups() in src/lib/network/alumni-groups.ts.
 model AlumniNetworkGroup {
-  id        String               @id @default(cuid())
-  name      String // "Xoogler", "HKS Alumni Network"
-  matchType AlumniGroupMatchType
+  id          String               @id @default(cuid())
+  name        String // "Xoogler", "HKS Alumni Network"
+  matchType   AlumniGroupMatchType
   // Case-insensitive substring match, checked BOTH directions against the
   // candidate's company/school text (handles "Google" matching "Google LLC"
   // and "Alphabet Inc (Google)" alike) — see matchesKeyword() in
   // alumni-groups.ts.
-  keywords    String[] @default([])
+  keywords    String[]             @default([])
   url         String
   logoUrl     String?
   description String? // short line shown on the card, e.g. "Google's alumni community"
-  isActive    Boolean  @default(true)
+  isActive    Boolean              @default(true)
   sortOrder   Int?
 
   addedByAdminId String?
@@ -4322,13 +4520,13 @@ model ContentLike {
 // author blocks the whole author" rule (see getCarouselVideos) can query it
 // directly without a join back to CuratedVideo.
 model ContentDislike {
-  id            String           @id @default(cuid())
-  candidateId   String
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  contentType   ContentLikeType
-  contentId     String
-  channelTitle  String?
-  dislikedAt    DateTime         @default(now())
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  contentType  ContentLikeType
+  contentId    String
+  channelTitle String?
+  dislikedAt   DateTime         @default(now())
 
   @@unique([candidateId, contentType, contentId])
   @@index([candidateId, contentType])
