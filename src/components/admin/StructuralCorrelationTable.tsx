@@ -1,6 +1,13 @@
 import type { StructuralCorrelationRow } from '@/lib/admin/structural-correlation'
+import { isSuppressedCell, type MaybeSuppressed } from '@/lib/admin/cell-suppression'
 
-export function StructuralCorrelationTable({ title, rows }: { title: string; rows: StructuralCorrelationRow[] }) {
+export function StructuralCorrelationTable({
+  title,
+  rows,
+}: {
+  title: string
+  rows: MaybeSuppressed<StructuralCorrelationRow>[]
+}) {
   if (rows.length === 0) return null
 
   return (
@@ -17,16 +24,25 @@ export function StructuralCorrelationTable({ title, rows }: { title: string; row
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.label} className="border-b border-border last:border-0">
-                <td className="px-4 py-2 text-foreground">{row.label}</td>
-                <td className="px-4 py-2 tabular-nums text-foreground">{row.candidateCount}</td>
-                <td className="px-4 py-2 tabular-nums text-muted-foreground">
-                  {row.approvedOfferRate === null ? '—' : `${row.approvedOfferRate}%`}
-                </td>
-                <td className="px-4 py-2 tabular-nums text-muted-foreground">{row.gradeDistribution}</td>
-              </tr>
-            ))}
+            {rows.map((row) =>
+              isSuppressedCell(row) ? (
+                <tr key={row.label} className="border-b border-border last:border-0">
+                  <td className="px-4 py-2 text-foreground">{row.label}</td>
+                  <td colSpan={3} className="px-4 py-2 text-muted-foreground">
+                    Insufficient data (fewer than 5 candidates)
+                  </td>
+                </tr>
+              ) : (
+                <tr key={row.label} className="border-b border-border last:border-0">
+                  <td className="px-4 py-2 text-foreground">{row.label}</td>
+                  <td className="px-4 py-2 tabular-nums text-foreground">{row.candidateCount}</td>
+                  <td className="px-4 py-2 tabular-nums text-muted-foreground">
+                    {row.approvedOfferRate === null ? '—' : `${row.approvedOfferRate}%`}
+                  </td>
+                  <td className="px-4 py-2 tabular-nums text-muted-foreground">{row.gradeDistribution}</td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       </div>

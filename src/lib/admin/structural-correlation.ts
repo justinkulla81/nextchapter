@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import type { Grade } from '@/lib/scoring/grade'
+import { suppressSmallCells, type MaybeSuppressed } from '@/lib/admin/cell-suppression'
 
 export interface StructuralCorrelationRow {
   label: string
@@ -35,7 +36,13 @@ function summarizeSegment(
 // against the one real, verified hiring-outcome signal in the app today —
 // BountyClaim.status === 'APPROVED', offer-letter-backed, not self-reported
 // — plus current grade distribution. Admin-only, internal tool; no PostHog.
-export async function computeStructuralCorrelation(): Promise<Record<string, StructuralCorrelationRow[]>> {
+//
+// Every segment row is run through cell-suppression.ts's minimum-cell-size
+// gate (Part B Prompt 8: "a segment of 2 identifies people") before it's
+// returned — this is the closest existing segment-breakdown view to the
+// ones Part B's /admin/issues and /admin/population pages will build, and
+// it had no such guard until now.
+export async function computeStructuralCorrelation(): Promise<Record<string, MaybeSuppressed<StructuralCorrelationRow>[]>> {
   const candidates = await prisma.candidateProfile.findMany({
     select: {
       hasMBA: true,
@@ -77,10 +84,13 @@ export async function computeStructuralCorrelation(): Promise<Record<string, Str
     .map((v) => summarizeSegment(v, enriched.filter((c) => c.careerTrajectory === v)))
     .filter((row) => row.candidateCount > 0)
 
+  const suppress = (rows: StructuralCorrelationRow[]) =>
+    suppressSmallCells(rows, (r) => r.candidateCount, (r) => r.label)
+
   return {
-    'Has MBA': hasMBA,
-    'Highest education level': education,
-    'Job-hopping flag': jobHopping,
-    'Career trajectory': careerTrajectory,
+    'Has MBA': suppress(hasMBA),
+    'Highest education level': suppress(education),
+    'Job-hopping flag': suppress(jobHopping),
+    'Career trajectory': suppress(careerTrajectory),
   }
 }
