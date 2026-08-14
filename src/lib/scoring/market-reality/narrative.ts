@@ -35,7 +35,12 @@ const COMPONENT_LABEL: Record<MarketRealityComponent, string> = {
 // read as "moderate," matching the user's own worked example ("Market
 // Reality: C — moderate difficulty") and grade.ts's hard-grading curve,
 // where most candidates land on C by design.
-const DIFFICULTY_LABEL: Record<Grade, string> = {
+// Exported so the deterministic-template gates in
+// src/test/scoring-fixtures.test.ts (Master Build Script §16 gates 6/19)
+// can assert exhaustiveness and tonal consistency directly — this table is
+// pure templating over already-computed data (see header), so a runtime
+// check against it can never drift from what actually renders.
+export const DIFFICULTY_LABEL: Record<Grade, string> = {
   A: 'low difficulty',
   B: 'moderate difficulty',
   C: 'moderate difficulty',

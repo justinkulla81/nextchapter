@@ -29,7 +29,12 @@ export interface WhereYouStand {
   realisticPath: string
 }
 
-const WEEKLY_HOURS_BY_GRADE: Record<Grade, string> = {
+// Exported (not just used internally) so the deterministic-template gates
+// in src/test/scoring-fixtures.test.ts (Master Build Script §16 gates 6/19)
+// can assert exhaustiveness and tonal consistency directly against these
+// tables — this file is explicitly template-only/zero-LLM (see header),
+// which is exactly what makes that a meaningful, non-flaky assertion.
+export const WEEKLY_HOURS_BY_GRADE: Record<Grade, string> = {
   A: '3–5 hrs/week',
   B: '6–10 hrs/week',
   C: '6–10 hrs/week',
@@ -40,7 +45,7 @@ const WEEKLY_HOURS_BY_GRADE: Record<Grade, string> = {
 // Report Structure Spec §5.2 — different bands get different realistic
 // primary paths, not the same ladder with a longer climb. A and A− collapse
 // to one row since Grade has no A− value.
-const REALISTIC_PATH_BY_GRADE: Record<Grade, string> = {
+export const REALISTIC_PATH_BY_GRADE: Record<Grade, string> = {
   A: 'Warm channels, search firms, selectivity. Speed matters more than volume.',
   B: 'Fix presentation, add references, apply with intent. The standard path works.',
   C: 'Presentation fixes plus positioning. Consider adjacent functions and less competitive markets. Interim work to generate current proof.',
