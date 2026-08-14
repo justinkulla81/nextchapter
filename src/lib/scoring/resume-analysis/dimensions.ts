@@ -1,4 +1,6 @@
-// The 10-dimension catalog — Resume Scoring Spec §4. Each function takes
+// The 11-dimension catalog — Resume Scoring Spec §4, extended by Master
+// Build Script §3.1 (renamed evidenceQuality->quantification, added
+// industryCoherence). Each function takes
 // the extracted facts + candidate context and returns a 0-100 score plus
 // candidate-facing findings. Deterministic wherever the facts allow (spec
 // §8.1: "every narrative sentence must be traceable to a dimension
@@ -9,6 +11,10 @@
 import type { ResumeAnalysisFacts } from './extract-facts'
 import { getFunctionFamilyDefinition } from './weights'
 import type { DimensionFindings, DimensionKey, DimensionScores, FunctionFamily, Finding, SeniorityBand } from './types'
+
+function normalizeIndustry(value: string): string {
+  return value.trim().toLowerCase()
+}
 
 export interface DimensionContext {
   band: SeniorityBand
@@ -28,12 +34,15 @@ function scopeMagnitude(role: ResumeAnalysisFacts['roles'][number]): number {
   return 0
 }
 
-// ── 4.1 Evidence Quality — 20 ────────────────────────────────────────────
-// Outcome-vs-activity, baselines present, density — all classified per
-// bullet during extraction. Function-adjusted: an engineer with no revenue
-// numbers is not deficient, because "hasAnyNumber" already credits any
-// stated metric (systems scale, latency, uptime), not revenue specifically.
-function scoreEvidenceQuality(facts: ResumeAnalysisFacts, ctx: DimensionContext): { score: number; findings: Finding[] } {
+// ── Quantification (Your Resume) — renamed from "Evidence Quality" per
+// Master Build Script §3.1/§18: the old name collided with the new "Your
+// Evidence" component, which measures something unrelated (third-party
+// corroboration). This dimension is unchanged in substance — outcome-vs-
+// activity, baselines present, density — all classified per bullet during
+// extraction. Function-adjusted: an engineer with no revenue numbers is not
+// deficient, because "hasAnyNumber" already credits any stated metric
+// (systems scale, latency, uptime), not revenue specifically.
+function scoreQuantification(facts: ResumeAnalysisFacts, ctx: DimensionContext): { score: number; findings: Finding[] } {
   const allBullets = facts.roles.flatMap((r, i) => r.bullets.map((b) => ({ ...b, roleIndex: i })))
   if (allBullets.length === 0) return { score: 40, findings: [] }
 
@@ -254,6 +263,46 @@ function scoreRelevanceRecency(facts: ResumeAnalysisFacts, ctx: DimensionContext
   return { score: clamp(score), findings: [] }
 }
 
+// ── Industry Coherence (Your Experience) — new per Master Build Script
+// §3.1/§18. Measures how tightly a career clusters around related
+// industries, not whether any one industry is "better." Scored from the
+// employer industry extracted per role — recency-weighted, same decay
+// shape as Relevance & Recency, so a candidate who spent their most recent
+// years in one industry after an early pivot reads as coherent now, not
+// penalized for the pivot itself. Roles with no extracted industry are
+// simply excluded from the count, never treated as a mismatch.
+function scoreIndustryCoherence(facts: ResumeAnalysisFacts): { score: number; findings: Finding[] } {
+  const withIndustry = facts.roles.filter((r) => r.industry && !r.isInternship)
+  if (withIndustry.length < 2) {
+    // Not enough data to measure coherence one way or the other — neutral,
+    // never a penalty for something the extraction couldn't determine.
+    return { score: 60, findings: [] }
+  }
+
+  const now = Date.now()
+  const weightByIndustry = new Map<string, number>()
+  let totalWeight = 0
+  for (const role of withIndustry) {
+    const industry = normalizeIndustry(role.industry as string)
+    const yearsAgo = role.startDate ? (now - new Date(role.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365) : 5
+    const weight = yearsAgo <= 3 ? 1 : yearsAgo <= 8 ? 0.5 : 0.2
+    weightByIndustry.set(industry, (weightByIndustry.get(industry) ?? 0) + weight)
+    totalWeight += weight
+  }
+
+  const pluralityWeight = Math.max(...weightByIndustry.values())
+  const pluralityShare = totalWeight > 0 ? pluralityWeight / totalWeight : 1
+  const distinctIndustries = weightByIndustry.size
+
+  // A single-industry career scores highest; a clear recent plurality after
+  // an earlier pivot still scores well; a career with no dominant thread
+  // scores lowest — but never punitively, since some functions (consulting,
+  // interim/fractional work) legitimately span industries by design.
+  const score = distinctIndustries === 1 ? 95 : 40 + pluralityShare * 55
+
+  return { score: clamp(score), findings: [] } // informational only — never narrated as a deficiency (spec §17: never imply a candidate's background is insufficient)
+}
+
 // ── 4.8 Mechanics & Presentation — 10 ─────────────────────────────────────
 // Holistic score from extraction; itemized mechanicsIssues become findings.
 function scoreMechanicsPresentation(facts: ResumeAnalysisFacts): { score: number; findings: Finding[] } {
@@ -319,7 +368,7 @@ export function computeAllDimensions(
   ctx: DimensionContext
 ): { scores: DimensionScores; findings: DimensionFindings } {
   const results: Record<DimensionKey, { score: number; findings: Finding[] }> = {
-    evidenceQuality: scoreEvidenceQuality(facts, ctx),
+    quantification: scoreQuantification(facts, ctx),
     narrativePositioning: scoreNarrativePositioning(facts),
     atsLegibility: scoreAtsLegibility(facts),
     scopeLevel: scoreScopeLevel(facts, ctx),
@@ -327,6 +376,7 @@ export function computeAllDimensions(
     mechanicsPresentation: scoreMechanicsPresentation(facts),
     tenurePattern: scoreTenurePattern(facts, ctx),
     relevanceRecency: scoreRelevanceRecency(facts, ctx),
+    industryCoherence: scoreIndustryCoherence(facts),
     skillCurrency: scoreSkillCurrency(facts),
     contactability: scoreContactability(facts),
   }

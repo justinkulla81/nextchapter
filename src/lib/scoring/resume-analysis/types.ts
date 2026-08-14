@@ -1,6 +1,8 @@
-// Shared types for the Record component (Market Reality Grade 2.0) —
-// no server-only dependencies here, so client components can import the
-// plain types without pulling in Prisma/Anthropic.
+// Shared types for the Your Experience / Your Resume components (Master
+// Build Script §3.1 — the former single "Record" component split in two:
+// the career itself vs. the document describing it) — no server-only
+// dependencies here, so client components can import the plain types
+// without pulling in Prisma/Anthropic.
 
 export type SeniorityBand = 'EARLY' | 'MID' | 'SENIOR' | 'EXECUTIVE'
 
@@ -16,8 +18,12 @@ export type FunctionFamily =
   | 'CLINICAL'
   | 'GENERAL_MANAGEMENT'
 
+// Renamed from `evidenceQuality` (Master Build Script §3.1/§18) — the old
+// name collided with the new "Your Evidence" component, which means
+// something entirely different (references/assessments/activity). This
+// dimension is document-level quantification, not evidence.
 export type DimensionKey =
-  | 'evidenceQuality'
+  | 'quantification'
   | 'narrativePositioning'
   | 'atsLegibility'
   | 'scopeLevel'
@@ -25,11 +31,12 @@ export type DimensionKey =
   | 'mechanicsPresentation'
   | 'tenurePattern'
   | 'relevanceRecency'
+  | 'industryCoherence'
   | 'skillCurrency'
   | 'contactability'
 
 export const DIMENSION_ORDER: DimensionKey[] = [
-  'evidenceQuality',
+  'quantification',
   'narrativePositioning',
   'atsLegibility',
   'scopeLevel',
@@ -37,12 +44,13 @@ export const DIMENSION_ORDER: DimensionKey[] = [
   'mechanicsPresentation',
   'tenurePattern',
   'relevanceRecency',
+  'industryCoherence',
   'skillCurrency',
   'contactability',
 ]
 
 export const DIMENSION_LABEL: Record<DimensionKey, string> = {
-  evidenceQuality: 'Evidence Quality',
+  quantification: 'Quantification',
   narrativePositioning: 'Narrative & Positioning',
   atsLegibility: 'ATS Legibility & File Hygiene',
   scopeLevel: 'Scope & Level',
@@ -50,8 +58,33 @@ export const DIMENSION_LABEL: Record<DimensionKey, string> = {
   mechanicsPresentation: 'Mechanics & Presentation',
   tenurePattern: 'Tenure Pattern',
   relevanceRecency: 'Relevance & Recency',
+  industryCoherence: 'Industry Coherence',
   skillCurrency: 'Skill & Vocabulary Currency',
   contactability: 'Contactability',
+}
+
+// Which of the two components (Master Build Script §3.1) each dimension
+// belongs to. Experience = the career itself, scored from stated facts
+// (scope, trajectory, tenure, relevance, industry coherence) — "mostly
+// fixed." Resume = the document describing that career (ATS legibility,
+// quantification, positioning/target line, mechanics, contactability) plus
+// skill/vocabulary currency, which the master script doesn't explicitly
+// place in either list but is a property of the document's vocabulary, not
+// the career — "days" to fix, same fixability class as the rest of Resume.
+export type ExperienceResumeComponent = 'EXPERIENCE' | 'RESUME'
+
+export const DIMENSION_COMPONENT: Record<DimensionKey, ExperienceResumeComponent> = {
+  scopeLevel: 'EXPERIENCE',
+  trajectory: 'EXPERIENCE',
+  tenurePattern: 'EXPERIENCE',
+  relevanceRecency: 'EXPERIENCE',
+  industryCoherence: 'EXPERIENCE',
+  atsLegibility: 'RESUME',
+  quantification: 'RESUME',
+  narrativePositioning: 'RESUME',
+  mechanicsPresentation: 'RESUME',
+  skillCurrency: 'RESUME',
+  contactability: 'RESUME',
 }
 
 export interface Finding {
@@ -88,6 +121,35 @@ export function scoreToResumeBand(composite: number): ResumeBand {
 export const RESUME_BAND_LABEL: Record<ResumeBand, string> = Object.fromEntries(
   RESUME_BANDS.map((b) => [b.band, b.label])
 ) as Record<ResumeBand, string>
+
+// Same thresholds as RESUME_BANDS today, but a separate table — Master
+// Build Script §3.4: "these are uncalibrated," and Experience/Resume are
+// two independently-fixable components that should be free to diverge in
+// calibration once there's a real scored population to regress against.
+export const EXPERIENCE_BANDS = [
+  { band: 'A', min: 90, label: 'Exceptional' },
+  { band: 'A-', min: 85, label: 'Strong' },
+  { band: 'B+', min: 80, label: 'Good' },
+  { band: 'B', min: 74, label: 'Solid' },
+  { band: 'B-', min: 68, label: 'Adequate' },
+  { band: 'C+', min: 62, label: 'Mixed' },
+  { band: 'C', min: 55, label: 'Needs work' },
+  { band: 'D', min: 40, label: 'Significant gaps' },
+  { band: 'F', min: 0, label: 'Not competitive as written' },
+] as const
+
+export type ExperienceBand = (typeof EXPERIENCE_BANDS)[number]['band']
+
+export function scoreToExperienceBand(composite: number): ExperienceBand {
+  for (const { band, min } of EXPERIENCE_BANDS) {
+    if (composite >= min) return band
+  }
+  return 'F'
+}
+
+export const EXPERIENCE_BAND_LABEL: Record<ExperienceBand, string> = Object.fromEntries(
+  EXPERIENCE_BANDS.map((b) => [b.band, b.label])
+) as Record<ExperienceBand, string>
 
 export type FirstGlanceResult = 'PASS' | 'BORDERLINE' | 'LIKELY_SKIP'
 

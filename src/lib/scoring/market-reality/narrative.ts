@@ -1,31 +1,34 @@
-// Headline narrative — Market Reality Grade 2.0 Phase 4. Pure templating
-// over already-computed, already-persisted data (composite.ts,
-// resume-analysis/compute.ts, evidence/market/channels.ts) — no LLM call,
-// so the prose can never drift from the score it describes (Report
-// Structure Spec §6 rule 1). Matches the user's own worked example:
-// "Market Reality: C — moderate difficulty. Your record is an A; the
-// constraint is that roles at your level are scarce and your network is
-// unused." — rendered here as a headline plus two supporting lines rather
-// than one spliced sentence, since forcing arbitrary driver prose into a
-// single grammatical clause is fragile; two clean sentences beat one
-// occasionally-broken one.
+// Headline narrative — Master Build Script §3.7: "always name what's
+// driving the grade — one-sentence headline naming the driver, not a
+// second number." Pure templating over already-computed, already-persisted
+// data (composite.ts, resume-analysis/compute.ts, evidence/market/
+// effort.ts) — no LLM call, so the prose can never drift from the score it
+// describes (Report Structure Spec §6 rule 1). Matches the user's own
+// worked example: "Market Reality: C — moderate difficulty. Your
+// experience is an A; the constraint is that roles at your level are
+// scarce and your network is unused." — rendered here as a headline plus
+// two supporting lines rather than one spliced sentence, since forcing
+// arbitrary driver prose into a single grammatical clause is fragile; two
+// clean sentences beat one occasionally-broken one.
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { scoreToGrade, type Grade } from '@/lib/scoring/grade'
+import { DIMENSION_COMPONENT } from '../resume-analysis/types'
 import type { MarketRealityComponent } from './composite'
 
 export interface MarketRealityHeadline {
   headline: string // "Market Reality: C — moderate difficulty."
-  strongestLine: string // "Your record is a B — that part is working."
-  constraintLine: string // the driving component's driver sentence, verbatim
+  strongestLine: string // "Your experience is a B — that part is working."
+  constraintLine: string // the driving component's driver sentence(s), verbatim
 }
 
 const COMPONENT_LABEL: Record<MarketRealityComponent, string> = {
-  RECORD: 'record',
+  EXPERIENCE: 'experience',
+  RESUME: 'resume',
   EVIDENCE: 'evidence',
+  EFFORT: 'effort',
   MARKET: 'market',
-  CHANNELS: 'network',
 }
 
 // Deliberately collapses to 4 tiers over 5 letter grades — B and C both
@@ -40,47 +43,49 @@ const DIFFICULTY_LABEL: Record<Grade, string> = {
   F: 'very high difficulty',
 }
 
-async function getComponentDriverText(
-  candidateId: string,
-  component: MarketRealityComponent
-): Promise<string> {
-  if (component === 'RECORD') {
-    const analysis = await prisma.resumeAnalysis.findFirst({
-      where: { candidateId },
-      orderBy: { createdAt: 'desc' },
-      select: { dimensionFindings: true },
-    })
-    const findings = (analysis?.dimensionFindings ?? {}) as Record<string, Array<{ candidateFacingCopy: string; estimatedPointGain: number }>>
-    const allFindings = Object.values(findings).flat()
-    if (allFindings.length === 0) {
-      return 'No major issues found in the resume itself.'
-    }
-    const topFinding = allFindings.reduce((worst, f) => (f.estimatedPointGain > worst.estimatedPointGain ? f : worst))
-    return topFinding.candidateFacingCopy
+async function getResumeAnalysisDriverText(candidateId: string, component: 'EXPERIENCE' | 'RESUME'): Promise<string> {
+  const analysis = await prisma.resumeAnalysis.findFirst({
+    where: { candidateId },
+    orderBy: { createdAt: 'desc' },
+    select: { dimensionFindings: true },
+  })
+  const findings = (analysis?.dimensionFindings ?? {}) as Record<string, Array<{ candidateFacingCopy: string; estimatedPointGain: number }>>
+  // Only findings from dimensions that belong to this component — Your
+  // Experience must never surface a Resume-only finding (a mechanics typo)
+  // as if it were a career-level issue, and vice versa.
+  const relevantFindings = Object.entries(findings)
+    .filter(([dimensionKey]) => DIMENSION_COMPONENT[dimensionKey as keyof typeof DIMENSION_COMPONENT] === component)
+    .flatMap(([, findingsForDimension]) => findingsForDimension)
+
+  if (relevantFindings.length === 0) {
+    return component === 'EXPERIENCE' ? 'No major issues found in the career record itself.' : 'No major issues found in the resume document itself.'
+  }
+  const topFinding = relevantFindings.reduce((worst, f) => (f.estimatedPointGain > worst.estimatedPointGain ? f : worst))
+  return topFinding.candidateFacingCopy
+}
+
+async function getComponentDriverText(candidateId: string, component: MarketRealityComponent): Promise<string> {
+  if (component === 'EXPERIENCE' || component === 'RESUME') {
+    return getResumeAnalysisDriverText(candidateId, component)
   }
 
   const row = await prisma.marketRealityComponentScore.findUnique({
     where: { candidateId },
-    select: { evidenceDrivers: true, marketDrivers: true, channelsDrivers: true },
+    select: { evidenceDrivers: true, marketDrivers: true, effortDrivers: true },
   })
-  const fieldMap = { EVIDENCE: row?.evidenceDrivers, MARKET: row?.marketDrivers, CHANNELS: row?.channelsDrivers } as const
+  const fieldMap = { EVIDENCE: row?.evidenceDrivers, MARKET: row?.marketDrivers, EFFORT: row?.effortDrivers } as const
   const drivers = (fieldMap[component] as string[] | null) ?? []
-  return drivers[0] ?? `No data yet for ${COMPONENT_LABEL[component]}.`
+  if (drivers.length === 0) return `No data yet for ${COMPONENT_LABEL[component]}.`
+  // Market drivers are deliberately 2 sentences (cause + path, §3.5: "an F
+  // on Market must never read as a dead end") — join both rather than
+  // truncating to drivers[0], which would drop the path half and leave
+  // only the cause, reading exactly like the dead end the spec forbids.
+  return component === 'MARKET' ? drivers.join(' ') : drivers[0]
 }
 
 export async function buildMarketRealityHeadline(candidateId: string): Promise<MarketRealityHeadline | null> {
   const row = await prisma.marketRealityComponentScore.findUnique({ where: { candidateId } })
-  if (
-    !row ||
-    row.compositeScore === null ||
-    !row.grade ||
-    !row.drivingComponent ||
-    !row.strongestComponent ||
-    row.recordScore === null ||
-    row.evidenceScore === null ||
-    row.marketScore === null ||
-    row.channelsScore === null
-  ) {
+  if (!row || row.compositeScore === null || !row.grade || !row.drivingComponent || !row.strongestComponent) {
     return null
   }
 
@@ -88,13 +93,16 @@ export async function buildMarketRealityHeadline(candidateId: string): Promise<M
   const strongestComponent = row.strongestComponent as MarketRealityComponent
   const drivingComponent = row.drivingComponent as MarketRealityComponent
 
-  const scores: Record<MarketRealityComponent, number> = {
-    RECORD: row.recordScore,
-    EVIDENCE: row.evidenceScore,
-    MARKET: row.marketScore,
-    CHANNELS: row.channelsScore,
+  const scores: Partial<Record<MarketRealityComponent, number>> = {
+    EXPERIENCE: row.experienceScore ?? undefined,
+    RESUME: row.resumeScore ?? undefined,
+    EVIDENCE: row.evidenceScore ?? undefined,
+    EFFORT: row.effortScore ?? undefined,
+    MARKET: row.marketScore ?? undefined,
   }
-  const strongestGrade = scoreToGrade(scores[strongestComponent])
+  const strongestScore = scores[strongestComponent]
+  if (strongestScore === undefined) return null // strongestComponent should always be measured, but never render off a guess
+  const strongestGrade = scoreToGrade(strongestScore)
 
   const headline = `Market Reality: ${grade} — ${DIFFICULTY_LABEL[grade]}.`
   // Only claim "that part is working" when the strongest component is

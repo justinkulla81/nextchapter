@@ -1,9 +1,14 @@
-// Orchestrator for the Record component — Market Reality Grade 2.0 Phase 2.
-// Not yet wired into the live resume-upload flow (src/app/dashboard/resume/
-// actions.ts still calls the legacy analyzeResume) — that wiring, plus
-// browser verification against real uploads, happens once the composite
-// grade (Phase 4) and report (Phase 7) exist to consume this output.
-// Callable standalone today for the Phase 9 fixture harness.
+// Orchestrator for the Your Experience / Your Resume components — Market
+// Reality Grade 2.0 Phase 2, restructured per Master Build Script §3.1/§18:
+// what was one "Record" composite over 10 blended dimensions is now two
+// independent composites, each with its own weighted subtotal and its own
+// modifiers (extracurricular -> Experience; prestige + reconciliation ->
+// Resume). Not yet wired into the live resume-upload flow
+// (src/app/dashboard/resume/actions.ts still calls the legacy
+// analyzeResume) — that wiring, plus browser verification against real
+// uploads, happens once the 5-component composite grade (§3.6) and report
+// (§11) exist to consume this output. Callable standalone today for the
+// fixture harness (§16).
 
 import 'server-only'
 import { Prisma } from '@prisma/client'
@@ -11,19 +16,21 @@ import { prisma } from '@/lib/prisma'
 import { extractResumeAnalysisFacts } from './extract-facts'
 import { detectSeniorityBand } from './seniority-band'
 import { detectFunctionFamily } from './function-family'
-import { getDimensionWeights } from './weights'
+import { getExperienceDimensionWeights, getResumeDimensionWeights } from './weights'
 import { computeAllDimensions } from './dimensions'
 import { computeResumePrestige, computeReconciliation, computeExtracurricular } from './modifiers'
 import { computeFirstGlance } from './first-glance'
 import { detectReviewerQuestions } from './reviewer-questions'
 import { simulateAtsCompatibility } from './ats-matrix'
 import { selfCheckResumeAnalysis } from './self-check'
-import { scoreToResumeBand } from './types'
+import { scoreToExperienceBand, scoreToResumeBand } from './types'
 
 export interface ComputeResumeAnalysisResult {
   resumeAnalysisId: string
-  composite: number
-  band: string
+  experienceScore: number
+  experienceBand: string
+  resumeScore: number
+  resumeBand: string
 }
 
 export async function computeResumeAnalysis(resumeId: string): Promise<ComputeResumeAnalysisResult | null> {
@@ -39,7 +46,8 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
 
   const band = detectSeniorityBand(facts)
   const family = detectFunctionFamily(facts)
-  const weights = getDimensionWeights(band)
+  const experienceWeights = getExperienceDimensionWeights(band)
+  const resumeWeights = getResumeDimensionWeights(band)
 
   const { scores: dimensionScores, findings: dimensionFindings } = computeAllDimensions(facts, {
     band,
@@ -52,25 +60,34 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
   const reconciliation = computeReconciliation(facts)
   const extracurricular = computeExtracurricular(facts, band)
 
-  const weightedSubtotal = Object.entries(dimensionScores).reduce((sum, [key, score]) => {
-    return sum + (score * (weights[key as keyof typeof weights] ?? 0)) / 100
+  const experienceSubtotal = Object.entries(experienceWeights).reduce((sum, [key, weight]) => {
+    return sum + (dimensionScores[key as keyof typeof dimensionScores] * weight) / 100
   }, 0)
-  const composite = Math.max(
+  const experienceScore = Math.max(0, Math.min(100, Math.round(experienceSubtotal + extracurricular.bonus)))
+  const experienceBand = scoreToExperienceBand(experienceScore)
+
+  const resumeSubtotal = Object.entries(resumeWeights).reduce((sum, [key, weight]) => {
+    return sum + (dimensionScores[key as keyof typeof dimensionScores] * weight) / 100
+  }, 0)
+  const resumeScore = Math.max(
     0,
-    Math.min(100, Math.round(weightedSubtotal + prestige.resumeGradeBonus + reconciliation.penalty + extracurricular.bonus))
+    Math.min(100, Math.round(resumeSubtotal + prestige.resumeGradeBonus + reconciliation.penalty))
   )
-  const resumeBand = scoreToResumeBand(composite)
+  const resumeBand = scoreToResumeBand(resumeScore)
 
   const firstGlance = computeFirstGlance(facts, prestige.firstGlanceBonus)
 
   const check = selfCheckResumeAnalysis({
     dimensionScores,
-    weights,
+    experienceWeights,
+    resumeWeights,
+    extracurricularBonus: extracurricular.bonus,
     prestigeBonus: prestige.resumeGradeBonus,
     reconciliationPenalty: reconciliation.penalty,
-    extracurricularBonus: extracurricular.bonus,
-    composite,
-    band: resumeBand,
+    experienceScore,
+    experienceBand,
+    resumeScore,
+    resumeBand,
     firstGlanceScore: firstGlance.score,
   })
   if (!check.passed) {
@@ -95,8 +112,10 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
       prestigeBonus: prestige.resumeGradeBonus,
       reconciliationPenalty: reconciliation.penalty,
       extracurricularBonus: extracurricular.bonus,
-      composite,
-      band: resumeBand,
+      experienceScore,
+      experienceBand,
+      resumeScore,
+      resumeBand,
       firstGlanceScore: firstGlance.score,
       firstGlanceResult: firstGlance.result,
       firstGlanceTopFix: firstGlance.topFix,
@@ -128,5 +147,5 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
     },
   })
 
-  return { resumeAnalysisId: analysis.id, composite, band: resumeBand }
+  return { resumeAnalysisId: analysis.id, experienceScore, experienceBand, resumeScore, resumeBand }
 }

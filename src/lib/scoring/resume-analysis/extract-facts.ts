@@ -55,6 +55,12 @@ const roleSchema = z.object({
   quotaAttainmentPct: z.number().nullable(),
   geographyScope: z.string().nullable(), // "North America", "12 states", "global"
   reportingLine: z.string().nullable(), // "reports to CEO", "reports to VP Sales"
+  // Industry the EMPLOYER operates in, normalized to a short common noun
+  // ("software", "healthcare", "financial services") — not the candidate's
+  // function. Feeds industryCoherence (Your Experience component, Master
+  // Build Script §3.1): how tightly a career clusters around related
+  // industries. Null where the resume gives no basis to infer it.
+  industry: z.string().nullable(),
   bullets: z.array(bulletSchema).max(6),
 })
 
@@ -99,6 +105,8 @@ const STRUCTURAL_PROMPT = `You are extracting structured facts from a resume for
 For each role's bullets: classify each one as outcome-vs-activity (does it state a result, not just a duty?), whether it's specifically a from/to baseline pair ("grew revenue from $3.9B to $5.4B" — the strongest form), and whether it has any number at all.
 
 For scope numbers (budget, headcount, quota, geography, reporting line): extract ONLY what's explicitly stated per role. Do not infer scope from title alone — many companies use inflated titles, and the scoring system deliberately ignores title rank in favor of these numbers.
+
+For industry: name the employer's industry as a short common noun ("software", "healthcare", "financial services", "retail") based on the company name and any context given. Null only if there's genuinely no basis to guess (an unfamiliar company name with no other context).
 
 For emailNameMismatch: flag it as a question only — shared household inboxes, maiden/married names, anglicized first names, and nicknames all produce legitimate mismatches, so only flag when there's no plausible innocent explanation visible in the text.
 

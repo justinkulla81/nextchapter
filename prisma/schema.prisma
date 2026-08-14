@@ -2263,22 +2263,41 @@ model ResumeAnalysis {
   seniorityBand  String // "EARLY" | "MID" | "SENIOR" | "EXECUTIVE" — spec §5
   functionFamily String // "REVENUE" | "MARKETING" | "ENGINEERING" | "PRODUCT" | "FINANCE" | "OPERATIONS" | "PEOPLE" | "LEGAL" | "CLINICAL" | "GENERAL_MANAGEMENT" — spec §6
 
-  // Keyed by the 10 weighted dimensions (spec §3.4/§4): evidenceQuality,
-  // narrativePositioning, atsLegibility, scopeLevel, trajectory,
-  // mechanicsPresentation, tenurePattern, relevanceRecency, skillCurrency,
-  // contactability. Each 0-100. Findings carry the candidate-facing copy,
-  // fix, and estimated point gain per dimension (spec §4 Finding shape).
+  // Keyed by the 11 weighted dimensions (Master Build Script §3.1, spec
+  // §3.4/§4): quantification, narrativePositioning, atsLegibility,
+  // scopeLevel, trajectory, mechanicsPresentation, tenurePattern,
+  // relevanceRecency, industryCoherence, skillCurrency, contactability.
+  // Each 0-100. Findings carry the candidate-facing copy, fix, and
+  // estimated point gain per dimension (spec §4 Finding shape). Split
+  // across the two components below at read time via DIMENSION_COMPONENT
+  // (resume-analysis/types.ts) — the raw scores stay in one blob since
+  // every dimension is still computed the same way, just weighted into two
+  // separate composites instead of one.
   dimensionScores   Json
   dimensionFindings Json
 
   // Additive/penalty-only modifiers, kept out of dimensionScores so the
   // subtotal-vs-modifier split (spec §3.4) stays auditable at a glance.
-  prestigeBonus         Int @default(0) // 0-6, resume-grade scale (spec §4.13) — never surfaced in any candidate-facing copy
-  reconciliationPenalty Int @default(0) // -12-0 (spec §4.11)
-  extracurricularBonus  Int @default(0) // 0-3 (spec §4.12)
+  // Prestige and reconciliation apply to Resume only; extracurricular
+  // applies to Experience only (Master Build Script §3.1/§9).
+  prestigeBonus         Int @default(0) // 0-6, Resume scale (spec §4.13) — never surfaced in any candidate-facing copy
+  reconciliationPenalty Int @default(0) // -12-0, Resume (spec §4.11)
+  extracurricularBonus  Int @default(0) // 0-3, Experience (spec §4.12)
 
-  composite Int // 0-100, subtotal + modifiers, clamped
-  band      String // "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "D" | "F" — spec §3.1
+  // Your Experience (Master Build Script §3.1) — the career itself: scope,
+  // trajectory, tenure, relevance, industry coherence, plus the
+  // extracurricular/governance bonus. "Mostly fixed."
+  experienceScore Int // 0-100, subtotal + extracurricular bonus, clamped
+  experienceBand  String // "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "D" | "F"
+
+  // Your Resume (Master Build Script §3.1) — the document describing that
+  // career: ATS legibility, quantification, positioning, mechanics,
+  // contactability, skill currency, plus prestige bonus and reconciliation
+  // penalty. "Days" to fix — this was the sole "composite"/"band" before
+  // the Experience/Resume split; renamed rather than reused so a caller
+  // reading the schema can't miss that there are now two components.
+  resumeScore Int // 0-100, subtotal + prestige + reconciliation, clamped
+  resumeBand  String // "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "D" | "F"
 
   // First Glance (spec §2.2) — an internal diagnostic only, never rendered
   // as its own headline grade (there is exactly one headline: the Market
@@ -2287,7 +2306,7 @@ model ResumeAnalysis {
   // resume that reads well on careful read but buries its best number can
   // still show up as a weak First Glance, and that divergence is worth
   // surfacing in prose even though it never becomes a displayed number.
-  firstGlanceScore  Int? // 0-100, spec §3.5 weights — different inputs from the Record composite above
+  firstGlanceScore  Int? // 0-100, spec §3.5 weights — different inputs from the Resume composite above
   firstGlanceResult String? // "PASS" | "BORDERLINE" | "LIKELY_SKIP"
   firstGlanceTopFix String? @db.Text
 
@@ -2372,51 +2391,63 @@ model ReviewerQuestion {
 }
 
 // One row per candidate — the current, live Market Reality Grade and its
-// four components. Upserted on every recompute of any one component
-// (recompute cadence is per-component, not synchronized — see Voice/Intake
-// Spec §3.1): Record only on resume upload; Evidence when a reference or
-// assessment lands; Market weekly (smoothed against MarketDifficultySnapshot
-// history below); Channels on network/outreach activity. The composite and
+// five components (Master Build Script §3.1 — the former four-component
+// "Record/Evidence/Market/Channels" model split into five: Your Experience/
+// Your Resume/Your Evidence/Your Effort/Your Market). Upserted on every
+// recompute of any one component (recompute cadence is per-component, not
+// synchronized — see Voice/Intake Spec §3.1): Experience/Resume only on
+// resume upload; Evidence when a reference or assessment lands; Market
+// weekly (smoothed against MarketDifficultySnapshot history below); Effort
+// on outreach/application/interim-work/Sprint activity. The composite and
 // band are recomputed and re-stored whenever any one component changes, so
 // this row is always the single source of truth the report and dashboard
-// render from — never recomputed ad hoc in more than one place.
+// render from — never recomputed ad hoc in more than one place. A null
+// score means "not yet measured" (§3.6) — never zero, and never rendered
+// as a low grade; computeMarketRealityCompositeGrade reweights over
+// whichever scores are non-null.
 model MarketRealityComponentScore {
   id          String           @id @default(cuid())
   candidateId String           @unique
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  recordScore   Int? // 0-100 — from the latest ResumeAnalysis.composite
-  evidenceScore Int? // 0-100 — references + assessments
-  marketScore   Int? // 0-100 — role scarcity for the stated target, smoothed weekly
-  channelsScore Int? // 0-100 — network + outreach activity
+  experienceScore Int? // 0-100 — from the latest ResumeAnalysis.experienceScore
+  resumeScore     Int? // 0-100 — from the latest ResumeAnalysis.resumeScore
+  evidenceScore   Int? // 0-100 — references + assessments (Dossier completeness)
+  effortScore     Int? // 0-100 — outreach, applications, interim work, Sprint consistency
+  marketScore     Int? // 0-100 — role scarcity for the stated target, smoothed weekly. Never weighted into the composite directly — applied as a one-band cap (§3.5)
 
   // 1-3 short, factual driver sentences per component (ComponentComputation.
-  // drivers from src/lib/scoring/market-reality/{evidence,market,channels}.ts),
+  // drivers from src/lib/scoring/market-reality/{evidence,market,effort}.ts),
   // persisted in the same pass as the score they explain — Report Structure
   // Spec §6 rule 1: "Grade and prose render from one object in one pass.
-  // They cannot drift." Record has no stored driver text; its headline
-  // sentence is derived on read from the latest ResumeAnalysis row, which
-  // is itself already a fully-persisted single source of truth.
+  // They cannot drift." Experience/Resume have no stored driver text; their
+  // headline sentences are derived on read from the latest ResumeAnalysis
+  // row, which is itself already a fully-persisted single source of truth.
   evidenceDrivers Json?
   marketDrivers   Json?
-  channelsDrivers Json?
+  effortDrivers   Json?
 
   compositeScore Int?
   grade          String? // "A" | "B" | "C" | "D" | "F" — reuses the existing Grade scale (grade.ts)
 
   // Which component the headline names as the primary constraint, and
   // which it names as the strength — e.g. "Market Reality: C — moderate
-  // difficulty. Your record is an A; the constraint is that roles at your
-  // level are scarce and your network is unused." Both recomputed with the
-  // composite so the headline template never has to re-derive them at
-  // render time.
-  drivingComponent   String? // "RECORD" | "EVIDENCE" | "MARKET" | "CHANNELS"
+  // difficulty. Your experience is an A; the constraint is that roles at
+  // your level are scarce and your network is unused." Both recomputed
+  // with the composite so the headline template never has to re-derive
+  // them at render time. Market is never "strongest" (it's a cap, not a
+  // competitor among the weighted four) but CAN be "driving" — when it's
+  // the thing capping the grade, the headline must name it (§3.5/§3.7)
+  // rather than blaming whichever weighted component happens to score
+  // lowest.
+  drivingComponent   String? // "EXPERIENCE" | "RESUME" | "EVIDENCE" | "EFFORT" | "MARKET"
   strongestComponent String?
 
-  recordComputedAt   DateTime?
-  evidenceComputedAt DateTime?
-  marketComputedAt   DateTime?
-  channelsComputedAt DateTime?
+  experienceComputedAt DateTime?
+  resumeComputedAt     DateTime?
+  evidenceComputedAt   DateTime?
+  marketComputedAt     DateTime?
+  effortComputedAt     DateTime?
 
   updatedAt DateTime @updatedAt
 }
