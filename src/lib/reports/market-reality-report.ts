@@ -36,6 +36,10 @@ import {
   isVagueTargetRole,
   detectManagementGoalConflict,
 } from '@/lib/constants/onboarding'
+import { computeMarketRealityComponents } from '@/lib/scoring/market-reality/compute'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { buildMarketRealityHeadline } from '@/lib/scoring/market-reality/narrative'
+import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 
 export const actionPlanItemTypes = [
   'NETWORKING_LIST',
@@ -52,8 +56,17 @@ export const actionPlanItemTypes = [
 ] as const
 
 const marketRealityReportSchema = z.object({
-  strengths: z.array(z.object({ title: z.string(), detail: z.string() })).min(3).max(6),
+  // Cap tightened 6->5 (Report Structure Spec §3.2: "Three to five items") —
+  // this field is now also read directly as the new report's "What's
+  // working" section (market-reality/page.tsx), not just the old report body.
+  strengths: z.array(z.object({ title: z.string(), detail: z.string() })).min(3).max(5),
   weaknesses: z.array(z.object({ title: z.string(), detail: z.string() })).min(2).max(5),
+  // Report Structure Spec §3.3: "Show the rewrite, not just the
+  // instruction." `before` must be copied verbatim from one of the quoted
+  // weak bullets supplied in the prompt below — anything else is dropped at
+  // render time (market-reality-sections.ts's self-check against the real
+  // ResumeAnalysis finding). Empty array when no weak bullet was supplied.
+  resumeRewrites: z.array(z.object({ before: z.string(), after: z.string() })).max(3),
   hillToClimb: z.object({
     tone: z.enum(['very_positive', 'positive_with_work', 'significant_climb']),
     narrative: z.array(z.string()).min(2).max(5),
@@ -128,10 +141,14 @@ HARD REQUIREMENT — if "Started Search Sprint" below is "no", this week's effor
 
 HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," or any equivalent framing as one of the 7 action-plan day items. That's not a discrete task with a real link or a way to verify it — it's the platform's own weekly goal-setting mechanic, which already runs separately and already rewards itself. Mentioning it belongs only in the hill-to-climb narrative or the action-plan intro (see above), never as a checklist item a candidate would "mark done."
 
+HARD REQUIREMENT — Strengths (part 1) and the Action Plan (part 4) are ALSO rendered, unchanged, on a newer version of this report that leads with a different, newer grade (the Market Reality Grade — see "New Market Reality Grade" data below). Never state or imply the six-category Current Market Reality letter grade, or name any of its six categories (Target Fit, Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, Ownership & Reliability), inside Strengths or the Action Plan — ground those two sections only in the specific facts below (resume findings, references, network activity, market data), never in a letter grade that won't appear next to them. Weaknesses, Hill to Climb, and Gap Analysis are unaffected by this rule — the six-category grade and its categories remain fully in scope there.
+
+HARD REQUIREMENT — never say anything that ranks employers or schools against each other, never state or imply a probability of being hired, never imply that a gap, a short tenure, or a career break is a character issue, and never use consolation framing ("unfortunately," "sadly," or similar) — state the situation and the path forward instead.
+
 Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in the hill-to-climb narrative or the action plan intro): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work meaningfully improves their odds, and weekly effort is the lever entirely in their hands. When you introduce the action plan, briefly explain that following through on it is how they raise their Current Market Reality toward an A, and name what an A unlocks: we're ready to unabashedly support and market them as an excellent candidate, plus real perks as they build it up over time: ${TIER_UNLOCKS[5]} at Tier 5.
 
 Write:
-1. Strengths (3-6): specific, evidenced by their actual data below, not generic praise.
+1. Strengths (3-5): specific, evidenced by their actual data below, not generic praise. For a low-band candidate this section must still be short but never empty — find the real floor and name it (a real team size actually managed, a real process improvement, a real completed reference) rather than manufacturing praise or skipping the section.
 2. Weaknesses (2-5): an "accountability mirror," not a resume nitpick list — candidly name the ways this candidate could realistically fail or stall in a real search (self-report/reference contradictions, low job-search intensity, thin network activity, unrealistic target vs. actual experience, weak follow-through signals), evidenced by their actual data below. Be direct, not harsh. If "Target role" is flagged as vague/no clear direction below, combine that with their other motivation signals (job search intensity, tradeoff rankings, flexibility preferences) to name whether they seem to genuinely lack direction or just haven't written it down yet — don't treat vagueness alone as damning.
    - HARD REQUIREMENT: if "Management/IC preference vs. goals conflict" below is YES, name this tension as one of the weaknesses (or fold it into the gap analysis). Trust that they genuinely want to be an individual contributor — never suggest they secretly want to manage — but be direct that their team-management history and/or their stated target role point toward a more senior/managerial track, and they'll need to either retarget their search toward true IC-track roles (which may mean a different title or level than they wrote down) or consciously plan for the trade-off a more senior title actually requires (less hands-on work, more people management, even if that's not their preference).
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, straight talk is non-negotiable — do not soften or omit this: pivoting is genuinely harder than a lateral search. Name at least one concrete reason why in the weaknesses or hill-to-climb narrative — a longer realistic timeline, the extra work of translating past achievements into the target function/industry's language (on the resume, in interviews, in networking conversations), and a heavier dependence on warm introductions and networking since keyword-matched job boards won't surface an unconventional background. Never frame the pivot itself as a mistake or discourage it — only be honest about the work it requires.
@@ -160,6 +177,7 @@ Write:
      - HARD REQUIREMENT: if "Is this the candidate's first-ever report" is "yes", there is nothing to compare against — say so plainly and frame this as their baseline ("this is where you stand today"), never claim improvement or decline.
      - Otherwise, credit them SPECIFICALLY by name for any real new data they added since their last report (e.g. "two new completed references," "an updated resume," "your work-style assessment") — never a vague "you've been active." Connect it to what it actually did ONLY if the grade movement data below supports that connection (e.g. a category moving up, a category's confidence improving) — never invent a causal link the data doesn't support. If nothing new was added and nothing moved, say so plainly and honestly rather than manufacturing false credit — that's a real, useful signal too (nudge toward action, don't scold).
    - whatToDoMore: the single highest-leverage thing(s) they should do more of right now, grounded in "Currently open gaps" above and any category still graded low — concrete and specific, not generic advice.
+8. Resume rewrites (0-3): "Weak bullets to rewrite" below lists up to 3 real, verbatim-quoted bullets already flagged by the resume scoring engine as weak. For EACH one supplied, write a rewritten version that keeps every real fact (no invented numbers, no invented outcomes) but leads with the result and states it as a from/to change wherever the original implies one. Copy the "before" field VERBATIM, character-for-character, from the supplied quote — it's matched back to the original finding by exact text, so a paraphrased "before" will silently discard the rewrite. If no weak bullets are supplied below, return an empty array — never invent a bullet to rewrite.
 
 Candidate data:
 `
@@ -265,6 +283,43 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
       prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
       prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
     ])
+
+  // MRG §11 — refresh the new 5-component Market Reality Grade composite
+  // (MarketRealityComponentScore) in the same pass as everything else above,
+  // so report generation is the one designated "recompute moment" for both
+  // grading systems, and the new grade's headline is exactly as fresh as the
+  // dossier grade's own snapshot. Non-fatal: the old system's report must
+  // still generate even if a candidate has no resume/data for the new one
+  // yet (computeMarketRealityCompositeGrade already returns null in that
+  // case — see composite.ts).
+  let newGradeHeadline: Awaited<ReturnType<typeof buildMarketRealityHeadline>> = null
+  try {
+    await computeMarketRealityComponents(candidateId)
+    await computeMarketRealityCompositeGrade(candidateId)
+    newGradeHeadline = await buildMarketRealityHeadline(candidateId)
+  } catch (error) {
+    console.error('Failed to refresh Market Reality Grade composite for report generation:', error)
+  }
+
+  // Up to 3 real, verbatim-quoted weak bullets from the latest ResumeAnalysis
+  // (resume-analysis/compute.ts) — passed into part 8 of the prompt above so
+  // the model can write a real before/after rewrite (Report Structure Spec
+  // §3.3) instead of a generic instruction. Findings quote the offending
+  // text in quotes; only the highest-point-value quoted findings are used.
+  const latestResumeAnalysisFindings = await prisma.resumeAnalysis.findFirst({
+    where: { candidateId },
+    orderBy: { createdAt: 'desc' },
+    select: { dimensionFindings: true },
+  })
+  const weakBulletQuotes: string[] = latestResumeAnalysisFindings
+    ? Object.values(latestResumeAnalysisFindings.dimensionFindings as unknown as Record<DimensionKey, Finding[]>)
+        .flat()
+        .sort((a, b) => b.estimatedPointGain - a.estimatedPointGain)
+        .map((f) => f.candidateFacingCopy.match(/"([^"]+)"/)?.[1])
+        .filter((quote): quote is string => !!quote)
+        .filter((quote, i, arr) => arr.indexOf(quote) === i)
+        .slice(0, 3)
+    : []
 
   // Real, verified "what's new since last report" — every count here is a
   // genuine created/completed timestamp compared against the prior report's
@@ -392,6 +447,16 @@ Resume analysis: ${
       : 'no resume uploaded yet'
   }
 
+New Market Reality Grade (for grounding Strengths/Action Plan only — see the HARD REQUIREMENT above about never naming the six-category grade in those two sections instead): ${
+    newGradeHeadline
+      ? `${newGradeHeadline.headline} ${newGradeHeadline.strongestLine} ${newGradeHeadline.constraintLine}`
+      : 'not enough data yet to compute'
+  }
+
+Weak bullets to rewrite (for part 8 only — copy "before" verbatim from these): ${
+    weakBulletQuotes.length > 0 ? weakBulletQuotes.map((q) => `"${q}"`).join(' | ') : 'none supplied'
+  }
+
 Job-fit feedback: ${
     candidate.jobPostings
       .map((j) => `${j.url}: fit ${j.fitScore}/100 — ${j.fitFeedback}`)
@@ -500,6 +565,14 @@ New data added since the previous report (credit these specifically, by name, on
         applicationTrends,
       } as unknown as Prisma.InputJsonValue,
       executiveSummary: data.executiveSummary as unknown as Prisma.InputJsonValue,
+      // Self-check (spec §6 rule 7): only persist rewrites whose "before"
+      // matches one of the real quoted bullets actually supplied to the
+      // model — drops anything hallucinated or paraphrased rather than
+      // storing a pair that could show up next to the wrong (or no) real
+      // finding at render time. market-reality-sections.ts's getResumeFixes
+      // does the same match again at render time as a second, independent
+      // check against the live ResumeAnalysis row.
+      resumeRewrites: data.resumeRewrites.filter((r) => weakBulletQuotes.includes(r.before)) as unknown as Prisma.InputJsonValue,
     },
   })
 

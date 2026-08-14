@@ -2824,6 +2824,19 @@ model MarketRealityReport {
   // that case as a baseline rather than fabricating improvement.
   executiveSummary Json?
 
+  // Report Structure Spec §3.3: "Show the rewrite, not just the
+  // instruction." Up to 3 {before, after} bullet rewrites, generated in the
+  // same LLM call as everything else above (no added cost line — an
+  // extension of the existing call, not a new one) for the highest-point-
+  // value ResumeAnalysis.dimensionFindings that quote a real weak bullet
+  // verbatim. `before` is self-checked against the real quoted text at
+  // render time (market-reality/resume-fixes.ts) — a rewrite whose
+  // `before` doesn't match a real finding's quote is dropped rather than
+  // shown, per the "every generated number/claim is self-checked" rule
+  // (spec §6 rule 7). Null on reports generated before this field existed,
+  // and whenever no ResumeAnalysis row exists yet for this candidate.
+  resumeRewrites Json?
+
   emailSentAt DateTime?
   generatedAt DateTime  @default(now())
 
