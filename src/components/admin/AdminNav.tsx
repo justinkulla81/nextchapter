@@ -83,6 +83,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       title: 'Admin',
       links: [
         { href: '/support/admin/requests', label: 'Requests', badge: badgeFor('requests') },
+        { href: '/support/admin/issues', label: 'Resume Issue Analytics' },
         { href: '/support/admin/jobs', label: 'Jobs' },
         { href: '/support/admin/action-counts', label: 'Action Counts' },
         { href: '/support/admin/metrics', label: 'Site Metrics' },
