@@ -1041,23 +1041,48 @@ model CandidateProfile {
   subjectToHardGate     Boolean   @default(false)
 
   // Deferred signup (resume-first onboarding, account creation last)
-  email                        String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
-  resumeStepComplete           Boolean   @default(false)
-  registrationCompletedAt      DateTime? // set once the anonymous->permanent auth conversion completes
-  passwordSetAt                DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
-  duplicateEmailBlockedAt      DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
+  email              String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes
+  resumeStepComplete Boolean @default(false)
+
+  // Master Build Script §10 — the 4 pre-registration onboarding screens
+  // (confirm what we read / where you can work / where you are in the
+  // search / how you feel about reaching out), each a one-time completion
+  // marker following the same convention as every other *ConfirmedAt field
+  // in this model.
+  onboardingResumeConfirmedAt       DateTime?
+  onboardingLocationConfirmedAt     DateTime?
+  onboardingSearchStatusConfirmedAt DateTime?
+  onboardingComfortConfirmedAt      DateTime?
+  // "Just started" (§10 screen 3) — auto-fills applicationsBucket/
+  // interviewsBucket to zero and collapses them, per spec. Kept as its own
+  // boolean rather than inferred from the bucket values so the funnel
+  // diagnostic (§10) can short-circuit to "fresh" without parsing strings.
+  justStartedSearch                 Boolean   @default(false)
+  // New fields, deliberately NOT reusing the dashboard Search Strategy
+  // page's existing jobsAppliedBucket ("0-20"|"20-100"|"100+") /
+  // interviewsReceivedCount (Int) — those already have 7 live consumers
+  // (detail-orientedness scoring, weekly action verification, profile
+  // checklist) built against their exact current vocabulary/type, and the
+  // spec's own bucket wording ("None yet"/"Under 10"/"10-50"/"More than
+  // 50", "None yet"/"A few"/"Several"/"Late stages") doesn't map onto them
+  // cleanly. These are onboarding- and funnel-diagnostic-only.
+  applicationsBucket                String? // "none" | "under_10" | "10_50" | "50_plus"
+  interviewsBucket                  String? // "none" | "a_few" | "several" | "late_stages"
+  registrationCompletedAt           DateTime? // set once the anonymous->permanent auth conversion completes
+  passwordSetAt                     DateTime? // set once a password or Google identity is attached — registrationCompletedAt alone doesn't mean the account has a durable way back in
+  duplicateEmailBlockedAt           DateTime? // set instead of registrationCompletedAt when the now-confirmed email already belongs to another registered account — see findExistingRegisteredAccount()
   // Claims the "no report exists yet, go generate one" window in resolveLatestReport()
   // so two near-simultaneous /dashboard loads (or a registration load racing a later
   // load) can't both pass the check and each generate + email a duplicate report.
   // Treated as stale after REPORT_GENERATION_CLAIM_STALE_MS — see report-generation-lock.ts.
-  reportGenerationClaimedAt    DateTime?
-  lastReminderSentAt           DateTime?
-  reminderEmailCount           Int       @default(0)
-  reminderEmailsOptedOut       Boolean   @default(false)
+  reportGenerationClaimedAt         DateTime?
+  lastReminderSentAt                DateTime?
+  reminderEmailCount                Int       @default(0)
+  reminderEmailsOptedOut            Boolean   @default(false)
   // "You're A-grade, unlock the Recruiter Database" nudge — separate from
   // reminderEmailsOptedOut above (account-setup reminders), a different
   // email a candidate might want off independently.
-  recruiterUnlockNudgeOptedOut Boolean   @default(false)
+  recruiterUnlockNudgeOptedOut      Boolean   @default(false)
 
   // Relations
   workHistory                    WorkHistoryEntry[]

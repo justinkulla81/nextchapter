@@ -26,14 +26,14 @@ const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; de
   {
     situation: 'just_laid_off',
     icon: Briefcase,
-    label: 'I was just laid off',
+    label: 'I was laid off',
     description: 'Start your search with a plan, not a guessing game.',
   },
   {
     situation: 'reentering_workforce',
     icon: RefreshCw,
     label: "I'm re-entering the workforce",
-    description: 'Prove your value after a break, starting today.',
+    description: 'Close the gap with proof, not explanations.',
   },
 ]
 
