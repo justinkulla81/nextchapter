@@ -1,6 +1,6 @@
 import 'server-only'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 
 export interface WeeklyRecap {
@@ -24,7 +24,7 @@ export async function buildWeeklyRecap(candidateId: string): Promise<WeeklyRecap
   )
   if (completed.length === 0) return null
 
-  const pointsEarned = completed.reduce((sum, a) => sum + a.points, 0)
+  const pointsEarned = completed.reduce((sum, a) => sum + getEarnedPoints(a), 0)
   const completedTexts = [...new Set(completed.map((a) => a.text))].slice(0, 5)
 
   return {

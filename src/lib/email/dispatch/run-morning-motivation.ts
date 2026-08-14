@@ -6,7 +6,7 @@ import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendWeeklyGoalAssignedEmail } from '@/lib/email/send-weekly-goal-assigned'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import type { CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
 
@@ -70,7 +70,7 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
 
       const weekNumber = candidate._count.weeklySprints
       const priorActions = priorSprint.committedActions as unknown as CommittedAction[]
-      const lastWeekPoints = priorActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+      const lastWeekPoints = priorActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
       const lastWeekTarget = pointsNeededForA(weekNumber - 1)
       const thisWeekTarget = pointsNeededForA(weekNumber)
       const completedLastWeek = actionLabels(priorActions.filter((a) => a.completed))

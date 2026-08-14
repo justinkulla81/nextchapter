@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { isDossierComplete } from '@/lib/reports/dossier-sections'
@@ -110,7 +110,7 @@ function overDeliveredByWeek(sprints: { weekStartDate: Date; committedActions: u
   const ordered = [...sprints].sort((a, b) => a.weekStartDate.getTime() - b.weekStartDate.getTime())
   return ordered.map((sprint, i) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]
-    const achieved = actions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+    const achieved = actions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
     const target = pointsNeededForA(i + 1)
     return achieved > target
   })

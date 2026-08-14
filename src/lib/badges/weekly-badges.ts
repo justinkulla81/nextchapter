@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import { maybeCreateMilestonePost } from '@/lib/community/milestone-posts'
 
 // Weekly badges (Prompt 51) — reset every week, re-earned fresh each week.
@@ -80,7 +80,7 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
   const pointsTarget = pointsNeededForA(weekNumber)
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
 
-  const pointsAchieved = committedActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+  const pointsAchieved = committedActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
   const peerSupportActionsThisWeek = committedActions.filter(
     (a) => a.completed && a.actionType === 'ENGAGE_PEER_SUPPORT'
   ).length

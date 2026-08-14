@@ -558,6 +558,20 @@ export function getRecurringTargetCount(actionType: string | undefined): number 
   return RECURRING_ACTION_TARGET_COUNT[actionType] ?? null
 }
 
+// The weekly target count above is a goal marker for the progress badge
+// ("3 / 3 this week"), never a ceiling on points — every real completion
+// earns its full point value, uncapped, so a candidate who does 17
+// applications in a week earns credit for all 17, not just the first 3.
+// This is the one place that turns a committed-action row into the points
+// it's actually worth; every weekly point total in the app (dashboard
+// banner, Stats page, badges, emails) should sum through this, not re-add
+// `action.points` directly, so "how many points did this week earn" never
+// drifts into two different answers depending on which file computed it.
+export function getEarnedPoints(action: { points: number; completed: boolean; completionCount?: number }): number {
+  if (!action.completed) return 0
+  return action.points * (action.completionCount ?? 1)
+}
+
 // Action types whose "done" state is derived from real backing data instead
 // of the self-reported completed flag in the committed-actions JSON blob —
 // see reconcileVerifiedActions in action-verification.ts, which does the

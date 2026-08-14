@@ -4,7 +4,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { getMondayOfWeek, getCandidateWeekNumber, getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
+import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import { getWeeklyOutcomes } from '@/lib/weekly/outcomes'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
@@ -91,7 +91,7 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
   const topStrengths = latestNamedReasons.filter((r) => r.kind === 'strength').slice(0, 2)
 
   const committedActions = (sprint.committedActions as unknown as CommittedAction[]) ?? []
-  const pointsAchieved = committedActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+  const pointsAchieved = committedActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
   const pointsTarget = pointsNeededForA(weekNumber)
   const incompleteActions = committedActions.filter((a) => !a.completed).map((a) => a.text)
 

@@ -55,7 +55,7 @@ import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
 import { computeReferenceWeights } from '@/lib/references/collusion-check'
 import { getCurrentWeekSprint, getMondayOfWeek, getCandidateWeekNumber, type CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA, gradeForWeeklyPoints, engineForActionType } from '@/lib/weekly/action-effort'
+import { pointsNeededForA, gradeForWeeklyPoints, engineForActionType, getEarnedPoints } from '@/lib/weekly/action-effort'
 import {
   scoreToGrade,
   CATEGORY_ORDER,
@@ -584,9 +584,8 @@ export async function computeWeeklyEngines(
 
   const pointsByEngine: Record<WeeklyEngineKey, number> = { learning: 0, effort: 0, working: 0, connecting: 0 }
   for (const action of committedActions) {
-    if (!action.completed) continue
     const engine = engineForActionType(action.actionType)
-    pointsByEngine[engine] += action.points ?? 0
+    pointsByEngine[engine] += getEarnedPoints(action)
   }
 
   // Being Public/Semi-Public amplifies real networking effort already done
@@ -628,7 +627,7 @@ async function hadPriorWeekA(candidateId: string, weekNumber: number): Promise<b
   if (!priorSprint) return false
 
   const priorActions = priorSprint.committedActions as unknown as CommittedAction[]
-  const priorPoints = priorActions.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)
+  const priorPoints = priorActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
   const priorTarget = pointsNeededForA(weekNumber - 1)
 
   return gradeForWeeklyPoints(priorPoints, priorTarget) === 'A'
