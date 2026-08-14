@@ -8,6 +8,7 @@ import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
+import { LinkedInConnectCard } from '@/components/dashboard/marketing-plan/LinkedInConnectCard'
 import { AlternativeNarrativeTabs } from '@/components/dashboard/marketing-plan/AlternativeNarrativeTabs'
 import { ComfortSummary } from '@/components/dashboard/marketing-plan/ComfortSummary'
 import { CuratedVideoCard } from '@/components/dashboard/CuratedVideoCard'
@@ -144,6 +145,8 @@ export default async function MarketingPlanPage({
           </p>
         )}
       </div>
+
+      {linkedin.configured && <LinkedInConnectCard connected={linkedin.connected} />}
 
       <ComfortSummary
         publicDisclosureComfort={profile.publicDisclosureComfort}
