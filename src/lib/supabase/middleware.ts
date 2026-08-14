@@ -71,5 +71,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // Server Component layouts (e.g. src/app/dashboard/layout.tsx) don't
+  // receive the current pathname as a prop — forward it via a response
+  // header so the dashboard-wide hard gate can read it with headers().
+  supabaseResponse.headers.set('x-pathname', request.nextUrl.pathname)
+
   return supabaseResponse
 }

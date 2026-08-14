@@ -878,6 +878,13 @@ model CandidateProfile {
   linkedInConfirmedAt       DateTime? // set once candidate provides a URL or explicitly says they don't have one yet — mandatory first action-plan item
   networkingListSubmittedAt DateTime? // "25 people" networking assignment
   askedForHelpAt            DateTime?
+  // Set once, the first time a LinkedIn Connections.csv import actually
+  // parses real connections (see doImportConnectionsCsv) — the "LinkedIn
+  // connected" half of the dashboard-wide activation gate (see
+  // src/lib/dashboard/access-gate.ts). Deliberately not the same signal as
+  // networkingListSubmittedAt above, which requires reaching 25 total
+  // contacts — this only requires the act of uploading once.
+  linkedinConnectionsImportedAt DateTime?
 
   // Content-page unlock gates
   // Prompt 72 — replaced the old free-text "biggest financial pressure"

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -10,6 +11,8 @@ import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
+import { getHardGateStatus, isGmailConnected, isGateExemptPath } from '@/lib/dashboard/access-gate'
+import { HardGateBlockingScreen } from '@/components/dashboard/HardGateBlockingScreen'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -98,6 +101,22 @@ async function getBackchannelMatchesForBadge(profileId: string) {
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getDashboardData()
 
+  // Dashboard-wide hard gate (see access-gate.ts) — only ever applies to
+  // candidates created after this shipped (profile.subjectToHardGate) and
+  // only outside a small allowlist of routes (the gate's own required pages
+  // + account-level pages that must always stay reachable).
+  const pathname = (await headers()).get('x-pathname') ?? ''
+  let gateContent: React.ReactNode = null
+  if (profile.subjectToHardGate && !isGateExemptPath(pathname)) {
+    const gmailConnected = await isGmailConnected(profile.id)
+    const status = getHardGateStatus(profile, gmailConnected)
+    if (status === 'search_strategy_required' || status === 'activation_required') {
+      gateContent = (
+        <HardGateBlockingScreen stage={status} candidateId={profile.id} email={profile.email} />
+      )
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
@@ -121,7 +140,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           the body's own --background (a light gray-blue, see globals.css)
           shows through below wherever this element's content ends. */}
       <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
-        <div className="mx-auto max-w-4xl">{children}</div>
+        <div className="mx-auto max-w-4xl">{gateContent ?? children}</div>
       </main>
     </div>
   )

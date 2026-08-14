@@ -249,6 +249,15 @@ async function doImportConnectionsCsv(candidateId: string, file: File): Promise<
 
   await markNetworkingListSubmittedIfThresholdMet(candidateId)
 
+  // First-time-only activation signal for the dashboard-wide gate — see the
+  // field's own comment in schema.prisma. A raw update rather than a
+  // conditional select-then-write since this whole function only reaches
+  // here after successfully parsing a real CSV with contacts.length > 0.
+  await prisma.candidateProfile.updateMany({
+    where: { id: candidateId, linkedinConnectionsImportedAt: null },
+    data: { linkedinConnectionsImportedAt: new Date() },
+  })
+
   // Weekly Sprint credit only for genuinely new contacts — re-uploading the
   // same export (or one with no new names) fires zero credit, not a
   // re-award of the same one-time flag
