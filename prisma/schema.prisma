@@ -2293,10 +2293,34 @@ model ResumeAnalysis {
 
   atsParseResults   AtsParseResult[]
   reviewerQuestions ReviewerQuestion[]
+  prestigeAudit     PrestigeAudit?
 
   createdAt DateTime @default(now())
 
   @@index([candidateId, createdAt])
+}
+
+// Audit trail for the prestige bonus applied to a ResumeAnalysis — spec
+// §4.13: logged separately so disparate impact can be audited later, but
+// never joined into any candidate-facing query. This table is service-role
+// read only by convention — no application code may select it from a
+// request that renders to the candidate, even though Prisma doesn't enforce
+// that automatically. Reuses the same EliteInstitution/PrestigeEmployer/
+// HighDemandSignal admin-curated tables as the legacy six-category system's
+// pedigree-bonus.ts, via new matching logic in resume-analysis/prestige.ts
+// that rescales to this spec's 0-6/0-10 caps and applies recency decay
+// (which the legacy bonus does not).
+model PrestigeAudit {
+  id               String         @id @default(cuid())
+  resumeAnalysisId String         @unique
+  resumeAnalysis   ResumeAnalysis @relation(fields: [resumeAnalysisId], references: [id], onDelete: Cascade)
+
+  employerTierPoints    Int // pre-decay, pre-cap points from the matched PrestigeEmployer/scale-proxy
+  institutionTierPoints Int // pre-decay, pre-cap points from the matched EliteInstitution
+  recencyDecayApplied   Boolean
+  totalAwarded          Int // post-decay, post-cap — matches ResumeAnalysis.prestigeBonus at write time
+
+  createdAt DateTime @default(now())
 }
 
 // Per-parser-engine round-trip result for one ResumeAnalysis — a matrix,
