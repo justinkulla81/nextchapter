@@ -67,6 +67,10 @@
     {
       "path": "/api/cron/refresh-youtube-content",
       "schedule": "30 11 */2 * *"
+    },
+    {
+      "path": "/api/cron/population-snapshot",
+      "schedule": "15 0 * * 1"
     }
   ]
 }
