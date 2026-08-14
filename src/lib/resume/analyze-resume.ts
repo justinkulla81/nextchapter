@@ -67,6 +67,7 @@ export async function analyzeResume(resumeId: string): Promise<void> {
       isCurrent: entry.isCurrent,
       departureReason: entry.departureReason,
       engagementType: entry.engagementType,
+      teamSize: entry.teamSize,
     })),
     resume.candidate.educationHistory.map((entry) => ({
       startDate: entry.startDate,

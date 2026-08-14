@@ -29,6 +29,7 @@ export async function computeStructuralFlags(candidateId: string): Promise<void>
     isCurrent: entry.isCurrent,
     departureReason: entry.departureReason,
     engagementType: entry.engagementType,
+    teamSize: entry.teamSize,
   }))
   const educationRanges: EducationDateRange[] = education.map((entry) => ({
     startDate: entry.startDate,

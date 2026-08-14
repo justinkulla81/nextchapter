@@ -36,6 +36,7 @@ export async function detectNarrativeWeaknesses(candidateId: string): Promise<We
     isCurrent: entry.isCurrent,
     departureReason: entry.departureReason,
     engagementType: entry.engagementType,
+    teamSize: entry.teamSize,
   }))
   const educationRanges: EducationDateRange[] = education.map((entry) => ({
     startDate: entry.startDate,

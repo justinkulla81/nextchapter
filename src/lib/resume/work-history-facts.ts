@@ -35,6 +35,11 @@ export interface WorkHistoryEntryInput {
   isCurrent: boolean
   departureReason: string | null
   engagementType: EngagementType
+  // Scope proxy for detectCareerTrajectory below (Master Build Script §8
+  // bug 1) — the one numeric field WorkHistoryEntry actually persists per
+  // role. Optional: many entries won't have it, and the comparison falls
+  // back to title rank only when it's genuinely unavailable.
+  teamSize: number | null
 }
 
 export interface EducationDateRange {
@@ -154,25 +159,42 @@ export function computeWorkHistoryFacts(
   }
 }
 
-// Sorts roles chronologically and diffs consecutive inferred seniority
-// levels (reusing the same ordinal HIGHEST_LEVEL_OPTIONS.indexOf() pattern
-// as compute-match-score.ts's levelDistance). Any clear decrease anywhere
-// reads as a demotion signal even if later roles recover; otherwise any
-// clear increase reads as a promotion. Returns null (never a guessed
-// default) when there are fewer than two real roles to compare — mirrors
-// the "don't fabricate a pattern" convention used elsewhere in this app.
+// Sorts roles chronologically and diffs consecutive roles to find a
+// promotion/demotion pattern. Master Build Script §8 bug 1 ("EVP & GM
+// ($3.2B) -> President ($5.4B) reported as a step down"): title rank alone
+// is not a reliable comparator — many companies use inflated or
+// non-standard titles, and a naive ordinal list (IC < Manager < Director <
+// VP < C-Suite) can rank two senior titles in the wrong order relative to
+// each other. Where both consecutive roles state a real team size, that
+// number decides the comparison outright, even when it disagrees with the
+// inferred title rank — "trust the numbers." Title rank (the same ordinal
+// HIGHEST_LEVEL_OPTIONS.indexOf() pattern compute-match-score.ts's
+// levelDistance uses) is the fallback only when no scope data exists for
+// that specific pair. Any clear decrease anywhere reads as a demotion
+// signal even if later roles recover; otherwise any clear increase reads
+// as a promotion. Returns null (never a guessed default) when there are
+// fewer than two real roles to compare — mirrors the "don't fabricate a
+// pattern" convention used elsewhere in this app.
 export function detectCareerTrajectory(workHistory: WorkHistoryEntryInput[]): CareerTrajectory | null {
   const real = workHistory.filter((entry) => !isInternshipRole(entry))
   if (real.length < 2) return null
 
   const sorted = [...real].sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
   const levels = HIGHEST_LEVEL_OPTIONS as readonly string[]
-  const indices = sorted.map((entry) => levels.indexOf(inferLevelFromTitle(entry.roleTitle)))
 
   let hasIncrease = false
   let hasDecrease = false
-  for (let i = 1; i < indices.length; i++) {
-    const diff = indices[i] - indices[i - 1]
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1]
+    const cur = sorted[i]
+
+    if (prev.teamSize != null && cur.teamSize != null && prev.teamSize !== cur.teamSize) {
+      if (cur.teamSize > prev.teamSize) hasIncrease = true
+      else hasDecrease = true
+      continue
+    }
+
+    const diff = levels.indexOf(inferLevelFromTitle(cur.roleTitle)) - levels.indexOf(inferLevelFromTitle(prev.roleTitle))
     if (diff > 0) hasIncrease = true
     if (diff < 0) hasDecrease = true
   }
