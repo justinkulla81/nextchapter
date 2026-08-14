@@ -16,8 +16,7 @@ import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
 import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/lib/scoring/rewrite-actions'
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
-import { sendAdminResumeUploadedEmail } from '@/lib/email/send-admin-resume-uploaded'
+import { maybeNotifyAdminOfNewCandidate } from '@/lib/email/send-admin-new-candidate-account'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -86,12 +85,6 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
     },
   })
 
-  const adminEmail = getAccountActivityAdminEmail()
-  if (adminEmail) {
-    const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Unnamed'
-    sendAdminResumeUploadedEmail(adminEmail, profile.id, candidateName, file.name).catch(() => {})
-  }
-
   // Independent calls (analyzeResume writes Resume score/feedback fields,
   // extractProfileFieldsFromResume writes CandidateProfile fields — neither
   // reads the other's output) that used to run back-to-back, meaning
@@ -99,6 +92,11 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   // top of analyzeResume's slower Sonnet call for no reason.
   await Promise.all([analyzeResume(resume.id), extractProfileFieldsFromResume(resume.id)])
   captureServerEvent(profile.id, 'resume_analyzed')
+
+  // Extraction above is what typically first learns the candidate's real
+  // name/email — this is the main trigger point for the single admin
+  // new-candidate notification (no-ops until both are actually known).
+  maybeNotifyAdminOfNewCandidate(profile.id).catch(() => {})
 
   try {
     const analyzed = await prisma.resume.findUnique({

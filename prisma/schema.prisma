@@ -490,6 +490,14 @@ model CandidateProfile {
   // so it reflects signup origin, not most-recent activity.
   signupIp String?
 
+  // Gates the single admin "new candidate" notification email — set the
+  // first time firstName/lastName/email are all known (typically right
+  // after resume extraction, occasionally later via the create-account
+  // email fallback), never re-set. Replaces the old pair of premature
+  // emails that used to fire at profile-creation and resume-row-creation
+  // time, both before any identifying info existed.
+  adminNewCandidateEmailSentAt DateTime?
+
   loginEvents CandidateLoginEvent[]
 
   // Privacy & Visibility

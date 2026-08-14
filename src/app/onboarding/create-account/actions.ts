@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
+import { maybeNotifyAdminOfNewCandidate } from '@/lib/email/send-admin-new-candidate-account'
 
 // Fallback for when resume extraction couldn't find an email (no plain-text
 // email on the resume, empty extracted text, or the model just missed it) —
@@ -21,4 +22,8 @@ export async function setCandidateEmail(email: string) {
     where: { id: profile.id },
     data: { email },
   })
+
+  // Covers the case where extraction never found an email — this is the
+  // point that finally makes firstName/lastName/email all known.
+  maybeNotifyAdminOfNewCandidate(profile.id).catch(() => {})
 }
