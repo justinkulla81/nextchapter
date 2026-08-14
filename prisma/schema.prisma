@@ -1112,6 +1112,7 @@ model CandidateProfile {
   performanceAssessmentResponses PerformanceAssessmentResponse[]
   trackRecordResponse            TrackRecordResponse?
   whatINeedResponse              WhatINeedResponse?
+  resumeWalkthroughSession       ResumeWalkthroughSession?
   resumes                        Resume[]
   jobPostings                    JobPosting[]
   communityPosts                 CommunityPost[]
@@ -2457,7 +2458,57 @@ model ReviewerQuestion {
   resolvedAt           DateTime?
   createdAt            DateTime  @default(now())
 
+  // Guided Resume Walkthrough (Master Build Script §13.1) 3-way resolution —
+  // "CORRECTED" | "NOT_APPLICABLE" | "LEAVE_AS_IS". Distinct from the older
+  // free-text-only candidateExplanation path above (still used outside the
+  // walkthrough): CORRECTED means the candidate told us the detection itself
+  // was wrong and we wrote back a correction to the source WorkHistoryEntry/
+  // EducationEntry (see src/lib/walkthrough/reviewer-correction.ts) — the
+  // detection is gone for good. NOT_APPLICABLE is a permanent dismissal with
+  // no data change. LEAVE_AS_IS means the detection is real and the
+  // candidate chose not to act on it now; resolvedAt is still set (so this
+  // exact row isn't re-asked), but the walkthrough's review-summary screen
+  // lists LEAVE_AS_IS rows under "still open" rather than "fixed" or
+  // "dismissed" so the candidate isn't told something is settled when it
+  // isn't. Null for every row resolved via the older resolveReviewerDetection
+  // path, which predates this distinction.
+  resolutionType String?
+
   @@index([candidateId, resolvedAt])
+}
+
+// Autosave-and-resume state for the guided Resume Walkthrough (Master Build
+// Script §13.1) — one row per candidate, same one-JSON-blob-plus-pointer
+// idiom as Reference.draftAnswers/draftPage (src/app/ref/[token]/actions.ts
+// saveReferenceDraft), not a new mechanism. A dedicated model rather than
+// fields on the already-very-large CandidateProfile, since this state is
+// genuinely session-scoped (start over, resume, eventually re-run against a
+// new resume) rather than a durable profile fact.
+//
+// currentStep indexes into stepAnswers.screenPlan, a candidate-specific
+// ordered list of screens computed once (on first session creation) and
+// never recomputed in place — see src/lib/walkthrough/screen-plan.ts — so
+// the step pointer stays valid even as findings/detections get resolved
+// mid-walkthrough. stepAnswers also holds per-step progress (which
+// mechanical findings were marked fixed/skipped, in-progress guided-bullet
+// answers, which reviewer questions were resolved and how) — see
+// src/lib/walkthrough/types.ts for the exact shape. completedAt is set once,
+// the first time the candidate reaches the review-summary screen, and
+// cleared (along with currentStep/stepAnswers) only by an explicit
+// "start over" action, not by re-visiting the page.
+model ResumeWalkthroughSession {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  currentStep Int  @default(0)
+  stepAnswers Json @default("{}")
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@index([candidateId])
 }
 
 // One row per candidate — the current, live Market Reality Grade and its

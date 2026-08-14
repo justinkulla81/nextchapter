@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
+import { ResumeExportForm } from '@/components/dashboard/ResumeExportForm'
 import { ResumeFeedbackCard } from '@/components/dashboard/ResumeFeedbackCard'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
@@ -145,6 +149,25 @@ export default async function ResumePage({
           </Card>
         </div>
       )}
+
+      {latest && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6">
+            <div className="space-y-1">
+              <p className="font-medium text-foreground">Want us to walk you through fixing it?</p>
+              <p className="text-sm text-muted-foreground">
+                A guided, one-issue-at-a-time pass — about 18 minutes. Nothing changes until you approve it.
+              </p>
+            </div>
+            <Button nativeButton={false} render={<Link href="/dashboard/resume/walkthrough" />}>
+              Start guided walkthrough
+              <ArrowRight className="size-4" aria-hidden data-icon="inline-end" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <ResumeExportForm />
 
       <div className="space-y-3 rounded-lg border border-border p-4">
         <p className="text-sm font-medium text-foreground">What senior-level resume design looks like</p>

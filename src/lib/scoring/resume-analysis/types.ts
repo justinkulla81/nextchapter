@@ -184,3 +184,31 @@ export const REVIEWER_DETECTION_FOLLOWUP: Record<ReviewerDetectionType, string> 
   PORTFOLIO_CAREER: 'State that you’re seeking a full-time operating role',
   COMP_FIT_RISK: 'Add a line on why this level and this next chapter',
 }
+
+// Guided Resume Walkthrough (§13.1) — "every detection is challengeable
+// first," e.g. "We read a gap from March to December. Is that right?" One
+// template per detection type, filled from that row's own detectedContext.
+// Deliberately phrased as a question the candidate can say "no" to, never
+// as a stated defect — a wrong detection must never become a card the
+// candidate has to argue with.
+export const REVIEWER_DETECTION_CHALLENGE_COPY: Record<ReviewerDetectionType, (context: Record<string, unknown>) => string> = {
+  UNEXPLAINED_RECENT_GAP: (c) =>
+    `We read a gap of about ${c.gapMonths ?? 'a few'} months between ${c.before ?? 'one role'} and ${c.after ?? 'the next'}. Is that right?`,
+  UNEXPLAINED_CURRENT_GAP: (c) =>
+    `It looks like your most recent role, ${c.lastRole ?? 'your last role'}, has ended and nothing follows it yet. Is that right?`,
+  SHORT_TENURE_RECENT: (c) =>
+    `We read about ${c.months ?? 'a short number of'} months at ${c.role ?? 'this role'}${c.company ? ` at ${c.company}` : ''}. Is that right?`,
+  SHORT_TENURE_CLUSTER: (c) =>
+    `We read a recent run of short stints: ${Array.isArray(c.roles) ? c.roles.join(', ') : 'a few roles close together'}. Is that right?`,
+  SCOPE_DECREASE: (c) => `We read your scope narrowing from ${c.from ?? 'your prior role'} to ${c.to ?? 'this one'}. Is that right?`,
+  THIN_RECENT_ENTRY: (c) =>
+    `Your most recent role, ${c.role ?? 'this role'}${c.company ? ` at ${c.company}` : ''}, has very little detail on it right now. Is that right?`,
+  EXTENDED_TENURE_NO_CHANGE: (c) =>
+    `We read about ${c.years ?? 'several'} years in ${c.role ?? 'this role'} without a title change. Is that right?`,
+  TITLE_INFLATION: (c) =>
+    `We read the stated scope at ${c.role ?? 'this role'}${c.company ? ` at ${c.company}` : ''} as notably smaller than that title usually implies. Is that right?`,
+  OVERLAPPING_ROLES: (c) => `We read ${c.a ?? 'one role'} and ${c.b ?? 'another role'} as overlapping in time. Is that right?`,
+  CREDENTIAL_NO_INSTITUTION: (c) => `We don't see a granting institution listed for your ${c.degree ?? 'degree'}. Is that right?`,
+  PORTFOLIO_CAREER: (c) => `We read ${c.count ?? 'several'} concurrent board or advisory seats — a portfolio-style career. Is that right?`,
+  COMP_FIT_RISK: (c) => `We read your most recent scope at ${c.role ?? 'this role'} as well above what this target level typically pays. Is that right?`,
+}
