@@ -1064,6 +1064,7 @@ model CandidateProfile {
   educationHistory               EducationEntry[]
   references                     Reference[]
   referenceQuotes                ReferenceQuote[]
+  competencyScores               CompetencyScore[]
   claimedEmployerReferences      EmployerReferenceSubmission[]
   jobClickEvents                 JobClickEvent[]
   workSamples                    WorkSample[]
@@ -1689,6 +1690,43 @@ model ReferenceQuote {
   createdAt             DateTime  @default(now())
 
   @@index([candidateId, approvedByCandidateAt])
+}
+
+// The 5x3 competency grid — Master Build Script §4. Five competencies
+// (Leadership & Management, Skills & Execution, Communication &
+// Collaboration, Adaptability & Change Readiness, Ownership & Reliability —
+// same 5 keys as grade.ts's CategoryKey, minus targetFit) x three evidence
+// sources (reference, assessment, activity), each scored independently and
+// NEVER blended across sources — that's the entire point of the grid vs.
+// the live six-category blended grade in dossier-competencies.ts, which
+// this table is deliberately separate from and does not replace (both
+// systems stay, per the Master Build Script's explicit resolution: "the
+// live six-category grade and the new engine are different objects").
+// Deliberately no "resume" source/column (§4: "a resume therefore fills 0
+// of 15 cells — this is the intended state," since Your Experience/Your
+// Resume already score everything the resume says).
+model CompetencyScore {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  competency String // "leadership" | "skillsExecution" | "communication" | "adaptability" | "ownership" — CompetencyKey
+  source     String // "reference" | "assessment" | "activity" — CompetencySource
+
+  score    Int? // 0-100, null when unmeasured — never zero (§3.6/§5.2: unmeasured is a state, not a low score)
+  measured Boolean @default(false)
+
+  // Points at the source record this cell's score was computed from (a
+  // Reference id, a PerformanceAssessmentResponse id, etc.) — so a
+  // candidate-facing "what filled this in" link never has to re-derive it,
+  // and so a legacy/backfilled row (measured=false, no real attribution
+  // yet) is visibly distinct from a freshly-computed one.
+  evidenceRef String?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([candidateId, competency, source])
+  @@index([candidateId])
 }
 
 model WorkSample {
