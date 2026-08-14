@@ -72,7 +72,7 @@ export async function getUnifiedFollowUps(
       id: r.contactId,
       title: formatDisplayName(r.name),
       subtitle: r.company ? `Starred — ${r.company}` : 'Starred contact',
-      href: `/dashboard/network?contact=${r.contactId}#reach-out-cards`,
+      href: '/dashboard/network/contacts',
       date: r.lastOutreachAt,
     })),
     ...unansweredApplications.map((j) => ({

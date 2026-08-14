@@ -72,7 +72,7 @@ export function DashboardNetworkCard({
       ? gmailComposeHref(visiblePriorityContact.email, '')
       : visiblePriorityContact.linkedinUrl
         ? visiblePriorityContact.linkedinUrl
-        : `/dashboard/network?contact=${visiblePriorityContact.contactId}#reach-out-cards`
+        : '/dashboard/network/contacts'
     : null
 
   return (

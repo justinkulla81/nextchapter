@@ -16,7 +16,6 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { outreachCountToTier } from '@/lib/network/outreach-count-tier'
 import { computeOutreachRelationshipMix } from '@/lib/network/outreach-relationship-mix'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
-import { NetworkQuickActionsCard } from '@/components/dashboard/NetworkQuickActionsCard'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { AlumniNetworkCarousel } from '@/components/dashboard/AlumniNetworkCarousel'
@@ -73,7 +72,6 @@ type NetworkSearchParams = {
   gmailError?: string
   calendarConnected?: string
   calendarError?: string
-  contact?: string
 }
 
 const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
@@ -578,8 +576,6 @@ export default async function NetworkPage({
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <AlumniNetworkCarousel groups={alumniGroups} />
-
-      <NetworkQuickActionsCard contacts={contacts} initialContactId={params.contact} />
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
