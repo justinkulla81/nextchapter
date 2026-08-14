@@ -25,7 +25,7 @@ export function CommunityPostForm() {
   const [description, setDescription] = useState('')
 
   return (
-    <form action={formAction} className="space-y-3 rounded-lg border border-border p-4">
+    <form action={formAction} className="space-y-3">
       <input type="hidden" name="postType" value="UPDATE" />
 
       <div className="flex flex-wrap gap-2">

@@ -55,6 +55,7 @@ export function ContactDirectoryTable({
   reachedFilter,
   relFilter,
   ncFilter,
+  hasAnyContacts = true,
 }: {
   contacts: ContactRowData[]
   totalCount: number
@@ -69,6 +70,12 @@ export function ContactDirectoryTable({
   reachedFilter: 'all' | 'yes' | 'no'
   relFilter: 'all' | 'yes' | 'no'
   ncFilter: 'all' | 'yes' | 'no'
+  // The search bar and filter dropdowns are pointless noise when the
+  // candidate genuinely has zero contacts (distinct from zero matches for
+  // their current filter) — hidden in that case so the only thing on the
+  // page is the "No contacts yet" message. Defaults true so every other
+  // caller keeps today's behavior unchanged.
+  hasAnyContacts?: boolean
 }) {
   const router = useRouter()
   const [isNavPending, startNavTransition] = useTransition()
@@ -152,74 +159,76 @@ export function ContactDirectoryTable({
 
   return (
     <div className="space-y-3">
-      <div className={cn('flex flex-wrap items-center gap-3', isNavPending && 'cursor-wait')}>
-        <Input
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search by name, company, or email…"
-          className="max-w-sm"
-        />
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <input type="checkbox" checked={pin} onChange={(e) => navigate({ pin: e.target.checked, page: 1 })} />
-          Priority contacts on top
-        </label>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          Has Email?
-          <select
-            value={emailFilter}
-            onChange={(e) => navigate({ email: e.target.value as 'all' | 'has' | 'missing', page: 1 })}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
-          >
-            <option value="all">All</option>
-            <option value="has">Has email</option>
-            <option value="missing">No email</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          On NextChapter?
-          <select
-            value={ncFilter}
-            onChange={(e) => navigate({ nc: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
-          >
-            <option value="all">All</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          Reached out?
-          <select
-            value={reachedFilter}
-            onChange={(e) => navigate({ reached: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
-          >
-            <option value="all">All</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          Has relationship?
-          <select
-            value={relFilter}
-            onChange={(e) => navigate({ rel: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
-          >
-            <option value="all">All</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        {undo && (
-          <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-sm">
-            <span className="text-muted-foreground">Removed {undo.name}.</span>
-            <button type="button" onClick={handleUndo} className="font-medium text-primary underline underline-offset-4">
-              Undo
-            </button>
-          </div>
-        )}
-      </div>
+      {hasAnyContacts && (
+        <div className={cn('flex flex-wrap items-center gap-3', isNavPending && 'cursor-wait')}>
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search by name, company, or email…"
+            className="max-w-sm"
+          />
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <input type="checkbox" checked={pin} onChange={(e) => navigate({ pin: e.target.checked, page: 1 })} />
+            Priority contacts on top
+          </label>
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            Has Email?
+            <select
+              value={emailFilter}
+              onChange={(e) => navigate({ email: e.target.value as 'all' | 'has' | 'missing', page: 1 })}
+              className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+            >
+              <option value="all">All</option>
+              <option value="has">Has email</option>
+              <option value="missing">No email</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            On NextChapter?
+            <select
+              value={ncFilter}
+              onChange={(e) => navigate({ nc: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
+              className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+            >
+              <option value="all">All</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            Reached out?
+            <select
+              value={reachedFilter}
+              onChange={(e) => navigate({ reached: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
+              className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+            >
+              <option value="all">All</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            Has relationship?
+            <select
+              value={relFilter}
+              onChange={(e) => navigate({ rel: e.target.value as 'all' | 'yes' | 'no', page: 1 })}
+              className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground"
+            >
+              <option value="all">All</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+        </div>
+      )}
+      {undo && (
+        <div className="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-sm">
+          <span className="text-muted-foreground">Removed {undo.name}.</span>
+          <button type="button" onClick={handleUndo} className="font-medium text-primary underline underline-offset-4">
+            Undo
+          </button>
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full min-w-[720px] text-sm">

@@ -21,7 +21,7 @@ import {
   type CommittedAction,
 } from '@/lib/weekly/sprint'
 import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
-import { DashboardTopStrip } from '@/components/dashboard/DashboardTopStrip'
+import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
@@ -207,14 +207,18 @@ export default async function DashboardPage() {
 
       <PageHeaderBoxes pageKey="dashboard" candidateId={profile.id} />
 
-      <DashboardTopStrip
-        grade={grade}
-        searchExecutionAvailable={searchExecutionAvailable}
-        currentStreak={checkInSummary.streak}
-        weekNumber={weekNumber}
-        dayNumber={dayNumber}
-        suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
-      />
+      <Suspense fallback={<DashboardTopStripSkeleton />}>
+        <DashboardTopStrip
+          candidateId={profile.id}
+          grade={grade}
+          searchExecutionAvailable={searchExecutionAvailable}
+          currentStreak={checkInSummary.streak}
+          weekNumber={weekNumber}
+          dayNumber={dayNumber}
+          suppressUrgency={isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)}
+          badgesLastSeenCount={profile.badgesLastSeenCount}
+        />
+      </Suspense>
 
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />

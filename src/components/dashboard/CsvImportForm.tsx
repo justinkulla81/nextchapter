@@ -36,7 +36,7 @@ export function CsvImportForm() {
         disabled={pending}
         onChange={(e) => setFileChosen(!!e.target.files?.length)}
         className={cn(
-          'file:mr-4 file:h-9 file:px-4',
+          'h-auto py-2 file:mr-4 file:h-9 file:px-4',
           pending && 'file:cursor-progress',
           !fileChosen &&
             'file:bg-success file:text-white hover:file:bg-success-hover active:file:bg-success-hover active:file:text-white'

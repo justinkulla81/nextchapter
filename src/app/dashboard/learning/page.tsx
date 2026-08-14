@@ -19,8 +19,9 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { badgeCountToTier } from '@/lib/learning/badge-count-tier'
 import { computeBadgeTypeMix } from '@/lib/learning/badge-type-mix'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
+import { SkillsInventoryGateCard } from '@/components/dashboard/learning/SkillsInventoryGateCard'
 
-export const metadata: Metadata = { title: 'Learning & Training' }
+export const metadata: Metadata = { title: 'Learn New Skills' }
 
 
 // Modest by design — a plain count-by-type line, not a full trends
@@ -93,7 +94,8 @@ export default async function LearningPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Learning &amp; Training</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Learn New Skills</h1>
+        {!profile.skillsAssessmentCompletedAt && <SkillsInventoryGateCard />}
         <PageHeaderBoxes
           pageKey="learning"
           candidateId={profile.id}

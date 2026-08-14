@@ -18,7 +18,7 @@ export function CommunityChips({
   if (communities.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3">
+    <div className="flex flex-wrap items-center gap-2">
       <Link
         href="/dashboard/community"
         className={cn(

@@ -740,28 +740,42 @@ async function CommunityTab({
         </div>
       )}
 
-      <CommunityPostForm />
-
-      <CommunityGroupStrip
-        groups={groups}
-        otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}}
-      />
-
-      <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
-
-      {posts.length === 0 && feed.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nothing to show yet — check back soon.</p>
-      ) : (
-        <div className="divide-y divide-border rounded-lg border border-border">
-          {mergeCommunityStream(posts, feed).map((streamItem) => (
-            <CommunityStreamItem
-              key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id}
-              item={streamItem}
-              candidateId={candidateId}
-            />
-          ))}
+      <div className="overflow-hidden rounded-lg border border-border">
+        <div className="border-b border-border bg-brand/5 px-4 py-3">
+          <p className="text-sm font-semibold text-foreground">Community Feed</p>
+          <p className="text-xs text-muted-foreground">
+            Post an update below, or browse what everyone else is sharing.
+          </p>
         </div>
-      )}
+
+        <div className="border-b border-border p-4">
+          <CommunityPostForm />
+        </div>
+
+        {(groups.length > 0 || communities.length > 0) && (
+          <div className="space-y-2 border-b border-border bg-off-white/60 p-3">
+            <CommunityGroupStrip
+              groups={groups}
+              otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}}
+            />
+            <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
+          </div>
+        )}
+
+        {posts.length === 0 && feed.length === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">Nothing to show yet — check back soon.</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {mergeCommunityStream(posts, feed).map((streamItem) => (
+              <CommunityStreamItem
+                key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id}
+                item={streamItem}
+                candidateId={candidateId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -109,7 +109,7 @@ export default async function ContactDirectoryPage({
   else if (sortKey === 'date') orderBy.push({ connectedAt: dir }, { createdAt: dir })
   else orderBy.push({ [sortKey]: dir })
 
-  const [totalCount, removedCount, rawContacts, starredCount, suggestions] = await Promise.all([
+  const [totalCount, removedCount, rawContacts, starredCount, suggestions, hasAnyContacts] = await Promise.all([
     prisma.supportNetworkContact.count({ where }),
     prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: { not: null } } }),
     prisma.supportNetworkContact.findMany({
@@ -121,6 +121,11 @@ export default async function ContactDirectoryPage({
     }),
     prisma.supportNetworkContact.count({ where: { candidateId: profile.id, priorityPointsAwardedAt: { not: null } } }),
     getSuggestedContactsToAdd(profile.id),
+    // Unfiltered — distinct from totalCount (which reflects the current
+    // search/filter) so the search bar and filter row can hide entirely
+    // when the candidate genuinely has zero contacts, instead of just
+    // zero matches for their current filter.
+    prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: null } }).then((c) => c > 0),
   ])
   // Only looked up for the ~50 contacts on the current page, not the whole
   // list — this used to run against all 27,000+ emails at once.
@@ -136,6 +141,78 @@ export default async function ContactDirectoryPage({
 
   const networkScriptsGuide = GUIDES.find((g) => g.slug === 'network-scripts')
 
+  // Deep-linked from the "Build Your Networking List" button on the Network
+  // page (?buildList=1#import) — opens straight to the import form instead
+  // of landing on a collapsed accordion item. Also defaults open when the
+  // candidate has zero contacts, since it's the only actionable thing to
+  // do at that point (see hasAnyContacts below).
+  const buildListSection = (
+    <Accordion defaultValue={sp.buildList || !hasAnyContacts ? ['build-list'] : []}>
+      <AccordionItem value="build-list">
+        <AccordionTrigger>Build your list from LinkedIn</AccordionTrigger>
+        <AccordionContent>
+          <div className="space-y-4">
+            <div id="import" className="space-y-3 rounded-lg border border-border p-4">
+              <h3 className="text-sm font-medium text-foreground">Import your LinkedIn connections</h3>
+              <CsvImportForm />
+              <p className="text-xs text-muted-foreground">
+                What happens: safe to re-upload anytime. New people are added, and any blank
+                fields on people already on your list get filled in. Anyone you&apos;ve removed
+                stays removed.
+              </p>
+            </div>
+
+            <details className="group">
+              <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">
+                Need to export your connections first? See the step-by-step instructions.
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+              </summary>
+              {/* Steps 1-2 are one workflow: export → clean up → (import above). The
+                  connecting line + numbered circles below are the only thing that
+                  changed visually from two separate cards — same components, wrapped
+                  in a positioned container so the "why" captions and connector read
+                  as one continuous task. */}
+              <div className="relative mt-4 space-y-6 border-l-2 border-border pl-6">
+                <div className="relative">
+                  <span className="absolute -left-[1.85rem] flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
+                    1
+                  </span>
+                  <div className="space-y-2 rounded-lg border border-border p-4">
+                    <h3 className="text-sm font-medium text-foreground">Export your LinkedIn connections</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Settings &amp; Privacy → Data Privacy → Get a copy of your data → Connections →
+                      Request archive. LinkedIn emails you a download link within 10-24 minutes.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Why: this pulls in everyone you&apos;re connected to at once, instead of adding
+                      people one at a time.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <span className="absolute -left-[1.85rem] flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
+                    2
+                  </span>
+                  <CopyableTemplateCard
+                    title="Clean it up with AI (optional but worth it)"
+                    description="Paste your exported CSV into ChatGPT or Claude with this prompt to get it cleaned up and prioritized before you import it above."
+                    template={NETWORK_CSV_AI_PROMPT_TEMPLATE}
+                    templateType="csv_cleanup_prompt"
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Why: your export includes everyone you&apos;ve ever connected with — this step
+                    surfaces the people actually worth reaching out to first.
+                  </p>
+                </div>
+              </div>
+            </details>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  )
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -143,13 +220,19 @@ export default async function ContactDirectoryPage({
         <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
       </div>
 
-      {starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
+      {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
         <p className="rounded-lg border border-brand/30 bg-brand/5 p-3 text-sm text-foreground">
           {`Star at least ${PRIORITY_CONTACT_TARGET_COUNT} people below as priority contacts to earn 5 points each — you've starred ${starredCount} of ${PRIORITY_CONTACT_TARGET_COUNT} so far.`}
         </p>
       )}
 
       <SuggestedContactsCard suggestions={suggestions} />
+
+      {/* With zero contacts, the import flow is the only thing worth doing
+          here — shown above the empty table (and expanded by default)
+          instead of buried below it. Once contacts exist, it reverts to
+          sitting below the table, collapsed unless deep-linked. */}
+      {!hasAnyContacts && buildListSection}
 
       <ContactDirectoryTable
         contacts={contacts}
@@ -165,75 +248,12 @@ export default async function ContactDirectoryPage({
         reachedFilter={reachedFilter}
         relFilter={relFilter}
         ncFilter={ncFilter}
+        hasAnyContacts={hasAnyContacts}
       />
 
-      {/* Deep-linked from the "Build Your Networking List" button on the
-          Network page (?buildList=1#import) — opens straight to the import
-          form instead of landing on a collapsed accordion item. */}
-      <Accordion defaultValue={sp.buildList ? ['build-list'] : []}>
-        <AccordionItem value="build-list">
-          <AccordionTrigger>Build your list from LinkedIn</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4">
-              <div id="import" className="space-y-3 rounded-lg border border-border p-4">
-                <h3 className="text-sm font-medium text-foreground">Import your LinkedIn connections</h3>
-                <CsvImportForm />
-                <p className="text-xs text-muted-foreground">
-                  What happens: safe to re-upload anytime. New people are added, and any blank
-                  fields on people already on your list get filled in. Anyone you&apos;ve removed
-                  stays removed.
-                </p>
-              </div>
+      {hasAnyContacts && buildListSection}
 
-              <details className="group">
-                <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">
-                  Need to export your connections first? See the step-by-step instructions.
-                  <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                </summary>
-                {/* Steps 1-2 are one workflow: export → clean up → (import above). The
-                    connecting line + numbered circles below are the only thing that
-                    changed visually from two separate cards — same components, wrapped
-                    in a positioned container so the "why" captions and connector read
-                    as one continuous task. */}
-                <div className="relative mt-4 space-y-6 border-l-2 border-border pl-6">
-                  <div className="relative">
-                    <span className="absolute -left-[1.85rem] flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
-                      1
-                    </span>
-                    <div className="space-y-2 rounded-lg border border-border p-4">
-                      <h3 className="text-sm font-medium text-foreground">Export your LinkedIn connections</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Settings &amp; Privacy → Data Privacy → Get a copy of your data → Connections →
-                        Request archive. LinkedIn emails you a download link within 10-24 minutes.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Why: this pulls in everyone you&apos;re connected to at once, instead of adding
-                        people one at a time.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <span className="absolute -left-[1.85rem] flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
-                      2
-                    </span>
-                    <CopyableTemplateCard
-                      title="Clean it up with AI (optional but worth it)"
-                      description="Paste your exported CSV into ChatGPT or Claude with this prompt to get it cleaned up and prioritized before you import it above."
-                      template={NETWORK_CSV_AI_PROMPT_TEMPLATE}
-                      templateType="csv_cleanup_prompt"
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Why: your export includes everyone you&apos;ve ever connected with — this step
-                      surfaces the people actually worth reaching out to first.
-                    </p>
-                  </div>
-                </div>
-              </details>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
+      <Accordion>
         <AccordionItem value="scripts">
           <AccordionTrigger>Scripts &amp; templates</AccordionTrigger>
           <AccordionContent>
