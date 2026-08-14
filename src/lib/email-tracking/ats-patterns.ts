@@ -334,13 +334,47 @@ export function guessTitleFromConfirmationSubject(subject: string): string | nul
   return null
 }
 
+// Several of the CONFIRMATION_TITLE_PATTERNS above capture to end-of-string
+// with no cutoff ("thank you for applying - X", "Indeed Application: X") —
+// safe when the subject really does end with the title, but a job board's
+// own subject line sometimes tacks a comp figure onto the title itself
+// ("Head of Community - Venture Studio - $250,000-$300,000 + Equity"),
+// which then rides along into what we store as the title. A real job title
+// never contains a dollar sign, so cut there and drop whatever dangling
+// "+ Equity"/dash is left over. Separately, a handful of misclassified
+// subjects are marketing copy, not a real title at all ("Zoom visiting our
+// LinkedIn Best") — reject anything containing that kind of phrasing rather
+// than store it as if it were a role name.
+const MARKETING_NOISE_IN_TITLE = [/\bvisiting\b/i, /\bcheck out\b/i, /\bsee who'?s hiring\b/i, /\blinkedin best\b/i]
+
+function sanitizeExtractedTitle(rawTitle: string): string | null {
+  const title = rawTitle
+    .split('$')[0]
+    .replace(/\s*\+\s*equity\s*$/i, '')
+    .replace(/\s*[-–—]\s*$/, '')
+    .trim()
+  if (!title) return null
+  if (MARKETING_NOISE_IN_TITLE.some((p) => p.test(title))) return null
+  return title
+}
+
 export function guessTitleFromConfirmationText(subject: string, bodyPreview: string): string | null {
   const fromSubject = guessTitleFromConfirmationSubject(subject)
-  if (fromSubject) return fromSubject
+  if (fromSubject) {
+    const sanitized = sanitizeExtractedTitle(fromSubject)
+    if (sanitized) return sanitized
+  }
   const linkedInMatch = bodyPreview.match(LINKEDIN_SENT_TO_TITLE_IN_BODY)
-  if (linkedInMatch) return linkedInMatch[1].trim()
+  if (linkedInMatch) {
+    const sanitized = sanitizeExtractedTitle(linkedInMatch[1].trim())
+    if (sanitized) return sanitized
+  }
   const workableMatch = bodyPreview.match(WORKABLE_APPLICATION_FOR_TITLE_IN_BODY)
-  return workableMatch ? workableMatch[1].trim() : null
+  if (workableMatch) {
+    const sanitized = sanitizeExtractedTitle(workableMatch[1].trim())
+    if (sanitized) return sanitized
+  }
+  return null
 }
 
 // Real recruiter outreach — especially from executive-search firms — very
