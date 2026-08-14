@@ -1,4 +1,5 @@
 import 'server-only'
+import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { searchAdzunaJobListings, type AdzunaListing } from '@/lib/market/adzuna'
 import { searchAtsJobs } from '@/lib/market/ats-jobs'
@@ -7,6 +8,8 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { isWeakFit } from '@/lib/jobs/fit-bucket-types'
 
 const SURFACE_LIMIT = 10
 // Same gate for both "is there enough signal to write a real pattern" and
@@ -31,6 +34,17 @@ function buildSearchQuery(candidate: { targetRoleType: string | null; primaryFun
 // risk of folding them into `what` directly.
 function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; targetIndustries: string[] }): string[] {
   return [...candidate.resumeKeywords.slice(0, 3), ...candidate.targetIndustries.slice(0, 1)]
+}
+
+// searchAtsJobs already gates on function match before returning; JSearch
+// and Adzuna are broad-keyword text search with no such filter, so their
+// results need the same real fit check applied here — otherwise a query
+// built from a vague/short target role returns cross-function noise
+// (accounting, legal, marketing jobs for an ops candidate) straight into
+// SurfacedJob. Same computeSurfacedJobFitBucket used to badge the Discover
+// feed and admin candidate view — never a second, divergent fit notion.
+function filterWeakFits(candidate: CandidateProfile, jobs: AdzunaListing[]): AdzunaListing[] {
+  return jobs.filter((job) => !isWeakFit(computeSurfacedJobFitBucket(candidate, job)))
 }
 
 // Pulls fresh listings and stores any not already surfaced to this
@@ -58,7 +72,7 @@ export async function surfaceNewJobs(candidateId: string, limit: number = SURFAC
       candidate.currentCity,
       limit - listings.length
     )
-    listings = [...listings, ...jsearchListings]
+    listings = [...listings, ...filterWeakFits(candidate, jsearchListings)]
   }
 
   if (listings.length < limit) {
@@ -69,7 +83,7 @@ export async function surfaceNewJobs(candidateId: string, limit: number = SURFAC
       limit - listings.length,
       { whatOr: whatOr.length > 0 ? whatOr : undefined, salaryMin: candidate.targetCompMin ?? undefined }
     )
-    listings = [...listings, ...adzunaListings]
+    listings = [...listings, ...filterWeakFits(candidate, adzunaListings)]
   }
 
   if (listings.length === 0) return 0
