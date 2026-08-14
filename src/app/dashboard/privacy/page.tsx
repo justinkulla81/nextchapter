@@ -46,7 +46,7 @@ export default async function PrivacyPage() {
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">
-        <h2 className="text-lg font-semibold">Notifications</h2>
+        <h2 className="text-lg font-semibold">Email options</h2>
         <p className="text-sm text-muted-foreground">
           How often you hear from us. Your Hireability Report and any reminder emails always send
           regardless of this setting.

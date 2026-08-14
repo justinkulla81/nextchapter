@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { ensureUser } from '@/lib/auth/ensure-user'
-import { Prisma, NotificationTier } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import {
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   SITUATION_TO_JOB_STATUS,
@@ -95,47 +95,25 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   redirect('/onboarding/resume')
 }
 
-// The contract screen is the last question before the score reveal — both
-// the commitment choice and the notification-preference question below it
-// submit together in one form, distinguished by which button was clicked
-// ("intent"). "Not right now" still records that the candidate saw the
-// contract (so we know they've been through this screen), just without
-// accepting it — they continue at a lower assumed intensity rather than
-// being blocked.
+// The contract screen is the last question before the score reveal. "Not
+// right now" still records that the candidate saw the contract (so we know
+// they've been through this screen), just without accepting it — they
+// continue at a lower assumed intensity rather than being blocked. The
+// notification-preference question that used to live on this screen now
+// lives only on the Privacy page (NotificationTierSelector) — candidates
+// keep the schema default (FULL) until they choose otherwise there.
 export async function submitContract(_prevState: FormState, formData: FormData): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
   const intent = formData.get('intent') === 'accept' ? 'accept' : 'decline'
-  const notificationTier = formData.get('notificationTier') as NotificationTier | null
-  if (!notificationTier || !Object.values(NotificationTier).includes(notificationTier)) {
-    return { error: 'Choose how much you want to be nudged before continuing.' }
-  }
-
-  const smsConsent = formData.get('smsConsent') === 'on'
-  const smsPhone = (formData.get('smsPhone') as string | null)?.trim() || null
-
-  if (notificationTier === 'FULL' && smsConsent && !smsPhone) {
-    return { error: 'Enter a mobile number to opt in to texts, or leave that box unchecked.' }
-  }
 
   await prisma.candidateProfile.update({
     where: { id: candidateId },
     data: {
       contractAccepted: intent === 'accept',
       contractAcceptedAt: new Date(),
-      notificationTier,
-      // SMS consent is only ever offered when FULL is selected — if someone
-      // switches down to a lower tier after checking the box, don't persist
-      // a stale opt-in tied to a preference they no longer hold.
-      smsPhone: notificationTier === 'FULL' && smsConsent ? smsPhone : null,
-      smsConsentedAt: notificationTier === 'FULL' && smsConsent ? new Date() : null,
     },
   })
-
-  captureServerEvent(candidateId, 'onboarding_notification_preference_set', { tier: notificationTier })
-  if (notificationTier === 'FULL' && smsConsent) {
-    captureServerEvent(candidateId, 'sms_consent_opted_in')
-  }
 
   revalidatePath('/onboarding', 'layout')
   redirect('/onboarding/score')

@@ -1,38 +1,9 @@
 import type {
   CurrentJobStatus,
   GapDurationBucket,
-  NotificationTier,
   PublicDisclosureComfort,
   ReferralRecency,
 } from '@prisma/client'
-
-// First-person commitment framing for the onboarding contract screen — the
-// candidate's own words for how much they want to be nudged, distinct from
-// the neutral, second-person tier descriptions on the Privacy settings page
-// (see NOTIFICATION_TIERS in lib/constants/notifications.ts). Same
-// underlying NotificationTier values, different voice for a different
-// moment.
-export const ACCOUNTABILITY_LEVEL_OPTIONS: {
-  value: NotificationTier
-  label: string
-  subtext: string
-}[] = [
-  {
-    value: 'MINIMAL',
-    label: "I've got this — just the essentials.",
-    subtext: 'No recurring nudges. Still get your Hireability Report and anything time-sensitive.',
-  },
-  {
-    value: 'ESSENTIALS',
-    label: "Keep me on track, but don't overload me.",
-    subtext: 'A nudge twice a week (Monday and Thursday) instead of daily, plus weekly updates.',
-  },
-  {
-    value: 'FULL',
-    label: 'I know I need to be held accountable — hold me to the highest standard.',
-    subtext: 'The most support: a nudge every day, a Friday check-in, and weekly updates.',
-  },
-]
 
 export const CURRENT_JOB_STATUS_LABELS: Record<CurrentJobStatus, string> = {
   EMPLOYED_CONSIDERING_MOVE: 'Currently employed, but considering a move',
