@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
-import { buildCombinedGoogleAuthUrl, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import {
+  buildCombinedGoogleAuthUrl,
+  isGmailTrackingTester,
+  notifyAdminGmailAccessNeeded,
+} from '@/lib/email-tracking/gmail-oauth'
 
 // Combined Gmail + Calendar Connect — same hard gate as the individual
 // /api/auth/gmail/start and /api/auth/calendar/start routes (both features
@@ -17,6 +21,9 @@ export async function GET(request: NextRequest) {
   }
 
   if (!(await isGmailTrackingTester(user.email))) {
+    notifyAdminGmailAccessNeeded(user.email).catch((error) =>
+      console.error('Failed to notify admin of Gmail access request:', error)
+    )
     return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_a_tester', request.url))
   }
 

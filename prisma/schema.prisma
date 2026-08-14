@@ -978,6 +978,14 @@ model CandidateProfile {
   // can flip without a deploy. isGmailTrackingTester() checks this OR the
   // env var OR the manual TrackingTesterAllowlistEntry table.
   gmailTrackingTesterEnabled Boolean @default(false)
+  // Set once, the first time this candidate hits the Gmail/Calendar OAuth
+  // hard gate while not yet an approved tester — triggers an admin
+  // notification email (name/email/link to add them as a Google Cloud
+  // Console test user + link to this allow-list page) so demand surfaces
+  // automatically instead of the admin having to notice it themselves.
+  // Never re-sent for the same candidate — see notifyAdminGmailAccessNeeded
+  // in gmail-oauth.ts.
+  gmailAccessRequestedAt    DateTime?
 
   // Forced Tradeoff Rankings (1-10, lower = higher priority)
   priorityMaxComp     Int?
@@ -1009,6 +1017,13 @@ model CandidateProfile {
   contractAccepted      Boolean   @default(false)
   contractAcceptedAt    DateTime?
   introCommittedAt      DateTime? // set once the candidate finishes the post-signup welcome/payoff page and clicks "I'm committed" — gates dashboard access, backs its 5-point Search Sprint bonus
+  // The dashboard-wide hard gate (Search Strategy required, then Gmail+
+  // LinkedIn to activate the Search Plan — see src/lib/dashboard/access-gate.ts)
+  // applies only to candidates who signed up after this shipped. Set once,
+  // at profile creation, in getOrCreateCandidateProfile — existing rows get
+  // the schema default (false = exempt/grandfathered) automatically.
+  // Deliberately never flipped after creation.
+  subjectToHardGate      Boolean   @default(false)
 
   // Deferred signup (resume-first onboarding, account creation last)
   email                        String? // resume-extracted (or candidate-edited); NOT the Supabase auth email until registration completes

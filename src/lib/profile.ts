@@ -28,7 +28,17 @@ export const getOrCreateCandidateProfile = cache(
     try {
       const signupIp = await getClientIp()
       const profile = await prisma.candidateProfile.create({
-        data: { userId, coachId: links?.coachId, sourcingRecruiterId: links?.sourcingRecruiterId, signupIp },
+        data: {
+          userId,
+          coachId: links?.coachId,
+          sourcingRecruiterId: links?.sourcingRecruiterId,
+          signupIp,
+          // Every candidate created from here on is subject to the
+          // dashboard-wide hard gate — existing rows keep the schema
+          // default (false) and stay grandfathered. See the field's own
+          // comment in schema.prisma.
+          subjectToHardGate: true,
+        },
       })
 
       const adminEmail = getAccountActivityAdminEmail()

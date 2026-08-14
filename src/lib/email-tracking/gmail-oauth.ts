@@ -1,5 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
+import { sendAdminGmailAccessNeededEmail } from '@/lib/email/send-admin-gmail-access-needed'
 
 // Prompt 76 — candidate-facing Gmail connection. Deliberately separate
 // credentials and env vars from src/lib/google/oauth.ts, which is the
@@ -165,4 +167,48 @@ export async function isGmailTrackingTester(email: string): Promise<boolean> {
     prisma.trackingTesterAllowlistEntry.findUnique({ where: { email: normalized } }),
   ])
   return !!candidate?.gmailTrackingTesterEnabled || !!manualEntry
+}
+
+// The OAuth consent screen's test-user list has no API — Google requires
+// adding each email by hand in Cloud Console. This turns "a candidate hit
+// the hard gate" into an immediate admin email carrying both links the
+// admin needs (add as Google test user, approve on our own allow-list)
+// instead of relying on the admin to notice unmet demand. Fired from all
+// three OAuth start routes (gmail, calendar, google-connect) that share
+// this gate. Best-effort and fire-and-forget — a failed send must never
+// block the candidate's redirect back to the app.
+export async function notifyAdminGmailAccessNeeded(email: string): Promise<void> {
+  const normalized = email.trim().toLowerCase()
+  const candidate = await prisma.candidateProfile.findFirst({
+    where: { email: { equals: normalized, mode: 'insensitive' } },
+    select: { id: true, firstName: true, lastName: true, email: true, gmailAccessRequestedAt: true },
+  })
+  // No matching profile, or we've already notified for this candidate once
+  // — never re-sent on every retry.
+  if (!candidate || candidate.gmailAccessRequestedAt) return
+
+  await prisma.candidateProfile.update({
+    where: { id: candidate.id },
+    data: { gmailAccessRequestedAt: new Date() },
+  })
+
+  const adminEmail = getAccountActivityAdminEmail()
+  if (!adminEmail) return
+
+  const candidateName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'Unnamed'
+  const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID || ''
+  const projectNumber = clientId.split('-')[0]
+  const googleConsoleUrl = projectNumber
+    ? `https://console.cloud.google.com/apis/credentials/consent?project=${projectNumber}`
+    : 'https://console.cloud.google.com/apis/credentials/consent'
+
+  sendAdminGmailAccessNeededEmail(
+    adminEmail,
+    candidate.id,
+    candidateName,
+    candidate.email ?? normalized,
+    googleConsoleUrl
+  ).catch((error) => {
+    console.error('Failed to send admin gmail-access-needed email:', error)
+  })
 }

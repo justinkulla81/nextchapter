@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
-import { buildCandidateGmailAuthUrl, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import {
+  buildCandidateGmailAuthUrl,
+  isGmailTrackingTester,
+  notifyAdminGmailAccessNeeded,
+} from '@/lib/email-tracking/gmail-oauth'
 
 // Prompt 76 — hard gate: no candidate outside the internal testing
 // allow-list can even reach Google's consent screen. This is checked here
 // (before any redirect to Google) and is the primary enforcement — Google's
 // own test-user allow-list on the OAuth consent screen is the second layer,
-// not the only one.
+// not the only one. The connect prompt itself is shown to every candidate
+// (see GoogleConnectPrompt) — this gate, not client-side visibility, is
+// what actually enforces the allow-list while the app stays in Google's
+// unverified testing mode.
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
   const {
@@ -19,6 +26,9 @@ export async function GET(request: NextRequest) {
   }
 
   if (!(await isGmailTrackingTester(user.email))) {
+    notifyAdminGmailAccessNeeded(user.email).catch((error) =>
+      console.error('Failed to notify admin of Gmail access request:', error)
+    )
     return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_a_tester', request.url))
   }
 

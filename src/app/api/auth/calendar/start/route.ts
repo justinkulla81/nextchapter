@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { buildCandidateCalendarAuthUrl, isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
+import { notifyAdminGmailAccessNeeded } from '@/lib/email-tracking/gmail-oauth'
 
 // Prompt 79 — hard gate: no candidate outside the internal testing
 // allow-list can even reach Google's consent screen. Same convention as
@@ -19,6 +20,9 @@ export async function GET(request: NextRequest) {
   }
 
   if (!(await isCalendarTrackingTester(user.email))) {
+    notifyAdminGmailAccessNeeded(user.email).catch((error) =>
+      console.error('Failed to notify admin of Gmail access request:', error)
+    )
     return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_a_tester', request.url))
   }
 

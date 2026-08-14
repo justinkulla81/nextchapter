@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/prisma'
-import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 
 // One-time Gmail + Calendar connect callout — surfaced inline on the pages
 // where the payoff is obvious (Network with My Contacts, Find Full-Time Jobs)
-// rather than living as its own permanent nav destination. Internal
-// testing only (isGmailTrackingTester gate). Three states: neither
+// rather than living as its own permanent nav destination. Shown to every
+// candidate — the app is still in Google's unverified testing mode, but
+// that's enforced server-side at the OAuth start routes (isGmailTrackingTester),
+// not by hiding this prompt; an untested candidate who clicks through gets
+// a friendly "we're setting this up" message and an admin gets notified
+// automatically (see notifyAdminGmailAccessNeeded). Three states: neither
 // connected (full combined pitch), exactly one connected (a much smaller
 // nudge naming only the missing service, since re-pitching "+20 pts,
 // connect both" to someone who already connected one of them reads as if
@@ -16,7 +19,7 @@ export async function GoogleConnectPrompt({
   candidateId: string
   email: string | null
 }) {
-  if (!email || !(await isGmailTrackingTester(email))) return null
+  if (!email) return null
 
   const [emailConnection, calendarConnection] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),

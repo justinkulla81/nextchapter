@@ -52,7 +52,7 @@ function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' 
   const label = kind === 'gmail' ? 'Gmail' : 'Calendar'
   const message =
     code === 'not_a_tester'
-      ? `${label} tracking is in internal testing right now — your account isn't on the tester list yet.`
+      ? `We just requested ${label} access for your account — this app is still in Google's testing mode, so it takes us a few minutes to approve new accounts by hand. Try again shortly.`
       : code === 'not_logged_in'
         ? 'Please log in first.'
         : code === 'no_refresh_token' || code === 'exchange_failed'
