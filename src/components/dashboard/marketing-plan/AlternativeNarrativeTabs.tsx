@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import {
   deleteNarrative,
-  regenerateNarrative,
+  regenerateCoreStatement,
+  regenerateStoryAdaptations,
   renameNarrative,
   updateNarrativeStatement,
 } from '@/app/dashboard/portfolio/actions'
@@ -65,7 +66,10 @@ function AlternativeNarrativeTabContent({
 
   const handleRegenerate = () => {
     startTransition(async () => {
-      await regenerateNarrative(narrative.id)
+      // Two separate Server Action calls — see the comment on
+      // regenerateCoreStatement for why these can't be one invocation.
+      await regenerateCoreStatement(narrative.id)
+      await regenerateStoryAdaptations(narrative.id)
     })
   }
 

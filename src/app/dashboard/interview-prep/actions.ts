@@ -24,7 +24,7 @@ async function getAuthedProfile() {
 }
 
 // One-time CORE_NARRATIVE_COMPLETE bonus — the default narrative's
-// coreStatement can only ever be first-created via generateNarrative() or
+// coreStatement can only ever be first-created via generateCoreStatement() or
 // updateCoreStatement() below (confirmed: generateCoreNarrative's no-id path
 // has no other caller), so this single guarded helper covers both.
 async function creditCoreNarrativeIfFirstTime(candidateId: string) {
@@ -50,11 +50,26 @@ async function creditCoreNarrativeIfFirstTime(candidateId: string) {
   }
 }
 
-export async function generateNarrative() {
+// Split into two separate Server Action round-trips (rather than one
+// function doing both LLM calls) — chaining two sequential Anthropic calls
+// in a single serverless invocation was flirting with Vercel's function
+// duration limit and occasionally killed the connection outright ("This
+// page couldn't load" in the browser, mid-generation). Each call is now its
+// own invocation, so neither individually risks the ceiling. Both still fire
+// back-to-back from one button click — see MyStoryTab's handleGenerate.
+export async function generateCoreStatement() {
   const profile = await getAuthedProfile()
   if (!profile) return
 
   await generateCoreNarrative(profile.id)
+  revalidatePath('/dashboard/interview-prep')
+  revalidatePath('/dashboard/marketing-plan')
+}
+
+export async function generateStoryAdaptations() {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
   await generateAdaptations(profile.id)
   await creditCoreNarrativeIfFirstTime(profile.id)
   revalidatePath('/dashboard/interview-prep')

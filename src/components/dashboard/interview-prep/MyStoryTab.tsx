@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { generateNarrative, updateCoreStatement } from '@/app/dashboard/interview-prep/actions'
+import { generateCoreStatement, generateStoryAdaptations, updateCoreStatement } from '@/app/dashboard/interview-prep/actions'
 import { WaysToSayIt } from '@/components/dashboard/marketing-plan/WaysToSayIt'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
@@ -45,7 +45,11 @@ export function MyStoryTab({
 
   const handleGenerate = () => {
     startTransition(async () => {
-      await generateNarrative()
+      // Two separate Server Action calls (not one) — see the comment on
+      // generateCoreStatement for why these can't be combined into a single
+      // invocation.
+      await generateCoreStatement()
+      await generateStoryAdaptations()
     })
   }
 

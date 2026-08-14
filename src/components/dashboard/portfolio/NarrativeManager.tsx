@@ -7,9 +7,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import {
-  createNarrative,
+  createNarrativeCore,
   deleteNarrative,
-  regenerateNarrative,
+  finishNarrativeAdaptations,
+  regenerateCoreStatement,
+  regenerateStoryAdaptations,
   renameNarrative,
   updateNarrativeStatement,
 } from '@/app/dashboard/portfolio/actions'
@@ -80,7 +82,10 @@ function NarrativeRow({ narrative }: { narrative: NarrativeItem }) {
 
   const handleRegenerate = () => {
     startTransition(async () => {
-      await regenerateNarrative(narrative.id)
+      // Two separate Server Action calls — see the comment on
+      // regenerateCoreStatement for why these can't be one invocation.
+      await regenerateCoreStatement(narrative.id)
+      await regenerateStoryAdaptations(narrative.id)
     })
   }
 
@@ -268,11 +273,14 @@ export function NewNarrativeForm({
     if (!scenario.trim()) return
     setError(false)
     startTransition(async () => {
-      const result = await createNarrative(label, scenario)
+      // Two separate Server Action calls — see the comment on
+      // createNarrativeCore for why these can't be one invocation.
+      const result = await createNarrativeCore(label, scenario)
       if (!result) {
         setError(true)
         return
       }
+      await finishNarrativeAdaptations(result.id)
       setLabel('')
       setScenario('')
       setOpen(false)

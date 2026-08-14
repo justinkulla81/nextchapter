@@ -17,7 +17,12 @@ async function getAuthedProfile() {
   return getOrCreateCandidateProfile(user.id)
 }
 
-export async function createNarrative(label: string, scenarioContext: string): Promise<{ id: string } | null> {
+// Split into two Server Action round-trips (create the core statement, then
+// a separate call to generate its adaptations) — see the comment on
+// regenerateCoreStatement below for why one invocation can't safely do both
+// sequential Anthropic calls. Callers (NewNarrativeForm) await both in
+// sequence from one button click.
+export async function createNarrativeCore(label: string, scenarioContext: string): Promise<{ id: string } | null> {
   const profile = await getAuthedProfile()
   if (!profile) return null
 
@@ -25,11 +30,22 @@ export async function createNarrative(label: string, scenarioContext: string): P
   const id = await createNamedNarrative(profile.id, trimmedLabel, scenarioContext.trim() || undefined)
   if (!id) return null
 
-  await generateAdaptations(profile.id, id)
   captureServerEvent(profile.id, 'narrative_created', { narrativeId: id, label: trimmedLabel })
   revalidatePath('/dashboard/portfolio')
   revalidatePath('/dashboard/marketing-plan')
   return { id }
+}
+
+export async function finishNarrativeAdaptations(narrativeId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const narrative = await prisma.candidateNarrative.findUnique({ where: { id: narrativeId } })
+  if (!narrative || narrative.candidateId !== profile.id) return
+
+  await generateAdaptations(profile.id, narrativeId)
+  revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
 }
 
 export async function renameNarrative(narrativeId: string, label: string) {
@@ -71,7 +87,13 @@ export async function deleteNarrative(narrativeId: string) {
   revalidatePath('/dashboard/marketing-plan')
 }
 
-export async function regenerateNarrative(narrativeId: string) {
+// Split into two Server Action round-trips rather than one function doing
+// both sequential Anthropic calls (draft the core statement, then adapt it)
+// — chaining both in a single serverless invocation was flirting with
+// Vercel's function duration limit and occasionally killed the connection
+// outright mid-generation. Callers (AlternativeNarrativeTabContent) await
+// both in sequence from one button click.
+export async function regenerateCoreStatement(narrativeId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
@@ -79,6 +101,17 @@ export async function regenerateNarrative(narrativeId: string) {
   if (!narrative || narrative.candidateId !== profile.id) return
 
   await generateCoreNarrative(profile.id, narrativeId)
+  revalidatePath('/dashboard/portfolio')
+  revalidatePath('/dashboard/marketing-plan')
+}
+
+export async function regenerateStoryAdaptations(narrativeId: string) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  const narrative = await prisma.candidateNarrative.findUnique({ where: { id: narrativeId } })
+  if (!narrative || narrative.candidateId !== profile.id) return
+
   await generateAdaptations(profile.id, narrativeId)
   captureServerEvent(profile.id, 'narrative_regenerated', { narrativeId })
   revalidatePath('/dashboard/portfolio')
