@@ -8,6 +8,10 @@ export default async function OnboardingIndexPage() {
   if (profile.assessmentComplete && profile.registrationCompletedAt) redirect('/dashboard')
   if (!profile.desireComplete) redirect('/onboarding/desire')
   if (!profile.resumeStepComplete) redirect('/onboarding/resume')
+  if (!profile.onboardingResumeConfirmedAt) redirect('/onboarding/confirm')
+  if (!profile.onboardingLocationConfirmedAt) redirect('/onboarding/location')
+  if (!profile.onboardingSearchStatusConfirmedAt) redirect('/onboarding/search-status')
+  if (!profile.onboardingComfortConfirmedAt) redirect('/onboarding/comfort')
   if (!profile.contractAcceptedAt) redirect('/onboarding/contract')
   if (profile.coachId && !profile.coachDossierConsentedAt) redirect('/onboarding/coach-consent')
   // Prompt 60 — defense in depth: submitCoachConsent already routes straight

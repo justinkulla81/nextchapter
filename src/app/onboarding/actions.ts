@@ -7,9 +7,10 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { ensureUser } from '@/lib/auth/ensure-user'
-import { Prisma } from '@prisma/client'
+import { Prisma, type GapDurationBucket, type NetworkComfortLevel } from '@prisma/client'
 import {
   CURRENT_ASSESSMENT_ROTATION_GROUP,
+  GAP_DURATION_LABELS,
   SITUATION_TO_JOB_STATUS,
   type SituationKey,
 } from '@/lib/constants/onboarding'
@@ -93,6 +94,147 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   // resume/page.tsx's own already-complete guard forwards on to /onboarding/contract
   // if this candidate already finished the resume step (e.g. re-visiting).
   redirect('/onboarding/resume')
+}
+
+// Screen 1 of 4 (Master Build Script §10) — confirm what the resume parse
+// already extracted, before anything else is asked. Writes straight to the
+// same fields the post-registration Search Strategy/complete-profile pages
+// read (highestLevelReached, primaryFunction, industryContext,
+// targetRoleType, targetIndustries) — per the user's explicit "reuse
+// existing fields where safe" call on the product-reversal question, a
+// candidate who confirms here is never asked the identical question again
+// after registration (those pages only prompt when the field is still null).
+export async function updateResumeConfirm(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const candidateId = await requireCandidateId()
+
+  const highestLevelReached = formData.get('highestLevelReached') as string | null
+  const primaryFunction = formData.get('primaryFunction') as string | null
+  const industryContext = (formData.get('industryContext') as string | null)?.trim() || null
+  const targetRoleType = (formData.get('targetRoleType') as string | null)?.trim() || null
+  const targetIndustries = formData.getAll('targetIndustries').map(String).filter(Boolean)
+
+  if (!highestLevelReached || !primaryFunction) {
+    return { error: 'Please confirm your level and function before continuing.' }
+  }
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: {
+      highestLevelReached,
+      primaryFunction,
+      industryContext,
+      targetRoleType,
+      targetIndustries,
+      onboardingResumeConfirmedAt: new Date(),
+    },
+  })
+
+  revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/location')
+}
+
+// Screen 2 of 4 — where they're searching from and willing to go. Same
+// reuse-existing-field logic as updateResumeConfirm above.
+export async function updateLocation(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const candidateId = await requireCandidateId()
+
+  const currentCity = (formData.get('currentCity') as string | null)?.trim() || null
+  const currentState = (formData.get('currentState') as string | null)?.trim() || null
+  const remotePreference = formData.get('remotePreference') as string | null
+  const openToRelocation = formData.get('openToRelocation') === 'on'
+  const relocationNotes = (formData.get('relocationNotes') as string | null)?.trim() || null
+
+  if (!remotePreference) {
+    return { error: 'Please tell us your work-location preference before continuing.' }
+  }
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: {
+      currentCity,
+      currentState,
+      remotePreference,
+      openToRelocation,
+      relocationNotes: openToRelocation ? relocationNotes : null,
+      onboardingLocationConfirmedAt: new Date(),
+    },
+  })
+
+  revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/search-status')
+}
+
+// Screen 3 of 4 — the funnel-diagnostic inputs (computeFunnelDiagnosis reads
+// exactly these four fields). "Just started" zeroes and hides the
+// applications/interviews questions per the funnel diagnostic's own
+// contract, rather than forcing a fresh searcher to answer "0 applications"
+// by hand.
+export async function updateSearchStatus(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const candidateId = await requireCandidateId()
+
+  const justStartedSearch = formData.get('justStartedSearch') === 'on'
+  const gapDuration = formData.get('gapDuration') as string | null
+  const applicationsBucket = justStartedSearch ? 'none' : (formData.get('applicationsBucket') as string | null)
+  const interviewsBucket = justStartedSearch ? 'none' : (formData.get('interviewsBucket') as string | null)
+
+  if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
+    return { error: 'Please tell us how long you have been searching before continuing.' }
+  }
+  if (!justStartedSearch && (!applicationsBucket || !interviewsBucket)) {
+    return { error: 'Please answer both questions, or check "I just started" above.' }
+  }
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: {
+      justStartedSearch,
+      gapDuration: gapDuration as GapDurationBucket,
+      applicationsBucket,
+      interviewsBucket,
+      onboardingSearchStatusConfirmedAt: new Date(),
+    },
+  })
+
+  revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/comfort')
+}
+
+// Screen 4 of 4 — the last question before the contract screen. Writes
+// straight to networkComfortLevel, the same field the post-registration
+// Activate My Network gate (NetworkComfortCheck) reads — answering here
+// means that dashboard prompt never shows (network/page.tsx only renders it
+// when the field is still null). networkComfortBonusAt is marked spent at
+// the same time: the +5pt sprint credit that gate normally pays out has
+// nothing to credit against pre-registration (no Weekly Sprint exists yet),
+// so this is the same "answered but no sprint to log points against" best-
+// effort case documented on setNetworkComfortLevel, just reached from a
+// different entry point.
+const NETWORK_COMFORT_LEVELS: NetworkComfortLevel[] = [
+  'VERY_COMFORTABLE',
+  'SOMEWHAT_COMFORTABLE',
+  'NOT_VERY_COMFORTABLE',
+  'RATHER_NOT',
+]
+
+export async function updateComfort(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const candidateId = await requireCandidateId()
+
+  const networkComfortLevel = formData.get('networkComfortLevel') as string | null
+  if (!networkComfortLevel || !NETWORK_COMFORT_LEVELS.includes(networkComfortLevel as NetworkComfortLevel)) {
+    return { error: 'Please choose the option that best describes you.' }
+  }
+
+  await prisma.candidateProfile.update({
+    where: { id: candidateId },
+    data: {
+      networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
+      networkComfortBonusAt: new Date(),
+      onboardingComfortConfirmedAt: new Date(),
+    },
+  })
+
+  revalidatePath('/onboarding', 'layout')
+  redirect('/onboarding/contract')
 }
 
 // The contract screen is the last question before the score reveal. "Not

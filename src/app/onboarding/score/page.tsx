@@ -11,6 +11,64 @@ import { GradeReveal } from '@/components/candidates/GradeReveal'
 import { Button } from '@/components/ui/button'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 
+// §10's registration-gate worked example ("We read your resume. There are
+// {n} things a recruiter will notice, {m} that applicant tracking systems
+// will filter out...") wants real, itemized counts as proof of work, not a
+// bare grade ring. The only resume-analysis data actually populated at this
+// point in the live app is the legacy Resume.atsFeedback/resultsFeedback/
+// experienceFeedback fields (analyze-resume.ts, called from the resume
+// upload action) — the new 5-component engine's ReviewerQuestion/
+// AtsParseResult tables (resume-analysis/compute.ts) are real and tested
+// but NOT YET wired into the live upload flow (see that file's own header
+// comment), so they're empty for every real candidate today. Building this
+// screen on unpopulated tables would show "0 things" to everyone, which is
+// worse than not having the feature — so this reads the legacy arrays
+// instead. atsFeedback is scan/mechanics-oriented copy (the prompt asks for
+// "what a recruiter scanning this will notice"), so it stands in for the
+// ATS bucket; results+experience feedback are substance-of-the-narrative
+// issues, so they stand in for the general "recruiter will notice" bucket.
+// Revisit once §11 wires the new engine into resume upload for real.
+interface ProofOfWork {
+  recruiterNoticeCount: number
+  atsFilterCount: number
+  topIssue: string | null
+}
+
+async function getProofOfWork(candidateId: string): Promise<ProofOfWork | null> {
+  const resume = await prisma.resume.findFirst({
+    where: { candidateId },
+    orderBy: { uploadedAt: 'desc' },
+    select: {
+      atsScore: true,
+      atsFeedback: true,
+      resultsScore: true,
+      resultsFeedback: true,
+      experienceScore: true,
+      experienceFeedback: true,
+      analyzedAt: true,
+    },
+  })
+  if (!resume || !resume.analyzedAt) return null
+
+  type FeedbackItem = { issue: string; action: string }
+  const atsFeedback = (resume.atsFeedback ?? []) as unknown as FeedbackItem[]
+  const resultsFeedback = (resume.resultsFeedback ?? []) as unknown as FeedbackItem[]
+  const experienceFeedback = (resume.experienceFeedback ?? []) as unknown as FeedbackItem[]
+
+  const scored = [
+    { score: resume.atsScore, feedback: atsFeedback },
+    { score: resume.resultsScore, feedback: resultsFeedback },
+    { score: resume.experienceScore, feedback: experienceFeedback },
+  ].filter((s): s is { score: number; feedback: FeedbackItem[] } => s.score !== null)
+  const lowestScored = scored.length > 0 ? scored.reduce((a, b) => (b.score < a.score ? b : a)) : null
+
+  return {
+    recruiterNoticeCount: resultsFeedback.length + experienceFeedback.length,
+    atsFilterCount: atsFeedback.length,
+    topIssue: lowestScored?.feedback[0]?.issue ?? null,
+  }
+}
+
 export default async function ScorePage() {
   const profile = await getCandidateProfileForUser()
 
@@ -22,10 +80,13 @@ export default async function ScorePage() {
     redirect('/dashboard')
   }
 
-  const candidateWithRelations = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: profile.id },
-    include: GRADE_RELATIONS_INCLUDE,
-  })
+  const [candidateWithRelations, proofOfWork] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: profile.id },
+      include: GRADE_RELATIONS_INCLUDE,
+    }),
+    getProofOfWork(profile.id),
+  ])
 
   const grade = await computeDossierCompetencies(candidateWithRelations as unknown as CandidateWithGradeRelations)
 
@@ -35,16 +96,44 @@ export default async function ScorePage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Current Market Reality'}
         </h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground italic">
-          &ldquo;Your initial grade is based on what you&apos;ve told me. The confidence level on
-          each Market Reality dimension will increase as I see which roles you&apos;re drawn to,
-          which you reject, and what the market returns. The grade gets more accurate as we work
-          together.&rdquo;
-        </p>
-        <div className="mt-1 flex items-center justify-center gap-2 not-italic">
-          <VictoriaAvatar size={24} />
-          <span className="text-xs text-muted-foreground/80">— Victoria</span>
-        </div>
+        {proofOfWork ? (
+          <div className="mx-auto mt-2 max-w-xl space-y-1 text-left">
+            <div className="flex items-center gap-2">
+              <VictoriaAvatar size={24} />
+              <p className="text-xs text-muted-foreground">Victoria says:</p>
+            </div>
+            <div className="relative ml-2 rounded-2xl bg-muted/50 px-6 py-5">
+              <div className="absolute -top-2 left-8 size-4 rotate-45 rounded-[3px] bg-muted/50" />
+              <p className="text-sm text-foreground">
+                &ldquo;I read your resume. There{' '}
+                {proofOfWork.recruiterNoticeCount === 1 ? 'is' : 'are'}{' '}
+                <span className="font-semibold">
+                  {proofOfWork.recruiterNoticeCount} thing{proofOfWork.recruiterNoticeCount === 1 ? '' : 's'}
+                </span>{' '}
+                a recruiter will notice, and{' '}
+                <span className="font-semibold">
+                  {proofOfWork.atsFilterCount} thing{proofOfWork.atsFilterCount === 1 ? '' : 's'}
+                </span>{' '}
+                that applicant tracking systems will filter out before a person ever sees it
+                {proofOfWork.topIssue && (
+                  <>
+                    {' '}
+                    — and one costing you more than the rest combined:{' '}
+                    <span className="font-semibold">{proofOfWork.topIssue}</span>
+                  </>
+                )}
+                .&rdquo;
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground italic">
+            &ldquo;Your initial grade is based on what you&apos;ve told me. The confidence level on
+            each Market Reality dimension will increase as I see which roles you&apos;re drawn to,
+            which you reject, and what the market returns. The grade gets more accurate as we work
+            together.&rdquo;
+          </p>
+        )}
       </div>
       <GradeReveal grade={grade} />
       <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>

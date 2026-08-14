@@ -76,8 +76,9 @@ export default async function OnboardingResumePage() {
       }
       // Your Path (desire) is now step 1 and always answered before resume
       // is reachable at all (see requireCandidateId in onboarding/actions.ts),
-      // so the next step from here is always the contract screen.
-      redirect('/onboarding/contract')
+      // so the next step from here is always the confirm screen (§10's new
+      // 4-screen sequence between resume upload and the contract screen).
+      redirect('/onboarding/confirm')
     }
   }
 
