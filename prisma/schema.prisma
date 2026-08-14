@@ -1084,6 +1084,13 @@ model CandidateProfile {
   // email a candidate might want off independently.
   recruiterUnlockNudgeOptedOut      Boolean   @default(false)
 
+  // Distinct Resume.atsFeedback/resultsFeedback/experienceFeedback item
+  // `issue` strings the candidate has marked as addressed — dedupe by exact
+  // string equality (no synthetic per-item id system). Backs the "Fix three
+  // things on your resume" unified-dashboard activation item (§12): complete
+  // once this array has 3+ entries. See src/app/dashboard/resume/actions.ts.
+  resumeFixesAppliedKeys String[] @default([])
+
   // Relations
   workHistory                    WorkHistoryEntry[]
   educationHistory               EducationEntry[]

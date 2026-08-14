@@ -82,7 +82,11 @@ export default async function ResumePage({
                   </p>
                   <div className="space-y-2">
                     {asFeedbackItems(latest.atsFeedback).map((item, i) => (
-                      <ResumeFeedbackCard key={i} item={item} />
+                      <ResumeFeedbackCard
+                        key={i}
+                        item={item}
+                        applied={profile.resumeFixesAppliedKeys.includes(item.issue)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -98,7 +102,11 @@ export default async function ResumePage({
                   </p>
                   <div className="space-y-2">
                     {asFeedbackItems(latest.resultsFeedback).map((item, i) => (
-                      <ResumeFeedbackCard key={i} item={item} />
+                      <ResumeFeedbackCard
+                        key={i}
+                        item={item}
+                        applied={profile.resumeFixesAppliedKeys.includes(item.issue)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -120,7 +128,11 @@ export default async function ResumePage({
                   )}
                   <div className="space-y-2">
                     {asFeedbackItems(latest.experienceFeedback).map((item, i) => (
-                      <ResumeFeedbackCard key={i} item={item} />
+                      <ResumeFeedbackCard
+                        key={i}
+                        item={item}
+                        applied={profile.resumeFixesAppliedKeys.includes(item.issue)}
+                      />
                     ))}
                   </div>
                 </div>

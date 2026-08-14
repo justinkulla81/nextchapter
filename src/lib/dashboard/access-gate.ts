@@ -63,6 +63,12 @@ const GATE_EXEMPT_PATH_PREFIXES = [
   '/dashboard/profile',
   '/dashboard/settings',
   '/dashboard/support',
+  // A gated candidate must be able to view their own already-generated
+  // report — it was missing from this list entirely, silently blocking a
+  // candidate from seeing their own Market Reality Report before they'd
+  // cleared the hard gate. Fixed alongside §12's Unified dashboard work
+  // (the report is also one of that section's "always unlocked" items).
+  '/dashboard/market-reality',
 ]
 
 export function isGateExemptPath(pathname: string): boolean {

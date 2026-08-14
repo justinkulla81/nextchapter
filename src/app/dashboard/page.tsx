@@ -45,6 +45,7 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
+import { ActivationChecklistCard } from '@/components/dashboard/ActivationChecklistCard'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -197,6 +198,10 @@ export default async function DashboardPage() {
         <EmailConfirmationBanner email={user.email} />
       )}
       <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
+
+      {/* §12 "Unified dashboard" — activation items always at top, never
+          locked, above everything else including the top strip. */}
+      <ActivationChecklistCard candidateId={profile.id} />
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>

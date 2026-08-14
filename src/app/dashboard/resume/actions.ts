@@ -186,6 +186,35 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   revalidatePath('/onboarding/resume')
 }
 
+// §12 activation item 1, "Fix three things on your resume" — marks one
+// Resume.atsFeedback/resultsFeedback/experienceFeedback item's `issue`
+// string as addressed. Dedupe by string equality (no synthetic per-item id
+// system — see resumeFixesAppliedKeys's own comment in schema.prisma).
+// Idempotent: marking the same issueKey twice is a no-op past the first
+// call, so the PostHog event only fires once per key. Returns void, not a
+// FormState — bound and used directly as a <form action>, same shape as
+// deleteWorkHistoryEntry/setPrimaryEngagement above, not routed through
+// useActionState, so there's no error string to surface in the UI.
+export async function markResumeFixApplied(issueKey: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  if (!profile.resumeFixesAppliedKeys.includes(issueKey)) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { resumeFixesAppliedKeys: { push: issueKey } },
+    })
+    captureServerEvent(profile.id, 'resume_fix_marked_applied', { candidateId: profile.id, issueKey })
+  }
+
+  revalidatePath('/dashboard/resume')
+  revalidatePath('/dashboard')
+}
+
 export async function setLinkedInUrl(_prevState: FormState, formData: FormData): Promise<FormState> {
   const supabase = await createClient()
 
