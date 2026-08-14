@@ -16,6 +16,7 @@ import { computeAllDimensions } from './dimensions'
 import { computeResumePrestige, computeReconciliation, computeExtracurricular } from './modifiers'
 import { computeFirstGlance } from './first-glance'
 import { detectReviewerQuestions } from './reviewer-questions'
+import { simulateAtsCompatibility } from './ats-matrix'
 import { selfCheckResumeAnalysis } from './self-check'
 import { scoreToResumeBand } from './types'
 
@@ -81,6 +82,7 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
   }
 
   const reviewerDetections = detectReviewerQuestions(facts, band)
+  const atsMatrix = simulateAtsCompatibility(facts)
 
   const analysis = await prisma.resumeAnalysis.create({
     data: {
@@ -111,6 +113,16 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
           candidate: { connect: { id: resume.candidateId } },
           detectionType: d.detectionType,
           detectedContext: d.detectedContext as unknown as Prisma.InputJsonValue,
+        })),
+      },
+      atsParseResults: {
+        create: atsMatrix.map((row) => ({
+          parserKey: row.parserKey,
+          parserLabel: row.parserLabel,
+          fieldsExpected: row.fieldsExpected,
+          fieldsRecovered: row.fieldsRecovered,
+          failures: row.failures as unknown as Prisma.InputJsonValue,
+          severity: row.severity,
         })),
       },
     },
