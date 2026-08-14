@@ -249,11 +249,11 @@ export default async function CompleteProfilePage() {
         {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
             <div>
-              <p className="text-sm font-medium text-foreground">Search Goals — comp &amp; benefits</p>
-              <p className="mt-1 text-xs text-muted-foreground">On the Search Goals page.</p>
+              <p className="text-sm font-medium text-foreground">Compensation &amp; benefits</p>
+              <p className="mt-1 text-xs text-muted-foreground">On the Search Strategy page.</p>
             </div>
             <Link
-              href="/dashboard/profile/search-goals#comp-benefits"
+              href="/dashboard/search-strategy#comp-benefits"
               className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
             >
               Answer — 10 pts

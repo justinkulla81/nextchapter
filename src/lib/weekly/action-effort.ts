@@ -704,7 +704,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   PROFILE_PICTURE_UPLOADED: { href: '/dashboard/profile/personal#profile-picture', label: 'Personal Information' },
   LINKEDIN_PROFILE_ADDED: { href: '/dashboard/profile/personal#linkedin', label: 'Personal Information' },
   RED_FLAGS_CONFIRMED: { href: '/dashboard/profile/screening#screening-questions', label: 'Screening Questions' },
-  BENEFITS_PRIORITIES_CONFIRMED: { href: '/dashboard/profile/search-goals#comp-benefits', label: 'Search Goals' },
+  BENEFITS_PRIORITIES_CONFIRMED: { href: '/dashboard/search-strategy#comp-benefits', label: 'Search Strategy' },
 }
 
 

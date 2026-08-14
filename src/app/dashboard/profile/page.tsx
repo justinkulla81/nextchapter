@@ -14,11 +14,14 @@ interface SectionDef {
   actionTypes: ProfileChecklistActionType[]
 }
 
-// The three sub-pages this hub links to, and which profile-checklist items
+// The two sub-pages this hub links to, and which profile-checklist items
 // count toward each one's "X of Y points" summary below. Not every field
 // on a sub-page carries points (e.g. Education and demographic self-ID are
 // unscored) — this only reflects the scored items, same as everywhere else
-// in the app.
+// in the app. Compensation & benefits (BENEFITS_PRIORITIES_CONFIRMED) used
+// to be a third "Search Goals" sub-page here — it now lives as a section on
+// My Search Strategy instead (see search-strategy/page.tsx), since it's a
+// search-goals question, not a profile-identity one.
 const SECTIONS: SectionDef[] = [
   {
     href: '/dashboard/profile/personal',
@@ -39,15 +42,9 @@ const SECTIONS: SectionDef[] = [
     description: 'Work authorization, drug test/background check willingness, deal-breakers, and demographics.',
     actionTypes: ['WORK_AUTHORIZATION', 'RED_FLAGS_CONFIRMED'],
   },
-  {
-    href: '/dashboard/profile/search-goals',
-    title: 'Search Goals',
-    description: 'Minimum comp and the benefits that matter to you.',
-    actionTypes: ['BENEFITS_PRIORITIES_CONFIRMED'],
-  },
 ]
 
-// Landing/index page for the three sub-pages below — not a form itself.
+// Landing/index page for the two sub-pages below — not a form itself.
 // Each card's points summary is its own consolidated total (see
 // SuccessSprintCard.tsx's consolidateProfileDataRows for the matching
 // per-page rows on the Success Dashboard).
@@ -74,7 +71,7 @@ export default async function ProfileHubPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
         <p className="text-muted-foreground">
-          Everything about you lives in one of the three sections below.
+          Everything about you lives in one of the two sections below.
         </p>
         {totalItems > 0 && (
           <p className="text-sm text-foreground">

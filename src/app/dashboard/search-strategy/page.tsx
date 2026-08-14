@@ -18,11 +18,13 @@ import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsF
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingPlanWillingnessForm } from '@/components/dashboard/MarketingPlanWillingnessForm'
 import { NetworkingWillingnessForm } from '@/components/dashboard/NetworkingWillingnessForm'
+import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
+import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -166,6 +168,8 @@ export default async function SearchStrategyPage() {
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const marketingPlanWillingnessComplete = isMarketingPlanWillingnessComplete(profile)
   const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
+  const benefitsAnswered = !!profile.benefitsPrioritiesBonusAt
+  const benefitsPoints = estimateActionEffort({ actionType: 'BENEFITS_PRIORITIES_CONFIRMED' }).points
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
   // actually reflects most-recent-first.
@@ -408,6 +412,50 @@ export default async function SearchStrategyPage() {
                 : "What you're willing to do to reach out — and what's holding you back — shapes your outreach scripts and unlocks My Network."}
             </p>
             <NetworkingWillingnessForm profile={profile} />
+          </CardContent>
+        </details>
+      </Card>
+
+      <Card id="comp-benefits" className="scroll-mt-4 overflow-hidden p-0">
+        <details className="group" open={!benefitsAnswered}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Compensation &amp; Benefits
+              </CardTitle>
+              {benefitsAnswered && (
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              {!benefitsAnswered && (
+                <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                  +{benefitsPoints} pts
+                </span>
+              )}
+              <ChevronDown
+                className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+                aria-hidden
+              />
+            </div>
+          </summary>
+          <CardContent className="space-y-4 border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">
+              What matters to you beyond salary — helps your coach and recruiter contacts steer
+              you toward roles and offers that actually fit.
+            </p>
+            {benefitsAnswered ? (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+                Answered
+              </p>
+            ) : (
+              <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
+            )}
           </CardContent>
         </details>
       </Card>
