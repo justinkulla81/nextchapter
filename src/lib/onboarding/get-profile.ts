@@ -9,9 +9,10 @@ export async function getCandidateProfileForUser() {
 
   if (!user) {
     // No session at all (not even anonymous) — send them to the actual
-    // first step, which lazily starts an anonymous session on upload,
-    // rather than a login page that implies a password is required.
-    redirect('/onboarding/resume')
+    // first step, which lazily starts an anonymous session (see
+    // requireCandidateId in onboarding/actions.ts), rather than a login
+    // page that implies a password is required.
+    redirect('/onboarding/desire')
   }
 
   // An admin, hiring manager, recruiter, or coach who ends up here by

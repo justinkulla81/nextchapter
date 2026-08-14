@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 export function ForgotPasswordForm({
   loginHref = '/auth/login',
   postResetHref = '/dashboard',
-  signupHref = '/onboarding/resume',
+  signupHref = '/onboarding/desire',
 }: {
   loginHref?: string
   postResetHref?: string

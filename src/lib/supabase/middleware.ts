@@ -35,11 +35,12 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // /onboarding is intentionally NOT protected here — a first-time visitor
-  // has no session at all yet (not even anonymous), and /onboarding/resume
-  // is what lazily starts one on upload. Gating it here would bounce them to
-  // a login page that implies a password is required, before they've done
-  // anything. Per-page redirect logic (getCandidateProfileForUser) handles
-  // routing a truly session-less visitor to /onboarding/resume instead.
+  // has no session at all yet (not even anonymous), and /onboarding/desire
+  // (the first step) is what lazily starts one on submit. Gating it here
+  // would bounce them to a login page that implies a password is required,
+  // before they've done anything. Per-page redirect logic
+  // (getCandidateProfileForUser) handles routing a truly session-less
+  // visitor to /onboarding/desire instead.
   // /talent/signup is intentionally NOT protected — same reasoning as
   // /onboarding above: a first-time hiring-manager visitor has no session
   // yet, and the signup form is what creates one.

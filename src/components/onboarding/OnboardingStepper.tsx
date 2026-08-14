@@ -4,20 +4,19 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
-  { href: '/onboarding/resume', label: 'Resume' },
   { href: '/onboarding/desire', label: 'Your Path' },
-  { href: '/onboarding/circumstances', label: 'Your Situation' },
+  { href: '/onboarding/resume', label: 'Resume' },
 ]
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
 
   // The shared onboarding layout renders this on every /onboarding/** page,
-  // but these 3 steps are only the pre-account assessment — contract,
+  // but these 2 steps are only the pre-account assessment — contract,
   // create-account, score, working-style, and the coach forms all happen
-  // after that's already done. Showing "step 3 of 3" progress dots on a
+  // after that's already done. Showing "step 2 of 2" progress dots on a
   // page that isn't part of that sequence at all just reads as
-  // stale/wrong, so render nothing outside the actual 3 step routes.
+  // stale/wrong, so render nothing outside the actual 2 step routes.
   if (!STEPS.some((step) => step.href === pathname)) return null
 
   return (

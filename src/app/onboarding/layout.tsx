@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 export default async function OnboardingLayout({ children }: { children: React.ReactNode }) {
   // Fetched directly (not via getCandidateProfileForUser) — this layout
-  // wraps /onboarding/resume itself, and that function redirects
-  // session-less visitors to /onboarding/resume, which would self-loop.
+  // wraps /onboarding/desire itself, and that function redirects
+  // session-less visitors to /onboarding/desire, which would self-loop.
   // A brand-new visitor simply has no profile yet; render the stepper with
   // nothing marked done rather than redirecting.
   const user = await getCurrentUser()
@@ -35,11 +35,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
           <Logo className="text-2xl" />
         </div>
         <OnboardingStepper
-          completion={[
-            profile?.resumeStepComplete ?? false,
-            profile?.desireComplete ?? false,
-            profile?.part1Complete ?? false,
-          ]}
+          completion={[profile?.desireComplete ?? false, profile?.resumeStepComplete ?? false]}
         />
       </header>
       <main className="flex flex-1 justify-center px-6 py-12">

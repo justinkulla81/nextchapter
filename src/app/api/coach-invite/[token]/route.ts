@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
 
   const coach = await prisma.coach.findUnique({ where: { accessToken: token }, select: { id: true } })
-  const response = NextResponse.redirect(new URL('/onboarding/resume', appUrl))
+  const response = NextResponse.redirect(new URL('/onboarding/desire', appUrl))
 
   if (coach) {
     response.cookies.set(COOKIE_NAME, coach.id, {

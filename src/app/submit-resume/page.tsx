@@ -39,7 +39,7 @@ export default function SubmitResumePage() {
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
           Want a free assessment of your search instead?{' '}
-          <Link href="/onboarding/resume" className="text-primary underline underline-offset-4">
+          <Link href="/onboarding/desire" className="text-primary underline underline-offset-4">
             Get your grades
           </Link>
           .

@@ -6,9 +6,8 @@ export default async function OnboardingIndexPage() {
   const profile = await getCandidateProfileForUser()
 
   if (profile.assessmentComplete && profile.registrationCompletedAt) redirect('/dashboard')
-  if (!profile.resumeStepComplete) redirect('/onboarding/resume')
   if (!profile.desireComplete) redirect('/onboarding/desire')
-  if (!profile.part1Complete) redirect('/onboarding/circumstances')
+  if (!profile.resumeStepComplete) redirect('/onboarding/resume')
   if (!profile.contractAcceptedAt) redirect('/onboarding/contract')
   if (profile.coachId && !profile.coachDossierConsentedAt) redirect('/onboarding/coach-consent')
   // Prompt 60 — defense in depth: submitCoachConsent already routes straight

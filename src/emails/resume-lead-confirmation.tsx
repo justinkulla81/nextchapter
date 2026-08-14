@@ -39,7 +39,7 @@ export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConf
       <p>
         In the meantime, a free Current Market Reality, plus a personalized
         action plan, is the fastest way to strengthen your search on your own —{' '}
-        <a href="https://launchyournextchapter.com/onboarding/resume">get yours here</a>.
+        <a href="https://launchyournextchapter.com/onboarding/desire">get yours here</a>.
       </p>
       <p style={footer}>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</p>
     </div>

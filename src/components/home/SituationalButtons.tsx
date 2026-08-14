@@ -51,7 +51,7 @@ export function SituationalButtons() {
         {SITUATIONS.map(({ situation, icon: Icon, label, description }) => (
           <Link
             key={situation}
-            href="/onboarding/resume"
+            href="/onboarding/desire"
             onClick={() => {
               posthog?.capture('situational_entry_selected', { situation, destination: 'onboarding' })
               window.gtag?.('event', 'situational_entry_selected', { situation, destination: 'onboarding' })

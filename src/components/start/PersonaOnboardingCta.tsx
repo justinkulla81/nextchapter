@@ -21,7 +21,7 @@ export function PersonaOnboardingCta({
       nativeButton={false}
       render={
         <Link
-          href="/onboarding/resume"
+          href="/onboarding/desire"
           onClick={() => {
             posthog?.capture('persona_landing_cta_clicked', { persona, situation })
             sessionStorage.setItem(SITUATION_SESSION_KEY, situation)

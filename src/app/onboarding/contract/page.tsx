@@ -14,7 +14,7 @@ export default async function ContractPage() {
         </div>
         <div className="relative ml-2 rounded-2xl bg-muted/50 px-6 py-5">
           <div className="absolute -top-2 left-8 size-4 rotate-45 rounded-[3px] bg-muted/50" />
-          <blockquote className="space-y-3 text-lg text-foreground">
+          <blockquote className="space-y-3 text-sm text-foreground">
             <p>
               &ldquo;NextChapter will make your plan clear, reduce the friction, and support you
               every single day.

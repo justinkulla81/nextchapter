@@ -2,10 +2,12 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { Prisma, NotificationTier, type CurrentJobStatus } from '@prisma/client'
+import { ensureUser } from '@/lib/auth/ensure-user'
+import { Prisma, NotificationTier } from '@prisma/client'
 import {
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   SITUATION_TO_JOB_STATUS,
@@ -32,18 +34,33 @@ export type FormState = { error?: string } | undefined
 
 async function requireCandidateId() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Your Path is now the first onboarding step a session-less visitor can
+  // reach (see #938 reorder) — lazily start an anonymous session here too,
+  // same as the resume upload always has, rather than redirecting away.
+  const user = await ensureUser(supabase)
 
-  if (!user) {
-    redirect('/onboarding/resume')
-  }
+  // A coach's personal invite link stashes this cookie before handing off
+  // to onboarding (see /api/coach-invite/[token]/route.ts) — read it at
+  // whichever action creates the profile first, since that's now no longer
+  // always the resume upload. getOrCreateCandidateProfile only consumes
+  // `links` on the actual create, so this is a harmless no-op on every
+  // subsequent call for the same candidate.
+  const cookieStore = await cookies()
+  const coachId = cookieStore.get('nc_coach')?.value
 
-  const profile = await getOrCreateCandidateProfile(user.id)
+  const profile = await getOrCreateCandidateProfile(user.id, { coachId })
   return profile.id
 }
 
+// The only real question in the pre-account assessment. Also finishes it
+// outright — there's nothing left to collect before the initial grade can
+// compute (the Experience/Goals/Circumstances steps were all removed over
+// time; their content now lives on Skills & Behavioral Assessments and
+// Search Strategy, both hard-gated immediately after this in the new
+// candidate flow — see #929/#930). gapDuration/jobSearchDifficultyLevel/
+// biggestBarriers moved to Search Strategy and Blockers and Motivations —
+// deliberately left null here rather than asked twice; the score-reveal
+// page already frames the initial grade as rough until those are answered.
 export async function updateSituation(_prevState: FormState, formData: FormData): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
@@ -56,7 +73,15 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   try {
     await prisma.candidateProfile.update({
       where: { id: candidateId },
-      data: { currentJobStatus: SITUATION_TO_JOB_STATUS[situation], desireComplete: true },
+      data: {
+        currentJobStatus: SITUATION_TO_JOB_STATUS[situation],
+        desireComplete: true,
+        part1Complete: true,
+        part3Complete: true,
+        part4Complete: true,
+        assessmentComplete: true,
+        assessmentCompletedAt: new Date(),
+      },
     })
   } catch {
     return { error: 'Something went wrong saving your answer. Please try again.' }
@@ -65,50 +90,9 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
   captureServerEvent(candidateId, 'onboarding_started')
 
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/circumstances')
-}
-
-export async function updateCircumstances(
-  _prevState: FormState,
-  formData: FormData
-): Promise<FormState> {
-  const candidateId = await requireCandidateId()
-
-  const currentJobStatus = formData.get('currentJobStatus') as CurrentJobStatus | null
-
-  if (!currentJobStatus) {
-    return { error: 'Please answer all required questions.' }
-  }
-
-  try {
-    await prisma.candidateProfile.update({
-      where: { id: candidateId },
-      data: {
-        currentJobStatus,
-        part1Complete: true,
-        // The Experience and Goals onboarding steps were removed — their
-        // content already lives on Skills & Behavioral Assessments and
-        // Search Strategy respectively, both hard-gated immediately after
-        // this in the new candidate flow (see #929/#930), so there's
-        // nothing left to collect before the initial grade can compute.
-        // gapDuration/jobSearchDifficultyLevel/biggestBarriers moved to
-        // Search Strategy and Blockers and Motivations — deliberately left
-        // null here rather than asked twice; the score-reveal page already
-        // frames the initial grade as rough until those are answered.
-        part3Complete: true,
-        part4Complete: true,
-        assessmentComplete: true,
-        assessmentCompletedAt: new Date(),
-      },
-    })
-  } catch {
-    return { error: 'Something went wrong saving your answers. Please try again.' }
-  }
-
-  captureServerEvent(candidateId, 'onboarding_part_complete', { part: 1 })
-
-  revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/contract')
+  // resume/page.tsx's own already-complete guard forwards on to /onboarding/contract
+  // if this candidate already finished the resume step (e.g. re-visiting).
+  redirect('/onboarding/resume')
 }
 
 // The contract screen is the last question before the score reveal — both

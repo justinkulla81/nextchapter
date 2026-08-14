@@ -117,7 +117,7 @@ export default function Home() {
               size="lg"
               variant="cta"
               className="h-14 px-8 text-base"
-              render={<Link href="/onboarding/resume" />}
+              render={<Link href="/onboarding/desire" />}
             >
               Get your Hireability Assessment
             </Button>
@@ -312,7 +312,7 @@ export default function Home() {
               variant="cta"
               className="h-auto max-w-full py-3 whitespace-normal"
               nativeButton={false}
-              render={<Link href="/onboarding/resume" />}
+              render={<Link href="/onboarding/desire" />}
             >
               Get your Hireability score and then action plan to start your next chapter
             </Button>

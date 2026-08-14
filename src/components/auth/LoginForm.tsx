@@ -12,7 +12,7 @@ import { GoogleButton } from './GoogleButton'
 export function LoginForm({
   defaultNext = '/dashboard',
   forgotPasswordHref = '/auth/forgot-password',
-  signupHref = '/onboarding/resume',
+  signupHref = '/onboarding/desire',
   showGoogle = true,
 }: {
   defaultNext?: string

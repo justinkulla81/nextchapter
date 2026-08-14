@@ -42,7 +42,7 @@ export function VictoriaChatPreview() {
             </div>
           </div>
         </div>
-        <Button nativeButton={false} className="w-full" render={<Link href="/onboarding/resume" />}>
+        <Button nativeButton={false} className="w-full" render={<Link href="/onboarding/desire" />}>
           Start your free assessment to chat with Victoria
         </Button>
       </CardContent>
