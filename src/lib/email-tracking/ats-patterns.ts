@@ -195,7 +195,17 @@ export function matchApplicationConfirmation(subject: string, bodyPreview: strin
 // ("Thanks for applying to Cohere!") — without it, the end-anchored \s*$
 // never matches once anything follows the name, and the whole regex fails
 // closed instead of just dropping the punctuation from the capture.
-const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to)\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})[!.?]*\s*$/i
+// "Thank you for your application to Zoom Communications" — bare "application
+// to <Company>" with no verb ("has been sent"/"was received") and no title
+// in between, so neither this pattern's other alternatives nor the "at
+// <Company>" fallback below used to catch it; guessCompanyFromConfirmationText
+// fell through to body scanning and picked up unrelated marketing copy from
+// the email body instead ("Zoom visiting our LinkedIn Best..."), storing that
+// as the company name. The negative lookahead excludes the "application to
+// <Title> at <Company>" shape (handled correctly by the "at" fallback
+// instead) so this alternative only fires when there's no "at <Company>"
+// later in the subject to hand off to.
+const CONFIRMATION_COMPANY_SUFFIX = /(?:applying to|application (?:has been|was) (?:received|submitted|sent) to|application to(?!.* at [A-Z]))\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})[!.?]*\s*$/i
 
 // The "your application to <role> at <company>" subject shape names the
 // company after "at" instead of after "applying to"/"sent to" — needs its

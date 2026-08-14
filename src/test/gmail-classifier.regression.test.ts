@@ -54,10 +54,12 @@ const EXPECTED: Record<string, Expected> = {
     companyName: 'Evidence Action',
     title: 'Vice President, The AI Access Initiative',
   },
+  // Subject tacks a comp figure onto the title itself — sanitizeExtractedTitle
+  // cuts at the first "$" so the stored title is the real role name only.
   bigWaveDigital: {
     activityType: 'APPLICATION_CONFIRMATION',
     companyName: 'Big Wave Digital',
-    title: 'FORWARD DEPLOYED STRATEGIST AI - $230k + equity',
+    title: 'FORWARD DEPLOYED STRATEGIST AI',
   },
   // Indeed's own "Indeed Application: <title>" subject shape.
   bioUrjaIndeed: { activityType: 'APPLICATION_CONFIRMATION', companyName: 'BioUrja Advisors', title: 'Director, Corporate Development' },
