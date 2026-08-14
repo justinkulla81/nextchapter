@@ -102,7 +102,8 @@ export async function buildMarketRealityHeadline(candidateId: string): Promise<M
   // component would be exactly the manufactured-warmth failure the Voice
   // spec calls out (§4.2: "never praise what isn't there").
   const strongestIsGenuinelyStrong = strongestGrade === 'A' || strongestGrade === 'B'
-  const strongestLine = `Your ${COMPONENT_LABEL[strongestComponent]} is a ${strongestGrade}${strongestIsGenuinelyStrong ? ' — that part is working' : ''}.`
+  const article = strongestGrade === 'A' ? 'an' : 'a'
+  const strongestLine = `Your ${COMPONENT_LABEL[strongestComponent]} is ${article} ${strongestGrade}${strongestIsGenuinelyStrong ? ' — that part is working' : ''}.`
   const constraintLine = await getComponentDriverText(candidateId, drivingComponent)
 
   return { headline, strongestLine, constraintLine }
