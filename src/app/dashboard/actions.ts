@@ -27,7 +27,12 @@ import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { dismissPageBox, type PageKey } from '@/lib/dashboard/page-content'
+import {
+  dismissPageBox,
+  minimizeActionPlanBox as minimizeActionPlanBoxForCandidate,
+  maximizeActionPlanBox as maximizeActionPlanBoxForCandidate,
+  type PageKey,
+} from '@/lib/dashboard/page-content'
 import { clampMulti } from '@/lib/forms/clamp-multi'
 import { MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
 
@@ -131,9 +136,12 @@ export async function checkInVisibilityComfort(comfort: PublicDisclosureComfort)
   revalidatePath('/dashboard')
 }
 
-// Daily Message box's X — lasts through the rest of the day (see
-// startOfUTCDay in page-content.ts's getPageBoxContent), same reset
-// contract as dismissMoodCard below.
+// Daily Message box's X — lasts through the rest of the day, resetting at
+// 12:01am Pacific (see startOfPacificDay in page-content.ts's
+// getPageBoxContent). Action Plan minimize/maximize below shares the same
+// boundary; the mood card's dismiss further down intentionally stays on the
+// UTC boundary (startOfUTCDay in dashboard/page.tsx) — only Daily Message
+// and Action Plan were asked to move to Pacific time.
 export async function dismissDailyMessageBox(pageKey: PageKey) {
   const profile = await getAuthedProfile()
   if (!profile) return
@@ -143,9 +151,33 @@ export async function dismissDailyMessageBox(pageKey: PageKey) {
   revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
 }
 
+// Action Plan box's minimize/maximize arrow — same day-boundary contract as
+// dismissDailyMessageBox above (12:01am Pacific), but bidirectional: unlike
+// Daily Message, maximizing before the boundary clears the dismissal record
+// immediately instead of waiting for the next day (see
+// maximizeActionPlanBox in page-content.ts).
+export async function minimizeActionPlanBox(pageKey: PageKey) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await minimizeActionPlanBoxForCandidate(profile.id, pageKey)
+  captureServerEvent(profile.id, 'action_plan_minimized', { pageKey })
+  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
+}
+
+export async function maximizeActionPlanBox(pageKey: PageKey) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await maximizeActionPlanBoxForCandidate(profile.id, pageKey)
+  captureServerEvent(profile.id, 'action_plan_maximized', { pageKey })
+  revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
+}
+
 // The "How motivated are you today?" card's X — dismissal only lasts through
-// the rest of the day (see startOfUTCDay in dashboard/page.tsx), same
-// contract as the Daily Message box above.
+// the rest of the day (see startOfUTCDay in dashboard/page.tsx). This one
+// intentionally stays UTC-scoped — see the comment on dismissDailyMessageBox
+// above.
 export async function dismissMoodCard() {
   const profile = await getAuthedProfile()
   if (!profile) return

@@ -3696,6 +3696,7 @@ model CalibrationMemo {
 enum PageBoxType {
   DAILY_MESSAGE
   WHY_IT_MATTERS
+  ACTION_PLAN
 }
 
 // One row per weekday, each mapped to a specific candidate email sender —

@@ -19,6 +19,8 @@ import {
 } from '@/lib/weekly/action-effort'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import { isActionPlanMinimizedToday } from '@/lib/dashboard/page-content'
+import { ActionPlanCollapsible } from '@/components/dashboard/ActionPlanCollapsible'
 
 // One line naming the real signal behind each auto-detected actionType —
 // UI copy only, so it lives here rather than in action-effort.ts.
@@ -173,10 +175,10 @@ export async function SprintActionCompletion({
     return null
   }
 
-  return (
-    <div className="space-y-2 rounded-lg border border-orange/30 bg-orange/5 p-3">
-      <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Action Plan</p>
-      <ul className="list-disc space-y-1.5 pl-5 marker:text-muted-foreground">
+  const initiallyMinimized = pageKey ? await isActionPlanMinimizedToday(candidateId, pageKey) : false
+
+  const list = (
+    <ul className="list-disc space-y-1.5 pl-5 pt-1 marker:text-muted-foreground">
         {selfReportCommitted.map((action) => {
           const realIndex = committedActions.indexOf(action)
           const override = pageKey ? PAGE_ACTION_TYPE_OVERRIDE[pageKey]?.[action.actionType!] : undefined
@@ -297,6 +299,23 @@ export async function SprintActionCompletion({
           )
         })}
       </ul>
-    </div>
+  )
+
+  // pageKey is only omitted by callers that predate PageHeaderBoxes (none
+  // currently) — falls back to a plain, non-collapsible box rather than a
+  // minimize state with nothing to persist it against.
+  if (!pageKey) {
+    return (
+      <div className="space-y-2 rounded-lg border border-orange/30 bg-orange/5 p-3">
+        <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Action Plan</p>
+        {list}
+      </div>
+    )
+  }
+
+  return (
+    <ActionPlanCollapsible pageKey={pageKey} initiallyMinimized={initiallyMinimized}>
+      {list}
+    </ActionPlanCollapsible>
   )
 }

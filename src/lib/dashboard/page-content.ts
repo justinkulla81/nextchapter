@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { startOfUTCDay } from '@/lib/daily/mood'
+import { startOfPacificDay } from '@/lib/dashboard/pacific-day'
 import type { PageBoxType, VideoProvider } from '@prisma/client'
 
 // Every page the sitewide 3-box header rolls out to. Adding a page later
@@ -74,7 +74,7 @@ export async function getPageBoxContent(
     where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType } },
   })
   const isDismissed = dismissal
-    ? boxType === 'WHY_IT_MATTERS' || dismissal.dismissedAt >= startOfUTCDay()
+    ? boxType === 'WHY_IT_MATTERS' || dismissal.dismissedAt >= startOfPacificDay()
     : false
   if (isDismissed) return null
 
@@ -104,6 +104,30 @@ export async function dismissPageBox(candidateId: string, pageKey: PageKey, boxT
     where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType } },
     create: { candidateId, pageKey, boxType },
     update: { dismissedAt: new Date() },
+  })
+}
+
+// Action Plan minimize state reuses the same PageBoxDismissal row/contract
+// as Daily Message dismissal (see dismissPageBox above) — "dismissed" here
+// means "minimized," and it resets at the same 12:01am Pacific boundary.
+// Unlike Daily Message, this one is bidirectional within the same day: the
+// candidate can re-maximize before the boundary, which clears the row
+// entirely (no dismissal record == not minimized) rather than waiting for
+// tomorrow like a normal dismissal would.
+export async function isActionPlanMinimizedToday(candidateId: string, pageKey: PageKey): Promise<boolean> {
+  const dismissal = await prisma.pageBoxDismissal.findUnique({
+    where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType: 'ACTION_PLAN' } },
+  })
+  return dismissal ? dismissal.dismissedAt >= startOfPacificDay() : false
+}
+
+export async function minimizeActionPlanBox(candidateId: string, pageKey: PageKey): Promise<void> {
+  await dismissPageBox(candidateId, pageKey, 'ACTION_PLAN')
+}
+
+export async function maximizeActionPlanBox(candidateId: string, pageKey: PageKey): Promise<void> {
+  await prisma.pageBoxDismissal.deleteMany({
+    where: { candidateId, pageKey, boxType: 'ACTION_PLAN' },
   })
 }
 

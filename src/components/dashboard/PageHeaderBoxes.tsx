@@ -11,9 +11,10 @@ import { ActionPlanBox } from '@/components/dashboard/ActionPlanBox'
 const WATCHLIST_ALERT_PAGES: readonly PageKey[] = ['dashboard', 'find-my-job']
 
 // The standardized 2-box header: Daily Message (dismissable for the day)
-// and Action Plan (not dismissable — every real, doable action on this
-// specific page). Drop this once, right under a page's <h1>, instead of
-// hand-writing a subhead paragraph and a SprintActionCompletion call.
+// and Action Plan (every real, doable action on this specific page —
+// minimizable for the day via its own arrow, see ActionPlanCollapsible).
+// Drop this once, right under a page's <h1>, instead of hand-writing a
+// subhead paragraph and a SprintActionCompletion call.
 export async function PageHeaderBoxes({
   pageKey,
   candidateId,
