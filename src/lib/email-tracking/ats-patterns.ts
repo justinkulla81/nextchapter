@@ -357,7 +357,7 @@ export function guessTitleFromConfirmationSubject(subject: string): string | nul
 // than store it as if it were a role name.
 const MARKETING_NOISE_IN_TITLE = [/\bvisiting\b/i, /\bcheck out\b/i, /\bsee who'?s hiring\b/i, /\blinkedin best\b/i]
 
-function sanitizeExtractedTitle(rawTitle: string): string | null {
+export function sanitizeExtractedTitle(rawTitle: string): string | null {
   const title = rawTitle
     .split('$')[0]
     .replace(/\s*\+\s*equity\s*$/i, '')
