@@ -4,6 +4,8 @@ import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { isDossierComplete } from '@/lib/reports/dossier-sections'
+import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 
 // Milestone badges (Prompt 51) — earned once, permanent, never reset.
 // Computed live from existing data, same "don't persist a duplicate"
@@ -13,6 +15,10 @@ import { isDossierComplete } from '@/lib/reports/dossier-sections'
 // NAMING RULE: none of these may use "A-List" — that name is reserved for
 // the real, multi-week Current Market Reality A tier, never the weekly
 // WEEKLY_SPRINT_TARGET_HIT badge (see weekly-badges.ts).
+// CLEANED_UP / ASKED / KNOWN / BACKED / CONSISTENT / DOCUMENTED are the six
+// Master Build Script §7.8 badges. CONNECTED (LinkedIn or Gmail linked) is
+// deliberately NOT one of them — §7.8: "does NOT qualify for Community...
+// 'everyone here has done the work' has to be true." Never add it here.
 export type MilestoneBadgeKey =
   | 'SEVEN_DAY_STREAK'
   | 'THIRTY_DAY_STREAK'
@@ -24,6 +30,12 @@ export type MilestoneBadgeKey =
   | 'REFERENCE_CHAMPION'
   | 'AI_FLUENT'
   | 'GAP_CLOSER'
+  | 'CLEANED_UP'
+  | 'ASKED'
+  | 'KNOWN'
+  | 'BACKED'
+  | 'CONSISTENT'
+  | 'DOCUMENTED'
 
 export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   SEVEN_DAY_STREAK: '7-Day Streak',
@@ -36,6 +48,12 @@ export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   REFERENCE_CHAMPION: 'Reference Champion',
   AI_FLUENT: 'AI Fluent',
   GAP_CLOSER: 'Gap Closer',
+  CLEANED_UP: 'Cleaned Up',
+  ASKED: 'Asked',
+  KNOWN: 'Known',
+  BACKED: 'Backed',
+  CONSISTENT: 'Consistent',
+  DOCUMENTED: 'Documented',
 }
 
 export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
@@ -49,6 +67,12 @@ export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
   REFERENCE_CHAMPION: 'Every reference you invited has completed the intake form.',
   AI_FLUENT: 'Captured a real AI Fluency example.',
   GAP_CLOSER: 'Closed a named Market Reality gap.',
+  CLEANED_UP: 'Resolved a flagged resume issue with an explanation.',
+  ASKED: 'Sent your first reference request.',
+  KNOWN: 'Your profile is 100% filled in.',
+  BACKED: 'Your first reference came back.',
+  CONSISTENT: '3 Weekly Search Sprints in a row.',
+  DOCUMENTED: 'Your Dossier is complete — all 7 requirements met.',
 }
 
 const COMEBACK_GAP_DAYS = 7
@@ -113,25 +137,56 @@ export async function countOverDeliveringWeeks(candidateId: string): Promise<num
 }
 
 export async function computeMilestoneBadges(candidateId: string): Promise<MilestoneBadgeStatus[]> {
-  const [candidate, checkIns, allSprints, references, latestAiProject, marketRealitySnapshots, dossierComplete] =
-    await Promise.all([
-      prisma.candidateProfile.findUniqueOrThrow({
-        where: { id: candidateId },
-        select: { longestStreak: true, workHistory: { select: { engagementType: true } } },
-      }),
-      prisma.dailyCheckIn.findMany({ where: { candidateId }, select: { checkedInAt: true }, take: 500 }),
-      prisma.weeklySprint.findMany({ where: { candidateId }, select: { weekStartDate: true, committedActions: true } }),
-      prisma.reference.findMany({ where: { candidateId }, select: { status: true } }),
-      prisma.learningBadge.findFirst({
-        where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
-      }),
-      prisma.marketRealitySnapshot.findMany({
-        where: { candidateId },
-        orderBy: { weekStartDate: 'asc' },
-        select: { namedReasons: true },
-      }),
-      isDossierComplete(candidateId),
-    ])
+  const [
+    candidate,
+    checkIns,
+    allSprints,
+    references,
+    latestAiProject,
+    marketRealitySnapshots,
+    dossierComplete,
+    resolvedReviewerQuestionCount,
+    profileFieldsConfirmed,
+    threeWeekSprintStreak,
+    dossierCompleteness,
+  ] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      select: { longestStreak: true, workHistory: { select: { engagementType: true } } },
+    }),
+    prisma.dailyCheckIn.findMany({ where: { candidateId }, select: { checkedInAt: true }, take: 500 }),
+    prisma.weeklySprint.findMany({ where: { candidateId }, select: { weekStartDate: true, committedActions: true } }),
+    prisma.reference.findMany({ where: { candidateId }, select: { status: true } }),
+    prisma.learningBadge.findFirst({
+      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+    }),
+    prisma.marketRealitySnapshot.findMany({
+      where: { candidateId },
+      orderBy: { weekStartDate: 'asc' },
+      select: { namedReasons: true },
+    }),
+    isDossierComplete(candidateId),
+    // CLEANED_UP (§7.8) — the resume tools' real "issue applied a fix"
+    // tracking is §13 (task #959), not built yet. candidateExplanation is
+    // the closest existing signal (a flagged issue the candidate resolved
+    // by explaining it — "neutralizes," per schema.prisma's own comment on
+    // ReviewerQuestion) — an honest proxy, not the same thing as a fix
+    // actually being applied to the document.
+    prisma.reviewerQuestion.count({ where: { candidateId, candidateExplanation: { not: null } } }),
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      select: {
+        profileConfirmedAt: true,
+        industryConfirmedAt: true,
+        functionConfirmedAt: true,
+        salaryConfirmedAt: true,
+        workAuthConfirmedAt: true,
+        linkedInConfirmedAt: true,
+      },
+    }),
+    computeCurrentSprintStreak(candidateId, 3),
+    computeDossierCompleteness(candidateId),
+  ])
 
   const comeback = detectComeback(checkIns.map((c) => c.checkedInAt))
   const overDeliveringStreak = computeOverDeliveringStreak(allSprints)
@@ -140,6 +195,15 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
   )
 
   const referenceChampion = references.length > 0 && references.every((r) => r.status === 'COMPLETED')
+  const profileKnown =
+    [
+      profileFieldsConfirmed.profileConfirmedAt,
+      profileFieldsConfirmed.industryConfirmedAt,
+      profileFieldsConfirmed.functionConfirmedAt,
+      profileFieldsConfirmed.salaryConfirmedAt,
+      profileFieldsConfirmed.workAuthConfirmedAt,
+      profileFieldsConfirmed.linkedInConfirmedAt,
+    ].filter((v) => v !== null).length === 6
 
   // Gap Closer: a named reason that was ever flagged as a 'gap' in an
   // earlier snapshot and no longer appears as a gap in the latest one —
@@ -171,6 +235,12 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     REFERENCE_CHAMPION: referenceChampion,
     AI_FLUENT: Boolean(latestAiProject),
     GAP_CLOSER: gapCloserCount > 0,
+    CLEANED_UP: resolvedReviewerQuestionCount > 0,
+    ASKED: references.length > 0,
+    KNOWN: profileKnown,
+    BACKED: references.some((r) => r.status === 'COMPLETED'),
+    CONSISTENT: threeWeekSprintStreak >= 3,
+    DOCUMENTED: dossierCompleteness.isComplete,
   }
 
   return (Object.keys(MILESTONE_BADGE_LABEL) as MilestoneBadgeKey[]).map((key) => ({

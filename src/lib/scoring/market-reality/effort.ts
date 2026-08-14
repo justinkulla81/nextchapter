@@ -12,7 +12,7 @@ import { prisma } from '@/lib/prisma'
 import type { ComponentComputation } from './types'
 
 const ACTIVITY_WINDOW_DAYS = 30
-const SPRINT_STREAK_WEEKS = 4 // matches the §7.2 "4 consecutive Sprints" Dossier gate — same streak, same cap
+export const SPRINT_STREAK_WEEKS = 4 // matches the §7.2 "4 consecutive Sprints" Dossier gate — same streak, same cap
 const SPRINT_COMPLETION_THRESHOLD = 0.3 // a week counts as "active" once ~a third of committed actions are done
 const INTERIM_WORK_BONUS = 10
 
@@ -62,11 +62,19 @@ async function computeApplicationsLeg(candidateId: string, windowStart: Date): P
   return { score, driver }
 }
 
-async function computeSprintConsistencyLeg(candidateId: string): Promise<{ score: number; driver: string }> {
+// Exported so other callers needing this exact streak definition (e.g. the
+// §7.2 "4 consecutive Weekly Search Sprints" Dossier-complete gate in
+// dossier-unlock.ts) share one implementation rather than growing a fourth
+// divergent streak computation alongside milestone-badges.ts's
+// computeOverDeliveringStreak and market-reality-history.ts's
+// computeSprintCompletionStreaks. This one requires consecutive
+// weekStartDates with no gap and a >=30%-completion-ratio bar per week —
+// deliberately different from both of those (see their own comments).
+export async function computeCurrentSprintStreak(candidateId: string, maxWeeks: number = SPRINT_STREAK_WEEKS): Promise<number> {
   const recentSprints = await prisma.weeklySprint.findMany({
     where: { candidateId },
     orderBy: { weekStartDate: 'desc' },
-    take: SPRINT_STREAK_WEEKS,
+    take: maxWeeks,
     select: { weekStartDate: true, committedActions: true },
   })
 
@@ -81,7 +89,11 @@ async function computeSprintConsistencyLeg(candidateId: string): Promise<{ score
     streak += 1
     expectedWeekStart = weekStartMs - 7 * 24 * 60 * 60 * 1000
   }
+  return streak
+}
 
+async function computeSprintConsistencyLeg(candidateId: string): Promise<{ score: number; driver: string }> {
+  const streak = await computeCurrentSprintStreak(candidateId)
   const score = clamp((streak / SPRINT_STREAK_WEEKS) * 100)
   const driver =
     streak === 0
