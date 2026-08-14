@@ -120,14 +120,14 @@ export default async function MarketingPlanPage({
 
       <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
         <p>
-          <span className="font-medium text-foreground">Core Narrative</span> is your default
-          professional story — draft it once and everything below adapts from it, grouped by who
-          you&apos;re talking to.
+          <span className="font-medium text-foreground">Core Narrative</span>{' '}
+          is your default professional story — draft it once and everything below adapts from it,
+          grouped by who you&apos;re talking to.
         </p>
         <p>
-          <span className="font-medium text-foreground">Tailored narratives</span> let you tell
-          a different version of your story for a specific scenario — a specific job, a layoff, a
-          pivot, a return after time off.
+          <span className="font-medium text-foreground">Tailored narratives</span>{' '}
+          let you tell a different version of your story for a specific scenario — a specific job,
+          a layoff, a pivot, a return after time off.
         </p>
         {isLowComfort ? (
           <p>
@@ -137,9 +137,10 @@ export default async function MarketingPlanPage({
           </p>
         ) : (
           <p>
-            <span className="font-medium text-foreground">Tutorials</span> below are matched to the
-            venues you said you&apos;d post on. Everything you post shows up on your Certified
-            Executive Dossier as real, visible activity — not just a resume claim.
+            <span className="font-medium text-foreground">Tutorials</span>{' '}
+            below are matched to the venues you said you&apos;d post on. Everything you post shows
+            up on your Certified Executive Dossier as real, visible activity — not just a resume
+            claim.
           </p>
         )}
       </div>
