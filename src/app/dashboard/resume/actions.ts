@@ -17,6 +17,9 @@ import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeNotifyAdminOfNewCandidate } from '@/lib/email/send-admin-new-candidate-account'
+import { computeResumeAnalysis } from '@/lib/scoring/resume-analysis/compute'
+import { computeMarketRealityComponents } from '@/lib/scoring/market-reality/compute'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 
 export type FormState =
   | { error?: string; existingAccountFound?: boolean; existingAccountEmail?: string; existingAccountNeedsPassword?: boolean }
@@ -86,12 +89,61 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   })
 
   // Independent calls (analyzeResume writes Resume score/feedback fields,
-  // extractProfileFieldsFromResume writes CandidateProfile fields — neither
-  // reads the other's output) that used to run back-to-back, meaning
-  // extractProfileFieldsFromResume's full latency was pure added wait on
-  // top of analyzeResume's slower Sonnet call for no reason.
-  await Promise.all([analyzeResume(resume.id), extractProfileFieldsFromResume(resume.id)])
+  // extractProfileFieldsFromResume writes CandidateProfile fields, and
+  // computeResumeAnalysis writes the new ResumeAnalysis/ReviewerQuestion/
+  // AtsParseResult rows — none reads another's output) that used to run
+  // back-to-back, meaning extractProfileFieldsFromResume's full latency was
+  // pure added wait on top of analyzeResume's slower Sonnet call for no
+  // reason.
+  //
+  // §11 decision (additive, not destructive): computeResumeAnalysis (the
+  // new 5-component engine's Experience/Resume scorer, resume-analysis/
+  // compute.ts) now runs on every upload alongside the LEGACY analyzeResume
+  // — it is NOT run instead of it. The legacy Resume.atsScore/atsFeedback/
+  // resultsScore/resultsFeedback/experienceScore/experienceFeedback fields
+  // still have real, live, unmigrated consumers this change deliberately
+  // does not touch: src/app/dashboard/resume/page.tsx (renders them
+  // directly), src/app/onboarding/score/page.tsx (score-reveal, by its own
+  // explicit design comment), src/lib/admin/recruiter-database.ts,
+  // src/lib/scoring/rewrite-actions.ts's applyResumeImprovedRewrite (called
+  // a few lines below), and src/lib/scoring/dossier-competencies.ts (the
+  // six-category blended grade, ~23 other live consumers this session has
+  // chosen not to touch). Retiring the legacy path is a separate, larger
+  // migration across all of those call sites — out of scope here.
+  const [, , resumeAnalysisResult] = await Promise.all([
+    analyzeResume(resume.id),
+    extractProfileFieldsFromResume(resume.id),
+    // Unlike analyzeResume (which catches its own errors and writes
+    // analysisError instead of throwing — see that file), computeResumeAnalysis
+    // has no such internal guard yet, and this Promise.all has no outer
+    // try/catch — an uncaught rejection here would fail the whole upload
+    // action even though the file itself uploaded fine. Caught locally so a
+    // new-engine failure degrades to "no ResumeAnalysis row yet" rather than
+    // breaking the upload response.
+    computeResumeAnalysis(resume.id).catch((error) => {
+      console.error('Failed to compute new-engine resume analysis:', error)
+      return null
+    }),
+  ])
   captureServerEvent(profile.id, 'resume_analyzed')
+
+  // Refresh the live Market Reality Grade composite (MarketRealityComponentScore)
+  // right after a new ResumeAnalysis exists — Experience/Resume are read
+  // from the latest ResumeAnalysis row (see market-reality/compute.ts), so
+  // this is the natural trigger point. Evidence/Effort/Market are also
+  // recomputed here rather than left stale, since they're cheap, non-LLM
+  // computations (DB counts + a cached market lookup) — not because a
+  // resume upload logically changes them. Non-fatal: never blocks the
+  // upload response, matching every other best-effort post-upload step in
+  // this action.
+  if (resumeAnalysisResult) {
+    try {
+      await computeMarketRealityComponents(profile.id)
+      await computeMarketRealityCompositeGrade(profile.id)
+    } catch (error) {
+      console.error('Failed to refresh Market Reality Grade composite after resume upload:', error)
+    }
+  }
 
   // Extraction above is what typically first learns the candidate's real
   // name/email — this is the main trigger point for the single admin
