@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { createCommunityPost } from '@/app/dashboard/community/actions'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
@@ -52,6 +53,19 @@ export function CommunityPostForm() {
       <Input name="externalUrl" type="url" placeholder="Link (optional)" />
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.notice && (
+        <div className="space-y-1 rounded-md border border-border bg-brand/5 p-3">
+          <p className="text-sm text-foreground">{state.notice}</p>
+          {state.showSupportLink && (
+            <Link
+              href="/dashboard/support"
+              className="text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Support During Transition
+            </Link>
+          )}
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
           {pending ? 'Posting…' : 'Post'}

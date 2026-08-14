@@ -7,7 +7,14 @@ export async function getSupportNetworkUnreadCount(
 ): Promise<number> {
   const [newPosts, unreadNotes] = await Promise.all([
     prisma.communityPost.count({
-      where: { isActive: true, candidateId: { not: candidateId }, createdAt: { gt: lastViewedAt } },
+      // §14: only count posts this candidate could actually see — a HELD/
+      // REMOVED post from someone else shouldn't inflate their unread badge.
+      where: {
+        isActive: true,
+        moderationStatus: 'PUBLISHED',
+        candidateId: { not: candidateId },
+        createdAt: { gt: lastViewedAt },
+      },
     }),
     prisma.encouragementNote.count({
       where: { toCandidateId: candidateId, readAt: null },

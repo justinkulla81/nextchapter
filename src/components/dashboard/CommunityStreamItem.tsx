@@ -59,6 +59,12 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
               )}
             </div>
             {post.title && <p className="font-medium text-foreground">{post.title}</p>}
+            {isOwnPost && post.moderationStatus === 'HELD' && (
+              <p className="text-xs font-medium text-orange">Pending review — only visible to you until a moderator acts.</p>
+            )}
+            {isOwnPost && post.moderationStatus === 'REMOVED' && (
+              <p className="text-xs font-medium text-destructive">Removed by moderation — only visible to you.</p>
+            )}
           </div>
         </div>
         {isOwnPost ? (
@@ -79,6 +85,12 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
         )}
       </div>
       <p className="text-sm text-muted-foreground">{post.description}</p>
+      {post.moderationCategory === 'BAD_LEGAL_FINANCIAL_ADVICE' && (
+        <p className="rounded-md bg-muted p-2 text-xs text-muted-foreground">
+          This touches on legal or financial specifics — treat it as one person&apos;s experience, not
+          professional advice, and check anything that matters with a qualified professional.
+        </p>
+      )}
       {post.externalUrl && (
         <a
           href={post.externalUrl}

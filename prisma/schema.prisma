@@ -2695,6 +2695,30 @@ enum CommunityPostType {
   LIKED_CONTENT // system-generated on a candidate's first Like of a Videos and Webinars carousel item — see maybeCreateContentLikePost
 }
 
+// Master Build Script §14 — every post is classified into one of these
+// categories (or none) before it's visible to anyone but its author. See
+// src/lib/community/moderation.ts for the classifier and the category →
+// status mapping.
+enum CommunityModerationCategory {
+  RECRUITMENT_FRAUD // advance-fee scams, fake recruiters, resume-fee schemes, MLM
+  CRISIS_SELF_HARM // never removed — routed to human review, Support During Transition surfaced to the poster
+  HARASSMENT_ABUSE // harassment, abuse, discriminatory language
+  DOXXING_PII // auto-removed, poster notified
+  DEFAMATION // unverified accusations against named individuals (employer criticism is not this)
+  SPAM_PROMOTION // spam, off-topic promotion — auto-removed
+  BAD_LEGAL_FINANCIAL_ADVICE // published with a standing note pointing to qualified professionals
+}
+
+// PENDING only exists transiently (or if classification itself fails — see
+// moderation.ts's fail-closed comment); every post resolves to one of the
+// other three before this transaction returns.
+enum CommunityModerationStatus {
+  PENDING
+  PUBLISHED // visible in the feed to everyone
+  HELD // classified, needs human review, invisible to everyone but the poster until a moderator acts
+  REMOVED // auto-removed (doxxing/spam) or removed by a moderator — never visible in the feed
+}
+
 model CommunityPost {
   id          String           @id @default(cuid())
   candidateId String
@@ -2721,6 +2745,11 @@ model CommunityPost {
   postSchools        String[] @default([])
   postCompanies      String[] @default([])
 
+  // Same snapshot-at-post-time convention — the poster's most recent
+  // ResumeAnalysis.seniorityBand at post time (§14: "segment by seniority
+  // band, function second" — see src/lib/community/groups.ts).
+  postSeniorityBand String?
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
@@ -2735,9 +2764,24 @@ model CommunityPost {
   reportedByCandidateId String?
   reportReason          String?
 
+  // AI moderation pipeline (§14) — see src/lib/community/moderation.ts.
+  // Classification runs synchronously before the post is ever visible to
+  // anyone but its author, so a status of PUBLISHED here always means "the
+  // classifier already ran and cleared it" (or crisis-flagged it for
+  // priority human review without hiding it — see the enum comment).
+  moderationStatus      CommunityModerationStatus    @default(PENDING)
+  moderationCategory    CommunityModerationCategory?
+  moderationConfidence  Float?
+  moderationReasoning   String?
+  moderatedAt           DateTime?
+  moderationReviewedAt  DateTime?
+  moderationReviewedByEmail String?
+
   @@index([postType, isActive, createdAt])
   @@index([postCity, postFunction, postIndustry])
   @@index([postMetroArea, postFunction, postIndustryBucket])
+  @@index([postSeniorityBand, postFunction])
+  @@index([moderationStatus, moderationCategory, createdAt])
 }
 
 // Anonymous (by default) support note sent from one candidate to another

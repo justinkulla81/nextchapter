@@ -1,6 +1,9 @@
+import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getReportedThreads } from '@/lib/messaging/peer-threads'
 import { getReportedCommunityPosts } from '@/lib/community/community-feed'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { dismissPostReportAction, removeReportedPostAction, dismissThreadReportAction } from '../community-moderation/actions'
 
 export const maxDuration = 30
 
@@ -8,7 +11,11 @@ export const maxDuration = 30
 // ONLY admin surface into message/post content, scoped to reported items
 // only, never a general browsing view. See getReportedThreads' and
 // getReportedCommunityPosts' own comments for why that scoping lives in the
-// query, not just this page.
+// query, not just this page. §14 added real actions below (dismiss/remove)
+// — this used to be read-only. The AI classification queue (held/removed/
+// flagged posts) lives on the separate Community Moderation page since it's
+// a different trigger (classifier, not a candidate report) — see that
+// page's own header comment.
 export default async function ReportedMessagesAdminPage() {
   await requireAdmin()
 
@@ -22,7 +29,10 @@ export default async function ReportedMessagesAdminPage() {
           Conversations and posts a candidate has reported — {threads.length} conversation
           {threads.length === 1 ? '' : 's'}, {posts.length} post{posts.length === 1 ? '' : 's'} on
           file. This is the only place admin can see this content; unreported items are never
-          visible here.
+          visible here.{' '}
+          <Link href="/support/admin/community-moderation" className="underline underline-offset-4">
+            See the AI moderation queue →
+          </Link>
         </p>
       </div>
 
@@ -70,6 +80,11 @@ export default async function ReportedMessagesAdminPage() {
                     )
                   })}
                 </div>
+                <form action={dismissThreadReportAction.bind(null, thread.id)}>
+                  <SubmitButton size="sm" variant="ghost">
+                    Dismiss report
+                  </SubmitButton>
+                </form>
               </div>
             ))}
           </div>
@@ -103,6 +118,18 @@ export default async function ReportedMessagesAdminPage() {
                   </p>
                 )}
                 <p className="text-sm text-muted-foreground">{post.description}</p>
+                <div className="flex items-center gap-2">
+                  <form action={dismissPostReportAction.bind(null, post.id)}>
+                    <SubmitButton size="sm" variant="ghost">
+                      Dismiss report
+                    </SubmitButton>
+                  </form>
+                  <form action={removeReportedPostAction.bind(null, post.id)}>
+                    <SubmitButton size="sm" variant="destructive">
+                      Remove post
+                    </SubmitButton>
+                  </form>
+                </div>
               </div>
             ))}
           </div>

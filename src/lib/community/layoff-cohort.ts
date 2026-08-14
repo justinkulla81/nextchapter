@@ -29,7 +29,7 @@ export async function getCohortInfo(layoffCohortId: string, candidateId: string)
   const cohortCandidateIds = cohort.candidates.map((c) => c.id).filter((id) => id !== candidateId)
 
   const posts = await prisma.communityPost.findMany({
-    where: { isActive: true, candidateId: { in: cohortCandidateIds } },
+    where: { isActive: true, moderationStatus: 'PUBLISHED', candidateId: { in: cohortCandidateIds } },
     include: {
       candidate: { select: { firstName: true, lastName: true } },
       reactions: { where: { candidateId } },

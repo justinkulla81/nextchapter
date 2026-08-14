@@ -4,11 +4,21 @@ import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 
 // Automatic "peers like you" groups on the Community page — no join/leave
 // action, derived entirely from resume-derived/candidate-set profile data.
-// Bounded to ~7 memberships per candidate (school, up to 3 companies,
-// industry, metro, function), so this never grows into a picker among
-// alternatives (see design-principles.md's 5+ options rule) — it's a
+// Bounded to ~8 memberships per candidate (seniority band, school, up to 3
+// companies, industry, metro, function), so this never grows into a picker
+// among alternatives (see design-principles.md's 5+ options rule) — it's a
 // fixed-size fact about one candidate, not a choice.
-export type CommunityGroupDimension = 'school' | 'company' | 'industry' | 'metro' | 'function'
+export type CommunityGroupDimension = 'seniority' | 'school' | 'company' | 'industry' | 'metro' | 'function'
+
+// §14: "Segment by seniority band, function second." SENIORITY_BAND_LABEL
+// mirrors ResumeAnalysis.seniorityBand's raw-string values (no Prisma enum
+// there — see that model's own comment).
+const SENIORITY_BAND_LABEL: Record<string, string> = {
+  EARLY: 'Early Career',
+  MID: 'Mid-Career',
+  SENIOR: 'Senior',
+  EXECUTIVE: 'Executive',
+}
 
 export interface CommunityGroup {
   dimension: CommunityGroupDimension
@@ -20,7 +30,7 @@ export interface CommunityGroup {
 const VISIBLE_TIERS = ['PUBLIC', 'SEMI_PUBLIC'] as const
 
 export async function getCandidateGroups(candidateId: string): Promise<CommunityGroup[]> {
-  const [profile, primarySchool, recentCompanies] = await Promise.all([
+  const [profile, primarySchool, recentCompanies, latestResumeAnalysis] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: { industryBucket: true, metroArea: true, primaryFunction: true },
@@ -34,9 +44,34 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
       orderBy: { startDate: 'desc' },
       select: { companyName: true, companyNameNormalized: true },
     }),
+    prisma.resumeAnalysis.findFirst({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      select: { seniorityBand: true },
+    }),
   ])
 
   const groups: CommunityGroup[] = []
+
+  // Pushed first — §14's primary segmentation axis, so it's the first chip
+  // a candidate sees (function, below, is the secondary axis).
+  if (latestResumeAnalysis?.seniorityBand) {
+    const count = await prisma.communityPost.count({
+      where: {
+        candidateId: { not: candidateId },
+        moderationStatus: 'PUBLISHED',
+        postSeniorityBand: latestResumeAnalysis.seniorityBand,
+      },
+    })
+    if (count >= 1) {
+      groups.push({
+        dimension: 'seniority',
+        value: latestResumeAnalysis.seniorityBand,
+        label: SENIORITY_BAND_LABEL[latestResumeAnalysis.seniorityBand] ?? latestResumeAnalysis.seniorityBand,
+        memberCount: count,
+      })
+    }
+  }
 
   if (primarySchool && primarySchool.schoolNameNormalized) {
     const count = await prisma.candidateProfile.count({

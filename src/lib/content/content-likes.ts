@@ -42,6 +42,11 @@ async function maybeCreateContentLikePost(candidateId: string, content: Likeable
       postIndustry: profile.industryContext,
       postIndustryBucket: profile.industryBucket,
       postMetroArea: profile.metroArea,
+      // System-generated, fixed template text (never candidate-authored
+      // free text) — skips the §14 AI classifier entirely and publishes
+      // directly, same reasoning as maybeCreateMilestonePost.
+      moderationStatus: 'PUBLISHED',
+      moderatedAt: new Date(),
     },
   })
 }

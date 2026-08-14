@@ -18,6 +18,9 @@ import {
   blockCandidate,
   unblockCandidate,
 } from '@/lib/messaging/peer-threads'
+import { classifyCommunityPost, moderationOutcome, type ModerationOutcome } from '@/lib/community/moderation'
+import { canParticipateInCommunity } from '@/lib/community/access'
+import type { CommunityModerationCategory, CommunityModerationStatus } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
@@ -130,11 +133,27 @@ export async function unblockPeerCandidateAction(otherCandidateId: string) {
 // historical posts but are no longer creatable from the UI.
 const SUBMITTABLE_POST_TYPES = ['UPDATE', 'SELF_INTRO'] as const
 
-function canParticipate(privacyTier: string) {
-  return privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
+// §14's auto-remove categories still get "notify poster" — since
+// classification runs synchronously before the response returns, the
+// cheapest honest way to notify them is inline, in the same response,
+// rather than a separate email for something the poster is about to read
+// anyway.
+function removalMessage(category: CommunityModerationCategory | null): string {
+  if (category === 'DOXXING_PII') {
+    return "This post wasn't published — it looked like it included someone else's personal contact information. Remove that and try again."
+  }
+  if (category === 'SPAM_PROMOTION') {
+    return "This post wasn't published — it read as spam or an off-topic promotion. This board is for real search-related updates: job leads, asks, and offers to help."
+  }
+  return "This post wasn't published — it didn't meet Community guidelines."
 }
 
-export async function createCommunityPost(_prevState: FormState, formData: FormData): Promise<FormState> {
+export type CreateCommunityPostState = { error?: string; notice?: string; showSupportLink?: boolean } | undefined
+
+export async function createCommunityPost(
+  _prevState: CreateCommunityPostState,
+  formData: FormData
+): Promise<CreateCommunityPostState> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -146,9 +165,12 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  // Never trust a client-side gate alone — re-check server-side.
-  if (!canParticipate(profile.privacyTier)) {
-    return { error: 'Set your profile to Public or Semi-Public to post to the Community.' }
+  // Never trust a client-side gate alone — re-check server-side. §14's real
+  // gate is a qualifying milestone badge, privacy tier alone is no longer
+  // sufficient — see community/access.ts's own comment for why both still
+  // matter.
+  if (!(await canParticipateInCommunity(profile.id, profile.privacyTier))) {
+    return { error: "Community unlocks once your profile is Public or Semi-Public and you've earned any milestone badge." }
   }
 
   const postType = formData.get('postType') as string | null
@@ -163,10 +185,11 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
   }
 
   // Snapshot-at-post-time, same convention as postCity/postFunction/
-  // postIndustry above — read from the candidate's education/work-history
-  // relations so group-filtered feed views can match against them later
-  // without a join back to a profile that may since have changed.
-  const [primarySchool, recentCompanies] = await Promise.all([
+  // postIndustry above — read from the candidate's education/work-history/
+  // resume-analysis relations so group- and seniority-filtered feed views
+  // can match against them later without a join back to data that may since
+  // have changed.
+  const [primarySchool, recentCompanies, latestResumeAnalysis] = await Promise.all([
     prisma.educationEntry.findFirst({ where: { candidateId: profile.id, isPrimary: true }, select: { schoolNameNormalized: true } }),
     prisma.workHistoryEntry.findMany({
       where: { candidateId: profile.id },
@@ -175,7 +198,38 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
       distinct: ['companyNameNormalized'],
       take: 3,
     }),
+    prisma.resumeAnalysis.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+      select: { seniorityBand: true },
+    }),
   ])
+
+  // §14 — every post is classified before it's visible to anyone but its
+  // author. A classifier failure fails CLOSED: held for manual review, same
+  // as an auto-hold category, rather than publishing unmoderated content.
+  // Silently blocking a clean post until a human clears it is the safer
+  // failure mode of the two.
+  let category: CommunityModerationCategory | null = null
+  let confidence: number | null = null
+  let reasoning = 'Automated classification failed before this post could be reviewed — held for manual review.'
+  let outcome: ModerationOutcome = 'HOLD'
+  try {
+    const classification = await classifyCommunityPost(description)
+    category = classification.category
+    confidence = classification.confidenceScore
+    reasoning = classification.reasoning
+    outcome = moderationOutcome(category)
+  } catch (error) {
+    console.error('Community post classification failed:', error)
+  }
+
+  const moderationStatus: CommunityModerationStatus =
+    outcome === 'HOLD' ? 'HELD' : outcome === 'REMOVE' ? 'REMOVED' : 'PUBLISHED'
+  // REMOVED posts are still persisted (never silently dropped) so the admin
+  // moderation queue has a real audit trail, but isActive:false keeps them
+  // out of every other query that already filters on isActive.
+  const isActive = outcome !== 'REMOVE'
 
   const post = await prisma.communityPost.create({
     data: {
@@ -191,17 +245,27 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
       postMetroArea: profile.metroArea,
       postSchools: primarySchool?.schoolNameNormalized ? [primarySchool.schoolNameNormalized] : [],
       postCompanies: recentCompanies.map((c) => c.companyNameNormalized).filter(Boolean),
+      postSeniorityBand: latestResumeAnalysis?.seniorityBand ?? null,
+      isActive,
+      moderationStatus,
+      moderationCategory: category,
+      moderationConfidence: confidence,
+      moderationReasoning: reasoning,
+      moderatedAt: new Date(),
     },
   })
 
   captureServerEvent(profile.id, 'community_post_created', { postId: post.id, postType })
+  captureServerEvent(profile.id, 'community_post_moderated', { postId: post.id, category, outcome, confidence })
 
   // Sharing an update is real, verifiable effort — award the points
   // automatically instead of requiring a separate self-report toggle in the
   // Weekly Search Sprint. Scoped to UPDATE only (not SELF_INTRO, a one-time
   // onboarding milestone rather than the ongoing "share" behavior this
-  // rewards).
-  if (postType === 'UPDATE') {
+  // rewards), and skipped for auto-removed posts (spam/doxxing isn't real
+  // search effort) — held/published posts still earn it, since a
+  // false-positive hold shouldn't cost a candidate their points.
+  if (postType === 'UPDATE' && outcome !== 'REMOVE') {
     await autoCompleteEngagementAction(profile.id, {
       actionType: 'ENGAGE_POST_UPDATE',
       text: 'Post an update on your own progress',
@@ -212,6 +276,27 @@ export async function createCommunityPost(_prevState: FormState, formData: FormD
 
   revalidatePath('/dashboard/community')
   revalidatePath('/dashboard')
+
+  if (outcome === 'REMOVE') {
+    return { error: removalMessage(category) }
+  }
+  if (outcome === 'HOLD') {
+    return { notice: "Your post is being held for a quick review before it goes live — check back in a bit." }
+  }
+  // Crisis/self-harm: never held, never removed (§17 rule #12) — published
+  // immediately, flagged for priority human review, and the poster is
+  // pointed toward Support During Transition right here, not via a
+  // notification they'd have to go find. See moderation.ts's own comment
+  // for why this platform runs automated detection here but deliberately
+  // not on private intake answers.
+  if (category === 'CRISIS_SELF_HARM') {
+    return {
+      notice:
+        'Your post is live. If things feel heavy right now, Support During Transition has some resources that might help — no pressure, just there if you want it.',
+      showSupportLink: true,
+    }
+  }
+  return undefined
 }
 
 export async function deactivateCommunityPost(postId: string) {
@@ -316,12 +401,12 @@ export async function expressInterest(postId: string) {
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  if (!canParticipate(profile.privacyTier)) {
+  if (!(await canParticipateInCommunity(profile.id, profile.privacyTier))) {
     return
   }
 
   const post = await prisma.communityPost.findUnique({ where: { id: postId } })
-  if (!post || !post.isActive) return
+  if (!post || !post.isActive || post.moderationStatus !== 'PUBLISHED') return
 
   try {
     await prisma.communityPostInterest.create({
@@ -377,6 +462,12 @@ export async function toggleCheerPostAction(postId: string) {
     await prisma.communityPostReaction.delete({ where: { id: existing.id } })
     captureServerEvent(profile.id, 'community_post_cheered', { postId, cheered: false })
   } else {
+    // Only the "add a cheer" side is gated — removing your own reaction is
+    // always allowed, same reasoning as expressInterest/createCommunityPost
+    // never gating report/block below.
+    if (!(await canParticipateInCommunity(profile.id, profile.privacyTier))) {
+      return
+    }
     try {
       await prisma.communityPostReaction.create({ data: { postId, candidateId: profile.id } })
     } catch (error) {

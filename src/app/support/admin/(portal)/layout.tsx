@@ -10,9 +10,17 @@ export const metadata: Metadata = {
 
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin()
-  const [{ approvalsNeeded }, reportedMessages] = await Promise.all([
+  const [{ approvalsNeeded }, reportedMessages, communityModeration] = await Promise.all([
     getAdminHomepageSummary(),
     prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
+    // Mirrors getModerationQueue's "needsReview" definition (moderation.ts)
+    // without pulling post content — HELD posts plus unreviewed crisis
+    // posts, §14's two highest-priority categories.
+    prisma.communityPost.count({
+      where: {
+        OR: [{ moderationStatus: 'HELD' }, { moderationCategory: 'CRISIS_SELF_HARM', moderationReviewedAt: null }],
+      },
+    }),
   ])
 
   const badges = {
@@ -20,6 +28,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
     bountyClaims: approvalsNeeded.pendingBountyClaims,
     referenceDisputes: approvalsNeeded.unresolvedReferenceDisputes,
     reportedMessages,
+    communityModeration,
     // Job Board listings are their own review queue (shown on the Job Board
     // nav item above) and never appear as rows on the Requests page itself —
     // counting them here would double them into a badge for a list they

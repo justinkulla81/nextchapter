@@ -1,5 +1,4 @@
 import type { CommunityPost } from '@prisma/client'
-import Link from 'next/link'
 import { ThumbsUp } from 'lucide-react'
 import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
@@ -47,12 +46,11 @@ export function CommunityPostCard({
             </form>
           ) : (
             <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href={`/dashboard/community?tab=messages&relation=peers&with=${post.candidateId}`}
-                className="text-xs font-medium text-primary underline underline-offset-4"
-              >
-                Message
-              </Link>
+              {/* No DMs at launch (§14) — the "Message" entry point that
+                  used to live here (deep-linking to a peer thread) has been
+                  removed. peer-threads.ts itself is untouched; other,
+                  non-Community-originated entry points to peer messaging
+                  are unaffected. */}
               {post.postType !== 'MILESTONE' && post.postType !== 'LIKED_CONTENT' && (
                 <form action={expressInterest.bind(null, post.id)}>
                   <SubmitButton variant="outline" size="sm">

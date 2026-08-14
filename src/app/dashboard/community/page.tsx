@@ -39,6 +39,7 @@ import { CommunityChips } from '@/components/dashboard/CommunityChips'
 import { CommunityAutoJoinBanner } from '@/components/dashboard/CommunityAutoJoinBanner'
 import { CommunityGroupStrip } from '@/components/dashboard/CommunityGroupStrip'
 import { getCandidateGroups } from '@/lib/community/groups'
+import { hasQualifyingCommunityBadge } from '@/lib/community/access'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
 import { dismissEncouragementNote } from '@/app/dashboard/community/actions'
 import { sendCandidateMessage } from '@/app/dashboard/messages/actions'
@@ -106,6 +107,8 @@ function communityGroupWhere(group: string | undefined): Prisma.CommunityPostWhe
   const value = rest.join(':')
   if (!value) return {}
   switch (dimension) {
+    case 'seniority':
+      return { postSeniorityBand: value }
     case 'school':
       return { postSchools: { has: value } }
     case 'company':
@@ -119,6 +122,14 @@ function communityGroupWhere(group: string | undefined): Prisma.CommunityPostWhe
     default:
       return {}
   }
+}
+
+// §14's moderation gate: a candidate's own post is always visible to them
+// (including while HELD or REMOVED, so they see the outcome of their own
+// post rather than it just vanishing), but everyone else only ever sees
+// PUBLISHED posts. Applied to every CommunityPost.findMany in this file.
+function communityModerationWhere(candidateId: string): Prisma.CommunityPostWhereInput {
+  return { OR: [{ moderationStatus: 'PUBLISHED' }, { candidateId }] }
 }
 
 export default async function SupportNetworkPage({
@@ -321,8 +332,7 @@ async function PeerRelationPanel({
       <div className="shrink-0 divide-y divide-border rounded-lg border border-border md:w-64">
         {threads.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">
-            No community conversations yet. Click &quot;Message&quot; on someone&apos;s post to start
-            one.
+            No conversations yet.
           </p>
         ) : (
           threads.map((thread) => (
@@ -562,9 +572,14 @@ async function CommunityTab({
   currentCity: string | null
   searchParams: SearchParams
 }) {
-  const canParticipate = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
+  // §14: "Gate: any qualifying badge — Connected does not qualify." Replaces
+  // the old privacyTier-only gate (community/access.ts's own comment
+  // explains why both checks still matter). Privacy tier is checked first
+  // since it's the cheaper, more common blocker — no need to compute
+  // milestone badges for someone who hasn't opened up their profile yet.
+  const privacyOk = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
 
-  if (!canParticipate) {
+  if (!privacyOk) {
     return (
       <div className="space-y-4 rounded-lg border border-border p-6">
         <div>
@@ -577,6 +592,32 @@ async function CommunityTab({
           </p>
         </div>
         <PrivacyTierSelector currentTier={privacyTier} alreadyAwarded={!!privacyOpenedUpBonusAt} />
+      </div>
+    )
+  }
+
+  const hasQualifyingBadge = await hasQualifyingCommunityBadge(candidateId)
+
+  if (!hasQualifyingBadge) {
+    return (
+      <div className="space-y-4 rounded-lg border border-border p-6">
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Community unlocks once you&apos;ve earned any milestone badge.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Everyone here has done at least one real, verifiable thing to get in — a reference that
+            came back, a resolved resume issue, a completed profile, a search streak. It&apos;s not
+            about your privacy settings; it&apos;s about having done some real work first, so this
+            isn&apos;t just a room for venting about the market.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/stats"
+          className="inline-flex items-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand/90"
+        >
+          See what unlocks it
+        </Link>
       </div>
     )
   }
@@ -601,7 +642,7 @@ async function CommunityTab({
   if (!hasIntroduced) {
     const [previewPosts, previewCommunityFeed, previewMarketBrief] = await Promise.all([
       prisma.communityPost.findMany({
-        where: { isActive: true },
+        where: { isActive: true, ...communityModerationWhere(candidateId) },
         include: {
           candidate: { select: { firstName: true, lastName: true } },
           reactions: { where: { candidateId } },
@@ -663,6 +704,7 @@ async function CommunityTab({
         isActive: true,
         ...communityPostWhere(activeCommunity),
         ...communityGroupWhere(searchParams.group),
+        ...communityModerationWhere(candidateId),
       },
       include: {
         candidate: { select: { firstName: true, lastName: true } },
