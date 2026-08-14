@@ -92,7 +92,7 @@ async function computeLevelRankLive(
   return { score, label: scoreToLevelRankLabel(score) }
 }
 
-// Lazy-backfill read — mirrors getCategoryBaseline() in hireability-grade.ts:
+// Lazy-backfill read — mirrors getCategoryBaseline() in dossier-competencies.ts:
 // returns the persisted baseline if one exists, otherwise computes it live
 // once and persists it. Never recomputes on a read once a value exists —
 // safe to call from any ordinary page render or matching query.

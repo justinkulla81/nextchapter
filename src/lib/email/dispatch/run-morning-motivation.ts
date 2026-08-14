@@ -7,7 +7,7 @@ import { sendWeeklyGoalAssignedEmail } from '@/lib/email/send-weekly-goal-assign
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
-import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
 
 // isGoalBonus rows are the one-time welcome/commitment credit, not a real
@@ -76,7 +76,7 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
       const completedLastWeek = actionLabels(priorActions.filter((a) => a.completed))
       const thisWeekPlan = actionLabels(currentSprint.committedActions as unknown as CommittedAction[]).slice(0, 5)
 
-      const grade = await computeHireabilityGrade(candidate as CandidateWithGradeRelations)
+      const grade = await computeDossierCompetencies(candidate as CandidateWithGradeRelations)
 
       const result = await sendWeeklyGoalAssignedEmail(
         candidate,

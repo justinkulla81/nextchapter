@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { BountyClaimForm } from '@/components/dashboard/BountyClaimForm'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
-import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
@@ -32,7 +32,7 @@ export default async function GotHiredPage() {
       where: { candidateId: profile.id },
       orderBy: { createdAt: 'desc' },
     }),
-    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
   ])
   const isAGrade = grade.grade === 'A'
 

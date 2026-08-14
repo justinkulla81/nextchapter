@@ -1,6 +1,6 @@
 // Pure calibration math for the internal, invisible-to-users "level rank"
 // signal — no server-only dependency (mirrors grade.ts's split from
-// hireability-grade.ts), so this is importable from a standalone script
+// dossier-competencies.ts), so this is importable from a standalone script
 // without pulling in Prisma/the market-data resolver, and independently
 // testable. See src/lib/scoring/level-rank-service.ts for the Prisma-backed
 // orchestration that blends multiple work-history entries using this math.

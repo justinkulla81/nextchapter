@@ -25,6 +25,19 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  // Permanent redirect for the Hireability Report -> Market Reality rename
+  // (the dashboard/hireability-report route moved to dashboard/market-reality).
+  // Keeps old bookmarks/emails/external links working; internal links were
+  // all updated to point at the new path directly rather than relying on this.
+  async redirects() {
+    return [
+      {
+        source: '/dashboard/hireability-report',
+        destination: '/dashboard/market-reality',
+        permanent: true,
+      },
+    ];
+  },
   // Routes PostHog's client SDK through our own domain so ad blockers that
   // target posthog.com/i.posthog.com don't silently drop analytics.
   async rewrites() {

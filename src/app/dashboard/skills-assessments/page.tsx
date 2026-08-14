@@ -94,9 +94,9 @@ export default async function SkillsAssessmentsPage() {
       title: 'How I Perform',
       description:
         'How you execute, decide, hold up under pressure, and get things done through other people. Your references answer these same questions about you.',
-      feeds: 'Feeds: Hireability Report category grades · Hiring Manager Notes',
+      feeds: 'Feeds: Market Reality Report category grades · Hiring Manager Notes',
       sharedWith:
-        'Who sees it: your Coach, and — once your Executive Dossier is unlocked — recruiters and hiring managers. It also shapes your own Hireability Report grades.',
+        'Who sees it: your Coach, and — once your Executive Dossier is unlocked — recruiters and hiring managers. It also shapes your own Market Reality Report grades.',
       completedAt: latestPerformanceResponse?.completedAt ?? null,
       points: estimateActionEffort({ actionType: 'PERFORMANCE_ASSESSMENT_COMPLETED' }).points,
       href: '/dashboard/how-i-perform',
@@ -107,7 +107,7 @@ export default async function SkillsAssessmentsPage() {
       title: 'Skills Inventory',
       description:
         'A candid self-read on your core function, AI fluency, and a few other skills that drive how jobs and courses get matched to you.',
-      feeds: 'Feeds: Job Recommendations · Skills Recommendations · Hireability Report',
+      feeds: 'Feeds: Job Recommendations · Skills Recommendations · Market Reality Report',
       sharedWith: 'Who sees it: no one — personalization only, used to match jobs and courses to you.',
       completedAt: profile.skillsAssessmentCompletedAt,
       points: estimateActionEffort({ actionType: 'SKILLS_ASSESSMENT_COMPLETED' }).points,
@@ -168,7 +168,7 @@ export default async function SkillsAssessmentsPage() {
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Skills & Behavioral Assessments</h1>
         <p className="text-muted-foreground">
-          These personalize your Job Recommendations, Skills Recommendations, and Hireability
+          These personalize your Job Recommendations, Skills Recommendations, and Market Reality
           Report — the more current they are, the better the matches.
         </p>
         <PageHeaderBoxes pageKey="skills-assessments" candidateId={profile.id} />

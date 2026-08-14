@@ -29,7 +29,7 @@ export function PersonaOnboardingCta({
         />
       }
     >
-      Get your Hireability Assessment
+      Get your Market Reality Assessment
     </Button>
   )
 }

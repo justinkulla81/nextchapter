@@ -64,7 +64,7 @@ export function getMondayOfWeek(date: Date): Date {
 // deliberately NOT `candidate._count.weeklySprints + 1`: that expression is
 // only correct in the narrow window before the current week's own row has
 // been created (e.g. inside auto-assign-sprint, right before it commits).
-// Everywhere else — the dashboard, the Hireability Report, admin pacing,
+// Everywhere else — the dashboard, the Market Reality Report, admin pacing,
 // coach replies, the Friday gap-nudge email — runs AFTER that row already
 // exists, so `_count.weeklySprints` includes the current week too and the
 // `+1` overcounts by one, silently bumping every target to next week's ramp
@@ -170,22 +170,22 @@ export async function hasStartedSprint(candidateId: string): Promise<boolean> {
 }
 
 // Suggested actions for the upcoming week — flattened from the candidate's
-// most recent Hireability Report 7-day plan. (There is no weekly-report
+// most recent Market Reality Report 7-day plan. (There is no weekly-report
 // generator; SundayNightReport is only ever populated by the seed script,
 // so this is the only real source of personalized suggestions today.)
 async function getPersonalizedSuggestions(candidateId: string): Promise<SuggestedAction[]> {
-  const hireabilityReport = await prisma.hireabilityReport.findFirst({
+  const marketRealityReport = await prisma.marketRealityReport.findFirst({
     where: { candidateId },
     orderBy: { generatedAt: 'desc' },
   })
-  if (!hireabilityReport) return []
+  if (!marketRealityReport) return []
 
   type RawActionPlanItem = string | { text: string; actionType?: string }
   interface ActionPlanDay {
     day: number
     items: RawActionPlanItem[]
   }
-  const actionPlan = hireabilityReport.actionPlan as unknown as ActionPlanDay[]
+  const actionPlan = marketRealityReport.actionPlan as unknown as ActionPlanDay[]
   const seen = new Set<string>()
   const suggestions: SuggestedAction[] = []
   for (const day of actionPlan) {
@@ -198,7 +198,7 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
       // this platform's own automatic goal-assignment, not a real action
       // with a link or a way to verify it. The prompt now forbids generating
       // new instances of this (see the HARD REQUIREMENT in
-      // hireability-report.ts), but this also filters out any
+      // market-reality-report.ts), but this also filters out any
       // already-generated report from before that fix.
       if (!item.actionType && /\bsearch sprint\b/i.test(item.text)) continue
       suggestions.push({ text: item.text, actionType: item.actionType, isAStandard: suggestions.length < 3 })
@@ -246,7 +246,7 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
   })
 
   // getPersonalizedSuggestions flattens a frozen, point-in-time snapshot
-  // (the Hireability Report's 7-day plan, or the last Sunday Night Report) —
+  // (the Market Reality Report's 7-day plan, or the last Sunday Night Report) —
   // it has no idea the candidate has since confirmed something it suggested.
   // Only SALARY_CONFIRM/WORK_AUTHORIZATION got a live re-check below when
   // they were added; PROFILE_CONFIRM/INDUSTRY_CONFIRM/FUNCTION_CONFIRM never

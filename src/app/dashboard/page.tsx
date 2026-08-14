@@ -1,14 +1,14 @@
-import type { HireabilityReport } from '@prisma/client'
+import type { MarketRealityReport } from '@prisma/client'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
-import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
+import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
-import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
 import { SentimentSupportCard } from '@/components/dashboard/SentimentSupportCard'
@@ -51,8 +51,8 @@ import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCar
 // report email if it hasn't gone out — see the comment at its call site.
 async function resolveLatestReport(
   candidateId: string,
-  existingReport: HireabilityReport | undefined
-): Promise<HireabilityReport | undefined> {
+  existingReport: MarketRealityReport | undefined
+): Promise<MarketRealityReport | undefined> {
   let latestReport = existingReport
   if (!latestReport) {
     // Only proceed if we win the claim — otherwise another invocation is
@@ -60,25 +60,25 @@ async function resolveLatestReport(
     // re-fetch instead of generating a duplicate.
     if (await claimReportGeneration(candidateId)) {
       try {
-        await generateHireabilityReport(candidateId)
+        await generateMarketRealityReport(candidateId)
       } catch (error) {
-        console.error('Failed to generate hireability report on demand:', error)
+        console.error('Failed to generate market reality report on demand:', error)
       }
     }
     latestReport =
-      (await prisma.hireabilityReport.findFirst({
+      (await prisma.marketRealityReport.findFirst({
         where: { candidateId },
         orderBy: { generatedAt: 'desc' },
       })) ?? undefined
   }
   if (latestReport && !latestReport.emailSentAt) {
-    await sendHireabilityReportEmail(candidateId)
+    await sendMarketRealityReportEmail(candidateId)
   }
   return latestReport
 }
 
 // getUnviewedSessionImpact makes a live, uncached Anthropic call (unlike
-// computeHireabilityGrade's market/company-size lookups, this one has no
+// computeDossierCompetencies's market/company-size lookups, this one has no
 // self-cache — it's a genuine "show this exact summary once" read, gated on
 // marking the session viewed in the same call) whenever a candidate has an
 // unviewed coach session from the last 7 days. Isolated in its own Suspense
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
   // (an LLM call plus external market-data lookups) is unbounded and must
   // never be able to time out the page itself; nothing on this page reads
   // its result.
-  after(() => resolveLatestReport(profile.id, profile.hireabilityReports[0]))
+  after(() => resolveLatestReport(profile.id, profile.marketRealityReports[0]))
 
   const weekStartDate = getMondayOfWeek(new Date())
   const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
-    computeHireabilityGrade(profile),
+    computeDossierCompetencies(profile),
     getTodaysMood(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprint(profile.id),

@@ -1,10 +1,10 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import {
-  computeHireabilityGrade,
+  computeDossierCompetencies,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
-} from '@/lib/scoring/hireability-grade'
+} from '@/lib/scoring/dossier-competencies'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { isWeakFit, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
@@ -20,7 +20,7 @@ export interface CoachJobsSnapshot {
 // eligibility/fit logic the candidate themselves sees (see
 // find-my-job/page.tsx), just computed against that specific candidateId
 // and with no write actions. Confirmed nothing existing (getFullClientView,
-// GRADE_RELATIONS_INCLUDE + computeHireabilityGrade) already exposes this
+// GRADE_RELATIONS_INCLUDE + computeDossierCompetencies) already exposes this
 // combination, so this is new plumbing rather than a duplicate.
 export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJobsSnapshot> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
@@ -29,7 +29,7 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
   })
 
   const [grade, boardPostings, unreactedSurfacedJobs] = await Promise.all([
-    computeHireabilityGrade(candidate as unknown as CandidateWithGradeRelations),
+    computeDossierCompetencies(candidate as unknown as CandidateWithGradeRelations),
     prisma.exclusiveJobPosting.findMany({
       where: {
         status: 'approved',

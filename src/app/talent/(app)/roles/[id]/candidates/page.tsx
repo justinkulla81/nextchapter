@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { CandidateCard } from '@/components/talent/CandidateCard'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 
 export default async function MatchInboxPage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,10 +46,10 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       levelRankScore: true,
       priorityMaxComp: true,
       priorityWorkLife: true,
-      hireabilityReports: {
+      marketRealityReports: {
         orderBy: { generatedAt: 'desc' },
         take: 1,
-        select: { hireabilityGradeAtGeneration: true },
+        select: { dossierGradeAtGeneration: true },
       },
       _count: { select: { learningBadges: true, outreachLogs: true } },
       jobPostings: { select: { appliedAt: true } },
@@ -59,7 +59,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
 
   const candidates = candidatesRaw
     .filter((c) => {
-      const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
+      const grade = normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)
       return grade?.grade === 'A'
     })
     .slice(0, 100)

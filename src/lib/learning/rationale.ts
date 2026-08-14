@@ -1,5 +1,5 @@
 // Priority order for why a given Learning-page item is being shown: (1) a
-// named gap from the candidate's own Hireability Report — the richest,
+// named gap from the candidate's own Market Reality Report — the richest,
 // most specific signal, already candidate-facing LLM prose elsewhere in
 // the app; (2) a direct quote back from their curated "skills to build"
 // tag list; (3) a structural fact ("Common for {function} roles",

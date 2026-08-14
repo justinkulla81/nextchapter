@@ -25,7 +25,7 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
   try {
     const [candidate, report] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.hireabilityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
+      prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
     ])
 
     const admin = createAdminClient()

@@ -117,7 +117,7 @@ export function CreateAccountForm({ email: initialEmail }: { email: string | nul
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">
           Check <span className="font-medium">{email}</span> for a link to set your password and
-          see your full Hireability Report. Confirmation emails can occasionally take a while to
+          see your full Market Reality Report. Confirmation emails can occasionally take a while to
           arrive — if you don&apos;t see it after a few minutes, check spam or resend it below.
         </p>
         <button

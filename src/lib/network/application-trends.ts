@@ -95,7 +95,7 @@ function buildBreakdown(values: (string | null)[]): { breakdown: TrendBreakdownE
 // across job function, industry, and geography, plus whether their pace is
 // too slow, healthy, or spray-and-pray — surfaced in both the Market
 // Reality Report and Coaching Notes (both read this from the persisted
-// HireabilityReport.jobSearchPattern JSON rather than recomputing live, so
+// MarketRealityReport.jobSearchPattern JSON rather than recomputing live, so
 // the one new metered cost here — resolveCompanyIndustry's LLM call for a
 // genuinely new company — only ever fires at report-(re)generation time,
 // never on a page view).

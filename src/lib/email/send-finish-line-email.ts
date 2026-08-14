@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getVictoriaName } from '@/lib/victoria'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
-import { computeWeeklyEngines } from '@/lib/scoring/hireability-grade'
+import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import FinishLineEmail from '@/emails/finish-line'
 

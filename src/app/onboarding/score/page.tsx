@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import {
-  computeHireabilityGrade,
+  computeDossierCompetencies,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
-} from '@/lib/scoring/hireability-grade'
+} from '@/lib/scoring/dossier-competencies'
 import { GradeReveal } from '@/components/candidates/GradeReveal'
 import { Button } from '@/components/ui/button'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -27,7 +27,7 @@ export default async function ScorePage() {
     include: GRADE_RELATIONS_INCLUDE,
   })
 
-  const grade = await computeHireabilityGrade(candidateWithRelations as unknown as CandidateWithGradeRelations)
+  const grade = await computeDossierCompetencies(candidateWithRelations as unknown as CandidateWithGradeRelations)
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">

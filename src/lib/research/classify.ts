@@ -10,8 +10,8 @@ import { getAnthropicClient } from '@/lib/anthropic'
 // for the classifier's judgment call.
 const LOCKED_PRODUCT_DECISIONS = [
   'Candidates are always shown a letter grade (A-F), never a raw numeric score.',
-  'Coaches never see a candidate\'s Hireability grade before a match is confirmed.',
-  'Employers and recruiters never see a candidate\'s internal Hireability grade under any circumstance.',
+  'Coaches never see a candidate\'s Market Reality Grade before a match is confirmed.',
+  'Employers and recruiters never see a candidate\'s internal Market Reality Grade under any circumstance.',
   'The AI coaching persona (Victoria) escalates directness based on weeks unemployed, not a single fixed tone.',
   'Coach-candidate matching at current scale runs on manual admin oversight, not automated fairness enforcement.',
 ]

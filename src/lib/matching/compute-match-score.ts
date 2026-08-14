@@ -5,7 +5,7 @@ import { HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
 import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 
 // P0-only heuristic — deterministic overlap across function/level/location/comp.
-// This is NOT the real Hireability/Employability score and must never be fed
+// This is NOT the real Market Reality/Employability score and must never be fed
 // one — see the note on `scoreToGrade` usage below. A real "Match Graph" (P1)
 // would weigh many more signals; this is a reasonable first cut.
 export interface MatchResult {

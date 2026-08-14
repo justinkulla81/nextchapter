@@ -6,7 +6,7 @@ import { LINKEDIN_POINTS_WINDOW_DAYS } from '@/lib/constants/linkedin'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
-import { computeHireabilityGrade, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/dossier-competencies'
 import { getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
@@ -43,7 +43,7 @@ export async function generateCoachReply(
   windowStart.setDate(windowStart.getDate() - LINKEDIN_POINTS_WINDOW_DAYS)
   const recentLinkedInPosts = candidate.linkedInActivityLogs.filter((l) => l.loggedAt > windowStart).length
 
-  const grade = await computeHireabilityGrade(candidate)
+  const grade = await computeDossierCompetencies(candidate)
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
@@ -74,7 +74,7 @@ Asked someone for help: ${candidate.askedForHelpAt ? 'yes' : 'no'}
       // well within Sonnet's range, and chat quality depends more on
       // responsiveness than on marginal reasoning depth; adaptive thinking
       // still covers the turns that genuinely need to reason. Opus stays
-      // reserved for the once-per-candidate Hireability Report.
+      // reserved for the once-per-candidate Market Reality Report.
       model: 'claude-sonnet-5',
       max_tokens: 1000,
       thinking: { type: 'adaptive' },

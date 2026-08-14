@@ -5,7 +5,7 @@ import type { CommittedAction } from '@/lib/weekly/sprint'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
@@ -139,11 +139,11 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
   const [candidate, recentReports, currentSprint, avoidancePattern, moodInfo, keyOnboardingAnswers, lastSessionWithFocusNote] =
     await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.hireabilityReport.findMany({
+      prisma.marketRealityReport.findMany({
         where: { candidateId },
         orderBy: { generatedAt: 'desc' },
         take: 2,
-        select: { hireabilityGradeAtGeneration: true },
+        select: { dossierGradeAtGeneration: true },
       }),
       prisma.weeklySprint.findUnique({
         where: { candidateId_weekStartDate: { candidateId, weekStartDate: getMondayOfWeek(new Date()) } },
@@ -160,9 +160,9 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
 
   const [latestReport, previousReport] = recentReports
   const executionGrade =
-    normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration)?.grade ?? null
+    normalizeGradeSnapshot(latestReport?.dossierGradeAtGeneration)?.grade ?? null
   const previousGrade =
-    normalizeGradeSnapshot(previousReport?.hireabilityGradeAtGeneration)?.grade ?? null
+    normalizeGradeSnapshot(previousReport?.dossierGradeAtGeneration)?.grade ?? null
   const trend: Trend =
     executionGrade && previousGrade
       ? GRADE_ORDER.indexOf(executionGrade) > GRADE_ORDER.indexOf(previousGrade)

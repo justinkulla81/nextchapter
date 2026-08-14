@@ -249,7 +249,7 @@ function computeRawAggregates(candidates: CandidateSnapshot[], asOf: Date): RawA
       ? candidates.filter((c) => c.sprintTargetWeeks.some((d) => d.getTime() === latestWeekStart)).length
       : 0
 
-  // Average grade metrics need a live per-candidate computeHireabilityGrade
+  // Average grade metrics need a live per-candidate computeDossierCompetencies
   // call (extra relations + queries per candidate) rather than a stored
   // snapshot — not worth the N+1 cost for this batch view yet, so these
   // stay honestly untracked instead of reading from the dead report table.

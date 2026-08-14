@@ -8,7 +8,7 @@
 // behavioral anchor text and dimension labels — never dimensionVectors
 // numbers, inconsistencyScore deltas, or internal jargon.
 //
-// HARD RULE: the candidate's Hireability/Employability Score is for the
+// HARD RULE: the candidate's Market Reality/Employability Grade is for the
 // candidate only, full stop — it must never appear anywhere in this report
 // (or any other employer-facing surface). Employers see work ethic,
 // motivation signals, references, work samples, and this self-vs-reference

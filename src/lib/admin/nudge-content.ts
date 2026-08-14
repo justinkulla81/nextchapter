@@ -3,7 +3,7 @@ import type { AdminNudgeType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 
@@ -246,13 +246,13 @@ async function buildRecruiterHelpDraft(candidateId: string, firstName: string): 
       where: { id: candidateId },
       select: { recruiterDatabaseOptIn: true, coachId: true },
     }),
-    prisma.hireabilityReport.findFirst({
+    prisma.marketRealityReport.findFirst({
       where: { candidateId },
       orderBy: { generatedAt: 'desc' },
-      select: { hireabilityGradeAtGeneration: true },
+      select: { dossierGradeAtGeneration: true },
     }),
   ])
-  const grade = latestReport ? normalizeGradeSnapshot(latestReport.hireabilityGradeAtGeneration)?.grade : null
+  const grade = latestReport ? normalizeGradeSnapshot(latestReport.dossierGradeAtGeneration)?.grade : null
 
   const statusLine = [
     grade ? `You're currently graded ${grade}.` : `You don't have a graded report yet.`,

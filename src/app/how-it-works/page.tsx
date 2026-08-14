@@ -23,7 +23,7 @@ const STEPS: Step[] = [
   {
     icon: Compass,
     eyebrow: 'Step 1',
-    title: 'Hireability Assessment',
+    title: 'Market Reality Assessment',
     description:
       "We analyze your resume, experience, and how your target market is actually hiring right now, and give you an honest Current Market Reality — exactly where you stand today, before you change anything.",
   },
@@ -147,7 +147,7 @@ export default function HowItWorksPage() {
 
         <div className="mt-16 text-center">
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/desire" />}>
-            Get your Hireability Assessment
+            Get your Market Reality Assessment
           </Button>
         </div>
       </div>

@@ -139,7 +139,7 @@ export function MarketRealityOverview({
           <MarketRealitySnapshotArchive snapshots={archiveSnapshots} />
           <p className="text-xs text-muted-foreground">
             The full narrative behind any week&apos;s grade lives on your{' '}
-            <Link href="/dashboard/hireability-report" className="text-primary underline underline-offset-4">
+            <Link href="/dashboard/market-reality" className="text-primary underline underline-offset-4">
               Market Reality Report
             </Link>
             .

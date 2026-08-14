@@ -77,7 +77,7 @@ export function MotivationChart({
             r={p.isBaseline ? 4 : 3.5}
             fill={p.isBaseline ? 'var(--color-muted-foreground)' : 'var(--color-brand)'}
           >
-            <title>{`${p.isBaseline ? 'Starting point (from your Hireability Assessment)' : formatDate(p.date)}: ${p.label}`}</title>
+            <title>{`${p.isBaseline ? 'Starting point (from your Market Reality Assessment)' : formatDate(p.date)}: ${p.label}`}</title>
           </circle>
         ))}
 

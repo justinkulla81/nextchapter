@@ -28,7 +28,7 @@ export async function GET() {
       resumes: true,
       jobPostings: true,
       communityPosts: true,
-      hireabilityReports: true,
+      marketRealityReports: true,
       linkedInActivityLogs: true,
       dailyCheckIns: true,
       weeklySprints: true,

@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
               <strong>Information you provide directly:</strong> your name, email address, phone
               number, location, work history, career goals, target roles and compensation, resume
               and other documents you upload, work samples, interview and community post text, and
-              your responses to the Hireability Assessment.
+              your responses to the Market Reality Assessment.
             </li>
             <li>
               <strong>Information others provide about you:</strong> if you request a reference,

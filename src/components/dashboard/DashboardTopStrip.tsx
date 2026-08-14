@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { CalendarDays, Flame, TrendingUp, Target, ChevronDown } from 'lucide-react'
-import type { HireabilityGrade } from '@/lib/scoring/grade'
+import type { DossierCompetencies } from '@/lib/scoring/grade'
 import { GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewed
 // The grade color tokens (text-success/text-brand/text-warning/text-error)
 // double as StatTile accent keys — stripping the "text-" prefix reuses the
 // one source of truth in grade.ts instead of a second grade->color map.
-function gradeAccent(grade: HireabilityGrade['grade']): StatTileAccent {
+function gradeAccent(grade: DossierCompetencies['grade']): StatTileAccent {
   return GRADE_TEXT_COLOR[grade].replace('text-', '') as StatTileAccent
 }
 
@@ -33,7 +33,7 @@ export async function DashboardTopStrip({
   badgesLastSeenCount,
 }: {
   candidateId: string
-  grade: HireabilityGrade
+  grade: DossierCompetencies
   searchExecutionAvailable: boolean
   currentStreak: number
   weekNumber: number
@@ -86,8 +86,8 @@ export async function DashboardTopStrip({
             label="Current Market Reality"
             accent={gradeAccent(grade.grade)}
             icon={TrendingUp}
-            title="How the market currently sees you, based on your Hireability Assessment."
-            href="/dashboard/hireability-report"
+            title="How the market currently sees you, based on your Market Reality Assessment."
+            href="/dashboard/market-reality"
           />
         </div>
 

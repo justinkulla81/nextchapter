@@ -239,7 +239,7 @@ export function CallbackHandler() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Confirm your email address</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            One click and you&apos;re in — confirm to unlock your full Hireability Report and
+            One click and you&apos;re in — confirm to unlock your full Market Reality Report and
             action plan.
           </p>
         </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: 'Privacy Settings' }
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
   const [grade, coach] = await Promise.all([
-    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
       : Promise.resolve(null),
@@ -48,7 +48,7 @@ export default async function PrivacyPage() {
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Email options</h2>
         <p className="text-sm text-muted-foreground">
-          How often you hear from us. Your Hireability Report and any reminder emails always send
+          How often you hear from us. Your Market Reality Report and any reminder emails always send
           regardless of this setting.
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />

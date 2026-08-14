@@ -51,7 +51,7 @@ export async function sendWeeklyGoalAssignedEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const dashboardUrl = `${appUrl}/dashboard`
-  const marketRealityReportUrl = `${appUrl}/dashboard/hireability-report`
+  const marketRealityReportUrl = `${appUrl}/dashboard/market-reality`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=weekly`
 
   const {

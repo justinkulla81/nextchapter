@@ -139,7 +139,7 @@ export async function updateSearchStrategy(
 
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 }
 
 // Consolidates the two unlock gates that used to live directly on My

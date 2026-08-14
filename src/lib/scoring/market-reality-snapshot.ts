@@ -4,7 +4,7 @@ import {
   computeCategoryGrades,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
-} from '@/lib/scoring/hireability-grade'
+} from '@/lib/scoring/dossier-competencies'
 import { scoreToGrade, type CategoryGrade } from '@/lib/scoring/grade'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'

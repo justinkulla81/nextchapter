@@ -60,7 +60,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { type Grade } from '@/lib/scoring/grade'
 import { Spinner } from '@/components/ui/spinner'
-import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
@@ -445,7 +445,7 @@ async function FindMyJobBody({
   // entirely inside JobRecommendationsSection below now, wrapped in
   // Suspense, so the rest of the page never blocks on them.
   const [grade, boardPostings, latestReport] = await Promise.all([
-    computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+    computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
     prisma.exclusiveJobPosting.findMany({
       where: {
         status: 'approved',
@@ -460,7 +460,7 @@ async function FindMyJobBody({
     // live here, since computeApplicationTrends calls resolveCompanyIndustry
     // (a real LLM call for a genuinely new company) and this page renders on
     // every visit, not just once a week like the report does.
-    prisma.hireabilityReport.findFirst({
+    prisma.marketRealityReport.findFirst({
       where: { candidateId: profile.id },
       orderBy: { generatedAt: 'desc' },
       select: { jobSearchPattern: true },

@@ -1,7 +1,7 @@
 // Pure types/values for the single Current Market Reality — no server-only
 // dependencies, so client components (e.g. the animated score-reveal ring)
 // can import these directly without pulling in the Prisma/market-data
-// computation in hireability-grade.ts.
+// computation in dossier-competencies.ts.
 //
 // Scoring Model 2.0: there is one grade, built from six categories (Target
 // Fit plus five hiring-manager competency categories) and a weekly-effort
@@ -51,7 +51,7 @@ export const GRADE_BAND_DESCRIPTION: Record<Grade, string> = {
 
 // Shared color tokens for every grade display in the product — previously
 // duplicated across DualGradeReveal, GradeSystemExplainer, DashboardTopStrip,
-// and the hireability-report page. One source of truth now.
+// and the market-reality page. One source of truth now.
 export const GRADE_TEXT_COLOR: Record<Grade, string> = {
   A: 'text-success',
   B: 'text-brand',
@@ -127,7 +127,7 @@ export const CATEGORY_EXPLANATION: Record<CategoryKey, string> = {
 // Whether a candidate's self-report on a category agrees with harder
 // evidence (a completed reference, or a How I Work Best result). Shown
 // only where it's flattering on the Dossier; shown both directions in
-// Coaching Notes and the Hireability Report. 'not_available' — not a
+// Coaching Notes and the Market Reality Report. 'not_available' — not a
 // guessed pass — is used whenever the evidence needed to make the
 // comparison doesn't exist yet (most commonly: no completed reference).
 export type SelfAwarenessStatus = 'match' | 'mismatch' | 'not_available'
@@ -212,7 +212,7 @@ export interface WeeklyEngine {
 export const CATEGORY_MINIMUM_ENFORCED_FROM_WEEK = 4
 export const CATEGORY_MINIMUM_SCORE_FLOOR = 50 // grade C
 
-export interface HireabilityGrade {
+export interface DossierCompetencies {
   score: number
   grade: Grade
   categories: CategoryGrade[]

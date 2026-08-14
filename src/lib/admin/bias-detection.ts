@@ -159,19 +159,19 @@ export async function getBiasDetectionSections(): Promise<BiasDetectionSection[]
         weeklyBadgesEarned: { select: { id: true }, take: 1 },
       },
     }),
-    // Most recent HireabilityReport per candidate, read as a cheap
+    // Most recent MarketRealityReport per candidate, read as a cheap
     // persisted snapshot rather than live-recomputing the grade for every
     // candidate on every dashboard load.
-    prisma.hireabilityReport.findMany({
+    prisma.marketRealityReport.findMany({
       orderBy: { generatedAt: 'desc' },
-      select: { candidateId: true, hireabilityGradeAtGeneration: true },
+      select: { candidateId: true, dossierGradeAtGeneration: true },
     }),
   ])
 
   const gradeByCandidateId = new Map<string, Grade | null>()
   for (const report of latestReports) {
     if (gradeByCandidateId.has(report.candidateId)) continue // keep only the first (most recent) per candidate
-    const snapshot = report.hireabilityGradeAtGeneration as { grade?: Grade } | null
+    const snapshot = report.dossierGradeAtGeneration as { grade?: Grade } | null
     gradeByCandidateId.set(report.candidateId, snapshot?.grade ?? null)
   }
 

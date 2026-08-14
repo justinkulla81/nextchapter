@@ -7,7 +7,7 @@ import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
 
 // This module is the ONLY place allowed to query CandidateProfile for
 // thread/inbox display — select only minimal display fields (name, avatar),
-// never hireabilityReports, assessmentResponses, email, or phone. Applies
+// never marketRealityReports, assessmentResponses, email, or phone. Applies
 // even inside the coach portal, where dossier access is a separate,
 // already-consent-gated surface (coachDossierConsentedAt) that messaging
 // must not bypass. profilePictureUrl is likewise never selected anywhere

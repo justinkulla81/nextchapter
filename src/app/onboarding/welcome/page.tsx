@@ -36,7 +36,7 @@ export default async function WelcomePage() {
             employers right now.
           </p>
           <ul className="list-disc space-y-1.5 pl-5">
-            <li>Your Hireability Assessment set your starting grade.</li>
+            <li>Your Market Reality Assessment set your starting grade.</li>
             <li>Complete your weekly Search Sprint and your grade moves, because you&apos;re proving you&apos;re doing the work.</li>
             <li><strong>Learning</strong>, <strong>Working</strong>, and <strong>Networking</strong> raise it the same way, over time.</li>
           </ul>

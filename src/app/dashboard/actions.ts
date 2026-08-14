@@ -236,7 +236,7 @@ export async function confirmProfile(
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 }
 
 export async function confirmEducation(
@@ -281,7 +281,7 @@ export async function confirmIndustry(
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 }
 
 export async function updateResumeKeywords(
@@ -323,7 +323,7 @@ export async function confirmFunctionAndExperience(
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 
   try {
     await recomputeCandidateLevelRank(profile.id)
@@ -355,7 +355,7 @@ export async function confirmLinkedIn(
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/linkedin')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 }
 
 export async function confirmSalary(_prevState: ConfirmFormState, formData: FormData): Promise<ConfirmFormState> {
@@ -376,7 +376,7 @@ export async function confirmSalary(_prevState: ConfirmFormState, formData: Form
     captureServerEvent(profile.id, 'salary_confirmed', { declined: true })
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/profile')
-    revalidatePath('/dashboard/hireability-report')
+    revalidatePath('/dashboard/market-reality')
     return
   }
 
@@ -396,7 +396,7 @@ export async function confirmSalary(_prevState: ConfirmFormState, formData: Form
   captureServerEvent(profile.id, 'salary_confirmed', { declined: false })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 }
 
 export async function confirmWorkAuthorization(
@@ -416,7 +416,7 @@ export async function confirmWorkAuthorization(
   })
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/profile')
-  revalidatePath('/dashboard/hireability-report')
+  revalidatePath('/dashboard/market-reality')
 }
 
 // Blockers + Motivations (Personal Context, PersonalContextForm) — stays

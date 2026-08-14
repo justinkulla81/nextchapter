@@ -1,7 +1,7 @@
 import { GRADE_VALUE, type Grade } from '@/lib/scoring/grade'
 
 // Same hand-rolled SVG pattern as MotivationChart — no charting library in
-// this project. Plots Current Market Reality (the "Hireability Score" trend,
+// this project. Plots Current Market Reality (the "Market Reality Grade" trend,
 // per Prompt 50) over the archived weekly snapshots from Prompt 46. Grades
 // are ordinal (A-F), not a raw score — this reads them onto a 0-4 axis
 // purely for line position, never displays a numeric score anywhere.

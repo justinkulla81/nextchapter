@@ -195,7 +195,7 @@ export default async function SharedProfilePage({
           </section>
         )}
 
-        {view.hireabilityGrade && (
+        {view.marketRealityGrade && (
           <section>
             <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
               Grades
@@ -204,9 +204,9 @@ export default async function SharedProfilePage({
               <div>
                 <p className="text-xs text-muted-foreground">Current Market Reality</p>
                 <p className="text-lg font-semibold">
-                  {view.hireabilityGrade.grade}{' '}
+                  {view.marketRealityGrade.grade}{' '}
                   <span className="text-sm font-normal text-muted-foreground">
-                    ({GRADE_LABEL[view.hireabilityGrade.grade]})
+                    ({GRADE_LABEL[view.marketRealityGrade.grade]})
                   </span>
                 </p>
               </div>

@@ -186,7 +186,7 @@ export default async function PersonalInformationPage() {
           <CardContent>
             <p className="mb-3 text-xs text-muted-foreground">
               Shared with your coach to inform pay-related coaching — never included in your
-              recruiter dossier or Hireability Report.
+              recruiter dossier or Market Reality Report.
             </p>
             <SalaryConfirmForm lastSalary={profile.lastSalary} confirmedAt={profile.salaryConfirmedAt} />
           </CardContent>

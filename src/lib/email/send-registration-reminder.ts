@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import CompleteRegistrationReminderEmail from '@/emails/complete-registration-reminder'
 import { GRADE_BAND_DESCRIPTION } from '@/lib/scoring/grade'
-import { computeHireabilityGrade, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/dossier-competencies'
 
 export async function sendRegistrationReminderEmail({
   candidateId,
@@ -26,7 +26,7 @@ export async function sendRegistrationReminderEmail({
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}`
-    const grade = await computeHireabilityGrade(candidate)
+    const grade = await computeDossierCompetencies(candidate)
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({

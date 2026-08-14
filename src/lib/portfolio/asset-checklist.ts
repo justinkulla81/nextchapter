@@ -9,8 +9,8 @@ export interface PortfolioAssetInputs {
   hasResume: boolean
   hasCoverLetter: boolean
   hasNarrative: boolean
-  hasHireabilityReport: boolean
   hasMarketRealityReport: boolean
+  hasMarketRealitySnapshot: boolean
   hasWorkSample: boolean
   hasCompletedReference: boolean
   hasLearningBadge: boolean
@@ -20,8 +20,8 @@ export const PORTFOLIO_ASSET_LABELS: Record<keyof PortfolioAssetInputs, string> 
   hasResume: 'Resume',
   hasCoverLetter: 'A cover letter',
   hasNarrative: 'Your narrative',
-  hasHireabilityReport: 'Hireability Report',
   hasMarketRealityReport: 'Market Reality Report',
+  hasMarketRealitySnapshot: 'A weekly grade snapshot',
   hasWorkSample: 'A work sample',
   hasCompletedReference: 'A completed reference',
   hasLearningBadge: 'A learning credential',

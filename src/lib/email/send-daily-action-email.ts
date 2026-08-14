@@ -30,7 +30,7 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
   try {
     const [candidate, report] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.hireabilityReport.findFirst({
+      prisma.marketRealityReport.findFirst({
         where: { candidateId },
         orderBy: { generatedAt: 'desc' },
       }),

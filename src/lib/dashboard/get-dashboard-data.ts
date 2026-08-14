@@ -5,9 +5,9 @@ import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
-import { generateHireabilityReport } from '@/lib/reports/hireability-report'
+import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
-import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
+import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { recordCandidateLoginIfDue } from '@/lib/auth/record-login'
 import { getClientIp } from '@/lib/http/client-ip'
@@ -46,7 +46,7 @@ export const getDashboardData = cache(async () => {
       communityPosts: { where: { isActive: true }, orderBy: { createdAt: 'desc' } },
       surfacedJobs: { select: { reaction: true } },
       linkedInActivityLogs: true,
-      hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
+      marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       _count: { select: { weeklySprints: true } },
@@ -74,7 +74,7 @@ export const getDashboardData = cache(async () => {
   after(() => recordCandidateLoginIfDue(profile.id, clientIp, userAgent))
 
   // First dashboard load after finishing registration — generate and email
-  // the candidate's first Hireability Report now that we have a real,
+  // the candidate's first Market Reality Report now that we have a real,
   // confirmed address to send it to (moved here from the score-reveal page,
   // which runs before an account exists).
   if (justRegistered) {
@@ -83,9 +83,9 @@ export const getDashboardData = cache(async () => {
       // Two near-simultaneous loads (e.g. two tabs) can both see
       // justRegistered — only the one that wins the claim generates.
       if (await claimReportGeneration(candidateId)) {
-        await generateHireabilityReport(candidateId)
+        await generateMarketRealityReport(candidateId)
       }
-      await sendHireabilityReportEmail(candidateId)
+      await sendMarketRealityReportEmail(candidateId)
     })
   }
 

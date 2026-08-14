@@ -36,7 +36,7 @@ export default async function SituationPickerPage() {
           {profile?.firstName ? `Hi ${profile.firstName}, which of these sounds like you?` : 'Which of these sounds like you?'}
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Pick the one that fits best — we&apos;ll tailor your Hireability Assessment to your situation.
+          Pick the one that fits best — we&apos;ll tailor your Market Reality Assessment to your situation.
         </p>
       </div>
       <SituationForm />

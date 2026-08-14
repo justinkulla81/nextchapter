@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import type { Grade } from '@/lib/scoring/grade'
 
 export interface StructuralCorrelationRow {
@@ -43,10 +43,10 @@ export async function computeStructuralCorrelation(): Promise<Record<string, Str
       jobHoppingFlag: true,
       careerTrajectory: true,
       bountyClaims: { select: { status: true } },
-      hireabilityReports: {
+      marketRealityReports: {
         orderBy: { generatedAt: 'desc' },
         take: 1,
-        select: { hireabilityGradeAtGeneration: true },
+        select: { dossierGradeAtGeneration: true },
       },
     },
   })
@@ -54,7 +54,7 @@ export async function computeStructuralCorrelation(): Promise<Record<string, Str
   const enriched = candidates.map((c) => ({
     ...c,
     hasApprovedOffer: c.bountyClaims.some((b) => b.status === 'APPROVED'),
-    grade: normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)?.grade ?? null,
+    grade: normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)?.grade ?? null,
   }))
 
   const hasMBA = [

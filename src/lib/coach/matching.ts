@@ -18,8 +18,8 @@ export interface CoachShortlistEntry {
 }
 
 // Coach-Candidate Matching System, Phase 1. Runs on stated
-// specialization/fit only — this function never queries hireabilityReport,
-// hireabilityGradeAtGeneration, or any other grade/score field for this
+// specialization/fit only — this function never queries marketRealityReport,
+// dossierGradeAtGeneration, or any other grade/score field for this
 // candidate, so a coach's shortlist position can never be influenced by how
 // "easy" a candidate looks. Scores become visible to a coach only after a
 // match is confirmed and coachDossierConsentedAt is set, never before.

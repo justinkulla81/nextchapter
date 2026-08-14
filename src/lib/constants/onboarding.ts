@@ -221,7 +221,7 @@ export const TRADEOFF_PRIORITIES = [
 
 // The 4 discrete stops every ConfidenceSlider snaps to (see
 // components/onboarding/ConfidenceSlider.tsx) — shared here so server code
-// (e.g. the Hireability Report prompt) can translate a stored value back to
+// (e.g. the Market Reality Report prompt) can translate a stored value back to
 // its label without duplicating the slider's own stop list.
 export const CONFIDENCE_SLIDER_STOPS = [25, 50, 75, 100] as const
 

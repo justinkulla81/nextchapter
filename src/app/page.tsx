@@ -108,7 +108,7 @@ export default function Home() {
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             LinkedIn doesn&apos;t work. Job boards are a black hole. Get started with your
-            Hireability Report — we&apos;ll tell you exactly where you stand today, then give you
+            Market Reality Report — we&apos;ll tell you exactly where you stand today, then give you
             a personalized action plan that actually gets you hired.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -119,7 +119,7 @@ export default function Home() {
               className="h-14 px-8 text-base"
               render={<Link href="/onboarding/desire" />}
             >
-              Get your Hireability Assessment
+              Get your Market Reality Assessment
             </Button>
           </div>
 
@@ -314,7 +314,7 @@ export default function Home() {
               nativeButton={false}
               render={<Link href="/onboarding/desire" />}
             >
-              Get your Hireability score and then action plan to start your next chapter
+              Get your Market Reality Grade and then action plan to start your next chapter
             </Button>
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-light-blue">

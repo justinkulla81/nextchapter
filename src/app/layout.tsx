@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   description,
   keywords: [
     "job search",
-    "hireability grade",
+    "market reality grade",
     "candidate profile",
     "resume review",
     "job search platform",

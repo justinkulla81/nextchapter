@@ -5,7 +5,7 @@ interface Strength {
   detail: string
 }
 
-interface HireabilityReportEmailProps {
+interface MarketRealityReportEmailProps {
   candidateName: string
   topStrengths: Strength[]
   topWeakness: Strength | null
@@ -44,17 +44,17 @@ const footer: React.CSSProperties = {
   ...emailStyles.muted,
 }
 
-export default function HireabilityReportEmail({
+export default function MarketRealityReportEmail({
   candidateName,
   topStrengths,
   topWeakness,
   reportUrl,
-}: HireabilityReportEmailProps) {
+}: MarketRealityReportEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {candidateName},</p>
-      <p>Your Hireability Report is ready. Here&apos;s a quick preview:</p>
+      <p>Your Market Reality Report is ready. Here&apos;s a quick preview:</p>
 
       <p style={{ fontWeight: 600, marginTop: '24px' }}>Top strengths</p>
       {topStrengths.map((s) => (

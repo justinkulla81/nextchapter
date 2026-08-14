@@ -4,7 +4,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { detectAvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export interface SessionImpactReport {
@@ -29,16 +29,16 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
 
   const [gradeBefore, gradeAfter, sprintsInWindow, avoidancePattern] = await Promise.all([
     windowStart
-      ? prisma.hireabilityReport.findFirst({
+      ? prisma.marketRealityReport.findFirst({
           where: { candidateId, generatedAt: { lte: windowStart } },
           orderBy: { generatedAt: 'desc' },
-          select: { hireabilityGradeAtGeneration: true },
+          select: { dossierGradeAtGeneration: true },
         })
       : null,
-    prisma.hireabilityReport.findFirst({
+    prisma.marketRealityReport.findFirst({
       where: { candidateId, generatedAt: { lte: latestSession.occurredAt } },
       orderBy: { generatedAt: 'desc' },
-      select: { hireabilityGradeAtGeneration: true },
+      select: { dossierGradeAtGeneration: true },
     }),
     prisma.weeklySprint.findMany({
       where: {
@@ -53,9 +53,9 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
   ])
 
   const gradeFrom =
-    normalizeGradeSnapshot(gradeBefore?.hireabilityGradeAtGeneration)?.grade ?? null
+    normalizeGradeSnapshot(gradeBefore?.dossierGradeAtGeneration)?.grade ?? null
   const gradeTo =
-    normalizeGradeSnapshot(gradeAfter?.hireabilityGradeAtGeneration)?.grade ?? null
+    normalizeGradeSnapshot(gradeAfter?.dossierGradeAtGeneration)?.grade ?? null
 
   const actionsCompletedSinceLastSession = sprintsInWindow.reduce((sum, sprint) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]

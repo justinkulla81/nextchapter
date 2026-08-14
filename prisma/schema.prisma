@@ -717,7 +717,7 @@ model CandidateProfile {
   changePacePreference    ChangePacePreference?
   changeReadiness         ChangeReadiness?
 
-  // Hireability Assessment (Prompt 53) — feeds Market Reality Grade
+  // Market Reality Assessment (Prompt 53) — feeds the Market Reality Grade
   // (Prompt 46) and the Coach Dossier's Coaching Notes (Prompt 54); never
   // the external Executive Dossier (Prompt 47).
   publicDisclosureComfort PublicDisclosureComfort?
@@ -820,8 +820,8 @@ model CandidateProfile {
   // Structural Market Reality signals, computed from WorkHistoryEntry (see
   // computeStructuralFlags in src/lib/resume/compute-structural-flags.ts) —
   // recomputed on resume upload and on any manual work-history edit, never
-  // hand-set by the candidate. Feed the ownership category (hireability-grade.ts)
-  // and the corresponding named reasons (named-reasons.ts).
+  // hand-set by the candidate. Feed the Ownership & Reliability competency
+  // (dossier-competencies.ts) and the corresponding named reasons (named-reasons.ts).
   jobHoppingFlag   Boolean           @default(false)
   shortTenureCount Int               @default(0)
   careerTrajectory CareerTrajectory? // null = not enough work history yet to judge
@@ -842,9 +842,9 @@ model CandidateProfile {
   // profile (sitting C-suite of a known company, etc.) where making them
   // wait for a live Search Sprint week to clear the normal weekly-activity
   // gate would be absurd. Deliberately NOT algorithmic — see
-  // computeHireabilityGrade() in hireability-grade.ts, which forces the
-  // top-line grade to A when this is set but leaves the six category scores
-  // computed normally underneath (for report/Dossier narrative accuracy).
+  // computeDossierCompetencies() in dossier-competencies.ts, which forces the
+  // top-line grade to A when this is set but leaves the underlying competency
+  // scores computed normally underneath (for report/Dossier narrative accuracy).
   exceptionalGradeOverride       Boolean   @default(false)
   exceptionalGradeOverrideReason String?   @db.Text
   exceptionalGradeOverrideBy     String? // admin email
@@ -1015,7 +1015,7 @@ model CandidateProfile {
 
   // Profile picture — candidate-controlled, shown only in person-to-person
   // surfaces (messaging, A-List/badge recognition). Deliberately never
-  // selected into hireability-report.ts, dossier-sections.ts,
+  // selected into market-reality-report.ts, dossier-sections.ts,
   // hiring-manager-report.ts, or recruiter-report.ts: showing a photo to a
   // hiring manager alongside a candidate's grade/report would invite bias
   // accusations, so those generators must keep sourcing name-only display
@@ -1088,7 +1088,7 @@ model CandidateProfile {
   contentDislikes                ContentDislike[]
   contentClicks                  ContentClick[]
   communityMemberships           CommunityMembership[]
-  hireabilityReports             HireabilityReport[]
+  marketRealityReports           MarketRealityReport[]
   linkedInActivityLogs           LinkedInActivityLog[]
   coachConversation              CoachConversation?
   narratives                     CandidateNarrative[]
@@ -1866,7 +1866,7 @@ model CandidateAssessmentResponse {
 // end per item; Reference.perf* fields (Part A of the Reference Check) rate
 // the same 4 scored dimensions in parallel on the same referee. Integrity is
 // 5th dimension, self-only — never surfaced as a score, never blended into
-// the Hireability grade (spec §3.2), only read by Coaching Notes / Hiring
+// the Market Reality Grade (spec §3.2), only read by Coaching Notes / Hiring
 // Manager Notes.
 model PerformanceAssessmentResponse {
   id          String           @id @default(cuid())
@@ -2197,16 +2197,16 @@ model LayoffCohort {
   community  Community?
 }
 
-// ── CANDIDATE HIREABILITY REPORT ──────────────────────────────────────────────
+// ── CANDIDATE MARKET REALITY REPORT ────────────────────────────────────────
 // Resume, job-fit feedback, community board, and the report that ties them
 // together with the assessment/reference/interview data collected elsewhere.
-// See src/lib/reports/hireability-report.ts — distinct from the
+// See src/lib/reports/market-reality-report.ts — distinct from the
 // employer-facing src/lib/reports/hiring-manager-report.ts, which hides raw
 // scores; this one shows everything since it's about the candidate themselves.
 
 // Append-only history — findFirst orderBy uploadedAt desc = current resume.
 // Not user-deletable; older uploads are kept as an audit trail. Does not feed
-// the Employability Score directly (only the Hireability Report).
+// the Employability Score directly (only the Market Reality Report).
 model Resume {
   id          String           @id @default(cuid())
   candidateId String
@@ -2692,7 +2692,14 @@ model CommunityMembership {
 
 // Append-only — "regenerate" creates a new row rather than updating,
 // matching the CandidateAssessmentResponse/Resume history pattern.
-model HireabilityReport {
+//
+// Model/field names below are the "hireability" purge (Master Build Script
+// §2.1/§18) applied via @@map/@map rather than a live DDL rename — the
+// physical Postgres table (20 real candidate rows) keeps its original name
+// and columns untouched, decision confirmed with the user rather than
+// running a live ALTER TABLE. TypeScript code, the generated Prisma Client,
+// and everything any human reads only ever sees the new names.
+model MarketRealityReport {
   id          String           @id @default(cuid())
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
@@ -2708,10 +2715,10 @@ model HireabilityReport {
   // summary is null (locked state) when signalCount < minRequired.
   jobSearchPattern Json?
 
-  // Snapshot of the new dual-grade breakdown (HireabilityGrade shape from
-  // hireability-grade.ts) at generation time, same reasoning as the score
-  // snapshot above. Null on reports generated before this field existed.
-  hireabilityGradeAtGeneration Json?
+  // Snapshot of the dossier-competencies.ts breakdown at generation time,
+  // same reasoning as the score snapshot above. Null on reports generated
+  // before this field existed.
+  dossierGradeAtGeneration Json? @map("hireabilityGradeAtGeneration")
 
   // {improvementNarrative: string[], whatToDoMore: string[]} — generated in
   // the same LLM call as everything else above (no added cost), grounded in
@@ -2727,6 +2734,7 @@ model HireabilityReport {
   generatedAt DateTime  @default(now())
 
   @@index([candidateId, generatedAt])
+  @@map("HireabilityReport")
 }
 
 // One row per candidate per week — the actions they committed to for that
@@ -2744,7 +2752,7 @@ model WeeklySprint {
   // How comfortable the candidate feels being publicly visible in their
   // search THIS week — reuses the onboarding enum rather than a new one.
   // Coaching/sentiment signal only (see getVisibilityComfortTrend) — never
-  // a direct input to computeHireabilityGrade. The actual privacyTier state
+  // a direct input to computeDossierCompetencies. The actual privacyTier state
   // is the grade input; this is how the candidate says they feel about it.
   visibilityComfort PublicDisclosureComfort?
 
@@ -2752,7 +2760,7 @@ model WeeklySprint {
   @@index([candidateId, weekStartDate])
 }
 
-// Append-only weekly report, sent Sunday night — mirrors HireabilityReport's
+// Append-only weekly report, sent Sunday night — mirrors MarketRealityReport's
 // snapshot-on-generation pattern (grade + A-list are both point-in-time and
 // must not silently change if read later).
 model SundayNightReport {
@@ -2761,7 +2769,7 @@ model SundayNightReport {
   candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   weekStartDate DateTime // the week this report is summarizing
 
-  gradeSnapshot         Json // HireabilityGrade at generation time
+  gradeSnapshot         Json // DossierCompetencies at generation time
   previousGradeSnapshot Json? // last week's snapshot, for the change indicator — null on Week 1
 
   lastWeekCommittedCount Int      @default(0)
@@ -2981,7 +2989,7 @@ model CoachingWaitlist {
   firstName   String?
   lastName    String?
   challenge   String? // what they want help with, free text
-  source      String // where the CTA was clicked from, e.g. "dashboard_card", "hireability_report", "coaching_page"
+  source      String // where the CTA was clicked from, e.g. "dashboard_card", "market_reality_report", "coaching_page"
   createdAt   DateTime          @default(now())
 }
 

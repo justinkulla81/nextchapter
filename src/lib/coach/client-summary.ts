@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
 
@@ -28,17 +28,17 @@ export async function getCoachClientSummaries(coachId: string): Promise<ClientSu
   const clients = await prisma.candidateProfile.findMany({
     where: { coachId },
     include: {
-      hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 2, select: { hireabilityGradeAtGeneration: true } },
+      marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 2, select: { dossierGradeAtGeneration: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
 
   return clients.map((c) => {
-    const [latestReport, previousReport] = c.hireabilityReports
+    const [latestReport, previousReport] = c.marketRealityReports
     const latestGrade =
-      normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration)?.grade ?? null
+      normalizeGradeSnapshot(latestReport?.dossierGradeAtGeneration)?.grade ?? null
     const previousGrade =
-      normalizeGradeSnapshot(previousReport?.hireabilityGradeAtGeneration)?.grade ?? null
+      normalizeGradeSnapshot(previousReport?.dossierGradeAtGeneration)?.grade ?? null
 
     const weekNumber = c.registrationCompletedAt
       ? Math.floor((Date.now() - c.registrationCompletedAt.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1

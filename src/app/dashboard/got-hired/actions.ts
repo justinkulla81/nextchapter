@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { getCurrentGrade } from '@/lib/scoring/hireability-grade'
+import { getCurrentGrade } from '@/lib/scoring/dossier-competencies'
 
 export type FormState = { error?: string; submitted?: boolean } | undefined
 

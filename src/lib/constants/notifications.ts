@@ -11,7 +11,7 @@ export const NOTIFICATION_TIERS: Array<{
     value: 'FULL',
     label: 'Full',
     description:
-      'Daily nudge every day, a Friday check-in on your weekly progress, and a weekly Community & Coaching digest — plus your Hireability Report and any reminder emails.',
+      'Daily nudge every day, a Friday check-in on your weekly progress, and a weekly Community & Coaching digest — plus your Market Reality Report and any reminder emails.',
     preview: 'Everything, as it happens',
     recommended: true,
   },
@@ -26,7 +26,7 @@ export const NOTIFICATION_TIERS: Array<{
     value: 'MINIMAL',
     label: 'Minimal',
     description:
-      "No recurring nudge, no Friday check-in, no weekly digest — you'll still get your Hireability Report and any reminder emails.",
+      "No recurring nudge, no Friday check-in, no weekly digest — you'll still get your Market Reality Report and any reminder emails.",
     preview: 'Just the essentials, no recurring nudges',
   },
 ]

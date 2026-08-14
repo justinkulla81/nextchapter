@@ -68,7 +68,7 @@ import {
   type CategoryGrade,
   type WeeklyEngine,
   type WeeklyEngineKey,
-  type HireabilityGrade,
+  type DossierCompetencies,
   type Grade,
 } from '@/lib/scoring/grade'
 
@@ -78,7 +78,7 @@ export type {
   CategoryGrade,
   WeeklyEngine,
   WeeklyEngineKey,
-  HireabilityGrade,
+  DossierCompetencies,
 } from '@/lib/scoring/grade'
 export { scoreToGrade, GRADE_LABEL, type ConfidenceLevel } from '@/lib/scoring/grade'
 
@@ -424,7 +424,7 @@ export async function computeCategoryGrades(
   // with the reference growth-mindset rating.
   //
   // includeFlexibilitySignal=false (used only by the displayed Current
-  // Market Reality path, via computeHireabilityGrade) holds the self-report
+  // Market Reality path, via computeDossierCompetencies) holds the self-report
   // at a neutral midpoint instead — candidates shouldn't be able to move
   // their Current Market Reality by how flexible they say they are on
   // comp/level/location/pivoting. The archival snapshot, Coaching Notes,
@@ -531,7 +531,7 @@ export async function getCategoryBaseline(
   if (stored) return stored
 
   // The baseline feeds the displayed Current Market Reality (see
-  // computeHireabilityGrade below), so it's seeded without the flexibility
+  // computeDossierCompetencies below), so it's seeded without the flexibility
   // signal — see the includeFlexibilitySignal comment in
   // computeCategoryGrades.
   const categories = await computeCategoryGrades(candidate, { includeFlexibilitySignal: false })
@@ -614,7 +614,7 @@ export async function computeWeeklyEngines(
 
 // Did the candidate earn an A the calendar week immediately before the
 // current one? Recomputed directly from that week's WeeklySprint rather
-// than read back from a HireabilityReport snapshot, since reports aren't
+// than read back from a MarketRealityReport snapshot, since reports aren't
 // generated on a strict weekly cadence.
 async function hadPriorWeekA(candidateId: string, weekNumber: number): Promise<boolean> {
   if (weekNumber <= 1) return false
@@ -644,7 +644,7 @@ function blendCategoryScore(baselineScore: number, weeklyPerformanceRatio: numbe
   return clamp(baselineScore + nudge)
 }
 
-export async function computeHireabilityGrade(candidate: CandidateWithGradeRelations): Promise<HireabilityGrade> {
+export async function computeDossierCompetencies(candidate: CandidateWithGradeRelations): Promise<DossierCompetencies> {
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget, visibilityBonus }] = await Promise.all([
     getCategoryBaseline(candidate),
@@ -735,15 +735,15 @@ export async function getCurrentGrade(candidateId: string): Promise<Grade> {
     where: { id: candidateId },
     include: GRADE_RELATIONS_INCLUDE,
   })
-  const grade = await computeHireabilityGrade(candidate as unknown as CandidateWithGradeRelations)
+  const grade = await computeDossierCompetencies(candidate as unknown as CandidateWithGradeRelations)
   return grade.grade
 }
 
-// Legacy shape, stored in HireabilityReport.hireabilityGradeAtGeneration
+// Legacy shape, stored in MarketRealityReport.dossierGradeAtGeneration
 // (and MarketRealitySnapshot-adjacent JSON) before the Scoring Model 2.0
 // collapse — kept narrow and local to this one adapter, not re-exported,
 // since nothing should be written in this shape going forward.
-interface LegacyHireabilityGradeSnapshot {
+interface LegacyDossierCompetenciesSnapshot {
   marketReality: { score: number; grade: Grade }
   searchExecution: {
     engines: WeeklyEngine[]
@@ -759,7 +759,7 @@ interface LegacyHireabilityGradeSnapshot {
   }
 }
 
-function isLegacySnapshot(raw: object): raw is LegacyHireabilityGradeSnapshot {
+function isLegacySnapshot(raw: object): raw is LegacyDossierCompetenciesSnapshot {
   return 'marketReality' in raw && 'searchExecution' in raw
 }
 
@@ -771,7 +771,7 @@ function isLegacySnapshot(raw: object): raw is LegacyHireabilityGradeSnapshot {
 // The overall grade, weekly engines, and bonus fields all carry over
 // faithfully, since those kept the same shape or a directly compatible one
 // (the four weekly engine keys didn't change).
-export function normalizeGradeSnapshot(raw: unknown): HireabilityGrade | null {
+export function normalizeGradeSnapshot(raw: unknown): DossierCompetencies | null {
   if (!raw || typeof raw !== 'object') return null
   if (isLegacySnapshot(raw)) {
     return {
@@ -790,5 +790,5 @@ export function normalizeGradeSnapshot(raw: unknown): HireabilityGrade | null {
       hadPriorWeekA: raw.searchExecution.hadPriorWeekA ?? false,
     }
   }
-  return raw as HireabilityGrade
+  return raw as DossierCompetencies
 }

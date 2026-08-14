@@ -7,7 +7,7 @@ import {
   computeCategoryGrades,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
-} from '@/lib/scoring/hireability-grade'
+} from '@/lib/scoring/dossier-competencies'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import type { CategoryGrade, CategoryKey } from '@/lib/scoring/grade'
 import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/assessment-vectors'
@@ -399,7 +399,7 @@ async function getGapAreasAndLearningItems(candidateId: string) {
       orderBy: { completedAt: 'desc' },
       take: 10,
     }),
-    prisma.hireabilityReport.findFirst({
+    prisma.marketRealityReport.findFirst({
       where: { candidateId },
       orderBy: { generatedAt: 'desc' },
       select: { gapAnalysis: true },

@@ -8,7 +8,7 @@
 //
 // Each is a real Supabase auth user (admin-created, no password set —
 // these are data fixtures, not accounts anyone logs into) plus a real
-// CandidateProfile with grade history (HireabilityReport), weekly activity
+// CandidateProfile with grade history (MarketRealityReport), weekly activity
 // (WeeklySprint + SundayNightReport, some with onAList: true +
 // WeeklyBadgeEarned), and daily-checkin streaks (DailyCheckIn rows +
 // CandidateProfile.currentStreak/longestStreak) as appropriate for the tier.
@@ -287,17 +287,17 @@ async function createFixtures() {
       continue
     }
 
-    // Grade history: one HireabilityReport per candidate, most recent
+    // Grade history: one MarketRealityReport per candidate, most recent
     // snapshot also mirrored onto a run of weekly reports/sprints below.
     const gradeSnapshot = buildGradeSnapshot(c.score, c.tier)
-    await prisma.hireabilityReport.create({
+    await prisma.marketRealityReport.create({
       data: {
         candidateId: profile.id,
         strengths: [{ title: 'Track record', detail: `Consistent results as a ${c.targetRoleType}.` }],
         weaknesses: [{ title: 'Narrower network', detail: 'Fewer warm intros in target industry.' }],
         actionPlan: Array.from({ length: 7 }, (_, d) => ({ day: d + 1, items: [`Action item ${d + 1}`] })),
         gapAnalysis: { targetRole: c.targetRoleType, gaps: [] },
-        hireabilityGradeAtGeneration: gradeSnapshot,
+        dossierGradeAtGeneration: gradeSnapshot,
         generatedAt: now,
       },
     })

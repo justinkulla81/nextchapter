@@ -5,7 +5,7 @@
 // mechanics polish) — every other dimension is computed in pure TS
 // (dimensions.ts) from the facts below, so the actual point math stays
 // auditable and testable independent of model output, matching the
-// hireability-grade.ts convention elsewhere in this codebase.
+// dossier-competencies.ts convention elsewhere in this codebase.
 //
 // Schema kept flat-ish and array-heavy on purpose — Anthropic's structured
 // output has a cap on top-level nullable/union-typed parameters (confirmed

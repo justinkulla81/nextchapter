@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { computeHireabilityGrade } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
 import {
   WEEKLY_ENGINE_LABEL,
   WEEKLY_ENGINE_EXPLANATION,
@@ -75,7 +75,7 @@ export default async function YourStatsPage() {
     milestoneBadges,
     weekNumber,
   ] = await Promise.all([
-    computeHireabilityGrade(profile),
+    computeDossierCompetencies(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),

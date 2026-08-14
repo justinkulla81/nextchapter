@@ -21,7 +21,7 @@ import {
   computeCategoryGrades,
   GRADE_RELATIONS_INCLUDE,
   type CandidateWithGradeRelations,
-} from '@/lib/scoring/hireability-grade'
+} from '@/lib/scoring/dossier-competencies'
 import { summarizeSelfAwareness } from '@/lib/scoring/self-awareness'
 import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
@@ -506,7 +506,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       select: { weekStartDate: true, grade: true },
     }),
     detectAvoidancePattern(candidateId),
-    prisma.hireabilityReport.findFirst({
+    prisma.marketRealityReport.findFirst({
       where: { candidateId },
       orderBy: { generatedAt: 'desc' },
       select: { gapAnalysis: true, jobSearchPattern: true },

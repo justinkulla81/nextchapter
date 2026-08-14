@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import type { Grade } from '@/lib/scoring/grade'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
@@ -24,10 +24,10 @@ export async function getCoachImpactReport(coachId: string): Promise<CoachImpact
     where: { coachId },
     select: {
       id: true,
-      hireabilityReports: {
+      marketRealityReports: {
         where: { generatedAt: { gte: quarterStart } },
         orderBy: { generatedAt: 'asc' },
-        select: { generatedAt: true, hireabilityGradeAtGeneration: true },
+        select: { generatedAt: true, dossierGradeAtGeneration: true },
       },
     },
   })
@@ -38,13 +38,13 @@ export async function getCoachImpactReport(coachId: string): Promise<CoachImpact
   let noData = 0
 
   for (const client of clients) {
-    if (client.hireabilityReports.length < 2) {
+    if (client.marketRealityReports.length < 2) {
       noData++
       continue
     }
-    const first = normalizeGradeSnapshot(client.hireabilityReports[0].hireabilityGradeAtGeneration)?.grade
+    const first = normalizeGradeSnapshot(client.marketRealityReports[0].dossierGradeAtGeneration)?.grade
     const last = normalizeGradeSnapshot(
-      client.hireabilityReports[client.hireabilityReports.length - 1].hireabilityGradeAtGeneration
+      client.marketRealityReports[client.marketRealityReports.length - 1].dossierGradeAtGeneration
     )?.grade
     if (!first || !last) {
       noData++

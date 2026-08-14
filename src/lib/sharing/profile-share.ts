@@ -2,8 +2,8 @@ import 'server-only'
 import type { ShareRecipientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { HireabilityGrade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import type { DossierCompetencies } from '@/lib/scoring/grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { sanitizeRoleTitle, selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
 
 export type ShareStatus = 'active' | 'expired' | 'revoked' | 'not_found'
@@ -40,7 +40,7 @@ export interface SharedProfileView {
   resumeSignedUrl: string | null
   references: SharedReference[]
   targetCompMin: number | null
-  hireabilityGrade: HireabilityGrade | null
+  marketRealityGrade: DossierCompetencies | null
   gapExplanation: string | null
 }
 
@@ -61,7 +61,7 @@ const NOT_ACTIVE = (status: ShareStatus, candidateName: string): SharedProfileVi
   resumeSignedUrl: null,
   references: [],
   targetCompMin: null,
-  hireabilityGrade: null,
+  marketRealityGrade: null,
   gapExplanation: null,
 })
 
@@ -75,7 +75,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
           resumes: { orderBy: { uploadedAt: 'desc' }, take: 1 },
           references: { where: { status: 'COMPLETED' } },
           narratives: { orderBy: { generatedAt: 'asc' }, take: 1 },
-          hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
+          marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
         },
       },
     },
@@ -147,7 +147,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
       resumeSignedUrl: share.activeProcess ? await signResume() : null,
       references: share.activeProcess ? referencesFor() : [],
       targetCompMin: null,
-      hireabilityGrade: null,
+      marketRealityGrade: null,
       gapExplanation: share.activeProcess && candidate.includeGapExplanationInDossier ? candidate.gapExplanation : null,
     }
   }
@@ -158,7 +158,7 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
       resumeSignedUrl: share.includeExtras.includes('RESUME') ? await signResume() : null,
       references: share.includeExtras.includes('REFERENCES') ? referencesFor() : [],
       targetCompMin: share.includeExtras.includes('SALARY') ? candidate.targetCompMin : null,
-      hireabilityGrade: null,
+      marketRealityGrade: null,
       gapExplanation:
         share.includeExtras.includes('GAP_EXPLANATION') && candidate.includeGapExplanationInDossier
           ? candidate.gapExplanation
@@ -169,13 +169,13 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
   // Coach — full profile, including the Current Market Reality and Search
   // Action Grade snapshot from the most recent report. Private Victoria chat
   // history is never included.
-  const latestReport = candidate.hireabilityReports[0]
+  const latestReport = candidate.marketRealityReports[0]
   return {
     ...base,
     resumeSignedUrl: await signResume(),
     references: referencesFor(),
     targetCompMin: candidate.targetCompMin,
-    hireabilityGrade: normalizeGradeSnapshot(latestReport?.hireabilityGradeAtGeneration),
+    marketRealityGrade: normalizeGradeSnapshot(latestReport?.dossierGradeAtGeneration),
     gapExplanation: candidate.gapExplanation,
   }
 }

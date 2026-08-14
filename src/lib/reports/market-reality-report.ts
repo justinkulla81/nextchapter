@@ -1,4 +1,4 @@
-// Generates the CANDIDATE-facing Hireability Report — strengths/weaknesses,
+// Generates the CANDIDATE-facing Market Reality Report — strengths/weaknesses,
 // a 7-day action plan, and gap analysis with remediation paths, built from
 // everything collected elsewhere (assessment, references, interviews, work
 // history, resume analysis, job-fit feedback).
@@ -18,7 +18,7 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
 import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
-import { computeHireabilityGrade, GRADE_LABEL } from '@/lib/scoring/hireability-grade'
+import { computeDossierCompetencies, GRADE_LABEL } from '@/lib/scoring/dossier-competencies'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { computeApplicationTrends } from '@/lib/network/application-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
@@ -51,7 +51,7 @@ export const actionPlanItemTypes = [
   'WORK_AUTHORIZATION',
 ] as const
 
-const hireabilityReportSchema = z.object({
+const marketRealityReportSchema = z.object({
   strengths: z.array(z.object({ title: z.string(), detail: z.string() })).min(3).max(6),
   weaknesses: z.array(z.object({ title: z.string(), detail: z.string() })).min(2).max(5),
   hillToClimb: z.object({
@@ -99,7 +99,7 @@ const hireabilityReportSchema = z.object({
   }),
 })
 
-type RawActionPlan = z.infer<typeof hireabilityReportSchema>['actionPlan']
+type RawActionPlan = z.infer<typeof marketRealityReportSchema>['actionPlan']
 
 // The model is asked for exactly 7 days but occasionally overshoots (an
 // extra day, or a day numbered outside 1-7) while satisfying all the "HARD
@@ -120,7 +120,7 @@ function joinResumeFeedback(feedback: Prisma.JsonValue[]): string {
 
 const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
-You are writing this Hireability Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, Current Market Reality (A-F), made up of six categories — Target Fit plus five hiring-manager competency categories (Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, Ownership & Reliability) — with weekly effort (Networking/Learning/Working) folded in as an input, not a second grade. Reference the grade and its individual categories by name where relevant instead of a single generic "score."
+You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, Current Market Reality (A-F), made up of six categories — Target Fit plus five hiring-manager competency categories (Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, Ownership & Reliability) — with weekly effort (Networking/Learning/Working) folded in as an input, not a second grade. Reference the grade and its individual categories by name where relevant instead of a single generic "score."
 
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
 
@@ -164,7 +164,7 @@ Write:
 Candidate data:
 `
 
-export async function generateHireabilityReport(candidateId: string): Promise<void> {
+export async function generateMarketRealityReport(candidateId: string): Promise<void> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: {
@@ -250,7 +250,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
 
   const [grade, startedSprint, latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
     await Promise.all([
-      computeHireabilityGrade(candidate),
+      computeDossierCompetencies(candidate),
       hasStartedSprint(candidateId),
       prisma.learningBadge.findFirst({
         where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
@@ -262,7 +262,7 @@ export async function generateHireabilityReport(candidateId: string): Promise<vo
       // be generated below, this is "last time." Null on a candidate's
       // first-ever report, handled explicitly in the Executive Summary
       // prompt instructions above rather than fabricating a comparison.
-      prisma.hireabilityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
+      prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
       prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
     ])
 
@@ -454,7 +454,7 @@ New data added since the previous report (credit these specifically, by name, on
 }
 `.trim()
 
-  let data: ReturnType<typeof hireabilityReportSchema.parse> | null | undefined
+  let data: ReturnType<typeof marketRealityReportSchema.parse> | null | undefined
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
@@ -465,19 +465,19 @@ New data added since the previous report (credit these specifically, by name, on
       model: 'claude-opus-5',
       max_tokens: 8000,
       thinking: { type: 'adaptive' },
-      output_config: { format: zodOutputFormat(hireabilityReportSchema), effort: 'medium' },
+      output_config: { format: zodOutputFormat(marketRealityReportSchema), effort: 'medium' },
       messages: [{ role: 'user', content: PROMPT_PREFIX + summary }],
     })
     const message = await stream.finalMessage()
     data = message.parsed_output
   } catch (error) {
-    console.error('Failed to generate hireability report for candidate', candidateId, error)
+    console.error('Failed to generate market reality report for candidate', candidateId, error)
     return
   }
 
   if (!data) return
 
-  await prisma.hireabilityReport.create({
+  await prisma.marketRealityReport.create({
     data: {
       candidateId,
       strengths: data.strengths,
@@ -485,7 +485,7 @@ New data added since the previous report (credit these specifically, by name, on
       hillToClimb: data.hillToClimb,
       actionPlan: normalizeActionPlan(data.actionPlan),
       gapAnalysis: data.gapAnalysis,
-      hireabilityGradeAtGeneration: grade as unknown as Prisma.InputJsonValue,
+      dossierGradeAtGeneration: grade as unknown as Prisma.InputJsonValue,
       marketConditions: marketConditions.dataAvailable
         ? {
             narrative: data.marketConditions?.narrative ?? [],

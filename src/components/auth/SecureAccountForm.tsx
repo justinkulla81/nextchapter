@@ -114,7 +114,7 @@ export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Confirm your email and set a password</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          One step unlocks your full Hireability Report and action plan, and gives you a way to
+          One step unlocks your full Market Reality Report and action plan, and gives you a way to
           always get back into your account.
         </p>
       </div>

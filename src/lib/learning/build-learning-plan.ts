@@ -105,7 +105,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         targetIndustries: true,
       },
     }),
-    prisma.hireabilityReport.findFirst({
+    prisma.marketRealityReport.findFirst({
       where: { candidateId },
       orderBy: { generatedAt: 'desc' },
       select: { gapAnalysis: true },

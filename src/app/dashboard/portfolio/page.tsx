@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
-import { computeHireabilityGrade, type CandidateWithGradeRelations } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
+import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -28,11 +28,11 @@ export default async function PortfolioPage() {
         where: { candidateId: profile.id },
         orderBy: { generatedAt: 'asc' },
       }),
-      prisma.hireabilityReport.findMany({
+      prisma.marketRealityReport.findMany({
         where: { candidateId: profile.id },
         orderBy: { generatedAt: 'desc' },
         take: 6,
-        select: { id: true, generatedAt: true, hireabilityGradeAtGeneration: true },
+        select: { id: true, generatedAt: true, dossierGradeAtGeneration: true },
       }),
       prisma.marketRealitySnapshot.findMany({
         where: { candidateId: profile.id },
@@ -41,7 +41,7 @@ export default async function PortfolioPage() {
       profile.coachId
         ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
         : null,
-      computeHireabilityGrade(profile as unknown as CandidateWithGradeRelations),
+      computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
       prisma.learningBadge.count({ where: { candidateId: profile.id } }),
     ])
 
@@ -68,8 +68,8 @@ export default async function PortfolioPage() {
     hasResume: profile.resumes.length > 0,
     hasCoverLetter: coverLettersCount > 0,
     hasNarrative: narratives.length > 0,
-    hasHireabilityReport: reportHistory.length > 0,
-    hasMarketRealityReport: marketRealitySnapshots.length > 0,
+    hasMarketRealityReport: reportHistory.length > 0,
+    hasMarketRealitySnapshot: marketRealitySnapshots.length > 0,
     hasWorkSample: profile.workSamples.length > 0,
     hasCompletedReference: completedReferenceCount > 0,
     hasLearningBadge: learningBadgeCount > 0,
@@ -118,7 +118,7 @@ export default async function PortfolioPage() {
                   <p className="text-xs text-muted-foreground">
                     {reportHistory[0].generatedAt.toLocaleDateString()}
                     {(() => {
-                      const g = normalizeGradeSnapshot(reportHistory[0].hireabilityGradeAtGeneration)
+                      const g = normalizeGradeSnapshot(reportHistory[0].dossierGradeAtGeneration)
                       return g ? ` — Grade ${g.grade}` : ''
                     })()}
                   </p>
@@ -127,7 +127,7 @@ export default async function PortfolioPage() {
                   nativeButton={false}
                   size="sm"
                   variant="outline"
-                  render={<Link href="/dashboard/hireability-report" />}
+                  render={<Link href="/dashboard/market-reality" />}
                 >
                   View full report
                 </Button>

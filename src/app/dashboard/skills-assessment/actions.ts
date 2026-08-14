@@ -76,7 +76,7 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
   }
 
   // These fields personalize Job Recommendations (compute-match-score.ts),
-  // Skills Recommendations (build-learning-plan.ts), and the Hireability
+  // Skills Recommendations (build-learning-plan.ts), and the Market Reality
   // Report — all of which read straight from CandidateProfile, so a fresh
   // render is enough; nothing needs to be recomputed/cached here.
   revalidatePath('/dashboard/skills-assessment')

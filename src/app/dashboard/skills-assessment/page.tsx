@@ -21,7 +21,7 @@ export default async function SkillsAssessmentPage() {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Skills Inventory</h1>
         <p className="mt-1 text-muted-foreground">
           A candid self-read on your skills — this personalizes your Job Recommendations, Skills
-          Recommendations, and Hireability Report. Retake it any time your confidence in an area
+          Recommendations, and Market Reality Report. Retake it any time your confidence in an area
           changes.
         </p>
       </div>

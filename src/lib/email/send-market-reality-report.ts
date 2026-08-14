@@ -2,23 +2,23 @@ import 'server-only'
 import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import HireabilityReportEmail from '@/emails/hireability-report'
+import MarketRealityReportEmail from '@/emails/market-reality-report'
 
 interface Strength {
   title: string
   detail: string
 }
 
-export async function sendHireabilityReportEmail(candidateId: string) {
+export async function sendMarketRealityReportEmail(candidateId: string) {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is not set — skipping hireability report email.')
+    console.warn('RESEND_API_KEY is not set — skipping market reality report email.')
     return { sent: false as const }
   }
 
   try {
     const [candidate, report] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.hireabilityReport.findFirst({
+      prisma.marketRealityReport.findFirst({
         where: { candidateId },
         orderBy: { generatedAt: 'desc' },
       }),
@@ -30,7 +30,7 @@ export async function sendHireabilityReportEmail(candidateId: string) {
     // near-simultaneous /dashboard loads both resolving the same unsent
     // report) can't both pass the "not yet sent" check and each send an
     // email — the WHERE clause below is evaluated atomically by Postgres.
-    const claimed = await prisma.hireabilityReport.updateMany({
+    const claimed = await prisma.marketRealityReport.updateMany({
       where: { id: report.id, emailSentAt: null },
       data: { emailSentAt: new Date() },
     })
@@ -54,18 +54,18 @@ export async function sendHireabilityReportEmail(candidateId: string) {
       replyTo: 'support@launchyournextchapter.com',
       to: email,
       subject: `Your NextChapter Report, ${firstName}`,
-      react: HireabilityReportEmail({
+      react: MarketRealityReportEmail({
         candidateName: firstName,
         topStrengths: strengths.slice(0, 3),
         topWeakness: weaknesses[0] ?? null,
-        reportUrl: `${appUrl}/dashboard/hireability-report`,
+        reportUrl: `${appUrl}/dashboard/market-reality`,
       }),
     })
 
     if (error) {
-      console.error('Failed to send hireability report email:', error)
+      console.error('Failed to send market reality report email:', error)
       // Release the claim so a later attempt can retry the send.
-      await prisma.hireabilityReport.update({
+      await prisma.marketRealityReport.update({
         where: { id: report.id },
         data: { emailSentAt: null },
       })
@@ -75,7 +75,7 @@ export async function sendHireabilityReportEmail(candidateId: string) {
     return { sent: true as const }
   } catch (error) {
     // Email delivery must never break report generation.
-    console.error('Failed to send hireability report email:', error)
+    console.error('Failed to send market reality report email:', error)
     return { sent: false as const }
   }
 }

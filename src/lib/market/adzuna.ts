@@ -88,7 +88,7 @@ export async function searchAdzunaJobs(
     params.set('where', where)
     // "How many jobs are near me" should mean a real commutable radius, not
     // Adzuna's much tighter default — this is what marketPosition's local-
-    // market-strength read (hireability-grade.ts) is actually describing.
+    // market-strength read (dossier-competencies.ts) is actually describing.
     params.set('distance', String(distanceMiles))
   }
 

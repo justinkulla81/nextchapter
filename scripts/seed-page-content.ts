@@ -216,7 +216,7 @@ const ROWS: SeedRow[] = [
     pageKey: 'skills-assessments',
     boxType: 'WHY_IT_MATTERS',
     title: 'These personalize everything else on the platform',
-    leadIn: 'Your Job Recommendations, Skills Recommendations, and Hireability Report all read straight from these two quizzes.',
+    leadIn: 'Your Job Recommendations, Skills Recommendations, and Market Reality Report all read straight from these two quizzes.',
     bullets: [
       'How I Work Best drives coaching notes and how your fit is described to recruiters.',
       'Skills Assessment drives which jobs and courses get matched to you — keep it current.',

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 
 export interface FullClientView {
   candidateName: string
@@ -31,11 +31,11 @@ export interface FullClientView {
 export async function getFullClientView(candidateId: string): Promise<FullClientView> {
   const [candidate, reports, workHistory, references, moods, sessions] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-    prisma.hireabilityReport.findMany({
+    prisma.marketRealityReport.findMany({
       where: { candidateId },
       orderBy: { generatedAt: 'desc' },
       take: 5,
-      select: { generatedAt: true, hireabilityGradeAtGeneration: true },
+      select: { generatedAt: true, dossierGradeAtGeneration: true },
     }),
     prisma.workHistoryEntry.findMany({
       where: { candidateId },
@@ -79,7 +79,7 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
     primaryFunction: candidate.primaryFunction,
     targetIndustries: candidate.targetIndustries,
     gradeHistory: reports.map((r) => {
-      const grade = normalizeGradeSnapshot(r.hireabilityGradeAtGeneration)
+      const grade = normalizeGradeSnapshot(r.dossierGradeAtGeneration)
       return {
         generatedAt: r.generatedAt,
         executionGrade: grade?.grade ?? null,

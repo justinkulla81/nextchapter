@@ -8,7 +8,7 @@ import { getOrDraftWeeklyFocus } from '@/lib/reports/weekly-focus'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { regenerateHireabilityReport, resendMyHireabilityReportEmail } from './actions'
+import { regenerateMarketRealityReport, resendMyMarketRealityReportEmail } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { StatusIcon } from '@/components/ui/status-icon'
@@ -16,12 +16,12 @@ import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
-import { generateHireabilityReport } from '@/lib/reports/hireability-report'
-import { sendHireabilityReportEmail } from '@/lib/email/send-hireability-report'
+import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
+import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { hasStartedSprint, getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { GRADE_LABEL, GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
@@ -233,14 +233,14 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default async function HireabilityReportPage() {
+export default async function MarketRealityReportPage() {
   const profile = await getDashboardData()
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  let report = await prisma.hireabilityReport.findFirst({
+  let report = await prisma.marketRealityReport.findFirst({
     where: { candidateId: profile.id },
     orderBy: { generatedAt: 'desc' },
   })
@@ -252,13 +252,13 @@ export default async function HireabilityReportPage() {
   // forever; generate it directly, here, on demand.
   if (!report) {
     try {
-      await generateHireabilityReport(profile.id)
-      report = await prisma.hireabilityReport.findFirst({
+      await generateMarketRealityReport(profile.id)
+      report = await prisma.marketRealityReport.findFirst({
         where: { candidateId: profile.id },
         orderBy: { generatedAt: 'desc' },
       })
     } catch (error) {
-      console.error('Failed to generate hireability report on demand:', error)
+      console.error('Failed to generate market reality report on demand:', error)
     }
   }
   // See dashboard/page.tsx's identical fallback — the registration-time
@@ -267,7 +267,7 @@ export default async function HireabilityReportPage() {
   // report permanently unsent. Close that gap on every load, not just the
   // first — this is what actually fixes it for reports that already exist.
   if (report && !report.emailSentAt) {
-    await sendHireabilityReportEmail(profile.id)
+    await sendMarketRealityReportEmail(profile.id)
   }
 
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
@@ -276,14 +276,14 @@ export default async function HireabilityReportPage() {
   const weekNumber = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date()))
   const [searchExecutionAvailable, priorReportCount, suggestedActions] = await Promise.all([
     hasStartedSprint(profile.id),
-    prisma.hireabilityReport.count({
+    prisma.marketRealityReport.count({
       where: { candidateId: profile.id, generatedAt: { lt: report?.generatedAt ?? new Date() } },
     }),
     getSuggestedActions(profile.id, weekNumber),
   ])
   const isFirstReport = priorReportCount === 0
 
-  const gradeAtGeneration = normalizeGradeSnapshot(report?.hireabilityGradeAtGeneration)
+  const gradeAtGeneration = normalizeGradeSnapshot(report?.dossierGradeAtGeneration)
   const showCoachingCTA = !!gradeAtGeneration && isAtOrBelowGrade(gradeAtGeneration.grade, 'C')
   // Derived from the same canonical Weekly Search Score points ramp everything
   // else reads from (1 point = 1 minute) — this used to be a separately
@@ -321,7 +321,7 @@ export default async function HireabilityReportPage() {
             <>
               <PrintReportButton />
               {!report.emailSentAt && (
-                <form action={resendMyHireabilityReportEmail}>
+                <form action={resendMyMarketRealityReportEmail}>
                   <SubmitButton variant="outline" pendingLabel="Sending…">
                     Email me this report
                   </SubmitButton>
@@ -330,7 +330,7 @@ export default async function HireabilityReportPage() {
             </>
           )}
           {canRegenerate && (
-            <form action={regenerateHireabilityReport}>
+            <form action={regenerateMarketRealityReport}>
               <SubmitButton variant="outline" pendingLabel="Regenerating…">
                 Regenerate my report
               </SubmitButton>
@@ -340,7 +340,7 @@ export default async function HireabilityReportPage() {
       </div>
 
       <div className="print:hidden">
-        <PageHeaderBoxes pageKey="hireability-report" candidateId={profile.id} />
+        <PageHeaderBoxes pageKey="market-reality" candidateId={profile.id} />
       </div>
 
       {!canRegenerate && (
@@ -380,7 +380,7 @@ export default async function HireabilityReportPage() {
           {/* Executive Summary — real report-over-report grade movement plus
               credit for any data actually added since the last report,
               generated in the same LLM call as everything else below (see
-              hireability-report.ts's "Report-over-report change" prompt
+              market-reality-report.ts's "Report-over-report change" prompt
               block) — never a separate, additional cost. Null on reports
               generated before this field existed. */}
           {report.executiveSummary !== null && (
@@ -414,13 +414,13 @@ export default async function HireabilityReportPage() {
           {/* Grade breakdown */}
           <div className="mt-10 border-t border-border pt-8">
             <SectionHeading>Your Grades</SectionHeading>
-            {report.hireabilityGradeAtGeneration === null ? (
+            {report.dossierGradeAtGeneration === null ? (
               <p className="mt-3 text-sm text-muted-foreground">
                 Grade breakdown unavailable for this report — regenerate to see it.
               </p>
             ) : (
               (() => {
-                const grade = normalizeGradeSnapshot(report.hireabilityGradeAtGeneration)!
+                const grade = normalizeGradeSnapshot(report.dossierGradeAtGeneration)!
                 const gradeDisplay = displayGrade(grade.grade, isFirstReport)
                 return (
                   <div className="mt-4">

@@ -168,7 +168,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   PROFILE_PICTURE_UPLOADED: { minutes: 3, points: 5 },
   // Weighted well above the other one-time confirms — a real LinkedIn URL
   // (or an explicit "I don't have one yet") on file matters for recruiter
-  // visibility and is referenced directly in the Hireability Report and
+  // visibility and is referenced directly in the Market Reality Report and
   // Victoria's replies, unlike most other profile confirms.
   LINKEDIN_PROFILE_ADDED: { minutes: 10, points: 25 },
 
@@ -709,7 +709,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
 
 
 // LLM-personalized action-plan items are written as "short action — why it
-// matters" (see the HARD REQUIREMENT in hireability-report.ts) — this splits
+// matters" (see the HARD REQUIREMENT in market-reality-report.ts) — this splits
 // that apart so a UI can hyperlink only the short action name instead of
 // underlining an entire explanatory sentence. Falls back to the whole string
 // as the label when there's no dash (every canonical catalog item, which is

@@ -21,7 +21,7 @@ export async function sendWeek1Kickoff(candidateId: string) {
   try {
     const [candidate, report] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.hireabilityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
+      prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
     ])
 
     const admin = createAdminClient()

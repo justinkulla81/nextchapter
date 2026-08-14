@@ -2,7 +2,7 @@
 // they make the candidate objectively more market-ready — not just
 // generate weekly effort points. See the Scoring Model 2.0 design doc §7.
 //
-// These call updateCategoryBaseline (hireability-grade.ts) rather than
+// These call updateCategoryBaseline (dossier-competencies.ts) rather than
 // waiting for the bounded weekly nudge, since a landed interview or a
 // closed skills gap is a real, discrete change in standing, not a
 // gradual behavioral trend.
@@ -10,7 +10,7 @@
 import 'server-only'
 import type { Reference } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { updateCategoryBaseline } from '@/lib/scoring/hireability-grade'
+import { updateCategoryBaseline } from '@/lib/scoring/dossier-competencies'
 import type { CategoryKey } from '@/lib/scoring/grade'
 
 function clamp(n: number): number {
@@ -57,7 +57,7 @@ export async function applyInterviewPatternConfirmedRewrite(candidateId: string)
 
 // A completed reference is the strongest available third-party evidence
 // for the five competency categories — each maps to one reference field
-// (see hireability-grade.ts's averageReferenceRating comment for why these
+// (see dossier-competencies.ts's averageReferenceRating comment for why these
 // specific fields, not the legacy rating* columns). Nudges the mapped
 // category whenever the reference is either strong evidence on its own
 // (rating >= 4) or rebuts a currently weak baseline (< 70, i.e. C or
@@ -155,7 +155,7 @@ const RESUME_IMPROVEMENT_BUMP = 6
 // resume with a decent score, the same "first real evidence" treatment as
 // a first reference (see applyReferenceCompletedRewrite). atsScore and
 // resultsScore feed Communication & Collaboration; experienceScore feeds
-// Target Fit — matching how hireability-grade.ts's computeCategoryGrades
+// Target Fit — matching how dossier-competencies.ts's computeCategoryGrades
 // now uses these three fields.
 export async function applyResumeImprovedRewrite(
   candidateId: string,

@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
-import { normalizeGradeSnapshot } from '@/lib/scoring/hireability-grade'
+import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import type { Grade } from '@/lib/scoring/grade'
 
 export interface RecruiterDatabaseRow {
@@ -34,7 +34,7 @@ function formatGeo(city: string | null, state: string | null, country: string): 
 export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]> {
   const [candidates, authUsers] = await Promise.all([
     prisma.candidateProfile.findMany({
-      where: { hireabilityReports: { some: {} } },
+      where: { marketRealityReports: { some: {} } },
       select: {
         id: true,
         userId: true,
@@ -53,10 +53,10 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
         recruiterDatabaseOptIn: true,
         recruiterNotifiedAt: true,
         recruiterUnlockNudgedAt: true,
-        hireabilityReports: {
+        marketRealityReports: {
           orderBy: { generatedAt: 'desc' },
           take: 1,
-          select: { hireabilityGradeAtGeneration: true },
+          select: { dossierGradeAtGeneration: true },
         },
         resumes: {
           orderBy: { uploadedAt: 'desc' },
@@ -75,7 +75,7 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
   ])
 
   return candidates.map((c) => {
-    const grade = normalizeGradeSnapshot(c.hireabilityReports[0]?.hireabilityGradeAtGeneration)
+    const grade = normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)
     const geoFlex = [c.remotePreference ? c.remotePreference : null, c.openToRelocation ? 'open to relocation' : null]
       .filter(Boolean)
       .join(' · ')
@@ -109,11 +109,11 @@ export async function isRecruiterDatabaseUnlocked(candidateId: string): Promise<
     where: { id: candidateId },
     select: {
       recruiterDatabaseOptIn: true,
-      hireabilityReports: { orderBy: { generatedAt: 'desc' }, take: 1, select: { hireabilityGradeAtGeneration: true } },
+      marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1, select: { dossierGradeAtGeneration: true } },
     },
   })
   if (!candidate?.recruiterDatabaseOptIn) return false
-  const grade = normalizeGradeSnapshot(candidate.hireabilityReports[0]?.hireabilityGradeAtGeneration)
+  const grade = normalizeGradeSnapshot(candidate.marketRealityReports[0]?.dossierGradeAtGeneration)
   return grade?.grade === 'A'
 }
 

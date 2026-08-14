@@ -38,7 +38,7 @@ export interface TodaysPrimaryAction {
   engineHint: string | null
 }
 
-// The existing 7-day action plan is generated fresh with the Hireability
+// The existing 7-day action plan is generated fresh with the Market Reality
 // Report — this cycles through it by elapsed days since that generation
 // rather than tracking arbitrary per-item completion (which isn't modeled
 // for free-text plan items today).
