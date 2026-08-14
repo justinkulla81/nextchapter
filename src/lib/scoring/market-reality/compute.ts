@@ -6,6 +6,7 @@
 // fixture harness, same as src/lib/scoring/resume-analysis/compute.ts.
 
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { computeEvidenceComponent } from './evidence'
 import { computeMarketComponent } from './market'
@@ -33,6 +34,9 @@ export async function computeMarketRealityComponents(candidateId: string): Promi
       evidenceScore: evidence.score,
       marketScore: market.score,
       channelsScore: channels.score,
+      evidenceDrivers: evidence.drivers as unknown as Prisma.InputJsonValue,
+      marketDrivers: market.drivers as unknown as Prisma.InputJsonValue,
+      channelsDrivers: channels.drivers as unknown as Prisma.InputJsonValue,
       recordComputedAt: latestResumeAnalysis?.createdAt ?? null,
       evidenceComputedAt: now,
       marketComputedAt: now,
@@ -43,6 +47,9 @@ export async function computeMarketRealityComponents(candidateId: string): Promi
       evidenceScore: evidence.score,
       marketScore: market.score,
       channelsScore: channels.score,
+      evidenceDrivers: evidence.drivers as unknown as Prisma.InputJsonValue,
+      marketDrivers: market.drivers as unknown as Prisma.InputJsonValue,
+      channelsDrivers: channels.drivers as unknown as Prisma.InputJsonValue,
       recordComputedAt: latestResumeAnalysis?.createdAt ?? null,
       evidenceComputedAt: now,
       marketComputedAt: now,

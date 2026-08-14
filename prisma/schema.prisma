@@ -2390,6 +2390,17 @@ model MarketRealityComponentScore {
   marketScore   Int? // 0-100 — role scarcity for the stated target, smoothed weekly
   channelsScore Int? // 0-100 — network + outreach activity
 
+  // 1-3 short, factual driver sentences per component (ComponentComputation.
+  // drivers from src/lib/scoring/market-reality/{evidence,market,channels}.ts),
+  // persisted in the same pass as the score they explain — Report Structure
+  // Spec §6 rule 1: "Grade and prose render from one object in one pass.
+  // They cannot drift." Record has no stored driver text; its headline
+  // sentence is derived on read from the latest ResumeAnalysis row, which
+  // is itself already a fully-persisted single source of truth.
+  evidenceDrivers Json?
+  marketDrivers   Json?
+  channelsDrivers Json?
+
   compositeScore Int?
   grade          String? // "A" | "B" | "C" | "D" | "F" — reuses the existing Grade scale (grade.ts)
 
