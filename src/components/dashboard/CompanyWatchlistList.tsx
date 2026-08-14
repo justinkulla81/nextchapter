@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { removeWatchlistCompany, viewWatchlistPosting } from '@/app/dashboard/company-tracker/actions'
+import { goToCompanyPage } from '@/app/dashboard/companies/actions'
 import { Button } from '@/components/ui/button'
 import { isRecentlyListed } from '@/lib/jobs/fit-bucket-types'
 import { cn } from '@/lib/utils'
@@ -79,6 +80,15 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
                   </span>
                 )}
               </button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn('shrink-0', isPending && 'cursor-progress')}
+                onClick={() => startTransition(() => goToCompanyPage(entry.companyName))}
+              >
+                Company page
+              </Button>
               <Button
                 type="button"
                 variant="ghost"

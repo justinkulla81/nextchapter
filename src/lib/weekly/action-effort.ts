@@ -188,6 +188,21 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   CHECK_IN_NOTE_SENT: { minutes: 10, points: 10 },
   INTRO_CONNECTION_REQUEST_SENT: { minutes: 15, points: 15 },
 
+  // Phase 2 Master Script, Part C, Prompt 4.4 — Teamwork points for the
+  // insider network. Point values are the spec's own literal table, not a
+  // NextChapter judgment call like most weights above. EMPLOYER_TAGGED is
+  // one-time per company (enforced by MemberEmployment's own
+  // [candidateId, companyId] unique constraint, not by this points system);
+  // COMPANY_INTEL_CONTRIBUTED only fires when a submission actually clears
+  // moderation and publishes (see src/lib/companies/company-intel.ts) —
+  // never for held or removed content; INSIDER_REQUEST_ANSWERED fires on a
+  // real answer, not a decline; INTEL_HELPFUL awards the CONTRIBUTOR, not
+  // the member who clicked helpful (see markIntelHelpful).
+  EMPLOYER_TAGGED: { minutes: 3, points: 10 },
+  COMPANY_INTEL_CONTRIBUTED: { minutes: 10, points: 25 },
+  INSIDER_REQUEST_ANSWERED: { minutes: 15, points: 40 },
+  INTEL_HELPFUL: { minutes: 1, points: 15 },
+
   // Prompt 79 — Calendar Connect. Same one-time connection bonus as Gmail.
   // INTERVIEW_ATTENDED is a real, high-value signal detected passively (no
   // active-prep credit here — that's INTERVIEW_PREP's job) so it's weighted
@@ -321,6 +336,10 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   JOB_APPLICATION_SUBMITTED: 'effort',
   JOB_INTERESTED_REACTION: 'connecting',
   PROFILE_PICTURE_UPLOADED: 'connecting',
+  EMPLOYER_TAGGED: 'connecting',
+  COMPANY_INTEL_CONTRIBUTED: 'connecting',
+  INSIDER_REQUEST_ANSWERED: 'connecting',
+  INTEL_HELPFUL: 'connecting',
   GMAIL_CONNECTED: 'connecting',
   GMAIL_RECONNECTED: 'connecting',
   THANK_YOU_NOTE_SENT: 'connecting',
@@ -411,6 +430,10 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   SHARE_NARRATIVE_FOR_FEEDBACK: 'Personalize',
   LINKEDIN_SETUP: 'Personalize',
 
+  EMPLOYER_TAGGED: 'Connecting',
+  COMPANY_INTEL_CONTRIBUTED: 'Connecting',
+  INSIDER_REQUEST_ANSWERED: 'Connecting',
+  INTEL_HELPFUL: 'Connecting',
   NETWORKING_LIST: 'Connecting',
   CONTACT_PRIORITIZED: 'Connecting',
   OUTREACH_MESSAGE: 'Connecting',
@@ -494,6 +517,16 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // Prompt 77 — Company Tracker. Adding another company is the same
   // "ongoing habit, no single finish line" shape as the rest of this set.
   'WATCHLIST_ADD',
+  // Phase 2 Part C, Prompt 4.4 — tagging another employer, contributing
+  // another piece of intel, or answering another insider request are all
+  // ongoing, no single finish line, same shape as the rest of this set.
+  // INTEL_HELPFUL deliberately excluded — it's awarded passively when a
+  // DIFFERENT member votes a contributor's intel helpful, never something
+  // the earning candidate themselves clicks, so it has no place in a
+  // recurring "do this again" list.
+  'EMPLOYER_TAGGED',
+  'COMPANY_INTEL_CONTRIBUTED',
+  'INSIDER_REQUEST_ANSWERED',
   // A candidate can add more than one reference over the course of a
   // search — same "ongoing habit, no single finish line" shape as the rest
   // of this set.
@@ -627,6 +660,12 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'JOB_APPLICATION_SUBMITTED',
   'JOB_INTERESTED_REACTION',
   'WATCHLIST_ADD',
+  // Verified via tagEmployer/submitCompanyIntel/answerInsiderRequest in
+  // src/app/dashboard/companies/[id]/actions.ts — all real DB writes, never
+  // a self-report click.
+  'EMPLOYER_TAGGED',
+  'COMPANY_INTEL_CONTRIBUTED',
+  'INSIDER_REQUEST_ANSWERED',
   // Verified via requestPracticeEvaluation/requestToughAnswerFeedback in
   // interview-prep/actions.ts — a candidate answering a real practice or
   // tough question is the actual "mock interview" work; a self-report
@@ -700,6 +739,13 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Network with My Contacts' },
   WATCHLIST_ADD: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
+  // No single "all companies" index page exists yet (company pages are
+  // reached from a job listing, a matched job, or search, per spec) — links
+  // to the Company Tracker as the closest existing hub where a candidate
+  // can find their way to a specific company page.
+  EMPLOYER_TAGGED: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
+  COMPANY_INTEL_CONTRIBUTED: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
+  INSIDER_REQUEST_ANSWERED: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
   WATCHLIST_POSTING_VIEWED: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
   // Points at where you'd go DO this (the job boards), not where you'd log
   // it afterward (#jobs-applied) — the Action Plan bullet is "apply to a new

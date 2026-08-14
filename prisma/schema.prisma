@@ -1163,6 +1163,13 @@ model CandidateProfile {
   resumeIssues                   ResumeIssue[]
   adminAccessLogViews            AdminAccessLog[]
 
+  // Phase 2 Part C — company pages & insider network (see the COMPANIES
+  // section near the end of this file for all six models).
+  memberEmployment        MemberEmployment[]
+  companyIntelContributed CompanyIntel[]
+  insiderRequestsAsked    InsiderRequest[]   @relation("InsiderRequestAsker")
+  insiderRequestsReceived InsiderRequest[]   @relation("InsiderRequestInsider")
+
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
   // same as never having visited the section. HARD GUARDRAIL: these four
@@ -5177,4 +5184,237 @@ model AdminAccessLog {
 
   @@index([viewedCandidateId, viewedAt])
   @@index([adminEmail, viewedAt])
+}
+
+// ── COMPANIES & INSIDER NETWORK ─────────────────────────────────────────────
+// Phase 2 Master Script, Part C, Prompts 1-4 — Phase A of a two-phase build
+// (schema + candidate-facing page + insider network; the admin company view
+// and nervous-employee panel are Prompts 6/7, Phase B, not built yet).
+//
+// Two things the spec assumes exist and don't, confirmed absent anywhere in
+// this codebase before this pass:
+//
+// 1. A WARN-filing monitoring agent — no cron, no model, no real input.
+//    CompanySignal.warnFilings12mo/warnEmployeesAffected below are added
+//    nullable so the schema doesn't need another migration once that agent
+//    is real, but this phase's nightly job (see the company-signals cron)
+//    never populates them, and trajectory is computed from posting deltas
+//    alone (see that column's comment). Never fabricate a WARN number —
+//    every candidate-facing "contraction signal" surface renders an
+//    explicit "not available yet" state instead of reading these two
+//    columns.
+// 2. A dedicated "Confidential Search Mode" boolean — task #966 in the
+//    backlog (NextChapter_Search_Visibility_References_Leaderboards.md) is
+//    the real, unbuilt feature. CandidateProfile.privacyTier === 'STEALTH'
+//    is used as the provisional proxy everywhere this schema needs it (see
+//    src/lib/companies/insider-network.ts), same convention already
+//    established in src/app/support/admin/(portal)/population/page.tsx's
+//    ConfidentialSection.
+//
+// Join strategy: there is no domain-based join key anywhere in this
+// codebase (ExclusiveJobPosting.companyName and WorkHistoryEntry.companyName
+// are both free text) — Company.canonicalNameNormalized is keyed by
+// normalizeOrgName() (src/lib/text/org-name-match.ts), the same
+// normalization idiom CompanySizeLookup/CompanyIndustryLookup/
+// CompanyWatchlistEntry/WorkHistoryEntry already use.
+
+model Company {
+  id                      String           @id @default(cuid())
+  name                    String // display name, first-seen casing
+  canonicalNameNormalized String           @unique // via normalizeOrgName() — the real join key
+  industry                String?
+  sizeBand                CompanySizeBand?
+  hqMetro                 String?
+  // No real per-employer ATS-vendor signal exists anywhere in this codebase
+  // (AtsParseResult is about RESUME parsing, not the hiring company's own
+  // ATS) — nullable, never populated this phase. The company page renders
+  // an explicit "not available yet" state for this field rather than a
+  // guess, same treatment as the WARN-dependent contraction signal.
+  atsPlatform             String?
+  isVerified              Boolean          @default(false)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  signals             CompanySignal[]
+  memberEmployment    MemberEmployment[]
+  intel               CompanyIntel[]
+  insiderRequests     InsiderRequest[]
+  applicationOutcomes CompanyApplicationOutcome[]
+
+  @@index([industry])
+}
+
+// Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
+// — no WARN input (see this section's header comment). One row per
+// company per ISO week.
+model CompanySignal {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC, same convention as PopulationSnapshot
+
+  openRolesTotal        Int
+  openRolesDirectorPlus Int
+  rolesDelta4wk         Int
+  rolesDelta12wk        Int
+  // 'growing' | 'flat' | 'contracting' — computed from rolesDelta12wk alone
+  // (posting-signal-only), NOT the spec's WARN-overridden definition (no
+  // real WARN input exists — see header comment). Thresholds and reasoning
+  // documented in src/lib/companies/signals.ts.
+  trajectory            String
+  topFunctionsHiring    Json // string[], ranked most-hired-for first
+  topSkillsRequested    Json // string[], ranked — keyword-frequency extraction, see src/lib/companies/skills-extraction.ts for why this isn't an LLM call
+  medianPostingAgeDays  Int?
+
+  // Nullable, forward-compatible columns for a future real WARN agent.
+  // NEVER populated by this phase's cron — see header comment. Any
+  // candidate-facing read of these two columns must be gated behind an
+  // explicit "not available yet" state, never a fabricated number.
+  warnFilings12mo       Int?
+  warnEmployeesAffected Int?
+
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, weekStartDate])
+  @@index([companyId])
+}
+
+// The contribution graph — a candidate's tagged/confirmed employment at a
+// company, the unlock gate for querying anyone else's rows (Prompt 4.1) and
+// the source of the "people who know this company" insider list (4.2).
+// Distinct from WorkHistoryEntry (candidate's own resume-derived history,
+// company as free text): this is the company-graph-joined, insider-network-
+// specific record, created only once a candidate has actively confirmed it
+// (verifiedFromResume tracks whether that confirmation started from a
+// resume-parsed row or a manual add — same verified/resumeDerived shape as
+// WorkHistoryEntry, reused rather than inventing a new verification concept).
+model MemberEmployment {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  companyId   String
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  title         String
+  function      String? // inferFunctionFromTitle() output, same vocabulary as PRIMARY_FUNCTION_OPTIONS
+  seniorityBand String? // inferLevelFromTitle() output
+
+  startDate DateTime?
+  endDate   DateTime? // null = current
+  isCurrent Boolean   @default(false)
+
+  // Default true per spec, but gated off in practice (never surfaced as an
+  // insider) for STEALTH-tier candidates and current employees who haven't
+  // explicitly opted in — see src/lib/companies/insider-network.ts,
+  // isEligibleAsNamedInsider().
+  visibleAsInsider   Boolean @default(true)
+  verifiedFromResume Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([candidateId, companyId])
+  @@index([companyId])
+  @@index([candidateId])
+}
+
+// Crowdsourced "how to get hired here" — the candidate-facing core of the
+// company page. Every row is moderated before publish (see
+// src/lib/companies/intel-moderation.ts) — status starts 'pending', never
+// 'published', until that classification runs.
+model CompanyIntel {
+  id                     String           @id @default(cuid())
+  companyId              String
+  company                Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contributorCandidateId String
+  contributorCandidate   CandidateProfile @relation(fields: [contributorCandidateId], references: [id], onDelete: Cascade)
+
+  // 'interview_loop' | 'timeline' | 'what_they_test' | 'who_decides' |
+  // 'recruiter_responsiveness' | 'what_kills_candidates' — the spec's six
+  // structured intel types.
+  intelType       String
+  body            String
+  roleLevelAtTime String?
+  // 'within_2yrs' | '2_5yrs' | '5yrs_plus'
+  recencyBucket   String?
+  isAnonymous     Boolean @default(true)
+  helpfulCount    Int     @default(0)
+
+  // 'pending' | 'published' | 'removed'
+  status              String  @default("pending")
+  moderationCategory  String? // see src/lib/companies/intel-moderation.ts's own small taxonomy — deliberately NOT CommunityModerationCategory
+  moderationReasoning String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, status])
+  @@index([contributorCandidateId])
+}
+
+// The 1:1 "ask an insider" flow (Prompt 4.3). Never queryable by anyone but
+// the two parties — no admin surface reads this table in Phase A. Declines
+// are silent by product design: the asker's own view must never distinguish
+// 'declined' from 'pending' (enforced in the query layer, not here — see
+// src/lib/companies/insider-network.ts).
+model InsiderRequest {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  askerCandidateId   String
+  askerCandidate     CandidateProfile @relation("InsiderRequestAsker", fields: [askerCandidateId], references: [id], onDelete: Cascade)
+  insiderCandidateId String
+  insiderCandidate   CandidateProfile @relation("InsiderRequestInsider", fields: [insiderCandidateId], references: [id], onDelete: Cascade)
+
+  question String
+  // 'pending' | 'accepted' | 'declined' | 'expired' | 'answered'
+  status   String  @default("pending")
+  answer   String?
+
+  askedAt     DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@index([askerCandidateId, status])
+  @@index([insiderCandidateId, status])
+  @@index([companyId])
+}
+
+// Aggregate-only outcome rollup for "how members have fared" — computed
+// nightly from real JobPosting rows (candidateId, companyName, appliedAt/
+// declinedAt/interviewLandedAt/offerReceivedAt), joined to Company via
+// normalizeOrgName(companyName) === canonicalNameNormalized. Never a
+// per-candidate record — every read of this table on the candidate-facing
+// company page runs through suppressSmallCells() before rendering.
+model CompanyApplicationOutcome {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime
+
+  applications Int @default(0)
+  responses    Int @default(0)
+  interviews   Int @default(0)
+  offers       Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, weekStartDate])
+  @@index([companyId])
+}
+
+// Dedup log for "intel marked helpful" (Prompt 4.4, 15 points to the
+// CONTRIBUTOR, not the voter) — CompanyIntel.helpfulCount is a plain
+// counter with no vote history of its own, so without this a candidate
+// could reload and re-click "helpful" to farm points for someone
+// indefinitely. Unique on [intelId, voterCandidateId] makes one vote per
+// member per piece of intel a real DB-level guarantee, not just a UI debounce.
+model CompanyIntelHelpfulVote {
+  id               String   @id @default(cuid())
+  intelId          String
+  voterCandidateId String
+  createdAt        DateTime @default(now())
+
+  @@unique([intelId, voterCandidateId])
+  @@index([intelId])
 }

@@ -36,6 +36,9 @@ export type MilestoneBadgeKey =
   | 'BACKED'
   | 'CONSISTENT'
   | 'DOCUMENTED'
+  | 'INSIDER'
+  | 'GUIDE'
+  | 'CONTRIBUTOR'
 
 export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   SEVEN_DAY_STREAK: '7-Day Streak',
@@ -54,6 +57,9 @@ export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   BACKED: 'Backed',
   CONSISTENT: 'Consistent',
   DOCUMENTED: 'Documented',
+  INSIDER: 'Insider',
+  GUIDE: 'Guide',
+  CONTRIBUTOR: 'Contributor',
 }
 
 export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
@@ -73,7 +79,19 @@ export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
   BACKED: 'Your first reference came back.',
   CONSISTENT: '3 Weekly Search Sprints in a row.',
   DOCUMENTED: 'Your Dossier is complete — all 7 requirements met.',
+  INSIDER: 'Answered your first insider request.',
+  GUIDE: 'Answered 5 insider requests.',
+  CONTRIBUTOR: 'Published 10 pieces of company intel.',
 }
+
+// Part C, Prompt 4.4's own thresholds — Insider/Guide are literal counts
+// from the spec ("Insider (answered 1 request) · Guide (answered 5)");
+// Contributor's "10 pieces of published intel" is also the spec's literal
+// number, but counted against status: 'published' rows only (a submission
+// that's held or removed by moderation was never real, usable guidance —
+// see src/lib/companies/company-intel.ts).
+const GUIDE_ANSWERED_THRESHOLD = 5
+const CONTRIBUTOR_PUBLISHED_THRESHOLD = 10
 
 const COMEBACK_GAP_DAYS = 7
 const OVER_DELIVERING_STREAK_MIN = 2
@@ -149,6 +167,8 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     profileFieldsConfirmed,
     threeWeekSprintStreak,
     dossierCompleteness,
+    insiderRequestsAnswered,
+    publishedIntelCount,
   ] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
@@ -186,6 +206,8 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     }),
     computeCurrentSprintStreak(candidateId, 3),
     computeDossierCompleteness(candidateId),
+    prisma.insiderRequest.count({ where: { insiderCandidateId: candidateId, status: 'answered' } }),
+    prisma.companyIntel.count({ where: { contributorCandidateId: candidateId, status: 'published' } }),
   ])
 
   const comeback = detectComeback(checkIns.map((c) => c.checkedInAt))
@@ -241,6 +263,9 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     BACKED: references.some((r) => r.status === 'COMPLETED'),
     CONSISTENT: threeWeekSprintStreak >= 3,
     DOCUMENTED: dossierCompleteness.isComplete,
+    INSIDER: insiderRequestsAnswered >= 1,
+    GUIDE: insiderRequestsAnswered >= GUIDE_ANSWERED_THRESHOLD,
+    CONTRIBUTOR: publishedIntelCount >= CONTRIBUTOR_PUBLISHED_THRESHOLD,
   }
 
   return (Object.keys(MILESTONE_BADGE_LABEL) as MilestoneBadgeKey[]).map((key) => ({
