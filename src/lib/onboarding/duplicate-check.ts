@@ -26,22 +26,27 @@ export async function findExistingRegisteredAccount(
   })
 }
 
-// Runs the same check and, if it finds a match, persists duplicateEmailBlockedAt
-// on the calling profile in the same step — used by every place that needs to
-// both check AND record the block (resume-upload, and a returning visit to
-// /onboarding/resume that skips re-uploading because resumeStepComplete is
-// already true) so the flag is set the moment the collision is first seen,
-// not just when registration is finally attempted.
-export async function checkAndFlagDuplicateEmail(
+// Runs the same check and, if it finds a match, DELETES the calling profile
+// (cascades to its Resume/analysis/etc rows) instead of just flagging it —
+// used by the two places that catch this collision before a real account
+// exists yet (resume-upload, and a returning visit to /onboarding/resume
+// that skips re-uploading because resumeStepComplete is already true).
+// There must never be two CandidateProfile rows for the same person: an
+// anonymous session that turns out to already have a real account should be
+// deleted outright and sent to log in, not left behind as an orphaned
+// duplicate. This is deliberately NOT the same behavior as
+// duplicateEmailBlockedAt/sync-registration.ts's flagging — that path fires
+// AFTER a real email confirmation, where the candidate has genuinely
+// invested in the flow and deleting their in-progress answers would be far
+// more destructive than here, where nothing but this one upload attempt
+// exists yet.
+export async function checkAndDeleteDuplicateProfile(
   profileId: string,
   email: string
 ): Promise<ExistingAccountMatch | null> {
   const existing = await findExistingRegisteredAccount(email, profileId)
   if (existing) {
-    await prisma.candidateProfile.update({
-      where: { id: profileId },
-      data: { duplicateEmailBlockedAt: new Date() },
-    })
+    await prisma.candidateProfile.delete({ where: { id: profileId } })
   }
   return existing
 }

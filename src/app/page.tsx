@@ -134,7 +134,9 @@ export default function Home() {
             </Button>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            See how hiring managers will read your resume, and get a plan to increase your marketability.
+            Upload your resume and understand how hiring managers will evaluate it with your
+            NextChapter Market Reality Grade. Then get an action plan to increase your
+            marketability.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             Hiring, recruiting, or coaching instead?{' '}

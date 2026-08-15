@@ -4,7 +4,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
-import { checkAndFlagDuplicateEmail, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { checkAndDeleteDuplicateProfile, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 
 export default async function OnboardingResumePage() {
@@ -51,10 +51,11 @@ export default async function OnboardingResumePage() {
     // registration, would otherwise skip straight into "Your Path" every
     // time and only get caught at the very last step (create-account) after
     // redoing the whole flow. Re-check here, before either exit redirects,
-    // instead of just resuming.
+    // instead of just resuming — deletes this profile outright on a match,
+    // same as uploadResume's own check.
     if (profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id } })) > 0) {
       if (profile.email) {
-        const existingAccount = await checkAndFlagDuplicateEmail(profile.id, profile.email)
+        const existingAccount = await checkAndDeleteDuplicateProfile(profile.id, profile.email)
         if (existingAccount) {
           return (
             <div className="space-y-6">

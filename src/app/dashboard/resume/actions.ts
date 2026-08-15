@@ -12,7 +12,7 @@ import { extractResumeText } from '@/lib/resume/extract-text'
 import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { checkAndFlagDuplicateEmail } from '@/lib/onboarding/duplicate-check'
+import { checkAndDeleteDuplicateProfile } from '@/lib/onboarding/duplicate-check'
 import { applyWorkHistoryDuringGapRewrite, applyResumeImprovedRewrite } from '@/lib/scoring/rewrite-actions'
 import { computeStructuralFlags } from '@/lib/resume/compute-structural-flags'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
@@ -163,16 +163,17 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   }
 
   // Mid-onboarding (still an anonymous session) — if the resume's extracted
-  // email already belongs to a real, registered account, send them to log in
-  // instead of quietly building a second profile/assessment for the same
-  // person (the exact class of duplicate-account bug seen once already).
+  // email already belongs to a real, registered account, delete this
+  // just-created anonymous profile and send them to log in instead of
+  // leaving a second profile/assessment behind for the same person (the
+  // exact class of duplicate-account bug seen once already).
   if (user.is_anonymous) {
     const updated = await prisma.candidateProfile.findUnique({
       where: { id: profile.id },
       select: { email: true },
     })
     if (updated?.email) {
-      const existingAccount = await checkAndFlagDuplicateEmail(profile.id, updated.email)
+      const existingAccount = await checkAndDeleteDuplicateProfile(profile.id, updated.email)
       if (existingAccount) {
         return existingAccount.passwordSetAt
           ? { existingAccountFound: true }
