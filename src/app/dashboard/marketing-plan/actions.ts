@@ -277,7 +277,12 @@ export async function postToLinkedInAction(text: string): Promise<boolean> {
     return false
   }
 
-  await prisma.linkedInActivityLog.create({ data: { candidateId: profile.id, source: 'DIRECT_POST' } })
+  // textLength backs the Visibility leaderboard's minimum-post-length guard
+  // (see LinkedInActivityLog's schema comment) — this is the one write path
+  // in the codebase where the real published text is available.
+  await prisma.linkedInActivityLog.create({
+    data: { candidateId: profile.id, source: 'DIRECT_POST', textLength: text.trim().length },
+  })
   captureServerEvent(profile.id, 'linkedin_post_published', { source: 'direct_post' })
 
   const sprint = await getCurrentWeekSprint(profile.id)

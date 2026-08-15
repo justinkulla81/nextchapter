@@ -1,9 +1,10 @@
 'use client'
 
-import type { ComponentType, ReactNode } from 'react'
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import Link from 'next/link'
-import { User, Users, BookOpen, Sparkles, Zap } from 'lucide-react'
+import { Trophy, User, Users, BookOpen, Sparkles, Zap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getMyActionScorePersonalBest } from '@/lib/leaderboard/actions'
 import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
@@ -378,6 +379,38 @@ function ActionRow({
   )
 }
 
+// PART FOUR §19 — "Weekly Search Sprint gets one line at week's end... No
+// ranking inside the Sprint." A self-fetching client component (rather than
+// a new prop threaded through this card's caller) so the addition stays
+// exactly what the spec asks for: one small line, not a redesign of what
+// data this card receives. Fetches once on mount; renders nothing while
+// loading or if the candidate has no personal best yet (a first-ever week
+// has nothing to compare against).
+function PersonalBestLine({ weeklyPoints }: { weeklyPoints: number }) {
+  const [best, setBest] = useState<{ bestValue: number; weekStartDate: string } | null | undefined>(undefined)
+
+  useEffect(() => {
+    let cancelled = false
+    getMyActionScorePersonalBest().then((result) => {
+      if (!cancelled) setBest(result)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!best) return null
+
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <Trophy className="size-3 shrink-0" aria-hidden />
+      You&apos;re at <span className="font-medium text-foreground tabular-nums">{weeklyPoints}</span> points this
+      week. Your best week yet — <span className="font-medium text-foreground tabular-nums">{best.bestValue}</span>{' '}
+      points.
+    </p>
+  )
+}
+
 export function SuccessSprintCard({
   actions,
   suggestedActions,
@@ -607,6 +640,7 @@ export function SuccessSprintCard({
               </span>
             </p>
           </div>
+          <PersonalBestLine weeklyPoints={weeklyPoints} />
 
           {allRows.length > 0 ? (
             <>

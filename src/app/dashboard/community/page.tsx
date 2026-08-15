@@ -51,6 +51,8 @@ import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
+import { CommunityLeaderboardModule } from '@/components/dashboard/CommunityLeaderboardModule'
+import { computeBoard } from '@/lib/leaderboard/queries'
 import { cn } from '@/lib/utils'
 import type { Prisma, PrivacyTier } from '@prisma/client'
 
@@ -737,12 +739,19 @@ async function CommunityTab({
   ])
   const feed = [...communityFeed, ...marketBrief]
 
+  // §19 — condensed top-3-of-Action-Score module. Skipped entirely for
+  // Confidential Search Mode candidates: this is a public teaser inviting
+  // opt-in, and §4.1 hard-excludes them from ever appearing here regardless.
+  const leaderboardTeaser = confidentialSearchMode ? null : await computeBoard('ACTION_SCORE', {}, candidateId)
+
   return (
     <div className="space-y-8">
       {confidentialSearchMode && <ConfidentialModeIndicator />}
       <p className="text-sm text-muted-foreground">
         Ask for help, offer help, or share a job — nobody searches well entirely alone.
       </p>
+
+      {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
 
       {unreadNotes.length > 0 && (
         <div className="space-y-3">

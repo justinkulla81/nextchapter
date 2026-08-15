@@ -6,6 +6,7 @@ import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { isDossierComplete } from '@/lib/reports/dossier-sections'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
 import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { LEADERBOARD_BADGE_LABEL, LEADERBOARD_BADGE_KEYS, type LeaderboardBadgeKey } from '@/lib/leaderboard/badges'
 
 // Milestone badges (Prompt 51) — earned once, permanent, never reset.
 // Computed live from existing data, same "don't persist a duplicate"
@@ -39,6 +40,7 @@ export type MilestoneBadgeKey =
   | 'INSIDER'
   | 'GUIDE'
   | 'CONTRIBUTOR'
+  | LeaderboardBadgeKey
 
 export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   SEVEN_DAY_STREAK: '7-Day Streak',
@@ -60,6 +62,7 @@ export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   INSIDER: 'Insider',
   GUIDE: 'Guide',
   CONTRIBUTOR: 'Contributor',
+  ...LEADERBOARD_BADGE_LABEL,
 }
 
 export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
@@ -82,6 +85,16 @@ export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
   INSIDER: 'Answered your first insider request.',
   GUIDE: 'Answered 5 insider requests.',
   CONTRIBUTOR: 'Published 10 pieces of company intel.',
+  // PART FOUR §17 — a real, dated weekly leaderboard placement. Description
+  // is deliberately generic (the count/dates live in getLeaderboardBadgeHistory,
+  // not here) since MilestoneBadgeStatus has no per-week detail, just
+  // earned/count like GAP_CLOSER.
+  TOP3_ACTION_SCORE: 'Finished in the top 3 on the Action Score leaderboard for a week.',
+  TOP3_OUTREACH: 'Finished in the top 3 on the Outreach leaderboard for a week.',
+  TOP3_APPLICATIONS: 'Finished in the top 3 on the Applications leaderboard for a week.',
+  TOP3_VISIBILITY: 'Finished in the top 3 on the Visibility leaderboard for a week.',
+  TOP3_CONTRIBUTION: 'Finished in the top 3 on the Contribution leaderboard for a week.',
+  TOP3_LIFETIME_ACTION_SCORE: 'Finished in the top 3 on the Lifetime Action Score leaderboard.',
 }
 
 // Part C, Prompt 4.4's own thresholds — Insider/Guide are literal counts
@@ -169,6 +182,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     dossierCompleteness,
     insiderRequestsAnswered,
     publishedIntelCount,
+    leaderboardBadgeCounts,
   ] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
@@ -208,6 +222,16 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     computeDossierCompleteness(candidateId),
     prisma.insiderRequest.count({ where: { insiderCandidateId: candidateId, status: 'answered' } }),
     prisma.companyIntel.count({ where: { contributorCandidateId: candidateId, status: 'published' } }),
+    // §17 — every dated leaderboard Top 3 placement this candidate has ever
+    // earned, grouped by board so repeat placements can show a count (same
+    // treatment as GAP_CLOSER below). Written by
+    // computeAndRecordLeaderboardBadges (src/lib/leaderboard/badges.ts),
+    // same upsert-into-WeeklyBadgeEarned pattern as every other weekly badge.
+    prisma.weeklyBadgeEarned.groupBy({
+      by: ['badgeKey'],
+      where: { candidateId, badgeKey: { in: LEADERBOARD_BADGE_KEYS } },
+      _count: { badgeKey: true },
+    }),
   ])
 
   const comeback = detectComeback(checkIns.map((c) => c.checkedInAt))
@@ -246,6 +270,10 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     }
   }
 
+  const leaderboardBadgeCountByKey = new Map<string, number>(
+    leaderboardBadgeCounts.map((row) => [row.badgeKey, row._count.badgeKey])
+  )
+
   const earned: Record<MilestoneBadgeKey, boolean> = {
     SEVEN_DAY_STREAK: candidate.longestStreak >= 7,
     THIRTY_DAY_STREAK: candidate.longestStreak >= 30,
@@ -266,6 +294,12 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     INSIDER: insiderRequestsAnswered >= 1,
     GUIDE: insiderRequestsAnswered >= GUIDE_ANSWERED_THRESHOLD,
     CONTRIBUTOR: publishedIntelCount >= CONTRIBUTOR_PUBLISHED_THRESHOLD,
+    TOP3_ACTION_SCORE: (leaderboardBadgeCountByKey.get('TOP3_ACTION_SCORE') ?? 0) > 0,
+    TOP3_OUTREACH: (leaderboardBadgeCountByKey.get('TOP3_OUTREACH') ?? 0) > 0,
+    TOP3_APPLICATIONS: (leaderboardBadgeCountByKey.get('TOP3_APPLICATIONS') ?? 0) > 0,
+    TOP3_VISIBILITY: (leaderboardBadgeCountByKey.get('TOP3_VISIBILITY') ?? 0) > 0,
+    TOP3_CONTRIBUTION: (leaderboardBadgeCountByKey.get('TOP3_CONTRIBUTION') ?? 0) > 0,
+    TOP3_LIFETIME_ACTION_SCORE: (leaderboardBadgeCountByKey.get('TOP3_LIFETIME_ACTION_SCORE') ?? 0) > 0,
   }
 
   return (Object.keys(MILESTONE_BADGE_LABEL) as MilestoneBadgeKey[]).map((key) => ({
@@ -274,5 +308,6 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     description: MILESTONE_BADGE_DESCRIPTION[key],
     earned: earned[key],
     ...(key === 'GAP_CLOSER' ? { count: gapCloserCount } : {}),
+    ...(LEADERBOARD_BADGE_KEYS.includes(key as LeaderboardBadgeKey) ? { count: leaderboardBadgeCountByKey.get(key) ?? 0 } : {}),
   }))
 }

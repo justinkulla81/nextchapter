@@ -9,6 +9,8 @@ import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettin
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
+import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
+import { CurrentJobStatusSelector } from '@/components/dashboard/CurrentJobStatusSelector'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -37,6 +39,17 @@ export default async function PrivacyPage() {
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>
+          <h2 className="text-lg font-semibold">Your situation</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            What best describes you today. Update this any time it changes — it won&apos;t change your
+            Confidential Search Mode setting below on its own.
+          </p>
+        </div>
+        <CurrentJobStatusSelector current={profile.currentJobStatus} />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <div>
           <h2 className="text-lg font-semibold">Confidential Search Mode</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             A separate control from your privacy tier above — this governs whether your search is
@@ -58,6 +71,14 @@ export default async function PrivacyPage() {
         <RecruiterDatabaseOptIn
           optedIn={profile.recruiterDatabaseOptIn}
           currentGrade={grade.grade}
+          confidentialSearchMode={profile.confidentialSearchMode}
+        />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <LeaderboardOptInSettings
+          optedIn={profile.leaderboardOptIn}
+          displayMode={profile.leaderboardDisplayMode}
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>

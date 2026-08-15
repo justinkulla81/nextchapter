@@ -13,7 +13,7 @@ export type CommunityGroupDimension = 'seniority' | 'school' | 'company' | 'indu
 // §14: "Segment by seniority band, function second." SENIORITY_BAND_LABEL
 // mirrors ResumeAnalysis.seniorityBand's raw-string values (no Prisma enum
 // there — see that model's own comment).
-const SENIORITY_BAND_LABEL: Record<string, string> = {
+export const SENIORITY_BAND_LABEL: Record<string, string> = {
   EARLY: 'Early Career',
   MID: 'Mid-Career',
   SENIOR: 'Senior',

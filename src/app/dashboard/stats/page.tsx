@@ -35,8 +35,18 @@ import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
 import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewedOnMount'
+import { LEADERBOARD_BOARDS } from '@/lib/leaderboard/boards'
+import { computeAllBoards } from '@/lib/leaderboard/queries'
+import { getAndUpdatePersonalBests } from '@/lib/leaderboard/personal-bests'
+import { computeAndRecordLeaderboardBadges, getLeaderboardBadgeHistory } from '@/lib/leaderboard/badges'
+import { LeaderboardBoardCard } from '@/components/dashboard/LeaderboardBoardCard'
+import { LeaderboardFilters } from '@/components/dashboard/LeaderboardFilters'
+import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
+
+type SearchParams = { [key: string]: string | string[] | undefined }
+const VALID_BANDS: SeniorityBand[] = ['EARLY', 'MID', 'SENIOR', 'EXECUTIVE']
 
 
 type EngineKey = WeeklyEngine['key']
@@ -45,6 +55,7 @@ const ENGINE_ORDER: EngineKey[] = ['effort', 'connecting', 'working', 'learning'
 const SECTIONS = [
   { id: 'your-stats', label: 'Your Stats' },
   { id: 'badges', label: 'Badges' },
+  { id: 'leaderboards', label: 'Leaderboards' },
   { id: 'market-reality', label: 'Market Reality' },
   { id: 'actions', label: "This week's effort & actions" },
   { id: 'feeling', label: "How you've felt" },
@@ -58,9 +69,13 @@ function gradeAccent(grade: Grade): StatTileAccent {
   return GRADE_TEXT_COLOR[grade].replace('text-', '') as StatTileAccent
 }
 
-export default async function YourStatsPage() {
+export default async function YourStatsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const profile = await getDashboardData()
   const weekStartDate = getMondayOfWeek(new Date())
+  const params = await searchParams
+  const bandParam = typeof params.band === 'string' ? params.band : null
+  const seniorityBand = bandParam && (VALID_BANDS as string[]).includes(bandParam) ? (bandParam as SeniorityBand) : undefined
+  const fnParam = typeof params.fn === 'string' ? params.fn : undefined
 
   const [
     grade,
@@ -74,6 +89,9 @@ export default async function YourStatsPage() {
     weeklyBadges,
     milestoneBadges,
     weekNumber,
+    leaderboardResults,
+    leaderboardPersonalBests,
+    leaderboardBadgeHistory,
   ] = await Promise.all([
     computeDossierCompetencies(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
@@ -89,7 +107,26 @@ export default async function YourStatsPage() {
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
     getCandidateWeekNumber(profile.id, weekStartDate),
+    // PART FOUR §14/§15/§19 — all 6 boards, filtered by the seniority
+    // band/function this render is scoped to. `own` is populated for this
+    // candidate regardless of public opt-in (see computeBoard's doc
+    // comment) — §4.1/§15 promises confidential-mode/opted-out members a
+    // real private rank even though they never show up in `top10`.
+    computeAllBoards({ seniorityBand, function: fnParam }, profile.id),
+    // Write-through personal-best cache — real activity only, independent of
+    // public opt-in (§18/§20).
+    getAndUpdatePersonalBests(profile.id),
+    getLeaderboardBadgeHistory(profile.id),
   ])
+
+  // §17 — recompute this week's Top-3 placements and upsert any newly
+  // earned dated badges, same "fire on render, not a cron" pattern as
+  // computeWeeklyBadges above. Only meaningful (and only queried) for a
+  // publicly opted-in candidate — see computeAndRecordLeaderboardBadges's
+  // own doc comment on why a private/hypothetical rank never earns one.
+  if (profile.leaderboardOptIn) {
+    await computeAndRecordLeaderboardBadges(profile.id)
+  }
 
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
   const completedByEngine = new Map<EngineKey, CommittedAction[]>()
@@ -208,6 +245,61 @@ export default async function YourStatsPage() {
         </div>
       </details>
       <MarkBadgesViewedOnMount earnedBadgesCount={earnedBadgesCount} />
+
+      <Card id="leaderboards" className="scroll-mt-4">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Leaderboards</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Weekly, reset every Monday — except Lifetime Action Score, which adds up your whole search.
+            Points are activity, not your Market Reality Grade — the two never blend.
+          </p>
+          <LeaderboardFilters band={seniorityBand ?? null} fn={fnParam ?? null} />
+          {!profile.leaderboardOptIn && !profile.confidentialSearchMode && (
+            <p className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+              You&apos;re not opted in yet — your rank below is private, just for you. Opt in from{' '}
+              <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
+                Privacy settings
+              </Link>{' '}
+              to appear on the public board.
+            </p>
+          )}
+          {profile.confidentialSearchMode && (
+            <p className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+              Confidential Search Mode is on — leaderboards stay private to you. Your rank, personal
+              bests, and badges below are real, they just never display to anyone else.
+            </p>
+          )}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {LEADERBOARD_BOARDS.map((board, i) => (
+              <LeaderboardBoardCard
+                key={board}
+                board={board}
+                result={leaderboardResults[i]}
+                personalBest={leaderboardPersonalBests[board]}
+              />
+            ))}
+          </div>
+          {leaderboardBadgeHistory.length > 0 && (
+            <div className="border-t border-border pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Leaderboard badge case
+              </p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {leaderboardBadgeHistory.map((b, i) => (
+                  <li
+                    key={i}
+                    className="rounded-full border border-brand/30 bg-brand/5 px-3 py-1 text-xs font-medium text-foreground"
+                  >
+                    🏅 {b.label} — week of {b.weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div id="market-reality" className="scroll-mt-4">
         <MarketRealityOverview

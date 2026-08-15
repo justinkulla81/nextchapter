@@ -27,6 +27,35 @@ enum ConfidentialModeChangeSource {
   SETTINGS_TOGGLE // Member flipped it themselves from Privacy settings
 }
 
+// PART FOUR §15 — the three leaderboard identity-display modes. Distinct
+// from Community's identity system (generated handle vs. real name) even
+// though GENERATED_HANDLE reuses the exact same deterministic-handle
+// generator (see src/lib/community/identity.ts's generateCommunityHandle) —
+// leaderboards additionally allow NOT_LISTED (ranked and counted, but shown
+// with no name at all) and never allow a bare full/real name, only first
+// name + last initial, per §15 "never displayed: employer, title, location,
+// industry" — the same minimal-identity posture as Community's anonymize().
+enum LeaderboardDisplayMode {
+  FIRST_NAME_LAST_INITIAL
+  GENERATED_HANDLE
+  NOT_LISTED
+}
+
+// The six §14 boards. Kept as a real enum (unlike WeeklyBadgeEarned.badgeKey,
+// which is deliberately a plain String) because LeaderboardPersonalBest rows
+// are read back and switched on by board in application code (display
+// labels, per-board copy) in a way that benefits from compile-time
+// exhaustiveness — this table isn't an unbounded, ever-growing badge-key
+// list the way WeeklyBadgeEarned is.
+enum LeaderboardBoard {
+  ACTION_SCORE
+  OUTREACH
+  APPLICATIONS
+  VISIBILITY
+  CONTRIBUTION
+  LIFETIME_ACTION_SCORE
+}
+
 enum EngagementType {
   FULL_TIME
   FRACTIONAL
@@ -595,6 +624,30 @@ model CandidateProfile {
   // situation" settings feature this spec doesn't ask for; deliberately not
   // built here to keep this change scoped to §10-12.
   confidentialModeEnteredJobStatus CurrentJobStatus?
+
+  // PART FOUR §13-20 — Weekly Leaderboards. Opt-in, default off (§15),
+  // checked at the query layer of every board alongside confidentialSearchMode
+  // (see src/lib/leaderboard/queries.ts — a candidate in Confidential Search
+  // Mode never gets an opt-in control shown at all, per §4.1, and is
+  // hard-excluded regardless of this flag's value). leaderboardDisplayMode is
+  // required (one of the three §15 modes) the moment leaderboardOptIn turns
+  // true; null while opted out. leaderboardOptInAt backs the one-time
+  // opt-in confirm bonus, mirroring privacyOpenedUpBonusAt above.
+  leaderboardOptIn       Boolean                 @default(false)
+  leaderboardDisplayMode LeaderboardDisplayMode?
+  leaderboardOptInAt     DateTime?
+
+  // §20 "personal bests" / §18 "personal best shown alongside every board" —
+  // a real historical max needs real storage (live-querying "best week ever"
+  // every render is computationally fine but throws away the record the
+  // moment a later week is worse). One row per board, upserted with
+  // MAX(stored, this week's live total) — see
+  // src/lib/leaderboard/personal-bests.ts. Deliberately NOT an append-only
+  // ledger of every week's total (that's just WeeklySprint/OutreachLog/etc.
+  // themselves, already queryable) — this table exists only to remember the
+  // single best one, the one number that can't be cheaply re-derived once a
+  // later week beats it and the old high-water mark would otherwise be lost.
+  leaderboardPersonalBests LeaderboardPersonalBest[]
 
   // Recruiter database — explicit candidate opt-in required before appearing
   // in any employer-facing Talent match list. privacyTier alone is opt-out,
@@ -3143,6 +3196,34 @@ model WeeklyBadgeEarned {
   @@index([weekStartDate])
 }
 
+// PART FOUR §18/§20 — "personal best" storage. One row per candidate per
+// weekly-reset board (LIFETIME_ACTION_SCORE deliberately never gets a row
+// here — it only ever grows, so its own current total already IS the best
+// it's ever been; a separate "personal best" record for a monotonically
+// increasing number would be redundant). bestValue is generically named
+// (not bestPoints) since it holds points for ACTION_SCORE but plain counts
+// for the other four (distinct recipients, applications, posts, reactions).
+// Written by src/lib/leaderboard/personal-bests.ts as MAX(stored, this
+// week's live total) every time that board is computed for this candidate —
+// a write-through cache of the running max, not an append-only log of every
+// week (those already exist as real source rows elsewhere). Safe under the
+// anti-gaming "retroactive decrement" rule: every value compared in is
+// already the output of a live, guard-applying query (see queries.ts), so a
+// gamed number was never eligible to become the stored best in the first
+// place.
+model LeaderboardPersonalBest {
+  id            String            @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  board         LeaderboardBoard
+  bestValue     Int
+  weekStartDate DateTime // which week achieved this best, for "week of Aug 10" copy
+  achievedAt    DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([candidateId, board])
+}
+
 // Weekly, append-only Market Reality Grade + named-reasons snapshot.
 // Regenerated once per week right after that week's Weekly Search Sprint
 // locks (Monday 12:01pm PT, see auto-assign-sprint cron) so each snapshot
@@ -3228,6 +3309,15 @@ model LinkedInActivityLog {
   candidate   CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   loggedAt    DateTime           @default(now())
   source      LinkedInPostSource @default(SELF_REPORT)
+  // PART FOUR §16 — Visibility board's "minimum post length" anti-gaming
+  // guard. Only ever populated for DIRECT_POST rows (postToLinkedInAction in
+  // marketing-plan/actions.ts has the real published text in hand at write
+  // time); SELF_REPORT rows (markLinkedInActivity — "I posted today," no
+  // compose UI, no text ever captured anywhere in this codebase) stay null
+  // forever and are exempted from the length check at the query layer, same
+  // trust-based treatment that self-report path already has everywhere
+  // else. See src/lib/leaderboard/queries.ts's computeVisibilityBoard.
+  textLength  Int?
 
   @@index([candidateId, loggedAt])
 }
