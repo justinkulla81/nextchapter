@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { createCommunityPost } from '@/app/dashboard/community/actions'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
 
 const POST_UPDATE_POINTS = estimateActionEffort({ actionType: 'ENGAGE_POST_UPDATE' }).points
 
@@ -22,7 +21,7 @@ const PROMPT_CHIPS = [
 ] as const
 
 export function CommunityPostForm() {
-  const [state, formAction, pending] = useActionState(createCommunityPost, undefined)
+  const [state, formAction] = useActionState(createCommunityPost, undefined)
   const [description, setDescription] = useState('')
 
   return (
@@ -67,9 +66,7 @@ export function CommunityPostForm() {
         </div>
       )}
       <div className="flex items-center gap-2">
-        <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
-          {pending ? 'Posting…' : 'Post'}
-        </Button>
+        <SubmitButton pendingLabel="Posting…">Post</SubmitButton>
         <span className="text-xs font-medium text-muted-foreground tabular-nums">
           +{POST_UPDATE_POINTS} pts
         </span>

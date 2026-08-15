@@ -4,6 +4,7 @@ import { listCompaniesRankedByOutplacementSignal, type RankedCompanyRow } from '
 import { listIntelCoverageGaps } from '@/lib/companies/company-admin-view'
 import { isSuppressedCell } from '@/lib/admin/cell-suppression'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
+import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const maxDuration = 30
@@ -43,6 +44,14 @@ export default async function AdminCompaniesPage({
     }
   }
   const sorted = [...rows].sort((a, b) => (dir === 'asc' ? compare(a, b) : compare(b, a)))
+
+  // Ranking depends on a computed composite score, not a plain DB column,
+  // so the full set has to be sorted in memory before paginating — but the
+  // page itself still uses the same shared 25-per-page AdminDataTable
+  // pagination every other admin list page uses (see src/lib/admin/pagination.ts),
+  // rather than shipping every company to the client unbounded.
+  const listParams = parseListParams(params, [])
+  const page = paginatedResult(sorted.slice(listParams.skip, listParams.skip + listParams.take), sorted.length, listParams)
 
   const highCount = rows.filter((r) => r.signal.level === 'HIGH').length
 
@@ -99,10 +108,17 @@ export default async function AdminCompaniesPage({
 
       <AdminDataTable
         columns={columns}
-        rows={sorted}
+        rows={page.rows}
         rowKey={(r) => r.companyId}
         emptyMessage="No companies yet."
         sorting={{ currentKey: sort, currentDir: dir, basePath: '/support/admin/companies', baseParams: {} }}
+        pagination={{
+          page: page.page,
+          totalPages: page.totalPages,
+          total: page.total,
+          basePath: '/support/admin/companies',
+          baseParams: { sort, dir },
+        }}
       />
 
       <Card>
