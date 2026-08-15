@@ -1276,6 +1276,10 @@ model CandidateProfile {
   // "placement and fee tracking." See RecruiterCandidateSubmission below.
   recruiterSubmissions           RecruiterCandidateSubmission[]
   recruiterPlacements            RecruiterPlacement[]
+  // Phase 7, Partners Master Build Script §A8 — conflict-of-interest rule:
+  // "cannot see candidates for their own reqs where a conflict is flagged."
+  // See HiringConflictFlag below and src/lib/hiring/conflict-check.ts.
+  hiringConflictFlags            HiringConflictFlag[]
   assessmentResults              AssessmentResult[]
   assessmentResponses            CandidateAssessmentResponse[]
   performanceAssessmentResponses PerformanceAssessmentResponse[]
@@ -6461,12 +6465,28 @@ model RecruiterCandidateSubmission {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  // Free-text -- there is no live Req/hiring-manager-portal entity to link
-  // to yet (§A8 is a later, not-yet-built phase per this phase's scope
-  // notes), so the recruiter records which role/company themselves, same
-  // "recruiter's own log" pattern as SourcedCandidate.notes.
+  // Free-text -- kept even now that reqId (below) exists, since not every
+  // submission maps to a live req (a recruiter working a firm that hasn't
+  // onboarded a hiring manager yet, or a role outside the hiring portal
+  // entirely) and this is still the recruiter's own record of what they
+  // submitted the candidate for, same "recruiter's own log" pattern as
+  // SourcedCandidate.notes.
   roleTitle   String
   companyName String
+
+  // Phase 7, Partners Master Build Script §A8 -- the hiring-manager portal.
+  // Nullable and set automatically (see autoLinkSubmissionToReq in
+  // src/lib/hiring/req-matching.ts, called from advanceSubmissionStage when
+  // a submission reaches SUBMITTED) by matching companyName/roleTitle above
+  // against the hiring manager's own open HiringReq -- deliberately NOT a
+  // field the recruiter sets directly, so nothing in the Recruiter portal's
+  // UI needs to change for this phase. A hiring manager's visibility into
+  // this submission (see src/lib/hiring/visibility.ts) is gated on reqId
+  // being set AND stage being SUBMITTED or later -- "candidates submitted
+  // to their req," never a browsable pool, same discipline as
+  // isCandidateConsentedForRecruiter.
+  reqId String?
+  req   HiringReq? @relation(fields: [reqId], references: [id], onDelete: SetNull)
 
   stage          RecruiterSubmissionStage @default(REVIEWED)
   // Only meaningful when stage = PASSED -- "passed with reason" per §A6.2.
@@ -6483,8 +6503,17 @@ model RecruiterCandidateSubmission {
   events    RecruiterCandidateSubmissionEvent[]
   placement RecruiterPlacement?
 
+  // Phase 7 -- one interview guide, one panel, and (once placed) one
+  // post-hire feedback request per submission; many scorecards (one per
+  // panelist) per submission. See the Hiring Manager Portal section below.
+  interviewGuide   InterviewGuide?
+  interviewPanel   InterviewPanel?
+  scorecards       Scorecard[]
+  postHireFeedback PostHireFeedback?
+
   @@index([recruiterId, stage])
   @@index([candidateId])
+  @@index([reqId, stage])
 }
 
 // Append-only history of stage changes, same ledger pattern as
@@ -6575,4 +6604,246 @@ model PlanCatalogEntry {
   createdAt     DateTime            @default(now())
 
   @@index([planKey, effectiveDate])
+}
+
+// ============================================================================
+// Hiring manager portal -- Partners Master Build Script §A8, Phase 7.
+//
+// A hiring manager sees ONLY candidates submitted to their own req(s), never
+// a browsable pool -- same discipline as the Recruiter portal's
+// consented-candidates-only rule. Rather than a parallel submission model,
+// this reuses RecruiterCandidateSubmission (see reqId above): "candidates
+// submitted to their req" is the SUBMITTED-and-later stage of the exact same
+// REVIEWED -> SCREENED -> SUBMITTED -> INTERVIEWED -> PLACED/PASSED pipeline
+// Phase 6 already built. See src/lib/hiring/visibility.ts for the query that
+// enforces both the stage floor and the conflict-of-interest exclusion below.
+// ============================================================================
+
+model HiringManager {
+  id        String @id @default(cuid())
+  fullName  String
+  workEmail String @unique
+
+  // The hiring manager's OWN current employer -- i.e. the company doing the
+  // hiring. This is the primitive src/lib/hiring/conflict-check.ts compares
+  // against a candidate's current employer (via getCurrentEmployerName /
+  // orgNamesMatch, the same fuzzy-match helper already used for the
+  // candidate-side "don't apply to your own employer" warning) to
+  // auto-detect the §A8 "same current employer" conflict.
+  companyName String
+
+  // Real Supabase-auth login -- nullable only for the brief window between
+  // a fresh signUp() and email confirmation finishing the row (see
+  // completeHiringManagerSignupFromSession), same pattern as Recruiter.userId.
+  userId String? @unique
+
+  createdAt    DateTime @default(now())
+  isSampleData Boolean  @default(false)
+
+  reqs              HiringReq[]
+  conflictFlags     HiringConflictFlag[]
+  postHireFeedbacks PostHireFeedback[]
+}
+
+enum HiringReqStatus {
+  OPEN
+  FILLED
+  CLOSED
+}
+
+// One open role a hiring manager is hiring for. Deliberately minimal for
+// this phase (spec §A8 doesn't ask for a full req/ATS-style entity) -- just
+// enough for autoLinkSubmissionToReq (src/lib/hiring/req-matching.ts) to
+// match a recruiter's free-text roleTitle/companyName on
+// RecruiterCandidateSubmission against an open req by company, and for a
+// hiring manager to scope "my candidates" to "my reqs."
+model HiringReq {
+  id              String        @id @default(cuid())
+  hiringManagerId String
+  hiringManager   HiringManager @relation(fields: [hiringManagerId], references: [id], onDelete: Cascade)
+
+  title  String
+  status HiringReqStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submissions RecruiterCandidateSubmission[]
+
+  @@index([hiringManagerId, status])
+}
+
+enum HiringConflictSource {
+  // Auto-detected: candidate's current employer (WorkHistoryEntry.isCurrent)
+  // matches HiringManager.companyName via orgNamesMatch.
+  AUTO_SAME_EMPLOYER
+  DECLARED_RELATIONSHIP
+  DECLARED_HOUSEHOLD
+  DECLARED_OTHER
+}
+
+// §A8's conflict rule + §E3.5/§E4.4's enforcement requirement -- "a real
+// enforcement point that hides the candidate from that specific hiring
+// manager's view when flagged (not just an admin dashboard note)." A row
+// existing with clearedAt = null is the ENTIRE enforcement mechanism: every
+// hiring-manager-facing query in src/lib/hiring/visibility.ts filters out
+// any candidate with an uncleared flag for that hiring manager. clearedAt
+// lets a false-positive auto-flag be retracted without losing the audit
+// trail (row stays, just no longer blocks) -- deleting it outright would
+// erase the "why was this ever hidden" history.
+model HiringConflictFlag {
+  id              String           @id @default(cuid())
+  hiringManagerId String
+  hiringManager   HiringManager    @relation(fields: [hiringManagerId], references: [id], onDelete: Cascade)
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  source     HiringConflictSource
+  note       String?              @db.Text // free-text context for a DECLARED_* flag
+  detectedAt DateTime             @default(now())
+  clearedAt  DateTime?
+  clearedBy  String?
+
+  @@unique([hiringManagerId, candidateId])
+  @@index([candidateId])
+}
+
+// Generated content for one submitted candidate, §A8 "generated interview
+// guide from Dossier gaps" and "reference questions worth asking." Kept as
+// ONE row per submission (not per-generation-history) with a straightforward
+// overwrite-on-regenerate policy, same convenience-cache shape as
+// CandidateProfile.dossierGeneratedCache -- there's no product need yet to
+// keep prior guide versions.
+model InterviewGuide {
+  id           String                       @id @default(cuid())
+  submissionId String                       @unique
+  submission   RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  // LLM-generated (see src/lib/hiring/generate-interview-guide.ts), grounded
+  // in this candidate's real Dossier gaps -- [{ competency, question,
+  // rationale }][]. competency is a HiringCompetencyKey string or null for a
+  // narrative-gap question that isn't one of the five competencies.
+  candidateQuestions Json?
+  // Rule-based, non-LLM derivation (see src/lib/hiring/reference-questions.ts)
+  // -- a distinct, cheaper artifact from candidateQuestions above, per §A8's
+  // separate "reference questions worth asking" item. Same shape.
+  referenceQuestions Json?
+
+  generatedAt     DateTime?
+  generationError String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// §A8 "panel coordination -- assign each interviewer a different
+// competency." One panel per submission for this phase (a candidate gets
+// re-panel'd by creating a new submission if a second round is ever needed,
+// same "no history" simplicity as InterviewGuide above).
+model InterviewPanel {
+  id           String                       @id @default(cuid())
+  submissionId String                       @unique
+  submission   RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  createdByHiringManagerId String
+  createdAt                DateTime @default(now())
+
+  panelists InterviewPanelist[]
+}
+
+enum HiringCompetencyKey {
+  LEADERSHIP
+  SKILLS_EXECUTION
+  COMMUNICATION
+  ADAPTABILITY
+  OWNERSHIP
+}
+
+// One interviewer on a panel. assignedCompetency is set at panel-creation
+// time by round-robin over the five HiringCompetencyKey values (see
+// assignPanelistCompetencies in src/lib/hiring/panels.ts) so four
+// interviewers don't ask the same question -- nullable only for a 6th+
+// panelist beyond the five competencies, who gets no default assignment.
+// scorecardToken is a public, unguessable link (same shape as
+// Reference.token) so a panelist can submit their scorecard without a
+// NextChapter account, mirroring the /ref/[token] referee flow.
+model InterviewPanelist {
+  id      String         @id @default(cuid())
+  panelId String
+  panel   InterviewPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+
+  name  String
+  email String
+
+  assignedCompetency HiringCompetencyKey?
+  scorecardToken     String               @unique @default(cuid())
+
+  createdAt DateTime @default(now())
+
+  scorecard Scorecard?
+
+  @@index([panelId])
+}
+
+enum ScorecardRecommendation {
+  STRONG_YES
+  YES
+  NO
+  STRONG_NO
+}
+
+// §A8 "structured scorecard tied to the five competencies," §A8 next item
+// "side-by-side comparison on shared evidence." submissionId is denormalized
+// (also reachable via panelist -> panel -> submission) purely so
+// getScorecardComparison (src/lib/hiring/scorecards.ts) can query every
+// panelist's scorecard for a candidate in one indexed lookup instead of a
+// three-table join.
+model Scorecard {
+  id           String                       @id @default(cuid())
+  panelistId   String                       @unique
+  panelist     InterviewPanelist            @relation(fields: [panelistId], references: [id], onDelete: Cascade)
+  submissionId String
+  submission   RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  // { LEADERSHIP: { score: 1-5, notes: string }, ... } -- every panelist CAN
+  // score all five competencies, not just their assignedCompetency (§A8:
+  // "and can see/fill others if relevant"); UI defaults focus to the
+  // assigned one.
+  competencyScores      Json
+  overallRecommendation ScorecardRecommendation?
+  overallNotes          String?                  @db.Text
+
+  submittedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([submissionId])
+}
+
+// §A8 "90-day post-hire feedback" -- seeded automatically once a submission
+// reaches PLACED (see the hook in recordPlacement, src/lib/recruiter/
+// submissions.ts) when that submission has a reqId, i.e. came through the
+// hiring-manager pipeline. dueAt = placement start date (or placedAt if no
+// start date was recorded) + 90 days. This IS the seed of real outcome data
+// per §E2.2 -- nothing consumes it yet, but it's stored for real rather than
+// stubbed.
+model PostHireFeedback {
+  id              String                       @id @default(cuid())
+  submissionId    String                       @unique
+  submission      RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  hiringManagerId String
+  hiringManager   HiringManager                @relation(fields: [hiringManagerId], references: [id], onDelete: Cascade)
+
+  dueAt       DateTime
+  requestedAt DateTime?
+  submittedAt DateTime?
+
+  howIsItGoingRating Int? // 1-5
+  wouldHireAgain     Boolean?
+  notes              String?  @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([hiringManagerId])
+  @@index([dueAt])
 }

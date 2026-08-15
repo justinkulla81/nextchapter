@@ -25,4 +25,5 @@ export async function redirectIfNotCandidate(userId: string, email: string | nul
   if (roles.includes('employer_admin') || roles.includes('employer_viewer')) redirect('/talent')
   if (roles.includes('recruiter')) redirect('/recruiters/dashboard')
   if (roles.includes('coach')) redirect('/support/coach')
+  if (roles.includes('hiring_manager')) redirect('/hiring')
 }

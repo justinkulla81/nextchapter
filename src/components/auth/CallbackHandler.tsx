@@ -9,6 +9,7 @@ import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
+import { completeHiringManagerSignupFromSession } from '@/app/hiring/signup/actions'
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 import { finishAcceptingCoachInvite } from '@/app/support/coach/(app)/invite-client/actions'
 import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidates/actions'
@@ -34,6 +35,7 @@ export function CallbackHandler() {
   const nextIsEmployer = searchParams.get('next') === 'employer' || pendingRole === 'employer'
   const nextIsRecruiter = searchParams.get('next') === 'recruiter' || pendingRole === 'recruiter'
   const nextIsCoach = searchParams.get('next') === 'coach' || pendingRole === 'coach'
+  const nextIsHiring = searchParams.get('next') === 'hiring' || pendingRole === 'hiring'
   const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
@@ -110,6 +112,17 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/support/coach')
+      return
+    }
+    if (nextIsHiring) {
+      const result = await completeHiringManagerSignupFromSession()
+      if (result.error) {
+        console.error('completeHiringManagerSignupFromSession error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/hiring')
       return
     }
     if (nextIsEmployerSeat) {

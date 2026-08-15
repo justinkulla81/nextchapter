@@ -17,6 +17,7 @@ const QUALIFIER_LABEL = {
   recruiter: 'Recruiters',
   employer: 'Employers',
   admin: 'Admin',
+  hiring: 'Hiring',
 } as const
 
 export type PartnerSurface = keyof typeof QUALIFIER_LABEL
@@ -30,6 +31,7 @@ const SURFACE_ACCENT_RULE: Record<PartnerSurface, string> = {
   recruiter: 'bg-accent-recruiter',
   employer: 'bg-accent-employer',
   admin: 'bg-accent-admin',
+  hiring: 'bg-accent-hiring',
 }
 
 export function PartnerWordmark({
