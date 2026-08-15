@@ -10,9 +10,48 @@ import { EmptyState } from '@/components/ui/empty-state'
 // is never duplicated between the two. `readOnly` disables the Positioning
 // Statement's edit/approve form for the coach view — that gate belongs to
 // the candidate alone.
-export function DossierSectionsView({ dossier, readOnly = false }: { dossier: DossierData; readOnly?: boolean }) {
+//
+// `hideGradeSignals` is a second, narrower gate — recruiter-facing views
+// only (Partners Master Build Script §A6.2: "Never: Market Reality Grade,
+// component grades, detections, badges, application history, other
+// candidates"). It suppresses howIOperate.gritStatText, which reads "N of M
+// weeks at an A" — a real, literal read of MarketRealitySnapshot.grade
+// history (see countAGradeWeeks in market-reality-history.ts) and is
+// exactly the field this rule bans, even though the candidate/coach/admin
+// audiences readOnly is also used for are meant to see it. Deliberately
+// separate from readOnly (which coach/admin/the candidate's own preview all
+// pass true for reasons that have nothing to do with hiding grade data) so
+// this can default to false everywhere except the one recruiter call site.
+export function DossierSectionsView({
+  dossier,
+  readOnly = false,
+  hideGradeSignals = false,
+}: {
+  dossier: DossierData
+  readOnly?: boolean
+  hideGradeSignals?: boolean
+}) {
   return (
     <>
+      {dossier.verification.referenceCount > 0 && (
+        <section className="rounded-lg border border-border p-4">
+          <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            Hiring manager calls
+          </h3>
+          <p className="mt-1 text-sm text-foreground">
+            {dossier.verification.hiringManagerCallAvailableCount} of {dossier.verification.referenceCount}{' '}
+            references available for hiring manager calls
+            {dossier.verification.hiringManagerCallAskFirstCount > 0 &&
+              ` (${dossier.verification.hiringManagerCallAskFirstCount} more, ask first)`}
+            .
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Collected at reference completion, not deferred to offer stage — a real timeline advantage once this
+            candidate reaches final stages.
+          </p>
+        </section>
+      )}
+
       {dossier.closedLoopCallouts.length > 0 && (
         <section className="rounded-lg bg-primary/5 p-4 print:bg-transparent print:border print:border-border">
           <h3 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
@@ -72,7 +111,14 @@ export function DossierSectionsView({ dossier, readOnly = false }: { dossier: Do
       )}
 
       {dossier.sections.map((section) => (
-        <DossierSectionBlock key={section.id} id={section.id} title={section.title} dossier={dossier} readOnly={readOnly} />
+        <DossierSectionBlock
+          key={section.id}
+          id={section.id}
+          title={section.title}
+          dossier={dossier}
+          readOnly={readOnly}
+          hideGradeSignals={hideGradeSignals}
+        />
       ))}
     </>
   )
@@ -89,11 +135,13 @@ function DossierSectionBlock({
   title,
   dossier,
   readOnly,
+  hideGradeSignals = false,
 }: {
   id: DossierSectionId
   title: string
   dossier: DossierData
   readOnly: boolean
+  hideGradeSignals?: boolean
 }) {
   switch (id) {
     case 'positioning':
@@ -124,7 +172,7 @@ function DossierSectionBlock({
       if (
         dossier.howIOperate.dimensionSummaries.length === 0 &&
         dossier.howIOperate.superpowers.length === 0 &&
-        !dossier.howIOperate.gritStatText
+        (!dossier.howIOperate.gritStatText || hideGradeSignals)
       ) {
         if (readOnly) return null
         return (
@@ -166,7 +214,7 @@ function DossierSectionBlock({
               ))}
             </div>
           )}
-          {dossier.howIOperate.gritStatText && (
+          {dossier.howIOperate.gritStatText && !hideGradeSignals && (
             <p className="mt-3 text-sm text-foreground">{dossier.howIOperate.gritStatText}</p>
           )}
         </section>

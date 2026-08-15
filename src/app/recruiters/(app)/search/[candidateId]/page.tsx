@@ -4,13 +4,24 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { generateHiringManagerReport } from '@/lib/reports/hiring-manager-report'
 import { getDossierSections } from '@/lib/reports/dossier-sections'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isCandidateConsentedForRecruiter, recordIntroductionEvent } from '@/lib/recruiter/introductions'
+import { SubmissionPacketPanel } from '@/components/recruiter/SubmissionPacketPanel'
+import { RecruiterSubmissionPanel } from '@/components/recruiter/RecruiterSubmissionPanel'
 import { requestPortfolioAccess, startConversationWithCandidate, getPoolCandidateResumeSignedUrl } from './actions'
 
 export const maxDuration = 30
+
+// Module-level helper, not called inline inside the component body — Date.now()
+// is an impure call the react-hooks/purity rule flags wherever a component
+// function reads it directly (see action-counts/page.tsx's rangeToDate for
+// the same pattern).
+function daysSince(date: Date): number {
+  return Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000))
+}
 
 export default async function RecruiterCandidateBriefPage({
   params,
@@ -25,7 +36,10 @@ export default async function RecruiterCandidateBriefPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/recruiters/login')
 
-  const recruiter = await prisma.recruiter.findUnique({ where: { userId: user.id } })
+  const recruiter = await prisma.recruiter.findUnique({
+    where: { userId: user.id },
+    include: { recruiterFirm: { select: { exportDestinationsEnabled: true } } },
+  })
   if (!recruiter) redirect('/recruiters/signup')
 
   const candidate = await prisma.candidateProfile.findUnique({
@@ -37,13 +51,19 @@ export default async function RecruiterCandidateBriefPage({
     notFound()
   }
 
-  const [brief, dossier, resume, resumeSignedUrl, portfolioAccess] = await Promise.all([
+  const [brief, dossier, resume, resumeSignedUrl, portfolioAccess, completeness, submissions] = await Promise.all([
     generateHiringManagerReport(candidateId),
     getDossierSections(candidateId),
     prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' }, select: { fileName: true } }),
     getPoolCandidateResumeSignedUrl(candidateId),
     prisma.portfolioAccessRequest.findUnique({
       where: { candidateId_recruiterId: { candidateId, recruiterId: recruiter.id } },
+    }),
+    computeDossierCompleteness(candidateId),
+    prisma.recruiterCandidateSubmission.findMany({
+      where: { recruiterId: recruiter.id, candidateId },
+      orderBy: { createdAt: 'desc' },
+      include: { placement: true },
     }),
   ])
   captureServerEvent(recruiter.id, 'recruiter_candidate_brief_viewed', { candidateId })
@@ -69,7 +89,17 @@ export default async function RecruiterCandidateBriefPage({
       <div className="mt-4 mb-8 space-y-3">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Candidate Brief</p>
-          <h1 className="text-2xl font-semibold tracking-tight">{brief.candidateName}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {brief.candidateName}
+            {completeness.isComplete && (
+              <span
+                className="ml-2 inline-flex items-center rounded-full bg-brand px-2 py-0.5 align-middle text-xs font-medium text-brand-foreground"
+                title="Every Dossier requirement is complete — references, assessments, and active search evidence."
+              >
+                Dossier Complete
+              </span>
+            )}
+          </h1>
         </div>
         <div className="flex flex-wrap gap-2">
           <form action={startConversationWithCandidate.bind(null, candidateId)}>
@@ -259,7 +289,7 @@ export default async function RecruiterCandidateBriefPage({
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Executive Dossier
         </h2>
-        <DossierSectionsView dossier={dossier} readOnly />
+        <DossierSectionsView dossier={dossier} readOnly hideGradeSignals />
       </div>
 
       <div className="mt-10 space-y-3">
@@ -310,6 +340,26 @@ export default async function RecruiterCandidateBriefPage({
             </form>
           </div>
         )}
+      </div>
+
+      <div className="mt-10 space-y-3">
+        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Submission packet &amp; export
+        </h2>
+        <SubmissionPacketPanel
+          candidateId={candidateId}
+          enabledDestinations={recruiter.recruiterFirm?.exportDestinationsEnabled ?? []}
+        />
+      </div>
+
+      <div className="mt-10 space-y-3">
+        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Feedback loop &amp; placement
+        </h2>
+        <RecruiterSubmissionPanel
+          candidateId={candidateId}
+          submissions={submissions.map((s) => ({ ...s, daysSinceUpdate: daysSince(s.stageUpdatedAt) }))}
+        />
       </div>
     </div>
   )

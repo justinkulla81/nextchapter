@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { RecruiterSettingsForm } from '@/components/recruiter/RecruiterSettingsForm'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
-import { uploadMyProfilePicture, removeMyProfilePicture } from './actions'
+import { uploadMyProfilePicture, removeMyProfilePicture, uploadMyFirmLogo, removeMyFirmLogo } from './actions'
 
 export default async function RecruiterSettingsPage() {
   const supabase = await createClient()
@@ -15,6 +15,10 @@ export default async function RecruiterSettingsPage() {
 
   const recruiter = await prisma.recruiter.findUnique({ where: { userId: user.id } })
   if (!recruiter) redirect('/recruiters/signup')
+
+  const firm = recruiter.recruiterFirmId
+    ? await prisma.recruiterFirm.findUnique({ where: { id: recruiter.recruiterFirmId } })
+    : null
 
   return (
     <div className="mx-auto max-w-md px-6 py-16">
@@ -42,6 +46,23 @@ export default async function RecruiterSettingsPage() {
           removeAction={removeMyProfilePicture}
         />
       </div>
+
+      {firm && (
+        <div className="mt-8 space-y-3 border-t border-border pt-8">
+          <div>
+            <h2 className="text-lg font-semibold">Firm logo</h2>
+            <p className="text-sm text-muted-foreground">
+              Used to brand submission packets you generate for {firm.name} — never shown to candidates.
+            </p>
+          </div>
+          <AvatarUploadForm
+            displayName={firm.name}
+            currentUrl={firm.logoUrl}
+            uploadAction={uploadMyFirmLogo}
+            removeAction={removeMyFirmLogo}
+          />
+        </div>
+      )}
     </div>
   )
 }

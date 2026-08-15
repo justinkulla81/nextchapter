@@ -28,7 +28,8 @@
     "backfill:null-company-confirmations": "tsx --env-file=.env.local scripts/backfill-null-company-confirmations.ts",
     "backfill:ex-company-communities": "tsx --env-file=.env.local scripts/backfill-ex-company-communities.ts",
     "backfill:role-grants": "tsx --env-file=.env.local scripts/backfill-role-grants.ts",
-    "backfill:recruiter-introductions": "tsx --env-file=.env.local scripts/backfill-recruiter-introductions.ts"
+    "backfill:recruiter-introductions": "tsx --env-file=.env.local scripts/backfill-recruiter-introductions.ts",
+    "verify:recruiter-phase6": "tsx --env-file=.env.local scripts/verify-recruiter-phase6.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

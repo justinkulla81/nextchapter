@@ -122,6 +122,7 @@ export default async function ReferenceTokenPage({
         initialAnswers={(reference.draftAnswers as Record<string, string> | null) ?? undefined}
         initialPage={reference.draftPage ?? undefined}
         onSaveDraft={saveReferenceDraft.bind(null, token)}
+        askHiringManagerCallAvailability
       />
       <div className="mt-6 text-center">
         <DeclineReferenceControl token={token} />

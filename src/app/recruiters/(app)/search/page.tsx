@@ -6,6 +6,8 @@ import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { getConsentedCandidateIds } from '@/lib/recruiter/introductions'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 import type { CandidateProfile, Prisma } from '@prisma/client'
 
 export const maxDuration = 30
@@ -108,9 +110,31 @@ export default async function RecruiterSearchPage({
     compMax,
   }
 
+  // §A6.1 — "Dossier-complete candidates are promoted — ranked higher and
+  // visually badged." rankingWeightDossierCompleteness (admin-managed, §A6.4,
+  // Phase 3) is added as flat points on top of the query-fit match score
+  // ONLY for sort order — match.score/match.label themselves stay an honest
+  // read of fit-against-these-filters and are never mutated by Dossier
+  // completeness, so the two signals stay visually distinguishable (badge
+  // vs. match label) rather than blended into one number.
+  const [{ rankingWeightDossierCompleteness }, completenessByCandidateId] = await Promise.all([
+    getRecruiterSettings(),
+    (async () => {
+      const entries = await Promise.all(
+        candidates.map(async (c) => [c.id, (await computeDossierCompleteness(c.id)).isComplete] as const)
+      )
+      return new Map(entries)
+    })(),
+  ])
+
   const scored = candidates
-    .map((candidate) => ({ candidate, match: computeMatchScore(candidate, roleFilter) }))
-    .sort((a, b) => b.match.score - a.match.score)
+    .map((candidate) => {
+      const match = computeMatchScore(candidate, roleFilter)
+      const dossierComplete = completenessByCandidateId.get(candidate.id) ?? false
+      const rankScore = match.score + (dossierComplete ? rankingWeightDossierCompleteness : 0)
+      return { candidate, match, dossierComplete, rankScore }
+    })
+    .sort((a, b) => b.rankScore - a.rankScore)
 
   const hasFilters = Boolean(fn || level || remote || location || compMax)
   if (hasFilters) {
@@ -207,14 +231,24 @@ export default async function RecruiterSearchPage({
               : 'No candidates match yet — try widening your filters.'}
           </p>
         ) : (
-          scored.map(({ candidate, match }) => (
+          scored.map(({ candidate, match, dossierComplete }) => (
             <Link
               key={candidate.id}
               href={`/recruiters/search/${candidate.id}`}
               className="flex min-h-[var(--row-height-partner)] items-center justify-between gap-4 px-4 py-2 hover:bg-muted"
             >
               <div>
-                <p className="font-medium text-foreground">{displayIdentity(candidate)}</p>
+                <p className="font-medium text-foreground">
+                  {displayIdentity(candidate)}
+                  {dossierComplete && (
+                    <span
+                      className="ml-2 inline-flex items-center rounded-full bg-brand px-2 py-0.5 align-middle text-xs font-medium text-brand-foreground"
+                      title="This candidate has completed every Dossier requirement — references, assessments, and active search evidence."
+                    >
+                      Dossier Complete
+                    </span>
+                  )}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {[candidate.primaryFunction, candidate.highestLevelReached, candidate.currentCity]
                     .filter(Boolean)

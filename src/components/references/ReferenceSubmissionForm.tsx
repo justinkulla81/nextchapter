@@ -96,6 +96,13 @@ export function ReferenceSubmissionForm({
   initialAnswers,
   initialPage,
   onSaveDraft,
+  // Recruiter portal §A6.3 — only asked on the token-based referee flow
+  // (this candidate has a real NextChapter account a recruiter could
+  // introduce). The Prompt 65 employer-submitted flow (give-a-reference,
+  // pre-account) has no EmployerReferenceSubmission column for this and no
+  // recruiter relationship yet to make the question meaningful, so it's
+  // opt-in rather than always-on.
+  askHiringManagerCallAvailability = false,
 }: {
   token?: string
   candidateName: string
@@ -133,6 +140,7 @@ export function ReferenceSubmissionForm({
   // omit to skip autosave entirely (the employer flow has no Reference row
   // to save a draft against until final submit).
   onSaveDraft?: (page: number, answers: Record<string, string>) => void
+  askHiringManagerCallAvailability?: boolean
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const formRef = useRef<HTMLFormElement>(null)
@@ -413,7 +421,13 @@ export function ReferenceSubmissionForm({
       : []),
     {
       title: 'In Your Own Words',
-      fieldNames: [...writtenFieldNames, 'definingStory', 'contextNotes', 'quotableWithAttribution'],
+      fieldNames: [
+        ...writtenFieldNames,
+        'definingStory',
+        'contextNotes',
+        'quotableWithAttribution',
+        ...(askHiringManagerCallAvailability ? ['availableForHiringManagerCall'] : []),
+      ],
       content: (
         <>
           {!verificationRows && (
@@ -463,6 +477,27 @@ export function ReferenceSubmissionForm({
               </label>
             </div>
           </fieldset>
+          {askHiringManagerCallAvailability && (
+            <fieldset className="space-y-2 rounded-lg border border-border p-4">
+              <legend className="px-1 text-sm font-medium">One last thing</legend>
+              <p className="text-sm text-muted-foreground">
+                If {candidateName} reaches final stages for a role, would you take a short call from the hiring
+                manager?
+              </p>
+              <div className="flex flex-col gap-2 pt-1">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" name="availableForHiringManagerCall" value="YES" required /> Yes
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" name="availableForHiringManagerCall" value="MAYBE_ASK_FIRST" /> Maybe, ask me
+                  first
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" name="availableForHiringManagerCall" value="NO" /> No
+                </label>
+              </div>
+            </fieldset>
+          )}
         </>
       ),
     },

@@ -76,6 +76,7 @@ export async function submitReference(_prevState: FormState, formData: FormData)
       definingStory: content.definingStory,
       wouldWorkWithAgainReason: content.wouldWorkWithAgainReason,
       quotableWithAttribution: content.quotableWithAttribution,
+      availableForHiringManagerCall: content.availableForHiringManagerCall,
       ...extension.performance,
       compRelativeRank: extension.compRelativeRank as RelativeRank | null,
       compWouldHireAgain: extension.compWouldHireAgain as HireAgainLevel | null,

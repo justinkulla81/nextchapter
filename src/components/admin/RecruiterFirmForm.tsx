@@ -23,6 +23,12 @@ const EXPORT_LABELS: Record<(typeof EXPORT_DESTINATIONS)[number], string> = {
   bullhorn: 'Bullhorn',
 }
 
+const FEE_ARRANGEMENT_TYPES: { value: NonNullable<RecruiterFirm['feeArrangementType']>; label: string }[] = [
+  { value: 'PERCENTAGE_OF_COMP', label: '% of first-year comp' },
+  { value: 'FLAT_FEE', label: 'Flat fee' },
+  { value: 'RETAINER', label: 'Retainer' },
+]
+
 export function RecruiterFirmForm({
   action,
   existing,
@@ -107,6 +113,74 @@ export function RecruiterFirmForm({
           ))}
         </div>
       </div>
+
+      {existing && (
+        <div className="space-y-3 rounded-md border border-border p-3">
+          <Label>Default fee arrangement</Label>
+          <p className="text-xs text-muted-foreground">
+            Snapshotted onto each placement when it&apos;s recorded — changing this later never rewrites an
+            already-recorded placement&apos;s terms.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <label className="flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1 text-xs has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+              <input
+                type="radio"
+                name="feeArrangementType"
+                value=""
+                defaultChecked={!existing.feeArrangementType}
+              />
+              Not set
+            </label>
+            {FEE_ARRANGEMENT_TYPES.map((t) => (
+              <label
+                key={t.value}
+                className="flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1 text-xs has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+              >
+                <input
+                  type="radio"
+                  name="feeArrangementType"
+                  value={t.value}
+                  defaultChecked={existing.feeArrangementType === t.value}
+                />
+                {t.label}
+              </label>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="feeArrangementPercentage">Percentage (if applicable)</Label>
+              <Input
+                id="feeArrangementPercentage"
+                name="feeArrangementPercentage"
+                type="number"
+                min={0}
+                max={100}
+                step="0.5"
+                defaultValue={existing.feeArrangementPercentage ?? ''}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="feeArrangementFlatAmountUsd">Flat amount, USD (if applicable)</Label>
+              <Input
+                id="feeArrangementFlatAmountUsd"
+                name="feeArrangementFlatAmountUsd"
+                type="number"
+                min={0}
+                defaultValue={existing.feeArrangementFlatAmountUsd ?? ''}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="feeArrangementNotes">Fee arrangement notes</Label>
+            <Textarea
+              id="feeArrangementNotes"
+              name="feeArrangementNotes"
+              rows={2}
+              defaultValue={existing.feeArrangementNotes ?? ''}
+            />
+          </div>
+        </div>
+      )}
 
       {existing && (
         <div className="space-y-2">

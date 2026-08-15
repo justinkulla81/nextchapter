@@ -9,6 +9,13 @@ export interface ReferenceVerification {
   // "March 2026" — the most recent completion date, for the document's
   // "Verified · N references · Month Year" mark.
   verifiedMonthYear: string | null
+  // Recruiter portal §A6.3 — "3 of 5 references available for hiring
+  // manager calls." Counts only an explicit YES; "Maybe, ask me first" is
+  // real signal too but isn't "available" without an extra step, so it's
+  // deliberately not folded into this numerator (see
+  // hiringManagerCallAskFirstCount for that).
+  hiringManagerCallAvailableCount: number
+  hiringManagerCallAskFirstCount: number
 }
 
 type EligibilityFields = Pick<Reference, 'status' | 'candidateDisputedAt' | 'disputeResolvedAt'>
@@ -34,11 +41,18 @@ function describeRelationships(labels: string[]): string | null {
 // Real, countable backing for the Dossier's honesty rule — never a claim
 // this can't derive straight from completed, non-disputed references.
 export function buildReferenceVerification(
-  references: (EligibilityFields & Pick<Reference, 'relationshipType' | 'completedAt'>)[]
+  references: (EligibilityFields &
+    Pick<Reference, 'relationshipType' | 'completedAt' | 'availableForHiringManagerCall'>)[]
 ): ReferenceVerification {
   const eligible = dossierEligibleReferences(references)
   if (eligible.length === 0) {
-    return { referenceCount: 0, relationshipSummary: null, verifiedMonthYear: null }
+    return {
+      referenceCount: 0,
+      relationshipSummary: null,
+      verifiedMonthYear: null,
+      hiringManagerCallAvailableCount: 0,
+      hiringManagerCallAskFirstCount: 0,
+    }
   }
 
   const relationshipLabels = Array.from(new Set(eligible.map((r) => RELATIONSHIP_TYPE_LABELS[r.relationshipType])))
@@ -51,5 +65,7 @@ export function buildReferenceVerification(
     referenceCount: eligible.length,
     relationshipSummary: describeRelationships(relationshipLabels),
     verifiedMonthYear: mostRecent ? mostRecent.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : null,
+    hiringManagerCallAvailableCount: eligible.filter((r) => r.availableForHiringManagerCall === 'YES').length,
+    hiringManagerCallAskFirstCount: eligible.filter((r) => r.availableForHiringManagerCall === 'MAYBE_ASK_FIRST').length,
   }
 }

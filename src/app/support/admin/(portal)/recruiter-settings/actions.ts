@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { Prisma, RecruiterFeedbackEnforcement, RecruiterFirmStatus } from '@prisma/client'
+import type { Prisma, RecruiterFeeArrangementType, RecruiterFeedbackEnforcement, RecruiterFirmStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -12,6 +12,14 @@ export type FormState = { error?: string } | undefined
 
 const ENFORCEMENT_MODES: RecruiterFeedbackEnforcement[] = ['NONE', 'WARN', 'SUSPEND']
 const FIRM_STATUSES: RecruiterFirmStatus[] = ['PENDING', 'VERIFIED', 'SUSPENDED', 'REMOVED']
+const FEE_ARRANGEMENT_TYPES: RecruiterFeeArrangementType[] = ['PERCENTAGE_OF_COMP', 'FLAT_FEE', 'RETAINER']
+
+function floatField(formData: FormData, name: string): number | undefined {
+  const raw = (formData.get(name) as string | null)?.trim()
+  if (!raw) return undefined
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : undefined
+}
 
 function intField(formData: FormData, name: string): number | undefined {
   const raw = (formData.get(name) as string | null)?.trim()
@@ -73,6 +81,14 @@ export async function updateRecruiterFirm(firmId: string, _prevState: FormState,
   const notes = (formData.get('notes') as string | null)?.trim() || null
   const exportDestinationsEnabled = EXPORT_DESTINATIONS.filter((d) => formData.get(`export_${d}`) === 'on')
 
+  const feeArrangementTypeRaw = formData.get('feeArrangementType') as string | null
+  const feeArrangementType = FEE_ARRANGEMENT_TYPES.includes(feeArrangementTypeRaw as RecruiterFeeArrangementType)
+    ? (feeArrangementTypeRaw as RecruiterFeeArrangementType)
+    : null
+  const feeArrangementPercentage = floatField(formData, 'feeArrangementPercentage') ?? null
+  const feeArrangementFlatAmountUsd = intField(formData, 'feeArrangementFlatAmountUsd') ?? null
+  const feeArrangementNotes = (formData.get('feeArrangementNotes') as string | null)?.trim() || null
+
   const actor = admin?.email ?? 'admin'
   const existing = await prisma.recruiterFirm.findUniqueOrThrow({ where: { id: firmId } })
 
@@ -83,6 +99,10 @@ export async function updateRecruiterFirm(firmId: string, _prevState: FormState,
     feedbackSlaHours,
     notes,
     exportDestinationsEnabled,
+    feeArrangementType,
+    feeArrangementPercentage,
+    feeArrangementFlatAmountUsd,
+    feeArrangementNotes,
   }
 
   if (status === 'VERIFIED' && existing.status !== 'VERIFIED') {

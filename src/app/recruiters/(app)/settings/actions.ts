@@ -76,3 +76,37 @@ export async function removeMyProfilePicture(): Promise<void> {
   captureServerEvent(recruiter.id, 'profile_picture_removed')
   revalidatePath('/recruiters/settings')
 }
+
+// §A6.2 — "branded submission packet ... with the recruiter's own logo."
+// Any recruiter linked to a firm can upload/replace that firm's logo
+// (shared across every recruiter at the firm, same as the firm name
+// itself) — admin verification/status of the firm is unaffected either way,
+// this is branding, not a trust signal.
+export async function uploadMyFirmLogo(
+  _prevState: AvatarUploadState,
+  formData: FormData
+): Promise<AvatarUploadState> {
+  const recruiter = await requireRecruiter()
+  if (!recruiter) return { error: 'You need to be logged in to do this.' }
+  if (!recruiter.recruiterFirmId) return { error: 'Your account isn\'t linked to a firm yet.' }
+
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) return { error: 'Choose an image first.' }
+
+  const result = await uploadAvatarFile(recruiter.recruiterFirmId, file)
+  if (result.error) return { error: result.error }
+
+  await prisma.recruiterFirm.update({ where: { id: recruiter.recruiterFirmId }, data: { logoUrl: result.url } })
+  captureServerEvent(recruiter.id, 'recruiter_firm_logo_uploaded', { firmId: recruiter.recruiterFirmId })
+  revalidatePath('/recruiters/settings')
+  return undefined
+}
+
+export async function removeMyFirmLogo(): Promise<void> {
+  const recruiter = await requireRecruiter()
+  if (!recruiter || !recruiter.recruiterFirmId) return
+
+  await prisma.recruiterFirm.update({ where: { id: recruiter.recruiterFirmId }, data: { logoUrl: null } })
+  captureServerEvent(recruiter.id, 'recruiter_firm_logo_removed', { firmId: recruiter.recruiterFirmId })
+  revalidatePath('/recruiters/settings')
+}

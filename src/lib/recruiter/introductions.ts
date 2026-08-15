@@ -127,6 +127,40 @@ export async function requestIntroduction(
   })
 }
 
+// Revokes a candidate's consent for one recruiter — §A9 "consent ledger ...
+// revocations" and §E4 item 7 "revocation removes access immediately."
+// Immediate because access is enforced at READ time in
+// getConsentedCandidateIds/isCandidateConsentedForRecruiter (status must be
+// exactly 'CONSENTED'), not by a background job — flipping status here is
+// the whole enforcement action, nothing else has to run for the recruiter's
+// next request to lose access. No UI calls this yet this phase (the
+// candidate/coach-facing "manage my recruiter introductions" surface is a
+// stretch goal — see Phase 6's report); this exists so revocation is a
+// real, working, independently-testable operation rather than a status
+// value the schema supports but nothing can ever set.
+export async function revokeIntroduction(
+  recruiterId: string,
+  candidateId: string,
+  actor: string,
+  detail?: string
+): Promise<{ error?: string }> {
+  const existing = await prisma.recruiterCandidateIntroduction.findUnique({
+    where: { recruiterId_candidateId: { recruiterId, candidateId } },
+  })
+  if (!existing || existing.status !== 'CONSENTED') {
+    return { error: 'No active consented introduction to revoke.' }
+  }
+
+  const introduction = await prisma.recruiterCandidateIntroduction.update({
+    where: { id: existing.id },
+    data: { status: 'REVOKED', revokedAt: new Date() },
+  })
+  await prisma.recruiterCandidateIntroductionEvent.create({
+    data: { introductionId: introduction.id, event: 'REVOKED', actor, detail },
+  })
+  return {}
+}
+
 export async function recordIntroductionEvent(
   recruiterId: string,
   candidateId: string,

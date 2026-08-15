@@ -3,11 +3,12 @@ import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { getCurrentRecruiter } from '@/lib/recruiter/current-recruiter'
 import { getRecruiterUnreadCount } from '@/lib/messaging/threads'
+import { getLateSubmissions, STAGE_LABEL } from '@/lib/recruiter/submissions'
 
 export default async function RecruiterDashboardPage() {
   const recruiter = await getCurrentRecruiter()
 
-  const [unreadMessages, addedNotYetInvited, sourcedByStatus, postings] = await Promise.all([
+  const [unreadMessages, addedNotYetInvited, sourcedByStatus, postings, lateSubmissions] = await Promise.all([
     getRecruiterUnreadCount(recruiter.id),
     prisma.sourcedCandidate.count({ where: { recruiterId: recruiter.id, status: 'ADDED' } }),
     prisma.sourcedCandidate.groupBy({ by: ['status'], where: { recruiterId: recruiter.id }, _count: true }),
@@ -15,6 +16,7 @@ export default async function RecruiterDashboardPage() {
       where: { submittedByRecruiterId: recruiter.id, archivedAt: null },
       select: { id: true, title: true, companyName: true, status: true, rejectionReason: true },
     }),
+    getLateSubmissions(recruiter.id),
   ])
 
   const signedUpCount = sourcedByStatus.find((s) => s.status === 'SIGNED_UP')?._count ?? 0
@@ -33,10 +35,26 @@ export default async function RecruiterDashboardPage() {
 
       <section>
         <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Needs your attention</h2>
-        {addedNotYetInvited === 0 && rejectedPostings.length === 0 ? (
+        {addedNotYetInvited === 0 && rejectedPostings.length === 0 && lateSubmissions.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">Nothing waiting on you right now.</p>
         ) : (
           <div className="mt-3 space-y-2">
+            {lateSubmissions.map((s) => (
+              <Link
+                key={s.submissionId}
+                href={`/recruiters/search/${s.candidateId}`}
+                className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 p-4 hover:border-destructive"
+              >
+                <div>
+                  <p className="font-medium text-foreground">
+                    {s.roleTitle} at {s.companyName} — feedback overdue
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Still &ldquo;{STAGE_LABEL[s.stage]}&rdquo; {s.hoursSinceUpdate}h since the last update (SLA is {s.slaHours}h)
+                  </p>
+                </div>
+              </Link>
+            ))}
             {addedNotYetInvited > 0 && (
               <Link
                 href="/recruiters/candidates"

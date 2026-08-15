@@ -1,5 +1,6 @@
 import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
 import { BARS_FIELD_BY_DIMENSION } from '@/lib/scoring/reference-delta'
+import type { HiringManagerCallAvailability } from '@prisma/client'
 
 // The five reference-only traits (Prompt 48) — see prisma/schema.prisma's
 // Reference model comment for why these aren't mirrored from Working
@@ -27,6 +28,12 @@ export interface ParsedReferenceContent {
   definingStory: string | null
   wouldWorkWithAgainReason: string | null
   quotableWithAttribution: boolean
+  // Recruiter portal §A6.3 — asked once, at reference completion. Only
+  // rendered (and required) on the token-based referee flow — see
+  // ReferenceSubmissionForm's askHiringManagerCallAvailability — so this
+  // stays optional at the parse layer: null on the employer-submitted flow,
+  // which never renders the question and has no column to persist it to.
+  availableForHiringManagerCall: HiringManagerCallAvailability | null
 }
 
 // Shared parsing/validation for the Prompt 48 mirrored-trait reference
@@ -80,6 +87,14 @@ export function parseReferenceFormData(formData: FormData): { data: ParsedRefere
     return { error: 'Please let us know whether we can quote you by name.' }
   }
 
+  const availableForHiringManagerCallRaw = formData.get('availableForHiringManagerCall') as string | null
+  const availableForHiringManagerCall: HiringManagerCallAvailability | null =
+    availableForHiringManagerCallRaw === 'YES' ||
+    availableForHiringManagerCallRaw === 'MAYBE_ASK_FIRST' ||
+    availableForHiringManagerCallRaw === 'NO'
+      ? availableForHiringManagerCallRaw
+      : null
+
   return {
     data: {
       overallRating: Number(overallRating),
@@ -94,6 +109,7 @@ export function parseReferenceFormData(formData: FormData): { data: ParsedRefere
       definingStory: (formData.get('definingStory') as string | null)?.trim() || null,
       wouldWorkWithAgainReason: (formData.get('wouldWorkWithAgainReason') as string | null)?.trim() || null,
       quotableWithAttribution: quotableWithAttribution === 'yes',
+      availableForHiringManagerCall,
     },
   }
 }

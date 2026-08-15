@@ -312,6 +312,13 @@ enum TrustedScopeLevel {
   STEP_CHANGE
 }
 
+// Recruiter portal §A6.3.
+enum HiringManagerCallAvailability {
+  YES
+  MAYBE_ASK_FIRST
+  NO
+}
+
 // The 5x5 Support Network builder's categories — see "My Support Network"
 // in the product spec.
 enum ContactCategory {
@@ -1265,6 +1272,10 @@ model CandidateProfile {
   outplacementSeats              OutplacementSeat[]
   portfolioAccessRequests        PortfolioAccessRequest[]
   recruiterIntroductions         RecruiterCandidateIntroduction[]
+  // Phase 6, Partners Master Build Script §A6.2 — "feedback loop" and
+  // "placement and fee tracking." See RecruiterCandidateSubmission below.
+  recruiterSubmissions           RecruiterCandidateSubmission[]
+  recruiterPlacements            RecruiterPlacement[]
   assessmentResults              AssessmentResult[]
   assessmentResponses            CandidateAssessmentResponse[]
   performanceAssessmentResponses PerformanceAssessmentResponse[]
@@ -1858,6 +1869,14 @@ model Reference {
   verifiedScopeCorrect     Boolean?
   correctedScope           String?
   verificationConfidence   Int? // 1-4
+
+  // Recruiter portal §A6.3 -- "If this person reaches final stages, would
+  // you take a short call from the hiring manager?" Asked once, at
+  // reference completion, alongside Part D verification. Aggregated on the
+  // Dossier as "N of M references available for hiring manager calls" --
+  // see buildReferenceVerification. Null = not yet answered (older
+  // references that predate this field, or a reference still in progress).
+  availableForHiringManagerCall HiringManagerCallAvailability?
 
   // Order this reference was invited in, 1-based per candidate — drives
   // Part C's "position 1 always gets w11+w1" assignment rule. Set once at
@@ -4484,6 +4503,8 @@ model Recruiter {
   messageThreads          MessageThread[]
   portfolioAccessRequests PortfolioAccessRequest[]
   candidateIntroductions  RecruiterCandidateIntroduction[]
+  candidateSubmissions    RecruiterCandidateSubmission[]
+  placements              RecruiterPlacement[]
 }
 
 enum SourcedCandidateStatus {
@@ -6321,6 +6342,26 @@ model RecruiterFirm {
   feedbackSlaHours          Int?
   exportDestinationsEnabled String[]
 
+  // Phase 6, §A6.2 -- "branded submission packet ... with the recruiter's
+  // own logo." Public URL in the same `avatars` storage bucket/pattern as
+  // Recruiter.profilePictureUrl / Coach photo uploads (see
+  // uploadAvatarFile) -- nullable since most firms won't have uploaded one
+  // yet; the packet falls back to firm name only when absent.
+  logoUrl String?
+
+  // Phase 6, §A6.2/§A6.4 -- "fee arrangements and placement tracking
+  // terms." Recorded default for this firm's placements; a per-placement
+  // row (RecruiterPlacement below) can still override it, same
+  // "firm default, per-instance override" shape as feedbackSlaHours above.
+  // Nullable/no default enum value -- "not yet configured" must be
+  // representable and distinct from "confirmed $0 fee."
+  feeArrangementType          RecruiterFeeArrangementType?
+  // 0-100, used when feeArrangementType = PERCENTAGE_OF_COMP.
+  feeArrangementPercentage    Float?
+  // Whole-dollar amount, used when feeArrangementType = FLAT_FEE.
+  feeArrangementFlatAmountUsd Int?
+  feeArrangementNotes         String?                      @db.Text
+
   suspendedAt DateTime?
   suspendedBy String?
   notes       String?   @db.Text
@@ -6329,6 +6370,12 @@ model RecruiterFirm {
   updatedAt DateTime @updatedAt
 
   recruiters Recruiter[]
+}
+
+enum RecruiterFeeArrangementType {
+  PERCENTAGE_OF_COMP
+  FLAT_FEE
+  RETAINER
 }
 
 enum RecruiterFeedbackEnforcement {
@@ -6381,6 +6428,110 @@ model AdminSettingsChangeLog {
   changedAt DateTime           @default(now())
   // { fieldName: { from, to } } for every field that actually changed.
   diff      Json
+}
+
+// =============================================================================
+// Phase 6 -- Recruiter portal (Partners Master Build Script §A6.2): the
+// feedback loop ("reviewed / screened / submitted / interviewed / placed /
+// passed with reason") and placement + fee tracking. Distinct from
+// RecruiterCandidateIntroduction above -- an introduction is CONSENT to see
+// a candidate at all; a submission is a specific "I put this candidate
+// forward for a role" event that only makes sense once consent already
+// exists. A candidate can have a live introduction with no submission yet
+// (browsed but not submitted), or (in theory, if consent were later
+// revoked) a submission whose introduction has since lapsed -- the
+// submission record itself is never deleted, since it's the recruiter's own
+// activity log and the fee/placement history it can lead to must survive a
+// later revocation.
+// =============================================================================
+
+enum RecruiterSubmissionStage {
+  REVIEWED
+  SCREENED
+  SUBMITTED
+  INTERVIEWED
+  PLACED
+  PASSED
+}
+
+model RecruiterCandidateSubmission {
+  id          String           @id @default(cuid())
+  recruiterId String
+  recruiter   Recruiter        @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Free-text -- there is no live Req/hiring-manager-portal entity to link
+  // to yet (§A8 is a later, not-yet-built phase per this phase's scope
+  // notes), so the recruiter records which role/company themselves, same
+  // "recruiter's own log" pattern as SourcedCandidate.notes.
+  roleTitle   String
+  companyName String
+
+  stage          RecruiterSubmissionStage @default(REVIEWED)
+  // Only meaningful when stage = PASSED -- "passed with reason" per §A6.2.
+  passedReason   String?                  @db.Text
+  // Bumped on every stage change -- the one field the feedback-SLA tracker
+  // reads (see src/lib/recruiter/submissions.ts's getLateSubmissions): a
+  // submission sitting in a non-terminal stage longer than the firm's SLA
+  // window is "late," full stop, regardless of when it was first created.
+  stageUpdatedAt DateTime                 @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    RecruiterCandidateSubmissionEvent[]
+  placement RecruiterPlacement?
+
+  @@index([recruiterId, stage])
+  @@index([candidateId])
+}
+
+// Append-only history of stage changes, same ledger pattern as
+// RecruiterCandidateIntroductionEvent -- "how did this submission get to
+// PASSED" should be answerable from the row history, not just the current
+// stage.
+model RecruiterCandidateSubmissionEvent {
+  id           String                       @id @default(cuid())
+  submissionId String
+  submission   RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  stage        RecruiterSubmissionStage
+  actor        String
+  note         String?
+  createdAt    DateTime                     @default(now())
+
+  @@index([submissionId, createdAt])
+}
+
+// One row per placement, §A6.2/§A6.4 "placement and fee tracking." Created
+// once a RecruiterCandidateSubmission reaches PLACED. Defaults from
+// RecruiterFirm.feeArrangement* at creation time (a firm-level default
+// changing later must not silently rewrite an already-recorded placement's
+// terms -- same snapshot-at-creation convention as CoachSession's
+// rateSnapshotCents), with every field still independently overridable per
+// placement.
+model RecruiterPlacement {
+  id           String                       @id @default(cuid())
+  submissionId String                       @unique
+  submission   RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  recruiterId  String
+  recruiter    Recruiter                    @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidateId  String
+  candidate    CandidateProfile             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  placedAt  DateTime  @default(now())
+  startDate DateTime?
+
+  feeType          RecruiterFeeArrangementType?
+  feePercentage    Float?
+  feeFlatAmountUsd Int?
+  feeNotes         String?                      @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([candidateId])
 }
 
 enum PlanCatalogCategory {
