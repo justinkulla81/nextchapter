@@ -80,6 +80,10 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
+      title: 'Companies',
+      links: [{ href: '/support/admin/companies', label: 'Companies' }],
+    },
+    {
       title: 'Admin',
       links: [
         { href: '/support/admin/requests', label: 'Requests', badge: badgeFor('requests') },

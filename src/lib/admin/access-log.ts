@@ -5,26 +5,27 @@
 // field names below (adminEmail, viewedCandidateId, surface, reason)
 // mirror that model exactly.
 //
-// No call site exists yet: there's no individual-candidate resume-issue
-// history view in the app today (checked src/app/support/admin/(portal)/
-// candidates/[id]/ — its page.tsx and profile/page.tsx cover coach view,
-// job activity, mood/sentiment, work samples; nothing resume-issue-shaped).
-// This module is the utility only; phases C/D wire it in wherever an admin
-// drills from an aggregate issues/population view into one candidate's
-// history. See the file-bottom comment for the shape that call site should
-// take.
+// First real call site: Part C Prompt 7's admin company page
+// nervous-employee panel (src/app/support/admin/(portal)/companies/[id]/actions.ts,
+// viewNervousEmployeePanel) — a COMPANY-level view, not a candidate one.
+// The original AdminAccessLog schema only had a required viewedCandidateId,
+// so it was widened (additive, both nullable now) to add viewedCompanyId —
+// see that model's own schema comment. LogAdminAccessInput below now takes
+// either target, never both, matching the schema's "exactly one of the two"
+// invariant.
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 
-export interface LogAdminAccessInput {
+type LogAdminAccessTarget = { viewedCandidateId: string; viewedCompanyId?: never } | { viewedCandidateId?: never; viewedCompanyId: string }
+
+export type LogAdminAccessInput = {
   /** The logged-in admin's email — same identity `requireAdmin()` (src/lib/admin/auth.ts) resolves. */
   adminEmail: string
-  viewedCandidateId: string
   /** e.g. "admin/issues", "admin/population", "admin/companies/[id]" — which panel triggered the view. */
   surface: string
   reason: string
-}
+} & LogAdminAccessTarget
 
 // Trims and validates a reason string, returning `null` for empty or
 // whitespace-only input rather than throwing — matches this repo's Server
@@ -38,10 +39,11 @@ export function validateAdminAccessReason(reason: string): string | null {
   return trimmed.length > 0 ? trimmed : null
 }
 
-// Writes one AdminAccessLog row. Throws if `reason` is empty/whitespace —
-// this function is the last line of defense, not the first; callers should
-// validate with validateAdminAccessReason() up front so a Server Action can
-// surface a proper form error instead of an unhandled throw.
+// Writes one AdminAccessLog row. Throws if `reason` is empty/whitespace, or
+// if neither/both of viewedCandidateId/viewedCompanyId are set — this
+// function is the last line of defense, not the first; callers should
+// validate the reason with validateAdminAccessReason() up front so a Server
+// Action can surface a proper form error instead of an unhandled throw.
 export async function logAdminAccess(input: LogAdminAccessInput): Promise<void> {
   const reason = validateAdminAccessReason(input.reason)
   if (!reason) {
@@ -49,20 +51,27 @@ export async function logAdminAccess(input: LogAdminAccessInput): Promise<void> 
       'logAdminAccess requires a non-empty reason. Validate with validateAdminAccessReason() in the calling Server Action before calling this.'
     )
   }
+  if (!input.viewedCandidateId && !input.viewedCompanyId) {
+    throw new Error('logAdminAccess requires either viewedCandidateId or viewedCompanyId.')
+  }
 
   await prisma.adminAccessLog.create({
     data: {
       adminEmail: input.adminEmail,
-      viewedCandidateId: input.viewedCandidateId,
+      viewedCandidateId: input.viewedCandidateId ?? null,
+      viewedCompanyId: input.viewedCompanyId ?? null,
       surface: input.surface,
       reason,
     },
   })
 }
 
-// Example call site for whichever phase C/D surface adds the first
-// individual-candidate resume-issue drill-down (not wired up anywhere yet
-// — illustration only):
+// Illustration of a candidate-target call site — still no individual-
+// candidate resume-issue drill-down exists in the app to wire this into for
+// real (checked src/app/support/admin/(portal)/candidates/[id]/ — nothing
+// resume-issue-shaped). For a real, wired-up example, see
+// src/app/support/admin/(portal)/companies/[id]/actions.ts's
+// viewNervousEmployeePanel, which uses the viewedCompanyId shape instead:
 //
 //   'use server'
 //   import { requireAdmin } from '@/lib/admin/auth'

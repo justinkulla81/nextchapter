@@ -5173,16 +5173,30 @@ model PopulationSnapshot {
 // string" as a constraint); this table only records what already passed
 // that check.
 model AdminAccessLog {
-  id                String           @id @default(cuid())
+  id         String @id @default(cuid())
   // Plain email string, not a relation — see this section's header comment.
-  adminEmail        String
-  viewedCandidateId String
-  viewedCandidate   CandidateProfile @relation(fields: [viewedCandidateId], references: [id], onDelete: Cascade)
-  surface           String // e.g. "admin/issues", "admin/population", "admin/companies/[id]" — which panel triggered the view
-  reason            String // required, never empty (enforced at the server-action layer)
-  viewedAt          DateTime         @default(now())
+  adminEmail String
+
+  // Exactly one of viewedCandidateId/viewedCompanyId is set on any row —
+  // enforced at the server-action layer (logAdminAccess in
+  // src/lib/admin/access-log.ts), not here (Prisma has no CHECK-constraint
+  // equivalent). Originally viewedCandidateId was required-only; widened
+  // (additive, both nullable) by Part C Prompt 7 so the same log can cover
+  // a company-level view (the nervous-employee panel on the admin company
+  // page) without inventing a second log table. Every pre-existing row has
+  // viewedCandidateId set and viewedCompanyId null, so this migration needs
+  // no backfill.
+  viewedCandidateId String?
+  viewedCandidate   CandidateProfile? @relation(fields: [viewedCandidateId], references: [id], onDelete: Cascade)
+  viewedCompanyId   String?
+  viewedCompany     Company?          @relation(fields: [viewedCompanyId], references: [id], onDelete: Cascade)
+
+  surface  String // e.g. "admin/issues", "admin/population", "admin/companies/[id]" — which panel triggered the view
+  reason   String // required, never empty (enforced at the server-action layer)
+  viewedAt DateTime @default(now())
 
   @@index([viewedCandidateId, viewedAt])
+  @@index([viewedCompanyId, viewedAt])
   @@index([adminEmail, viewedAt])
 }
 
@@ -5240,6 +5254,9 @@ model Company {
   intel               CompanyIntel[]
   insiderRequests     InsiderRequest[]
   applicationOutcomes CompanyApplicationOutcome[]
+  // Part C Prompt 7 — the admin company page's nervous-employee panel logs
+  // every view here (see AdminAccessLog.viewedCompanyId's own comment).
+  adminAccessLogViews AdminAccessLog[]
 
   @@index([industry])
 }
