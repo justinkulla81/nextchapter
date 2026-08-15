@@ -5,6 +5,7 @@ import { isCandidateConsentedForRecruiter } from '@/lib/recruiter/introductions'
 import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 import { autoLinkSubmissionToReq } from '@/lib/hiring/req-matching'
 import { schedulePostHireFeedback } from '@/lib/hiring/post-hire-feedback'
+import { activateAlumStatus } from '@/lib/membership/activate-alum'
 
 // Recruiter portal §A6.2 — "feedback loop (reviewed / screened / submitted /
 // interviewed / placed / passed with reason)" — and §A6.4's SLA
@@ -155,6 +156,13 @@ export async function recordPlacement(
   if (submission.reqId) {
     await schedulePostHireFeedback(submissionId, submission.reqId, input.startDate ?? placement.placedAt)
   }
+
+  // Phase 8, §A2.4 — a recruiter-attested placement is one of the two
+  // human-verified "this candidate really got hired" signals in the
+  // codebase (see the other in approveBountyClaim). Grants `alum` for real
+  // and, if this placement came through a Premium outplacement seat, starts
+  // a free 12-month Membership.
+  await activateAlumStatus(submission.candidateId, 'recruiter_placement')
 
   return { placementId: placement.id }
 }

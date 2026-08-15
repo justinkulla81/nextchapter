@@ -30,6 +30,8 @@ import {
   HeartHandshake,
   LifeBuoy,
   HelpCircle,
+  Award,
+  Gift,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -152,6 +154,13 @@ function buildSections(
         },
         { href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
         { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
+      ],
+    },
+    {
+      title: 'Membership',
+      links: [
+        { href: '/dashboard/membership', label: 'Membership', icon: Award },
+        { href: '/dashboard/benefits-network', label: 'Alumni Benefits Network', icon: Gift },
       ],
     },
     {

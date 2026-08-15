@@ -393,11 +393,22 @@ export async function getHowIOperate(
 }
 
 async function getGapAreasAndLearningItems(candidateId: string) {
-  const [learningItems, latestReport] = await Promise.all([
+  const [learningBadgeItems, benefitsNetworkCompletions, latestReport] = await Promise.all([
     prisma.learningBadge.findMany({
       where: { candidateId, badgeType: { not: 'ai_project' } },
       orderBy: { completedAt: 'desc' },
       take: 10,
+    }),
+    // Phase 8, §A4.5 — "a completed course appears in the Dossier as
+    // evidence of effort, never as a competency score." Merged here with
+    // LearningBadge rows for display ONLY, in this section alone — see
+    // BenefitsNetworkCompletion's own schema comment for the hard rule that
+    // this must never reach computeDossierCompetencies/computeCategoryGrades.
+    prisma.benefitsNetworkCompletion.findMany({
+      where: { candidateId },
+      orderBy: { completedAt: 'desc' },
+      take: 10,
+      select: { completedAt: true, listing: { select: { programName: true, institutionName: true } } },
     }),
     prisma.marketRealityReport.findFirst({
       where: { candidateId },
@@ -405,6 +416,17 @@ async function getGapAreasAndLearningItems(candidateId: string) {
       select: { gapAnalysis: true },
     }),
   ])
+
+  const learningItems = [
+    ...learningBadgeItems.map((item) => ({ title: item.title, completedAt: item.completedAt })),
+    ...benefitsNetworkCompletions.map((item) => ({
+      title: `${item.listing.programName} (${item.listing.institutionName}, via Benefits Network)`,
+      completedAt: item.completedAt,
+    })),
+  ]
+    .sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime())
+    .slice(0, 10)
+
   const gapAreas = ((latestReport?.gapAnalysis as unknown as { gaps: { area: string }[] } | undefined)?.gaps ?? []).map(
     (g) => g.area
   )

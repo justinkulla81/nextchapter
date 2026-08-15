@@ -46,6 +46,7 @@ export async function saveCoachingSettings(_prevState: FormState, formData: Form
     matchWeightHighNeedBoost: intField(formData, 'matchWeightHighNeedBoost') ?? 0,
     matchWeightTimezone: intField(formData, 'matchWeightTimezone') ?? 0,
     matchWeightStyle: intField(formData, 'matchWeightStyle') ?? 0,
+    matchWeightMembershipPriorityBoost: intField(formData, 'matchWeightMembershipPriorityBoost') ?? 0,
     matchShortlistSize: intField(formData, 'matchShortlistSize') ?? 3,
     assignmentMode: assignmentMode as CoachAssignmentMode,
     cancellationWindowHours: intField(formData, 'cancellationWindowHours') ?? 24,

@@ -88,6 +88,12 @@ export function CoachingSettingsForm({
           <Field label="High-need boost" name="matchWeightHighNeedBoost" defaultValue={existing.matchWeightHighNeedBoost} />
           <Field label="Timezone (reserved)" name="matchWeightTimezone" defaultValue={existing.matchWeightTimezone} />
           <Field label="Style (reserved)" name="matchWeightStyle" defaultValue={existing.matchWeightStyle} />
+          <Field
+            label="Membership priority boost"
+            name="matchWeightMembershipPriorityBoost"
+            defaultValue={existing.matchWeightMembershipPriorityBoost}
+            hint="Applied only to active Members with priority booking on, scaled by coach capacity headroom"
+          />
         </div>
         <Field label="Shortlist size" name="matchShortlistSize" defaultValue={existing.matchShortlistSize} />
       </div>

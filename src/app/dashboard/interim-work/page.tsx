@@ -19,6 +19,7 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { prisma } from '@/lib/prisma'
 import { signupCountToTier } from '@/lib/interim-work/signup-count-tier'
 import { computeMarketplaceSignupMix } from '@/lib/interim-work/marketplace-signup-mix'
+import { isActiveMember } from '@/lib/membership/subscription'
 
 export const metadata: Metadata = { title: 'Interim Work' }
 
@@ -42,7 +43,7 @@ export default async function InterimWorkPage() {
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups] = await Promise.all([
+  const [marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember] = await Promise.all([
     getActiveListings(marketplaceCategories),
     getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
     getActiveListings([
@@ -58,6 +59,11 @@ export default async function InterimWorkPage() {
       select: { listing: { select: { name: true, category: true } } },
       orderBy: { createdAt: 'desc' },
     }),
+    // Phase 8, §A2.4 -- "board and advisory listings" is a Membership perk
+    // per the plan catalog's own feature list. Fetched here (not gated at
+    // the query level) so a non-member still sees the section header and a
+    // real, explained locked state rather than the section disappearing.
+    isActiveMember(profile.id),
   ])
   const interimSignupMix = computeMarketplaceSignupMix(interimSignups.map((s) => s.listing.category))
 
@@ -219,8 +225,8 @@ export default async function InterimWorkPage() {
             <InterimListingGrid listings={expertNetworkListings} signedUpIds={signedUpIds} />
           </section>
 
-          {/* Section 4 — Board & Advisory */}
-          <section className="space-y-3 border-b border-border pb-10">
+          {/* Section 4 — Board & Advisory (Phase 8, §A2.4 — a Membership perk) */}
+          <section id="launch-phase-4" className="scroll-mt-4 space-y-3 border-b border-border pb-10">
             <div>
               <h2 className="text-lg font-semibold">4. Board & advisory roles</h2>
               <p className="text-sm text-muted-foreground">
@@ -231,27 +237,45 @@ export default async function InterimWorkPage() {
                 quality means it&apos;s a real, relevant option with no revenue arrangement.
               </p>
             </div>
-            {hasWomenFocusedListings && profile.boardDiversityListingsOptIn === null && (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-off-white p-3">
-                <p className="text-sm text-muted-foreground">
-                  A couple of platforms below focus specifically on supporting women or
-                  underrepresented leaders. Want those included in your list?
-                </p>
-                <div className="flex shrink-0 gap-2">
-                  <form action={setBoardDiversityListingsOptIn.bind(null, true)}>
-                    <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
-                      Yes, include them
-                    </SubmitButton>
-                  </form>
-                  <form action={setBoardDiversityListingsOptIn.bind(null, false)}>
-                    <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
-                      No, skip those
-                    </SubmitButton>
-                  </form>
+            {!isMember ? (
+              <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+                <div className="flex items-center gap-2">
+                  <Lock className="size-4 text-orange" />
+                  <p className="text-sm font-medium text-orange">Board & advisory listings — Membership only</p>
                 </div>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  {boardListings.length} listing{boardListings.length === 1 ? '' : 's'} ready to view once you&apos;re a{' '}
+                  <Link href="/dashboard/membership" className="text-primary underline underline-offset-4">
+                    NextChapter Member
+                  </Link>
+                  .
+                </p>
               </div>
+            ) : (
+              <>
+                {hasWomenFocusedListings && profile.boardDiversityListingsOptIn === null && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-off-white p-3">
+                    <p className="text-sm text-muted-foreground">
+                      A couple of platforms below focus specifically on supporting women or
+                      underrepresented leaders. Want those included in your list?
+                    </p>
+                    <div className="flex shrink-0 gap-2">
+                      <form action={setBoardDiversityListingsOptIn.bind(null, true)}>
+                        <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                          Yes, include them
+                        </SubmitButton>
+                      </form>
+                      <form action={setBoardDiversityListingsOptIn.bind(null, false)}>
+                        <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                          No, skip those
+                        </SubmitButton>
+                      </form>
+                    </div>
+                  </div>
+                )}
+                <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
+              </>
             )}
-            <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
           </section>
 
           {/* Section 5 — Teaching & light advisory */}

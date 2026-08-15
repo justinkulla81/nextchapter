@@ -111,6 +111,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/webinars', label: 'Videos and Webinars' },
         { href: '/support/admin/pedigree-signals', label: 'Pedigree Signals' },
         { href: '/support/admin/interim-listings', label: 'Interim Work Listings' },
+        { href: '/support/admin/benefits-network', label: 'Alumni Benefits Network' },
         { href: '/support/admin/bias-detection', label: 'Bias Detection' },
         { href: '/support/admin/research', label: 'Market Pulse' },
         { href: '/support/admin/tracking-testers', label: 'Gmail/Calendar Testers' },

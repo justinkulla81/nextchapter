@@ -1472,6 +1472,27 @@ model CandidateProfile {
   levelRankLabel     String?
   levelRankUpdatedAt DateTime?
 
+  // Phase 8, Partners Master Build Script §A2.4 (Membership) and §A4
+  // (Alumni Benefits Network) -- see the models near the end of this file.
+  membershipSubscription      MembershipSubscription?
+  membershipMarketChecks      MembershipMarketCheck[]
+  // As the alum who sourced/owns a Benefits Network listing.
+  benefitsNetworkListings     BenefitsNetworkListing[]
+  benefitsNetworkRedemptions  BenefitsNetworkRedemption[]
+  benefitsNetworkRatings      BenefitsNetworkRating[]
+  benefitsNetworkReportsFiled BenefitsNetworkReport[]
+  // Effort evidence in the Dossier's Learning & Growth section ONLY --
+  // see BenefitsNetworkCompletion's own comment for the hard rule that this
+  // must never be read by computeDossierCompetencies/computeCategoryGrades.
+  benefitsNetworkCompletions  BenefitsNetworkCompletion[]
+  // §A4.2 step 5 -- "redemptions tracked, credited to the alum in points and
+  // standing." A plain incrementing counter, same convention as other simple
+  // per-candidate counters in this model (e.g. resumeFixesAppliedKeys is an
+  // array-based version of the same idea) -- no separate points/standing
+  // ledger primitive exists elsewhere in the codebase to reuse (see this
+  // phase's report), so this is new but deliberately minimal.
+  benefitsNetworkPoints       Int                         @default(0)
+
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
@@ -6264,12 +6285,20 @@ model CoachingSettings {
   // constraint (candidate preference excludes non-matching coaches
   // entirely) rather than a weighted score, and no style-compatibility
   // signal exists in matching.ts yet. See this phase's report.
-  matchWeightFunctionIndustry Int @default(3)
-  matchWeightSeniorityLevel   Int @default(2)
-  matchWeightHighNeedBoost    Int @default(4)
-  matchWeightTimezone         Int @default(0)
-  matchWeightStyle            Int @default(0)
-  matchShortlistSize          Int @default(3)
+  matchWeightFunctionIndustry        Int @default(3)
+  matchWeightSeniorityLevel          Int @default(2)
+  matchWeightHighNeedBoost           Int @default(4)
+  matchWeightTimezone                Int @default(0)
+  matchWeightStyle                   Int @default(0)
+  // Phase 8, §A2.4 "priority coach booking" -- an additive boost, never a
+  // quality/grade signal, applied only to candidates with an ACTIVE
+  // MembershipSubscription.priorityCoachBooking flag. See the invariant
+  // comment on generateCoachShortlist (src/lib/coach/matching.ts) for why
+  // this is safe to add: it's a membership perk, not something that makes a
+  // candidate look "easier," same exemption already carved out for
+  // levelRankScore.
+  matchWeightMembershipPriorityBoost Int @default(3)
+  matchShortlistSize                 Int @default(3)
 
   // CANDIDATE_CHOICE reflects current live behavior: generateCoachShortlist
   // ranks candidates a shortlist, /dashboard/coaching-match lets the
@@ -6846,4 +6875,298 @@ model PostHireFeedback {
 
   @@index([hiringManagerId])
   @@index([dueAt])
+}
+
+// ============================================================================
+// Membership & Alumni Benefits Network -- Partners Master Build Script §A2.4
+// and §A4, Phase 8.
+//
+// §A2.4: `alum` is granted for real the moment a candidate is verifiably
+// placed (see activateAlumStatus, src/lib/membership/activate-alum.ts, hooked
+// into recordPlacement and approveBountyClaim -- the two documented,
+// human-verified "this candidate really got hired" signals in the codebase;
+// see this phase's report for why the other two candidate-status transitions
+// were judged too weak/ambiguous to hook). Membership itself
+// (MembershipSubscription) is a real record with NO live billing this phase
+// -- status/plan/price/freeUntil only, per this session's established
+// no-payment-collection pattern for commercial features.
+//
+// §A4: alumni-sourced institutional benefits, NOT admin-curated courses --
+// deliberately a separate system from LearningBadge/the admin Course
+// catalog (`/support/admin/courses`). See BenefitsNetworkCompletion's own
+// comment for the hard rule this phase was asked to enforce and verify:
+// completions here must never feed computeDossierCompetencies.
+// ============================================================================
+
+enum MembershipStatus {
+  ACTIVE
+  LAPSED
+  CANCELLED
+}
+
+enum MembershipSource {
+  SELF_SERVE
+  FREE_PREMIUM_PLACEMENT
+}
+
+// One row per candidate -- "the" real record of their Membership state. No
+// live Stripe integration this phase; currentPeriodEnd/freeUntil are the
+// informational fields a later billing integration would replace with real
+// invoice-driven dates. status flips ACTIVE -> LAPSED by the
+// membership-lapse-check cron (currentPeriodEnd, and freeUntil if set, both
+// in the past) -- that's what gives break-glass reactivation
+// (reactivateMembership, src/app/dashboard/membership/actions.ts) something
+// real to react against, not just a copy promise.
+model MembershipSubscription {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Points at PlanCatalogEntry.planKey ('membership_monthly' | 'membership_annual')
+  // -- price is always read live from getCurrentPlan(planKey), never copied
+  // here, so an admin price change (§A2.4/§A9) takes effect immediately.
+  planKey String
+  status  MembershipStatus @default(ACTIVE)
+  source  MembershipSource @default(SELF_SERVE)
+
+  // §A2.4 "priority coach booking" -- consumed as an additive score term in
+  // generateCoachShortlist (src/lib/coach/matching.ts), gated on status
+  // ACTIVE. Defaults on for every member; a real settings UI to turn it off
+  // isn't asked for by the spec, so this exists mainly as the flag the
+  // matching code reads, per the phase brief's "a real preference flag."
+  priorityCoachBooking Boolean @default(true)
+
+  // Free for 12 months when placement came through a Premium outplacement
+  // seat (§A2.4) -- set once at auto-activation, never on self-serve signup.
+  freeUntil        DateTime?
+  currentPeriodEnd DateTime?
+
+  startedAt     DateTime  @default(now())
+  lapsedAt      DateTime?
+  cancelledAt   DateTime?
+  reactivatedAt DateTime?
+
+  // §A2.4 benefit-delivery bookkeeping -- each cron (membership-dossier-
+  // refresh, membership-market-check, membership-network-nudge) reads/writes
+  // its own timestamp so "was this benefit actually delivered" is a real,
+  // checkable fact instead of a stored promise.
+  lastDossierRefreshAt   DateTime?
+  lastMarketCheckAt      DateTime?
+  lastNetworkNudgeSentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, currentPeriodEnd])
+}
+
+// §A2.4 "quarterly market check with comp benchmarking" -- one row per run,
+// kept as history (not overwritten) so a member can see the trend over time.
+// Reuses getMarketConditions (src/lib/market/index.ts) for job-market volume
+// and BLS trend; comp benchmarking is computed fresh here (no existing
+// dollar-figure comp function was found in src/lib/market/ -- see this
+// phase's report) from real salary data already on ExclusiveJobPosting rows,
+// compared against the candidate's own stated targetCompMin.
+model MembershipMarketCheck {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  checkedAt DateTime @default(now())
+
+  adzunaCount      Int?
+  blsYoyChangePct  Float?
+  targetCompMin    Int?
+  compBenchmarkMid Int?
+  compSampleSize   Int
+
+  createdAt DateTime @default(now())
+
+  @@index([candidateId, checkedAt])
+}
+
+enum BenefitsListingStatus {
+  PENDING_VERIFICATION
+  LISTED
+  DELISTED
+  EXPIRED
+}
+
+enum BenefitsRedemptionMethod {
+  CODE
+  LINK
+  EMAIL_INTRO
+}
+
+// §A4.2 -- an alum-proposed institutional benefit. Not listed (status stays
+// PENDING_VERIFICATION, never shown in the catalog) until
+// BenefitsNetworkVerification.confirmedAt is set via a click from an
+// institution-domain email address -- see confirmBenefitsNetworkVerification,
+// src/lib/benefits-network/verification.ts. institutionDomain is the actual
+// proof of authority (derived from the confirmed email), not free text the
+// alum typed.
+model BenefitsNetworkListing {
+  id     String           @id @default(cuid())
+  alumId String
+  alum   CandidateProfile @relation(fields: [alumId], references: [id], onDelete: Cascade)
+
+  institutionName     String
+  institutionDomain   String? // set only once verification confirms the institutional email
+  programName         String
+  description         String  @db.Text
+  // §A4.4 "total cost stated including anything not covered" -- kept as its
+  // own required field (not folded into description) so the catalog/listing
+  // pages can render it as a distinct, always-visible line, never buried.
+  fullCostNote        String  @db.Text
+  discountDescription String
+
+  seatCount              Int?
+  redemptionMethod       BenefitsRedemptionMethod
+  redemptionValue        String // the code, or the link/instructions
+  redemptionInstructions String                   @db.Text
+
+  // Catalog filter facets (§A4.3) -- free-text, admin/alum-authored, same
+  // "no premature enum" judgment call as ExclusiveJobPosting.level/
+  // sourceCategory above.
+  function       String
+  level          String
+  format         String // e.g. self-paced, live cohort, hybrid
+  costType       String // e.g. free, discounted, waived application fee
+  timeCommitment String
+  credentialType String // e.g. certificate, badge, none
+
+  // §A4.3 "tied to the skills gap" -- short free-text tags, loosely matched
+  // (case-insensitive substring, see src/lib/benefits-network/skill-match.ts)
+  // against a candidate's cached skillGapSuggestions. Deliberately NOT an
+  // LLM call at match time -- read-only against an already-cached field, no
+  // new metered cost.
+  skillGapTags String[] @default([])
+
+  status     BenefitsListingStatus @default(PENDING_VERIFICATION)
+  expiresAt  DateTime
+  reviewDate DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verification BenefitsNetworkVerification?
+  redemptions  BenefitsNetworkRedemption[]
+  ratings      BenefitsNetworkRating[]
+  reports      BenefitsNetworkReport[]
+  completions  BenefitsNetworkCompletion[]
+
+  // Catalog query is `status: LISTED, expiresAt: { gt: now }` -- this index
+  // backs that read directly. A separate cron (benefits-network-expire-
+  // listings) also flips status to EXPIRED past expiresAt so admin's own
+  // listing table doesn't keep showing a dead listing as "Listed" --
+  // belt-and-suspenders, the query filter is what actually enforces §A4.4's
+  // auto-expiry requirement even before the cron next runs.
+  @@index([status, expiresAt])
+  @@index([alumId])
+}
+
+// §A4.2 step 2 -- "anything material requires confirmation from an
+// institutional email address, not the alum's word." One row per listing;
+// token is a public, unguessable link (same cuid()-as-token convention as
+// OutplacementSeat.inviteToken/InterviewPanelist.scorecardToken elsewhere in
+// this schema) mailed to the institutional address the alum supplied. The
+// listing is NEVER shown in the catalog until confirmedAt is set -- see
+// getCatalogListings, src/lib/benefits-network/listings.ts.
+model BenefitsNetworkVerification {
+  id        String                 @id @default(cuid())
+  listingId String                 @unique
+  listing   BenefitsNetworkListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  institutionEmail String
+  token            String    @unique @default(cuid())
+  sentAt           DateTime  @default(now())
+  expiresAt        DateTime
+  confirmedAt      DateTime?
+
+  @@index([token])
+}
+
+// §A4.2 step 4 -- one row per (listing, candidate) redemption. Unique
+// constraint prevents double-counting the same candidate's redemption toward
+// alum standing if they click "redeem" twice.
+model BenefitsNetworkRedemption {
+  id          String                 @id @default(cuid())
+  listingId   String
+  listing     BenefitsNetworkListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  redeemedAt  DateTime               @default(now())
+
+  @@unique([listingId, candidateId])
+  @@index([listingId])
+}
+
+// §A4.4 "member ratings on listings ... delist on sustained poor feedback."
+// One rating per (listing, candidate) -- re-rating overwrites via upsert
+// rather than accumulating duplicates. Admin's own view aggregates these
+// (avg rating + count) to surface delisting-review candidates; nothing here
+// auto-delists, matching this session's established human-judgment-required
+// pattern for any removal/exclusion consequence.
+model BenefitsNetworkRating {
+  id          String                 @id @default(cuid())
+  listingId   String
+  listing     BenefitsNetworkListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  rating      Int // 1-5
+  comment     String?                @db.Text
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([listingId, candidateId])
+  @@index([listingId])
+}
+
+enum BenefitsReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
+// §A4.4 "member reports it in one tap." reportedByCandidateId is nullable-
+// free-text-reason only (not a rating) -- a single tap plus an optional
+// reason, reviewed by admin exactly like /support/admin/reported-messages.
+model BenefitsNetworkReport {
+  id                    String                 @id @default(cuid())
+  listingId             String
+  listing               BenefitsNetworkListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reportedByCandidateId String
+  reportedBy            CandidateProfile       @relation(fields: [reportedByCandidateId], references: [id], onDelete: Cascade)
+  reason                String?                @db.Text
+  status                BenefitsReportStatus   @default(OPEN)
+  reviewedBy            String?
+  reviewedAt            DateTime?
+  createdAt             DateTime               @default(now())
+
+  @@index([listingId, status])
+}
+
+// §A4.5 -- "a completed course appears in the Dossier as evidence of effort,
+// NEVER as a competency score." Deliberately its own model, NOT a
+// LearningBadge row and NOT anything referenced by
+// GRADE_RELATIONS_INCLUDE/CandidateWithGradeRelations in
+// src/lib/scoring/dossier-competencies.ts -- computeDossierCompetencies and
+// computeCategoryGrades must never gain a relation to this model. The only
+// consumer is getGapAreasAndLearningItems/getLearningGrowth
+// (src/lib/reports/dossier-sections.ts), which surfaces these merged with
+// LearningBadge rows in the Dossier's Learning & Growth Trajectory section
+// only. This phase's report states the exact grep that verifies this holds.
+model BenefitsNetworkCompletion {
+  id          String                 @id @default(cuid())
+  listingId   String
+  listing     BenefitsNetworkListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  completedAt DateTime               @default(now())
+  note        String?                @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@unique([listingId, candidateId])
+  @@index([candidateId])
 }

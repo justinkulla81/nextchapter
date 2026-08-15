@@ -4,6 +4,7 @@ import { getSentimentAlert } from '@/lib/daily/mood'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { coachMatchesSeniority } from '@/lib/scoring/level-rank'
 import { getCoachingSettings } from '@/lib/admin/coaching-settings'
+import { isActiveMember } from '@/lib/membership/subscription'
 
 const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
 
@@ -60,6 +61,7 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
       gender: true,
       languages: true,
       timezone: true,
+      _count: { select: { clients: true } },
     },
   })
 
@@ -91,7 +93,17 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
   const pool = hardFiltered.length > 0 ? hardFiltered : allCoaches
   if (pool.length === 0) return []
 
-  const { lowSentiment } = await getSentimentAlert(candidateId)
+  const [{ lowSentiment }, isPriorityMember] = await Promise.all([
+    getSentimentAlert(candidateId),
+    isActiveMember(candidateId).then(async (active) => {
+      if (!active) return false
+      const sub = await prisma.membershipSubscription.findUnique({
+        where: { candidateId },
+        select: { priorityCoachBooking: true },
+      })
+      return sub?.priorityCoachBooking ?? false
+    }),
+  ])
 
   const scored = pool.map((coach) => {
     let score = 0
@@ -106,6 +118,18 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     // as a raw flag, just reflected in ranking order.
     if (lowSentiment && coach.specializationTags.includes(HIGH_NEED_TAG)) {
       score += settings.matchWeightHighNeedBoost
+    }
+    // Phase 8, §A2.4 "priority coach booking" — a Membership perk, not a
+    // quality/grade signal (same exemption class as levelRankScore, see this
+    // function's header comment). Boosted toward coaches with real capacity
+    // headroom (fewer current clients relative to the admin-set cap) rather
+    // than a flat per-candidate constant, which wouldn't change relative
+    // ranking order at all — this way a member's shortlist genuinely favors
+    // coaches likely to respond and book faster, the real substance behind
+    // "priority."
+    if (isPriorityMember && settings.coachMaxActiveClients > 0) {
+      const headroom = Math.max(0, 1 - coach._count.clients / settings.coachMaxActiveClients)
+      score += settings.matchWeightMembershipPriorityBoost * headroom
     }
     return { coach, score }
   })

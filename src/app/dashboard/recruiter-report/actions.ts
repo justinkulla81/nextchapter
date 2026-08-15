@@ -1,11 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { clearDossierGeneratedCache } from '@/lib/reports/dossier-refresh'
 
 export type PositioningFormState = { error?: string } | undefined
 
@@ -92,15 +92,7 @@ export async function regenerateDossierSections(): Promise<void> {
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: {
-      dossierGeneratedCache: Prisma.DbNull,
-      dossierGeneratedAt: null,
-      positioningStatementDraft: null,
-      selfAwarenessDraft: null,
-    },
-  })
+  await clearDossierGeneratedCache(profile.id)
 
   captureServerEvent(profile.id, 'dossier_sections_regenerated', {})
 
