@@ -263,10 +263,17 @@ export default async function DashboardPage() {
       {/* #931/#932 "Search Plan" — the post-activation equivalent of
           ActivationChecklistCard above: once a candidate has cleared the
           hard gate, this is "here's your plan," shown before "here's this
-          week's focus" (WeeklyFocusCard) below. Never shown pre-activation
-          — ActivationChecklistCard already owns that state, and duplicating
-          its job here would be redundant. */}
-      {hardGateStatus === 'unlocked' && (
+          week's focus" (WeeklyFocusCard) below. Never shown while still
+          gated (search_strategy_required/activation_required) —
+          ActivationChecklistCard already owns that state, and duplicating
+          its job here would be redundant. Also shown to 'exempt' candidates
+          (pre-existing accounts grandfathered out of the hard gate itself,
+          per access-gate.ts) — they already have unrestricted dashboard
+          access today, so this is purely additive value for them, not a
+          gate to clear; restricting it to literal 'unlocked' would hide it
+          from nearly every candidate who signed up before the hard gate
+          shipped. */}
+      {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
         <SearchPlanCard
           completedReferencesCount={completedReferencesCount}
           learningBadgeCount={learningBadgeCount}
