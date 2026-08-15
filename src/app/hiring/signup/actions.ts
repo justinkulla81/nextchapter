@@ -41,7 +41,7 @@ export async function completeHiringManagerSignup(
 
   await finishHiringManagerSignup(user.id, fullName, user.email, companyName)
 
-  redirect('/hiring')
+  redirect('/hiring/dashboard')
 }
 
 // Called from CallbackHandler once a fresh hiring-manager signUp's

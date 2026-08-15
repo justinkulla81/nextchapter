@@ -22,12 +22,12 @@ function SignOutButton() {
 }
 
 const LINKS = [
-  { href: '/hiring', label: 'Overview' },
+  { href: '/hiring/dashboard', label: 'Overview' },
   { href: '/hiring/reqs', label: 'My reqs' },
 ]
 
 function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
-  const isActive = (href: string) => (href === '/hiring' ? pathname === href : pathname === href || pathname.startsWith(`${href}/`))
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <nav className="flex h-full flex-col gap-2 overflow-y-auto px-4 py-6">
@@ -56,7 +56,7 @@ function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: (
 export function HiringNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const current = LINKS.find((link) => (link.href === '/hiring' ? pathname === link.href : pathname === link.href || pathname.startsWith(`${link.href}/`)))
+  const current = LINKS.find((link) => pathname === link.href || pathname.startsWith(`${link.href}/`))
 
   return (
     <>

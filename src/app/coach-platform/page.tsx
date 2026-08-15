@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 // Ad-hoc AudienceTab, deliberately not registered in AUDIENCE_TABS — this is
-// a nested upsell page linked from /for-coaches, not a peer top-level
+// a nested upsell page linked from /coaches, not a peer top-level
 // audience, so it should never show up in the shared audience-tab switcher.
 const TAB: AudienceTab = {
   id: 'coach-platform',
@@ -22,7 +22,7 @@ const TAB: AudienceTab = {
   eyebrow: 'For Coaches — Premium',
   headline: 'Your brand, on the platform your clients already use every day.',
   subhead:
-    'The free tools on /for-coaches are a companion to your practice. This is the other direction: your name, your logo, your colors, on the client-facing tools you build sessions around.',
+    'The free tools on /coaches are a companion to your practice. This is the other direction: your name, your logo, your colors, on the client-facing tools you build sessions around.',
   points: [
     {
       lead: 'Full client view, not a summary card.',
@@ -67,7 +67,7 @@ export default function CoachPlatformPage() {
             For candidates
           </Link>
           <nav className="order-3 flex min-w-0 basis-full items-center gap-1.5 text-sm sm:order-2 sm:basis-auto">
-            <Link href="/for-coaches" className="shrink-0 font-medium text-brand hover:text-navy">
+            <Link href="/coaches" className="shrink-0 font-medium text-brand hover:text-navy">
               For Coaches
             </Link>
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
@@ -134,7 +134,7 @@ export default function CoachPlatformPage() {
         </div>
 
         <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
-          <Link href="/for-coaches" className="underline underline-offset-4">
+          <Link href="/coaches" className="underline underline-offset-4">
             ← Free coach tools
           </Link>
           {' · '}

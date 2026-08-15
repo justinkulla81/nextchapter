@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, ChevronDown, type LucideIcon } from 'lucide-react'
+import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, UserCheck, ChevronDown, type LucideIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -61,11 +61,18 @@ const ORG_CARDS: {
     accent: 'text-success bg-success/10',
   },
   {
-    href: '/for-coaches',
+    href: '/coaches',
     title: 'Coaches',
-    teaser: 'Bring your clients onto a platform built for their search.',
+    teaser: 'Stop rebuilding context before every session.',
     icon: HeartHandshake,
     accent: 'text-brand bg-brand/10',
+  },
+  {
+    href: '/hiring',
+    title: 'Hiring Managers',
+    teaser: 'Interview better, not longer.',
+    icon: UserCheck,
+    accent: 'text-accent-hiring bg-accent-hiring/10',
   },
 ]
 

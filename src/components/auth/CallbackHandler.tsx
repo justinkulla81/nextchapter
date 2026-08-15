@@ -122,7 +122,7 @@ export function CallbackHandler() {
         return
       }
       setStatus('redirecting')
-      router.replace('/hiring')
+      router.replace('/hiring/dashboard')
       return
     }
     if (nextIsEmployerSeat) {

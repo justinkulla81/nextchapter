@@ -103,55 +103,63 @@ export const AUDIENCE_TABS: AudienceTab[] = [
   {
     id: 'recruiters',
     audience: 'Recruiter',
-    eyebrow: 'For Recruiters & Agencies',
-    headline: 'Source candidates the ATS keyword filters bury — verified, not just parsed.',
+    eyebrow: 'For Recruiters',
+    headline: 'Candidates who arrive with their references already done.',
     subhead:
-      'Search verified candidates by how they work, not just what they typed. Career changers, returners, and non-traditional backgrounds are surfaced, not screened out, so you fill roles other tools miss and place candidates who actually stay.',
+      'Every NextChapter candidate comes with five structured references, two validated assessments, and a Dossier you can put in front of a client under your own brand.',
     directSignupHref: '/recruiters/signup',
-    directSignupLabel: 'Get your free calibration tool — no waitlist',
+    directSignupLabel: 'Get access — no waitlist',
     insightSection: {
-      heading: 'Why your best submissions are getting rejected',
+      heading: 'The compression claim, which is safe to make',
       items: [
         {
-          lead: 'Most rejections aren\'t about skill.',
-          body: 'Harvard Business School\'s "Hidden Workers" research found the large majority of employers unknowingly filter out qualified candidates through automated screening — the exact submissions you know are strong.',
+          lead: 'References normally get collected at offer stage.',
+          body: 'Ours are done before you ever meet the candidate — five structured references, scored consistently, sitting in the Dossier from day one.',
         },
         {
-          lead: 'A bad placement is expensive for everyone.',
-          body: 'The U.S. Department of Labor puts the cost of a bad hire at roughly 30% of first-year earnings — a number that shows up as clawbacks, damaged client trust, and time you don\'t get back.',
+          lead: 'Some are already willing to take a hiring-manager call.',
+          body: 'At reference completion we ask directly. Surfaced in the Dossier as "3 of 5 references available for hiring manager calls" — a real timeline advantage, not a promise.',
         },
         {
-          lead: 'Cold outreach to passive profiles has a ceiling.',
-          body: 'Every candidate here opted in and completed a real How They Work Best assessment — you\'re not guessing from a static profile, you\'re working from verified signal on how someone actually operates.',
+          lead: 'Consented candidates only.',
+          body: 'Never a scraped or browsable database — you see candidates who opted in and are Dossier-complete candidates are ranked higher and visually badged.',
         },
       ],
     },
     points: [
       {
-        lead: 'Opted-in, assessment-backed talent.',
-        body: 'Every profile is verified and enriched with How They Work Best data, so your shortlist is built on fit — not guesswork from a keyword match.',
+        lead: 'A branded submission packet, generated from the Dossier.',
+        body: 'Under your own logo, ready to put in front of a client — not a screenshot you have to reformat.',
       },
       {
-        lead: 'Reach hidden gems.',
-        body: "The candidates ATS filters reject for gaps or pivots are exactly the ones you'll find here — and they're actively engaged.",
+        lead: 'One-click export.',
+        body: 'Into Greenhouse, Lever, or Bullhorn — the Dossier and designated resume version travel with the candidate.',
       },
       {
-        lead: 'Human response rates.',
-        body: 'People on NextChapter expect real conversation and feedback, so your outreach lands instead of vanishing into an inbox.',
+        lead: 'A real feedback loop.',
+        body: 'Reviewed, screened, submitted, interviewed, placed, or passed with reason — logged, not lost in an inbox.',
       },
     ],
-    contrastLabel: 'vs. $10K+/yr seat licenses:',
+    contrastLabel: 'What you never see:',
     contrastBody:
-      'transparent, affordable pricing and a pool that opted in to hear from you — instead of cold-messaging passive profiles who never reply.',
-    formHeading: 'Join the recruiter waitlist',
-    formSubtext: 'Get early sourcing access and founding-recruiter pricing when we launch search.',
+      "the Market Reality Grade, component grades, detections, badges, application history, or any other candidate — recruiter access is per-introduction, consented, and revocable.",
+    formHeading: 'Questions before you request access?',
+    formSubtext: "Tell us about your firm and we'll follow up.",
     fields: [
       { name: 'fullName', label: 'Full name', type: 'text', required: true },
       { name: 'workEmail', label: 'Work email', type: 'email', required: true },
-      { name: 'agencyOrCompany', label: 'Agency or company', type: 'text', required: true },
-      { name: 'recruitFor', label: 'What do you recruit for?', type: 'text', required: false },
+      { name: 'firm', label: 'Firm', type: 'text', required: true },
+      {
+        name: 'searchType',
+        label: 'Retained, contingent, or in-house',
+        type: 'select',
+        required: false,
+        options: ['Retained', 'Contingent', 'In-house', 'Mixed'],
+      },
+      { name: 'atsInUse', label: 'ATS in use', type: 'text', required: false },
+      { name: 'referredBy', label: 'Who referred you? (optional)', type: 'text', required: false },
     ],
-    successMessage: "You're on the list. We'll reach out with early sourcing access as we roll out.",
+    successMessage: "Thanks — we'll follow up. Or use the link above to request access right now.",
   },
   {
     id: 'outplacement',
@@ -317,31 +325,35 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     successMessage: "Thank you. We'll reach out to explore how we can work together.",
   },
   {
-    id: 'for-coaches',
+    id: 'coaches',
     audience: 'Coach',
     eyebrow: 'For Coaches',
-    headline: 'Bring your existing clients onto NextChapter — free, in under a minute.',
+    headline: 'Stop rebuilding context before every session.',
     subhead:
-      "You already know your clients' situations better than any assessment could. NextChapter gives them a free Current Market Reality, a personalized action plan, and daily accountability between your sessions — while you keep the human relationship you already have.",
+      "Every client's search, scored and current — targeting, motivation, networking, applications, skills, narrative, interview practice — with a generated brief waiting before you dial in.",
     points: [
       {
-        lead: 'A force-multiplier, not a replacement.',
-        body: "Your clients get structured daily/weekly accountability from Victoria, NextChapter's free AI coach, so your own sessions go further — you're not the only structure they have between calls.",
+        lead: 'Clients arrive pre-diagnosed.',
+        body: 'You spend the hour coaching, not intake — a roster sorted by who actually needs you, not alphabetically.',
       },
       {
-        lead: 'Set up in under a minute.',
-        body: 'No procurement, no contract. Sign up, get your personal invite link, and send it to the clients you already work with today.',
+        lead: 'A pre-session brief, generated from real activity.',
+        body: 'Not a form your client filled out — an actual read on where they stand before you say hello.',
       },
       {
-        lead: 'A simple client view.',
-        body: "See each client's week, grade trend, and last check-in at a glance — enough context to walk into every session already informed.",
+        lead: 'Action items land in the client\'s plan, not an email that dies.',
+        body: 'Set an action in session and it shows up on their Search Action Plan, tracked.',
+      },
+      {
+        lead: 'Your own outcome data — nobody has ever given you this.',
+        body: 'A performance dashboard for your own coaching, not just your client\'s progress.',
       },
     ],
     directSignupHref: '/support/coach/signup',
-    directSignupLabel: 'Get my invite link — free',
+    directSignupLabel: 'Set up your account — free',
     contrastLabel: 'What this is, and what it isn\'t:',
     contrastBody:
-      "this is a lightweight companion to your coaching practice, not a replacement for it — no session notes, no case management, just a free tool your clients can use every day between the sessions you already run.",
+      "a real coaching workspace with structured session notes across seven tracked dimensions, not a replacement for the relationship — you're still the coach, this just means you stop rebuilding context from zero every time.",
     formHeading: 'Questions before you sign up?',
     formSubtext: "Tell us a bit about your practice and we'll follow up.",
     fields: [
@@ -349,7 +361,48 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       { name: 'workEmail', label: 'Work email', type: 'email', required: true },
       { name: 'practiceName', label: 'Practice or firm name', type: 'text', required: false },
       { name: 'coachingFocus', label: 'What kind of coaching do you do?', type: 'text', required: false },
+      { name: 'referredBy', label: 'Who referred you? (optional)', type: 'text', required: false },
     ],
     successMessage: "Thanks — we'll follow up. Or just use the link above to get started right now.",
+  },
+  {
+    id: 'hiring',
+    audience: 'Hiring Manager',
+    eyebrow: 'For Hiring Managers',
+    headline: 'Interview better, not longer.',
+    subhead:
+      'Every candidate arrives with evidence already gathered — so your panel can probe what nobody has answered yet.',
+    points: [
+      {
+        lead: 'A generated interview guide, built from what the Dossier doesn\'t cover.',
+        body: 'Not generic questions — the specific gaps nobody has answered yet for this candidate.',
+      },
+      {
+        lead: 'Panel coordination.',
+        body: 'Each interviewer gets a different competency assigned, so four people don\'t ask the same question.',
+      },
+      {
+        lead: 'Structured scorecards, comparable across interviewers.',
+        body: 'Tied to the same five competencies the Dossier scores — an actual comparison, not four unrelated impressions.',
+      },
+      {
+        lead: 'Reference questions worth asking, given what\'s already known.',
+        body: 'Skip the ones the Dossier already answered — go straight to what matters.',
+      },
+    ],
+    directSignupHref: '/hiring/signup',
+    directSignupLabel: 'Request access — no waitlist',
+    contrastLabel: 'The conflict rule:',
+    contrastBody:
+      "you can't see candidates for your own reqs when a conflict is flagged — same current employer, a declared relationship, or the same household.",
+    formHeading: 'Questions before you sign up?',
+    formSubtext: "Tell us about your team and we'll follow up.",
+    fields: [
+      { name: 'fullName', label: 'Full name', type: 'text', required: true },
+      { name: 'workEmail', label: 'Work email', type: 'email', required: true },
+      { name: 'companyName', label: 'Company', type: 'text', required: true },
+      { name: 'referredBy', label: 'Who referred you? (optional)', type: 'text', required: false },
+    ],
+    successMessage: "Thanks — we'll follow up. Or use the link above to request access right now.",
   },
 ]

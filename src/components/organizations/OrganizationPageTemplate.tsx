@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -5,7 +6,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistForm } from '@/components/audience/WaitlistForm'
 import type { AudienceTab } from '@/components/audience/audience-data'
 
-export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
+// Partners Master Build Script §C3.2: "every landing page follows one
+// structure: headline · subhead · the beats · one concrete artifact
+// (screenshot or sample output) · objection handling · CTA. No page ships
+// without a real artifact." `artifact` is an optional slot the caller
+// fills with a real, page-specific sample (a mockup, a rendered real
+// component with synthetic data, etc.) rather than baking it into the pure
+// data file.
+export function OrganizationPageTemplate({ tab, artifact }: { tab: AudienceTab; artifact?: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border bg-white">
@@ -76,6 +84,13 @@ export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
           </Card>
         </div>
 
+        {artifact && (
+          <div className="mt-12">
+            <h2 className="mb-6 text-center text-xl font-bold tracking-tight text-navy">See it, don&apos;t just take our word for it</h2>
+            {artifact}
+          </div>
+        )}
+
         {tab.insightSection && (
           <div className="mt-12 rounded-xl border border-border bg-off-white p-6">
             <p className="text-sm font-semibold tracking-wide text-navy uppercase">
@@ -120,7 +135,7 @@ export function OrganizationPageTemplate({ tab }: { tab: AudienceTab }) {
           <Link href="/" className="underline underline-offset-4">
             NextChapter for candidates
           </Link>
-          {tab.id === 'for-coaches' && (
+          {tab.id === 'coaches' && (
             <>
               {' · '}
               <Link href="/coach-platform" className="underline underline-offset-4">

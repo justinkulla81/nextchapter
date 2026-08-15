@@ -1,41 +1,9 @@
-import type { Metadata } from 'next'
-import { OrganizationPageTemplate } from '@/components/organizations/OrganizationPageTemplate'
-import { AUDIENCE_TABS } from '@/components/audience/audience-data'
-import { StructuredData } from '@/components/StructuredData'
+import { redirect } from 'next/navigation'
 
-const tab = AUDIENCE_TABS.find((t) => t.id === 'for-coaches')!
-
-export const metadata: Metadata = {
-  title: 'Bring Your Clients Onto NextChapter — For Coaches',
-  description:
-    'Give your career, life, and executive coaching clients a free Current Market Reality, action plan, and daily accountability between your sessions. Free, set up in under a minute.',
-  alternates: { canonical: '/for-coaches' },
-  openGraph: {
-    title: 'Bring Your Clients Onto NextChapter — For Coaches',
-    description:
-      'Give your coaching clients a free Current Market Reality, action plan, and daily accountability between your sessions.',
-    url: 'https://launchyournextchapter.com/for-coaches',
-  },
-}
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: 'NextChapter for Coaches',
-  serviceType: 'Career coaching companion platform',
-  provider: { '@type': 'Organization', name: 'NextChapter', url: 'https://launchyournextchapter.com' },
-  areaServed: 'US',
-  audience: { '@type': 'Audience', audienceType: 'Career coaches' },
-  description:
-    'Give your coaching clients a free Current Market Reality, action plan, and daily accountability between your sessions.',
-  url: 'https://launchyournextchapter.com/for-coaches',
-}
-
-export default function ForCoachesPage() {
-  return (
-    <>
-      <StructuredData data={jsonLd} />
-      <OrganizationPageTemplate tab={tab} />
-    </>
-  )
+// /for-coaches -> /coaches: Partners Master Build Script §C3.2's route
+// table names /coaches as the canonical coach landing page. Permanent
+// redirect rather than deleting the route outright, so any existing
+// inbound links/bookmarks still land somewhere real.
+export default function ForCoachesRedirect() {
+  redirect('/coaches')
 }

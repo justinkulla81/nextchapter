@@ -64,7 +64,7 @@ function ReqRowView({ req }: { req: ReqRow }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4">
       <div>
-        <Link href="/hiring" className="text-sm font-medium text-foreground underline-offset-4 hover:underline">
+        <Link href="/hiring/dashboard" className="text-sm font-medium text-foreground underline-offset-4 hover:underline">
           {req.title}
         </Link>
         <p className="text-xs text-muted-foreground">

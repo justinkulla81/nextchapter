@@ -67,7 +67,7 @@ export async function declareConflictAction(submissionId: string, formData: Form
   // Declaring a conflict immediately removes this candidate from view — see
   // getVisibleSubmissionForHiringManager — so there's nowhere on this page
   // left to redirect back to.
-  redirect('/hiring')
+  redirect('/hiring/dashboard')
 }
 
 export async function submitPostHireFeedbackAction(

@@ -12,7 +12,7 @@ export default function HiringManagerForgotPasswordPage() {
       description="Enter your email and we'll send you a link to reset your password."
     >
       <Suspense fallback={null}>
-        <ForgotPasswordForm loginHref="/hiring/login" postResetHref="/hiring" signupHref="/hiring/signup" />
+        <ForgotPasswordForm loginHref="/hiring/login" postResetHref="/hiring/dashboard" signupHref="/hiring/signup" />
       </Suspense>
     </PortalAuthCard>
   )
