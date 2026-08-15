@@ -130,10 +130,13 @@ export default function Home() {
               className="h-14 px-8 text-base"
               render={<Link href="/onboarding/desire" />}
             >
-              See how the market reads your search — free
+              Get Your Market Reality Grade
             </Button>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
+            See how hiring managers will read your resume, and get a plan to increase your marketability.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
             Hiring, recruiting, or coaching instead?{' '}
             <Link href="/for-organizations" className="font-medium text-brand underline underline-offset-4">
               Find your path →
