@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CopyButton } from '@/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import {
   deleteNarrative,
@@ -15,24 +16,6 @@ import {
 } from '@/app/dashboard/portfolio/actions'
 import { NewNarrativeForm, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { WaysToSayIt } from '@/components/dashboard/marketing-plan/WaysToSayIt'
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={() => {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-      }}
-    >
-      {copied ? 'Copied' : 'Copy'}
-    </Button>
-  )
-}
 
 function AlternativeNarrativeTabContent({
   narrative,

@@ -4,28 +4,11 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CopyButton } from '@/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import { generateCoreStatement, generateStoryAdaptations, updateCoreStatement } from '@/app/dashboard/interview-prep/actions'
 import { WaysToSayIt } from '@/components/dashboard/marketing-plan/WaysToSayIt'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={() => {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-      }}
-    >
-      {copied ? 'Copied' : 'Copy'}
-    </Button>
-  )
-}
 
 export function MyStoryTab({
   coreStatement,

@@ -3,27 +3,10 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CopyButton } from '@/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import { postToLinkedInAction, enableConfidentialLinkedInPosting } from '@/app/dashboard/marketing-plan/actions'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={() => {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-      }}
-    >
-      {copied ? 'Copied' : 'Copy'}
-    </Button>
-  )
-}
 
 // Posts the given text as a real LinkedIn feed update via the UGC Posts API
 // (see src/lib/linkedin/oauth.ts) — the only thing the w_member_social scope

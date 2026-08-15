@@ -388,10 +388,6 @@ export const ISSUE_TAXONOMY: Record<IssueCode, IssueTaxonomyEntry> = {
   },
 }
 
-export function getIssueTaxonomyEntry(code: IssueCode): IssueTaxonomyEntry {
-  return ISSUE_TAXONOMY[code]
-}
-
 // Retired codes — see the file-header comment. Empty today; add entries
 // here (and set `deprecated: true` on the matching ISSUE_TAXONOMY entry,
 // never delete it) the day a code is actually retired.

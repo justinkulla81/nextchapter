@@ -37,14 +37,6 @@ const intelModerationSchema = z.object({
 export type IntelModerationCategory = z.infer<typeof intelModerationSchema>['category']
 export type IntelModerationClassification = z.infer<typeof intelModerationSchema>
 
-export const INTEL_MODERATION_CATEGORY_LABEL: Record<IntelModerationCategory, string> = {
-  NAMED_INDIVIDUAL: 'Names a specific person',
-  DISPARAGEMENT_NOT_PROCESS: 'Grievance, not process guidance',
-  PII: 'Personal contact info / PII',
-  SPAM: 'Spam or off-topic',
-  OK: 'Clear to publish',
-}
-
 const PROMPT = `You are moderating a "how to get hired here" submission on NextChapter's company pages —
 crowdsourced guidance from candidates and members who've interviewed at or worked for a specific
 employer, meant to help other job seekers understand the interview loop, timeline, and what the

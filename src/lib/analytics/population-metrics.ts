@@ -58,16 +58,6 @@ export type SegmentType =
   | 'employment_status'
   | 'usage_tier'
 
-export const SEGMENT_TYPES: SegmentType[] = [
-  'all',
-  'seniority',
-  'function',
-  'industry',
-  'metro',
-  'employment_status',
-  'usage_tier',
-]
-
 // ── Metrics blob shape ────────────────────────────────────────────────
 // Documented TS interface per the phase brief ("keep the metrics blob
 // shape well-documented ... since the page will need to read specific

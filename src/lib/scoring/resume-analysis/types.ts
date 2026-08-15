@@ -126,10 +126,6 @@ export function scoreToResumeBand(composite: number): ResumeBand {
   return 'F'
 }
 
-export const RESUME_BAND_LABEL: Record<ResumeBand, string> = Object.fromEntries(
-  RESUME_BANDS.map((b) => [b.band, b.label])
-) as Record<ResumeBand, string>
-
 // Same thresholds as RESUME_BANDS today, but a separate table — Master
 // Build Script §3.4: "these are uncalibrated," and Experience/Resume are
 // two independently-fixable components that should be free to diverge in
@@ -154,10 +150,6 @@ export function scoreToExperienceBand(composite: number): ExperienceBand {
   }
   return 'F'
 }
-
-export const EXPERIENCE_BAND_LABEL: Record<ExperienceBand, string> = Object.fromEntries(
-  EXPERIENCE_BANDS.map((b) => [b.band, b.label])
-) as Record<ExperienceBand, string>
 
 export type FirstGlanceResult = 'PASS' | 'BORDERLINE' | 'LIKELY_SKIP'
 

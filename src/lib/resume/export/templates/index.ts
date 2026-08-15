@@ -27,5 +27,3 @@ export type ResumeTemplateId = keyof typeof RESUME_TEMPLATES
 export function isResumeTemplateId(value: string): value is ResumeTemplateId {
   return value in RESUME_TEMPLATES
 }
-
-export const RESUME_TEMPLATE_LIST = Object.values(RESUME_TEMPLATES)
