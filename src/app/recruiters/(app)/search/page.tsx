@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import { getConsentedCandidateIds } from '@/lib/recruiter/introductions'
 import type { CandidateProfile, Prisma } from '@prisma/client'
 
 export const maxDuration = 30
@@ -48,9 +49,21 @@ export default async function RecruiterSearchPage({
   const location = params.location?.trim() || ''
   const compMax = params.compMax ? parseInt(params.compMax, 10) : null
 
+  // Consent-gated, not browsable (Partners Master Build Script §A6.2) — the
+  // candidate id list itself is scoped to this recruiter's active CONSENTED
+  // introductions FIRST, before any CandidateProfile query runs. There is
+  // no filter combination that can widen this beyond that set; a recruiter
+  // with zero consented candidates gets zero results, not a fallback to
+  // the general pool. See src/lib/recruiter/introductions.ts.
+  const consentedCandidateIds = await getConsentedCandidateIds(recruiter.id)
+
   const where: Prisma.CandidateProfileWhereInput = {
-    recruiterDatabaseOptIn: true,
-    privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
+    id: { in: consentedCandidateIds },
+    // Same hard block as the candidate-detail page (requireUnlockedCandidate)
+    // — a result the list shows but the detail page then 404s on would be
+    // worse than not showing it, and Confidential Search Mode candidates
+    // must never surface on a partner surface regardless of consent status.
+    privacyTier: { notIn: ['LOCKED', 'STEALTH'] },
     assessmentComplete: true,
     ...(fn && { primaryFunction: fn }),
     ...(level && { highestLevelReached: level }),
@@ -63,7 +76,7 @@ export default async function RecruiterSearchPage({
     }),
   }
 
-  const candidates = await prisma.candidateProfile.findMany({
+  const candidates = consentedCandidateIds.length === 0 ? [] : await prisma.candidateProfile.findMany({
     where,
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -112,9 +125,10 @@ export default async function RecruiterSearchPage({
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Candidate search</h1>
         <p className="mt-1 text-muted-foreground">
-          Search the opted-in candidate pool. Names are only shown for candidates who&apos;ve set their
-          privacy to fully public — otherwise you&apos;ll see a role-level description until they reveal
-          themselves.
+          Filter and rank the candidates you&apos;ve been introduced to. This is not a browsable database —
+          only candidates with an active, consented introduction to you appear here. Names are only shown
+          for candidates who&apos;ve set their privacy to fully public — otherwise you&apos;ll see a
+          role-level description until they reveal themselves.
         </p>
       </div>
 
@@ -188,7 +202,9 @@ export default async function RecruiterSearchPage({
       <div className="divide-y divide-border rounded-lg border border-border">
         {scored.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">
-            No candidates match yet — try widening your filters.
+            {consentedCandidateIds.length === 0
+              ? "You don't have any consented candidate introductions yet. Candidates you source and invite directly (My candidates) count as an introduction once they sign up."
+              : 'No candidates match yet — try widening your filters.'}
           </p>
         ) : (
           scored.map(({ candidate, match }) => (

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { grantRoleIfMissing } from '@/lib/auth/role-grants'
 
 export type CompleteRecruiterSignupState = { error?: string } | undefined
 
@@ -21,6 +22,8 @@ async function finishRecruiterSignup(
   const recruiter = existing
     ? await prisma.recruiter.update({ where: { id: existing.id }, data: { userId, fullName, firmName, specialty } })
     : await prisma.recruiter.create({ data: { userId, fullName, workEmail, firmName, specialty } })
+
+  await grantRoleIfMissing(userId, 'recruiter')
 
   captureServerEvent(recruiter.id, 'recruiter_signup_completed', { recruiterId: recruiter.id })
   return recruiter

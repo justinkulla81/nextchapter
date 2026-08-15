@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewMessageNotification } from '@/lib/email/send-new-message-notification'
-import { isRecruiterDatabaseUnlocked } from '@/lib/admin/recruiter-database'
+import { isCandidateConsentedForRecruiter } from '@/lib/recruiter/introductions'
 import type { MessageSenderRole, ThreadPartnerType } from '@prisma/client'
 
 // This module is the ONLY place allowed to query CandidateProfile for
@@ -44,11 +44,14 @@ function partnerWhere(partnerType: ThreadPartnerType, partnerId: string): Partne
 // created):
 //   - COACH: any coach-candidate pair with coachId already set may message —
 //     matches the existing coach-client relationship, no extra gate needed.
-//   - RECRUITER: either a SourcedCandidate for this pair has SIGNED_UP (has a
-//     candidateId), OR the candidate is unlocked in the Recruiter Database
-//     (opted in + most-recently-generated report grades A) — a recruiter can
-//     reach out to any pool candidate they've been given visibility into,
-//     not just their own sourced book.
+//   - RECRUITER: only an active CONSENTED RecruiterCandidateIntroduction for
+//     this exact (recruiter, candidate) pair — see
+//     src/lib/recruiter/introductions.ts. This used to also allow ANY
+//     recruiter to message ANY candidate "unlocked" in the general
+//     Recruiter Database (opted in + A-grade), which was the same
+//     browsable-pool gap fixed in the search pages (Partners Master Build
+//     Script §A6.2) — a candidate opting into the pool is not the same as
+//     consenting to a specific recruiter, and that path is removed.
 //   - EMPLOYER: only once an ApprovedEmployer row exists for this pair (the
 //     candidate-controlled reveal gate from approveEmployerInterest) —
 //     messaging must never become a side channel to reach an unrevealed
@@ -70,13 +73,8 @@ async function assertThreadAllowed(candidateId: string, partnerType: ThreadPartn
     return
   }
   if (partnerType === 'RECRUITER') {
-    const match = await prisma.sourcedCandidate.findFirst({
-      where: { recruiterId: partnerId, candidateId, status: 'SIGNED_UP' },
-      select: { id: true },
-    })
-    if (match) return
-    if (await isRecruiterDatabaseUnlocked(candidateId)) return
-    throw new Error('This candidate has not signed up through this recruiter yet.')
+    if (await isCandidateConsentedForRecruiter(candidateId, partnerId)) return
+    throw new Error('This candidate has not consented to an introduction with this recruiter yet.')
   }
   const approved = await prisma.approvedEmployer.findUnique({
     where: { candidateId_employerId: { candidateId, employerId: partnerId } },

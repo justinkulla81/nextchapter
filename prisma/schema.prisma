@@ -1259,6 +1259,7 @@ model CandidateProfile {
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
   portfolioAccessRequests        PortfolioAccessRequest[]
+  recruiterIntroductions         RecruiterCandidateIntroduction[]
   assessmentResults              AssessmentResult[]
   assessmentResponses            CandidateAssessmentResponse[]
   performanceAssessmentResponses PerformanceAssessmentResponse[]
@@ -1286,8 +1287,8 @@ model CandidateProfile {
   sundayNightReports             SundayNightReport[]
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
-  encouragementNotesSent         EncouragementNote[]             @relation("EncouragementSent")
-  encouragementNotesReceived     EncouragementNote[]             @relation("EncouragementReceived")
+  encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
+  encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
   supportNetworkContacts         SupportNetworkContact[]
   outreachLogs                   OutreachLog[]
   surfacedJobs                   SurfacedJob[]
@@ -3212,14 +3213,14 @@ model WeeklyBadgeEarned {
 // gamed number was never eligible to become the stored best in the first
 // place.
 model LeaderboardPersonalBest {
-  id            String            @id @default(cuid())
+  id            String           @id @default(cuid())
   candidateId   String
-  candidate     CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   board         LeaderboardBoard
   bestValue     Int
   weekStartDate DateTime // which week achieved this best, for "week of Aug 10" copy
-  achievedAt    DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  achievedAt    DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@unique([candidateId, board])
 }
@@ -4285,6 +4286,7 @@ model Recruiter {
   sourcedProfiles         CandidateProfile[]
   messageThreads          MessageThread[]
   portfolioAccessRequests PortfolioAccessRequest[]
+  candidateIntroductions  RecruiterCandidateIntroduction[]
 }
 
 enum SourcedCandidateStatus {
@@ -5648,4 +5650,145 @@ model CompanyIntelHelpfulVote {
 
   @@unique([intelId, voterCandidateId])
   @@index([intelId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Partners Master Build Script §A1 — identity architecture (task #971,
+// Phase 1). See docs/specs/NextChapter_Partners_Master_Build_Script.md.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Exact values from spec §A1.1 — "Role grants: candidate · alum · member ·
+// coach · recruiter · hiring_manager · employer_admin · employer_viewer ·
+// nc_admin. Each granted separately, gated separately, logged separately."
+enum RoleGrantRole {
+  candidate
+  alum
+  member
+  coach
+  recruiter
+  hiring_manager
+  employer_admin
+  employer_viewer
+  nc_admin
+}
+
+// The audit ledger for "who holds what role, granted by whom, when, and
+// whether it's since been revoked" — does NOT replace CandidateProfile/
+// Coach/Recruiter/EmployerProfile, which stay the system of record for
+// role-specific profile data. This is purely the grant/revoke log, and the
+// thing getRoleGrants() reads (see src/lib/auth/role-grants.ts) instead of
+// the old pattern of separately querying all four role tables by userId.
+//
+// Deliberately NOT a hard @@unique([userId, role]) — a role can be granted,
+// revoked, and re-granted over time (e.g. a recruiter relationship that
+// lapses and later resumes), and each of those is its own row so the ledger
+// stays a real history instead of one row that gets overwritten. The
+// "only one ACTIVE grant per (userId, role)" invariant is enforced in
+// application code (grantRoleIfMissing), not the schema.
+model RoleGrant {
+  id     String        @id @default(cuid())
+  userId String // Supabase auth.users id — same identity every portal's CandidateProfile/Coach/Recruiter/EmployerProfile.userId already points at.
+  role   RoleGrantRole
+
+  grantedAt DateTime @default(now())
+  // Supabase auth.users id of the admin who granted this, or null for a
+  // system-granted role (the ordinary case — a candidate finishing their
+  // own signup, a coach/recruiter completing their own onboarding).
+  grantedBy String?
+
+  revokedAt DateTime?
+  revokedBy String?
+
+  @@index([userId])
+  @@index([userId, role, revokedAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Recruiter portal §A6.2 fix — "Consented candidates only, never
+// browsable." Replaces a direct browsable CandidateProfile query
+// (privacyTier-filtered but otherwise open to any recruiter) with a
+// per-recruiter consent gate, same shape as PortfolioAccessRequest's
+// existing candidate-controlled reveal pattern above.
+// ─────────────────────────────────────────────────────────────────────────
+
+enum RecruiterIntroductionStatus {
+  REQUESTED
+  CONSENTED
+  DECLINED
+  REVOKED
+}
+
+// How a CONSENTED row came to exist — kept distinct from the ledger events
+// below so "why is this recruiter able to see this candidate" is answerable
+// from the row itself without walking the event log.
+enum RecruiterIntroductionSource {
+  RECRUITER_SOURCED // candidate signed up through this recruiter's own SourcedCandidate invite
+  ENGAGEMENT_BACKFILL // one-time backfill from a pre-existing MessageThread between this pair (see scripts/backfill-recruiter-introductions.ts)
+  COACH_INTRODUCED // not yet wired to any UI this phase — reserved for a coach-initiated introduction
+  ADMIN_INTRODUCED // not yet wired to any UI this phase — reserved for an admin-initiated introduction
+  CANDIDATE_REQUESTED // not yet wired to any UI this phase — reserved for a candidate-initiated opt-in to a specific recruiter
+}
+
+// One row per (recruiter, candidate) relationship. A CONSENTED row is the
+// ONLY thing that makes a candidate visible to a recruiter's search/detail
+// pages or messaging — see getConsentedCandidateIds/isCandidateConsentedFor
+// Recruiter in src/lib/recruiter/introductions.ts, which is now the single
+// place recruiter-side candidate visibility is decided. REVOKED rows are
+// never deleted (the ledger below needs them); a revoked introduction can
+// be re-requested, which creates a fresh row rather than resurrecting the
+// old one, so the history of "this was revoked once" is never lost.
+model RecruiterCandidateIntroduction {
+  id          String                      @id @default(cuid())
+  recruiterId String
+  recruiter   Recruiter                   @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  status      RecruiterIntroductionStatus @default(REQUESTED)
+  source      RecruiterIntroductionSource
+
+  requestedAt DateTime  @default(now())
+  respondedAt DateTime?
+  revokedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events RecruiterCandidateIntroductionEvent[]
+
+  @@unique([recruiterId, candidateId])
+  @@index([candidateId, status])
+  @@index([recruiterId, status])
+}
+
+// Append-only consent ledger per spec §A9 — "every recruiter introduction,
+// what was shared, revocations." Written alongside every status change on
+// the introduction row above, plus (optionally) finer-grained access events
+// like a resume/dossier view, so admin's future Consent Ledger surface has
+// a real audit trail to render instead of just the current status.
+enum RecruiterIntroductionLedgerEvent {
+  REQUESTED
+  CONSENTED
+  DECLINED
+  REVOKED
+  DOSSIER_VIEWED
+  RESUME_VIEWED
+  MESSAGED
+}
+
+model RecruiterCandidateIntroductionEvent {
+  id             String                           @id @default(cuid())
+  introductionId String
+  introduction   RecruiterCandidateIntroduction   @relation(fields: [introductionId], references: [id], onDelete: Cascade)
+  event          RecruiterIntroductionLedgerEvent
+  // Free-text actor description, e.g. "recruiter:<id>", "candidate:<id>",
+  // "system:backfill" — deliberately not a foreign key, since the actor can
+  // be any of several unrelated tables (or the system itself) and this is a
+  // log, not a relation other code should join through.
+  actor          String
+  // What was shared / why, e.g. "resume, dossier" or "backfilled from
+  // existing message thread" — the "what was shared" half of §A9.
+  detail         String?
+  createdAt      DateTime                         @default(now())
+
+  @@index([introductionId, createdAt])
 }

@@ -25,7 +25,9 @@
     "backfill:dismiss-selfmail": "tsx --env-file=.env.local scripts/backfill-dismiss-nextchapter-selfmail.ts",
     "backfill:classification-fix": "tsx --env-file=.env.local scripts/backfill-classification-fix.ts",
     "backfill:null-company-confirmations": "tsx --env-file=.env.local scripts/backfill-null-company-confirmations.ts",
-    "backfill:ex-company-communities": "tsx --env-file=.env.local scripts/backfill-ex-company-communities.ts"
+    "backfill:ex-company-communities": "tsx --env-file=.env.local scripts/backfill-ex-company-communities.ts",
+    "backfill:role-grants": "tsx --env-file=.env.local scripts/backfill-role-grants.ts",
+    "backfill:recruiter-introductions": "tsx --env-file=.env.local scripts/backfill-recruiter-introductions.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

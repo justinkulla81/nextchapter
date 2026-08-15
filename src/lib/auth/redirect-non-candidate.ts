@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/auth'
+import { getRoleGrants } from '@/lib/auth/role-grants'
 
 // A logged-in user with no CandidateProfile falls through every
 // candidate-flow entry point's "no profile -> create one" logic exactly
@@ -9,17 +9,20 @@ import { isAdminEmail } from '@/lib/admin/auth'
 // call site can't reintroduce the same gap that let admin/coach/recruiter
 // accounts pick up a stray CandidateProfile (e.g. via a password-reset
 // fallback redirect landing on /dashboard or /onboarding/resume directly).
+//
+// Sourced from the RoleGrant ledger (single query) instead of three
+// separate EmployerProfile/Recruiter/Coach findUnique calls — same
+// behavior and same call sites, just one lookup instead of four. Admin
+// stays a separate email-based check (isAdminEmail), not a RoleGrant —
+// nc_admin grants aren't wired to anything yet this phase.
 export async function redirectIfNotCandidate(userId: string, email: string | null | undefined) {
   if (isAdminEmail(email)) {
     redirect('/support/admin')
   }
 
-  const employer = await prisma.employerProfile.findUnique({ where: { userId }, select: { id: true } })
-  if (employer) redirect('/talent')
+  const roles = await getRoleGrants(userId)
 
-  const recruiter = await prisma.recruiter.findUnique({ where: { userId }, select: { id: true } })
-  if (recruiter) redirect('/recruiters/dashboard')
-
-  const coach = await prisma.coach.findUnique({ where: { userId }, select: { id: true } })
-  if (coach) redirect('/support/coach')
+  if (roles.includes('employer_admin') || roles.includes('employer_viewer')) redirect('/talent')
+  if (roles.includes('recruiter')) redirect('/recruiters/dashboard')
+  if (roles.includes('coach')) redirect('/support/coach')
 }

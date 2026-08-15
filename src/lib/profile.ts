@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
+import { grantRoleIfMissing } from '@/lib/auth/role-grants'
 
 // Prisma's upsert isn't atomic against a concurrent upsert for the same row
 // (both can see "no row" and both attempt create), so a duplicate request —
@@ -39,6 +40,14 @@ export const getOrCreateCandidateProfile = cache(
         },
       })
 
+      // System-granted (grantedBy: null) — this is a person completing
+      // their own signup, not an admin acting on someone else's behalf.
+      // Fire-and-forget-safe to await here since this whole function only
+      // runs once per userId (the findUnique above short-circuits every
+      // later call) — see role-grants.ts for why this is idempotent even
+      // if it somehow ran twice.
+      await grantRoleIfMissing(userId, 'candidate')
+
       // No admin email here anymore — firstName/lastName/email are never
       // known at this point (this is the anonymous-session profile-create
       // path). See maybeNotifyAdminOfNewCandidate, called once those are
@@ -56,11 +65,18 @@ export const getOrCreateCandidateProfile = cache(
 
 export const getOrCreateEmployerProfile = cache(async (userId: string, companyName = '') => {
   try {
-    return await prisma.employerProfile.upsert({
+    const profile = await prisma.employerProfile.upsert({
       where: { userId },
       update: {},
       create: { userId, companyName },
     })
+    // EmployerProfile.userId is the account owner (see EmployerSeat's own
+    // comment) — employer_admin, not employer_viewer. grantRoleIfMissing
+    // is a no-op once granted, so calling it on every upsert (not just the
+    // create branch) is safe and avoids needing to detect create-vs-update
+    // here.
+    await grantRoleIfMissing(userId, 'employer_admin')
+    return profile
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return prisma.employerProfile.findUniqueOrThrow({ where: { userId } })

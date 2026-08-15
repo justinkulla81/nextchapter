@@ -9,6 +9,7 @@ import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm
 import { sendRecruiterCandidateInviteEmail } from '@/lib/email/send-recruiter-candidate-invite'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { createConsentedIntroductionIfMissing } from '@/lib/recruiter/introductions'
 
 export type AddSourcedCandidateState = { error?: string; added?: boolean } | undefined
 
@@ -131,6 +132,20 @@ export async function finishAcceptingRecruiterSource(inviteToken: string): Promi
     where: { id: sourced.id },
     data: { status: 'SIGNED_UP', candidateId: profile.id },
   })
+
+  // Signing up through this recruiter's own invite is real, direct
+  // engagement — the one relationship this phase treats as automatically
+  // CONSENTED without a separate request/approve step (see
+  // src/lib/recruiter/introductions.ts and the RECRUITER_SOURCED backfill
+  // path in scripts/backfill-recruiter-introductions.ts, which this mirrors
+  // going forward).
+  await createConsentedIntroductionIfMissing(
+    sourced.recruiterId,
+    profile.id,
+    'RECRUITER_SOURCED',
+    `recruiter:${sourced.recruiterId}`,
+    'Candidate signed up through this recruiter\'s own sourcing invite.'
+  )
 
   captureServerEvent(profile.id, 'recruiter_candidate_invite_accepted', {
     recruiterId: sourced.recruiterId,

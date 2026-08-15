@@ -7,6 +7,7 @@ import { getDossierSections } from '@/lib/reports/dossier-sections'
 import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isCandidateConsentedForRecruiter, recordIntroductionEvent } from '@/lib/recruiter/introductions'
 import { requestPortfolioAccess, startConversationWithCandidate, getPoolCandidateResumeSignedUrl } from './actions'
 
 export const maxDuration = 30
@@ -29,9 +30,10 @@ export default async function RecruiterCandidateBriefPage({
 
   const candidate = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
-    select: { id: true, recruiterDatabaseOptIn: true, privacyTier: true },
+    select: { id: true, privacyTier: true },
   })
-  if (!candidate || !candidate.recruiterDatabaseOptIn || candidate.privacyTier === 'LOCKED' || candidate.privacyTier === 'STEALTH') {
+  const consented = candidate ? await isCandidateConsentedForRecruiter(candidate.id, recruiter.id) : false
+  if (!candidate || !consented || candidate.privacyTier === 'LOCKED' || candidate.privacyTier === 'STEALTH') {
     notFound()
   }
 
@@ -45,6 +47,7 @@ export default async function RecruiterCandidateBriefPage({
     }),
   ])
   captureServerEvent(recruiter.id, 'recruiter_candidate_brief_viewed', { candidateId })
+  await recordIntroductionEvent(recruiter.id, candidateId, 'DOSSIER_VIEWED', `recruiter:${recruiter.id}`)
 
   // Work Samples/Narrative are gated on an APPROVED request — only pull
   // them from the DB when they'll actually be rendered below, instead of

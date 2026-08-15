@@ -13,6 +13,7 @@ import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
 import { getHardGateStatus, isGmailConnected, isGateExemptPath } from '@/lib/dashboard/access-gate'
 import { HardGateBlockingScreen } from '@/components/dashboard/HardGateBlockingScreen'
+import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -117,10 +118,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
+  const personName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email || 'You'
+
   return (
     <div className="min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <HashScrollFix />
+      <RoleContextBanner userId={profile.userId} currentRole="candidate" personName={personName} />
       <Suspense
         fallback={
           <DashboardNav

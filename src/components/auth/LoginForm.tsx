@@ -66,8 +66,19 @@ export function LoginForm({
     setResent(true)
   }
 
+  // Set by switchRole (src/lib/auth/switch-role.ts) when a multi-role
+  // identity used the RoleContextBanner's "Switch to →" — signOut() already
+  // ran server-side, so this is just the framing that makes landing back on
+  // a login page read as "switching portals," not "you got logged out."
+  const switched = searchParams.get('switched') === '1'
+
   return (
     <div className={cn('space-y-4', loading && 'cursor-progress [&_*]:cursor-progress')}>
+      {switched && (
+        <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+          Sign back in to switch portals.
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>

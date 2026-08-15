@@ -5,6 +5,7 @@ import type { CoachingFocus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { grantRoleIfMissing } from '@/lib/auth/role-grants'
 
 export type CompleteCoachSignupState = { error?: string } | undefined
 
@@ -24,6 +25,8 @@ async function finishCoachSignup(
   const coach = existing
     ? await prisma.coach.update({ where: { id: existing.id }, data: { userId, fullName, firmName, focus } })
     : await prisma.coach.create({ data: { userId, fullName, workEmail, firmName, focus } })
+
+  await grantRoleIfMissing(userId, 'coach')
 
   captureServerEvent(coach.id, 'coach_signup_completed', { coachId: coach.id })
   return coach
