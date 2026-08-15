@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
@@ -153,7 +152,26 @@ export default async function PricingPage() {
               See the full tier comparison and a sample compliance pack →
             </Link>
           </p>
+          <p className="mt-2 text-sm">
+            <Link href="/insights/outplacement-cost-per-employee" className="text-primary underline underline-offset-4">
+              Estimate your cost against a typical incumbent range →
+            </Link>
+          </p>
         </section>
+
+        <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
+          <Link href="/vs" className="underline underline-offset-4">
+            Compare providers
+          </Link>
+          {' · '}
+          <Link href="/rfp-template" className="underline underline-offset-4">
+            RFP template
+          </Link>
+          {' · '}
+          <Link href="/insights" className="underline underline-offset-4">
+            Insights
+          </Link>
+        </div>
       </main>
     </div>
   )

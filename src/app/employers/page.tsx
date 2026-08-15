@@ -264,6 +264,18 @@ export default async function EmployersPage() {
             Full pricing (candidate, membership, outplacement)
           </Link>
           {' · '}
+          <Link href="/vs" className="underline underline-offset-4">
+            Compare providers
+          </Link>
+          {' · '}
+          <Link href="/rfp-template" className="underline underline-offset-4">
+            RFP template
+          </Link>
+          {' · '}
+          <Link href="/insights" className="underline underline-offset-4">
+            Insights
+          </Link>
+          {' · '}
           <Link href="/" className="underline underline-offset-4">
             NextChapter for candidates
           </Link>
