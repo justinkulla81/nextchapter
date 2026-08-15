@@ -8,6 +8,9 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { applyDirectiveResolvedRewrite } from '@/lib/scoring/rewrite-actions'
 import { CATEGORY_ORDER, type CategoryKey } from '@/lib/scoring/grade'
 import { COACH_SESSION_TYPES, getApplicableRateCents } from '@/lib/admin/coaching-rate-card'
+import { parseDimensionFormValues, countConcerningDimensions, readAllDimensions } from '@/lib/coach/session-dimensions'
+import { pushDirectivesToActionPlan } from '@/lib/coach/directive-action-plan'
+import { requestReassignment } from '@/lib/coach/reassignment'
 
 export type LogSessionFormState = { error?: string } | undefined
 
@@ -41,8 +44,9 @@ export async function logCoachSession(
   // that session as unpriced rather than blocking the coach's workflow on
   // an admin-config gap.
   const rateSnapshotCents = await getApplicableRateCents(sessionType, coach.id)
+  const dimensionValues = parseDimensionFormValues(formData)
 
-  await prisma.coachSession.create({
+  const session = await prisma.coachSession.create({
     data: {
       candidateId: candidate.id,
       coachId: coach.id,
@@ -52,20 +56,31 @@ export async function logCoachSession(
       focusNote,
       sessionType,
       rateSnapshotCents,
+      ...dimensionValues,
     },
   })
+
+  // §A5.2 — push each directive line onto the client's Search Action Plan
+  // (current-week WeeklySprint.committedActions) so it's a real, trackable
+  // item the candidate sees, not just text sitting in the coach's own view.
+  const directiveLinesPushed = directives ? await pushDirectivesToActionPlan(candidate.id, directives, session.id) : 0
+
+  const concerningCount = countConcerningDimensions(readAllDimensions(session))
 
   captureServerEvent(coach.id, 'coach_session_logged', {
     candidateId: candidate.id,
     hasNotes: !!notes,
     hasDirectives: !!directives,
+    directiveLinesPushed,
     hasFocusNote: !!focusNote,
     sessionType,
     rateSnapshotCents,
+    concerningDimensionCount: concerningCount,
   })
 
   revalidatePath(`/support/coach/clients/${token}/${clientId}`)
   revalidatePath(`/support/coach/clients/${token}/${clientId}/full`)
+  revalidatePath(`/support/coach/caseload/${token}`)
 }
 
 export type ResolveDirectiveFormState = { error?: string } | undefined
@@ -119,4 +134,35 @@ export async function resolveSessionDirective(
 
   revalidatePath(`/support/coach/clients/${token}/${clientId}`)
   revalidatePath(`/support/coach/clients/${token}/${clientId}/full`)
+}
+
+export type ReassignmentRequestFormState = { error?: string; success?: boolean } | undefined
+
+// §A5.4 one-tap reassignment request, coach side — no-blame by design: the
+// coach states a reason but nothing here judges it, and nothing reassigns
+// automatically. Always lands PENDING for admin to route (see
+// requestReassignment).
+export async function requestClientReassignment(
+  token: string,
+  clientId: string,
+  _prevState: ReassignmentRequestFormState,
+  formData: FormData
+): Promise<ReassignmentRequestFormState> {
+  const coach = await getCoachByToken(token)
+  if (!coach) return { error: 'This link isn’t valid.' }
+
+  const candidate = await getCoachClient(coach.id, clientId)
+  if (!candidate) return { error: 'This link isn’t valid.' }
+
+  const reason = (formData.get('reason') as string | null)?.trim() || null
+
+  await requestReassignment({
+    candidateId: candidate.id,
+    requestedBy: 'COACH',
+    fromCoachId: coach.id,
+    reason,
+  })
+
+  revalidatePath(`/support/coach/clients/${token}/${clientId}/full`)
+  return { success: true }
 }

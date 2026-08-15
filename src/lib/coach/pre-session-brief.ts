@@ -8,6 +8,9 @@ import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
 import { getCoachingSettings } from '@/lib/admin/coaching-settings'
+import { getLatestDimensionSnapshot } from '@/lib/coach/dimension-history'
+import { isDimensionConcerning, SESSION_DIMENSION_LABEL, SESSION_DIMENSION_STATUS_LABEL, type DimensionReading } from '@/lib/coach/session-dimensions'
+import { getInterventionSuggestions, type Intervention } from '@/lib/coach/interventions'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
 
@@ -38,6 +41,12 @@ export interface PreSessionBrief {
   // which coach logged it (a candidate's coach could change in principle;
   // the note itself is about the candidate's context, not the coach).
   lastFocusNote: string | null
+  // §A5.1 — the latest logged status/trend per dimension (each dimension's
+  // own most recent reading, not necessarily all from the same session —
+  // see getLatestDimensionSnapshot). §A5.1's own intervention rule ("2+
+  // dimensions at-risk/declining") applied against this same snapshot.
+  dimensions: DimensionReading[]
+  interventionSuggestions: Intervention[]
 }
 
 // Reused by the Session Impact Report (src/lib/coach/session-impact.ts) to
@@ -143,8 +152,16 @@ async function generateOpeningQuestion(facts: string): Promise<string> {
 }
 
 export async function getPreSessionBrief(candidateId: string): Promise<PreSessionBrief> {
-  const [candidate, recentReports, currentSprint, avoidancePattern, moodInfo, keyOnboardingAnswers, lastSessionWithFocusNote] =
-    await Promise.all([
+  const [
+    candidate,
+    recentReports,
+    currentSprint,
+    avoidancePattern,
+    moodInfo,
+    keyOnboardingAnswers,
+    lastSessionWithFocusNote,
+    dimensions,
+  ] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
       prisma.marketRealityReport.findMany({
         where: { candidateId },
@@ -163,7 +180,12 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
         orderBy: { occurredAt: 'desc' },
         select: { focusNote: true },
       }),
+      getLatestDimensionSnapshot(candidateId),
     ])
+
+  const concerningDimensions = dimensions.filter(isDimensionConcerning)
+  const interventionSuggestions =
+    concerningDimensions.length >= 2 ? getInterventionSuggestions(concerningDimensions.map((d) => d.key)) : []
 
   const [latestReport, previousReport] = recentReports
   const executionGrade =
@@ -205,6 +227,12 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     keyOnboardingAnswers.nonNegotiables ? `Stated non-negotiables/constraints: ${keyOnboardingAnswers.nonNegotiables}` : '',
     keyOnboardingAnswers.biggestWorry ? `Stated biggest worry about the process: ${keyOnboardingAnswers.biggestWorry}` : '',
     lastSessionWithFocusNote?.focusNote ? `Focus flagged for this session: ${lastSessionWithFocusNote.focusNote}` : '',
+    dimensions.some((d) => d.status)
+      ? `Latest tracked dimensions: ${dimensions
+          .filter((d) => d.status)
+          .map((d) => `${SESSION_DIMENSION_LABEL[d.key]} — ${SESSION_DIMENSION_STATUS_LABEL[d.status!]}`)
+          .join('; ')}.`
+      : '',
   ]
     .filter(Boolean)
     .join('\n')
@@ -224,5 +252,7 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     biggestWorry: keyOnboardingAnswers.biggestWorry,
     suggestedOpeningQuestion,
     lastFocusNote: lastSessionWithFocusNote?.focusNote ?? null,
+    dimensions,
+    interventionSuggestions,
   }
 }

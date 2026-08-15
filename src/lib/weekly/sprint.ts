@@ -39,6 +39,16 @@ export interface CommittedAction {
   // as extra completed actions get added after lock. Absent/false for
   // everything chosen during the original goal-setting flow.
   addedFromCatalog?: boolean
+  // Master Build Script §A5.2 — set on a row pushed in by
+  // pushDirectivesToActionPlan (src/lib/coach/directive-action-plan.ts) when
+  // a coach logs session directives. Deliberately has no actionType (same
+  // lane as any other personalized, non-catalog row — see
+  // normalizeCommittedActions's `if (!action.actionType)` bypass), so
+  // multiple directives from one session never collapse into a single row.
+  // coachSessionId lets a future UI trace a row back to the session that
+  // created it; fromCoach is what SuccessSprintCard actually renders on.
+  fromCoach?: boolean
+  coachSessionId?: string
 }
 
 export interface SuggestedAction {

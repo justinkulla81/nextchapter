@@ -1,4 +1,5 @@
 import type { SessionImpactReport } from '@/lib/coach/session-impact'
+import { SessionRatingWidget } from '@/components/dashboard/SessionRatingWidget'
 
 export function SessionImpactCard({ report }: { report: SessionImpactReport }) {
   return (
@@ -11,6 +12,11 @@ export function SessionImpactCard({ report }: { report: SessionImpactReport }) {
             From your coach
           </p>
           <p className="mt-1 text-sm text-foreground">{report.directives}</p>
+        </div>
+      )}
+      {report.showRatingPrompt && (
+        <div className="border-t border-brand/20 pt-2">
+          <SessionRatingWidget sessionId={report.sessionId} />
         </div>
       )}
     </div>

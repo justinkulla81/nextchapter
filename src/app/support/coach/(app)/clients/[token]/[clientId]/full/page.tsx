@@ -12,6 +12,9 @@ import { ResolveDirectiveForm } from '@/components/coach/ResolveDirectiveForm'
 import { CATEGORY_LABEL, CATEGORY_ORDER, type CategoryKey } from '@/lib/scoring/grade'
 import { getCoachJobsSnapshot } from '@/lib/coach/coach-jobs-view'
 import { FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
+import { DimensionTrendLine } from '@/components/coach/DimensionTrendLine'
+import { SESSION_DIMENSIONS, SESSION_DIMENSION_LABEL } from '@/lib/coach/session-dimensions'
+import { ReassignmentRequestForm } from '@/components/coach/ReassignmentRequestForm'
 
 export default async function FullClientViewPage({
   params,
@@ -97,6 +100,18 @@ export default async function FullClientViewPage({
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm font-medium text-muted-foreground">Tracked dimensions — trend</p>
+          <div className="mt-3 space-y-2.5">
+            {SESSION_DIMENSIONS.map((key) => (
+              <div key={key} className="flex items-center justify-between gap-3">
+                <span className="text-sm text-foreground">{SESSION_DIMENSION_LABEL[key]}</span>
+                <DimensionTrendLine points={view.dimensionHistory[key]} />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-lg border border-border p-4">
@@ -237,6 +252,11 @@ export default async function FullClientViewPage({
               </div>
             </div>
           )}
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
+          <p className="mb-2 text-sm font-medium text-muted-foreground">Reassignment</p>
+          <ReassignmentRequestForm token={token} clientId={clientId} />
         </div>
       </div>
     </div>

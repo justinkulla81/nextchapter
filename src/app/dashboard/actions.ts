@@ -52,6 +52,30 @@ async function getAuthedProfile() {
   return getOrCreateCandidateProfile(user.id)
 }
 
+// §A5.4 post-session rating — prompted once from SessionImpactCard
+// (getUnviewedSessionImpact only ever shows a session once, so this is the
+// one real window a candidate gets to rate it). Re-scoped to this
+// candidate's own session so nothing lets one candidate rate another's.
+export async function rateCoachSession(sessionId: string, rating: number): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return
+
+  const session = await prisma.coachSession.findFirst({
+    where: { id: sessionId, candidateId: profile.id },
+    select: { id: true, candidateRating: true, coachId: true },
+  })
+  if (!session || session.candidateRating !== null) return
+
+  await prisma.coachSession.update({
+    where: { id: sessionId },
+    data: { candidateRating: rating, candidateRatedAt: new Date() },
+  })
+
+  captureServerEvent(profile.id, 'coach_session_rated', { sessionId, rating, coachId: session.coachId })
+  revalidatePath('/dashboard')
+}
+
 export async function markAskedForHelp() {
   const profile = await getAuthedProfile()
   if (!profile) return

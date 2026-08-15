@@ -4,7 +4,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { toggleCoachTestAccount } from './actions'
+import { toggleCoachTestAccount, toggleCoachBench } from './actions'
+import { TransferClientForm } from '@/components/admin/TransferClientForm'
+import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 
 export const maxDuration = 30
 
@@ -12,20 +14,33 @@ export default async function AdminCoachDetailPage({ params }: { params: Promise
   await requireAdmin()
   const { id } = await params
 
-  const coach = await prisma.coach.findUnique({
-    where: { id },
-    include: {
-      clients: {
-        select: { id: true, firstName: true, lastName: true, coachDossierConsentedAt: true },
+  const [coach, otherCoaches, settings] = await Promise.all([
+    prisma.coach.findUnique({
+      where: { id },
+      include: {
+        clients: {
+          select: { id: true, firstName: true, lastName: true, coachDossierConsentedAt: true },
+        },
+        sessions: {
+          orderBy: { occurredAt: 'desc' },
+          take: 20,
+          select: { id: true, occurredAt: true, candidateId: true, candidateRating: true },
+        },
       },
-      sessions: {
-        orderBy: { occurredAt: 'desc' },
-        take: 20,
-        select: { id: true, occurredAt: true, candidateId: true },
-      },
-    },
-  })
+    }),
+    prisma.coach.findMany({ where: { id: { not: id }, isSampleData: false }, select: { id: true, fullName: true }, orderBy: { fullName: 'asc' } }),
+    getCoachingSettings(),
+  ])
   if (!coach) notFound()
+
+  // §A5.4 quality control — flagging only, never automatic removal.
+  const ratedSessions = coach.sessions.filter((s) => s.candidateRating !== null)
+  const avgRating =
+    ratedSessions.length > 0
+      ? ratedSessions.reduce((sum, s) => sum + (s.candidateRating ?? 0), 0) / ratedSessions.length
+      : null
+  const removalThreshold = settings.sessionRatingRemovalThreshold ? Number(settings.sessionRatingRemovalThreshold) : null
+  const belowThreshold = avgRating !== null && removalThreshold !== null && avgRating < removalThreshold
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
@@ -48,11 +63,29 @@ export default async function AdminCoachDetailPage({ params }: { params: Promise
         <p className="mt-1 text-sm text-muted-foreground">
           {coach.userId ? 'Has a real login' : 'Token-only access (no login)'}
         </p>
-        <form action={toggleCoachTestAccount.bind(null, coach.id, coach.isSampleData)} className="mt-3">
-          <SubmitButton size="sm" variant="outline">
-            {coach.isSampleData ? 'Unmark as test account' : 'Mark as test account'}
-          </SubmitButton>
-        </form>
+        {avgRating !== null && (
+          <p className={`mt-1 text-sm ${belowThreshold ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+            Avg session rating: {avgRating.toFixed(1)} / 5 ({ratedSessions.length} rated)
+            {belowThreshold && ' — below removal threshold, flagged for review'}
+          </p>
+        )}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <form action={toggleCoachTestAccount.bind(null, coach.id, coach.isSampleData)}>
+            <SubmitButton size="sm" variant="outline">
+              {coach.isSampleData ? 'Unmark as test account' : 'Mark as test account'}
+            </SubmitButton>
+          </form>
+          <form action={toggleCoachBench.bind(null, coach.id, coach.isOnCallBench)}>
+            <SubmitButton size="sm" variant={coach.isOnCallBench ? 'outline' : 'secondary'}>
+              {coach.isOnCallBench ? 'Remove from surge bench' : 'Add to surge bench'}
+            </SubmitButton>
+          </form>
+        </div>
+        {coach.isOnCallBench && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            On-call for surge outreach — see the bench panel on the coaches list.
+          </p>
+        )}
       </div>
 
       <Card>
@@ -63,13 +96,14 @@ export default async function AdminCoachDetailPage({ params }: { params: Promise
           {coach.clients.length === 0 ? (
             <p className="text-sm text-muted-foreground">No clients yet.</p>
           ) : (
-            <ul className="space-y-1 text-sm text-foreground">
+            <ul className="space-y-2 text-sm text-foreground">
               {coach.clients.map((c) => (
                 <li key={c.id}>
                   <Link href={`/support/admin/candidates/${c.id}`} className="text-primary underline underline-offset-4">
                     {[c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed'}
                   </Link>
                   {c.coachDossierConsentedAt ? ' — consented' : ' — no consent yet'}
+                  <TransferClientForm coachId={coach.id} candidateId={c.id} otherCoaches={otherCoaches} />
                 </li>
               ))}
             </ul>

@@ -6,6 +6,7 @@ import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 
 export interface SessionImpactReport {
   sessionId: string
@@ -14,6 +15,11 @@ export interface SessionImpactReport {
   avoidancePatternStillPresent: string | null
   summary: string
   directives: string | null
+  // §A5.4 post-session rating — null means not yet rated. showRatingPrompt
+  // respects the admin sessionRatingPromptEnabled toggle (§A5.3) so it can
+  // be turned off product-wide without touching this component.
+  candidateRating: number | null
+  showRatingPrompt: boolean
 }
 
 export async function getSessionImpactReport(candidateId: string): Promise<SessionImpactReport | null> {
@@ -71,6 +77,7 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
   ].join('\n')
 
   const summary = await generateImpactSummary(facts)
+  const { sessionRatingPromptEnabled } = await getCoachingSettings()
 
   return {
     sessionId: latestSession.id,
@@ -79,6 +86,8 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
     avoidancePatternStillPresent: avoidancePattern?.actionType ?? null,
     summary,
     directives: latestSession.directives,
+    candidateRating: latestSession.candidateRating,
+    showRatingPrompt: sessionRatingPromptEnabled && latestSession.candidateRating === null,
   }
 }
 

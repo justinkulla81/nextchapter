@@ -16,11 +16,16 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
     getCoachUnreadCount(coach.id),
     getCoachCaseload(coach.id),
   ])
-  const stalledCount = caseload.filter((c) => c.isStalled).length
+  // Nav badge counts every client needing attention — an avoidance pattern
+  // OR a real risk trigger (§A5.2) — deduped so one client flagged both ways
+  // only counts once.
+  const attentionNeededCount = caseload.filter(
+    (c) => c.isStalled || c.triggers.some((t) => t.type === 'RISK')
+  ).length
 
   return (
     <div className="theme-partner min-h-screen">
-      <CoachNav accessToken={coach.accessToken} messagesUnreadCount={messagesUnreadCount} actionCount={stalledCount} />
+      <CoachNav accessToken={coach.accessToken} messagesUnreadCount={messagesUnreadCount} actionCount={attentionNeededCount} />
       {/* pt-14 clears the fixed top bar exactly once, whether or not the
           banner below renders — see RoleContextBanner's comment for why an
           explicit offset (rather than relying on fixed chrome painting over

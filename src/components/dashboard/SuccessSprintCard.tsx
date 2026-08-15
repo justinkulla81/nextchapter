@@ -42,6 +42,12 @@ interface Row {
   recurring: boolean
   completionCount?: number
   priority?: boolean
+  // Master Build Script §A5.2 — set when this row was pushed in by a coach's
+  // session directives (see pushDirectivesToActionPlan). Drives the "Coach"
+  // badge in ActionRow instead of the generic Recurring/Onboarding one, and
+  // always renders with the Priority treatment — a coach directive is never
+  // just another suggestion.
+  fromCoach?: boolean
   // When a completed one-time row was actually finished — lets openRows
   // keep it visible (struck through) through the rest of this week instead
   // of dropping it the instant it's done, then let it drop away once a new
@@ -283,6 +289,7 @@ function ActionRow({
   recurring,
   completionCount,
   priority,
+  fromCoach,
   hasEmailConnection,
   hasCalendarConnection,
   completedReferencesCount,
@@ -321,8 +328,13 @@ function ActionRow({
             regardless of which tag it carries — this used to sit after the
             title (and only some rows had a leading progress badge before
             it), so titles zig-zagged depending on row type. */}
-        <span className="w-[74px] shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-[11px] font-medium text-muted-foreground">
-          {recurring ? 'Recurring' : 'Onboarding'}
+        <span
+          className={cn(
+            'w-[74px] shrink-0 rounded-full px-2 py-0.5 text-center text-[11px] font-medium',
+            fromCoach ? 'bg-orange/15 text-orange' : 'bg-muted text-muted-foreground'
+          )}
+        >
+          {fromCoach ? 'From coach' : recurring ? 'Recurring' : 'Onboarding'}
         </span>
         <Link
           href={link?.href ?? '/dashboard'}
@@ -514,7 +526,8 @@ export function SuccessSprintCard({
       completed: a.completed,
       recurring: a.recurring,
       completionCount: a.completionCount,
-      priority: isPriorityActionType(a.actionType),
+      priority: isPriorityActionType(a.actionType) || !!a.fromCoach,
+      fromCoach: a.fromCoach,
       completedAt: a.completedAt ? new Date(a.completedAt) : undefined,
     })),
     ...availableCatalog.map((sa) => {

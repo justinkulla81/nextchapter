@@ -4,6 +4,8 @@ import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
+import { getDimensionHistory, type DimensionHistoryPoint } from '@/lib/coach/dimension-history'
+import type { SessionDimensionKey } from '@/lib/coach/session-dimensions'
 
 export interface FullClientView {
   candidateName: string
@@ -26,10 +28,13 @@ export interface FullClientView {
     directivesResolvedAt: Date | null
     directivesResolvedCategory: string | null
   }[]
+  // §A5.1 — recent per-dimension trend series, oldest to newest, for the
+  // DimensionTrendLine component.
+  dimensionHistory: Record<SessionDimensionKey, DimensionHistoryPoint[]>
 }
 
 export async function getFullClientView(candidateId: string): Promise<FullClientView> {
-  const [candidate, reports, workHistory, references, moods, sessions] = await Promise.all([
+  const [candidate, reports, workHistory, references, moods, sessions, dimensionHistory] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
     prisma.marketRealityReport.findMany({
       where: { candidateId },
@@ -64,6 +69,7 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
         directivesResolvedCategory: true,
       },
     }),
+    getDimensionHistory(candidateId),
   ])
 
   const weekNumber = candidate.registrationCompletedAt
@@ -94,5 +100,6 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
     })),
     recentMoods: moods.map((m) => ({ label: MOOD_LABEL[m.mood], checkedInAt: m.checkedInAt })),
     sessions,
+    dimensionHistory,
   }
 }

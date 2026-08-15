@@ -5,6 +5,12 @@ import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { LogSessionForm } from '@/components/coach/LogSessionForm'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
+import {
+  SESSION_DIMENSION_LABEL,
+  SESSION_DIMENSION_STATUS_LABEL,
+  SESSION_DIMENSION_STATUS_STYLE,
+  SESSION_DIMENSION_TREND_LABEL,
+} from '@/lib/coach/session-dimensions'
 
 const TREND_LABEL: Record<string, string> = {
   up: '↑ improving',
@@ -74,6 +80,43 @@ export default async function PreSessionBriefPage({
             </ul>
           )}
         </div>
+
+        {brief.dimensions.some((d) => d.status) && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm font-medium text-muted-foreground">Tracked dimensions — latest read</p>
+            <ul className="mt-2 space-y-1.5">
+              {brief.dimensions
+                .filter((d) => d.status)
+                .map((d) => (
+                  <li key={d.key} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-foreground">{SESSION_DIMENSION_LABEL[d.key]}</span>
+                    <span className="flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${SESSION_DIMENSION_STATUS_STYLE[d.status!]}`}>
+                        {SESSION_DIMENSION_STATUS_LABEL[d.status!]}
+                      </span>
+                      {d.trend && <span className="text-xs text-muted-foreground">{SESSION_DIMENSION_TREND_LABEL[d.trend]}</span>}
+                    </span>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
+
+        {brief.interventionSuggestions.length > 0 && (
+          <div className="rounded-lg border border-warning/30 bg-warning/5 p-4">
+            <p className="text-sm font-medium text-foreground">Suggested interventions</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {brief.interventionSuggestions.length}+ dimensions are at-risk or declining.
+            </p>
+            <ul className="mt-2 space-y-2">
+              {brief.interventionSuggestions.map((s) => (
+                <li key={s.dimension} className="text-sm text-foreground">
+                  <span className="font-medium">{s.label}:</span> {s.suggestion}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {brief.avoidancePattern && (
           <div className="rounded-lg border border-warning/30 bg-warning/5 p-4">

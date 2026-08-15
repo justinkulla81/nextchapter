@@ -9,6 +9,7 @@ import { DossierSectionsView } from '@/components/dashboard/DossierSections'
 import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 import { Spinner } from '@/components/ui/spinner'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { CandidateReassignmentRequestForm } from '@/components/dashboard/CandidateReassignmentRequestForm'
 
 export const metadata: Metadata = { title: 'Coach Dossier & Notes' }
 
@@ -72,6 +73,9 @@ export default async function CoachDossierPage() {
         >
           Turn on sharing in Privacy Settings
         </Link>
+        <div className="border-t border-border pt-4">
+          <CandidateReassignmentRequestForm />
+        </div>
       </div>
     )
   }
@@ -101,6 +105,10 @@ export default async function CoachDossierPage() {
           Coaching Notes
         </p>
         <CoachingNotesPanel notes={coachingNotes} />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <CandidateReassignmentRequestForm />
       </div>
     </div>
   )

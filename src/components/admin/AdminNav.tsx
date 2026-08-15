@@ -63,6 +63,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: '/support/admin/coaches', label: 'Coaches' },
         { href: '/support/admin/coach-matches', label: 'Coach Matches' },
+        { href: '/support/admin/coaching-reassignments', label: 'Reassignments & Surge' },
         { href: '/support/admin/coaching-rates', label: 'Coaching Rate Card' },
         { href: '/support/admin/coaching-settings', label: 'Coaching Settings' },
       ],

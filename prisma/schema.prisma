@@ -1338,11 +1338,17 @@ model CandidateProfile {
   eeocRespondedAt      DateTime?
 
   // Coach P0-lite — set once, at profile creation, when the candidate came in
-  // through a coach's personal invite link. Never re-assigned afterward (an
-  // existing candidate clicking a coach link doesn't get silently re-tagged).
-  coachId       String?
-  coach         Coach?         @relation(fields: [coachId], references: [id])
-  coachSessions CoachSession[]
+  // through a coach's personal invite link. Never SILENTLY re-assigned after
+  // that (an existing candidate clicking a different coach's invite link
+  // doesn't get re-tagged) — see getCoachClient/coach invite flows. Phase 4
+  // (§A5.4) adds the one legitimate, explicit path that does change coachId
+  // post-creation: a completed CoachReassignmentRequest (candidate mismatch
+  // or coach departure), always admin-routed and always logged as its own
+  // record — see src/lib/coach/reassignment.ts's completeReassignment.
+  coachId                   String?
+  coach                     Coach?                     @relation(fields: [coachId], references: [id])
+  coachSessions             CoachSession[]
+  coachReassignmentRequests CoachReassignmentRequest[]
 
   // Recruiter candidate book — set once, at profile creation, when the
   // candidate came in through a recruiter's sourced-candidate invite. Same
@@ -4106,6 +4112,14 @@ model Coach {
   languages          String[]
   timezone           String?
 
+  // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
+  // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
+  // Purely a flag the admin sets by hand; being on the bench doesn't change
+  // this coach's normal matching/caseload behavior, it only makes them a
+  // notification target when admin manually triggers surge outreach (see
+  // src/lib/coach/surge.ts).
+  isOnCallBench Boolean @default(false)
+
   clients                         CandidateProfile[]
   sessions                        CoachSession[]
   coachingOnboardingResponses     CoachingOnboardingResponse[]
@@ -4113,6 +4127,8 @@ model Coach {
   clientInvites                   CoachClientInvite[]
   messageThreads                  MessageThread[]
   rateCardOverrides               CoachRateCard[]
+  reassignmentRequestsFrom        CoachReassignmentRequest[]       @relation("ReassignmentFromCoach")
+  reassignmentRequestsTo          CoachReassignmentRequest[]       @relation("ReassignmentToCoach")
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -4172,6 +4188,52 @@ model CoachSession {
   sessionType       CoachSessionType @default(STANDARD)
   rateSnapshotCents Int?
 
+  // Phase 4, Master Build Script §A5.1 — structured session tracking across
+  // the seven fixed dimensions (Targeting, Motivation, Networking,
+  // Application volume, Skills, Narrative, Interview practice). Modeled as
+  // named typed columns directly on this row, one status/trend/note triad
+  // per dimension — deliberately mirroring how Reference stores its BARS
+  // dimensions (barsVelocity, barsArchitecture, etc: flat named columns per
+  // fixed dimension, not a related child table), since the dimension set
+  // here is equally fixed and small. This also makes "render a trend line"
+  // a simple query across a candidate's recent CoachSession rows selecting
+  // the same column, with no JSON parsing. See src/lib/coach/session-
+  // dimensions.ts for the canonical dimension list/labels consumed by both
+  // the logging form and every reader (pre-session brief, trend line,
+  // intervention suggestions).
+  dimTargetingStatus  SessionDimensionStatus?
+  dimTargetingTrend   SessionDimensionTrend?
+  dimTargetingNote    String?                 @db.Text
+  dimMotivationStatus SessionDimensionStatus?
+  dimMotivationTrend  SessionDimensionTrend?
+  dimMotivationNote   String?                 @db.Text
+  dimNetworkingStatus SessionDimensionStatus?
+  dimNetworkingTrend  SessionDimensionTrend?
+  dimNetworkingNote   String?                 @db.Text
+
+  dimApplicationVolumeStatus SessionDimensionStatus?
+  dimApplicationVolumeTrend  SessionDimensionTrend?
+  dimApplicationVolumeNote   String?                 @db.Text
+  dimSkillsStatus            SessionDimensionStatus?
+  dimSkillsTrend             SessionDimensionTrend?
+  dimSkillsNote              String?                 @db.Text
+  dimNarrativeStatus         SessionDimensionStatus?
+  dimNarrativeTrend          SessionDimensionTrend?
+  dimNarrativeNote           String?                 @db.Text
+
+  dimInterviewPracticeStatus SessionDimensionStatus?
+  dimInterviewPracticeTrend  SessionDimensionTrend?
+  dimInterviewPracticeNote   String?                 @db.Text
+
+  // Post-session rating, §A5.4 quality control — candidate rates a logged
+  // session once, 1-5, matching the same plain 1-5 scale Reference already
+  // uses for overallRating (no separate star-rating table). Prompted from
+  // SessionImpactCard the next time the candidate loads the dashboard after
+  // this session; sessionRatingPromptEnabled (CoachingSettings) can turn the
+  // prompt off product-wide without touching this column.
+  candidateRating  Int?
+  candidateRatedAt DateTime?
+
   @@index([candidateId, occurredAt])
 }
 
@@ -4181,6 +4243,22 @@ enum CoachSessionType {
   MOCK_INTERVIEW_90
   RESUME_REVIEW
   INTAKE
+}
+
+// §A5.1 status scale for a tracked session dimension — the same three-value
+// on-track/at-risk/stalled shape used informally elsewhere in coaching
+// copy (e.g. CoachCaseloadPage's "avoidance pattern flagged"), now a real
+// enum so it can drive intervention-suggestion logic consistently.
+enum SessionDimensionStatus {
+  ON_TRACK
+  AT_RISK
+  STALLED
+}
+
+enum SessionDimensionTrend {
+  IMPROVING
+  STEADY
+  DECLINING
 }
 
 // Coaching rate card, Partners Master Build Script section A2.5 / A5.3.
@@ -4204,6 +4282,72 @@ model CoachRateCard {
   createdAt     DateTime         @default(now())
 
   @@index([sessionType, coachId, effectiveDate])
+}
+
+// §A5.4 "Coach-candidate mismatch" (one-tap reassignment, no blame, admin
+// routes) AND "Coach departure mid-engagement" (handoff protocol using the
+// §A5.1 structured notes) share one model — both are, mechanically, "this
+// candidate needs a new coach, here's why, here's the record of where they
+// left off." requestedBy distinguishes the no-blame mismatch flow (COACH or
+// CANDIDATE, reason optional/soft) from an admin-initiated departure
+// handoff (ADMIN, toCoachId usually chosen at creation time already).
+// handoffSummary is generated once, at the moment the reassignment actually
+// completes (see completeReassignment in src/lib/coach/reassignment.ts) —
+// snapshotting the candidate's latest 7-dimension read (§A5.1) and recent
+// session notes so the receiving coach has a real clean handoff artifact,
+// not just a name.
+model CoachReassignmentRequest {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  fromCoachId String?
+  fromCoach   Coach?  @relation("ReassignmentFromCoach", fields: [fromCoachId], references: [id])
+  toCoachId   String?
+  toCoach     Coach?  @relation("ReassignmentToCoach", fields: [toCoachId], references: [id])
+
+  requestedBy ReassignmentRequestedBy
+  reason      String?                   @db.Text
+  status      ReassignmentRequestStatus @default(PENDING)
+
+  // Snapshot written at completion time — see the model comment above.
+  handoffSummary Json?
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  resolvedBy String? // admin email/identifier that routed this request
+
+  @@index([candidateId, status])
+  @@index([status])
+}
+
+enum ReassignmentRequestedBy {
+  COACH
+  CANDIDATE
+  ADMIN
+}
+
+enum ReassignmentRequestStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  DECLINED
+}
+
+// §A5.4 surge capacity — a real, working manual trigger rather than
+// automated detection (per this phase's scope note: full automated surge
+// detection is bigger than one phase). Records every time admin actually
+// triggers bench outreach, so "did we notify the bench, and who" has a real
+// audit trail rather than living only in an email inbox. See
+// src/lib/coach/surge.ts.
+model SurgeOutreachEvent {
+  id                 String   @id @default(cuid())
+  triggeredBy        String // admin email/identifier
+  triggeredAt        DateTime @default(now())
+  newSignupsInWindow Int // real count that prompted/accompanied the trigger, for the audit record
+  benchCoachCount    Int
+  notifiedCoachIds   String[]
+  note               String?  @db.Text
 }
 
 // Prompt 60 — candidate-completed, self-serve coaching kickoff form (goal-
