@@ -15,6 +15,10 @@ import {
   getCoachingOnboardingAnswersForDisplay,
   type CoachingOnboardingAnswerDisplay,
 } from '@/lib/coach/onboarding-form'
+import {
+  getConfidentialDisclosureForDisplay,
+  type ConfidentialDisclosureDisplay,
+} from '@/lib/coach/confidential-disclosure'
 import type { TrendSnapshot } from '@/components/dashboard/MarketRealityTrendChart'
 import { benefitsPressureLabel } from '@/lib/benefits/pressure-options'
 import {
@@ -407,6 +411,11 @@ export interface CoachingNotes {
   // Prompt 60 — the candidate's Coaching Onboarding Form answers, once
   // submitted. Null until they've completed it.
   coachingOnboardingAnswers: CoachingOnboardingAnswerDisplay[] | null
+  // The optional confidential disclosure (ConfidentialDisclosureForm),
+  // submitted right after the Coaching Onboarding Form above. Coach-only —
+  // never shown in the Dossier or back to the candidate. Null until
+  // they've answered the question at all; see getConfidentialDisclosureForDisplay.
+  confidentialDisclosure: ConfidentialDisclosureDisplay | null
   // How much the candidate says they like being visible (content,
   // networking) versus how much they've actually done recently — feeds a
   // coach's help building the candidate's own Marketing Plan.
@@ -444,7 +453,7 @@ export interface CoachingNotes {
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown, jobActivity] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, confidentialDisclosure, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown, jobActivity] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -518,6 +527,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
       take: 50,
     }),
     getCoachingOnboardingAnswersForDisplay(candidateId),
+    getConfidentialDisclosureForDisplay(candidateId),
     getSelfAwarenessFlags(candidateId),
     getVisibilityCalibration(candidateId),
     prisma.jobPosting.findMany({
@@ -578,6 +588,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
           ?.applicationTrends ?? null)
       : null,
     coachingOnboardingAnswers,
+    confidentialDisclosure,
     visibilityCalibration,
     opennessToLearning,
     flexibility: buildFlexibilitySummary(candidate),

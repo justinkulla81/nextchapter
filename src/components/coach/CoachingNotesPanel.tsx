@@ -379,6 +379,20 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.confidentialDisclosure?.hasDisclosure && notes.confidentialDisclosure.disclosureText && (
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Confidential disclosure</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Submitted directly to you, separate from the Coaching Onboarding Form above — never shown back to the
+            candidate or in the Dossier.
+          </p>
+          <p className="mt-2 text-sm text-foreground">{notes.confidentialDisclosure.disclosureText}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Submitted {notes.confidentialDisclosure.submittedAt.toLocaleDateString()}
+          </p>
+        </div>
+      )}
+
       {notes.jobSearchPatternSummary && (
         <div>
           <p className="text-sm font-medium text-muted-foreground">What&apos;s My Pattern</p>

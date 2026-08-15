@@ -21,3 +21,25 @@ export async function submitConfidentialDisclosure(
     update: { hasDisclosure, disclosureText: hasDisclosure ? disclosureText.trim() : null },
   })
 }
+
+export interface ConfidentialDisclosureDisplay {
+  hasDisclosure: boolean
+  disclosureText: string | null
+  submittedAt: Date
+}
+
+// Resolves the candidate's confidential-disclosure answer for their coach's
+// Coaching Notes view — see ConfidentialDisclosureForm, which tells the
+// candidate "this stays between you and [coach]." Null until they've
+// answered the (optional) question at all. hasDisclosure can be false
+// (candidate chose "Nothing to share"); disclosureText is only ever
+// non-null alongside hasDisclosure === true, per submitConfidentialDisclosure
+// above.
+export async function getConfidentialDisclosureForDisplay(
+  candidateId: string
+): Promise<ConfidentialDisclosureDisplay | null> {
+  return prisma.coachingConfidentialDisclosure.findUnique({
+    where: { candidateId },
+    select: { hasDisclosure: true, disclosureText: true, submittedAt: true },
+  })
+}
