@@ -1,6 +1,7 @@
 import { getRoleGrants } from '@/lib/auth/role-grants'
 import { switchRole } from '@/lib/auth/switch-role'
 import { SwitchRoleSubmitButton } from './SwitchRoleSubmitButton'
+import { cn } from '@/lib/utils'
 import type { RoleGrantRole } from '@prisma/client'
 
 // Partners Master Build Script §B4 — "Required whenever an identity holds
@@ -9,10 +10,14 @@ import type { RoleGrantRole } from '@prisma/client'
 // Server Component with no client-side role resolution step. Persistent,
 // never dismissible — there is deliberately no close/hide affordance here.
 //
-// Visual polish is intentionally basic this phase — Part B's full partner
-// design system (navy top-bar chrome, per-surface accent colors) is Phase
-// 2's job. This phase is the logic: does the banner appear exactly when it
-// should, does it name the current role, does switching force real re-auth.
+// Phase 2 visual polish: this banner is a plain in-flow block, but every
+// caller also renders a `position: fixed` sidebar/top-bar at a higher
+// z-index than normal flow content — without an explicit offset, that
+// fixed chrome silently paints over this banner's left/top edge (both
+// happen to be navy, so it was invisible, but the "Switch to →" button
+// could land underneath the sidebar and become unclickable on wide
+// viewports). `className` lets each layout pass the same offset its own
+// <main> uses, so this banner's content never sits under fixed chrome.
 
 const ROLE_LABEL: Record<RoleGrantRole, string> = {
   candidate: 'Candidate',
@@ -38,6 +43,7 @@ export async function RoleContextBanner({
   currentRole,
   personName,
   accountName,
+  className,
 }: {
   userId: string
   currentRole: RoleGrantRole
@@ -46,6 +52,13 @@ export async function RoleContextBanner({
   // Meridian Health") — accepted here so the shape is ready, but nothing
   // passes it yet since the employer portal itself is Phase 5.
   accountName?: string
+  // Horizontal offset to clear this layout's own fixed sidebar — e.g.
+  // `lg:pl-[calc(16rem+1.5rem)]`, matching whatever the caller's own
+  // <main> uses. (Vertical clearance for a fixed top bar, where one
+  // exists, is handled by the caller wrapping this banner + <main> in a
+  // shared `pt-14` div instead — see the partner layouts.) See the
+  // comment above for why an offset is necessary at all.
+  className?: string
 }) {
   const roles = await getRoleGrants(userId)
   if (roles.length < 2) return null
@@ -56,7 +69,12 @@ export async function RoleContextBanner({
   const currentLabel = ROLE_LABEL[currentRole] ?? currentRole
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border bg-navy px-6 py-2 text-sm text-white">
+    <div
+      className={cn(
+        'flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border bg-navy px-6 py-2 text-sm text-white',
+        className
+      )}
+    >
       <p>
         You&apos;re in <span className="font-semibold">{currentLabel}</span> view.{' '}
         <span className="text-white/70">

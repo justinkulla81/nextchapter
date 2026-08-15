@@ -8,8 +8,20 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+  --font-serif: var(--font-source-serif);
   --font-heading: var(--font-sans);
   --color-navy: #0b2545;
+  /* Partners Master Build Script §B5 — per-surface accent colors. Low
+     saturation, all pass >=4.5:1 contrast against navy chrome (verified).
+     Applied ONLY as a left-nav accent rule + the wordmark qualifier area
+     (see PartnerWordmark/PartnerTopBar) — never in buttons, charts, or
+     data viz, which stay on the shared palette above. Hiring has no portal
+     yet (Phase 5/7) — token reserved, unused today. */
+  --color-accent-coach: #c9a877;
+  --color-accent-recruiter: #8ba3c7;
+  --color-accent-hiring: #4f9c94;
+  --color-accent-employer: #a385a8;
+  --color-accent-admin: #9aa3ad;
   --color-brand: #1d4e89;
   --color-light-blue: #2980d4;
   --color-orange: #f4a259;
@@ -127,6 +139,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Partners Master Build Script §B3.4 — base row height tokens for
+     candidate vs. partner list/table density. Not a sitewide retrofit:
+     applied to one real reference implementation per surface for now
+     (candidate: CompanyWatchlistList; coach: caseload roster; recruiter:
+     search results; talent: candidate inbox; admin: AdminDataTable).
+     Future lists should apply these rather than inventing new spacing. */
+  --row-height-candidate: 3.5rem; /* 56px */
+  --row-height-partner: 2.5rem; /* 40px */
 }
 
 .dark {
@@ -185,5 +206,25 @@
   }
   a:active {
     opacity: 0.6;
+  }
+
+  /* Partners Master Build Script §B3.3 / §B8 — theme by scope, not by
+     page. `.theme-candidate` wraps the candidate dashboard root
+     (src/app/dashboard/layout.tsx); `.theme-partner` wraps each partner
+     portal root (Coach/Recruiter/Talent/Admin layouts). Section-heading
+     level elements (bare h1/h2, plus anything opted into the shared
+     `font-heading` token — e.g. CardTitle) go serif only inside the
+     candidate scope. `.theme-partner` pins Inter explicitly, redundant
+     with the default today, so a future change to --font-heading's
+     default can't silently leak serif into partner surfaces. */
+  .theme-candidate {
+    --font-heading: var(--font-serif);
+  }
+  .theme-candidate h1,
+  .theme-candidate h2 {
+    font-family: var(--font-heading);
+  }
+  .theme-partner {
+    --font-heading: var(--font-sans);
   }
 }

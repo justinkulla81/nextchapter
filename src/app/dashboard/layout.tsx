@@ -121,10 +121,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const personName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email || 'You'
 
   return (
-    <div className="min-h-screen">
+    <div className="theme-candidate min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <HashScrollFix />
-      <RoleContextBanner userId={profile.userId} currentRole="candidate" personName={personName} />
+      {/* lg:pl matches DashboardNav's fixed w-72 sidebar (see DashboardNav.tsx)
+          — without it, the sidebar paints over this banner's left edge on
+          desktop and can hide the "Switch to →" button underneath it. */}
+      <RoleContextBanner
+        userId={profile.userId}
+        currentRole="candidate"
+        personName={personName}
+        className="lg:pl-[calc(18rem+1.5rem)]"
+      />
       <Suspense
         fallback={
           <DashboardNav

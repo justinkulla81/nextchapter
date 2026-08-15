@@ -201,7 +201,7 @@ export default async function RecruiterSearchPage({
 
       <div className="divide-y divide-border rounded-lg border border-border">
         {scored.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">
+          <p className="flex min-h-[var(--row-height-partner)] items-center px-4 py-2 text-sm text-muted-foreground">
             {consentedCandidateIds.length === 0
               ? "You don't have any consented candidate introductions yet. Candidates you source and invite directly (My candidates) count as an introduction once they sign up."
               : 'No candidates match yet — try widening your filters.'}
@@ -211,7 +211,7 @@ export default async function RecruiterSearchPage({
             <Link
               key={candidate.id}
               href={`/recruiters/search/${candidate.id}`}
-              className="flex items-center justify-between gap-4 p-4 hover:bg-muted"
+              className="flex min-h-[var(--row-height-partner)] items-center justify-between gap-4 px-4 py-2 hover:bg-muted"
             >
               <div>
                 <p className="font-medium text-foreground">{displayIdentity(candidate)}</p>

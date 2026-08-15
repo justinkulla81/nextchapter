@@ -71,7 +71,11 @@ export function AdminDataTable<T>({
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={rowKey(row)} className="border-b border-border last:border-0">
+              // min-h-[var(--row-height-partner)] — Partners Master Build
+              // Script §B3.4 base partner row height (40px). This table is
+              // reused across most admin list pages, so this one edit is
+              // the density token's widest reference implementation.
+              <tr key={rowKey(row)} className="min-h-[var(--row-height-partner)] border-b border-border last:border-0">
                 {columns.map((col) => (
                   <td key={col.header} className="px-3 py-2">
                     {col.render(row)}

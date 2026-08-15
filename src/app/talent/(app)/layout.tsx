@@ -12,11 +12,14 @@ export default async function TalentLayout({ children }: { children: React.React
   const messagesUnreadCount = await getEmployerUnreadCount(employer.id)
 
   return (
-    <div className="min-h-screen">
+    <div className="theme-partner min-h-screen">
       <TalentNav messagesUnreadCount={messagesUnreadCount} />
-      <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
+      {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
+      <div className="pt-14">
+        <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
+          <div className="mx-auto max-w-7xl">{children}</div>
+        </main>
+      </div>
     </div>
   )
 }

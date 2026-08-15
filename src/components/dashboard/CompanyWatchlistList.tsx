@@ -56,7 +56,7 @@ export function CompanyWatchlist({ entries }: { entries: WatchlistEntry[] }) {
 
         return (
           <li key={entry.id}>
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex min-h-[var(--row-height-candidate)] items-center justify-between gap-3 px-4 py-3">
               <button
                 type="button"
                 disabled={!canExpand}

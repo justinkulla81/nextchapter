@@ -18,18 +18,29 @@ export default async function RecruiterAppLayout({ children }: { children: React
   ])
 
   return (
-    <div className="min-h-screen">
+    <div className="theme-partner min-h-screen">
       <RecruiterNav
         accessToken={recruiter.accessToken}
         messagesUnreadCount={messagesUnreadCount}
         actionCount={addedNotYetInvited}
       />
-      {recruiter.userId && (
-        <RoleContextBanner userId={recruiter.userId} currentRole="recruiter" personName={recruiter.fullName} />
-      )}
-      <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
+      {/* pt-14 clears the fixed top bar exactly once, whether or not the
+          banner below renders — see RoleContextBanner's comment for why an
+          explicit offset (rather than relying on fixed chrome painting over
+          it) is required. */}
+      <div className="pt-14">
+        {recruiter.userId && (
+          <RoleContextBanner
+            userId={recruiter.userId}
+            currentRole="recruiter"
+            personName={recruiter.fullName}
+            className="lg:pl-[calc(16rem+1.5rem)]"
+          />
+        )}
+        <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
+          <div className="mx-auto max-w-7xl">{children}</div>
+        </main>
+      </div>
     </div>
   )
 }

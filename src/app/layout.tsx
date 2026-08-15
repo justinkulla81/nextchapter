@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Source_Serif_4 } from "next/font/google";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+// Partners Master Build Script §B3.3 — candidate-side section headings
+// only (scoped via the `.theme-candidate` CSS class in globals.css, not
+// applied here). Partner side stays Inter-only by intent.
+const sourceSerif4 = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin"],
 });
 
@@ -62,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <GoogleAnalytics />
         <PostHogProvider>{children}</PostHogProvider>

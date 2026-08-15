@@ -38,13 +38,15 @@ export default async function CoachCaseloadPage({ params }: { params: Promise<{ 
 
       <div className="divide-y divide-border rounded-lg border border-border">
         {caseload.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No clients yet.</p>
+          <p className="flex min-h-[var(--row-height-partner)] items-center px-4 py-2 text-sm text-muted-foreground">
+            No clients yet.
+          </p>
         ) : (
           caseload.map((client) => (
             <Link
               key={client.id}
               href={`/support/coach/clients/${token}/${client.id}`}
-              className="flex items-center justify-between gap-4 p-4 hover:bg-muted"
+              className="flex min-h-[var(--row-height-partner)] items-center justify-between gap-4 px-4 py-2 hover:bg-muted"
             >
               <div>
                 <p className="font-medium text-foreground">{client.name}</p>

@@ -40,11 +40,14 @@ export default async function AdminPortalLayout({ children }: { children: React.
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="theme-partner min-h-screen">
       <AdminNav badges={badges} />
-      <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
+      {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
+      <div className="pt-14">
+        <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
+          <div className="mx-auto max-w-7xl">{children}</div>
+        </main>
+      </div>
     </div>
   )
 }

@@ -40,13 +40,16 @@ export default async function CandidateInboxPage() {
         <p className="mt-1 text-muted-foreground">Everyone you&apos;ve interacted with, across all roles.</p>
       </div>
 
-      {interactions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No candidate interactions yet — post a role and visit its candidate matches to get started.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {interactions.map((interaction) => {
+      {/* Dense divide-y row list, not spaced cards — Partners Master Build
+          Script §B6: partner surfaces default to the table/list pattern,
+          card-based lists are the candidate-side convention. */}
+      <div className="divide-y divide-border rounded-lg border border-border">
+        {interactions.length === 0 ? (
+          <p className="flex min-h-[var(--row-height-partner)] items-center px-4 py-2 text-sm text-muted-foreground">
+            No candidate interactions yet — post a role and visit its candidate matches to get started.
+          </p>
+        ) : (
+          interactions.map((interaction) => {
             const c = interaction.candidate
             const label =
               c.privacyTier === 'PUBLIC' && c.firstName
@@ -56,7 +59,7 @@ export default async function CandidateInboxPage() {
               <Link
                 key={interaction.id}
                 href={`/talent/candidates/${c.id}`}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border p-4 transition-colors hover:border-brand"
+                className="flex min-h-[var(--row-height-partner)] items-center justify-between gap-4 px-4 py-2 hover:bg-muted"
               >
                 <div>
                   <p className="font-medium text-foreground">{label}</p>
@@ -69,9 +72,9 @@ export default async function CandidateInboxPage() {
                 </span>
               </Link>
             )
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </div>
   )
 }
