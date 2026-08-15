@@ -12,6 +12,8 @@ import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
 import { SentimentSupportCard } from '@/components/dashboard/SentimentSupportCard'
+import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
+import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import {
   getCurrentWeekSprint,
   getSuggestedActions,
@@ -134,6 +136,7 @@ export default async function DashboardPage() {
     calendarConnection,
     needsFollowUp,
     priorityContacts,
+    passiveToActivePrompt,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -157,6 +160,9 @@ export default async function DashboardPage() {
     prisma.calendarConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
     getNeedsFollowUpList(profile.id),
     getEmailReminders(profile.id),
+    // §10-12 — read-only trigger check; PassiveToActivePromptCard records
+    // "shown" itself once it actually renders (see that component).
+    evaluatePassiveToActivePrompt(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
   // Same recency sort + inference as search-strategy/page.tsx so this
@@ -267,6 +273,8 @@ export default async function DashboardPage() {
           weekStartDate={weekStartDate}
         />
       </div>
+
+      {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
 
       {sentimentAlert.lowSentiment && <SentimentSupportCard hasCoach={!!profile.coachId} />}
 

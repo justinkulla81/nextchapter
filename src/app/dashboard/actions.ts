@@ -35,6 +35,7 @@ import {
 } from '@/lib/dashboard/page-content'
 import { clampMulti } from '@/lib/forms/clamp-multi'
 import { MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
+import type { PassiveToActiveTrigger } from '@/lib/dashboard/passive-to-active-prompt'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -172,6 +173,57 @@ export async function maximizeActionPlanBox(pageKey: PageKey) {
   await maximizeActionPlanBoxForCandidate(profile.id, pageKey)
   captureServerEvent(profile.id, 'action_plan_maximized', { pageKey })
   revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
+}
+
+// §10-12 "Passive to Active" prompt. evaluatePassiveToActivePrompt
+// (src/lib/dashboard/passive-to-active-prompt.ts) is deliberately
+// read-only, so nothing advances the 30-day throttle until the prompt
+// actually renders client-side — PassiveToActivePromptCard calls this once,
+// on mount. Recording "shown" here (not in the eval function) means a
+// server re-render or prefetch that computes a trigger but never actually
+// paints the card for the member can't silently burn their 30-day window.
+export async function recordPassiveToActivePromptShown(trigger: PassiveToActiveTrigger) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { passiveToActivePromptLastShownAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'passive_to_active_prompt_shown', { trigger })
+}
+
+// The 3 button choices (§10). "Something's changed" never sets
+// confidentialSearchMode itself here — that stays exclusively
+// setConfidentialSearchMode's job (src/app/dashboard/privacy/actions.ts),
+// called directly by PassiveToActivePromptCard before this action runs, so
+// there is only ever one path that turns the mode off. §11: "never gate
+// anything on the answer" — this only ever logs the choice and, for "Don't
+// ask again," flips the permanent flag; nothing else in the codebase reads
+// passiveToActivePromptDontAskAgain or these events to gate behavior.
+export async function respondToPassiveToActivePrompt(
+  choice: 'OPENED_UP' | 'NOT_YET' | 'DONT_ASK_AGAIN',
+  trigger: PassiveToActiveTrigger
+) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  if (choice === 'DONT_ASK_AGAIN') {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { passiveToActivePromptDontAskAgain: true },
+    })
+  }
+
+  const event =
+    choice === 'OPENED_UP'
+      ? 'passive_to_active_prompt_opened_up'
+      : choice === 'NOT_YET'
+        ? 'passive_to_active_prompt_not_yet'
+        : 'passive_to_active_prompt_dont_ask_again'
+  captureServerEvent(profile.id, event, { trigger })
+
+  revalidatePath('/dashboard')
 }
 
 // The "How motivated are you today?" card's X — dismissal only lasts through

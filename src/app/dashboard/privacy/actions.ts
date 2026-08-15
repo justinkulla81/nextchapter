@@ -284,6 +284,13 @@ export async function setConfidentialSearchMode(
       data: {
         confidentialSearchMode: enabled,
         confidentialSearchModeChangedAt: new Date(),
+        // §11 "persona changed" trigger baseline (src/lib/dashboard/
+        // passive-to-active-prompt.ts) — snapshot currentJobStatus at the
+        // moment the mode turns on, so a later transition to LAID_OFF can
+        // be detected against it. Left alone when turning off (stays at
+        // whatever it was) — it's only ever read while the mode is on, and
+        // re-set fresh the next time it's turned back on.
+        ...(enabled ? { confidentialModeEnteredJobStatus: profile.currentJobStatus } : {}),
         // Turning the mode ON also closes the blanket Recruiter Database
         // exposure (§4.7 — "Dossier never shared without explicit
         // per-instance consent"). recruiterDatabaseOptIn shows the full

@@ -93,6 +93,10 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
           assessmentCompletedAt: new Date(),
           confidentialSearchMode,
           confidentialSearchModeChangedAt: new Date(),
+          // §11 "persona changed" trigger baseline (src/lib/dashboard/
+          // passive-to-active-prompt.ts) — only meaningful while the mode
+          // is actually on, so left untouched (stays null) when it isn't.
+          ...(confidentialSearchMode ? { confidentialModeEnteredJobStatus: jobStatus } : {}),
         },
       }),
       prisma.confidentialModeChangeLog.create({

@@ -557,6 +557,45 @@ model CandidateProfile {
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
 
+  // PART THREE §10-12 — "Passive to Active" prompt (once, without
+  // pressure). Purpose-built rather than reusing PageBoxDismissal: that
+  // model is a single "dismissed today, reappears tomorrow" (or permanent
+  // for WHY_IT_MATTERS) contract for admin-authored content keyed on
+  // pageKey+boxType. This prompt needs three states its three buttons
+  // produce — shown, soft-dismissed ("Not yet," can re-trigger on the next
+  // real signal), and permanently dismissed ("Don't ask again") — plus a
+  // real 30-day re-show cooldown, none of which maps cleanly onto that
+  // shape. A timestamp + boolean pair, mirroring the proven
+  // recruiterUnlockNudgedAt once-per-period nudge-throttle pattern above,
+  // covers it more simply than bending PageBoxDismissal to fit.
+  //
+  // passiveToActivePromptLastShownAt is both the 30-day throttle reference
+  // and the reference point for the "60 days elapsed with no prompt shown"
+  // trigger (src/lib/dashboard/passive-to-active-prompt.ts).
+  // passiveToActivePromptDontAskAgain is permanent and checked before every
+  // trigger evaluation — never reset by anything.
+  passiveToActivePromptLastShownAt  DateTime?
+  passiveToActivePromptDontAskAgain Boolean   @default(false)
+
+  // Baseline snapshot for the "persona changed from Worried to Laid off"
+  // trigger (§11). Set whenever confidentialSearchMode transitions to true
+  // (onboarding default in updateSituation, or the settings toggle in
+  // setConfidentialSearchMode) to currentJobStatus's value AT THAT MOMENT —
+  // not updated anywhere else. The trigger fires when this stayed
+  // EMPLOYED_CONSIDERING_MOVE (the accepted lossy "Worried" proxy, same
+  // mapping as defaultConfidentialSearchMode) while currentJobStatus is now
+  // LAID_OFF. Left null for candidates who entered confidential mode before
+  // this field existed — same "no surprise historical backlog" convention
+  // as communityLastViewedAt above; the trigger simply can't fire for them
+  // until they toggle the mode again. NOTE: currentJobStatus is currently
+  // write-once at onboarding (updateSituation) with no candidate-facing
+  // path to change it afterward anywhere in this codebase (confirmed by
+  // investigation) — so this trigger's detection logic is real and correct,
+  // but cannot fire in practice yet. That gap is a real "update your
+  // situation" settings feature this spec doesn't ask for; deliberately not
+  // built here to keep this change scoped to §10-12.
+  confidentialModeEnteredJobStatus CurrentJobStatus?
+
   // Recruiter database — explicit candidate opt-in required before appearing
   // in any employer-facing Talent match list. privacyTier alone is opt-out,
   // not opt-in, and isn't sufficient consent for a matching/ranking surface.

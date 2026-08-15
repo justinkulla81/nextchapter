@@ -5,10 +5,8 @@ import { Lock } from 'lucide-react'
 import { setConfidentialSearchMode } from '@/app/dashboard/privacy/actions'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import {
-  CONFIDENTIAL_MODE_HIDDEN_ITEMS,
-  CONFIDENTIAL_MODE_UNCHANGED_ITEMS,
-} from '@/lib/constants/confidential-mode-copy'
+import { ConfidentialModeOffConfirmation } from '@/components/dashboard/ConfidentialModeOffConfirmation'
+import { CONFIDENTIAL_MODE_UNCHANGED_ITEMS } from '@/lib/constants/confidential-mode-copy'
 
 // Settings toggle for Confidential Search Mode (spec §3, §6). Turning it ON
 // is immediate — no confirmation. Turning it OFF requires a confirmation
@@ -65,22 +63,11 @@ export function ConfidentialModeToggle({ enabled }: { enabled: boolean }) {
       )}
 
       {enabled && confirmingOff && (
-        <div className="max-w-md space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-          <p className="text-sm font-medium text-foreground">Turning this off makes visible:</p>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            {CONFIDENTIAL_MODE_HIDDEN_ITEMS.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          <div className="flex gap-2">
-            <Button size="sm" variant="destructive" disabled={pending} onClick={confirmTurnOff}>
-              {pending ? 'Turning off…' : 'Confirm — turn it off'}
-            </Button>
-            <Button size="sm" variant="outline" disabled={pending} onClick={() => setConfirmingOff(false)}>
-              Cancel
-            </Button>
-          </div>
-        </div>
+        <ConfidentialModeOffConfirmation
+          pending={pending}
+          onConfirm={confirmTurnOff}
+          onCancel={() => setConfirmingOff(false)}
+        />
       )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
