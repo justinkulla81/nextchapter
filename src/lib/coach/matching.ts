@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { getSentimentAlert } from '@/lib/daily/mood'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { coachMatchesSeniority } from '@/lib/scoring/level-rank'
+import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 
-const SHORTLIST_SIZE = 3
 const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
 
 export interface CoachShortlistEntry {
@@ -28,7 +28,7 @@ export interface CoachShortlistEntry {
 // comparison this function already made), not a quality/grade score, so
 // using it here is consistent with, not a violation of, the invariant above.
 export async function generateCoachShortlist(candidateId: string): Promise<CoachShortlistEntry[]> {
-  const [candidate, levelRank] = await Promise.all([
+  const [candidate, levelRank, settings] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -43,6 +43,7 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
     // brand-new candidate's very first shortlist generation gets a real
     // calibrated score instead of silently skipping the seniority bonus.
     getCandidateLevelRank(candidateId),
+    getCoachingSettings(),
   ])
 
   const allCoaches = await prisma.coach.findMany({
@@ -94,18 +95,24 @@ export async function generateCoachShortlist(candidateId: string): Promise<Coach
 
   const scored = pool.map((coach) => {
     let score = 0
-    if (candidate.primaryFunction && coach.industries.includes(candidate.primaryFunction)) score += 3
-    if (levelRank.score !== null && coachMatchesSeniority(coach.seniorityFit, levelRank.score)) score += 2
+    if (candidate.primaryFunction && coach.industries.includes(candidate.primaryFunction)) {
+      score += settings.matchWeightFunctionIndustry
+    }
+    if (levelRank.score !== null && coachMatchesSeniority(coach.seniorityFit, levelRank.score)) {
+      score += settings.matchWeightSeniorityLevel
+    }
     // A struggling candidate's shortlist is weighted toward coaches who've
     // tagged comfort with high-need candidates — never exposed to the coach
     // as a raw flag, just reflected in ranking order.
-    if (lowSentiment && coach.specializationTags.includes(HIGH_NEED_TAG)) score += 4
+    if (lowSentiment && coach.specializationTags.includes(HIGH_NEED_TAG)) {
+      score += settings.matchWeightHighNeedBoost
+    }
     return { coach, score }
   })
 
   scored.sort((a, b) => b.score - a.score)
 
-  return scored.slice(0, SHORTLIST_SIZE).map(({ coach }) => ({
+  return scored.slice(0, settings.matchShortlistSize).map(({ coach }) => ({
     id: coach.id,
     fullName: coach.fullName,
     firmName: coach.firmName,

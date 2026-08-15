@@ -17,6 +17,7 @@
     "seed:ai-training-courses": "tsx --env-file=.env.local scripts/seed-ai-training-courses.ts",
     "seed:remaining-learning-courses": "tsx --env-file=.env.local scripts/seed-remaining-learning-courses.ts",
     "seed:email-cadence": "tsx --env-file=.env.local scripts/seed-email-cadence.ts",
+    "seed:commercial-config": "tsx --env-file=.env.local scripts/seed-commercial-config.ts",
     "seed:profiles": "tsx --env-file=.env.local scripts/seed/seed_profiles.ts",
     "seed:resumes": "node --env-file=.env.local --conditions=react-server --import tsx scripts/seed/seed_resumes.ts",
     "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts",

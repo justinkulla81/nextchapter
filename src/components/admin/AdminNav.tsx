@@ -63,6 +63,8 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: '/support/admin/coaches', label: 'Coaches' },
         { href: '/support/admin/coach-matches', label: 'Coach Matches' },
+        { href: '/support/admin/coaching-rates', label: 'Coaching Rate Card' },
+        { href: '/support/admin/coaching-settings', label: 'Coaching Settings' },
       ],
     },
     {
@@ -77,11 +79,19 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: '/support/admin/recruiters', label: 'Recruiters' },
         { href: '/support/admin/recruiter-database', label: 'Recruiter Database' },
+        { href: '/support/admin/recruiter-settings', label: 'Recruiter Settings' },
       ],
     },
     {
       title: 'Companies',
       links: [{ href: '/support/admin/companies', label: 'Companies' }],
+    },
+    {
+      title: 'Commercial',
+      links: [
+        { href: '/support/admin/plan-catalog', label: 'Plan Catalog' },
+        { href: '/support/admin/margin-dashboard', label: 'Margin Dashboard' },
+      ],
     },
     {
       title: 'Admin',

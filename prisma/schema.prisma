@@ -4112,6 +4112,7 @@ model Coach {
   coachingConfidentialDisclosures CoachingConfidentialDisclosure[]
   clientInvites                   CoachClientInvite[]
   messageThreads                  MessageThread[]
+  rateCardOverrides               CoachRateCard[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -4162,7 +4163,47 @@ model CoachSession {
   directivesResolvedAt       DateTime?
   directivesResolvedCategory String?
 
+  // Phase 3, Partners Master Build Script section A2.5. sessionType picks
+  // which CoachRateCard row applies; rateSnapshotCents is that rate LOCKED
+  // IN at creation time (see logCoachSession), never a live join to
+  // CoachRateCard, so a later rate-card change can never retroactively
+  // change what a past session paid. Null rateSnapshotCents only occurs on
+  // sessions logged before this field existed.
+  sessionType       CoachSessionType @default(STANDARD)
+  rateSnapshotCents Int?
+
   @@index([candidateId, occurredAt])
+}
+
+enum CoachSessionType {
+  STANDARD
+  EXECUTIVE_BAND
+  MOCK_INTERVIEW_90
+  RESUME_REVIEW
+  INTAKE
+}
+
+// Coaching rate card, Partners Master Build Script section A2.5 / A5.3.
+// "Coach pay rates are configuration, not code." Rows are versioned by
+// effectiveDate and NEVER mutated once written -- a rate change inserts a
+// new row with a later effectiveDate under the same sessionType, so this
+// table is its own audit log (createdBy/createdAt on every version is the
+// "every rate change is logged with actor and timestamp" requirement; no
+// separate log table needed since nothing here is ever overwritten or
+// deleted). coachId null = the default rate for that session type; coachId
+// set = a per-coach override, checked first by getApplicableRate. See
+// src/lib/admin/coaching-rate-card.ts.
+model CoachRateCard {
+  id            String           @id @default(cuid())
+  sessionType   CoachSessionType
+  rateCents     Int
+  effectiveDate DateTime
+  coachId       String?
+  coach         Coach?           @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  createdBy     String
+  createdAt     DateTime         @default(now())
+
+  @@index([sessionType, coachId, effectiveDate])
 }
 
 // Prompt 60 — candidate-completed, self-serve coaching kickoff form (goal-
@@ -4279,6 +4320,13 @@ model Recruiter {
   // might want even if they don't want the periodic market digest (or vice
   // versa).
   newCandidateAlertsOptedOut Boolean @default(false)
+
+  // Phase 3, Partners Master Build Script section A6.4 -- optional link to
+  // firm-level admin config (onboarding/verification/status/seats/scope).
+  // Nullable so every existing Recruiter row (individual login, free-text
+  // firmName, no firm entity today) is unaffected until admin links it.
+  recruiterFirmId String?
+  recruiterFirm   RecruiterFirm? @relation(fields: [recruiterFirmId], references: [id])
 
   jobBoardSubmissions     ExclusiveJobPosting[]
   calibrationMemos        CalibrationMemo[]
@@ -5746,9 +5794,16 @@ model RecruiterCandidateIntroduction {
   status      RecruiterIntroductionStatus @default(REQUESTED)
   source      RecruiterIntroductionSource
 
-  requestedAt DateTime  @default(now())
-  respondedAt DateTime?
-  revokedAt   DateTime?
+  requestedAt      DateTime  @default(now())
+  respondedAt      DateTime?
+  revokedAt        DateTime?
+  // Phase 3, Partners Master Build Script section A6.4 -- set when status
+  // becomes CONSENTED, from RecruiterSettings.consentExpiryDays as of that
+  // moment (see createConsentedIntroductionIfMissing). Enforced alongside
+  // status in getConsentedCandidateIds/isCandidateConsentedForRecruiter --
+  // an expired introduction stops granting visibility without needing a
+  // background job to flip its status.
+  consentExpiresAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5791,4 +5846,234 @@ model RecruiterCandidateIntroductionEvent {
   createdAt      DateTime                         @default(now())
 
   @@index([introductionId, createdAt])
+}
+
+// =============================================================================
+// Phase 3 -- Admin: commercial management. Partners Master Build Script
+// section A9 ("Nothing else can be operated without it"): plan catalog,
+// coaching settings, recruiter settings. CoachRateCard (section A2.5) lives
+// up near CoachSession above, closer to what it prices.
+// =============================================================================
+
+enum CoachAssignmentMode {
+  AUTO_MATCH
+  ADMIN_ASSIGN
+  CANDIDATE_CHOICE
+}
+
+enum UnusedHoursPolicy {
+  EXPIRE
+  ROLLOVER
+  REFUND
+}
+
+// Admin-managed coaching operations config, section A5.3. Single row -- id
+// is a fixed literal so a second row can never be created -- read by the
+// app, updated in place; every change is written to AdminSettingsChangeLog
+// below with a field-level diff, actor, and timestamp. Deliberately NOT
+// versioned-by-effective-date like CoachRateCard/PlanCatalogEntry: this is
+// operational policy, not something individual historical records need to
+// stay locked against the way a coach's pay for a past session does.
+model CoachingSettings {
+  id String @id @default("singleton")
+
+  sessionLengthMinutesDefault Int  @default(50)
+  // Keyed by planKey (matches PlanCatalogEntry.planKey below) -> sessions
+  // included per billing period, e.g. {"dtc_coaching_plus": 2}.
+  sessionsIncludedByPlan      Json @default("{}")
+  coachMaxActiveClients       Int  @default(25)
+
+  // Matching weights consumed by src/lib/coach/matching.ts -- mirrors the
+  // score contributions that already existed there as hardcoded consts
+  // (function/industry match and seniority match), now admin-editable.
+  // matchWeightTimezone/matchWeightStyle are stored for admin to set ahead
+  // of time but are NOT YET read anywhere -- timezone is currently a hard
+  // constraint (candidate preference excludes non-matching coaches
+  // entirely) rather than a weighted score, and no style-compatibility
+  // signal exists in matching.ts yet. See this phase's report.
+  matchWeightFunctionIndustry Int @default(3)
+  matchWeightSeniorityLevel   Int @default(2)
+  matchWeightHighNeedBoost    Int @default(4)
+  matchWeightTimezone         Int @default(0)
+  matchWeightStyle            Int @default(0)
+  matchShortlistSize          Int @default(3)
+
+  // CANDIDATE_CHOICE reflects current live behavior: generateCoachShortlist
+  // ranks candidates a shortlist, /dashboard/coaching-match lets the
+  // candidate pick from it. AUTO_MATCH/ADMIN_ASSIGN are not wired to any
+  // flow yet -- this field records admin's chosen policy, consumed once
+  // that logic exists.
+  assignmentMode CoachAssignmentMode @default(CANDIDATE_CHOICE)
+
+  cancellationWindowHours Int               @default(24)
+  noShowConsumesHour      Boolean           @default(true)
+  lateCancelConsumesHour  Boolean           @default(true)
+  unusedHoursPolicy       UnusedHoursPolicy @default(EXPIRE)
+
+  responseTimeSlaHoursCore    Int @default(72)
+  responseTimeSlaHoursPlus    Int @default(48)
+  responseTimeSlaHoursPremium Int @default(24)
+
+  // Trigger thresholds. streakBreakWeeksThreshold is the only one currently
+  // wired to real detection logic (detectAvoidancePattern in
+  // src/lib/coach/pre-session-brief.ts, which flags an action type
+  // committed-but-never-completed across this many recent weeks). The other
+  // two are stored for admin to set ahead of a not-yet-built
+  // interviews-without-offers / dormancy detector -- see this phase's
+  // report for what's wired vs. not.
+  interviewsWithoutOffersThreshold Int @default(8)
+  dormancyDaysThreshold            Int @default(14)
+  streakBreakWeeksThreshold        Int @default(2)
+
+  // Free-text policy description shown alongside the one-tap reassignment
+  // flow that already exists per section A5.4 -- that flow's UI/action
+  // isn't part of this phase, this is just the admin-editable policy text.
+  escalationReassignmentPolicy  String?  @db.Text
+  sessionRatingPromptEnabled    Boolean  @default(true)
+  // Average rating below which a coach enters a removal queue. Null = no
+  // auto threshold set. Not yet consumed by any removal-queue UI.
+  sessionRatingRemovalThreshold Decimal? @db.Decimal(3, 2)
+  // Number of pending/at-capacity signals that should trigger bench
+  // outreach for a surge (section A5.4). Null = no threshold set. Not yet
+  // consumed by any outreach automation.
+  surgeCapacityBenchThreshold   Int?
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+enum RecruiterFirmStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+  REMOVED
+}
+
+// Firm-level admin config, section A6.4. Recruiter (defined earlier in this
+// file) stays an individual login row with free-text firmName, same as
+// today; this is an optional relation so existing recruiters are unaffected
+// until admin links them to a firm record.
+model RecruiterFirm {
+  id     String              @id @default(cuid())
+  name   String              @unique
+  status RecruiterFirmStatus @default(PENDING)
+
+  verifiedAt DateTime?
+  verifiedBy String?
+
+  // Free-text description of scope (e.g. "Director+ only, tech function")
+  // -- the admin-recorded policy, not query-layer enforcement; actual
+  // scope-limited access enforcement is future work once a concrete case
+  // needs it (today every VERIFIED firm's recruiters get the same
+  // consented-candidates-only access every other recruiter gets).
+  accessScope String?
+  seatCount   Int     @default(1)
+
+  // Null = inherits RecruiterSettings.feedbackSlaHoursDefault below.
+  feedbackSlaHours          Int?
+  exportDestinationsEnabled String[]
+
+  suspendedAt DateTime?
+  suspendedBy String?
+  notes       String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recruiters Recruiter[]
+}
+
+enum RecruiterFeedbackEnforcement {
+  NONE
+  WARN
+  SUSPEND
+}
+
+// Global recruiter operations config, section A6.4. Same singleton +
+// change-log pattern as CoachingSettings above.
+model RecruiterSettings {
+  id String @id @default("singleton")
+
+  // Default consent-expiry window applied when an introduction becomes
+  // CONSENTED (see createConsentedIntroductionIfMissing in
+  // src/lib/recruiter/introductions.ts) -- feeds
+  // RecruiterCandidateIntroduction.consentExpiresAt.
+  consentExpiryDays Int @default(90)
+
+  // How much Dossier completeness promotes a candidate in recruiter-facing
+  // ranking (section A6.1/A6.4). Stored now; Phase 6's recruiter portal
+  // ranking will consume it -- not read anywhere yet.
+  rankingWeightDossierCompleteness Int @default(5)
+
+  feedbackSlaHoursDefault             Int                          @default(120)
+  feedbackSlaEnforcement              RecruiterFeedbackEnforcement @default(WARN)
+  // Consecutive SLA misses before a firm should be auto-flagged for
+  // suspension when feedbackSlaEnforcement = SUSPEND. Not yet consumed by
+  // any enforcement job -- recorded policy, no automation built this phase.
+  feedbackNonResponseSuspendThreshold Int                          @default(3)
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+enum AdminSettingsScope {
+  COACHING
+  RECRUITER
+}
+
+// Shared audit log for CoachingSettings and RecruiterSettings changes --
+// same "actor + timestamp, every change logged" requirement as
+// RecruiterCandidateIntroductionEvent above, one table instead of two since
+// both settings objects are edited the same way (single row, updated in
+// place, never versioned rows).
+model AdminSettingsChangeLog {
+  id        String             @id @default(cuid())
+  scope     AdminSettingsScope
+  actor     String
+  changedAt DateTime           @default(now())
+  // { fieldName: { from, to } } for every field that actually changed.
+  diff      Json
+}
+
+enum PlanCatalogCategory {
+  OUTPLACEMENT
+  DIRECT_TO_CONSUMER
+  MEMBERSHIP
+}
+
+enum PlanBillingPeriod {
+  NONE
+  ONE_TIME
+  MONTHLY
+  ANNUAL
+}
+
+// Plan catalog, section A9 top bullet. Source of truth for every priced
+// plan (outplacement A2.2, direct-to-consumer A2.3, membership A2.4),
+// versioned by effective date exactly like CoachRateCard above: a price
+// change never edits a past row, it inserts a new one with a later
+// effectiveDate under the same planKey. "Current" for new signups = the
+// latest active row with effectiveDate <= now for a planKey (see
+// getCurrentPlan). Grandfathering an already-enrolled account is a property
+// of THAT account's own subscription/contract record snapshotting its own
+// priceCents at enrollment time -- the same lock-at-assignment pattern as
+// CoachSession.rateSnapshotCents -- not something this catalog table itself
+// needs to track, since no subscription/contract entity consumes it yet
+// (real Stripe integration and per-account contracts are later phases; see
+// this phase's report).
+model PlanCatalogEntry {
+  id            String              @id @default(cuid())
+  planKey       String
+  name          String
+  category      PlanCatalogCategory
+  priceCents    Int
+  billingPeriod PlanBillingPeriod
+  termMonths    Int?
+  features      Json                @default("[]")
+  effectiveDate DateTime
+  active        Boolean             @default(true)
+  createdBy     String
+  createdAt     DateTime            @default(now())
+
+  @@index([planKey, effectiveDate])
 }

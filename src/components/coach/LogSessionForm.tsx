@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import { COACH_SESSION_TYPES, COACH_SESSION_TYPE_LABELS } from '@/lib/constants/coach-session-type'
 
 export function LogSessionForm({ token, clientId }: { token: string; clientId: string }) {
   const [state, formAction, pending] = useActionState(logCoachSession.bind(null, token, clientId), undefined)
@@ -16,6 +17,22 @@ export function LogSessionForm({ token, clientId }: { token: string; clientId: s
       action={formAction}
       className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <div className="space-y-2">
+        <Label htmlFor="sessionType">Session type</Label>
+        <select
+          id="sessionType"
+          name="sessionType"
+          defaultValue="STANDARD"
+          className="h-9 w-full max-w-64 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          {COACH_SESSION_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {COACH_SESSION_TYPE_LABELS[type]}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">Sets which rate-card rate this session pays.</p>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="durationMinutes">Session length (minutes, optional)</Label>
         <Input id="durationMinutes" name="durationMinutes" type="number" min={1} className="max-w-32" />

@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { RecruiterIntroductionSource } from '@prisma/client'
+import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 
 // The single place recruiter-side candidate visibility is decided —
 // Partners Master Build Script §A6.2 ("Consented candidates only, never
@@ -27,9 +28,21 @@ import type { RecruiterIntroductionSource } from '@prisma/client'
 // `id: { in: await getConsentedCandidateIds(recruiterId) }` — the consent
 // check happens BEFORE any candidate data is fetched, not as a filter
 // applied after a broader query already ran.
+// Phase 3, §A6.4 — an expired consent stops granting visibility the moment
+// `consentExpiresAt` passes, with no background job needed to flip status:
+// this Prisma filter (OR null / in the future) is checked at read time,
+// same enforcement point as the pre-existing confidentialSearchMode check
+// below it.
+const NOT_EXPIRED = { OR: [{ consentExpiresAt: null }, { consentExpiresAt: { gt: new Date() } }] }
+
 export async function getConsentedCandidateIds(recruiterId: string): Promise<string[]> {
   const rows = await prisma.recruiterCandidateIntroduction.findMany({
-    where: { recruiterId, status: 'CONSENTED', candidate: { confidentialSearchMode: false } },
+    where: {
+      recruiterId,
+      status: 'CONSENTED',
+      candidate: { confidentialSearchMode: false },
+      ...NOT_EXPIRED,
+    },
     select: { candidateId: true },
   })
   return rows.map((r) => r.candidateId)
@@ -37,7 +50,13 @@ export async function getConsentedCandidateIds(recruiterId: string): Promise<str
 
 export async function isCandidateConsentedForRecruiter(candidateId: string, recruiterId: string): Promise<boolean> {
   const row = await prisma.recruiterCandidateIntroduction.findFirst({
-    where: { recruiterId, candidateId, status: 'CONSENTED', candidate: { confidentialSearchMode: false } },
+    where: {
+      recruiterId,
+      candidateId,
+      status: 'CONSENTED',
+      candidate: { confidentialSearchMode: false },
+      ...NOT_EXPIRED,
+    },
     select: { id: true },
   })
   return !!row
@@ -65,8 +84,12 @@ export async function createConsentedIntroductionIfMissing(
   })
   if (existing) return
 
+  const { consentExpiryDays } = await getRecruiterSettings()
+  const consentExpiresAt =
+    consentExpiryDays > 0 ? new Date(Date.now() + consentExpiryDays * 24 * 60 * 60 * 1000) : null
+
   const introduction = await prisma.recruiterCandidateIntroduction.create({
-    data: { recruiterId, candidateId, status: 'CONSENTED', source, respondedAt: new Date() },
+    data: { recruiterId, candidateId, status: 'CONSENTED', source, respondedAt: new Date(), consentExpiresAt },
   })
   await prisma.recruiterCandidateIntroductionEvent.create({
     data: { introductionId: introduction.id, event: 'CONSENTED', actor, detail },

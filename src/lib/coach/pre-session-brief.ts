@@ -7,6 +7,7 @@ import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
 import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
+import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
 
@@ -43,13 +44,19 @@ export interface PreSessionBrief {
 // tell whether a previously-flagged pattern has shifted since the last
 // session — one implementation, not duplicated.
 export async function detectAvoidancePattern(candidateId: string): Promise<AvoidancePattern | null> {
+  // Admin-configurable "streak break" trigger threshold — Master Build
+  // Script §A5.3. Lookback window is threshold + 1 weeks so there's always
+  // at least one week of headroom beyond the threshold itself; at the
+  // default threshold of 2 this reproduces the previous hardcoded take: 3.
+  const { streakBreakWeeksThreshold } = await getCoachingSettings()
+
   const thisMonday = getMondayOfWeek(new Date())
   const recentSprints = await prisma.weeklySprint.findMany({
     where: { candidateId, weekStartDate: { lte: thisMonday } },
     orderBy: { weekStartDate: 'desc' },
-    take: 3,
+    take: streakBreakWeeksThreshold + 1,
   })
-  if (recentSprints.length < 2) return null
+  if (recentSprints.length < streakBreakWeeksThreshold) return null
 
   const byActionType = new Map<string, { committed: number; completed: number }>()
   for (const sprint of recentSprints) {
@@ -75,7 +82,7 @@ export async function detectAvoidancePattern(candidateId: string): Promise<Avoid
   if (!anyTypeCompleted) return null
 
   for (const [actionType, counts] of byActionType) {
-    if (counts.committed >= 2 && counts.completed === 0) {
+    if (counts.committed >= streakBreakWeeksThreshold && counts.completed === 0) {
       return { actionType, weeksAvoided: counts.committed }
     }
   }

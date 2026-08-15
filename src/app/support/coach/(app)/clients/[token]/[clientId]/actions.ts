@@ -1,11 +1,13 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import type { CoachSessionType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyDirectiveResolvedRewrite } from '@/lib/scoring/rewrite-actions'
 import { CATEGORY_ORDER, type CategoryKey } from '@/lib/scoring/grade'
+import { COACH_SESSION_TYPES, getApplicableRateCents } from '@/lib/admin/coaching-rate-card'
 
 export type LogSessionFormState = { error?: string } | undefined
 
@@ -26,6 +28,19 @@ export async function logCoachSession(
   const notes = (formData.get('notes') as string | null)?.trim() || null
   const directives = (formData.get('directives') as string | null)?.trim() || null
   const focusNote = (formData.get('focusNote') as string | null)?.trim() || null
+  const sessionTypeRaw = (formData.get('sessionType') as string | null) ?? 'STANDARD'
+  const sessionType: CoachSessionType = COACH_SESSION_TYPES.includes(sessionTypeRaw as CoachSessionType)
+    ? (sessionTypeRaw as CoachSessionType)
+    : 'STANDARD'
+
+  // Rate LOCKED IN at assignment (this create), per Master Build Script
+  // §A2.5 — never a live join to CoachRateCard, so a later rate-card change
+  // can never retroactively change what this session paid. Falls back to
+  // null (not an error) if no rate has been seeded for this sessionType yet
+  // — logging the session still succeeds; historical reporting just treats
+  // that session as unpriced rather than blocking the coach's workflow on
+  // an admin-config gap.
+  const rateSnapshotCents = await getApplicableRateCents(sessionType, coach.id)
 
   await prisma.coachSession.create({
     data: {
@@ -35,6 +50,8 @@ export async function logCoachSession(
       notes,
       directives,
       focusNote,
+      sessionType,
+      rateSnapshotCents,
     },
   })
 
@@ -43,6 +60,8 @@ export async function logCoachSession(
     hasNotes: !!notes,
     hasDirectives: !!directives,
     hasFocusNote: !!focusNote,
+    sessionType,
+    rateSnapshotCents,
   })
 
   revalidatePath(`/support/coach/clients/${token}/${clientId}`)
