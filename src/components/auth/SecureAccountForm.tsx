@@ -21,6 +21,13 @@ interface SecureAccountFormProps {
   // token_hash link that reaches this form always leads here next anyway.
   tokenHash?: string | null
   otpType?: EmailOtpType | null
+  // Where to land after a password is set — defaults to candidate
+  // onboarding, the common case (a brand-new candidate, coach client, or
+  // recruiter-sourced signup). CallbackHandler overrides this for
+  // non-candidate admin-generated invites (e.g. an employer-portal team
+  // member accepting via nextIsOutplacementOrgInvite), which must never
+  // land in candidate onboarding.
+  nextPath?: string
 }
 
 // Shown right after the anonymous-to-registered email confirmation link is
@@ -28,7 +35,7 @@ interface SecureAccountFormProps {
 // address, never a password, so without this step the account would have no
 // durable way to log back in. Offers either path: set a password directly,
 // or link Google to the already-authenticated session.
-export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps) {
+export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding' }: SecureAccountFormProps) {
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -70,7 +77,7 @@ export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
     await markPasswordSet()
-    router.push('/onboarding')
+    router.push(nextPath)
   }
 
   async function handleGoogleLink() {
@@ -85,7 +92,7 @@ export function SecureAccountForm({ tokenHash, otpType }: SecureAccountFormProps
       return
     }
 
-    const redirectTo = new URL('/onboarding', window.location.origin)
+    const redirectTo = new URL(nextPath, window.location.origin)
     const { error } = await supabase.auth.linkIdentity({
       provider: 'google',
       options: { redirectTo: redirectTo.toString() },

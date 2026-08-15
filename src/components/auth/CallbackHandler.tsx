@@ -12,6 +12,8 @@ import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actio
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 import { finishAcceptingCoachInvite } from '@/app/support/coach/(app)/invite-client/actions'
 import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidates/actions'
+import { finishAcceptingOutplacementSeat } from '@/app/employer/seats/accept/[token]/actions'
+import { finishAcceptingOutplacementOrgInvite } from '@/app/employer/invite/accept/[token]/actions'
 import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
@@ -36,12 +38,19 @@ export function CallbackHandler() {
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
   const nextIsRecruiterSource = searchParams.get('next') === 'recruiter-source'
+  const nextIsOutplacementSeat = searchParams.get('next') === 'outplacement-seat'
+  const nextIsOutplacementOrgInvite = searchParams.get('next') === 'outplacement-org-invite'
   const inviteToken = searchParams.get('inviteToken')
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
   // itself on submit. See SecureAccountForm for why that's still safe
   // against email-scanner link prefetching (nothing fires until submit).
+  // Where SecureAccountForm sends the user after they set a password.
+  // Defaults to candidate onboarding — the common case — and is overridden
+  // for the one flow whose accepted invite is NOT a candidate (an
+  // employer-portal team member, see nextIsOutplacementOrgInvite below).
+  const [postSecureAccountPath, setPostSecureAccountPath] = useState('/onboarding')
   const [status, setStatus] = useState<Status>(() => {
     if (!tokenHash) return 'verifying'
     return nextIsSecureAccount ? 'secure-account' : 'confirm'
@@ -154,6 +163,39 @@ export function CallbackHandler() {
       setStatus('secure-account')
       return
     }
+    if (nextIsOutplacementSeat) {
+      // Admin-generated magic link, same shape as nextIsCoachInvite —
+      // candidateId gets set inside finishAcceptingOutplacementSeat itself.
+      if (!inviteToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishAcceptingOutplacementSeat(inviteToken)
+      if (result.error) {
+        console.error('finishAcceptingOutplacementSeat error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('secure-account')
+      return
+    }
+    if (nextIsOutplacementOrgInvite) {
+      // Employer-portal team invite (employer_admin/viewer/legal/finance) —
+      // also an admin-generated magic link, same shape as nextIsCoachInvite.
+      if (!inviteToken) {
+        setStatus('error')
+        return
+      }
+      const result = await finishAcceptingOutplacementOrgInvite(inviteToken)
+      if (result.error) {
+        console.error('finishAcceptingOutplacementOrgInvite error:', result.error)
+        setStatus('error')
+        return
+      }
+      setPostSecureAccountPath('/employer')
+      setStatus('secure-account')
+      return
+    }
     setStatus('redirecting')
     router.replace('/onboarding')
   }
@@ -259,7 +301,7 @@ export function CallbackHandler() {
   }
 
   if (status === 'secure-account') {
-    return <SecureAccountForm tokenHash={tokenHash} otpType={otpType} />
+    return <SecureAccountForm tokenHash={tokenHash} otpType={otpType} nextPath={postSecureAccountPath} />
   }
 
   return <p className="text-sm text-muted-foreground">Redirecting…</p>

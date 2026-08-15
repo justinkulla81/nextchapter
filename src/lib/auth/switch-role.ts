@@ -5,14 +5,21 @@ import { createClient } from '@/lib/supabase/server'
 import type { RoleGrantRole } from '@prisma/client'
 
 // Login destination for each role this app has a real portal for today.
-// Roles with no entry here (alum, member, hiring_manager, employer_admin,
-// employer_viewer) have no switchable portal yet — RoleContextBanner
-// filters them out rather than rendering a dead link.
+// Roles with no entry here (alum, member, hiring_manager) have no
+// switchable portal yet — RoleContextBanner filters them out rather than
+// rendering a dead link. employer_admin/employer_viewer/employer_legal/
+// employer_finance added in Phase 5 (§A7's employer portal) — all four
+// land on the same /employer/login, which resolves the actual role/org
+// server-side via getCurrentOutplacementOrgUser.
 const PORTAL_LOGIN_PATH: Partial<Record<RoleGrantRole, string>> = {
   candidate: '/auth/login',
   coach: '/support/coach/login',
   recruiter: '/recruiters/login',
   nc_admin: '/support/admin/login',
+  employer_admin: '/employer/login',
+  employer_viewer: '/employer/login',
+  employer_legal: '/employer/login',
+  employer_finance: '/employer/login',
 }
 
 // Re-auth on switch, not a same-session navigation — Partners Master Build

@@ -67,6 +67,38 @@ export function assertNoIdentityFields(fields: readonly string[]): void {
   }
 }
 
+// §A1.3 — "Employer aggregates round to the nearest 5 below 50 seats."
+// `populationSize` is the size of whatever specific population the value
+// was computed over (a cohort, a contract, an org) — not some other,
+// larger number — since the whole point of this mitigation is that a
+// small population's aggregate can't be used to back out one person's
+// month-over-month change (see the file-level comment's "9 of 11" example).
+export const EMPLOYER_ROUNDING_THRESHOLD = 50
+export function roundEmployerAggregate(value: number, populationSize: number): number {
+  return populationSize < EMPLOYER_ROUNDING_THRESHOLD ? Math.round(value / 5) * 5 : value
+}
+
+// §A7 — "Cohorts under 20 seats report quarterly, not monthly." A cohort
+// here is one OutplacementContract's own seatCount, not an org's total
+// across contracts — see outplacement-reporting.ts, the only caller.
+export const QUARTERLY_REPORTING_SEAT_THRESHOLD = 20
+export type ReportingGranularity = 'monthly' | 'quarterly'
+export function getReportingGranularity(seatCount: number): ReportingGranularity {
+  return seatCount < QUARTERLY_REPORTING_SEAT_THRESHOLD ? 'quarterly' : 'monthly'
+}
+
+// The most recent COMPLETE calendar quarter's [start, end) boundary, as of
+// `now` — used to snap a quarterly-gated cohort's reporting window so it
+// never includes a partial, still-changing quarter (which would leak the
+// same kind of month-over-month differencing signal the quarterly gate
+// exists to prevent).
+export function lastCompleteQuarterRange(now: Date = new Date()): { start: Date; end: Date } {
+  const currentQuarterStartMonth = Math.floor(now.getUTCMonth() / 3) * 3
+  const end = new Date(Date.UTC(now.getUTCFullYear(), currentQuarterStartMonth, 1))
+  const start = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() - 3, 1))
+  return { start, end }
+}
+
 type GroupByArgs = Parameters<typeof prisma.candidateProfile.groupBy>[0]
 
 // The only three read operations an employer-scoped module may run against

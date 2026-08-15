@@ -1258,6 +1258,11 @@ model CandidateProfile {
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
+  // Outplacement portal (Phase 5, §A7) — the one legitimate link between a
+  // purchased seat and a real candidate. NEVER read directly by employer-
+  // facing code; see src/lib/employer/candidate-identity-guard.ts and
+  // outplacement-reporting.ts/-compliance.ts for the query-layer rules.
+  outplacementSeats              OutplacementSeat[]
   portfolioAccessRequests        PortfolioAccessRequest[]
   recruiterIntroductions         RecruiterCandidateIntroduction[]
   assessmentResults              AssessmentResult[]
@@ -5849,9 +5854,17 @@ model CompanyIntelHelpfulVote {
 // Phase 1). See docs/specs/NextChapter_Partners_Master_Build_Script.md.
 // ─────────────────────────────────────────────────────────────────────────
 
-// Exact values from spec §A1.1 — "Role grants: candidate · alum · member ·
+// Base values from spec §A1.1 — "Role grants: candidate · alum · member ·
 // coach · recruiter · hiring_manager · employer_admin · employer_viewer ·
 // nc_admin. Each granted separately, gated separately, logged separately."
+//
+// employer_legal / employer_finance added in Phase 5 (§A7's own role-
+// permission line: "employer_admin (enroll, billing, all reporting) ·
+// employer_viewer (reporting only) · employer_legal (compliance pack
+// only) · employer_finance (invoices only)") — Phase 1 built the ledger
+// with only employer_admin/employer_viewer since the employer portal
+// itself didn't exist yet to need the other two. Additive to the enum, so
+// no existing RoleGrant row is affected.
 enum RoleGrantRole {
   candidate
   alum
@@ -5861,6 +5874,8 @@ enum RoleGrantRole {
   hiring_manager
   employer_admin
   employer_viewer
+  employer_legal
+  employer_finance
   nc_admin
 }
 
@@ -5893,6 +5908,195 @@ model RoleGrant {
 
   @@index([userId])
   @@index([userId, role, revokedAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Employer portal (outplacement buyers) — Partners Master Build Script
+// §A7, Phase 5. NEW models, additive. Do NOT confuse with EmployerProfile/
+// EmployerSeat/EmployerTier above (§2216+) — those belong to `/talent`, a
+// pre-existing, unrelated self-serve recruiting product where the
+// "employer" is a company hiring, not a company buying outplacement seats
+// for departing employees. This section is a completely separate domain:
+// an HR/CHRO buys Core/Plus/Premium seats (§A2.2) for people who no longer
+// work there.
+//
+// The privacy invariant every read against these models must respect (see
+// §A1.2/§A1.3 and src/lib/employer/candidate-identity-guard.ts, Phase 1):
+// an outplacement buyer must never resolve any individual candidate's
+// identity, activity, or grade — aggregates only, minimum cell size 10,
+// rounded below 50 seats, quarterly-only under 20 seats. OutplacementSeat
+// below is the one legitimate exception (someone has to know which real
+// person occupies a purchased seat, for billing/compliance) — see that
+// model's own comment for exactly how it's read and never read.
+// ─────────────────────────────────────────────────────────────────────────
+
+enum OutplacementTier {
+  CORE
+  PLUS
+  PREMIUM
+}
+
+enum OutplacementContractStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+// §A7's last line, verbatim: "employer_admin (enroll, billing, all
+// reporting) · employer_viewer (reporting only) · employer_legal
+// (compliance pack only) · employer_finance (invoices only)." A dedicated
+// enum rather than reusing RoleGrantRole's employer_* values — this table
+// must never be able to hold a non-employer role, and RoleGrantRole is a
+// much larger, app-wide enum with no schema-level way to constrain a
+// foreign key to a subset of its values.
+enum OutplacementRole {
+  ADMIN
+  VIEWER
+  LEGAL
+  FINANCE
+}
+
+enum OutplacementSeatStatus {
+  INVITED
+  ACTIVATED
+  DEACTIVATED
+}
+
+// API enrollment is spec'd (§A7) but explicitly NOT built this phase — real
+// third-party API auth/integration is out of scope (see this phase's
+// report). No API value here so the enum can't imply a path that doesn't
+// exist.
+enum OutplacementEnrollmentMethod {
+  SINGLE
+  BULK_CSV
+}
+
+// The buying company. One org can run multiple contracts over time — a
+// renewal, a second RIF cohort, a different tier for a different group —
+// see OutplacementContract.cohortLabel for §A7's "multi-cohort views."
+model OutplacementEmployerOrg {
+  id                  String   @id @default(cuid())
+  name                String
+  programBrandName    String? // §A7 "program branding" — shown on this org's own portal chrome
+  primaryContactName  String?
+  primaryContactEmail String
+  // Throwaway orgs created for this phase's own privacy-invariant
+  // verification (see report) — never real seed/production data. Lets a
+  // future cleanup script find and delete them without guessing.
+  isSampleData        Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  contracts OutplacementContract[]
+  orgUsers  OutplacementOrgUser[]
+}
+
+// A single purchase — seats, tier, term, PO/invoice reference. Admin-
+// managed per spec §A9 ("Employer contracts — seats, term, tier, discount,
+// PO, renewal date, utilization, renewal risk").
+model OutplacementContract {
+  id    String                  @id @default(cuid())
+  orgId String
+  org   OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
+  tier             OutplacementTier
+  seatCount        Int
+  termStartAt      DateTime
+  termEndAt        DateTime
+  poReference      String?
+  invoiceReference String?
+  status           OutplacementContractStatus @default(ACTIVE)
+  isSampleData     Boolean                    @default(false)
+
+  createdAt DateTime @default(now())
+  createdBy String // admin userId — contracts are admin-managed, never self-service
+
+  seats OutplacementSeat[]
+
+  @@index([orgId])
+  @@index([status, termEndAt])
+}
+
+// The one legitimate link between a purchased seat and a real candidate —
+// "someone has to know which real person occupies which purchased seat for
+// billing/compliance purposes." How this table is (and is never) read:
+//
+//   - Reporting/dashboard code (src/lib/employer/outplacement-reporting.ts)
+//     may only reach CandidateProfile through
+//     employerCandidateAggregates.count/aggregate/groupBy (Phase 1's
+//     candidate-identity-guard.ts) — never a row, never candidateId itself.
+//   - The org's own enrollment roster (outplacement-roster.ts) reads ONLY
+//     invitedEmail/invitedName/status/dates below — fields the
+//     employer_admin typed in themselves at enrollment time, never
+//     candidateId, never a join to CandidateProfile. Redisplaying an
+//     org's own enrollment input back to them isn't a privacy violation;
+//     resolving an ARBITRARY candidate's identity is what's prohibited.
+//   - candidateId itself is read row-level in exactly one place —
+//     outplacement-compliance.ts's compliance pack, gated to the
+//     employer_legal role, and even there it never surfaces job-search
+//     activity/grade/detections — only contract/enrollment/service-
+//     delivery facts (see that model — sorry, that file's — own comment).
+model OutplacementSeat {
+  id         String               @id @default(cuid())
+  contractId String
+  contract   OutplacementContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  invitedEmail String
+  invitedName  String?
+
+  inviteToken      String                       @unique @default(cuid())
+  enrollmentMethod OutplacementEnrollmentMethod @default(SINGLE)
+  status           OutplacementSeatStatus       @default(INVITED)
+
+  // Set once the invited person accepts and either creates a fresh
+  // CandidateProfile or links an existing one (see
+  // src/app/employer/(app)/enroll/actions.ts). NEVER read directly by
+  // reporting/dashboard code — see this model's own comment above.
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id])
+
+  enrolledAt    DateTime  @default(now())
+  activatedAt   DateTime?
+  deactivatedAt DateTime?
+
+  // A service-delivery fact ("the outplacement benefit was provided"), not
+  // a job-search-outcome claim ("this person got hired") — this phase
+  // deliberately does not claim placement rate/speed/success without real
+  // substantiating data (spec §E3.9). Set by employer_admin from the org's
+  // own roster (markSeatPlaced) when they close out a seat, exactly like
+  // any other outplacement vendor's "case closed" marker.
+  placedAt DateTime?
+
+  // Throwaway seats created for this phase's own privacy-invariant
+  // verification — see report.
+  isSampleData Boolean @default(false)
+
+  @@index([contractId])
+  @@index([candidateId])
+  @@index([contractId, status])
+}
+
+// The four-role RBAC for an employer-portal login. Distinct from the
+// global RoleGrant ledger (which only records "this identity holds
+// employer_admin somewhere," for RoleContextBanner purposes) — this table
+// scopes WHICH buying org that grant applies to, and is what every
+// employer-portal query/action actually authorizes against.
+model OutplacementOrgUser {
+  id    String                  @id @default(cuid())
+  orgId String
+  org   OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role  OutplacementRole
+
+  invitedEmail String
+  fullName     String?
+  inviteToken  String    @unique @default(cuid())
+  invitedAt    DateTime  @default(now())
+  acceptedAt   DateTime?
+  userId       String?   @unique
+
+  @@unique([orgId, invitedEmail])
+  @@index([userId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────

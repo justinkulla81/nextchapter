@@ -28,15 +28,27 @@ const ROLE_LABEL: Record<RoleGrantRole, string> = {
   hiring_manager: 'Hiring Manager',
   employer_admin: 'Employer',
   employer_viewer: 'Employer',
+  employer_legal: 'Employer',
+  employer_finance: 'Employer',
   nc_admin: 'Admin',
 }
 
 // Only roles with a real, distinct portal today are offered as a switch
-// target — the other role labels above (alum/member/hiring_manager/
-// employer_*) can still show as "you also hold this role" context in a
-// future pass, but there's nowhere for "Switch to →" to send them yet (see
-// PORTAL_LOGIN_PATH in src/lib/auth/switch-role.ts).
-const SWITCHABLE_ROLES: RoleGrantRole[] = ['candidate', 'coach', 'recruiter', 'nc_admin']
+// target — the other role labels above (alum/member/hiring_manager) can
+// still show as "you also hold this role" context in a future pass, but
+// there's nowhere for "Switch to →" to send them yet (see
+// PORTAL_LOGIN_PATH in src/lib/auth/switch-role.ts). employer_* added in
+// Phase 5, now that /employer is a real portal.
+const SWITCHABLE_ROLES: RoleGrantRole[] = [
+  'candidate',
+  'coach',
+  'recruiter',
+  'nc_admin',
+  'employer_admin',
+  'employer_viewer',
+  'employer_legal',
+  'employer_finance',
+]
 
 export async function RoleContextBanner({
   userId,

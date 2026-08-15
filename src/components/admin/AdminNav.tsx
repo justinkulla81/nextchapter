@@ -92,6 +92,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: '/support/admin/plan-catalog', label: 'Plan Catalog' },
         { href: '/support/admin/margin-dashboard', label: 'Margin Dashboard' },
+        { href: '/support/admin/outplacement-contracts', label: 'Employer Contracts' },
       ],
     },
     {
