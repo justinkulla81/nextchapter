@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     // attempt leaves no EmailConnection row and no tokens stored anywhere.
     const connectedEmail = await fetchGoogleAccountEmail(tokens.access_token)
     if (profile.confidentialSearchMode && connectedEmail && looksLikeCorporateDomain(connectedEmail)) {
+      captureServerEvent(profile.id, 'gmail_connect_blocked_corporate_domain')
       return NextResponse.redirect(new URL('/dashboard/network?gmailError=corporate_domain_blocked', request.url))
     }
 

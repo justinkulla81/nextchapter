@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { rowsToCsv, csvContentHeaders } from '@/lib/admin/csv-export'
 import { loadIssueAnalytics, parseIssueFilters, flattenSegmentMatrixForCsv } from '@/lib/admin/issue-analytics'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 // CSV export for every view on /support/admin/issues — Phase 2 Master
 // Script, Part B, Prompt 4: "Every view exports CSV." One route handler
@@ -10,7 +11,7 @@ import { loadIssueAnalytics, parseIssueFilters, flattenSegmentMatrixForCsv } fro
 // (loadIssueAnalytics) — recomputing it 6 times over 6 files would be the
 // kind of duplicated-pattern src/CLAUDE.md's design principles warn against.
 export async function GET(request: NextRequest) {
-  await requireAdmin()
+  const admin = await requireAdmin()
 
   const searchParams = request.nextUrl.searchParams
   const rawParams: Record<string, string | undefined> = {}
@@ -53,6 +54,8 @@ export async function GET(request: NextRequest) {
     default:
       return NextResponse.json({ error: `Unknown view "${view}"` }, { status: 400 })
   }
+
+  captureServerEvent(admin.email ?? 'admin', 'admin_issue_analytics_exported', { view, filters: rawParams })
 
   return new NextResponse(rowsToCsv(rows), { headers: csvContentHeaders(filename) })
 }

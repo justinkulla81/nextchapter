@@ -323,6 +323,7 @@ export async function deactivateCommunityPost(postId: string) {
     data: { isActive: false },
   })
 
+  captureServerEvent(profile.id, 'community_post_deactivated', { postId })
   revalidatePath('/dashboard/community')
 }
 
@@ -370,6 +371,7 @@ export async function dismissEncouragementNote(noteId: string) {
 
   const profile = await getOrCreateCandidateProfile(user.id)
   await markEncouragementNoteRead(noteId, profile.id)
+  captureServerEvent(profile.id, 'encouragement_note_dismissed', { noteId })
   revalidatePath('/dashboard/community')
 }
 

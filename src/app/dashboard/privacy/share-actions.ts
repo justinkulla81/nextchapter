@@ -47,7 +47,7 @@ export async function createProfileShare(
     },
   })
 
-  captureServerEvent(profile.id, 'profile_share_created', {})
+  captureServerEvent(profile.id, 'profile_share_created', { recipientType, activeProcess, expiryOption })
 
   revalidatePath('/dashboard/privacy')
 }
@@ -65,6 +65,8 @@ export async function revokeProfileShare(shareId: string) {
     where: { id: shareId, candidateId: profile.id },
     data: { revokedAt: new Date() },
   })
+
+  captureServerEvent(profile.id, 'profile_share_revoked', { shareId })
 
   revalidatePath('/dashboard/privacy')
 }

@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
     // but the block is keyed on the same "personal account only" rule.
     const connectedEmail = await fetchGoogleAccountEmail(tokens.access_token)
     if (profile.confidentialSearchMode && connectedEmail && looksLikeCorporateDomain(connectedEmail)) {
+      captureServerEvent(profile.id, 'google_connect_blocked_corporate_domain')
       return NextResponse.redirect(new URL('/dashboard/network?gmailError=corporate_domain_blocked', request.url))
     }
 

@@ -4,6 +4,7 @@ import { rowsToCsv, csvContentHeaders } from '@/lib/admin/csv-export'
 import { isSuppressedCell } from '@/lib/admin/cell-suppression'
 import { getAllSegmentRow, getSuppressedSegmentTypeRows, listSnapshotWeeks } from '@/lib/admin/population-report'
 import type { SegmentType } from '@/lib/analytics/population-metrics'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 // CSV export for every section of the population report — Phase 2 Master
 // Script, Part B: "Every view exports CSV" (Prompt 4, applied blanket
@@ -31,7 +32,7 @@ function parseWeek(param: string | null): Date | null {
 }
 
 export async function GET(request: NextRequest) {
-  await requireAdmin()
+  const admin = await requireAdmin()
 
   const { searchParams } = new URL(request.url)
   const section = searchParams.get('section') as Section | null
@@ -45,6 +46,12 @@ export async function GET(request: NextRequest) {
     return new NextResponse(rowsToCsv([]), { headers: csvContentHeaders(`population-${section}-no-data.csv`) })
   }
   const week = parseWeek(searchParams.get('week')) ?? weeks[0]
+
+  captureServerEvent(admin.email ?? 'admin', 'admin_population_report_exported', {
+    section,
+    segmentType,
+    week: week.toISOString(),
+  })
 
   let rows: Record<string, unknown>[] = []
 

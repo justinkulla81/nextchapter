@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 async function reviewerEmail(): Promise<string | null> {
   const user = await requireAdmin()
@@ -23,6 +24,7 @@ export async function publishModeratedPostAction(postId: string) {
     where: { id: postId },
     data: { moderationStatus: 'PUBLISHED', isActive: true, moderationReviewedAt: new Date(), moderationReviewedByEmail: email },
   })
+  captureServerEvent(email ?? 'admin', 'admin_moderated_post_published', { postId })
   refresh()
 }
 
@@ -32,6 +34,7 @@ export async function removeModeratedPostAction(postId: string) {
     where: { id: postId },
     data: { moderationStatus: 'REMOVED', isActive: false, moderationReviewedAt: new Date(), moderationReviewedByEmail: email },
   })
+  captureServerEvent(email ?? 'admin', 'admin_moderated_post_removed', { postId })
   refresh()
 }
 
@@ -44,6 +47,7 @@ export async function acknowledgeModeratedPostAction(postId: string) {
     where: { id: postId },
     data: { moderationReviewedAt: new Date(), moderationReviewedByEmail: email },
   })
+  captureServerEvent(email ?? 'admin', 'admin_moderated_post_acknowledged', { postId })
   refresh()
 }
 
@@ -51,11 +55,12 @@ export async function acknowledgeModeratedPostAction(postId: string) {
 // actions — dismissing a report never changes the post's moderation status
 // or visibility, only clears the report flag.
 export async function dismissPostReportAction(postId: string) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   await prisma.communityPost.update({
     where: { id: postId },
     data: { reportedAt: null, reportedByCandidateId: null, reportReason: null },
   })
+  captureServerEvent(admin.email ?? 'admin', 'admin_post_report_dismissed', { postId })
   revalidatePath('/support/admin/reported-messages')
 }
 
@@ -65,15 +70,17 @@ export async function removeReportedPostAction(postId: string) {
     where: { id: postId },
     data: { moderationStatus: 'REMOVED', isActive: false, moderationReviewedAt: new Date(), moderationReviewedByEmail: email },
   })
+  captureServerEvent(email ?? 'admin', 'admin_reported_post_removed', { postId })
   revalidatePath('/support/admin/reported-messages')
   revalidatePath('/dashboard/community')
 }
 
 export async function dismissThreadReportAction(threadId: string) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   await prisma.messageThread.update({
     where: { id: threadId },
     data: { reportedAt: null, reportedByCandidateId: null, reportReason: null },
   })
+  captureServerEvent(admin.email ?? 'admin', 'admin_thread_report_dismissed', { threadId })
   revalidatePath('/support/admin/reported-messages')
 }
