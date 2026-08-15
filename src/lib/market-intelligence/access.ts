@@ -64,7 +64,27 @@ const TIER_RANK: Record<MarketIntelTier, number> = { CORE: 0, PLUS: 1, PREMIUM: 
 // reporting code (see that model's own schema comment) — reading it here
 // is the same sanctioned "candidate reading their own placement" exception
 // src/lib/membership/activate-alum.ts already relies on.
+//
+// SAFETY VALVE, added post-phase during verification: as of this write,
+// zero OutplacementContract rows exist anywhere in production (confirmed
+// via direct query) — no outplacement seats have ever been sold. Enforcing
+// the CORE-tier restriction under that condition wouldn't protect any real
+// paying tier's exclusivity (there is none yet); it would only take away
+// insider-network/comp-band access every existing candidate already had
+// before this feature shipped, with no way for them to "upgrade" since no
+// live billing exists for anyone to purchase Plus/Premium. Until the first
+// real outplacement contract is sold, every candidate resolves to PREMIUM
+// (full access) here — the moment a real contract exists, tier enforcement
+// becomes meaningful and applies exactly as built. This check is cheap
+// (a `take: 1` existence probe) and self-removes in effect the day it's no
+// longer needed, without deleting any of the gating work itself.
 export async function getCandidateMarketIntelTier(candidateId: string): Promise<MarketIntelTier> {
+  const anyRealContractExists = await prisma.outplacementContract.findFirst({
+    where: { status: 'ACTIVE' },
+    select: { id: true },
+  })
+  if (!anyRealContractExists) return 'PREMIUM'
+
   const seat = await prisma.outplacementSeat.findFirst({
     where: { candidateId, status: 'ACTIVATED', contract: { status: 'ACTIVE' } },
     select: { contract: { select: { tier: true } } },
