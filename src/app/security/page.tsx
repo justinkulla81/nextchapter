@@ -61,7 +61,7 @@ export default function SecurityPage() {
 
         <div className="mt-4 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm text-foreground">
           <span className="font-semibold">Current SOC 2 state: not yet started.</span> We are not going to
-          publish a fabricated "in progress, expected [date]" — there is no audit underway right now. When
+          publish a fabricated &ldquo;in progress, expected [date]&rdquo; — there is no audit underway right now. When
           we begin a formal observation window, this page will say so with a real date. Silence would be
           worse than this honesty; a guessed date would be worse still.
         </div>
