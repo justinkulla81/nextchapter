@@ -48,6 +48,9 @@ import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 import { ActivationChecklistCard } from '@/components/dashboard/ActivationChecklistCard'
+import { getHardGateStatus } from '@/lib/dashboard/access-gate'
+import { SearchPlanCard } from '@/components/dashboard/SearchPlanCard'
+import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -137,6 +140,9 @@ export default async function DashboardPage() {
     needsFollowUp,
     priorityContacts,
     passiveToActivePrompt,
+    learningBadgeCount,
+    outreachLogCount,
+    interimSignupCount,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
@@ -163,6 +169,14 @@ export default async function DashboardPage() {
     // §10-12 — read-only trigger check; PassiveToActivePromptCard records
     // "shown" itself once it actually renders (see that component).
     evaluatePassiveToActivePrompt(profile.id),
+    // #931/#932 Search Plan — same simple counts each area's own page
+    // already computes (learning/page.tsx's badges.length, network/page.tsx's
+    // outreachLogs.length, interim-work/page.tsx's interimSignups.length),
+    // re-queried here rather than threaded through props since this page
+    // never otherwise fetches them.
+    prisma.learningBadge.count({ where: { candidateId: profile.id } }),
+    prisma.outreachLog.count({ where: { candidateId: profile.id } }),
+    prisma.interimMarketplaceSignup.count({ where: { candidateId: profile.id } }),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
   // Same recency sort + inference as search-strategy/page.tsx so this
@@ -186,6 +200,21 @@ export default async function DashboardPage() {
     Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
   )
   const onTrack = grade.weeklyPoints > (grade.weeklyPointsTarget * daysElapsedThisWeek) / 7
+
+  // #931/#932 Search Plan — only shown once the candidate has cleared the
+  // dashboard-wide hard gate (see access-gate.ts). Reuses emailConnection
+  // (already fetched above) instead of a second isGmailConnected() query —
+  // same "has a live, non-disconnected EmailConnection row" check either way.
+  const hardGateStatus = getHardGateStatus(profile, !!emailConnection)
+
+  // Same jobSearchPattern.applicationTrends read as find-my-job/page.tsx —
+  // computed once at report-generation time, never recomputed live here.
+  const totalApplications =
+    (
+      profile.marketRealityReports[0]?.jobSearchPattern as unknown as {
+        applicationTrends: ApplicationTrendsResult | null
+      } | null
+    )?.applicationTrends?.totalApplications ?? 0
 
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -230,6 +259,24 @@ export default async function DashboardPage() {
           badgesLastSeenCount={profile.badgesLastSeenCount}
         />
       </Suspense>
+
+      {/* #931/#932 "Search Plan" — the post-activation equivalent of
+          ActivationChecklistCard above: once a candidate has cleared the
+          hard gate, this is "here's your plan," shown before "here's this
+          week's focus" (WeeklyFocusCard) below. Never shown pre-activation
+          — ActivationChecklistCard already owns that state, and duplicating
+          its job here would be redundant. */}
+      {hardGateStatus === 'unlocked' && (
+        <SearchPlanCard
+          completedReferencesCount={completedReferencesCount}
+          learningBadgeCount={learningBadgeCount}
+          outreachLogCount={outreachLogCount}
+          totalApplications={totalApplications}
+          interimSignupCount={interimSignupCount}
+          linkedInActivityCount={profile.linkedInActivityLogs.length}
+          laggingEngines={grade.laggingEngines}
+        />
+      )}
 
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />

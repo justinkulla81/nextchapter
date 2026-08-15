@@ -464,9 +464,19 @@ export function SuccessSprintCard({
   // until it's connected it's the ONLY priority — everything else waits
   // rather than competing with it for attention. Once it's connected, a
   // small fixed set takes over: networking outreach, references (until 5
-  // are in), applying, and interim work, plus Search Strategy setup while
-  // it's still incomplete (handled separately below, not through this
-  // allowlist, since it isn't a real actionType).
+  // are in), applying, interim work, learning/skills, and posting, plus
+  // Search Strategy setup while it's still incomplete (handled separately
+  // below, not through this allowlist, since it isn't a real actionType).
+  // #931/#932 Search Plan — learning and posting used to be missing from
+  // this set (the other 4 of the Search Plan's 6 areas were already here),
+  // so a candidate could go a whole week without either ever surfacing as a
+  // priority. Added at the same "always priority once Gmail is connected"
+  // level as OUTREACH_MESSAGE/JOB_APPLICATION_SUBMITTED/
+  // INTERIM_PROFILE_CREATED, not the conditional-on-a-count shape
+  // REFERENCE_ADDED uses — this component has no learning/posting count
+  // passed in the way completedReferencesCount is, and DOSSIER_REFERENCE_TARGET
+  // (5) has no equivalent target for either area, so there's no real
+  // threshold to condition on.
   function isPriorityActionType(actionType: string | undefined): boolean {
     if (!actionType) return false
     if (!hasEmailConnection) return false
@@ -474,6 +484,14 @@ export function SuccessSprintCard({
     if (actionType === 'REFERENCE_ADDED') return completedReferencesCount < 5
     if (actionType === 'JOB_APPLICATION_SUBMITTED') return true
     if (actionType === 'INTERIM_PROFILE_CREATED') return true
+    if (actionType === 'LEARNING_MODULE') return true
+    if (actionType === 'LEARNING_CERTIFICATE_STARTED') return true
+    if (actionType === 'LEARNING_CERTIFICATE') return true
+    if (actionType === 'LEARNING_NEW_TOOL_STARTED') return true
+    if (actionType === 'LEARNING_NEW_TOOL') return true
+    if (actionType === 'LEARNING_SESSION_ATTENDED') return true
+    if (actionType === 'LINKEDIN_POST_IDEA') return true
+    if (actionType === 'THOUGHT_LEADERSHIP_SHARE') return true
     return false
   }
 
