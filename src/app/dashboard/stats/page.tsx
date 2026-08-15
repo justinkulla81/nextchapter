@@ -92,6 +92,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     leaderboardResults,
     leaderboardPersonalBests,
     leaderboardBadgeHistory,
+    ,
   ] = await Promise.all([
     computeDossierCompetencies(profile),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
@@ -117,16 +118,18 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     // public opt-in (§18/§20).
     getAndUpdatePersonalBests(profile.id),
     getLeaderboardBadgeHistory(profile.id),
+    // §17 — recompute this week's Top-3 placements and upsert any newly
+    // earned dated badges, same "fire on render, not a cron" pattern as
+    // computeWeeklyBadges above. Only meaningful (and only queried) for a
+    // publicly opted-in candidate — see computeAndRecordLeaderboardBadges's
+    // own doc comment on why a private/hypothetical rank never earns one.
+    // Doesn't depend on (and isn't depended on by) anything else in this
+    // batch — leaderboardBadgeHistory above is read from the same table
+    // this writes to, but a badge earned just now on this render was never
+    // going to show up in that already-in-flight read either way, whether
+    // this ran before, after, or alongside it.
+    profile.leaderboardOptIn ? computeAndRecordLeaderboardBadges(profile.id) : Promise.resolve(undefined),
   ])
-
-  // §17 — recompute this week's Top-3 placements and upsert any newly
-  // earned dated badges, same "fire on render, not a cron" pattern as
-  // computeWeeklyBadges above. Only meaningful (and only queried) for a
-  // publicly opted-in candidate — see computeAndRecordLeaderboardBadges's
-  // own doc comment on why a private/hypothetical rank never earns one.
-  if (profile.leaderboardOptIn) {
-    await computeAndRecordLeaderboardBadges(profile.id)
-  }
 
   const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
   const completedByEngine = new Map<EngineKey, CommittedAction[]>()

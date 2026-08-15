@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { Building2, TrendingUp, TrendingDown, Minus, Users, Target, MessageSquare, ShieldAlert } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
-import { resolveCompanyMetadataIfMissing } from '@/lib/companies/company-lookup'
+import { CompanyMetaLine, CompanyMetaLineSkeleton } from '@/components/companies/CompanyMetaLine'
 import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@/lib/companies/company-intel'
 import { getMemberConcentration, getDemandSignal, getIntelHealth } from '@/lib/companies/company-admin-view'
 import { computeOutplacementPitchSignal } from '@/lib/companies/outplacement-signal'
@@ -34,11 +35,11 @@ export default async function AdminCompanyDetailPage({ params }: { params: Promi
   const companyRow = await prisma.company.findUnique({ where: { id } })
   if (!companyRow) notFound()
 
-  // Same lazy, on-demand resolution the candidate page uses — one company
-  // per page load, so this doesn't add to the metered-LLM-cost concern that
-  // keeps the nightly cron and the ranked list page (Prompt 6's sales list)
-  // from doing this for every company.
-  const company = await resolveCompanyMetadataIfMissing(companyRow)
+  // industry/sizeBand/hqMetro resolution is Suspense-isolated below (see
+  // CompanyMetaLine) since it can be a real LLM call the first time anyone
+  // views this company — everything else here only needs the row's
+  // already-stored fields, so `company` is just an alias, not a wait.
+  const company = companyRow
 
   const [latestSignal, publishedIntel, memberConcentration, demandSignal, outplacementSignal] = await Promise.all([
     prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
@@ -74,9 +75,9 @@ export default async function AdminCompanyDetailPage({ params }: { params: Promi
         </div>
         <div>
           <h1 className="font-heading text-xl font-semibold text-foreground">{company.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {[company.industry, company.sizeBand, company.hqMetro].filter(Boolean).join(' · ') || 'Details still filling in'}
-          </p>
+          <Suspense fallback={<CompanyMetaLineSkeleton />}>
+            <CompanyMetaLine companyRow={companyRow} />
+          </Suspense>
         </div>
       </div>
 

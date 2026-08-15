@@ -787,25 +787,32 @@ export async function loadIssueAnalytics(filters: IssueAnalyticsFilters): Promis
 
   if (analyses.length === 0) return emptyAnalytics(filters.pivot)
 
-  const rawIssues: IssueRow[] = await prisma.resumeIssue.findMany({
-    where: {
-      resumeAnalysisId: { in: analyses.map((a) => a.id) },
-      ...(filters.category && { category: filters.category }),
-      ...(filters.severity && { severity: filters.severity }),
-      ...(cutoff && { detectedAt: { gte: cutoff } }),
-    },
-    select: {
-      issueCode: true,
-      category: true,
-      severity: true,
-      pointImpact: true,
-      detectedAt: true,
-      resolvedAt: true,
-      resolutionType: true,
-      resumeAnalysisId: true,
-      candidateId: true,
-    },
-  })
+  const analysisIds = analyses.map((a) => a.id)
+  // rawIssues and the ATS matrix both only depend on `analyses` (fetched
+  // above), not on each other — batched together instead of computeAtsMatrix
+  // waiting in sequence after this, several sync compute* calls later.
+  const [rawIssues, atsMatrix]: [IssueRow[], AtsMatrixRow[]] = await Promise.all([
+    prisma.resumeIssue.findMany({
+      where: {
+        resumeAnalysisId: { in: analysisIds },
+        ...(filters.category && { category: filters.category }),
+        ...(filters.severity && { severity: filters.severity }),
+        ...(cutoff && { detectedAt: { gte: cutoff } }),
+      },
+      select: {
+        issueCode: true,
+        category: true,
+        severity: true,
+        pointImpact: true,
+        detectedAt: true,
+        resolvedAt: true,
+        resolutionType: true,
+        resumeAnalysisId: true,
+        candidateId: true,
+      },
+    }),
+    computeAtsMatrix(analysisIds),
+  ])
 
   const q = filters.q.toLowerCase()
   const issues = q
@@ -820,7 +827,6 @@ export async function loadIssueAnalytics(filters: IssueAnalyticsFilters): Promis
   const segmentMatrix = computeSegmentMatrix(issues, analyses, candidateMeta, filters.pivot, prevalence)
   const fixRates = computeFixRates(issues)
   const pointImpact = computePointImpact(issues)
-  const atsMatrix = await computeAtsMatrix(analyses.map((a) => a.id))
   const coOccurrence = computeCoOccurrence(issues, totalAnalyses)
 
   const pointImpactByCode = new Map(pointImpact.map((p) => [p.issueCode, p.totalPointImpact]))

@@ -13,7 +13,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 // Rather than a fake, dead "Export" button, this is an honestly-labeled,
 // non-interactive placeholder.
 export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidateId: string; stepAnswers: WalkthroughStepAnswers }) {
-  const [mechanicalFindings, candidate, bulletEntries, reviewerQuestionRows] = await Promise.all([
+  const [mechanicalFindings, candidate, bulletEntries, reviewerQuestionRows, latestAnalysis] = await Promise.all([
     getMechanicalBatchFindings(candidateId),
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
@@ -25,6 +25,15 @@ export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidat
     }),
     prisma.reviewerQuestion.findMany({
       where: { id: { in: Object.keys(stepAnswers.reviewerHandled ?? {}) } },
+    }),
+    // Doesn't depend on anything else in this batch — pulled forward from
+    // its own sequential await below `stillActive`'s query still has to
+    // wait on this one (it needs the id), but this no longer waits on the
+    // other four.
+    prisma.resumeAnalysis.findFirst({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
     }),
   ])
 
@@ -41,11 +50,6 @@ export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidat
 
   // Honesty check: any active detection this walkthrough never even offered
   // (more than the two-plus-thin-entry cap) still belongs in "still open."
-  const latestAnalysis = await prisma.resumeAnalysis.findFirst({
-    where: { candidateId },
-    orderBy: { createdAt: 'desc' },
-    select: { id: true },
-  })
   const stillActive = latestAnalysis
     ? await prisma.reviewerQuestion.findMany({
         where: { resumeAnalysisId: latestAnalysis.id, resolvedAt: null },

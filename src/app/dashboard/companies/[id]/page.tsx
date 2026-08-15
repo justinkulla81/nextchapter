@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { Building2, TrendingUp, TrendingDown, Minus, Users, Lock, MessageSquare, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { resolveCompanyMetadataIfMissing } from '@/lib/companies/company-lookup'
+import { CompanyMetaLine, CompanyMetaLineSkeleton } from '@/components/companies/CompanyMetaLine'
+import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import {
   hasTaggedEmployment,
   getInsidersForCompany,
@@ -54,14 +56,20 @@ function InsiderLine({ insider }: { insider: InsiderSummary }) {
 
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const profile = await getDashboardData()
-
-  const companyRow = await prisma.company.findUnique({ where: { id } })
+  // Independent of each other — no need for getDashboardData to finish
+  // before the company row lookup starts.
+  const [profile, companyRow] = await Promise.all([
+    getDashboardData(),
+    prisma.company.findUnique({ where: { id } }),
+  ])
   if (!companyRow) notFound()
 
-  // Lazy, on-demand resolution — see resolveCompanyMetadataIfMissing's own
-  // comment for why this doesn't run in the nightly cron.
-  const company = await resolveCompanyMetadataIfMissing(companyRow)
+  // industry/sizeBand/hqMetro are resolved lazily and Suspense-isolated
+  // below (see CompanyMetaLine) since that resolution can be a real LLM
+  // call — everything else on this page only needs the row's already-stored
+  // fields (name, canonicalNameNormalized, atsPlatform), so `company` here
+  // is just an alias, not a wait.
+  const company = companyRow
 
   const [latestSignal, latestOutcome, alreadyTagged, publishedIntel] = await Promise.all([
     prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
@@ -117,9 +125,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         </div>
         <div>
           <h1 className="font-heading text-xl font-semibold text-foreground">{company.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {[company.industry, company.sizeBand, company.hqMetro].filter(Boolean).join(' · ') || 'Details still filling in'}
-          </p>
+          <Suspense fallback={<CompanyMetaLineSkeleton />}>
+            <CompanyMetaLine companyRow={companyRow} />
+          </Suspense>
         </div>
       </div>
 
@@ -249,22 +257,24 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
               />
             ) : (
               <div className="flex flex-col gap-3">
-                {publishedIntel.map((intel) => (
-                  <div key={intel.id} className="rounded-lg border border-border p-3">
-                    <p className="text-xs font-medium text-muted-foreground">{INTEL_TYPE_LABEL[intel.intelType as IntelType]}</p>
-                    <p className="mt-1 text-sm">{intel.body}</p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {intel.roleLevelAtTime ? `A former ${intel.roleLevelAtTime}` : 'A member'}
-                        {intel.recencyBucket ? ` — ${TENURE_LABEL[intel.recencyBucket] ?? intel.recencyBucket}` : ''}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{intel.helpfulCount} found this helpful</span>
-                        <MarkHelpfulButton intelId={intel.id} companyPageId={id} />
+                <ShowMoreList pageSize={5}>
+                  {publishedIntel.map((intel) => (
+                    <div key={intel.id} className="rounded-lg border border-border p-3">
+                      <p className="text-xs font-medium text-muted-foreground">{INTEL_TYPE_LABEL[intel.intelType as IntelType]}</p>
+                      <p className="mt-1 text-sm">{intel.body}</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          {intel.roleLevelAtTime ? `A former ${intel.roleLevelAtTime}` : 'A member'}
+                          {intel.recencyBucket ? ` — ${TENURE_LABEL[intel.recencyBucket] ?? intel.recencyBucket}` : ''}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{intel.helpfulCount} found this helpful</span>
+                          <MarkHelpfulButton intelId={intel.id} companyPageId={id} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </ShowMoreList>
               </div>
             )}
             <SubmitIntelForm companyId={id} companyPageId={id} />
@@ -343,12 +353,14 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
               ) : (
                 <div className="flex flex-col gap-3">
                   <p className="text-sm font-medium">{insiders.length} member{insiders.length === 1 ? '' : 's'} worked here.</p>
-                  {insiders.map((insider) => (
-                    <div key={insider.memberEmploymentId} className="flex flex-col gap-2 rounded-lg border border-border p-3">
-                      <InsiderLine insider={insider} />
-                      <AskInsiderForm companyId={id} insiderMemberEmploymentId={insider.memberEmploymentId} companyPageId={id} />
-                    </div>
-                  ))}
+                  <ShowMoreList pageSize={5}>
+                    {insiders.map((insider) => (
+                      <div key={insider.memberEmploymentId} className="flex flex-col gap-2 rounded-lg border border-border p-3">
+                        <InsiderLine insider={insider} />
+                        <AskInsiderForm companyId={id} insiderMemberEmploymentId={insider.memberEmploymentId} companyPageId={id} />
+                      </div>
+                    ))}
+                  </ShowMoreList>
                 </div>
               )}
 

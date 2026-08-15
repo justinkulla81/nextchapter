@@ -114,15 +114,9 @@ export async function requestReference(
     }
   }
 
-  // Only ever accept an entry ID that actually belongs to this candidate —
-  // the dropdown is scoped to their own list, but formData is client input.
-  const workHistoryEntryId = workHistoryEntryIdRaw
-    ? (await prisma.workHistoryEntry.findFirst({
-        where: { id: workHistoryEntryIdRaw, candidateId: profile.id },
-        select: { id: true },
-      }))?.id ?? null
-    : null
-
+  // Checked before the (async) work-history lookup below so an incomplete
+  // assessment errors out without paying for a query whose result would
+  // just be discarded.
   if (!profile.assessmentComplete) {
     return {
       error: 'Please complete the How I Work Best assessment before requesting a reference.',
@@ -134,13 +128,25 @@ export async function requestReference(
   // is removed. inviteSequence is this candidate's Nth reference ever
   // invited (not Nth currently active), matching the spec's "position 1
   // always gets w11+w1" rule to the actual first invite.
-  const [existingCount, priorReferences] = await Promise.all([
+  //
+  // workHistoryEntryId is independent of existingCount/priorReferences (only
+  // ever accepts an entry ID that actually belongs to this candidate — the
+  // dropdown is scoped to their own list, but formData is client input) —
+  // batched alongside them rather than awaited separately beforehand.
+  const [workHistoryEntry, existingCount, priorReferences] = await Promise.all([
+    workHistoryEntryIdRaw
+      ? prisma.workHistoryEntry.findFirst({
+          where: { id: workHistoryEntryIdRaw, candidateId: profile.id },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
     prisma.reference.count({ where: { candidateId: profile.id } }),
     prisma.reference.findMany({
       where: { candidateId: profile.id },
       select: { writtenQuestion1Key: true, writtenQuestion2Key: true },
     }),
   ])
+  const workHistoryEntryId = workHistoryEntry?.id ?? null
   const inviteSequence = existingCount + 1
   const usedKeys = new Set(
     priorReferences.flatMap((r) => [r.writtenQuestion1Key, r.writtenQuestion2Key].filter((k): k is string => !!k))

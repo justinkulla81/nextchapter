@@ -610,12 +610,22 @@ export default async function PopulationReportPage({
     )
   }
 
+  // Was a sequential await-in-a-loop (up to 12 round trips: 6 segment types
+  // × current + previous week) — none of these 12 queries depend on each
+  // other, so batch both weeks' worth across all segment types into one
+  // Promise.all instead.
+  const [currentBreakdownRows, previousBreakdownRows] = await Promise.all([
+    Promise.all(COMPOSITION_SEGMENT_TYPES.map((segType) => getSuppressedSegmentTypeRows(weekStartDate, segType))),
+    previousWeek
+      ? Promise.all(COMPOSITION_SEGMENT_TYPES.map((segType) => getSuppressedSegmentTypeRows(previousWeek, segType)))
+      : Promise.resolve(null),
+  ])
   const breakdowns: Record<SegmentType, MaybeSuppressed<SnapshotRow>[]> = {} as Record<SegmentType, MaybeSuppressed<SnapshotRow>[]>
   const previousBreakdowns: Record<SegmentType, MaybeSuppressed<SnapshotRow>[]> = {} as Record<SegmentType, MaybeSuppressed<SnapshotRow>[]>
-  for (const segType of COMPOSITION_SEGMENT_TYPES) {
-    breakdowns[segType] = await getSuppressedSegmentTypeRows(weekStartDate, segType)
-    if (previousWeek) previousBreakdowns[segType] = await getSuppressedSegmentTypeRows(previousWeek, segType)
-  }
+  COMPOSITION_SEGMENT_TYPES.forEach((segType, i) => {
+    breakdowns[segType] = currentBreakdownRows[i]
+    if (previousBreakdownRows) previousBreakdowns[segType] = previousBreakdownRows[i]
+  })
   const employmentStatusRows = breakdowns.employment_status
 
   // ── Observations ──────────────────────────────────────────────────
