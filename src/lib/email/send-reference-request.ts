@@ -7,11 +7,17 @@ export async function sendReferenceRequestEmail({
   refereeName,
   candidateName,
   token,
+  confidentialSearchMode,
 }: {
   refereeEmail: string
   refereeName: string
   candidateName: string
   token: string
+  // PART TWO §9 — confidential mode gets its own subject line ("A quick
+  // favor" per spec's exact wording); the existing subject is already
+  // neutral enough to keep as-is for open mode (no "job search"/"resume"/
+  // etc. per neutralizeEmailSubject's flagged-term list).
+  confidentialSearchMode: boolean
 }) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping reference request email.')
@@ -20,6 +26,9 @@ export async function sendReferenceRequestEmail({
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const referenceUrl = `${appUrl}/ref/${token}`
+  const subject = confidentialSearchMode
+    ? 'A quick favor'
+    : `${candidateName} has requested a reference from you`
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -27,8 +36,8 @@ export async function sendReferenceRequestEmail({
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',
       to: refereeEmail,
-      subject: `${candidateName} has requested a reference from you`,
-      react: ReferenceRequestEmail({ candidateName, refereeName, referenceUrl }),
+      subject,
+      react: ReferenceRequestEmail({ candidateName, refereeName, referenceUrl, confidentialSearchMode }),
     })
 
     if (error) {

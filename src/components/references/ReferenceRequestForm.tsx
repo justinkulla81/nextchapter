@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { requestReference } from '@/app/dashboard/references/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,7 @@ export function ReferenceRequestForm({
   initialName,
   initialEmail,
   workHistoryEntries = [],
+  confidentialSearchMode = false,
 }: {
   initialName?: string
   initialEmail?: string
@@ -28,8 +29,17 @@ export function ReferenceRequestForm({
   // references that don't map to a single role (e.g. a peer who knew the
   // candidate across several).
   workHistoryEntries?: { id: string; companyName: string; roleTitle: string }[]
+  // PART TWO §8 — when true, entering a company that matches the
+  // candidate's own current employer (checked server-side in
+  // requestReference) pauses submission on an explicit second confirmation
+  // instead of sending immediately. Open-mode candidates never see this.
+  confidentialSearchMode?: boolean
 } = {}) {
   const [state, formAction, pending] = useActionState(requestReference, undefined)
+  // Server-checked, client-acknowledged — mirrors ConfidentialModeToggle's
+  // "confirmed" gate. Only ever set once the server has actually flagged a
+  // match; resubmitting sends currentEmployerConfirmed=true back through.
+  const [riskAcknowledged, setRiskAcknowledged] = useState(false)
 
   return (
     <form
@@ -57,7 +67,17 @@ export function ReferenceRequestForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="refereeCompany">Company (optional)</Label>
-          <Input id="refereeCompany" name="refereeCompany" />
+          <Input
+            id="refereeCompany"
+            name="refereeCompany"
+            onChange={() => setRiskAcknowledged(false)}
+          />
+          {confidentialSearchMode && (
+            <p className="text-xs text-muted-foreground">
+              Since you&apos;re searching confidentially, we&apos;ll check whether this is your
+              current employer before sending.
+            </p>
+          )}
         </div>
       </div>
 
@@ -112,8 +132,41 @@ export function ReferenceRequestForm({
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <Button type="submit" disabled={pending}>
-        {pending ? 'Sending…' : 'Request reference'}
+      {state?.needsCurrentEmployerConfirmation && (
+        <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+          <p className="text-sm font-medium text-foreground">
+            This looks like your current employer
+            {state.matchedEmployerName ? ` (${state.matchedEmployerName})` : ''}.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Since you&apos;re searching confidentially, a reference from someone at your current
+            employer carries real risk — they could mention it to a colleague or manager there.
+            Former colleagues, managers, board members, or clients are the safer default.
+          </p>
+          <label className="flex items-start gap-2 text-sm text-foreground">
+            <input
+              type="checkbox"
+              name="currentEmployerConfirmed"
+              value="true"
+              checked={riskAcknowledged}
+              onChange={(e) => setRiskAcknowledged(e.target.checked)}
+              required
+              className="mt-0.5"
+            />
+            I understand the risk and want to send this request anyway
+          </label>
+        </div>
+      )}
+
+      <Button
+        type="submit"
+        disabled={pending || (state?.needsCurrentEmployerConfirmation && !riskAcknowledged)}
+      >
+        {pending
+          ? 'Sending…'
+          : state?.needsCurrentEmployerConfirmation
+            ? 'Send anyway'
+            : 'Request reference'}
       </Button>
     </form>
   )

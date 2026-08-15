@@ -101,7 +101,21 @@ export default async function ReferenceTokenPage({
         writtenQuestions={writtenQuestions}
         verification={{
           claimedTitle: reference.workHistoryEntry?.roleTitle ?? null,
-          claimedCompany: reference.workHistoryEntry?.companyName ?? null,
+          // PART TWO §9 hard rule — "the reference must never learn the
+          // member's current employer beyond what the member chooses to
+          // include." A reference can be tied to any of the candidate's own
+          // WorkHistoryEntry rows (see workHistoryEntryId on the request
+          // form), including their current one, regardless of whether this
+          // particular referee actually knows they still work there. For a
+          // confidential-mode candidate, showing "They said this was at
+          // {company}" for a current (isCurrent) role would hand the
+          // referee exactly the fact the mode exists to protect — so that
+          // one field is withheld here specifically (title/achievement/
+          // years don't name the employer and stay intact).
+          claimedCompany:
+            reference.candidate.confidentialSearchMode && reference.workHistoryEntry?.isCurrent
+              ? null
+              : reference.workHistoryEntry?.companyName ?? null,
           claimedBullet: reference.workHistoryEntry?.keyAchievement ?? null,
           claimedYearsTogether: reference.yearsWorkedTogether,
         }}

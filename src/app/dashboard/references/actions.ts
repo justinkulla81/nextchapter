@@ -9,9 +9,22 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { assignWrittenQuestions } from '@/lib/references/written-question-pool'
+import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import type { ReferenceType } from '@prisma/client'
 
-export type FormState = { error?: string; sent?: boolean } | undefined
+export type FormState =
+  | {
+      error?: string
+      sent?: boolean
+      // §8 sourcing rule — set instead of creating the reference when a
+      // Confidential Search Mode candidate's entered refereeCompany matches
+      // their own current WorkHistoryEntry (via orgNamesMatch). The form
+      // re-renders with an explicit second confirmation naming the risk;
+      // resubmitting with currentEmployerConfirmed=true clears this gate.
+      needsCurrentEmployerConfirmation?: boolean
+      matchedEmployerName?: string
+    }
+  | undefined
 
 const VALID_TYPES: ReferenceType[] = [
   'DIRECT_MANAGER',
@@ -74,8 +87,32 @@ export async function requestReference(
 
   const yearsWorkedTogether = formData.get('yearsWorkedTogether')
   const workHistoryEntryIdRaw = (formData.get('workHistoryEntryId') as string | null) || null
+  const refereeCompany = (formData.get('refereeCompany') as string | null)?.trim() || null
+  const currentEmployerConfirmed = formData.get('currentEmployerConfirmed') === 'true'
 
   const profile = await getOrCreateCandidateProfile(user.id)
+
+  // §8 sourcing rule — confidential-mode candidates can still reference a
+  // current-employer contact (references are required for everyone, §7 —
+  // this is a confirmation gate, never a block), but sending must pause on
+  // an explicit second confirmation naming the risk first. Open-mode
+  // candidates never see this: "anyone, including current colleagues" is
+  // the accepted source there. refereeCompany is free text, so this is a
+  // fuzzy match (orgNamesMatch, via the shared §4.4/§4.8 primitive) against
+  // the candidate's own current WorkHistoryEntry, not a real relationship.
+  if (profile.confidentialSearchMode && refereeCompany && !currentEmployerConfirmed) {
+    const currentEmployerName = await getCurrentEmployerName(profile.id)
+    if (companyMatchesCurrentEmployer(currentEmployerName, refereeCompany)) {
+      captureServerEvent(profile.id, 'reference_current_employer_flagged', {
+        refereeCompany,
+        matchedEmployerName: currentEmployerName,
+      })
+      return {
+        needsCurrentEmployerConfirmation: true,
+        matchedEmployerName: currentEmployerName ?? refereeCompany,
+      }
+    }
+  }
 
   // Only ever accept an entry ID that actually belongs to this candidate —
   // the dropdown is scoped to their own list, but formData is client input.
@@ -116,7 +153,7 @@ export async function requestReference(
       refereeName,
       refereeEmail,
       refereeTitle: (formData.get('refereeTitle') as string | null) || null,
-      refereeCompany: (formData.get('refereeCompany') as string | null) || null,
+      refereeCompany,
       relationshipType,
       yearsWorkedTogether: yearsWorkedTogether ? Number(yearsWorkedTogether) : null,
       workHistoryEntryId,
@@ -135,9 +172,15 @@ export async function requestReference(
     refereeName: reference.refereeName,
     candidateName,
     token: reference.token,
+    confidentialSearchMode: profile.confidentialSearchMode,
   })
 
-  captureServerEvent(profile.id, 'reference_requested', { referenceId: reference.id, relationshipType })
+  captureServerEvent(profile.id, 'reference_requested', {
+    referenceId: reference.id,
+    relationshipType,
+    confidentialSearchMode: profile.confidentialSearchMode,
+    currentEmployerConfirmed: profile.confidentialSearchMode ? currentEmployerConfirmed : undefined,
+  })
 
   // Weekly Sprint credit for sending the request itself — small on purpose.
   // The bigger REFERENCE_ADDED credit fires separately when the reference

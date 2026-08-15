@@ -111,6 +111,7 @@ export default async function ReferencesPage({
           initialName={params.name}
           initialEmail={params.email}
           workHistoryEntries={workHistoryEntries}
+          confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>
 
