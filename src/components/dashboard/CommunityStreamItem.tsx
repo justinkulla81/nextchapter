@@ -1,7 +1,7 @@
 import { ThumbsUp } from 'lucide-react'
 import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
-import { anonymize } from '@/lib/community/community-feed'
+import { resolveCommunityIdentity } from '@/lib/community/identity'
 import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import type { UnifiedStreamItem } from '@/lib/community/unified-feed'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
@@ -39,7 +39,7 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
   }
 
   const post = item.post
-  const posterName = anonymize(post.candidate.firstName, post.candidate.lastName)
+  const posterName = resolveCommunityIdentity(post.candidate).displayName
   const isOwnPost = post.candidateId === candidateId
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions

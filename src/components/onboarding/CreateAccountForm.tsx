@@ -7,6 +7,7 @@ import { setCandidateEmail } from '@/app/onboarding/create-account/actions'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -23,7 +24,13 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // case `email` arrives null and there's no address to send anything to, so
 // this falls back to asking the candidate for one directly instead of
 // silently hanging.
-export function CreateAccountForm({ email: initialEmail }: { email: string | null }) {
+export function CreateAccountForm({
+  email: initialEmail,
+  confidentialSearchMode = false,
+}: {
+  email: string | null
+  confidentialSearchMode?: boolean
+}) {
   const [email, setEmail] = useState(initialEmail ?? '')
   const [emailInput, setEmailInput] = useState('')
   const [emailInputError, setEmailInputError] = useState<string | null>(null)
@@ -34,7 +41,24 @@ export function CreateAccountForm({ email: initialEmail }: { email: string | nul
   const [resent, setResent] = useState(false)
   const [resendError, setResendError] = useState<string | null>(null)
   const [blocked, setBlocked] = useState<{ needsPassword: boolean } | null>(null)
-  const firedRef = useRef(false)
+
+  // §4.5: "Never send to a work address. If the registered address is a
+  // corporate domain, warn and request a personal one." Resume-derived
+  // emails skip straight to auto-sending (see the effect below) — this
+  // interrupts that for a Confidential Search Mode candidate whose
+  // resume-derived address looks corporate, same as the manual-entry path
+  // already requires a deliberate submit either way. Derived from stable
+  // props, so it's a plain const, never state — it can't change after mount.
+  const corporateEmailWarning = confidentialSearchMode && !!initialEmail && looksLikeCorporateDomain(initialEmail)
+  const [useAnywayConfirmed, setUseAnywayConfirmed] = useState(false)
+  // Starts "already fired" when a warning is showing, so the auto-send
+  // effect below skips it entirely — kept as a literal `if (firedRef.current
+  // || !initialEmail) return` with no other condition, identical in shape
+  // to how this effect worked before this feature, since referencing
+  // corporateEmailWarning directly inside the effect body trips the
+  // set-state-in-effect lint rule. handleUseEmailAnyway (below) fires the
+  // send itself, from a real click, once the candidate confirms.
+  const firedRef = useRef(corporateEmailWarning)
 
   async function sendConfirmation(targetEmail: string) {
     const supabase = createClient()
@@ -80,6 +104,16 @@ export function CreateAccountForm({ email: initialEmail }: { email: string | nul
     attemptSend(initialEmail)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialEmail])
+
+  // Fired from a real click, not an effect — corporateEmailWarning is
+  // derived from stable props and never changes after mount, so the send
+  // this unblocks only ever needs to happen once, right here.
+  function handleUseEmailAnyway() {
+    setUseAnywayConfirmed(true)
+    if (firedRef.current || !initialEmail) return
+    firedRef.current = true
+    attemptSend(initialEmail)
+  }
 
   async function handleManualEmailSubmit(e: FormEvent) {
     e.preventDefault()
@@ -177,6 +211,29 @@ export function CreateAccountForm({ email: initialEmail }: { email: string | nul
           {submittingManualEmail ? 'Sending…' : 'Send confirmation link'}
         </Button>
       </form>
+    )
+  }
+
+  // §4.5 — interrupt the auto-send for a Confidential Search Mode candidate
+  // whose resume-derived email looks like a work address, and let them
+  // choose a personal one instead before anything gets sent there.
+  if (corporateEmailWarning && !useAnywayConfirmed) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-foreground">
+          <span className="font-medium">{email}</span> looks like a work email. With Confidential
+          Search Mode on, we&apos;d rather send your confirmation link and future emails somewhere
+          your employer can&apos;t see.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" onClick={() => setNeedsEmailInput(true)}>
+            Use a personal email instead
+          </Button>
+          <Button type="button" variant="outline" onClick={handleUseEmailAnyway}>
+            Use this email anyway
+          </Button>
+        </div>
+      </div>
     )
   }
 

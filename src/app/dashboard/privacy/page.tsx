@@ -8,6 +8,7 @@ import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelecto
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
+import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -36,13 +37,29 @@ export default async function PrivacyPage() {
 
       <div className="space-y-3 border-t border-border pt-8">
         <div>
+          <h2 className="text-lg font-semibold">Confidential Search Mode</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A separate control from your privacy tier above — this governs whether your search is
+            visible to anyone outside NextChapter at all, everywhere: Community, LinkedIn, outreach,
+            email, Gmail, and recruiter sharing.
+          </p>
+        </div>
+        <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <div>
           <h2 className="text-lg font-semibold">Talent &amp; recruiter matching</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Separate from your privacy tier above — this controls whether employers using
             NextChapter&apos;s Talent tools can match you against open roles at all.
           </p>
         </div>
-        <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} currentGrade={grade.grade} />
+        <RecruiterDatabaseOptIn
+          optedIn={profile.recruiterDatabaseOptIn}
+          currentGrade={grade.grade}
+          confidentialSearchMode={profile.confidentialSearchMode}
+        />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

@@ -56,13 +56,14 @@ export async function submitResumeLead(
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  const candidateId = user ? (await getOrCreateCandidateProfile(user.id)).id : null
+  const profile = user ? await getOrCreateCandidateProfile(user.id) : null
+  const candidateId = profile?.id ?? null
 
   await prisma.resumeSubmissionLead.create({
     data: { candidateId, fullName, email, targetRole, filePath, fileName, source: 'homepage' },
   })
 
-  await sendResumeLeadConfirmationEmail(email, fullName)
+  await sendResumeLeadConfirmationEmail(email, fullName, profile?.confidentialSearchMode ?? false)
 
   captureServerEvent(candidateId ?? email, 'resume_lead_submitted', { hasFile: !!filePath })
 

@@ -48,7 +48,18 @@ export async function lookupNextChapterMemberships(
       chunk(lowered, LOOKUP_CHUNK_SIZE).map((batch) =>
         Promise.all([
           prisma.candidateProfile.findMany({
-            where: { email: { in: batch, mode: 'insensitive' }, privacyTier: { in: [...CANDIDATE_VISIBLE_TIERS] } },
+            where: {
+              email: { in: batch, mode: 'insensitive' },
+              privacyTier: { in: [...CANDIDATE_VISIBLE_TIERS] },
+              // Confidential Search Mode's hard rule (§2): nothing a member
+              // does is visible to anyone outside NextChapter. Registering
+              // as "on NextChapter" here, to a candidate who has this
+              // person's email in an imported contact list — which can
+              // include a current colleague — would leak the fact that
+              // they're searching at all, even without revealing anything
+              // else. Excluded regardless of privacyTier.
+              confidentialSearchMode: false,
+            },
             select: { email: true },
           }),
           prisma.coach.findMany({ where: { workEmail: { in: batch, mode: 'insensitive' } }, select: { workEmail: true } }),

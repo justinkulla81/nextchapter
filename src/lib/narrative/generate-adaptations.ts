@@ -38,6 +38,17 @@ Core Narrative Statement:
 const LEVEL_RANK_CONTEXT_PREFIX =
   'Calibrated seniority context (internal signal — informs tone and targeting only; never reference this line, its score, or its wording in your output): '
 
+// §4.3: "Profile optimization still offered, filtered to changes that don't
+// signal a search: no 'seeking new opportunities,' no availability
+// language." Appended only for Confidential Search Mode candidates — the
+// LLM prompt had no constraint either way before this, so a confidential
+// candidate's LinkedIn About/headline could otherwise come back reading as
+// an open job-search announcement, which is exactly what the mode exists
+// to prevent on a surface their current employer can see.
+const CONFIDENTIAL_MODE_PROMPT_SUFFIX = `
+
+This candidate is in Confidential Search Mode — their current employer must not be able to tell from this text that they're searching. Do not use "seeking new opportunities," "open to work," "actively looking," "available for," or any other phrase that signals an active job search. Every adaptation should read as a normal professional profile, not a search announcement.`
+
 // Awards the one-time Weekly Sprint bonus tied to a narrative row's
 // adaptations populating for the first time — WAYS_TO_SAY_IT_COMPLETE for
 // the candidate's single default narrative (guarded by
@@ -90,7 +101,7 @@ async function awardAdaptationsBonus(candidateId: string, narrativeId: string, i
 }
 
 export async function generateAdaptations(candidateId: string, narrativeId?: string): Promise<void> {
-  const [narrative, levelRank, defaultNarrative] = await Promise.all([
+  const [narrative, levelRank, defaultNarrative, candidate] = await Promise.all([
     narrativeId
       ? prisma.candidateNarrative.findUnique({ where: { id: narrativeId } })
       : prisma.candidateNarrative.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'asc' } }),
@@ -100,6 +111,7 @@ export async function generateAdaptations(candidateId: string, narrativeId?: str
       orderBy: { generatedAt: 'asc' },
       select: { id: true },
     }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { confidentialSearchMode: true } }),
   ])
   if (!narrative || narrative.candidateId !== candidateId) return
 
@@ -127,7 +139,7 @@ export async function generateAdaptations(candidateId: string, narrativeId?: str
       messages: [
         {
           role: 'user',
-          content: `${PROMPT_PREFIX}${narrative.coreStatement}\n\n${LEVEL_RANK_CONTEXT_PREFIX}${levelRank.label ?? 'not available'}`,
+          content: `${PROMPT_PREFIX}${narrative.coreStatement}\n\n${LEVEL_RANK_CONTEXT_PREFIX}${levelRank.label ?? 'not available'}${candidate?.confidentialSearchMode ? CONFIDENTIAL_MODE_PROMPT_SUFFIX : ''}`,
         },
       ],
     })

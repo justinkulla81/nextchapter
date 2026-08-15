@@ -7,6 +7,7 @@ import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
 
 const QUIET_THRESHOLD_DAYS = 3
@@ -60,9 +61,10 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
         })
       : null
 
-    const subject =
-      insights?.subject ??
-      (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in')
+    const subject = neutralizeEmailSubject(
+      insights?.subject ?? (candidate.firstName ? `Midweek check-in, ${candidate.firstName}.` : 'Midweek check-in'),
+      candidate.confidentialSearchMode
+    )
 
     const weeklyRecap = !isReset ? await buildWeeklyRecap(candidateId) : null
 

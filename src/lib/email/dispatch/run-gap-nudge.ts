@@ -22,6 +22,7 @@ export async function runGapNudge(introCopy: string | null, eligiblePrivacyTiers
       firstName: true,
       notificationTier: true,
       privacyTier: true,
+      confidentialSearchMode: true,
       registrationCompletedAt: true,
       _count: { select: { weeklySprints: true } },
     },
@@ -50,7 +51,8 @@ export async function runGapNudge(introCopy: string | null, eligiblePrivacyTiers
       const { weeklyPoints, weeklyPointsTarget } = await computeWeeklyEngines(
         candidate.id,
         weekNumber,
-        candidate.privacyTier
+        candidate.privacyTier,
+        candidate.confidentialSearchMode
       )
 
       if (weeklyPoints >= weeklyPointsTarget) continue // already at or above target

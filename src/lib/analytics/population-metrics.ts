@@ -42,7 +42,7 @@
 // derived from the real `pedigreeBonus` field (see that section below).
 
 import 'server-only'
-import type { CurrentJobStatus, PrivacyTier } from '@prisma/client'
+import type { CurrentJobStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getActivationItems } from '@/lib/dashboard/activation-items'
 import { computeDossierCompleteness, DOSSIER_REFERENCE_TARGET } from '@/lib/scoring/dossier-unlock'
@@ -161,13 +161,7 @@ export interface SearchOutcomeMetrics {
 }
 
 export interface ConfidentialMetrics {
-  /**
-   * "Confidential Search Mode" has no dedicated boolean field — proxied as
-   * `privacyTier === 'STEALTH'` ("visible only to pre-approved companies"),
-   * the closest real PrivacyTier value to the spec's concept. LOCKED
-   * ("building profile, invisible to all") is a different, earlier-stage
-   * state and is NOT counted as confidential here.
-   */
+  /** Share of this segment with CandidateProfile.confidentialSearchMode === true. */
   shareConfidential: number | null
   confidentialCount: number
 }
@@ -257,7 +251,7 @@ interface CandidateFacts {
   id: string
   createdAt: Date
   registrationCompletedAt: Date | null
-  privacyTier: PrivacyTier
+  confidentialSearchMode: boolean
   currentJobStatus: CurrentJobStatus | null
   primaryFunction: string | null
   industryContext: string | null
@@ -317,7 +311,7 @@ async function loadCandidateFacts(): Promise<CandidateFacts[]> {
         id: true,
         createdAt: true,
         registrationCompletedAt: true,
-        privacyTier: true,
+        confidentialSearchMode: true,
         currentJobStatus: true,
         primaryFunction: true,
         industryContext: true,
@@ -501,7 +495,7 @@ async function loadCandidateFacts(): Promise<CandidateFacts[]> {
       id: p.id,
       createdAt: p.createdAt,
       registrationCompletedAt: p.registrationCompletedAt,
-      privacyTier: p.privacyTier,
+      confidentialSearchMode: p.confidentialSearchMode,
       currentJobStatus: p.currentJobStatus,
       primaryFunction: p.primaryFunction,
       industryContext: p.industryContext,
@@ -807,7 +801,7 @@ function computeSearchOutcomes(candidates: CandidateFacts[]): SearchOutcomeMetri
 // ── Confidential mode ──────────────────────────────────────────────
 
 function computeConfidential(candidates: CandidateFacts[]): ConfidentialMetrics {
-  const confidentialCount = candidates.filter((c) => c.privacyTier === 'STEALTH').length
+  const confidentialCount = candidates.filter((c) => c.confidentialSearchMode).length
   return { shareConfidential: pct(confidentialCount, candidates.length), confidentialCount }
 }
 

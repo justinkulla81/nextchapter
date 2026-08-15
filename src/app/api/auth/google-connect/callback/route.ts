@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { exchangeCodeForTokens, getCombinedRedirectUri, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import {
+  exchangeCodeForTokens,
+  getCombinedRedirectUri,
+  isGmailTrackingTester,
+  fetchGoogleAccountEmail,
+} from '@/lib/email-tracking/gmail-oauth'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
 
 // One token exchange grants both the Gmail and Calendar scopes (requested
 // together in buildCombinedGoogleAuthUrl), so this upserts both connection
@@ -41,6 +47,14 @@ export async function GET(request: NextRequest) {
     const profile = await getOrCreateCandidateProfile(user.id)
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
+    // §4.6 hard block — same check as the Gmail-only callback, before
+    // anything is written. This combined flow also grants Calendar access,
+    // but the block is keyed on the same "personal account only" rule.
+    const connectedEmail = await fetchGoogleAccountEmail(tokens.access_token)
+    if (profile.confidentialSearchMode && connectedEmail && looksLikeCorporateDomain(connectedEmail)) {
+      return NextResponse.redirect(new URL('/dashboard/network?gmailError=corporate_domain_blocked', request.url))
+    }
+
     const [existingEmail, existingCalendar] = await Promise.all([
       prisma.emailConnection.findUnique({ where: { candidateId: profile.id } }),
       prisma.calendarConnection.findUnique({ where: { candidateId: profile.id } }),
@@ -49,8 +63,21 @@ export async function GET(request: NextRequest) {
     const [emailConnection, calendarConnection] = await Promise.all([
       prisma.emailConnection.upsert({
         where: { candidateId: profile.id },
-        create: { candidateId: profile.id, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt },
-        update: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, disconnectedAt: null, needsReconnectAt: null },
+        create: {
+          candidateId: profile.id,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt,
+          connectedEmail,
+        },
+        update: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiresAt,
+          disconnectedAt: null,
+          needsReconnectAt: null,
+          connectedEmail,
+        },
       }),
       prisma.calendarConnection.upsert({
         where: { candidateId: profile.id },

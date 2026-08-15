@@ -20,7 +20,15 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // connections authorized under the old metadata-only scope will 403 on
 // their next full-format fetch and get flagged needsReconnectAt, same as
 // any other token failure (see sync-gmail.ts).
-const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
+//
+// `openid email` added for §4.6 — the connection flow previously carried no
+// identity claim at all (no way to know WHICH Google account got
+// connected), so a corporate-domain hard block for Confidential Search Mode
+// candidates had nothing to check. This is the minimal addition that
+// returns an ID token/userinfo without asking for anything beyond email
+// identity — no new Restricted-scope surface, no extra CASA burden.
+const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly openid email'
+const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -74,6 +82,24 @@ export function buildCombinedGoogleAuthUrl(state: string): string {
     state,
   })
   return `${GOOGLE_AUTH_URL}?${params.toString()}`
+}
+
+// §4.6 — fetches the connected Google account's own email address. Returns
+// null on any failure (network error, missing email in the response) so a
+// callback route can fail open toward "couldn't verify, allow it" rather
+// than silently blocking every connection if this endpoint has a bad day;
+// the corporate-domain check downstream is the safety net specifically for
+// Confidential Search Mode, not a general connectivity gate.
+export async function fetchGoogleAccountEmail(accessToken: string): Promise<string | null> {
+  try {
+    const response = await fetch(USERINFO_URL, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (!response.ok) return null
+    const data = (await response.json()) as { email?: string }
+    return data.email ?? null
+  } catch (error) {
+    console.error('Failed to fetch connected Google account email:', error)
+    return null
+  }
 }
 
 interface GoogleTokenResponse {

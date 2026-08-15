@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { postToLinkedInAction } from '@/app/dashboard/marketing-plan/actions'
+import { postToLinkedInAction, enableConfidentialLinkedInPosting } from '@/app/dashboard/marketing-plan/actions'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
 function CopyButton({ text }: { text: string }) {
@@ -30,9 +30,18 @@ function CopyButton({ text }: { text: string }) {
 // actually allows (LinkedIn has no API to directly rewrite a profile's
 // About/Headline fields), so "Post to LinkedIn" here means publishing that
 // text as a status update, not editing the profile field itself.
-function PostToLinkedInButton({ text, connected }: { text: string; connected: boolean }) {
+function PostToLinkedInButton({
+  text,
+  connected,
+  blockedByConfidentialMode,
+}: {
+  text: string
+  connected: boolean
+  blockedByConfidentialMode: boolean
+}) {
   const [isPending, startTransition] = useTransition()
   const [result, setResult] = useState<'idle' | 'posted' | 'error'>('idle')
+  const [enabledJustNow, setEnabledJustNow] = useState(false)
 
   if (!connected) {
     return (
@@ -44,6 +53,34 @@ function PostToLinkedInButton({ text, connected }: { text: string; connected: bo
       >
         Connect LinkedIn to post
       </a>
+    )
+  }
+
+  // §4.3: "LinkedIn posting disabled by default, with the reason stated" —
+  // and "if they enable posting deliberately, warn once: your current
+  // employer can see this." Re-checked server-side in postToLinkedInAction
+  // regardless of enabledJustNow.
+  if (blockedByConfidentialMode && !enabledJustNow) {
+    return (
+      <div className={cn('flex flex-col gap-1.5', isPending && 'cursor-progress [&_*]:cursor-progress')}>
+        <p className="text-xs text-muted-foreground">
+          Posting is off while Confidential Search Mode is on.
+        </p>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={isPending}
+          onClick={() => {
+            startTransition(async () => {
+              await enableConfidentialLinkedInPosting()
+              setEnabledJustNow(true)
+            })
+          }}
+        >
+          {isPending ? 'Enabling…' : 'Enable anyway — your current employer can see this'}
+        </Button>
+      </div>
     )
   }
 
@@ -123,7 +160,7 @@ export function WaysToSayIt({
   linkedin,
 }: {
   adaptations: NarrativeAdaptations
-  linkedin?: { configured: boolean; connected: boolean }
+  linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 }) {
   return (
     <div className="space-y-6">
@@ -142,7 +179,11 @@ export function WaysToSayIt({
                   <div className="flex flex-wrap items-center gap-2">
                     <CopyButton text={adaptations[item.key]} />
                     {item.showLinkedInPost && linkedin?.configured && (
-                      <PostToLinkedInButton text={adaptations[item.key]} connected={linkedin.connected} />
+                      <PostToLinkedInButton
+                        text={adaptations[item.key]}
+                        connected={linkedin.connected}
+                        blockedByConfidentialMode={linkedin.blockedByConfidentialMode}
+                      />
                     )}
                   </div>
                 </CardContent>

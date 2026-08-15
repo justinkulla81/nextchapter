@@ -22,6 +22,8 @@ import {
 import { getSuggestedContactsToAdd } from '@/lib/network/suggested-contacts'
 import { SuggestedContactsCard } from '@/components/dashboard/SuggestedContactsCard'
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
+import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
+import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 export const metadata: Metadata = { title: 'Contact Directory' }
 
 const PAGE_SIZE = 50
@@ -130,12 +132,18 @@ export default async function ContactDirectoryPage({
   // Only looked up for the ~50 contacts on the current page, not the whole
   // list — this used to run against all 27,000+ emails at once.
   const memberships = await lookupNextChapterMemberships(rawContacts.map((c) => c.email))
+  // §4.4 — only fetched (and only ever true) for Confidential Search Mode
+  // candidates, so this is free for everyone else.
+  const currentEmployerName = profile.confidentialSearchMode ? await getCurrentEmployerName(profile.id) : null
   const contacts = rawContacts.map((c) => ({
     ...c,
     hasReachedOut: c.outreachLogs.length > 0,
     lastOutreachChannel: c.outreachLogs[0]?.channel ?? null,
     lastOutreachAt: c.outreachLogs[0]?.loggedAt ?? null,
     membership: c.email ? (memberships.get(c.email.toLowerCase()) ?? null) : null,
+    isAtCurrentEmployer:
+      companyMatchesCurrentEmployer(currentEmployerName, c.company) ||
+      companyMatchesCurrentEmployer(currentEmployerName, c.inferredCompany),
   }))
   const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
@@ -220,6 +228,8 @@ export default async function ContactDirectoryPage({
         <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
       </div>
 
+      {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
+
       {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
         <p className="rounded-lg border border-brand/30 bg-brand/5 p-3 text-sm text-foreground">
           {`Star at least ${PRIORITY_CONTACT_TARGET_COUNT} people below as priority contacts to earn 5 points each — you've starred ${starredCount} of ${PRIORITY_CONTACT_TARGET_COUNT} so far.`}
@@ -271,17 +281,17 @@ export default async function ContactDirectoryPage({
                   />
                   <CopyableTemplateCard
                     title="Asking for an intro"
-                    template={fillIntroRequestTemplate(profile)}
+                    template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
                     templateType="intro_request"
                   />
                   <CopyableTemplateCard
                     title="Putting in a good word"
-                    template={fillGoodWordTemplate(profile)}
+                    template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
                     templateType="good_word"
                   />
                   <CopyableTemplateCard
                     title="Checking in about interim work"
-                    template={fillCheckingInTemplate(profile)}
+                    template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
                     templateType="checking_in"
                   />
                 </div>

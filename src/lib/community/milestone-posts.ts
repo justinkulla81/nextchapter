@@ -13,6 +13,7 @@ export async function maybeCreateMilestonePost(candidateId: string, weekStartDat
     where: { id: candidateId },
     select: {
       privacyTier: true,
+      confidentialSearchMode: true,
       weeklySprintTargetOptOut: true,
       currentCity: true,
       currentState: true,
@@ -23,7 +24,10 @@ export async function maybeCreateMilestonePost(candidateId: string, weekStartDat
     },
   })
   if (!profile) return
-  if (profile.privacyTier !== 'PUBLIC' && profile.privacyTier !== 'SEMI_PUBLIC') return
+  // Confidential Search Mode candidates still post — under a generated
+  // handle, see resolveCommunityIdentity — same exception as
+  // createCommunityPost/maybeCreateContentLikePost.
+  if (profile.privacyTier !== 'PUBLIC' && profile.privacyTier !== 'SEMI_PUBLIC' && !profile.confidentialSearchMode) return
   if (profile.weeklySprintTargetOptOut) return
 
   const weekEnd = new Date(weekStartDate.getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -38,12 +42,12 @@ export async function maybeCreateMilestonePost(candidateId: string, weekStartDat
       candidateId,
       postType: 'MILESTONE',
       description: 'hit this week’s Sprint Target',
-      postCity: profile.currentCity,
-      postState: profile.currentState,
+      postCity: profile.confidentialSearchMode ? null : profile.currentCity,
+      postState: profile.confidentialSearchMode ? null : profile.currentState,
       postFunction: profile.primaryFunction,
       postIndustry: profile.industryContext,
       postIndustryBucket: profile.industryBucket,
-      postMetroArea: profile.metroArea,
+      postMetroArea: profile.confidentialSearchMode ? null : profile.metroArea,
       // System-generated, fixed template text (never candidate-authored
       // free text) — skips the §14 AI classifier entirely and publishes
       // directly, same reasoning as maybeCreateContentLikePost.

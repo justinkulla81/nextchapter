@@ -99,8 +99,12 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
 
   if (status !== 'active') return NOT_ACTIVE(status, candidateName)
 
+  // §4.7: "Current employer never appears in any outbound distribution."
+  // Only the current-employer row's company name is withheld — past
+  // employers are unaffected, and isCurrent itself stays visible (a
+  // recruiter can still see there's a current role, just not where).
   const workHistory: SharedWorkHistoryItem[] = selectDisplayedWorkHistory(candidate.workHistory).map((w) => ({
-    companyName: w.companyName,
+    companyName: w.isCurrent && candidate.confidentialSearchMode ? 'Current employer (name withheld)' : w.companyName,
     roleTitle: sanitizeRoleTitle(w.roleTitle),
     startDate: w.startDate,
     endDate: w.endDate,

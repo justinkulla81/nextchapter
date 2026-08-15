@@ -50,6 +50,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
+import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { cn } from '@/lib/utils'
 import type { Prisma, PrivacyTier } from '@prisma/client'
 
@@ -199,6 +200,7 @@ export default async function SupportNetworkPage({
         <CommunityTab
           candidateId={profile.id}
           privacyTier={profile.privacyTier}
+          confidentialSearchMode={profile.confidentialSearchMode}
           privacyOpenedUpBonusAt={profile.privacyOpenedUpBonusAt}
           encouragementGivingOptIn={profile.encouragementGivingOptIn}
           layoffCohortId={profile.layoffCohortId}
@@ -552,6 +554,7 @@ function partnerNameFor(thread: { coach: { fullName: string } | null; recruiter:
 async function CommunityTab({
   candidateId,
   privacyTier,
+  confidentialSearchMode,
   privacyOpenedUpBonusAt,
   encouragementGivingOptIn,
   layoffCohortId,
@@ -563,6 +566,7 @@ async function CommunityTab({
 }: {
   candidateId: string
   privacyTier: PrivacyTier
+  confidentialSearchMode: boolean
   privacyOpenedUpBonusAt: Date | null
   encouragementGivingOptIn: boolean
   layoffCohortId: string | null
@@ -577,7 +581,10 @@ async function CommunityTab({
   // explains why both checks still matter). Privacy tier is checked first
   // since it's the cheaper, more common blocker — no need to compute
   // milestone badges for someone who hasn't opened up their profile yet.
-  const privacyOk = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
+  // Confidential Search Mode candidates pass this half of the gate too —
+  // they still post/participate, always under a generated handle (see
+  // resolveCommunityIdentity) rather than needing a public privacy tier.
+  const privacyOk = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC' || confidentialSearchMode
 
   if (!privacyOk) {
     return (
@@ -644,7 +651,7 @@ async function CommunityTab({
       prisma.communityPost.findMany({
         where: { isActive: true, ...communityModerationWhere(candidateId) },
         include: {
-          candidate: { select: { firstName: true, lastName: true } },
+          candidate: { select: { id: true, firstName: true, lastName: true, profilePictureUrl: true, confidentialSearchMode: true } },
           reactions: { where: { candidateId } },
           _count: { select: { reactions: true } },
         },
@@ -658,7 +665,15 @@ async function CommunityTab({
 
     return (
       <div className="space-y-8">
+        {confidentialSearchMode && <ConfidentialModeIndicator />}
         <div className="space-y-3">
+          {confidentialSearchMode && (
+            <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+              Anything you write here is visible to other members — you&apos;ll post under a generated
+              handle with no employer, title, or location attached, but the words themselves aren&apos;t
+              private from the Community.
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">
             First, introduce yourself — a real post that shows up in the feed like anyone else&apos;s,
             so people here know who they&apos;re talking to before they see your other posts.
@@ -670,6 +685,7 @@ async function CommunityTab({
               primaryFunction,
               targetRoleType,
               currentCity,
+              confidentialSearchMode,
             })}
           />
         </div>
@@ -707,7 +723,7 @@ async function CommunityTab({
         ...communityModerationWhere(candidateId),
       },
       include: {
-        candidate: { select: { firstName: true, lastName: true } },
+        candidate: { select: { id: true, firstName: true, lastName: true, profilePictureUrl: true, confidentialSearchMode: true } },
         reactions: { where: { candidateId } },
         _count: { select: { reactions: true } },
       },
@@ -723,6 +739,7 @@ async function CommunityTab({
 
   return (
     <div className="space-y-8">
+      {confidentialSearchMode && <ConfidentialModeIndicator />}
       <p className="text-sm text-muted-foreground">
         Ask for help, offer help, or share a job — nobody searches well entirely alone.
       </p>

@@ -262,6 +262,10 @@ export async function postToLinkedInAction(text: string): Promise<boolean> {
   if (!profile) return false
   if (!isLinkedInPostingConfigured()) return false
   if (!text.trim()) return false
+  // §4.3: disabled by default in Confidential Search Mode, until the
+  // candidate deliberately turns it on (see enableConfidentialLinkedInPosting
+  // below) — re-checked here, never trusted from the client alone.
+  if (profile.confidentialSearchMode && !profile.confidentialLinkedInPostingOptIn) return false
 
   const connection = await prisma.linkedInConnection.findUnique({ where: { candidateId: profile.id } })
   if (!connection || connection.disconnectedAt) return false
@@ -288,5 +292,21 @@ export async function postToLinkedInAction(text: string): Promise<boolean> {
   }
   revalidatePath('/dashboard/marketing-plan')
   return true
+}
+
+// §4.3: "If they enable posting deliberately, warn once: your current
+// employer can see this." One-time, explicit override — WaysToSayIt.tsx
+// shows the warning text inline before calling this; re-checked here since
+// this is the actual thing that lifts the block, not the warning text
+// itself.
+export async function enableConfidentialLinkedInPosting(): Promise<void> {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { confidentialLinkedInPostingOptIn: true },
+  })
+  captureServerEvent(profile.id, 'confidential_linkedin_posting_enabled')
+  revalidatePath('/dashboard/marketing-plan')
 }
 

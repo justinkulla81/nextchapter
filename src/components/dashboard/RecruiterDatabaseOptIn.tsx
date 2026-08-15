@@ -4,8 +4,33 @@ import { setRecruiterDatabaseOptIn } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import type { Grade } from '@/lib/scoring/grade'
 
-export function RecruiterDatabaseOptIn({ optedIn, currentGrade }: { optedIn: boolean; currentGrade: Grade }) {
+export function RecruiterDatabaseOptIn({
+  optedIn,
+  currentGrade,
+  confidentialSearchMode = false,
+}: {
+  optedIn: boolean
+  currentGrade: Grade
+  confidentialSearchMode?: boolean
+}) {
   const isAGrade = currentGrade === 'A'
+
+  // §4.7 — this opts you into a blanket exposure to every recruiter who
+  // searches, with no per-recruiter approval step, which can't coexist with
+  // Confidential Search Mode's per-instance consent requirement.
+  if (confidentialSearchMode && !optedIn) {
+    return (
+      <div className="rounded-lg border border-border p-4">
+        <p className="font-medium text-foreground">Recruiter database</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Unavailable while Confidential Search Mode is on — every recruiter who searches could see
+          your Dossier, with no chance for you to approve each one individually. Your Dossier can
+          still reach a specific recruiter through a share link you create yourself, or through
+          turning Confidential Search Mode off.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="rounded-lg border border-border p-4">

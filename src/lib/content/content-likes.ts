@@ -18,6 +18,7 @@ async function maybeCreateContentLikePost(candidateId: string, content: Likeable
     where: { id: candidateId },
     select: {
       privacyTier: true,
+      confidentialSearchMode: true,
       currentCity: true,
       currentState: true,
       primaryFunction: true,
@@ -28,20 +29,24 @@ async function maybeCreateContentLikePost(candidateId: string, content: Likeable
   })
   if (!profile) return
   // Same participation gate createCommunityPost/maybeCreateMilestonePost use
-  // — no feed post for a candidate whose profile isn't Public/Semi-Public.
-  if (profile.privacyTier !== 'PUBLIC' && profile.privacyTier !== 'SEMI_PUBLIC') return
+  // — no feed post for a candidate whose profile isn't Public/Semi-Public,
+  // unless they're in Confidential Search Mode (still posts, under a
+  // generated handle — see resolveCommunityIdentity).
+  if (profile.privacyTier !== 'PUBLIC' && profile.privacyTier !== 'SEMI_PUBLIC' && !profile.confidentialSearchMode) return
 
   await prisma.communityPost.create({
     data: {
       candidateId,
       postType: 'LIKED_CONTENT',
       description: `liked "${content.title}"`,
-      postCity: profile.currentCity,
-      postState: profile.currentState,
+      // §4.2: no location/employer for Confidential Search Mode candidates
+      // — see createCommunityPost's identical comment.
+      postCity: profile.confidentialSearchMode ? null : profile.currentCity,
+      postState: profile.confidentialSearchMode ? null : profile.currentState,
       postFunction: profile.primaryFunction,
       postIndustry: profile.industryContext,
       postIndustryBucket: profile.industryBucket,
-      postMetroArea: profile.metroArea,
+      postMetroArea: profile.confidentialSearchMode ? null : profile.metroArea,
       // System-generated, fixed template text (never candidate-authored
       // free text) — skips the §14 AI classifier entirely and publishes
       // directly, same reasoning as maybeCreateMilestonePost.

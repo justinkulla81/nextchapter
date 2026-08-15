@@ -13,21 +13,6 @@ import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-jo
 //     'declined' from 'pending'.
 //   - Rate limit 3 outstanding asks per member; 14-day expiry.
 
-// ── Confidential Search Mode proxy ──────────────────────────────────────
-// No dedicated "Confidential Search Mode" boolean exists — task #966
-// (NextChapter_Search_Visibility_References_Leaderboards.md) is the real,
-// unbuilt feature. Proxied as privacyTier === 'STEALTH' ("visible only to
-// pre-approved companies"), the closest real value to the spec's concept —
-// same convention already established in
-// src/app/support/admin/(portal)/population/page.tsx's ConfidentialSection.
-// A STEALTH candidate's MemberEmployment rows are excluded from every
-// insider surface below (list, count, ask target) — provisional until a
-// real Confidential Search Mode field exists, at which point this should
-// gate on that instead.
-function isStealthProxy(privacyTier: string): boolean {
-  return privacyTier === 'STEALTH'
-}
-
 // ── 4.1 Contribution gate ───────────────────────────────────────────────
 
 export async function hasTaggedEmployment(candidateId: string): Promise<boolean> {
@@ -118,8 +103,8 @@ function tenureRecencyFor(endDate: Date | null, isCurrent: boolean): string {
 
 // Never returns a name — role level, function, current/former, and a
 // coarse tenure bucket only, per the spec's own display example. Excludes:
-// the viewer themselves, visibleAsInsider === false rows, and any STEALTH
-// candidate (see isStealthProxy above) regardless of that row's own
+// the viewer themselves, visibleAsInsider === false rows, and any
+// Confidential Search Mode candidate regardless of that row's own
 // visibleAsInsider value — Confidential Search Mode members are never
 // listed as insiders by name, and since this list is the precursor to a
 // named reveal (via an accepted ask), they're excluded upstream instead.
@@ -129,7 +114,7 @@ export async function getInsidersForCompany(companyId: string, viewerCandidateId
       companyId,
       visibleAsInsider: true,
       candidateId: { not: viewerCandidateId },
-      candidate: { privacyTier: { not: 'STEALTH' } },
+      candidate: { confidentialSearchMode: false },
     },
     select: { id: true, seniorityBand: true, function: true, isCurrent: true, endDate: true },
     orderBy: { updatedAt: 'desc' },
@@ -192,13 +177,19 @@ export async function requestInsiderAsk(
 
   const insider = await prisma.memberEmployment.findUnique({
     where: { id: insiderMemberEmploymentId },
-    select: { id: true, companyId: true, candidateId: true, visibleAsInsider: true, candidate: { select: { privacyTier: true } } },
+    select: {
+      id: true,
+      companyId: true,
+      candidateId: true,
+      visibleAsInsider: true,
+      candidate: { select: { confidentialSearchMode: true } },
+    },
   })
   if (
     !insider ||
     insider.companyId !== companyId ||
     !insider.visibleAsInsider ||
-    isStealthProxy(insider.candidate.privacyTier) ||
+    insider.candidate.confidentialSearchMode ||
     insider.candidateId === askerCandidateId
   ) {
     return { ok: false, error: 'This insider is no longer available.' }

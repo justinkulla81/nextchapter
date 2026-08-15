@@ -20,6 +20,7 @@ import {
 } from '@/lib/messaging/peer-threads'
 import { classifyCommunityPost, moderationOutcome, type ModerationOutcome } from '@/lib/community/moderation'
 import { canParticipateInCommunity } from '@/lib/community/access'
+import { resolveCommunityIdentity } from '@/lib/community/identity'
 import type { CommunityModerationCategory, CommunityModerationStatus } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
@@ -168,9 +169,10 @@ export async function createCommunityPost(
   // Never trust a client-side gate alone — re-check server-side. §14's real
   // gate is a qualifying milestone badge, privacy tier alone is no longer
   // sufficient — see community/access.ts's own comment for why both still
-  // matter.
-  if (!(await canParticipateInCommunity(profile.id, profile.privacyTier))) {
-    return { error: "Community unlocks once your profile is Public or Semi-Public and you've earned any milestone badge." }
+  // matter (and why Confidential Search Mode candidates pass the
+  // visibility half of this gate too).
+  if (!(await canParticipateInCommunity(profile.id, profile.privacyTier, profile.confidentialSearchMode))) {
+    return { error: "Community unlocks once your profile is Public or Semi-Public (or you're in Confidential Search Mode) and you've earned any milestone badge." }
   }
 
   const postType = formData.get('postType') as string | null
@@ -231,20 +233,28 @@ export async function createCommunityPost(
   // out of every other query that already filters on isActive.
   const isActive = outcome !== 'REMOVE'
 
+  // §4.2: "No employer, title, or location on the profile" for Confidential
+  // Search Mode candidates. Stripped at write time (not just at render) so
+  // it's never available to leak through any future rendering surface —
+  // postFunction/postIndustry/postIndustryBucket/postSeniorityBand are kept
+  // (broad categories for Community "peers like you" groups, not employer
+  // or location) but city/state/metro and company names are not.
   const post = await prisma.communityPost.create({
     data: {
       candidateId: profile.id,
       postType: postType as (typeof SUBMITTABLE_POST_TYPES)[number],
       description,
       externalUrl,
-      postCity: profile.currentCity,
-      postState: profile.currentState,
+      postCity: profile.confidentialSearchMode ? null : profile.currentCity,
+      postState: profile.confidentialSearchMode ? null : profile.currentState,
       postFunction: profile.primaryFunction,
       postIndustry: profile.industryContext,
       postIndustryBucket: profile.industryBucket,
-      postMetroArea: profile.metroArea,
+      postMetroArea: profile.confidentialSearchMode ? null : profile.metroArea,
       postSchools: primarySchool?.schoolNameNormalized ? [primarySchool.schoolNameNormalized] : [],
-      postCompanies: recentCompanies.map((c) => c.companyNameNormalized).filter(Boolean),
+      postCompanies: profile.confidentialSearchMode
+        ? []
+        : recentCompanies.map((c) => c.companyNameNormalized).filter(Boolean),
       postSeniorityBand: latestResumeAnalysis?.seniorityBand ?? null,
       isActive,
       moderationStatus,
@@ -336,7 +346,11 @@ export async function submitEncouragementNote(
   const message = (formData.get('message') as string | null)?.trim()
   if (!message) return { error: 'Write a short note first.' }
 
-  const revealSender = formData.get('revealSender') === 'on'
+  // Confidential Search Mode never reveals a real name to another member —
+  // "name mode unavailable" (§4.2) extends to encouragement notes too, even
+  // though they're a separate subsystem from Community posts. Enforced
+  // here server-side, not just by hiding the checkbox client-side.
+  const revealSender = formData.get('revealSender') === 'on' && !profile.confidentialSearchMode
   const result = await sendEncouragementNote(profile.id, message, revealSender)
   revalidatePath('/dashboard/community')
 
@@ -401,7 +415,7 @@ export async function expressInterest(postId: string) {
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  if (!(await canParticipateInCommunity(profile.id, profile.privacyTier))) {
+  if (!(await canParticipateInCommunity(profile.id, profile.privacyTier, profile.confidentialSearchMode))) {
     return
   }
 
@@ -431,7 +445,7 @@ export async function expressInterest(postId: string) {
     await sendPostInterestNotification({
       posterEmail,
       postTitle: post.title || post.description.slice(0, 60),
-      interestedCandidateName: profile.displayName || 'A candidate',
+      interestedCandidateName: resolveCommunityIdentity(profile).displayName ?? 'A candidate',
       interestedCandidateEmail: user.email!,
     })
   }
@@ -465,7 +479,7 @@ export async function toggleCheerPostAction(postId: string) {
     // Only the "add a cheer" side is gated — removing your own reaction is
     // always allowed, same reasoning as expressInterest/createCommunityPost
     // never gating report/block below.
-    if (!(await canParticipateInCommunity(profile.id, profile.privacyTier))) {
+    if (!(await canParticipateInCommunity(profile.id, profile.privacyTier, profile.confidentialSearchMode))) {
       return
     }
     try {

@@ -6,6 +6,7 @@ import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershi
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { MyStoryTab } from '@/components/dashboard/interview-prep/MyStoryTab'
 import { LinkedInConnectCard } from '@/components/dashboard/marketing-plan/LinkedInConnectCard'
@@ -104,7 +105,13 @@ export default async function MarketingPlanPage({
   const defaultNarrativeItem = narratives[0] as NarrativeItem | undefined
   const alternativeNarratives = narratives.slice(1)
   const hardQuestions = (defaultNarrative?.hardQuestions as unknown as HardQuestionAnswers | null) ?? null
-  const linkedin = { configured: linkedinConfigured, connected: !!linkedinConnection && !linkedinConnection.disconnectedAt }
+  const linkedin = {
+    configured: linkedinConfigured,
+    connected: !!linkedinConnection && !linkedinConnection.disconnectedAt,
+    // §4.3: LinkedIn posting is off by default while Confidential Search
+    // Mode is on, until the candidate deliberately turns it on.
+    blockedByConfidentialMode: profile.confidentialSearchMode && !profile.confidentialLinkedInPostingOptIn,
+  }
 
   // All-time count, matching the existing convention this same field is
   // already counted with in unlock-tier.ts — no new query needed since
@@ -118,6 +125,8 @@ export default async function MarketingPlanPage({
         <h1 className="text-2xl font-semibold tracking-tight">My Marketing Plan</h1>
         <PageHeaderBoxes pageKey="marketing-plan" candidateId={profile.id} />
       </div>
+
+      {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
       <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
         <p>

@@ -2,7 +2,7 @@ import type { CommunityPost } from '@prisma/client'
 import { ThumbsUp } from 'lucide-react'
 import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
-import { anonymize } from '@/lib/community/community-feed'
+import { resolveCommunityIdentity, type CommunityIdentitySource } from '@/lib/community/identity'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CommunityPostReportButton } from '@/components/dashboard/CommunityPostReportButton'
@@ -13,13 +13,13 @@ export function CommunityPostCard({
   isOwnPost,
 }: {
   post: CommunityPost & {
-    candidate: { firstName: string | null; lastName: string | null }
+    candidate: CommunityIdentitySource
     reactions: { id: string }[]
     _count: { reactions: number }
   }
   isOwnPost: boolean
 }) {
-  const posterName = anonymize(post.candidate.firstName, post.candidate.lastName)
+  const posterName = resolveCommunityIdentity(post.candidate).displayName
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
 

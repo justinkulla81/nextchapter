@@ -150,6 +150,14 @@ export async function setRecruiterDatabaseOptIn(optIn: boolean): Promise<void> {
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
+  // §4.7 — the Recruiter Database is a blanket exposure to every recruiter
+  // who searches, with no per-recruiter approval step (unlike the
+  // per-instance ProfileShare flow). That's incompatible with Confidential
+  // Search Mode's "Dossier never shared without explicit per-instance
+  // consent." Opting IN is blocked outright while the mode is on; opting
+  // OUT always still works.
+  if (optIn && profile.confidentialSearchMode) return
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
@@ -244,6 +252,60 @@ export async function grantCoachDossierConsent(): Promise<void> {
   if (!(await hasSubmittedCoachingOnboardingForm(profile.id))) {
     redirect('/dashboard/coaching-form')
   }
+}
+
+export type ConfidentialModeActionResult = { error?: string } | undefined
+
+// Confidential Search Mode toggle (spec §3, §6). Turning it ON is
+// immediate, no confirmation. Turning it OFF requires the client to have
+// already shown the "here's exactly what becomes visible" confirmation
+// (ConfidentialModeToggle.tsx) — re-checked here server-side since a client
+// gate alone is never trusted for a visibility-changing action.
+export async function setConfidentialSearchMode(
+  enabled: boolean,
+  confirmed: boolean
+): Promise<ConfidentialModeActionResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to change this.' }
+
+  if (!enabled && !confirmed) {
+    return { error: 'Confirmation is required to turn off Confidential Search Mode.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  if (profile.confidentialSearchMode === enabled) return
+
+  await prisma.$transaction([
+    prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: {
+        confidentialSearchMode: enabled,
+        confidentialSearchModeChangedAt: new Date(),
+        // Turning the mode ON also closes the blanket Recruiter Database
+        // exposure (§4.7 — "Dossier never shared without explicit
+        // per-instance consent"). recruiterDatabaseOptIn shows the full
+        // Dossier to every recruiter who searches, with no per-recruiter
+        // approval step — that blanket exposure defeats the mode's whole
+        // purpose, so it can't coexist with it. The per-instance
+        // ProfileShare flow (src/app/dashboard/privacy/share-actions.ts) is
+        // unaffected — it already requires a real per-instance choice.
+        ...(enabled ? { recruiterDatabaseOptIn: false } : {}),
+      },
+    }),
+    prisma.confidentialModeChangeLog.create({
+      data: { candidateId: profile.id, enabled, source: 'SETTINGS_TOGGLE' },
+    }),
+  ])
+
+  captureServerEvent(profile.id, enabled ? 'confidential_search_mode_enabled' : 'confidential_search_mode_disabled')
+
+  revalidatePath('/dashboard/privacy')
+  revalidatePath('/dashboard/community')
+  revalidatePath('/dashboard/marketing-plan')
+  revalidatePath('/dashboard/find-my-job')
 }
 
 // Profile picture upload/remove/visibility-toggle actions live in

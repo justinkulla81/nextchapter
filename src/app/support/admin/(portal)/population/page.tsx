@@ -524,9 +524,8 @@ function ConfidentialSection({
       csvHref={`/api/admin/population/export?section=confidential&segmentType=employment_status&week=${weekStartDate.toISOString()}`}
     >
       <p className="text-sm text-muted-foreground">
-        No dedicated &quot;Confidential Search Mode&quot; boolean exists — proxied as <code>privacyTier === &apos;STEALTH&apos;</code>
-        {' '}(&quot;visible only to pre-approved companies&quot;), the closest real value to the spec&apos;s concept.
-        Broken down by employment status, standing in for persona (see Composition section note).
+        Reads <code>CandidateProfile.confidentialSearchMode</code> directly. Broken down by employment status,
+        standing in for persona (see Composition section note) since no real 4-value persona field exists yet.
       </p>
       <p className="text-sm">
         Overall: {fmtPct(allRow.metrics.confidential.shareConfidential)} in Confidential Search Mode ({allRow.metrics.confidential.confidentialCount} of {allRow.memberCount})

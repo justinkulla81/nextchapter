@@ -20,6 +20,13 @@ enum PrivacyTier {
   LOCKED // Invisible to all searches (building profile)
 }
 
+// Source of a CandidateProfile.confidentialSearchMode change — see
+// ConfidentialModeChangeLog.
+enum ConfidentialModeChangeSource {
+  ONBOARDING_DEFAULT // Set automatically by updateSituation from currentJobStatus
+  SETTINGS_TOGGLE // Member flipped it themselves from Privacy settings
+}
+
 enum EngagementType {
   FULL_TIME
   FRACTIONAL
@@ -507,6 +514,49 @@ model CandidateProfile {
   // awarding PRIVACY_CONFIRMED so it only ever fires once per candidate.
   privacyOpenedUpBonusAt DateTime?
 
+  // Confidential Search Mode — docs/specs/NextChapter_Search_Visibility_
+  // References_Leaderboards.md PART ONE. A real, separate axis from
+  // privacyTier below: privacyTier controls identity-display granularity
+  // for the opt-in recruiter marketplace (Talent/Recruiter Database);
+  // confidentialSearchMode controls whether ANYTHING the member does is
+  // visible to anyone outside NextChapter (community, leaderboards,
+  // LinkedIn, outreach, email, Gmail connection, Dossier distribution,
+  // applications) — a hard rule, not a preference, checked at every render
+  // and send path per the spec's Build Notes. The two are read together in
+  // several places (e.g. Community identity display) but are never merged.
+  //
+  // Default set once at onboarding completion (see updateSituation in
+  // src/app/onboarding/actions.ts) from currentJobStatus, per the accepted
+  // Phase-A mapping — lossy, since no real 4-value persona field exists yet:
+  //   EMPLOYED_CONSIDERING_MOVE -> ON  (closest match to "worried I'll be let go")
+  //   RESIGNED                  -> ON  (garden leave / notice period / reference risk)
+  //   everything else           -> OFF (LAID_OFF, CAREGIVER_LEAVE_SABBATICAL,
+  //                                      CAREER_PIVOT, RELOCATED_FOR_FAMILY,
+  //                                      NEW_GRADUATE_FIRST_JOB, and null)
+  // After that, the member fully controls it (settings toggle — see
+  // src/app/dashboard/privacy/actions.ts:setConfidentialSearchMode). Turning
+  // on is immediate; turning off requires a confirmation naming exactly what
+  // becomes visible (spec §3).
+  //
+  // §4.1 Leaderboards (not built yet — Phase-B+ of this spec): when the
+  // Weekly Leaderboards feature is built, every leaderboard query MUST
+  // hard-exclude candidates where confidentialSearchMode is true, with no
+  // opt-in control shown to override it. Leave this comment for that build.
+  //
+  // Every change is appended to ConfidentialModeChangeLog below with a
+  // timestamp, so "what was the state when X happened" is always
+  // reconstructable — see spec Build Notes ("If something leaks, we need
+  // the state at the time").
+  //
+  // Formerly proxied elsewhere as privacyTier === 'STEALTH' (explicitly
+  // flagged "provisional until Confidential Search Mode exists" in
+  // src/lib/companies/insider-network.ts, src/app/support/admin/(portal)/
+  // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
+  // those call sites now read this field directly instead.
+  confidentialSearchMode          Boolean                     @default(false)
+  confidentialSearchModeChangedAt DateTime?
+  confidentialModeChangeLog       ConfidentialModeChangeLog[]
+
   // Recruiter database — explicit candidate opt-in required before appearing
   // in any employer-facing Talent match list. privacyTier alone is opt-out,
   // not opt-in, and isn't sufficient consent for a matching/ranking surface.
@@ -529,6 +579,16 @@ model CandidateProfile {
   // pre-checked for anyone who hasn't set a preference yet, matching the
   // "checked automatically" product decision.
   resumeBookOptIn Boolean @default(false)
+
+  // §4.3: LinkedIn posting through NextChapter's own integration is
+  // disabled by default while Confidential Search Mode is on — this is the
+  // explicit, deliberate override, shown once with the "your current
+  // employer can see this" warning (src/components/dashboard/marketing-
+  // plan/WaysToSayIt.tsx). Irrelevant while confidentialSearchMode is
+  // false; not reset automatically when confidential mode turns back on
+  // later, since re-showing the warning next time they try to post again
+  // is the simpler, equally-safe behavior.
+  confidentialLinkedInPostingOptIn Boolean @default(false)
 
   // Step 2: "Which of these sounds like you" persona picker — sets
   // currentJobStatus via SITUATION_TO_JOB_STATUS the same way a homepage
@@ -3360,6 +3420,14 @@ model EmailConnection {
   // Gmail" prompt, never a silent failure.
   needsReconnectAt DateTime?
   disconnectedAt   DateTime?
+  // §4.6 — the connected Google account's own email address, fetched from
+  // Google's userinfo endpoint during the OAuth callback (see
+  // fetchGoogleAccountEmail in src/lib/email-tracking/gmail-oauth.ts). Never
+  // captured before this: the scope previously requested carried no
+  // identity claim at all. Used to hard-block a corporate-looking domain
+  // while Confidential Search Mode is on (checked BEFORE this row is ever
+  // created/updated — a blocked attempt writes nothing here).
+  connectedEmail   String?
 
   activities TrackedEmailActivity[]
 }
@@ -3588,6 +3656,24 @@ model OutreachLog {
   loggedAt    DateTime               @default(now())
 
   @@index([candidateId, loggedAt])
+}
+
+// Append-only audit trail for CandidateProfile.confidentialSearchMode
+// changes — spec Build Notes: "Log mode changes with timestamps. If
+// something leaks, we need the state at the time." A single `updatedAt`
+// column on CandidateProfile can't answer "was this candidate confidential
+// on March 3rd," so this mirrors OutreachLog/MarketResponseLog's minimal
+// candidate-scoped log-row convention instead of overloading a timestamp
+// field. `enabled` is the mode's state *after* this change.
+model ConfidentialModeChangeLog {
+  id          String                       @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  enabled     Boolean
+  source      ConfidentialModeChangeSource
+  changedAt   DateTime                     @default(now())
+
+  @@index([candidateId, changedAt])
 }
 
 // A job pulled from Adzuna and shown to the candidate for a lightweight
@@ -5217,13 +5303,12 @@ model AdminAccessLog {
 //    every candidate-facing "contraction signal" surface renders an
 //    explicit "not available yet" state instead of reading these two
 //    columns.
-// 2. A dedicated "Confidential Search Mode" boolean — task #966 in the
-//    backlog (NextChapter_Search_Visibility_References_Leaderboards.md) is
-//    the real, unbuilt feature. CandidateProfile.privacyTier === 'STEALTH'
-//    is used as the provisional proxy everywhere this schema needs it (see
-//    src/lib/companies/insider-network.ts), same convention already
-//    established in src/app/support/admin/(portal)/population/page.tsx's
-//    ConfidentialSection.
+// 2. (Resolved) A dedicated "Confidential Search Mode" boolean — task #966,
+//    NextChapter_Search_Visibility_References_Leaderboards.md — now exists
+//    as CandidateProfile.confidentialSearchMode above. src/lib/companies/
+//    insider-network.ts and src/app/support/admin/(portal)/population/
+//    page.tsx's ConfidentialSection were both updated to read it directly
+//    instead of the old privacyTier === 'STEALTH' proxy.
 //
 // Join strategy: there is no domain-based join key anywhere in this
 // codebase (ExclusiveJobPosting.companyName and WorkHistoryEntry.companyName

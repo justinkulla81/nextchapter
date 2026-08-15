@@ -37,7 +37,7 @@ export function MyStoryTab({
   // Only passed on the Marketing Plan page — Interview Prep (the other
   // renderer of this shared tab) never shows the LinkedIn direct-post
   // button, since posting isn't this page's job.
-  linkedin?: { configured: boolean; connected: boolean }
+  linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 }) {
   const [isPending, startTransition] = useTransition()
   const [draft, setDraft] = useState(coreStatement ?? '')

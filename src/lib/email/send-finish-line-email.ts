@@ -14,9 +14,19 @@ import FinishLineEmail from '@/emails/finish-line'
 // week-close-out recap, since by Sunday the ask isn't "start something new"
 // but "finish out the week strong" — and what that means depends on whether
 // they're already past this week's A-grade target or still short of it.
-async function buildFinishLineContent(candidateId: string, privacyTier: PrivacyTier, firstName: string | null) {
+async function buildFinishLineContent(
+  candidateId: string,
+  privacyTier: PrivacyTier,
+  confidentialSearchMode: boolean,
+  firstName: string | null
+) {
   const weekNumber = await getCandidateWeekNumber(candidateId, getMondayOfWeek(new Date()))
-  const { engines, weeklyPoints, weeklyPointsTarget } = await computeWeeklyEngines(candidateId, weekNumber, privacyTier)
+  const { engines, weeklyPoints, weeklyPointsTarget } = await computeWeeklyEngines(
+    candidateId,
+    weekNumber,
+    privacyTier,
+    confidentialSearchMode
+  )
 
   const sprint = await getCurrentWeekSprint(candidateId)
   const actions = sprint ? ((sprint.committedActions as unknown as CommittedAction[]) ?? []) : []
@@ -79,7 +89,12 @@ export async function sendFinishLineEmail(candidateId: string, introCopy?: strin
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const unsubscribeUrl = `${appUrl}/api/unsubscribe/${candidate.id}?type=daily`
 
-    const { subject, bullets } = await buildFinishLineContent(candidateId, candidate.privacyTier, candidate.firstName)
+    const { subject, bullets } = await buildFinishLineContent(
+      candidateId,
+      candidate.privacyTier,
+      candidate.confidentialSearchMode,
+      candidate.firstName
+    )
 
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({

@@ -26,6 +26,11 @@ export interface ContactRowData extends SupportNetworkContact {
   lastOutreachChannel: string | null
   lastOutreachAt: Date | null
   membership: NextChapterMembership | null
+  // §4.4: "Flag contacts who currently work at their employer before
+  // sending." Computed server-side (src/lib/network/current-employer-flag.ts)
+  // against the candidate's own WorkHistoryEntry — only ever true when the
+  // candidate is in Confidential Search Mode (see contacts/page.tsx).
+  isAtCurrentEmployer: boolean
 }
 
 function relationshipSummary(tags: RelationshipTag[], customTags: string[]): string {
@@ -378,7 +383,14 @@ function ContactRowExpandable({
         <td className="px-3 py-2 font-medium text-foreground">
           <ContactNameLink contact={contact} />
         </td>
-        <td className="px-3 py-2 text-muted-foreground">{contact.company ?? '—'}</td>
+        <td className="px-3 py-2 text-muted-foreground">
+          {contact.company ?? '—'}
+          {contact.isAtCurrentEmployer && (
+            <span className="ml-1.5 inline-flex items-center rounded-full bg-orange/10 px-1.5 py-0.5 text-[10px] font-medium text-orange">
+              Your employer
+            </span>
+          )}
+        </td>
         <td className="px-3 py-2 text-muted-foreground">
           {contact.connectedAt ? contact.connectedAt.toLocaleDateString() : '—'}
         </td>

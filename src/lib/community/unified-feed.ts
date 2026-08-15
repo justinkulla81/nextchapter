@@ -1,9 +1,10 @@
 import 'server-only'
 import type { CommunityPost } from '@prisma/client'
 import type { CommunityFeedItem } from '@/lib/community/community-feed'
+import type { CommunityIdentitySource } from '@/lib/community/identity'
 
 export type CommunityPostWithCandidate = CommunityPost & {
-  candidate: { firstName: string | null; lastName: string | null }
+  candidate: CommunityIdentitySource
   // Scoped to the viewing candidate's own row only (query filters by
   // candidateId) — length > 0 means "I cheered this," never a full list.
   reactions: { id: string }[]

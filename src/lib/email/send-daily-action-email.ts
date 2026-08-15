@@ -7,6 +7,7 @@ import { getTodaysPrimaryAction } from '@/lib/daily/primary-action'
 import { generateDailyInsights } from '@/lib/emails/generate-insights'
 import { buildWeeklyRecap } from '@/lib/email/weekly-recap'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import DailyActionEmail from '@/emails/daily-action'
 
 const QUIET_THRESHOLD_DAYS = 3
@@ -71,11 +72,13 @@ export async function sendDailyActionEmail(candidateId: string, introCopy?: stri
         })
       : null
 
-    const subject =
+    const subject = neutralizeEmailSubject(
       insights?.subject ??
-      (candidate.firstName && primaryAction
-        ? `Your one thing for today, ${candidate.firstName}.`
-        : 'Your one thing for today')
+        (candidate.firstName && primaryAction
+          ? `Your one thing for today, ${candidate.firstName}.`
+          : 'Your one thing for today'),
+      candidate.confidentialSearchMode
+    )
 
     const weeklyRecap = !isReset ? await buildWeeklyRecap(candidateId) : null
 

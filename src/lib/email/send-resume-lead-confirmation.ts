@@ -1,8 +1,13 @@
 import 'server-only'
 import { Resend } from 'resend'
 import ResumeLeadConfirmationEmail from '@/emails/resume-lead-confirmation'
+import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 
-export async function sendResumeLeadConfirmationEmail(email: string, fullName: string) {
+export async function sendResumeLeadConfirmationEmail(
+  email: string,
+  fullName: string,
+  confidentialSearchMode = false
+) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping resume lead confirmation email.')
     return { sent: false as const }
@@ -13,7 +18,7 @@ export async function sendResumeLeadConfirmationEmail(email: string, fullName: s
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: email,
-      subject: 'We got your resume',
+      subject: neutralizeEmailSubject('We got your resume', confidentialSearchMode),
       react: ResumeLeadConfirmationEmail({ fullName }),
     })
 

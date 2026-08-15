@@ -14,6 +14,7 @@ import {
   SITUATION_TO_JOB_STATUS,
   type SituationKey,
 } from '@/lib/constants/onboarding'
+import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
 import {
   computeDimensionVectors,
   computeInconsistency,
@@ -71,19 +72,33 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
     return { error: 'Please choose the option that best describes you.' }
   }
 
+  // Confidential Search Mode's onboarding default — set here, in the same
+  // write as currentJobStatus, since this is the one place that value gets
+  // finalized. See src/lib/confidential-mode.ts for the persona-mapping
+  // rationale (lossy — no real 4-value persona field exists yet).
+  const jobStatus = SITUATION_TO_JOB_STATUS[situation]
+  const confidentialSearchMode = defaultConfidentialSearchMode(jobStatus)
+
   try {
-    await prisma.candidateProfile.update({
-      where: { id: candidateId },
-      data: {
-        currentJobStatus: SITUATION_TO_JOB_STATUS[situation],
-        desireComplete: true,
-        part1Complete: true,
-        part3Complete: true,
-        part4Complete: true,
-        assessmentComplete: true,
-        assessmentCompletedAt: new Date(),
-      },
-    })
+    await prisma.$transaction([
+      prisma.candidateProfile.update({
+        where: { id: candidateId },
+        data: {
+          currentJobStatus: jobStatus,
+          desireComplete: true,
+          part1Complete: true,
+          part3Complete: true,
+          part4Complete: true,
+          assessmentComplete: true,
+          assessmentCompletedAt: new Date(),
+          confidentialSearchMode,
+          confidentialSearchModeChangedAt: new Date(),
+        },
+      }),
+      prisma.confidentialModeChangeLog.create({
+        data: { candidateId, enabled: confidentialSearchMode, source: 'ONBOARDING_DEFAULT' },
+      }),
+    ])
   } catch {
     return { error: 'Something went wrong saving your answer. Please try again.' }
   }

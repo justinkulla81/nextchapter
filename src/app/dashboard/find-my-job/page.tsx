@@ -65,9 +65,11 @@ import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName, orgNamesMatch } from '@/lib/text/org-name-match'
+import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 
 export const metadata: Metadata = { title: 'Find a Full-time Job' }
@@ -377,6 +379,8 @@ export default async function JobFitPage() {
         <PageHeaderBoxes pageKey="find-my-job" candidateId={profile.id} />
       </div>
 
+      {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
+
       <Suspense fallback={<FindMyJobBodySkeleton />}>
         <FindMyJobBody profile={profile} />
       </Suspense>
@@ -431,6 +435,9 @@ async function FindMyJobBody({
   }
   const jobPostings = profile.jobPostings
   const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
+  // §4.8 — only fetched (and only ever true) for Confidential Search Mode
+  // candidates.
+  const currentEmployerName = profile.confidentialSearchMode ? await getCurrentEmployerName(profile.id) : null
 
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
@@ -1033,7 +1040,11 @@ async function FindMyJobBody({
                   {posting.fitScore !== null && !posting.declinedAt && (
                     <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
                       {!posting.appliedAt && (
-                        <MarkAppliedForm jobPostingId={posting.id} markApplied={markApplied} />
+                        <MarkAppliedForm
+                          jobPostingId={posting.id}
+                          markApplied={markApplied}
+                          isAtCurrentEmployer={companyMatchesCurrentEmployer(currentEmployerName, posting.companyName)}
+                        />
                       )}
                       {!posting.coverLetter && (
                         <form action={generateCoverLetterAction.bind(null, posting.id)}>

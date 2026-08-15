@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import type { CommunityPost } from '@prisma/client'
+import type { CommunityIdentitySource } from '@/lib/community/identity'
 
 export interface CohortInfo {
   companyName: string
   layoffDate: Date
   posts: (CommunityPost & {
-    candidate: { firstName: string | null; lastName: string | null }
+    candidate: CommunityIdentitySource
     reactions: { id: string }[]
     _count: { reactions: number }
   })[]
@@ -31,7 +32,7 @@ export async function getCohortInfo(layoffCohortId: string, candidateId: string)
   const posts = await prisma.communityPost.findMany({
     where: { isActive: true, moderationStatus: 'PUBLISHED', candidateId: { in: cohortCandidateIds } },
     include: {
-      candidate: { select: { firstName: true, lastName: true } },
+      candidate: { select: { id: true, firstName: true, lastName: true, profilePictureUrl: true, confidentialSearchMode: true } },
       reactions: { where: { candidateId } },
       _count: { select: { reactions: true } },
     },

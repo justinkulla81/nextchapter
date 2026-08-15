@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { exchangeCodeForTokens, isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
+import { exchangeCodeForTokens, isGmailTrackingTester, fetchGoogleAccountEmail } from '@/lib/email-tracking/gmail-oauth'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
@@ -38,6 +39,15 @@ export async function GET(request: NextRequest) {
     const profile = await getOrCreateCandidateProfile(user.id)
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
+    // §4.6 hard block — "Use a personal account. We'll only connect a
+    // personal account while Confidential Search Mode is on." Checked
+    // BEFORE the connection is ever created or updated, so a blocked
+    // attempt leaves no EmailConnection row and no tokens stored anywhere.
+    const connectedEmail = await fetchGoogleAccountEmail(tokens.access_token)
+    if (profile.confidentialSearchMode && connectedEmail && looksLikeCorporateDomain(connectedEmail)) {
+      return NextResponse.redirect(new URL('/dashboard/network?gmailError=corporate_domain_blocked', request.url))
+    }
+
     // Upsert rather than create — a reconnect after a prior disconnect
     // reuses the same row (candidateId is unique) instead of erroring.
     const existing = await prisma.emailConnection.findUnique({ where: { candidateId: profile.id } })
@@ -54,6 +64,7 @@ export async function GET(request: NextRequest) {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         expiresAt,
+        connectedEmail,
       },
       update: {
         accessToken: tokens.access_token,
@@ -61,6 +72,7 @@ export async function GET(request: NextRequest) {
         expiresAt,
         disconnectedAt: null,
         needsReconnectAt: null,
+        connectedEmail,
       },
     })
 

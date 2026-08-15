@@ -39,7 +39,7 @@ function AlternativeNarrativeTabContent({
   linkedin,
 }: {
   narrative: NarrativeItem
-  linkedin?: { configured: boolean; connected: boolean }
+  linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 }) {
   const [isPending, startTransition] = useTransition()
   const [renaming, setRenaming] = useState(false)
@@ -187,7 +187,7 @@ export function AlternativeNarrativeTabs({
   alternatives: NarrativeItem[]
   initialLabel?: string
   initialScenario?: string
-  linkedin?: { configured: boolean; connected: boolean }
+  linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 }) {
   return (
     <div className="space-y-4">

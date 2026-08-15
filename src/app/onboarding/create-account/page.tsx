@@ -44,7 +44,7 @@ export default async function CreateAccountPage() {
           Set a password to see it — we&apos;re emailing you a confirmation link now.
         </p>
       </div>
-      <CreateAccountForm email={profile.email} />
+      <CreateAccountForm email={profile.email} confidentialSearchMode={profile.confidentialSearchMode} />
     </div>
   )
 }

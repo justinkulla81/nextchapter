@@ -569,7 +569,8 @@ export async function updateCategoryBaseline(
 export async function computeWeeklyEngines(
   candidateId: string,
   weekNumber: number,
-  privacyTier: PrivacyTier
+  privacyTier: PrivacyTier,
+  confidentialSearchMode: boolean
 ): Promise<{
   engines: WeeklyEngine[]
   weeklyPoints: number
@@ -594,9 +595,22 @@ export async function computeWeeklyEngines(
   // the week-4+ anti-neglect floor below: an ungated bonus would let a
   // candidate cross that floor by leaving a visibility toggle set, with zero
   // real outreach, defeating the one mechanism that catches neglect.
-  const isPubliclyVisible = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC'
+  //
+  // Confidential Search Mode candidates are folded into this same
+  // eligibility check (not just privacyTier) — spec §5: "the mode doesn't
+  // change... badges, points, streaks, personal bests." A confidential-mode
+  // candidate typically also carries a non-public privacyTier (their
+  // identity IS hidden, by design, for safety reasons unrelated to their
+  // actual connecting activity), so gating this bonus on privacyTier alone
+  // would systematically cost them the +5 every week for a reason that has
+  // nothing to do with how much real connecting work they did. Folding
+  // confidentialSearchMode into the same eligibility check — rather than
+  // dropping the real-activity requirement — keeps the anti-neglect
+  // property intact (pointsByEngine.connecting > 0 is still required) while
+  // no longer punishing the choice to stay confidential.
+  const visibilityBonusEligible = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC' || confidentialSearchMode
   let visibilityBonus = 0
-  if (isPubliclyVisible && pointsByEngine.connecting > 0) {
+  if (visibilityBonusEligible && pointsByEngine.connecting > 0) {
     visibilityBonus = 5
     pointsByEngine.connecting += visibilityBonus
   }
@@ -648,7 +662,7 @@ export async function computeDossierCompetencies(candidate: CandidateWithGradeRe
   const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget, visibilityBonus }] = await Promise.all([
     getCategoryBaseline(candidate),
     computeCategoryGrades(candidate),
-    computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier),
+    computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier, candidate.confidentialSearchMode),
   ])
 
   const hasExecutiveCoach = candidate.coach?.focus === 'EXECUTIVE'

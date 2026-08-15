@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { anonymize, resolveCommunityIdentity } from '@/lib/community/identity'
 
 export type CommunityFeedItemType = 'activity' | 'victoria_insight' | 'comeback' | 'marketBrief'
 
@@ -14,14 +15,12 @@ export interface CommunityFeedItem {
   url?: string | null
 }
 
-export function anonymize(firstName: string | null, lastName: string | null): string | null {
-  if (!firstName) return null
-  return `${firstName} ${lastName ? `${lastName[0]}.` : ''}`.trim()
-}
-
-function visibleAvatarUrl(candidate: { profilePictureUrl: string | null }): string | null {
-  return candidate.profilePictureUrl
-}
+// Re-exported for existing call sites (CommunityPostCard.tsx,
+// CommunityStreamItem.tsx, moderation.ts) — the real logic now lives in
+// src/lib/community/identity.ts alongside resolveCommunityIdentity, which
+// is what every candidate-facing (non-admin) render path below uses
+// instead, so Confidential Search Mode candidates never surface under this.
+export { anonymize }
 
 const FEED_WINDOW_DAYS = 14
 const COMEBACK_MIN_DAYS_SINCE_JOIN = 21
@@ -69,13 +68,13 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   })
   for (const ref of recentReferences) {
     if (!ref.completedAt || ref.candidate.privacyTier === 'LOCKED') continue
-    const name = anonymize(ref.candidate.firstName, ref.candidate.lastName)
-    if (!name) continue
+    const identity = resolveCommunityIdentity(ref.candidate)
+    if (!identity.displayName) continue
     items.push({
       id: `ref-${ref.id}`,
       type: 'activity',
-      displayName: name,
-      avatarUrl: visibleAvatarUrl(ref.candidate),
+      displayName: identity.displayName,
+      avatarUrl: identity.avatarUrl,
       detail: 'had a reference come through',
       occurredAt: ref.completedAt,
     })
@@ -88,13 +87,13 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   })
   for (const sample of recentWorkSamples) {
     if (sample.candidate.privacyTier === 'LOCKED') continue
-    const name = anonymize(sample.candidate.firstName, sample.candidate.lastName)
-    if (!name) continue
+    const identity = resolveCommunityIdentity(sample.candidate)
+    if (!identity.displayName) continue
     items.push({
       id: `sample-${sample.id}`,
       type: 'activity',
-      displayName: name,
-      avatarUrl: visibleAvatarUrl(sample.candidate),
+      displayName: identity.displayName,
+      avatarUrl: identity.avatarUrl,
       detail: 'uploaded a work sample',
       occurredAt: sample.createdAt,
     })
@@ -106,13 +105,13 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
     take: 10,
   })
   for (const candidate of activeStreaks) {
-    const name = anonymize(candidate.firstName, candidate.lastName)
-    if (!name) continue
+    const identity = resolveCommunityIdentity(candidate)
+    if (!identity.displayName) continue
     items.push({
       id: `streak-${candidate.id}`,
       type: 'activity',
-      displayName: name,
-      avatarUrl: visibleAvatarUrl(candidate),
+      displayName: identity.displayName,
+      avatarUrl: identity.avatarUrl,
       detail: `is on a ${candidate.currentStreak}-day check-in streak`,
       occurredAt: candidate.lastCheckInAt ?? new Date(),
     })
@@ -161,13 +160,13 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
       (jobPosting.interviewLandedAt!.getTime() - joinedAt.getTime()) / (1000 * 60 * 60 * 24)
     if (daysSinceJoin < COMEBACK_MIN_DAYS_SINCE_JOIN) continue // too fast to read as a turnaround
 
-    const name = anonymize(jobPosting.candidate.firstName, jobPosting.candidate.lastName)
-    if (!name) continue
+    const identity = resolveCommunityIdentity(jobPosting.candidate)
+    if (!identity.displayName) continue
     items.push({
       id: `comeback-${jobPosting.id}`,
       type: 'comeback',
-      displayName: name,
-      avatarUrl: visibleAvatarUrl(jobPosting.candidate),
+      displayName: identity.displayName,
+      avatarUrl: identity.avatarUrl,
       detail: 'landed their first interview after a slow start',
       occurredAt: jobPosting.interviewLandedAt!,
     })
@@ -178,6 +177,12 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
 
 // Admin-only — mirrors getReportedThreads' scoping in peer-threads.ts:
 // reported posts only, never a general feed-browsing surface for admin.
+// Deliberately keeps using the real-name anonymize() (not
+// resolveCommunityIdentity's generated handle) even for Confidential
+// Search Mode authors — this is an internal NextChapter admin/moderation
+// surface, not "other members" or "outside NextChapter" (spec §2's hard
+// rule), and moderation needs a real, actionable identity trail the same
+// way AdminAccessLog does.
 export async function getReportedCommunityPosts() {
   const posts = await prisma.communityPost.findMany({
     where: { reportedAt: { not: null } },

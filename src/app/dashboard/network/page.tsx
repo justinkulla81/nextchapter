@@ -16,6 +16,7 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { outreachCountToTier } from '@/lib/network/outreach-count-tier'
 import { computeOutreachRelationshipMix } from '@/lib/network/outreach-relationship-mix'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
+import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { AlumniNetworkCarousel } from '@/components/dashboard/AlumniNetworkCarousel'
@@ -60,7 +61,10 @@ function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' 
             ? `${label} connection is not available right now.`
             : code === 'denied'
               ? "Connection wasn't completed."
-              : null
+              : code === 'corporate_domain_blocked'
+                ? // §4.6 — spec's exact copy.
+                  "Use a personal account. Connecting your work email would put your job search inside your employer's systems, where they can see it. We'll only connect a personal account while Confidential Search Mode is on."
+                : null
   if (!message) return null
   return (
     <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{message}</p>
@@ -576,6 +580,13 @@ export default async function NetworkPage({
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <AlumniNetworkCarousel groups={alumniGroups} />
+
+      {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
+      {/* §4.6 hard block leaves no EmailConnection row behind, so
+          AutomaticTrackingSection below (which only renders once a
+          connection exists) would never show this — surfaced here instead,
+          next to the connect prompt itself, where it's actually reachable. */}
+      {params.gmailError === 'corporate_domain_blocked' && <ErrorBanner code={params.gmailError} kind="gmail" />}
 
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
 
