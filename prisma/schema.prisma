@@ -1343,6 +1343,11 @@ model CandidateProfile {
   insiderRequestsAsked    InsiderRequest[]   @relation("InsiderRequestAsker")
   insiderRequestsReceived InsiderRequest[]   @relation("InsiderRequestInsider")
 
+  // Phase 9 §A3.4 — Premium weekly personalized market brief. See
+  // MarketIntelWeeklyBrief's own comment for what real data it is and isn't
+  // allowed to draw on.
+  marketIntelWeeklyBriefs MarketIntelWeeklyBrief[]
+
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
   // same as never having visited the section. HARD GUARDRAIL: these four
@@ -5691,6 +5696,20 @@ model AdminAccessLog {
 // normalization idiom CompanySizeLookup/CompanyIndustryLookup/
 // CompanyWatchlistEntry/WorkHistoryEntry already use.
 
+// Phase 9 §A3.3/§A3.7 — PE/VC ownership mapping. No automated
+// firmographics/ownership detection exists anywhere in this codebase, and
+// building one requires a licensed vendor (Crunchbase/Grata/PrivCo, §A3.2)
+// with confirmed redistribution rights (§E2.2) — neither exists yet. This
+// is a real, manually-admin-set field (Admin > Companies), never inferred
+// or guessed, so the target list builder's ownership filter shows only
+// what an admin has actually confirmed — everything else reads UNKNOWN.
+enum CompanyOwnershipType {
+  PE_BACKED
+  VC_BACKED
+  PUBLIC
+  PRIVATELY_HELD_INDEPENDENT
+}
+
 model Company {
   id                      String           @id @default(cuid())
   name                    String // display name, first-seen casing
@@ -5704,6 +5723,11 @@ model Company {
   // an explicit "not available yet" state for this field rather than a
   // guess, same treatment as the WARN-dependent contraction signal.
   atsPlatform             String?
+  // Phase 9 — real, admin-set-only PE/VC ownership flag (see enum comment
+  // above for why nothing here is ever auto-detected). Null = not yet
+  // reviewed by an admin, shown to candidates as "Unknown", never as a
+  // guessed value.
+  ownershipType           CompanyOwnershipType?
   isVerified              Boolean          @default(false)
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
@@ -5893,6 +5917,31 @@ model CompanyIntelHelpfulVote {
 
   @@unique([intelId, voterCandidateId])
   @@index([intelId])
+}
+
+// Partners Master Build Script §A3.4 (task #979, Phase 9) — the Premium
+// weekly personalized market brief. One row per (candidate, ISO week),
+// generated on demand today (a button on the Market Intelligence page, not
+// yet a cron — see that phase's report) from real per-candidate data only:
+// their own CompanyWatchlistEntry targets and those companies' latest
+// CompanySignal, insider-network activity (MemberEmployment/InsiderRequest),
+// and a comp band when enough real ExclusiveJobPosting salary data exists.
+// factsJson is the exact fact list handed to the model — kept for audit so
+// "did the model add something that wasn't in the facts" is always
+// checkable, never re-derived from the generated prose. See
+// src/lib/market-intelligence/weekly-brief.ts for the generation discipline
+// (never fabricate a company name or number — omit the line instead).
+model MarketIntelWeeklyBrief {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC, same convention as CompanySignal
+  factsJson     Json
+  content       String           @db.Text
+  generatedAt   DateTime         @default(now())
+
+  @@unique([candidateId, weekStartDate])
+  @@index([candidateId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────

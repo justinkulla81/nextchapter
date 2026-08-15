@@ -32,6 +32,7 @@ import {
   HelpCircle,
   Award,
   Gift,
+  LineChart,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -136,6 +137,7 @@ function buildSections(
       title: 'Working and Learning',
       links: [
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase },
+        { href: '/dashboard/market-intelligence', label: 'Market Intelligence', icon: LineChart },
         { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video },

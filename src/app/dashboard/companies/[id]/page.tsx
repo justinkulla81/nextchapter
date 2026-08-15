@@ -29,6 +29,7 @@ import {
 } from '@/components/companies/EmploymentTagging'
 import { AskInsiderForm, AnswerInsiderRequestForm } from '@/components/companies/InsiderNetworkControls'
 import { SubmitIntelForm, MarkHelpfulButton } from '@/components/companies/CompanyIntelControls'
+import { getCandidateMarketIntelTier, tierMeetsFeature, MARKET_INTEL_TIER_LABEL } from '@/lib/market-intelligence/access'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
@@ -71,12 +72,24 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // is just an alias, not a wait.
   const company = companyRow
 
-  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel] = await Promise.all([
+  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier] = await Promise.all([
     prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
     prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
     hasTaggedEmployment(profile.id),
     getPublishedIntelForCompany(id),
+    getCandidateMarketIntelTier(profile.id),
   ])
+  // Partners Master Build Script §A3.3 — insider network access is a Plus+
+  // Market Intelligence feature. Company pages, hiring trajectory, posting
+  // age, and skills demanded (everything else on this page) stay open to
+  // everyone per that same table's row 1. Tagging your own employment stays
+  // open to everyone regardless of tier — it's the free contribution that
+  // grows the graph (see insider-network.ts's own comment: "the
+  // contribution that unlocks the graph"). What's actually gated is the
+  // ability to browse/ask insiders at OTHER companies; answering a question
+  // someone already asked you also stays open at any tier, same "helping
+  // out doesn't require paying" reasoning as tagging.
+  const canInsiderNetwork = tierMeetsFeature(marketIntelTier, 'insider_network')
 
   const topSkills = ((latestSignal?.topSkillsRequested as unknown as RankedSkill[] | undefined) ?? []).slice(0, 10)
   const topFunctions =
@@ -85,7 +98,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   const [fit, untaggedWorkHistory, insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
     computeCompanyFitForCandidate(profile.id, company.canonicalNameNormalized, topSkills),
     alreadyTagged ? Promise.resolve([]) : getUntaggedWorkHistory(profile.id),
-    alreadyTagged ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
+    alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
     prisma.memberEmployment.findFirst({
@@ -348,7 +361,27 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-col gap-4">
               {currentEmployerUntagged && <CurrentEmployerInsiderOptIn companyId={id} companyPageId={id} />}
 
-              {insiders.length === 0 ? (
+              {/* Partners Master Build Script §A3.3 — insider network ACCESS
+                  (browsing/asking insiders at this company) is Plus+.
+                  Tagging your own employment above stays free at every tier
+                  — it's the contribution that grows the graph everyone else
+                  benefits from. */}
+              {!canInsiderNetwork ? (
+                <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+                  <div className="flex items-center gap-2">
+                    <Lock className="size-4 text-orange" aria-hidden="true" />
+                    <p className="text-sm font-medium text-orange">{MARKET_INTEL_TIER_LABEL.PLUS} only</p>
+                  </div>
+                  <p className="mt-1.5 text-sm text-muted-foreground">
+                    Thanks for tagging your employer — that helps other members. Browsing and asking the members who
+                    worked here is a Plus and above Market Intelligence feature. See{' '}
+                    <a href="/dashboard/market-intelligence" className="text-primary underline underline-offset-4">
+                      Market Intelligence
+                    </a>{' '}
+                    for details.
+                  </p>
+                </div>
+              ) : insiders.length === 0 ? (
                 <EmptyState icon={Users} title="No insiders yet" description="No members have tagged this employer yet." />
               ) : (
                 <div className="flex flex-col gap-3">

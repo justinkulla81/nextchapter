@@ -13,6 +13,9 @@ import { isSuppressedCell } from '@/lib/admin/cell-suppression'
 import type { RankedSkill } from '@/lib/companies/skills-extraction'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NervousEmployeePanel } from '@/components/admin/NervousEmployeePanel'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { OWNERSHIP_LABEL } from '@/lib/market-intelligence/target-list'
+import { setCompanyOwnershipType } from './actions'
 
 export const maxDuration = 30
 
@@ -80,6 +83,32 @@ export default async function AdminCompanyDetailPage({ params }: { params: Promi
           </Suspense>
         </div>
       </div>
+
+      {/* ── Ownership (PE/VC) — Phase 9 §A3.3/§A3.7, admin-set only ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ownership</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-3 text-xs text-muted-foreground">
+            No licensed firmographics vendor is connected, so this is never auto-detected — set it only when you have
+            a real, confirmed source. Feeds the candidate-facing target list builder&apos;s ownership filter.
+          </p>
+          <form action={setCompanyOwnershipType.bind(null, id)} className="flex items-end gap-3">
+            <select name="ownershipType" defaultValue={company.ownershipType ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
+              <option value="">Unknown</option>
+              {Object.entries(OWNERSHIP_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <SubmitButton pendingLabel="Saving…" variant="outline" size="sm">
+              Save
+            </SubmitButton>
+          </form>
+        </CardContent>
+      </Card>
 
       {/* ── Outplacement pitch signal composite ── */}
       <Card>
