@@ -138,13 +138,6 @@ export default function Home() {
             NextChapter Market Reality Grade. Then get an action plan to increase your
             marketability.
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Hiring, recruiting, or coaching instead?{' '}
-            <Link href="/for-organizations" className="font-medium text-brand underline underline-offset-4">
-              Find your path →
-            </Link>
-          </p>
-
           <div className="mx-auto mt-12 max-w-2xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
             <video
               controls
