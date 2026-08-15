@@ -154,7 +154,19 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
 
 // Screen 2 of 4 — where they're searching from and willing to go. Same
 // reuse-existing-field logic as updateResumeConfirm above.
-export async function updateLocation(_prevState: FormState, formData: FormData): Promise<FormState> {
+// Screen 2 of 3 — combines what were originally two separate screens
+// (location, then a follow-up "where are you in your search" screen) into
+// one page: both are short, thematically adjacent ("where you're searching
+// from and how far along you are"), and splitting them cost an extra click
+// with no benefit. computeFunnelDiagnosis still reads the four
+// gapDuration/justStartedSearch/applicationsBucket/interviewsBucket fields
+// exactly as before. Both onboardingLocationConfirmedAt and
+// onboardingSearchStatusConfirmedAt are set together so onboarding/page.tsx's
+// redirect chain and comfort/page.tsx's own guard keep working unchanged.
+export async function updateLocationAndSearchStatus(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
   const candidateId = await requireCandidateId()
 
   const currentCity = (formData.get('currentCity') as string | null)?.trim() || null
@@ -163,10 +175,22 @@ export async function updateLocation(_prevState: FormState, formData: FormData):
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = (formData.get('relocationNotes') as string | null)?.trim() || null
 
+  const justStartedSearch = formData.get('justStartedSearch') === 'on'
+  const gapDuration = formData.get('gapDuration') as string | null
+  const applicationsBucket = justStartedSearch ? 'none' : (formData.get('applicationsBucket') as string | null)
+  const interviewsBucket = justStartedSearch ? 'none' : (formData.get('interviewsBucket') as string | null)
+
   if (!remotePreference) {
     return { error: 'Please tell us your work-location preference before continuing.' }
   }
+  if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
+    return { error: 'Please tell us how long you have been searching before continuing.' }
+  }
+  if (!justStartedSearch && (!applicationsBucket || !interviewsBucket)) {
+    return { error: 'Please answer both search-status questions, or check "I just started" above.' }
+  }
 
+  const now = new Date()
   await prisma.candidateProfile.update({
     where: { id: candidateId },
     data: {
@@ -175,42 +199,12 @@ export async function updateLocation(_prevState: FormState, formData: FormData):
       remotePreference,
       openToRelocation,
       relocationNotes: openToRelocation ? relocationNotes : null,
-      onboardingLocationConfirmedAt: new Date(),
-    },
-  })
-
-  revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/search-status')
-}
-
-// Screen 3 of 4 — the funnel-diagnostic inputs (computeFunnelDiagnosis reads
-// exactly these four fields). "Just started" zeroes and hides the
-// applications/interviews questions per the funnel diagnostic's own
-// contract, rather than forcing a fresh searcher to answer "0 applications"
-// by hand.
-export async function updateSearchStatus(_prevState: FormState, formData: FormData): Promise<FormState> {
-  const candidateId = await requireCandidateId()
-
-  const justStartedSearch = formData.get('justStartedSearch') === 'on'
-  const gapDuration = formData.get('gapDuration') as string | null
-  const applicationsBucket = justStartedSearch ? 'none' : (formData.get('applicationsBucket') as string | null)
-  const interviewsBucket = justStartedSearch ? 'none' : (formData.get('interviewsBucket') as string | null)
-
-  if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
-    return { error: 'Please tell us how long you have been searching before continuing.' }
-  }
-  if (!justStartedSearch && (!applicationsBucket || !interviewsBucket)) {
-    return { error: 'Please answer both questions, or check "I just started" above.' }
-  }
-
-  await prisma.candidateProfile.update({
-    where: { id: candidateId },
-    data: {
+      onboardingLocationConfirmedAt: now,
       justStartedSearch,
       gapDuration: gapDuration as GapDurationBucket,
       applicationsBucket,
       interviewsBucket,
-      onboardingSearchStatusConfirmedAt: new Date(),
+      onboardingSearchStatusConfirmedAt: now,
     },
   })
 

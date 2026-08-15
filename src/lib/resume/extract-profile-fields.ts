@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
-import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import { PRIMARY_FUNCTION_OPTIONS, HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
 import { computeYearsExperienceFromResume } from '@/lib/resume/work-history-facts'
 import { syncResumeEducation } from '@/lib/resume/sync-resume-education'
 import { syncResumeWorkHistory } from '@/lib/resume/sync-resume-work-history'
@@ -118,6 +118,26 @@ function inferCredentials(
   }
 }
 
+// Best-effort default for confirm/page.tsx's "highest level you've reached"
+// Select — otherwise every candidate lands on a blank dropdown despite the
+// resume already saying enough to guess. Title-only (no scope/years data
+// available at this point in the pipeline, unlike detectSeniorityBand),
+// so it's a starting point the candidate can correct, not an authoritative
+// read.
+const C_SUITE_TITLE_PATTERN = /\b(chief|ceo|coo|cfo|cto|cmo|chro|cio|president|founder)\b/i
+const VP_TITLE_PATTERN = /\b(vp|vice president|evp|svp|executive vice president|senior vice president)\b/i
+const DIRECTOR_TITLE_PATTERN = /\b(director|head of)\b/i
+const MANAGER_TITLE_PATTERN = /\b(manager|lead|principal|supervisor)\b/i
+
+function inferHighestLevelFromTitle(latestJobTitle: string | null): (typeof HIGHEST_LEVEL_OPTIONS)[number] | null {
+  if (!latestJobTitle) return null
+  if (C_SUITE_TITLE_PATTERN.test(latestJobTitle)) return 'C-Suite'
+  if (VP_TITLE_PATTERN.test(latestJobTitle)) return 'VP'
+  if (DIRECTOR_TITLE_PATTERN.test(latestJobTitle)) return 'Director'
+  if (MANAGER_TITLE_PATTERN.test(latestJobTitle)) return 'Manager'
+  return 'IC'
+}
+
 export async function extractProfileFieldsFromResume(resumeId: string): Promise<void> {
   const resume = await prisma.resume.findUniqueOrThrow({ where: { id: resumeId } })
 
@@ -159,9 +179,12 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     // credentials shouldn't erase one already confirmed.
     const existingProfile = await prisma.candidateProfile.findUnique({
       where: { id: resume.candidateId },
-      select: { certifications: true },
+      select: { certifications: true, highestLevelReached: true },
     })
     const mergedCertifications = Array.from(new Set([...(existingProfile?.certifications ?? []), ...data.certifications]))
+    // Never overwrite a level the candidate already confirmed by hand on
+    // confirm/page.tsx — only fill it in while it's still blank.
+    const highestLevelReached = existingProfile?.highestLevelReached ?? inferHighestLevelFromTitle(data.latestJobTitle)
 
     await prisma.candidateProfile.update({
       where: { id: resume.candidateId },
@@ -178,6 +201,7 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
         graduationDate,
         resumeFirstJobStartDate: firstJobStartDate,
         resumeLatestJobTitle: data.latestJobTitle,
+        highestLevelReached,
         industryContext: data.industry,
         industryBucket: normalizeIndustryBucket(data.industry),
         primaryFunction: data.primaryFunction,

@@ -9,6 +9,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// /onboarding/resume's uploadResume action chains a storage upload, text
+// extraction, then several LLM/analysis calls (Sonnet resume analysis, market
+// reality compute) before returning — the same shape of work dashboard/layout.tsx
+// already gives 300s for, but this route had no override and was falling back
+// to the platform default, which is short enough to kill the request mid-flight
+// and leave the client stuck on "Uploading and analyzing…" forever. 300 is the
+// actual ceiling on this project's plan (Hobby + Fluid Compute) — see that
+// layout's comment for the same reasoning.
+export const maxDuration = 300
+
 export default async function OnboardingLayout({ children }: { children: React.ReactNode }) {
   // Fetched directly (not via getCandidateProfileForUser) — this layout
   // wraps /onboarding/desire itself, and that function redirects
