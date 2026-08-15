@@ -37,9 +37,9 @@ const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; de
   },
 ]
 
-export function SituationForm() {
+export function SituationForm({ initialSituation = null }: { initialSituation?: SituationKey | null }) {
   const [state, formAction, pending] = useActionState(updateSituation, undefined)
-  const [selected, setSelected] = useState<SituationKey | null>(null)
+  const [selected, setSelected] = useState<SituationKey | null>(initialSituation)
   const [checking, setChecking] = useState(true)
   const [, startTransition] = useTransition()
   const autoSubmitted = useRef(false)

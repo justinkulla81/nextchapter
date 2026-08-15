@@ -29,6 +29,13 @@ export const SITUATION_TO_JOB_STATUS = {
 
 export type SituationKey = keyof typeof SITUATION_TO_JOB_STATUS
 
+// Reverse of the above — lets a page that already knows a candidate's
+// currentJobStatus (e.g. re-visiting the situation picker to change a prior
+// answer) pre-select the matching button instead of showing nothing chosen.
+export const JOB_STATUS_TO_SITUATION: Partial<Record<CurrentJobStatus, SituationKey>> = Object.fromEntries(
+  Object.entries(SITUATION_TO_JOB_STATUS).map(([situation, jobStatus]) => [jobStatus, situation])
+) as Partial<Record<CurrentJobStatus, SituationKey>>
+
 export const SITUATION_SESSION_KEY = 'nc_situation'
 
 export const GAP_DURATION_LABELS: Record<GapDurationBucket, string> = {

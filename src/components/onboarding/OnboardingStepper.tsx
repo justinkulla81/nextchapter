@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -24,8 +25,15 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
       {STEPS.map((step, i) => {
         const isActive = pathname === step.href
         const isDone = completion[i]
-        return (
-          <li key={step.href} className="flex flex-1 items-center gap-2">
+        // A completed, non-active step is a real "go back and change my
+        // answer" affordance — the page itself no longer auto-redirects
+        // away once answered (see onboarding/desire/page.tsx), so this link
+        // reliably lands on the editable form, pre-filled with the current
+        // answer. An incomplete future step stays non-interactive; you
+        // can't skip ahead by clicking it.
+        const isClickable = isDone && !isActive
+        const content = (
+          <>
             <div
               className={cn(
                 'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium',
@@ -46,6 +54,17 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
             >
               {step.label}
             </span>
+          </>
+        )
+        return (
+          <li key={step.href} className="flex flex-1 items-center gap-2">
+            {isClickable ? (
+              <Link href={step.href} className="flex items-center gap-2 hover:opacity-80">
+                {content}
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2">{content}</div>
+            )}
             {i < STEPS.length - 1 && <div className="h-px flex-1 bg-border" />}
           </li>
         )

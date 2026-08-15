@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { SituationForm } from '@/components/onboarding/SituationForm'
+import { JOB_STATUS_TO_SITUATION } from '@/lib/constants/onboarding'
 
 export default async function SituationPickerPage() {
   const user = await getCurrentUser()
@@ -25,9 +26,16 @@ export default async function SituationPickerPage() {
     redirect('/dashboard')
   }
 
-  if (profile?.desireComplete) {
-    redirect('/onboarding/resume')
-  }
+  // Deliberately NOT redirecting forward just because desireComplete is
+  // already true — that would make this step unreachable via the browser
+  // Back button or the stepper's own link once answered once, which is
+  // exactly the "let me change my answer" bug this fixes. updateSituation's
+  // own action already redirects on to /onboarding/resume after a (first or
+  // changed) submit, so nothing forward-flow depends on this page
+  // self-redirecting on load.
+  const initialSituation = profile?.currentJobStatus
+    ? (JOB_STATUS_TO_SITUATION[profile.currentJobStatus] ?? null)
+    : null
 
   return (
     <div className="space-y-6">
@@ -39,7 +47,7 @@ export default async function SituationPickerPage() {
           Pick the one that fits best — we&apos;ll tailor your Market Reality Assessment to your situation.
         </p>
       </div>
-      <SituationForm />
+      <SituationForm initialSituation={initialSituation} />
     </div>
   )
 }
