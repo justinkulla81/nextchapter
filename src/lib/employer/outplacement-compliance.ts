@@ -106,6 +106,22 @@ export async function lookupCompliancePackForOrgUser(
 
   if (!seat) return { error: 'No enrollment found for that email under your organization.' }
 
+  // §A1.2.4 — "A candidate who is also an org user never sees their own
+  // record from the org side," unconditional, same rule
+  // outplacement-roster.ts's isSelf redaction enforces for the roster. The
+  // compliance pack is a full-PII document (legal name/email/dates), so
+  // full suppression — not partial redaction — is the right response here:
+  // an employer_legal user who happens to also hold a candidate account
+  // must not be able to pull their own severance/compliance record just by
+  // knowing their own email.
+  const ownCandidate = await prisma.candidateProfile.findUnique({
+    where: { userId: orgUser.userId },
+    select: { id: true },
+  })
+  if (ownCandidate && seat.candidateId === ownCandidate.id) {
+    return { error: 'No enrollment found for that email under your organization.' }
+  }
+
   // Audit log first — the compliance pack is generated and returned
   // regardless of whether admin logging itself later fails to write, but
   // logging BEFORE returning data means a crash between the two never

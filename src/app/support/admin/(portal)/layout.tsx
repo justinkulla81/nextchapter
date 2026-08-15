@@ -3,13 +3,14 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
 import { prisma } from '@/lib/prisma'
 import { AdminNav } from '@/components/admin/AdminNav'
+import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin()
+  const user = await requireAdmin()
   const [{ approvalsNeeded }, reportedMessages, communityModeration] = await Promise.all([
     getAdminHomepageSummary(),
     prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
@@ -44,6 +45,12 @@ export default async function AdminPortalLayout({ children }: { children: React.
       <AdminNav badges={badges} />
       {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
       <div className="pt-14">
+        <RoleContextBanner
+          userId={user.id}
+          currentRole="nc_admin"
+          personName={user.email ?? 'You'}
+          className="lg:pl-[calc(16rem+1.5rem)]"
+        />
         <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>

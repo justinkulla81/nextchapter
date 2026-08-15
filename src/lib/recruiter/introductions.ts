@@ -35,12 +35,34 @@ import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 // below it.
 const NOT_EXPIRED = { OR: [{ consentExpiresAt: null }, { consentExpiresAt: { gt: new Date() } }] }
 
+// §A1.2.4 / §E4 item 9 — "An identity holding two role grants ... cannot
+// resolve its own candidate record from any org-side surface," generalized
+// from the employer-side "wall" (outplacement-roster.ts's isSelf
+// redaction) to the recruiter portal: an identity that holds both
+// `recruiter` and `candidate` grants must not be able to see their own
+// candidate record in their own search results, however that consent came
+// to exist (their own SourcedCandidate invite, an engagement backfill,
+// etc.). Resolved once per call from the recruiter's own auth userId
+// rather than trusting a passed-in id, so every caller of the two
+// functions below inherits the protection automatically.
+async function ownCandidateIdForRecruiter(recruiterId: string): Promise<string | null> {
+  const recruiter = await prisma.recruiter.findUnique({ where: { id: recruiterId }, select: { userId: true } })
+  if (!recruiter?.userId) return null
+  const ownCandidate = await prisma.candidateProfile.findUnique({
+    where: { userId: recruiter.userId },
+    select: { id: true },
+  })
+  return ownCandidate?.id ?? null
+}
+
 export async function getConsentedCandidateIds(recruiterId: string): Promise<string[]> {
+  const ownCandidateId = await ownCandidateIdForRecruiter(recruiterId)
   const rows = await prisma.recruiterCandidateIntroduction.findMany({
     where: {
       recruiterId,
       status: 'CONSENTED',
       candidate: { confidentialSearchMode: false },
+      ...(ownCandidateId ? { candidateId: { not: ownCandidateId } } : {}),
       ...NOT_EXPIRED,
     },
     select: { candidateId: true },
@@ -49,6 +71,9 @@ export async function getConsentedCandidateIds(recruiterId: string): Promise<str
 }
 
 export async function isCandidateConsentedForRecruiter(candidateId: string, recruiterId: string): Promise<boolean> {
+  const ownCandidateId = await ownCandidateIdForRecruiter(recruiterId)
+  if (ownCandidateId && candidateId === ownCandidateId) return false
+
   const row = await prisma.recruiterCandidateIntroduction.findFirst({
     where: {
       recruiterId,

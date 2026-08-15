@@ -20,6 +20,7 @@
     "seed:commercial-config": "tsx --env-file=.env.local scripts/seed-commercial-config.ts",
     "seed:profiles": "tsx --env-file=.env.local scripts/seed/seed_profiles.ts",
     "seed:resumes": "node --env-file=.env.local --conditions=react-server --import tsx scripts/seed/seed_resumes.ts",
+    "seed:partners-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/seed-partners-demo-data.ts",
     "reset:users": "tsx --env-file=.env.local scripts/reset-users.ts",
     "backfill:profile-buckets": "tsx --env-file=.env.local scripts/backfill-profile-buckets.ts",
     "backfill:resume-detection": "tsx --env-file=.env.local scripts/backfill-resume-attachment-detection.ts",

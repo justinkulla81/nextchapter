@@ -13,6 +13,24 @@ import type { RecruiterSubmissionStage } from '@prisma/client'
 // this portal.
 const VISIBLE_STAGES: RecruiterSubmissionStage[] = ['SUBMITTED', 'INTERVIEWED', 'PLACED', 'PASSED']
 
+// §A1.2.4 / §E4 item 9, generalized to the hiring-manager portal the same
+// way introductions.ts generalizes it to the recruiter portal: an identity
+// holding both `hiring_manager` and `candidate` grants must never resolve
+// their own candidate record from this org-side surface, however unlikely
+// it is that a recruiter would submit someone to their own hiring
+// manager's req. Resolved from the hiring manager's own auth userId so
+// both functions below inherit the protection the same way the active-
+// conflict-flag filter already works.
+async function ownCandidateIdForHiringManager(hiringManagerId: string): Promise<string | null> {
+  const hiringManager = await prisma.hiringManager.findUnique({ where: { id: hiringManagerId }, select: { userId: true } })
+  if (!hiringManager?.userId) return null
+  const ownCandidate = await prisma.candidateProfile.findUnique({
+    where: { userId: hiringManager.userId },
+    select: { id: true },
+  })
+  return ownCandidate?.id ?? null
+}
+
 export interface VisibleSubmissionSummary {
   submissionId: string
   candidateId: string
@@ -26,7 +44,7 @@ export interface VisibleSubmissionSummary {
 }
 
 export async function getVisibleSubmissionsForHiringManager(hiringManagerId: string): Promise<VisibleSubmissionSummary[]> {
-  const [submissions, activeFlags] = await Promise.all([
+  const [submissions, activeFlags, ownCandidateId] = await Promise.all([
     prisma.recruiterCandidateSubmission.findMany({
       where: {
         stage: { in: VISIBLE_STAGES },
@@ -42,9 +60,11 @@ export async function getVisibleSubmissionsForHiringManager(hiringManagerId: str
       where: { hiringManagerId, clearedAt: null },
       select: { candidateId: true },
     }),
+    ownCandidateIdForHiringManager(hiringManagerId),
   ])
 
   const blockedCandidateIds = new Set(activeFlags.map((f) => f.candidateId))
+  if (ownCandidateId) blockedCandidateIds.add(ownCandidateId)
 
   return submissions
     .filter((s) => !blockedCandidateIds.has(s.candidateId))
@@ -75,6 +95,9 @@ export async function getVisibleSubmissionForHiringManager(submissionId: string,
   if (!submission) return null
   if (!submission.req || submission.req.hiringManagerId !== hiringManagerId) return null
   if (!VISIBLE_STAGES.includes(submission.stage)) return null
+
+  const ownCandidateId = await ownCandidateIdForHiringManager(hiringManagerId)
+  if (ownCandidateId && submission.candidateId === ownCandidateId) return null
 
   const blocked = await prisma.hiringConflictFlag.findUnique({
     where: { hiringManagerId_candidateId: { hiringManagerId, candidateId: submission.candidateId } },
