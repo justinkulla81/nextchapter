@@ -163,6 +163,64 @@ export async function computeDossierCompleteness(candidateId: string): Promise<D
   return { requirements, metCount, totalCount: requirements.length, isComplete: metCount === requirements.length }
 }
 
+// The real access gate — deliberately lighter than full Dossier
+// completeness above. "Complete" (computeDossierCompleteness) is the
+// aspirational, all-7-requirements checklist shown on the Portfolio page.
+// "Unlocked" is the actual bar for every feature gate that used to check
+// the old six-category letter grade (bounty claims, Exclusive Jobs,
+// A-List postings, recruiter visibility, etc.) — real evidence and real
+// effort, not a computed grade, per §7.1's governing principle.
+export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
+const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
+const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
+
+export interface DossierUnlockStatus {
+  unlocked: boolean
+  referencesMet: boolean
+  evidenceMet: boolean // at least one of: Operating Profile, Personality Profile, Skills Assessment
+  effortMet: boolean // outreach AND applications both at/above target
+  completedReferenceCount: number
+  outreachCount: number
+  applicationCount: number
+  reason: string // plain-language — states what's still missing, or confirms unlock
+}
+
+export async function isDossierUnlocked(candidateId: string): Promise<DossierUnlockStatus> {
+  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount] =
+    await Promise.all([
+      prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
+      prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
+      prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
+      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true } }),
+      prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches computeDossierCompleteness's convention
+      prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window
+    ])
+
+  const referencesMet = completedReferenceCount >= DOSSIER_UNLOCK_REFERENCE_TARGET
+  const evidenceMet = Boolean(hasOperatingProfile) || Boolean(hasPersonalityProfile) || profile.skillsAssessmentCompletedAt !== null
+  const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
+  const unlocked = referencesMet && evidenceMet && effortMet
+
+  const missing: string[] = []
+  if (!referencesMet) {
+    const remaining = DOSSIER_UNLOCK_REFERENCE_TARGET - completedReferenceCount
+    missing.push(`${remaining} more completed reference${remaining === 1 ? '' : 's'}`)
+  }
+  if (!evidenceMet) missing.push('one completed assessment (Operating Profile, Personality Profile, or Skills)')
+  if (!effortMet) {
+    const missingOutreach = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - outreachCount)
+    const missingApplications = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - applicationCount)
+    if (missingOutreach > 0) missing.push(`${missingOutreach} more outreach message${missingOutreach === 1 ? '' : 's'}`)
+    if (missingApplications > 0) missing.push(`${missingApplications} more application${missingApplications === 1 ? '' : 's'}`)
+  }
+
+  const reason = unlocked
+    ? 'Unlocked — you have real references, evidence, and effort on file.'
+    : `Need: ${missing.join(', ')}.`
+
+  return { unlocked, referencesMet, evidenceMet, effortMet, completedReferenceCount, outreachCount, applicationCount, reason }
+}
+
 export type DossierLadderTier = 'LOCKED' | 'PREVIEW' | 'COMPLETE' | 'RECRUITER_INTROS' | 'UNPOSTED_ROLES'
 
 // §7.6 — the full ladder. Dossier preview is deliberately cheap (2

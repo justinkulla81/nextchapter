@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
@@ -22,8 +22,8 @@ export const metadata: Metadata = { title: 'Privacy Settings' }
 
 export default async function PrivacyPage() {
   const profile = await getDashboardData()
-  const [grade, coach] = await Promise.all([
-    computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
+  const [dossierStatus, coach] = await Promise.all([
+    isDossierUnlocked(profile.id),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
       : Promise.resolve(null),
@@ -70,7 +70,8 @@ export default async function PrivacyPage() {
         </div>
         <RecruiterDatabaseOptIn
           optedIn={profile.recruiterDatabaseOptIn}
-          currentGrade={grade.grade}
+          dossierUnlocked={dossierStatus.unlocked}
+          dossierReason={dossierStatus.reason}
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>

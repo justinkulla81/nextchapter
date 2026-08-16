@@ -1,8 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
-import type { Grade } from '@/lib/scoring/grade'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 
 export interface RecruiterDatabaseRow {
   id: string
@@ -16,7 +15,9 @@ export interface RecruiterDatabaseRow {
   geoFlex: string
   privacyTier: string
   resumeScore: number | null
-  execDossierGrade: Grade | null
+  dossierUnlocked: boolean
+  dossierReason: string
+  metRequirementCount: number // out of 3: references, evidence, effort
   onSprintTarget: boolean
   recruiterDatabaseOptIn: boolean
   recruiterNotifiedAt: Date | null
@@ -27,10 +28,11 @@ function formatGeo(city: string | null, state: string | null, country: string): 
   return [city, state, country === 'US' ? null : country].filter(Boolean).join(', ') || '—'
 }
 
-// Every candidate with at least one grade snapshot — deliberately not
+// Every candidate with at least one Market Reality Report — deliberately not
 // filtered to recruiterDatabaseOptIn: true at the query level, since two of
-// the four admin buckets below are specifically about A/B-grade candidates
-// who HAVEN'T opted in yet (the whole point is surfacing them for a nudge).
+// the four admin buckets below are specifically about unlocked/near-unlocked
+// candidates who HAVEN'T opted in yet (the whole point is surfacing them for
+// a nudge).
 export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]> {
   const [candidates, authUsers] = await Promise.all([
     prisma.candidateProfile.findMany({
@@ -53,11 +55,6 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
         recruiterDatabaseOptIn: true,
         recruiterNotifiedAt: true,
         recruiterUnlockNudgedAt: true,
-        marketRealityReports: {
-          orderBy: { generatedAt: 'desc' },
-          take: 1,
-          select: { dossierGradeAtGeneration: true },
-        },
         resumes: {
           orderBy: { uploadedAt: 'desc' },
           take: 1,
@@ -74,8 +71,10 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
     listAllAuthUsers(),
   ])
 
-  return candidates.map((c) => {
-    const grade = normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)
+  const dossierStatuses = await Promise.all(candidates.map((c) => isDossierUnlocked(c.id)))
+
+  return candidates.map((c, i) => {
+    const status = dossierStatuses[i]
     const geoFlex = [c.remotePreference ? c.remotePreference : null, c.openToRelocation ? 'open to relocation' : null]
       .filter(Boolean)
       .join(' · ')
@@ -91,7 +90,10 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
       geoFlex: geoFlex || '—',
       privacyTier: c.privacyTier,
       resumeScore: c.resumes[0]?.atsScore ?? null,
-      execDossierGrade: grade?.grade ?? null,
+      dossierUnlocked: status.unlocked,
+      dossierReason: status.reason,
+      metRequirementCount:
+        Number(status.referencesMet) + Number(status.evidenceMet) + Number(status.effortMet),
       onSprintTarget: c.weeklyBadgesEarned.length > 0,
       recruiterDatabaseOptIn: c.recruiterDatabaseOptIn,
       recruiterNotifiedAt: c.recruiterNotifiedAt,
@@ -101,21 +103,21 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
 }
 
 export interface RecruiterDatabaseBuckets {
-  notified: RecruiterDatabaseRow[] // unlocked, A-grade, recruiters already told
-  pendingNotify: RecruiterDatabaseRow[] // unlocked, A-grade, recruiters not yet told
-  lockedAGrade: RecruiterDatabaseRow[] // A-grade but hasn't opted in
-  almostThere: RecruiterDatabaseRow[] // B-grade, hasn't opted in — one step away
+  notified: RecruiterDatabaseRow[] // unlocked, recruiters already told
+  pendingNotify: RecruiterDatabaseRow[] // unlocked, recruiters not yet told
+  lockedButUnlocked: RecruiterDatabaseRow[] // Dossier unlocked but hasn't opted in
+  almostThere: RecruiterDatabaseRow[] // hasn't opted in, 2 of 3 requirements met — one step away
 }
 
 export function bucketRecruiterDatabaseRows(rows: RecruiterDatabaseRow[]): RecruiterDatabaseBuckets {
-  const buckets: RecruiterDatabaseBuckets = { notified: [], pendingNotify: [], lockedAGrade: [], almostThere: [] }
+  const buckets: RecruiterDatabaseBuckets = { notified: [], pendingNotify: [], lockedButUnlocked: [], almostThere: [] }
   for (const row of rows) {
-    if (row.recruiterDatabaseOptIn && row.execDossierGrade === 'A') {
+    if (row.recruiterDatabaseOptIn && row.dossierUnlocked) {
       if (row.recruiterNotifiedAt) buckets.notified.push(row)
       else buckets.pendingNotify.push(row)
-    } else if (!row.recruiterDatabaseOptIn && row.execDossierGrade === 'A') {
-      buckets.lockedAGrade.push(row)
-    } else if (!row.recruiterDatabaseOptIn && row.execDossierGrade === 'B') {
+    } else if (!row.recruiterDatabaseOptIn && row.dossierUnlocked) {
+      buckets.lockedButUnlocked.push(row)
+    } else if (!row.recruiterDatabaseOptIn && row.metRequirementCount >= 2) {
       buckets.almostThere.push(row)
     }
   }

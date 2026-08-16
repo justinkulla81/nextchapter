@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { CandidateCard } from '@/components/talent/CandidateCard'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 
 export default async function MatchInboxPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,12 +19,10 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
   const employerCompanySizeBand = mapEmployerCompanySizeStringToBand(role.employer.companySize)
 
   // Opting in is necessary but not sufficient — a candidate is only actually
-  // surfaced here while their current standing (latest report snapshot) is
-  // an A Current Market Reality. Live-recomputing the grade for up to 100
-  // candidates on every match-inbox load would be too expensive (per-
-  // candidate market-data lookups); the latest stored snapshot is the same
-  // "current standing" source of truth used elsewhere (Full Client View,
-  // Session Impact Report).
+  // surfaced here once their Dossier is unlocked (real references, evidence,
+  // and effort on file). This list is already scoped to opted-in candidates
+  // first, so a live isDossierUnlocked() call per row in that small result
+  // set is fine — no stored snapshot to read instead.
   const candidatesRaw = await prisma.candidateProfile.findMany({
     where: {
       recruiterDatabaseOptIn: true,
@@ -46,23 +44,14 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
       levelRankScore: true,
       priorityMaxComp: true,
       priorityWorkLife: true,
-      marketRealityReports: {
-        orderBy: { generatedAt: 'desc' },
-        take: 1,
-        select: { dossierGradeAtGeneration: true },
-      },
       _count: { select: { learningBadges: true, outreachLogs: true } },
       jobPostings: { select: { appliedAt: true } },
     },
     take: 200,
   })
 
-  const candidates = candidatesRaw
-    .filter((c) => {
-      const grade = normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)
-      return grade?.grade === 'A'
-    })
-    .slice(0, 100)
+  const unlockStatuses = await Promise.all(candidatesRaw.map((c) => isDossierUnlocked(c.id)))
+  const candidates = candidatesRaw.filter((_, i) => unlockStatuses[i].unlocked).slice(0, 100)
 
   const scored = candidates
     .map((candidate) => {

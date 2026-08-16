@@ -2,11 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
-import {
-  computeDossierCompetencies,
-  GRADE_RELATIONS_INCLUDE,
-  type CandidateWithGradeRelations,
-} from '@/lib/scoring/dossier-competencies'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { GradeReveal } from '@/components/candidates/GradeReveal'
 import { Button } from '@/components/ui/button'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
@@ -80,15 +76,10 @@ export default async function ScorePage() {
     redirect('/dashboard')
   }
 
-  const [candidateWithRelations, proofOfWork] = await Promise.all([
-    prisma.candidateProfile.findUniqueOrThrow({
-      where: { id: profile.id },
-      include: GRADE_RELATIONS_INCLUDE,
-    }),
+  const [composite, proofOfWork] = await Promise.all([
+    computeMarketRealityCompositeGrade(profile.id),
     getProofOfWork(profile.id),
   ])
-
-  const grade = await computeDossierCompetencies(candidateWithRelations as unknown as CandidateWithGradeRelations)
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
@@ -135,7 +126,7 @@ export default async function ScorePage() {
           </p>
         )}
       </div>
-      <GradeReveal grade={grade} />
+      <GradeReveal grade={composite?.grade ?? null} />
       <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
         Create your account to get your full report and action plan
       </Button>

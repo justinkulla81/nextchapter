@@ -62,15 +62,15 @@ export default async function RecruiterDatabaseAdminPage({
         r.geo.toLowerCase().includes(q)
     )
   }
-  const { notified, pendingNotify, lockedAGrade, almostThere } = bucketRecruiterDatabaseRows(rows)
+  const { notified, pendingNotify, lockedButUnlocked, almostThere } = bucketRecruiterDatabaseRows(rows)
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Recruiter Database</h1>
         <p className="mt-1 text-muted-foreground">
-          Only unlocked (opted-in) A-grade candidates, plus the ones close to unlocking — not every
-          candidate who&apos;s ever opted in. &ldquo;Requested&rdquo; here means recruiters have
+          Only opted-in candidates whose Dossier is unlocked, plus the ones close to unlocking — not
+          every candidate who&apos;s ever opted in. &ldquo;Requested&rdquo; here means recruiters have
           already been told about this candidate, not that a recruiter asked for them by name.
         </p>
       </div>
@@ -85,8 +85,8 @@ export default async function RecruiterDatabaseAdminPage({
         <div>
           <h2 className="text-lg font-semibold text-foreground">Unlocked &amp; requested</h2>
           <p className="text-sm text-muted-foreground">
-            Opted in, A-grade, and recruiters have already been notified. {notified.length} candidate
-            {notified.length === 1 ? '' : 's'}.
+            Opted in, Dossier unlocked, and recruiters have already been notified. {notified.length}{' '}
+            candidate{notified.length === 1 ? '' : 's'}.
           </p>
         </div>
         <AdminDataTable
@@ -101,8 +101,8 @@ export default async function RecruiterDatabaseAdminPage({
         <div>
           <h2 className="text-lg font-semibold text-foreground">Unlocked, not yet requested</h2>
           <p className="text-sm text-muted-foreground">
-            Opted in and A-grade, but recruiters haven&apos;t been told about them yet — the daily cron
-            catches these automatically, or notify now. {pendingNotify.length} candidate
+            Opted in and Dossier unlocked, but recruiters haven&apos;t been told about them yet — the
+            daily cron catches these automatically, or notify now. {pendingNotify.length} candidate
             {pendingNotify.length === 1 ? '' : 's'}.
           </p>
         </div>
@@ -119,10 +119,11 @@ export default async function RecruiterDatabaseAdminPage({
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">A-grade, still locked</h2>
+          <h2 className="text-lg font-semibold text-foreground">Dossier unlocked, still locked out</h2>
           <p className="text-sm text-muted-foreground">
-            Hit an A but haven&apos;t opted into the Recruiter Database — a weekly nudge goes out
-            automatically, or nudge now. {lockedAGrade.length} candidate{lockedAGrade.length === 1 ? '' : 's'}.
+            Dossier is unlocked but haven&apos;t opted into the Recruiter Database — a weekly nudge
+            goes out automatically, or nudge now. {lockedButUnlocked.length} candidate
+            {lockedButUnlocked.length === 1 ? '' : 's'}.
           </p>
         </div>
         <AdminDataTable
@@ -131,7 +132,7 @@ export default async function RecruiterDatabaseAdminPage({
             { header: 'Last nudged', render: (r) => formatDate(r.recruiterUnlockNudgedAt) },
             { header: 'Action', render: (r) => <RecruiterDatabaseActionButton candidateId={r.id} action="nudge" /> },
           ]}
-          rows={lockedAGrade}
+          rows={lockedButUnlocked}
           rowKey={(r) => r.id}
           emptyMessage="None right now."
         />
@@ -141,9 +142,9 @@ export default async function RecruiterDatabaseAdminPage({
         <div>
           <h2 className="text-lg font-semibold text-foreground">Almost there</h2>
           <p className="text-sm text-muted-foreground">
-            B-grade and not opted in — one grade away. No automatic nudge (they haven&apos;t earned
-            that pitch yet), but you can nudge manually. {almostThere.length} candidate
-            {almostThere.length === 1 ? '' : 's'}.
+            Not opted in, 2 of 3 Dossier requirements met — one step away. No automatic nudge (they
+            haven&apos;t earned that pitch yet), but you can nudge manually. {almostThere.length}{' '}
+            candidate{almostThere.length === 1 ? '' : 's'}.
           </p>
         </div>
         <AdminDataTable

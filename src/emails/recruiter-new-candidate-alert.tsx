@@ -42,7 +42,7 @@ const footer: React.CSSProperties = {
   ...emailStyles.muted,
 }
 
-// Sent when a candidate crosses into (opted-in AND A-grade) — see
+// Sent when a candidate crosses into (opted-in AND Dossier unlocked) — see
 // bucketRecruiterDatabaseRows's pendingNotify bucket. Deliberately keeps
 // PII light (function/level/target role/industry/geo, no name or contact
 // info) — the full profile lives behind the portal login, not in an email
@@ -61,7 +61,7 @@ export default function RecruiterNewCandidateAlertEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {fullName.split(' ')[0]},</p>
-      <p>A new A-grade candidate just unlocked visibility in the Recruiter Database:</p>
+      <p>A new candidate just unlocked visibility in the Recruiter Database:</p>
       <ul>
         <li>Target role: {targetRoleType}</li>
         <li>Function: {primaryFunction}</li>

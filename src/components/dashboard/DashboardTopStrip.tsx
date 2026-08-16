@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { CalendarDays, Flame, TrendingUp, Target, ChevronDown } from 'lucide-react'
-import type { DossierCompetencies } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
+import type { WeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
@@ -12,7 +13,7 @@ import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewed
 // The grade color tokens (text-success/text-brand/text-warning/text-error)
 // double as StatTile accent keys — stripping the "text-" prefix reuses the
 // one source of truth in grade.ts instead of a second grade->color map.
-function gradeAccent(grade: DossierCompetencies['grade']): StatTileAccent {
+function gradeAccent(grade: Grade): StatTileAccent {
   return GRADE_TEXT_COLOR[grade].replace('text-', '') as StatTileAccent
 }
 
@@ -24,7 +25,8 @@ function gradeAccent(grade: DossierCompetencies['grade']): StatTileAccent {
 // dashboard load never blocks on it.
 export async function DashboardTopStrip({
   candidateId,
-  grade,
+  weeklyProgress,
+  marketRealityGrade,
   searchExecutionAvailable,
   currentStreak,
   weekNumber,
@@ -33,7 +35,10 @@ export async function DashboardTopStrip({
   badgesLastSeenCount,
 }: {
   candidateId: string
-  grade: DossierCompetencies
+  weeklyProgress: WeeklyProgress
+  // The day-one Market Reality Grade (resume + experience, plus the market
+  // cap) — null until a resume has been analyzed.
+  marketRealityGrade: Grade | null
   searchExecutionAvailable: boolean
   currentStreak: number
   weekNumber: number
@@ -44,7 +49,7 @@ export async function DashboardTopStrip({
   suppressUrgency?: boolean
   badgesLastSeenCount: number | null
 }) {
-  const overDelivering = searchExecutionAvailable && grade.weeklyPoints > grade.weeklyPointsTarget
+  const overDelivering = searchExecutionAvailable && weeklyProgress.weeklyPoints > weeklyProgress.weeklyPointsTarget
 
   const [weeklyBadges, milestoneBadges] = await Promise.all([
     computeWeeklyBadges(candidateId),
@@ -72,7 +77,7 @@ export async function DashboardTopStrip({
           />
 
           <StatTile
-            value={searchExecutionAvailable ? `${grade.weeklyPoints} / ${grade.weeklyPointsTarget}` : 'N/A'}
+            value={searchExecutionAvailable ? `${weeklyProgress.weeklyPoints} / ${weeklyProgress.weeklyPointsTarget}` : 'N/A'}
             label="Weekly Search Score"
             accent={!searchExecutionAvailable ? 'neutral' : overDelivering ? 'success' : 'brand'}
             valueClassName={searchExecutionAvailable ? (overDelivering ? 'text-success' : 'text-error') : undefined}
@@ -82,11 +87,11 @@ export async function DashboardTopStrip({
           />
 
           <StatTile
-            value={grade.grade}
+            value={marketRealityGrade ?? 'N/A'}
             label="Current Market Reality"
-            accent={gradeAccent(grade.grade)}
+            accent={marketRealityGrade ? gradeAccent(marketRealityGrade) : 'neutral'}
             icon={TrendingUp}
-            title="How the market currently sees you, based on your Market Reality Assessment."
+            title="How the market currently sees you, based on your resume and experience."
             href="/dashboard/market-reality"
           />
         </div>

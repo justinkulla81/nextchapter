@@ -1,10 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import {
-  computeDossierCompetencies,
-  GRADE_RELATIONS_INCLUDE,
-  type CandidateWithGradeRelations,
-} from '@/lib/scoring/dossier-competencies'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { isWeakFit, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
@@ -19,17 +15,14 @@ export interface CoachJobsSnapshot {
 // The coach's read-only view of a consented client's Discover feed — same
 // eligibility/fit logic the candidate themselves sees (see
 // find-my-job/page.tsx), just computed against that specific candidateId
-// and with no write actions. Confirmed nothing existing (getFullClientView,
-// GRADE_RELATIONS_INCLUDE + computeDossierCompetencies) already exposes this
-// combination, so this is new plumbing rather than a duplicate.
+// and with no write actions.
 export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJobsSnapshot> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
-    include: GRADE_RELATIONS_INCLUDE,
   })
 
-  const [grade, boardPostings, unreactedSurfacedJobs] = await Promise.all([
-    computeDossierCompetencies(candidate as unknown as CandidateWithGradeRelations),
+  const [dossierStatus, boardPostings, unreactedSurfacedJobs] = await Promise.all([
+    isDossierUnlocked(candidateId),
     prisma.exclusiveJobPosting.findMany({
       where: {
         status: 'approved',
@@ -46,7 +39,7 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
     }),
   ])
 
-  const isAList = grade.grade === 'A'
+  const isAList = dossierStatus.unlocked
   const eligible = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isAList)
   const lockedCount = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isAList).length
 

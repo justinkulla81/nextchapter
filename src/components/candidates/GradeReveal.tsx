@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { DossierCompetencies, Grade } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, GRADE_BAND_DESCRIPTION, GRADE_TEXT_COLOR, GRADE_RING_STROKE } from '@/lib/scoring/grade'
 import { cn } from '@/lib/utils'
 
@@ -98,14 +98,14 @@ function HardHillCallout() {
   )
 }
 
-export function GradeReveal({ grade }: { grade: DossierCompetencies }) {
+export function GradeReveal({ grade }: { grade: Grade | null }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <GradeRing grade={grade.grade} />
+      <GradeRing grade={grade} />
 
       <GradeLegend />
 
-      {grade.grade !== null && HARD_HILL_GRADES.includes(grade.grade) && <HardHillCallout />}
+      {grade !== null && HARD_HILL_GRADES.includes(grade) && <HardHillCallout />}
     </div>
   )
 }

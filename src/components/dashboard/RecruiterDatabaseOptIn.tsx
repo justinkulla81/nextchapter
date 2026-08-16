@@ -2,19 +2,18 @@
 
 import { setRecruiterDatabaseOptIn } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
-import type { Grade } from '@/lib/scoring/grade'
 
 export function RecruiterDatabaseOptIn({
   optedIn,
-  currentGrade,
+  dossierUnlocked,
+  dossierReason,
   confidentialSearchMode = false,
 }: {
   optedIn: boolean
-  currentGrade: Grade
+  dossierUnlocked: boolean
+  dossierReason: string
   confidentialSearchMode?: boolean
 }) {
-  const isAGrade = currentGrade === 'A'
-
   // §4.7 — this opts you into a blanket exposure to every recruiter who
   // searches, with no per-recruiter approval step, which can't coexist with
   // Confidential Search Mode's per-instance consent requirement.
@@ -42,14 +41,14 @@ export function RecruiterDatabaseOptIn({
       </p>
       {optedIn && (
         <p className="mt-1 text-sm text-muted-foreground">
-          {isAGrade ? (
+          {dossierUnlocked ? (
             <span className="font-medium text-success">
-              You&apos;re currently surfaced to recruiters — your Current Market Reality is A.
+              You&apos;re currently surfaced to recruiters — your Dossier is unlocked.
             </span>
           ) : (
             <>
-              You&apos;re opted in but not currently surfaced — being matched to roles also requires an A Search
-              Action Grade. Your current grade: <span className="font-medium text-foreground">{currentGrade}</span>.
+              You&apos;re opted in but not currently surfaced — being matched to roles also requires an
+              unlocked Dossier. {dossierReason}
             </>
           )}
         </p>

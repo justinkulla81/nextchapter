@@ -38,9 +38,9 @@ export async function notifyRecruitersForCandidate(candidateId: string): Promise
 }
 
 // Manual counterpart to the weekly nudge-recruiter-network-unlock cron —
-// used for both the lockedAGrade bucket (which the cron also covers
+// used for both the lockedButUnlocked bucket (which the cron also covers
 // automatically) and the almostThere bucket (manual-only by design, since
-// a B-grade candidate hasn't actually earned the pitch yet).
+// those candidates haven't actually earned the pitch yet).
 export async function nudgeCandidateToUnlock(candidateId: string): Promise<void> {
   await requireAdmin()
   const [row, profile] = await Promise.all([

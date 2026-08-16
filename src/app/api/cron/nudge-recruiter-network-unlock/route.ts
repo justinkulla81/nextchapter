@@ -5,21 +5,21 @@ import { sendUnlockRecruiterNetworkNudgeEmail } from '@/lib/email/send-unlock-re
 
 const RENUDGE_AFTER_DAYS = 14
 
-// Weekly — only the lockedAGrade bucket (A-grade, hasn't opted in) gets an
-// automatic nudge; almostThere (B-grade) is deliberately manual-only, since
-// a B-grade candidate hasn't actually earned the "you're A-grade" pitch
-// yet. Throttled per-candidate via recruiterUnlockNudgedAt so this doesn't
-// re-send every week forever.
+// Weekly — only the lockedButUnlocked bucket (Dossier unlocked, hasn't
+// opted in) gets an automatic nudge; almostThere is deliberately
+// manual-only, since those candidates haven't actually earned the
+// "you're unlocked" pitch yet. Throttled per-candidate via
+// recruiterUnlockNudgedAt so this doesn't re-send every week forever.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { lockedAGrade } = bucketRecruiterDatabaseRows(await getRecruiterDatabaseRows())
+  const { lockedButUnlocked } = bucketRecruiterDatabaseRows(await getRecruiterDatabaseRows())
   const cutoff = new Date(Date.now() - RENUDGE_AFTER_DAYS * 24 * 60 * 60 * 1000)
 
-  const eligible = lockedAGrade.filter(
+  const eligible = lockedButUnlocked.filter(
     (row) => row.recruiterUnlockNudgedAt === null || row.recruiterUnlockNudgedAt < cutoff
   )
   if (eligible.length === 0) {

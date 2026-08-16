@@ -8,7 +8,8 @@ import { generateMarketRealityReport } from '@/lib/reports/market-reality-report
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
-import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
+import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
 import { SentimentSupportCard } from '@/components/dashboard/SentimentSupportCard'
@@ -125,7 +126,8 @@ export default async function DashboardPage() {
       data: { user },
     },
     conversation,
-    grade,
+    weeklyProgress,
+    marketRealityGrade,
     todaysMood,
     checkInSummary,
     currentSprint,
@@ -146,7 +148,8 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase.auth.getUser(),
     getOrCreateCoachConversation(profile.id, profile.firstName),
-    computeDossierCompetencies(profile),
+    computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
+    computeMarketRealityCompositeGrade(profile.id),
     getTodaysMood(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprint(profile.id),
@@ -199,7 +202,7 @@ export default async function DashboardPage() {
     7,
     Math.max(1, Math.floor((new Date().getTime() - weekStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
   )
-  const onTrack = grade.weeklyPoints > (grade.weeklyPointsTarget * daysElapsedThisWeek) / 7
+  const onTrack = weeklyProgress.weeklyPoints > (weeklyProgress.weeklyPointsTarget * daysElapsedThisWeek) / 7
 
   // #931/#932 Search Plan — only shown once the candidate has cleared the
   // dashboard-wide hard gate (see access-gate.ts). Reuses emailConnection
@@ -220,7 +223,8 @@ export default async function DashboardPage() {
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
   const dayNumber = Math.floor(daysSinceRegistration) + 1
-  const showCoachingCTA = daysSinceRegistration >= 7 && isAtOrBelowGrade(grade.grade, 'C')
+  const showCoachingCTA =
+    daysSinceRegistration >= 7 && marketRealityGrade !== null && isAtOrBelowGrade(marketRealityGrade.grade, 'C')
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
@@ -250,7 +254,8 @@ export default async function DashboardPage() {
       <Suspense fallback={<DashboardTopStripSkeleton />}>
         <DashboardTopStrip
           candidateId={profile.id}
-          grade={grade}
+          weeklyProgress={weeklyProgress}
+          marketRealityGrade={marketRealityGrade?.grade ?? null}
           searchExecutionAvailable={searchExecutionAvailable}
           currentStreak={checkInSummary.streak}
           weekNumber={weekNumber}
@@ -281,7 +286,7 @@ export default async function DashboardPage() {
           totalApplications={totalApplications}
           interimSignupCount={interimSignupCount}
           linkedInActivityCount={profile.linkedInActivityLogs.length}
-          laggingEngines={grade.laggingEngines}
+          laggingEngines={weeklyProgress.laggingEngines}
         />
       )}
 
@@ -313,11 +318,11 @@ export default async function DashboardPage() {
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
           weeklySprintsCount={profile._count.weeklySprints}
-          engines={grade.weeklyEngines}
-          laggingEngines={grade.laggingEngines}
-          categoryMinimumsMet={grade.categoryMinimumsMet}
-          weeklyPoints={grade.weeklyPoints}
-          weeklyPointsTarget={grade.weeklyPointsTarget}
+          engines={weeklyProgress.engines}
+          laggingEngines={weeklyProgress.laggingEngines}
+          categoryMinimumsMet={weeklyProgress.categoryMinimumsMet}
+          weeklyPoints={weeklyProgress.weeklyPoints}
+          weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
           onTrack={onTrack}
           hasEmailConnection={!!emailConnection}
           hasCalendarConnection={!!calendarConnection}

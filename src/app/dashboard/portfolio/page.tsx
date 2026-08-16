@@ -7,14 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
-import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { getMoveTheNeedle } from '@/lib/reports/market-reality-sections'
-import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
 
@@ -24,8 +22,16 @@ const RESUME_UPDATE_POINTS = estimateActionEffort({ actionType: 'RESUME_UPDATE' 
 export default async function PortfolioPage() {
   const profile = await getDashboardData()
 
-  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade, learningBadgeCount, moveTheNeedle, dossierCompleteness] =
-    await Promise.all([
+  const [
+    narrativeRows,
+    reportHistory,
+    marketRealitySnapshots,
+    coach,
+    dossierStatus,
+    learningBadgeCount,
+    moveTheNeedle,
+    dossierCompleteness,
+  ] = await Promise.all([
       prisma.candidateNarrative.findMany({
         where: { candidateId: profile.id },
         orderBy: { generatedAt: 'asc' },
@@ -34,7 +40,7 @@ export default async function PortfolioPage() {
         where: { candidateId: profile.id },
         orderBy: { generatedAt: 'desc' },
         take: 6,
-        select: { id: true, generatedAt: true, dossierGradeAtGeneration: true },
+        select: { id: true, generatedAt: true },
       }),
       prisma.marketRealitySnapshot.findMany({
         where: { candidateId: profile.id },
@@ -43,7 +49,7 @@ export default async function PortfolioPage() {
       profile.coachId
         ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
         : null,
-      computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
+      isDossierUnlocked(profile.id),
       prisma.learningBadge.count({ where: { candidateId: profile.id } }),
       // What builds the Dossier over time (references, network, skills,
       // interim work, recruiter network, coaching) — relocated here from
@@ -65,7 +71,7 @@ export default async function PortfolioPage() {
   const latestResume = profile.resumes[0]
   const coverLettersCount = profile.jobPostings.filter((j) => !!j.coverLetter).length
   const hasCoachDossierAccess = profile.coachId !== null && profile.coachDossierConsentedAt !== null
-  const isAList = grade.grade === 'A'
+  const isAList = dossierStatus.unlocked
   const completedReferenceCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // Same categories the "My Portfolio" nav badge counts (see
@@ -124,13 +130,7 @@ export default async function PortfolioPage() {
               <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
                 <div className="text-sm">
                   <p className="font-medium text-foreground">Full report</p>
-                  <p className="text-xs text-muted-foreground">
-                    {reportHistory[0].generatedAt.toLocaleDateString()}
-                    {(() => {
-                      const g = normalizeGradeSnapshot(reportHistory[0].dossierGradeAtGeneration)
-                      return g ? ` — Grade ${g.grade}` : ''
-                    })()}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{reportHistory[0].generatedAt.toLocaleDateString()}</p>
                 </div>
                 <Button
                   nativeButton={false}
@@ -179,10 +179,7 @@ export default async function PortfolioPage() {
             <p className="text-sm text-muted-foreground">
               What recruiters and hiring managers would see when you share your profile with them.
             </p>
-            <p className="text-sm text-muted-foreground">
-              Reach an A grade to unlock it — your current grade is{' '}
-              <span className="font-semibold text-foreground">{grade.grade}</span>.
-            </p>
+            <p className="text-sm text-muted-foreground">{dossierStatus.reason}</p>
           </div>
         )}
 

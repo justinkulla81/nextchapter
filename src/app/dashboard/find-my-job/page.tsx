@@ -58,9 +58,8 @@ import { MIN_APPLICATIONS_FOR_TRENDS, type ApplicationTrendsResult } from '@/lib
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { type Grade } from '@/lib/scoring/grade'
 import { Spinner } from '@/components/ui/spinner'
-import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
@@ -77,7 +76,7 @@ export const metadata: Metadata = { title: 'Find a Full-time Job' }
 const SURFACED_JOB_LIST_SIZE = 5
 // Free candidates only ever see the first 3 automated-search-partner
 // matches — the rest count toward the same "opportunities waiting" total
-// the hamburger nav badge shows, but stay locked until an A grade.
+// the hamburger nav badge shows, but stay locked until the Dossier unlocks.
 const SURFACED_JOB_FREE_PREVIEW = 3
 // Keeps the unreacted queue from silently ballooning: surfaceNewJobs used to
 // fetch a fresh batch of up to 10 every time the queue dropped below
@@ -218,13 +217,13 @@ function JobRecommendationsSkeleton() {
 async function JobRecommendationsSection({
   profile,
   isAList,
-  gradeLetter,
+  dossierReason,
   boardPostings,
   contacts,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   isAList: boolean
-  gradeLetter: Grade
+  dossierReason: string
   boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
   contacts: {
     id: string
@@ -276,9 +275,10 @@ async function JobRecommendationsSection({
   ])
 
   // Free candidates only ever see the first SURFACED_JOB_FREE_PREVIEW
-  // matches — the rest stay locked until an A grade, folded into the same
-  // unlock count as the locked job-board postings below so there's one
-  // combined "unlock at an A grade" number for the whole Discover list.
+  // matches — the rest stay locked until the Dossier unlocks, folded into
+  // the same unlock count as the locked job-board postings below so there's
+  // one combined "unlocks with your Dossier" number for the whole Discover
+  // list.
   const visibleSurfacedJobs = isAList ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
   const lockedSurfacedCount = isAList ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
   const openBoardPostings = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isAList)
@@ -356,7 +356,7 @@ async function JobRecommendationsSection({
 
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
             <UnlockAListCallout
-              grade={gradeLetter}
+              reason={dossierReason}
               lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
             />
           )}
@@ -451,8 +451,8 @@ async function FindMyJobBody({
   // LLM call for any company name seen for the first time) — both live
   // entirely inside JobRecommendationsSection below now, wrapped in
   // Suspense, so the rest of the page never blocks on them.
-  const [grade, boardPostings, latestReport] = await Promise.all([
-    computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
+  const [dossierStatus, boardPostings, latestReport] = await Promise.all([
+    isDossierUnlocked(profile.id),
     prisma.exclusiveJobPosting.findMany({
       where: {
         status: 'approved',
@@ -477,10 +477,10 @@ async function FindMyJobBody({
     (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
       ?.applicationTrends ?? null
 
-  const isAList = grade.grade === 'A'
+  const isAList = dossierStatus.unlocked
   // Needs isAList to decide which A_LIST_ONLY postings this candidate can
-  // actually open — can't join the barrier above since grade isn't known
-  // until it resolves.
+  // actually open — can't join the barrier above since dossierStatus isn't
+  // known until it resolves.
   const watchlistView = await getWatchlistView(profile.id, isAList)
 
   // Scoped to just the companies already-applied-to postings mention — the
@@ -689,11 +689,14 @@ async function FindMyJobBody({
               <p className="text-sm font-semibold text-foreground">Executive Recruiters</p>
             </div>
             {isAList && profile.recruiterDatabaseOptIn ? (
-              <p className="mt-1 text-xs text-muted-foreground">You&apos;re an A — recruiters can already find you.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Your Dossier is unlocked — recruiters can already find you.
+              </p>
             ) : (
               <>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Recruiters can find and reach out to you directly once you hit an A grade — opt in any time so you&apos;re ready.
+                  Recruiters can find and reach out to you directly once your Dossier unlocks — opt in any time so
+                  you&apos;re ready.
                 </p>
                 <div className="mt-3">
                   <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
@@ -737,7 +740,7 @@ async function FindMyJobBody({
                 <JobRecommendationsSection
                   profile={profile}
                   isAList={isAList}
-                  gradeLetter={grade.grade}
+                  dossierReason={dossierStatus.reason}
                   boardPostings={boardPostings}
                   contacts={contacts}
                 />

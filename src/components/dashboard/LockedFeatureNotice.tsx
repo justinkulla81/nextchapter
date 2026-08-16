@@ -1,18 +1,20 @@
 import { Lock } from 'lucide-react'
-import type { Grade } from '@/lib/scoring/grade'
 
-// Shared locked-state notice for anything gated on Current Market Reality —
-// always visible with the exact requirement and current standing, never a
-// silently-disabled control. See design-principles.md: "never disable a
-// button without explaining, in-context, why it is disabled."
+// Shared locked-state notice for anything gated on Dossier unlock status —
+// always visible with the exact requirement and what's still missing, never
+// a silently-disabled control. See design-principles.md: "never disable a
+// button without explaining, in-context, why it is disabled." `status` is
+// the plain-language reason from isDossierUnlocked() (e.g. "Need: 2 more
+// completed references.") — not a letter grade, per §7.1's governing
+// principle that the Dossier unlocks on real evidence and effort.
 export function LockedFeatureNotice({
   title,
   requirement,
-  currentGrade,
+  status,
 }: {
   title: string
   requirement: string
-  currentGrade: Grade | null
+  status: string
 }) {
   return (
     <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
@@ -21,10 +23,7 @@ export function LockedFeatureNotice({
         <p className="text-sm font-medium text-orange">{title} — locked</p>
       </div>
       <p className="mt-1.5 text-sm text-muted-foreground">{requirement}</p>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        Your current Market Reality:{' '}
-        <span className="font-semibold text-foreground">{currentGrade ?? 'Not yet graded'}</span>
-      </p>
+      <p className="mt-1.5 text-sm font-medium text-foreground">{status}</p>
     </div>
   )
 }

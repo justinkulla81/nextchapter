@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { BountyClaimForm } from '@/components/dashboard/BountyClaimForm'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Card, CardContent } from '@/components/ui/card'
-import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 
 export const metadata: Metadata = { title: 'Got An Offer' }
@@ -27,14 +27,13 @@ const STATUS_COPY: Record<string, { heading: string; body: string }> = {
 
 export default async function GotHiredPage() {
   const profile = await getDashboardData()
-  const [latestClaim, grade] = await Promise.all([
+  const [latestClaim, dossierStatus] = await Promise.all([
     prisma.bountyClaim.findFirst({
       where: { candidateId: profile.id },
       orderBy: { createdAt: 'desc' },
     }),
-    computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
+    isDossierUnlocked(profile.id),
   ])
-  const isAGrade = grade.grade === 'A'
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -67,7 +66,7 @@ export default async function GotHiredPage() {
               <p className="mt-2 text-muted-foreground">You can submit a new claim below.</p>
             </div>
           )}
-          {isAGrade ? (
+          {dossierStatus.unlocked ? (
             <Card>
               <CardContent className="pt-6">
                 <BountyClaimForm />
@@ -76,8 +75,8 @@ export default async function GotHiredPage() {
           ) : (
             <LockedFeatureNotice
               title="Offer Bonus"
-              requirement="Requires an A Current Market Reality to submit — this is checked at the moment you submit, not sustained over time. Hit an A this week and come back."
-              currentGrade={grade.grade}
+              requirement="Requires an unlocked Dossier to submit — real references, evidence, and effort on file. This is checked at the moment you submit, not sustained over time."
+              status={dossierStatus.reason}
             />
           )}
         </>

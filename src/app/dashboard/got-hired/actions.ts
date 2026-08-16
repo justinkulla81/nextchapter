@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { getCurrentGrade } from '@/lib/scoring/dossier-competencies'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 
 export type FormState = { error?: string; submitted?: boolean } | undefined
 
@@ -21,11 +21,10 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  const currentGrade = await getCurrentGrade(profile.id)
-  if (currentGrade !== 'A') {
+  const dossierStatus = await isDossierUnlocked(profile.id)
+  if (!dossierStatus.unlocked) {
     return {
-      error:
-        'The Offer Bonus requires an A Current Market Reality to submit. Get your grade to an A this week and come back to claim it.',
+      error: `The Offer Bonus requires an unlocked Dossier to submit. ${dossierStatus.reason} Come back once you're there.`,
     }
   }
 
@@ -73,7 +72,7 @@ export async function submitBountyClaim(_prevState: FormState, formData: FormDat
       roleTitle,
       startDate,
       offerLetterUrl: path,
-      gradeAtSubmission: currentGrade,
+      gradeAtSubmission: 'Dossier unlocked',
       testimonial,
     },
   })
