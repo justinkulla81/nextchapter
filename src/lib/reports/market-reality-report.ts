@@ -18,7 +18,6 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
 import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
-import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { computeApplicationTrends } from '@/lib/network/application-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
@@ -29,7 +28,7 @@ import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
-import { computeWhatMovedThisWeek, computeWeeksOfImprovement } from '@/lib/scoring/market-reality-history'
+import { computeWeeksOfImprovement } from '@/lib/scoring/market-reality-history'
 import {
   CURRENT_JOB_STATUS_LABELS,
   isVagueTargetRole,
@@ -258,9 +257,8 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     candidate.targetRoleType
   )
 
-  const [grade, latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
+  const [latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
     await Promise.all([
-      computeDossierCompetencies(candidate),
       prisma.learningBadge.findFirst({
         where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
         orderBy: { completedAt: 'desc' },
@@ -275,18 +273,17 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
       prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
     ])
 
-  // MRG §11 — refresh the new 5-component Market Reality Grade composite
+  // MRG §11 — refresh the 5-component Market Reality Grade composite
   // (MarketRealityComponentScore) in the same pass as everything else above,
-  // so report generation is the one designated "recompute moment" for both
-  // grading systems, and the new grade's headline is exactly as fresh as the
-  // dossier grade's own snapshot. Non-fatal: the old system's report must
-  // still generate even if a candidate has no resume/data for the new one
-  // yet (computeMarketRealityCompositeGrade already returns null in that
-  // case — see composite.ts).
+  // so report generation is the one designated "recompute moment." Non-fatal
+  // — the rest of the report must still generate even if a candidate has no
+  // resume/data yet (computeMarketRealityCompositeGrade already returns null
+  // in that case — see composite.ts).
   let newGradeHeadline: Awaited<ReturnType<typeof buildMarketRealityHeadline>> = null
+  let compositeGrade: Awaited<ReturnType<typeof computeMarketRealityCompositeGrade>> = null
   try {
     await computeMarketRealityComponents(candidateId)
-    await computeMarketRealityCompositeGrade(candidateId)
+    compositeGrade = await computeMarketRealityCompositeGrade(candidateId)
     newGradeHeadline = await buildMarketRealityHeadline(candidateId)
   } catch (error) {
     console.error('Failed to refresh Market Reality Grade composite for report generation:', error)
@@ -329,7 +326,6 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     priorReport &&
     latestAssessment.completedAt > priorReport.generatedAt
   )
-  const categoryMovers = priorReport ? computeWhatMovedThisWeek(marketRealitySnapshots) : []
   const weeksOfImprovement = priorReport ? computeWeeksOfImprovement(marketRealitySnapshots) : 0
 
   // Same structured gap list the Market Reality Report UI and Executive
@@ -337,7 +333,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
   // plan prompt below so the 7-day plan can actually prioritize closing
   // gaps a hiring manager would notice, instead of being generated with no
   // awareness of them.
-  const namedReasons = computeNamedReasons(grade.categories, latestAiProject?.judgmentCall ?? null, {
+  const namedReasons = computeNamedReasons([], latestAiProject?.judgmentCall ?? null, {
     jobHoppingFlag: candidate.jobHoppingFlag,
     careerTrajectory: candidate.careerTrajectory,
     gapDuration: candidate.gapDuration,
@@ -488,11 +484,6 @@ Is this the candidate's first-ever report: ${priorReport ? 'no' : 'yes'}
 ${
   priorReport
     ? `Previous report generated: ${priorReport.generatedAt.toISOString().slice(0, 10)}
-Category grade changes since then: ${
-        categoryMovers.length > 0
-          ? categoryMovers.map((m) => `${m.label}: ${m.fromGrade} -> ${m.toGrade}`).join(', ')
-          : 'no category changed letter grade'
-      }
 Consecutive weeks of real improvement: ${weeksOfImprovement}
 New data added since the previous report (credit these specifically, by name, only where true):
   - Completed references: ${referencesCompletedSinceLastReport}
@@ -535,7 +526,6 @@ New data added since the previous report (credit these specifically, by name, on
       hillToClimb: data.hillToClimb,
       actionPlan: normalizeActionPlan(data.actionPlan),
       gapAnalysis: data.gapAnalysis,
-      dossierGradeAtGeneration: grade as unknown as Prisma.InputJsonValue,
       marketConditions: marketConditions.dataAvailable
         ? {
             narrative: data.marketConditions?.narrative ?? [],
@@ -561,5 +551,7 @@ New data added since the previous report (credit these specifically, by name, on
     },
   })
 
-  captureServerEvent(candidateId, 'grade_assigned', { grade: grade.grade })
+  if (compositeGrade) {
+    captureServerEvent(candidateId, 'grade_assigned', { grade: compositeGrade.grade })
+  }
 }

@@ -1,17 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import {
-  computeCategoryGrades,
-  GRADE_RELATIONS_INCLUDE,
-  type CandidateWithGradeRelations,
-} from '@/lib/scoring/dossier-competencies'
-import { scoreToGrade, type CategoryGrade } from '@/lib/scoring/grade'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
-
-function clamp(n: number): number {
-  return Math.max(0, Math.min(100, Math.round(n)))
-}
 
 // Generates and archives this week's Current Market Reality + named-reasons
 // snapshot for one candidate. Idempotent per (candidateId, weekStartDate) —
@@ -24,23 +15,21 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
   })
   if (existing) return
 
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    include: GRADE_RELATIONS_INCLUDE,
-  })
+  const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
 
-  const [latestAiProject, visibilityCalibration] = await Promise.all([
+  const [composite, latestAiProject, visibilityCalibration] = await Promise.all([
+    computeMarketRealityCompositeGrade(candidateId),
     prisma.learningBadge.findFirst({
       where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
       orderBy: { completedAt: 'desc' },
     }),
     getVisibilityCalibration(candidateId),
   ])
+  // No resume/experience data yet to grade — nothing honest to snapshot
+  // this week; the cron will pick this candidate back up once they have one.
+  if (!composite) return
 
-  const categories: CategoryGrade[] = await computeCategoryGrades(candidate as unknown as CandidateWithGradeRelations)
-  const marketRealityScore = clamp(categories.reduce((sum, c) => sum + c.score, 0) / categories.length)
-  const grade = scoreToGrade(marketRealityScore)
-  const namedReasons: NamedReason[] = computeNamedReasons(categories, latestAiProject?.judgmentCall ?? null, {
+  const namedReasons: NamedReason[] = computeNamedReasons([], latestAiProject?.judgmentCall ?? null, {
     jobHoppingFlag: candidate.jobHoppingFlag,
     careerTrajectory: candidate.careerTrajectory,
     visibilityGap: visibilityCalibration.gap === 'wants_more_visibility',
@@ -51,8 +40,8 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
     data: {
       candidateId,
       weekStartDate,
-      grade,
-      dimensions: categories as unknown as object,
+      grade: composite.grade,
+      dimensions: [],
       namedReasons: namedReasons as unknown as object,
     },
   })
