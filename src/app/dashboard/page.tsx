@@ -31,7 +31,6 @@ import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/Wee
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
 import { computeSearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
-import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
@@ -48,7 +47,7 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
-import { ActivationChecklistCard } from '@/components/dashboard/ActivationChecklistCard'
+import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
 import { getHardGateStatus } from '@/lib/dashboard/access-gate'
 import { SearchPlanCard } from '@/components/dashboard/SearchPlanCard'
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
@@ -231,16 +230,19 @@ export default async function DashboardPage() {
   const moodCardDismissedToday =
     profile.moodCardDismissedAt !== null && profile.moodCardDismissedAt >= startOfUTCDay()
 
+  // The Get Started gate — same signal SuccessSprintCard's own Get Started
+  // group unlocks on. Victoria's weekly focus is grounded in real Gmail/
+  // Calendar/LinkedIn-derived activity, so there's nothing honest for her to
+  // say before both are connected.
+  const linkedInConnected = profile.linkedinConnectionsImportedAt !== null
+  const bothConnectedUnlocked = !!emailConnection && !!calendarConnection && linkedInConnected
+
   return (
     <div className="space-y-8">
       {user && !user.email_confirmed_at && user.email && (
         <EmailConfirmationBanner email={user.email} />
       )}
       <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
-
-      {/* §12 "Unified dashboard" — activation items always at top, never
-          locked, above everything else including the top strip. */}
-      <ActivationChecklistCard candidateId={profile.id} />
 
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Success Dashboard</h1>
@@ -249,7 +251,19 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <PageHeaderBoxes pageKey="dashboard" candidateId={profile.id} />
+      <PageHeaderBoxes
+        pageKey="dashboard"
+        candidateId={profile.id}
+        dailyMessageOverride={
+          !bothConnectedUnlocked ? (
+            <PreConnectDailyMessage
+              firstName={profile.firstName ?? 'there'}
+              hasEmailConnection={!!emailConnection}
+              hasCalendarConnection={!!calendarConnection}
+            />
+          ) : undefined
+        }
+      />
 
       <Suspense fallback={<DashboardTopStripSkeleton />}>
         <DashboardTopStrip
@@ -265,13 +279,9 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
-      {/* #931/#932 "Search Plan" — the post-activation equivalent of
-          ActivationChecklistCard above: once a candidate has cleared the
-          hard gate, this is "here's your plan," shown before "here's this
-          week's focus" (WeeklyFocusCard) below. Never shown while still
-          gated (search_strategy_required/activation_required) —
-          ActivationChecklistCard already owns that state, and duplicating
-          its job here would be redundant. Also shown to 'exempt' candidates
+      {/* #931/#932 "Search Plan" — once a candidate has cleared the hard
+          gate, this is "here's your plan," shown before "here's this
+          week's focus" (WeeklyFocusCard) below. Also shown to 'exempt' candidates
           (pre-existing accounts grandfathered out of the hard gate itself,
           per access-gate.ts) — they already have unrestricted dashboard
           access today, so this is purely additive value for them, not a
@@ -293,10 +303,6 @@ export default async function DashboardPage() {
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />
 
-      <Suspense fallback={<WeeklyFocusSkeleton />}>
-        <WeeklyFocusCard candidateId={profile.id} isMonday={isMonday} />
-      </Suspense>
-
       <div className="space-y-3">
         <MoodCheckInCard
           todaysMood={todaysMood}
@@ -305,7 +311,13 @@ export default async function DashboardPage() {
           dismissedToday={moodCardDismissedToday}
         />
 
-        <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
+        {/* Below Check In, per user request — Victoria's advice is real
+            output grounded in Gmail/Calendar/LinkedIn-derived activity, so
+            it stays locked (orange lock, non-expandable) until the Get
+            Started gate clears. */}
+        <Suspense fallback={<WeeklyFocusSkeleton />}>
+          <WeeklyFocusCard candidateId={profile.id} isMonday={isMonday} locked={!bothConnectedUnlocked} />
+        </Suspense>
 
         <ReconnectBanner candidateId={profile.id} variant="link" />
 
@@ -326,6 +338,7 @@ export default async function DashboardPage() {
           onTrack={onTrack}
           hasEmailConnection={!!emailConnection}
           hasCalendarConnection={!!calendarConnection}
+          linkedInConnected={linkedInConnected}
           profileChecklistItems={profileChecklistItems}
           searchStrategyChecklist={searchStrategyChecklist}
           completedReferencesCount={completedReferencesCount}

@@ -1,3 +1,4 @@
+import { Lock } from 'lucide-react'
 import { getOrDraftWeeklyFocus, type WeeklyFocus } from '@/lib/reports/weekly-focus'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -19,7 +20,39 @@ const FOCUS_SECTIONS: { key: keyof WeeklyFocus; label: string; color: string }[]
 // closing section also uses — never a second Anthropic call for the same
 // week. Renders nothing (not a fallback message) when there's no sprint yet
 // to reflect on, since that's the honest "nothing to say yet" state.
-export async function WeeklyFocusCard({ candidateId, isMonday }: { candidateId: string; isMonday: boolean }) {
+export async function WeeklyFocusCard({
+  candidateId,
+  isMonday,
+  locked,
+}: {
+  candidateId: string
+  isMonday: boolean
+  locked: boolean
+}) {
+  // Skip the (self-cached but still real) LLM draft entirely while locked —
+  // there's nothing to show, and no reason to spend the call before the
+  // candidate has connected the accounts this advice is grounded in.
+  if (locked) {
+    return (
+      <Card className="border-orange/20 bg-orange/5">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <VictoriaAvatar size={36} />
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Victoria&apos;s Advice for Your Weekly Search Strategy
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Unlocks once you connect Gmail/Calendar and LinkedIn above
+              </p>
+            </div>
+            <Lock className="size-4 shrink-0 text-orange" aria-hidden />
+          </div>
+        </CardHeader>
+      </Card>
+    )
+  }
+
   const focus = await getOrDraftWeeklyFocus(candidateId)
   if (!focus) return null
 

@@ -13,6 +13,8 @@ import {
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
+import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
+import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
@@ -197,6 +199,7 @@ export default async function SearchStrategyPage() {
   ].every((f) => f !== null)
 
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
+  const currentSprint = await getCurrentWeekSprint(profile.id)
 
   const searchStrategySoFarCard = (
     <Card id="optional-questions" className="scroll-mt-4 overflow-hidden p-0">
@@ -286,6 +289,16 @@ export default async function SearchStrategyPage() {
         )}
         <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
       </div>
+
+      {/* Moved here from the main dashboard — this is a weekly re-check of
+          the same underlying comfort value the onboarding "Search Strategy
+          Willingness" questions ask once (see PUBLIC_DISCLOSURE_COMFORT_OPTIONS),
+          so it belongs alongside them rather than on the dashboard. Kept as
+          a real recurring check-in (not deleted) since it feeds the
+          sentiment trend Coaching Notes and visibility calibration read —
+          the one-time onboarding answer alone can't show whether comfort is
+          changing week to week. */}
+      <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
 
       {hasAnsweredOnce ? (
         <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>

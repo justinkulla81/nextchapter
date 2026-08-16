@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import Link from 'next/link'
-import { Trophy, User, Users, BookOpen, Sparkles, Zap } from 'lucide-react'
+import { Trophy, User, Users, BookOpen, Sparkles, Zap, Lock, Rocket } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getMyActionScorePersonalBest } from '@/lib/leaderboard/actions'
 import {
@@ -19,6 +19,7 @@ import {
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { ProfileChecklistItem } from '@/lib/weekly/profile-checklist'
 import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
+import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import type { SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
 import type { WeeklyEngine } from '@/lib/scoring/grade'
@@ -243,11 +244,31 @@ function groupByNavCategory<T extends { actionType?: string }>(items: T[]): Reco
 // (orange, matching the row highlight it groups), everything else keys off
 // the same NavCategory buckets the hamburger nav and Action Plan boxes use.
 const GROUP_ICON: Record<string, { icon: ComponentType<{ className?: string; strokeWidth?: number }>; color: string }> = {
+  'Get Started': { icon: Rocket, color: 'bg-orange/15 text-orange' },
   Priority: { icon: Zap, color: 'bg-orange/15 text-orange' },
   Personalize: { icon: User, color: 'bg-brand/10 text-brand' },
   Connecting: { icon: Users, color: 'bg-success/10 text-success' },
   'Working and Learning': { icon: BookOpen, color: 'bg-light-blue/10 text-light-blue' },
   Other: { icon: Sparkles, color: 'bg-muted text-muted-foreground' },
+}
+
+// The two Get Started items gate every other row in the list — until both
+// are connected, everything else is real but not yet actionable (auto-
+// detection, matching, and networking all depend on one or both of these).
+// These four are the exception: pure self-reported onboarding forms with no
+// dependency on Gmail/Calendar/LinkedIn data, so there's no honest reason to
+// block them behind a connection step.
+const UNLOCK_EXEMPT_ACTION_TYPES = new Set([
+  'PROFILE_CONFIRM', // consolidated "Complete My Personal Information" row
+  'RED_FLAGS_CONFIRMED', // consolidated "Complete Screening Questions" row
+  'BENEFITS_PRIORITIES_CONFIRMED', // consolidated "Set your Search Goals" row
+  'WORKING_STYLE_QUIZ', // "Take the Behavioral Assessment"
+])
+
+function isRowLocked(row: Row, bothConnectedUnlocked: boolean): boolean {
+  if (bothConnectedUnlocked) return false
+  if (row.actionType && UNLOCK_EXEMPT_ACTION_TYPES.has(row.actionType)) return false
+  return true
 }
 
 function ActionGroup({ title, children }: { title: string; children: ReactNode }) {
@@ -290,16 +311,32 @@ function ActionRow({
   completionCount,
   priority,
   fromCoach,
+  locked,
   hasEmailConnection,
   hasCalendarConnection,
   completedReferencesCount,
-}: Row & { hasEmailConnection: boolean; hasCalendarConnection: boolean; completedReferencesCount: number }) {
+}: Row & {
+  locked?: boolean
+  hasEmailConnection: boolean
+  hasCalendarConnection: boolean
+  completedReferencesCount: number
+}) {
   let link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
   // "Have a coffee chat or call" only pays out automatically once Calendar
   // is connected — if it isn't, route straight to connecting it instead of
   // the Network page, where the connect prompt is easy to miss.
   if (actionType === 'OUTREACH_CALL' && !hasCalendarConnection) {
     link = { href: connectHref(hasEmailConnection, hasCalendarConnection), label: 'Connect Calendar' }
+  }
+  // The two Get Started rows aren't real Search Actions — no entry in
+  // ACTION_TYPE_LINK — so their destination is set directly here, mirroring
+  // GoogleConnectPrompt's own startPath logic and the LinkedIn import
+  // section's deep-link pattern (contacts/page.tsx's buildListSection).
+  if (actionType === 'GET_STARTED_GMAIL_CALENDAR') {
+    link = { href: connectHref(hasEmailConnection, hasCalendarConnection), label: 'Connect' }
+  }
+  if (actionType === 'GET_STARTED_LINKEDIN') {
+    link = { href: '/dashboard/network/contacts?buildList=1#import', label: 'Connect' }
   }
   // "Action name — why it matters," never the whole sentence underlined —
   // hyperlink only the short label; the reason renders as plain text next to
@@ -315,7 +352,8 @@ function ActionRow({
   // count >= targetCount for recurring rows, the plain completed flag for
   // one-time ones.
   const achieved = recurring && targetCount ? count >= targetCount : completed
-  const isPriority = !!priority && !achieved
+  const isPriority = !!priority && !achieved && !locked
+  const lockReason = 'Unlocks once you connect Gmail/Calendar and LinkedIn above'
   return (
     <div
       className={cn(
@@ -330,21 +368,39 @@ function ActionRow({
             it), so titles zig-zagged depending on row type. */}
         <span
           className={cn(
-            'w-[74px] shrink-0 rounded-full px-2 py-0.5 text-center text-[11px] font-medium',
-            fromCoach ? 'bg-orange/15 text-orange' : 'bg-muted text-muted-foreground'
+            'flex w-[74px] shrink-0 items-center justify-center gap-1 rounded-full px-2 py-0.5 text-center text-[11px] font-medium',
+            locked ? 'bg-orange/15 text-orange' : fromCoach ? 'bg-orange/15 text-orange' : 'bg-muted text-muted-foreground'
           )}
+          title={locked ? lockReason : undefined}
         >
-          {fromCoach ? 'From coach' : recurring ? 'Recurring' : 'Onboarding'}
+          {locked ? (
+            <Lock className="size-3" aria-hidden />
+          ) : fromCoach ? (
+            'From coach'
+          ) : recurring ? (
+            'Recurring'
+          ) : (
+            'Onboarding'
+          )}
         </span>
-        <Link
-          href={link?.href ?? '/dashboard'}
-          className={cn(
-            'shrink-0 text-[13px] font-medium hover:underline',
-            completed && !recurring ? 'text-muted-foreground line-through' : 'text-foreground'
-          )}
-        >
-          {label}
-        </Link>
+        {locked ? (
+          <span
+            className="shrink-0 text-[13px] font-medium text-muted-foreground"
+            title={lockReason}
+          >
+            {label}
+          </span>
+        ) : (
+          <Link
+            href={link?.href ?? '/dashboard'}
+            className={cn(
+              'shrink-0 text-[13px] font-medium hover:underline',
+              completed && !recurring ? 'text-muted-foreground line-through' : 'text-foreground'
+            )}
+          >
+            {label}
+          </Link>
+        )}
         {why && <span className="truncate text-xs text-muted-foreground">— {why}</span>}
         {isPriority && (
           <span className="shrink-0 whitespace-nowrap rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
@@ -362,7 +418,11 @@ function ActionRow({
           <span
             className={cn(
               'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
-              completedReferencesCount >= 5 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+              locked
+                ? 'bg-muted text-muted-foreground'
+                : completedReferencesCount >= 5
+                  ? 'bg-success/10 text-success'
+                  : 'bg-destructive/10 text-destructive'
             )}
           >
             {completedReferencesCount} / 5
@@ -371,19 +431,31 @@ function ActionRow({
           <span
             className={cn(
               'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
-              count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+              locked ? 'bg-muted text-muted-foreground' : count >= targetCount ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
             )}
           >
             {count} / {targetCount} this week
           </span>
         ) : completed && recurring ? (
-          <span className="text-xs font-semibold text-brand">✓ this week</span>
+          <span className={cn('text-xs font-semibold', locked ? 'text-muted-foreground' : 'text-brand')}>
+            ✓ this week
+          </span>
         ) : completed && !recurring ? (
-          <span className="text-success" aria-hidden>
-            ✓
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+              locked ? 'bg-muted text-muted-foreground' : 'bg-success/10 text-success'
+            )}
+          >
+            1 / 1
           </span>
         ) : null}
-        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+        <span
+          className={cn(
+            'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+            locked ? 'bg-muted text-muted-foreground' : 'bg-brand/10 text-brand'
+          )}
+        >
           {points} pts
         </span>
       </div>
@@ -435,6 +507,7 @@ export function SuccessSprintCard({
   onTrack,
   hasEmailConnection,
   hasCalendarConnection,
+  linkedInConnected,
   profileChecklistItems,
   searchStrategyChecklist,
   completedReferencesCount,
@@ -451,18 +524,43 @@ export function SuccessSprintCard({
   onTrack: boolean
   hasEmailConnection: boolean
   hasCalendarConnection: boolean
+  linkedInConnected: boolean
   profileChecklistItems: ProfileChecklistItem[]
   searchStrategyChecklist: SearchStrategyChecklist
   completedReferencesCount: number
   weekStartDate: Date
 }) {
+  // The Get Started gate — everything else in this list (barring
+  // UNLOCK_EXEMPT_ACTION_TYPES) stays grayed and locked until both are
+  // connected, since real detection/matching/networking all depend on one
+  // or both of these.
+  const gmailCalendarConnected = hasEmailConnection && hasCalendarConnection
+  const bothConnectedUnlocked = gmailCalendarConnected && linkedInConnected
+
   // isGoalBonus rows (the one-time welcome/commitment credit) are a
   // historical point award, not a real action to show in this list — their
   // points already flow into weeklyPoints via the props passed in, so
   // dropping them here only removes the stale row, never the credit.
-  const realActions = (actions ?? []).filter((a) => !a.isGoalBonus)
+  // ANSWER_OPTIONAL_QUESTIONS ("Complete your Search Strategy questions") is
+  // dropped everywhere it could appear — it's duplicative of the Search
+  // Strategy checklist row already rendered below.
+  const realActions = (actions ?? []).filter((a) => !a.isGoalBonus && a.actionType !== 'ANSWER_OPTIONAL_QUESTIONS')
   const usedKeys = new Set(realActions.map(actionKey))
-  const availableCatalog = suggestedActions.filter((sa) => !usedKeys.has(actionKey(sa)))
+  const suggestedFiltered = suggestedActions.filter(
+    (sa) => !usedKeys.has(actionKey(sa)) && sa.actionType !== 'ANSWER_OPTIONAL_QUESTIONS'
+  )
+  const suggestedKeys = new Set(suggestedFiltered.map(actionKey))
+  // Top up with the full canonical menu (the same catalog the Stats page's
+  // "See all actions" list draws from) so every nav category — Connecting
+  // in particular — always has real, generic fallback content even before
+  // getSuggestedActions' personalized snapshot has anything to say about
+  // it. Without this, an early-stage candidate with no networking activity
+  // yet saw the Connecting section vanish outright (zero items -> no
+  // header), rather than showing what they could do.
+  const canonicalTopUp = CANONICAL_TASK_MENU.filter(
+    (t) => !usedKeys.has(actionKey(t)) && !suggestedKeys.has(actionKey(t))
+  )
+  const availableCatalog = [...suggestedFiltered, ...canonicalTopUp]
   const catalogKeys = new Set(availableCatalog.map(actionKey))
 
   // "Actions done this week" — every committed action marked complete,
@@ -549,7 +647,12 @@ export function SuccessSprintCard({
     // could render twice: once with its personalized "why" text, once with
     // this catalog's generic label.
     ...profileChecklistItems
-      .filter((item) => !usedKeys.has(item.actionType) && !catalogKeys.has(item.actionType))
+      .filter(
+        (item) =>
+          item.actionType !== 'ANSWER_OPTIONAL_QUESTIONS' &&
+          !usedKeys.has(item.actionType) &&
+          !catalogKeys.has(item.actionType)
+      )
       .map((item) => ({
         text: item.label,
         points: item.points,
@@ -577,25 +680,6 @@ export function SuccessSprintCard({
             completed: false,
             recurring: false,
             priority: hasEmailConnection,
-          },
-        ]
-      : []),
-    // Not a real Search Action — connecting Gmail has its own connect/
-    // reconnect UI on the Network page (see profile-checklist.ts's doc
-    // comment), so there's no committed/suggested/checklist row for it to
-    // ride along on. Injected directly here instead, so it's always visible
-    // — and always the sole Priority (see isPriorityActionType) — for as
-    // long as the candidate hasn't connected.
-    ...(!hasEmailConnection
-      ? [
-          {
-            text: 'Connect Gmail — so we can detect your job search activity automatically',
-            points: estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).points,
-            estimatedMinutes: estimateActionEffort({ actionType: 'GMAIL_CONNECTED' }).minutes,
-            actionType: 'GMAIL_CONNECTED',
-            completed: false,
-            recurring: false,
-            priority: true,
           },
         ]
       : []),
@@ -645,6 +729,31 @@ export function SuccessSprintCard({
 
   const groups = groupByNavCategory(consolidatedOpenRows)
 
+  // The two Get Started items — not real Search Actions, no points, no
+  // category. Rendered above Priority for as long as either is still
+  // outstanding; once both are connected the whole group disappears rather
+  // than sticking around as done-and-struck-through chrome.
+  const getStartedRows: Row[] = [
+    {
+      text: 'Connect Gmail and Calendar to activate jobs features',
+      points: 0,
+      estimatedMinutes: 0,
+      actionType: 'GET_STARTED_GMAIL_CALENDAR',
+      completed: gmailCalendarConnected,
+      recurring: false,
+      priority: false,
+    },
+    {
+      text: 'Connect LinkedIn to activate networking features',
+      points: 0,
+      estimatedMinutes: 0,
+      actionType: 'GET_STARTED_LINKEDIN',
+      completed: linkedInConnected,
+      recurring: false,
+      priority: false,
+    },
+  ]
+
   return (
     <Card>
       <CardHeader>
@@ -681,12 +790,26 @@ export function SuccessSprintCard({
                   tag (see ActionRow below), so the mechanic is self-evident
                   without the explanation. */}
               <div id="weekly-actions-list" className="space-y-4 scroll-mt-4">
+                {!bothConnectedUnlocked && (
+                  <ActionGroup title="Get Started">
+                    {getStartedRows.map((row, i) => (
+                      <ActionRow
+                        key={i}
+                        {...row}
+                        hasEmailConnection={hasEmailConnection}
+                        hasCalendarConnection={hasCalendarConnection}
+                        completedReferencesCount={completedReferencesCount}
+                      />
+                    ))}
+                  </ActionGroup>
+                )}
                 {priorityRows.length > 0 && (
                   <ActionGroup title="Priority">
                     {priorityRows.map((row, i) => (
                       <ActionRow
                         key={i}
                         {...row}
+                        locked={isRowLocked(row, bothConnectedUnlocked)}
                         hasEmailConnection={hasEmailConnection}
                         hasCalendarConnection={hasCalendarConnection}
                         completedReferencesCount={completedReferencesCount}
@@ -703,6 +826,7 @@ export function SuccessSprintCard({
                         <ActionRow
                           key={i}
                           {...row}
+                          locked={isRowLocked(row, bothConnectedUnlocked)}
                           hasEmailConnection={hasEmailConnection}
                           hasCalendarConnection={hasCalendarConnection}
                           completedReferencesCount={completedReferencesCount}
