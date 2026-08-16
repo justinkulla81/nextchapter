@@ -33,6 +33,7 @@ import {
   Award,
   Gift,
   LineChart,
+  Lock,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -61,6 +62,13 @@ interface NavLink {
   badge?: string
   muted?: boolean
   disabled?: boolean
+  // Swaps the leading icon for an orange Lock and mutes the row — distinct
+  // from the plain gray `disabled` treatment (Coming Soon items) since this
+  // is a real, connection-gated feature, not "not built yet." The text
+  // explains what unlocks it, shown as a title tooltip since there's no
+  // room for body copy in a sidebar row (design-principles.md: never
+  // disable without explaining why).
+  lockReason?: string
 }
 
 interface NavSection {
@@ -77,8 +85,21 @@ function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
   messagesUnreadCount: number,
-  newBackchannelCount: number
+  newBackchannelCount: number,
+  hasEmailConnection: boolean,
+  linkedInConnected: boolean,
+  skillsAssessmentCompleted: boolean
 ): NavSection[] {
+  const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
+    ? {}
+    : { muted: true, disabled: true, lockReason: 'Unlocks once you connect Gmail on your Profile page' }
+  const linkedInLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = linkedInConnected
+    ? {}
+    : { muted: true, disabled: true, lockReason: 'Unlocks once you connect LinkedIn on your Profile page' }
+  const skillsLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = skillsAssessmentCompleted
+    ? {}
+    : { muted: true, disabled: true, lockReason: 'Unlocks once you complete the Skills Assessment' }
+
   return [
     {
       title: null,
@@ -90,7 +111,7 @@ function buildSections(
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
-        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone },
+        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
       ],
     },
     {
@@ -105,6 +126,7 @@ function buildSections(
           // since it's genuinely differentiated, unlike the old static
           // "Priority" label every item here used to carry.
           badge: newBackchannelCount > 0 ? String(newBackchannelCount) : undefined,
+          ...gmailLock,
         },
         { href: '/dashboard/references', label: 'My References', icon: Star },
         {
@@ -127,7 +149,7 @@ function buildSections(
           href: '/dashboard/privacy',
           label: 'Executive Recruiter',
           icon: Building2,
-          badge: 'Coming Soon',
+          badge: 'Premium',
           muted: true,
           disabled: true,
         },
@@ -136,18 +158,25 @@ function buildSections(
     {
       title: 'Working and Learning',
       links: [
-        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase },
-        { href: '/dashboard/market-intelligence', label: 'Market Intelligence', icon: LineChart },
-        { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat },
-        { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen },
-        { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video },
+        { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+        {
+          href: '/dashboard/market-intelligence',
+          label: 'Market Intelligence',
+          icon: LineChart,
+          badge: 'Premium',
+          muted: true,
+          disabled: true,
+        },
+        { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
+        { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
+        { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
       ],
     },
     {
       title: 'Data',
       links: [
-        { href: '/dashboard/network/contacts', label: 'My Contacts', icon: Contact },
+        { href: '/dashboard/network/contacts', label: 'My Contacts', icon: Contact, ...gmailLock },
         {
           href: '/dashboard/portfolio',
           label: 'My Portfolio',
@@ -183,6 +212,9 @@ function NavContent({
   supportNetworkUnreadCount,
   messagesUnreadCount,
   newBackchannelCount,
+  hasEmailConnection,
+  linkedInConnected,
+  skillsAssessmentCompleted,
   collapsedSections,
   onToggleSection,
 }: {
@@ -192,11 +224,22 @@ function NavContent({
   supportNetworkUnreadCount: number
   messagesUnreadCount: number
   newBackchannelCount: number
+  hasEmailConnection: boolean
+  linkedInConnected: boolean
+  skillsAssessmentCompleted: boolean
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
   const isActive = (href: string) => (href === '/dashboard' ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(portfolioAssetCount, supportNetworkUnreadCount, messagesUnreadCount, newBackchannelCount)
+  const sections = buildSections(
+    portfolioAssetCount,
+    supportNetworkUnreadCount,
+    messagesUnreadCount,
+    newBackchannelCount,
+    hasEmailConnection,
+    linkedInConnected,
+    skillsAssessmentCompleted
+  )
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
@@ -243,14 +286,24 @@ function NavContent({
             const Icon = link.icon
 
             if (link.disabled) {
+              // lockReason items are gated on something the candidate can
+              // actually go do (connect Gmail, finish Skills Assessment) —
+              // orange signals "in reach." Premium/Coming Soon items have no
+              // action available yet, so the lock stays neutral gray.
+              const lockTitle = link.lockReason ?? (link.badge === 'Premium' ? 'Premium feature — available soon' : undefined)
               return (
                 <div
                   key={`${section.title ?? 'top'}-${link.href}`}
                   aria-disabled="true"
+                  title={lockTitle}
                   className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium whitespace-nowrap text-muted-foreground/60"
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
-                    <Icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                    <Lock
+                      className={cn('size-4 shrink-0', link.lockReason ? 'text-orange' : 'text-muted-foreground/60')}
+                      strokeWidth={1.75}
+                      aria-hidden
+                    />
                     <span className="truncate">{link.label}</span>
                   </span>
                   {badgeEl}
@@ -310,11 +363,17 @@ export function DashboardNav({
   supportNetworkUnreadCount = 0,
   messagesUnreadCount = 0,
   newBackchannelCount = 0,
+  hasEmailConnection = false,
+  linkedInConnected = false,
+  skillsAssessmentCompleted = false,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   messagesUnreadCount?: number
   newBackchannelCount?: number
+  hasEmailConnection?: boolean
+  linkedInConnected?: boolean
+  skillsAssessmentCompleted?: boolean
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -355,6 +414,9 @@ export function DashboardNav({
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           messagesUnreadCount={messagesUnreadCount}
           newBackchannelCount={newBackchannelCount}
+          hasEmailConnection={hasEmailConnection}
+          linkedInConnected={linkedInConnected}
+          skillsAssessmentCompleted={skillsAssessmentCompleted}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -435,6 +497,9 @@ export function DashboardNav({
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               messagesUnreadCount={messagesUnreadCount}
               newBackchannelCount={newBackchannelCount}
+              hasEmailConnection={hasEmailConnection}
+              linkedInConnected={linkedInConnected}
+              skillsAssessmentCompleted={skillsAssessmentCompleted}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

@@ -44,6 +44,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     candidateMessagesUnreadCount,
     peerUnreadCount,
     backchannelMatches,
+    gmailConnected,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
@@ -52,6 +53,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     getCandidateUnreadCount(profileId),
     getPeerUnreadCount(profileId),
     getBackchannelMatchesForBadge(profileId),
+    isGmailConnected(profileId),
   ])
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
@@ -82,6 +84,9 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       supportNetworkUnreadCount={supportNetworkUnreadCount}
       messagesUnreadCount={messagesUnreadCount}
       newBackchannelCount={newBackchannelCount}
+      hasEmailConnection={gmailConnected}
+      linkedInConnected={profile.linkedinConnectionsImportedAt !== null}
+      skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
     />
   )
 }
