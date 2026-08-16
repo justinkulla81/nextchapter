@@ -102,6 +102,22 @@ async function computeSprintConsistencyLeg(candidateId: string): Promise<{ score
   return { score, driver }
 }
 
+// Distinguishes "never done any of this, ever" (null — no signal yet) from
+// "was active, has since gone quiet" (a real, low score — legitimate
+// feedback). Deliberately unwindowed (all-time counts), unlike the legs
+// above which score only the last ACTIVITY_WINDOW_DAYS — a candidate who
+// networked hard in week 1 and stopped shouldn't read as "no signal."
+async function hasAnyEffortSignalEver(candidateId: string): Promise<boolean> {
+  const [contactCount, outreachCount, applicationCount, sprintCount, interimCount] = await Promise.all([
+    prisma.supportNetworkContact.count({ where: { candidateId, removedAt: null } }),
+    prisma.outreachLog.count({ where: { candidateId } }),
+    prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }),
+    prisma.weeklySprint.count({ where: { candidateId } }),
+    prisma.workHistoryEntry.count({ where: { candidateId, engagementType: { in: ['FRACTIONAL', 'INTERIM', 'CONSULTING'] } } }),
+  ])
+  return contactCount > 0 || outreachCount > 0 || applicationCount > 0 || sprintCount > 0 || interimCount > 0
+}
+
 async function computeInterimWorkBonus(candidateId: string): Promise<{ bonus: number; driver: string | null }> {
   const activeInterimEngagement = await prisma.workHistoryEntry.findFirst({
     where: { candidateId, isCurrent: true, engagementType: { in: ['FRACTIONAL', 'INTERIM', 'CONSULTING'] } },
@@ -115,12 +131,25 @@ async function computeInterimWorkBonus(candidateId: string): Promise<{ bonus: nu
 export async function computeEffortComponent(candidateId: string): Promise<ComponentComputation> {
   const windowStart = new Date(Date.now() - ACTIVITY_WINDOW_DAYS * 24 * 60 * 60 * 1000)
 
-  const [network, applications, sprintConsistency, interimWork] = await Promise.all([
+  const [everActed, network, applications, sprintConsistency, interimWork] = await Promise.all([
+    hasAnyEffortSignalEver(candidateId),
     computeNetworkActivityLeg(candidateId, windowStart),
     computeApplicationsLeg(candidateId, windowStart),
     computeSprintConsistencyLeg(candidateId),
     computeInterimWorkBonus(candidateId),
   ])
+
+  // Null, not 0 — same §3.6 contract as evidence.ts. A candidate who has
+  // never logged outreach, never applied, never run a Sprint, and never done
+  // interim work has generated no Effort signal at all yet; scoring that as
+  // a 0 would grade them on the absence of work they haven't had reason to
+  // do, not on real search behavior.
+  if (!everActed) {
+    return {
+      score: null,
+      drivers: ['No search activity logged yet — this fills in as you network, apply, and run Weekly Search Sprints.'],
+    }
+  }
 
   const score = clamp(0.4 * network.score + 0.3 * applications.score + 0.3 * sprintConsistency.score + interimWork.bonus)
 

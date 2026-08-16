@@ -19,13 +19,9 @@ import { generateMarketRealityReport } from '@/lib/reports/market-reality-report
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { pointsNeededForA } from '@/lib/weekly/action-effort'
-import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { GRADE_LABEL, GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
-import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
-import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { cn } from '@/lib/utils'
 import {
   getWhereYouStand,
@@ -37,14 +33,6 @@ import {
 import { ReviewerExplanationForm } from '@/components/dashboard/ReviewerExplanationForm'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
-
-
-// A first-ever report has essentially no track record behind it yet — an F
-// at that point reflects thin signal, not a real verdict, so it's shown as
-// N/A instead until a second report exists to actually compare against.
-function displayGrade(grade: Grade, isFirstReport: boolean): Grade | 'N/A' {
-  return isFirstReport && grade === 'F' ? 'N/A' : grade
-}
 
 // Same self-caching guidance shown on /dashboard/search-strategy — reading
 // it here is just a cache hit in the common case (see
@@ -123,6 +111,9 @@ const WEEKLY_FOCUS_SECTIONS: { key: 'increase' | 'adjust' | 'maintain' | 'startN
 // triggers a second Anthropic call for the same week. Isolated in its own
 // Suspense boundary anyway, same reasoning as SearchStrategyGuidanceSection
 // above. Renders nothing until the candidate has started a Search Sprint.
+// Bulleted, not boxed — each line is Victoria's read on ONE mandatory
+// onboarding item or ONE big platform category (references, network, jobs)
+// that the "What else moves the needle" section above already links to.
 async function WeeklyFocusSection({ candidateId }: { candidateId: string }) {
   const focus = await getOrDraftWeeklyFocus(candidateId)
   if (!focus) return null
@@ -133,17 +124,24 @@ async function WeeklyFocusSection({ candidateId }: { candidateId: string }) {
         <VictoriaAvatar size={36} />
         <SectionHeading>Victoria&apos;s Advice for Your Weekly Search Strategy</SectionHeading>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <p className="mt-3 text-sm text-muted-foreground">
+        First, finish any mandatory onboarding still open — it&apos;s a handful of one-time steps
+        and it&apos;s what unlocks real scoring for the categories below. Then focus your week on
+        the platform categories that move your grade: <strong className="font-semibold text-foreground">references</strong>,{' '}
+        <strong className="font-semibold text-foreground">networking</strong>, and{' '}
+        <strong className="font-semibold text-foreground">jobs</strong>.
+      </p>
+      <ul className="mt-4 space-y-3">
         {WEEKLY_FOCUS_SECTIONS.map((section) => (
-          <div key={section.key} className="rounded-lg border border-border bg-white p-4">
+          <li key={section.key} className="rounded-lg border border-border bg-white p-4">
             <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
             <p className="mt-1 text-sm text-foreground">{focus[section.key].text}</p>
-            <p className="mt-3 text-sm text-foreground">
-              <span className="font-semibold">Recommendation:</span> {focus[section.key].recommendation}
+            <p className="mt-2 text-sm text-foreground">
+              <strong className="font-semibold">Recommendation:</strong> {focus[section.key].recommendation}
             </p>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }
@@ -246,20 +244,7 @@ export default async function MarketRealityReportPage() {
   const completedTasks = countCompletedTasks(profile)
   const canRegenerate = completedTasks >= TASKS_REQUIRED_TO_REGENERATE_REPORT
   const weekNumber = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date()))
-  const [priorReportCount, suggestedActions] = await Promise.all([
-    prisma.marketRealityReport.count({
-      where: { candidateId: profile.id, generatedAt: { lt: report?.generatedAt ?? new Date() } },
-    }),
-    getSuggestedActions(profile.id, weekNumber),
-  ])
-  const isFirstReport = priorReportCount === 0
-
-  // Still computed/stored on every report for its ~20 other live consumers
-  // (coaching notes, admin candidate tables, talent portal, bias detection —
-  // see dossierGradeAtGeneration's own schema comment) — just no longer
-  // rendered as its own section on this page, superseded by "Where you
-  // stand" below.
-  const gradeAtGeneration = normalizeGradeSnapshot(report?.dossierGradeAtGeneration)
+  const suggestedActions = await getSuggestedActions(profile.id, weekNumber)
 
   // MRG §11 — the rebuilt report's 7 mandated sections (Report Structure
   // Spec §3), read live rather than frozen into the report row so a
@@ -273,13 +258,6 @@ export default async function MarketRealityReportPage() {
     getMoveTheNeedle(profile.id),
   ])
 
-  // Coaching CTA now gates on the new composite grade (what this page
-  // actually leads with) rather than the old six-category grade, falling
-  // back to the old grade only for a candidate with no ResumeAnalysis yet
-  // (whereYouStand null) so the CTA doesn't just disappear for them.
-  const showCoachingCTA = whereYouStand
-    ? isAtOrBelowGrade(whereYouStand.grade, 'C')
-    : !!gradeAtGeneration && isAtOrBelowGrade(gradeAtGeneration.grade, 'C')
   // Derived from the same canonical Weekly Search Score points ramp everything
   // else reads from (1 point = 1 minute) — this used to be a separately
   // maintained hours target that had drifted out of sync with the points ramp.
@@ -372,6 +350,25 @@ export default async function MarketRealityReportPage() {
             consent.
           </p>
 
+          {/* Glossary — moved to the front, ahead of the confidential report
+              body, and no longer print:hidden: the candidate reads grades
+              throughout this whole document (including in print/PDF), so
+              the explainer for what they mean has to be visible wherever
+              the report is. */}
+          <div className="mt-8 rounded-lg border border-border bg-muted/30 p-5">
+            <SectionHeading>Glossary — how to read this report</SectionHeading>
+            <div className="mt-4">
+              <GradeSystemExplainer />
+            </div>
+          </div>
+
+          <div className="mt-8 flex items-center gap-3 border-t border-border pt-6">
+            <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+              The Confidential Market Reality Report
+            </p>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
           {/* Executive Summary — real report-over-report grade movement plus
               credit for any data actually added since the last report,
               generated in the same LLM call as everything else below (see
@@ -379,7 +376,7 @@ export default async function MarketRealityReportPage() {
               block) — never a separate, additional cost. Null on reports
               generated before this field existed. */}
           {report.executiveSummary !== null && (
-            <div className="mt-8 border-t border-border pt-8">
+            <div className="mt-6">
               <SectionHeading>Executive Summary</SectionHeading>
               <div className="mt-4 space-y-4 text-sm">
                 <div>
@@ -423,50 +420,45 @@ export default async function MarketRealityReportPage() {
                 first read.
               </p>
             ) : (
-              (() => {
-                const gradeDisplay = displayGrade(whereYouStand.grade, isFirstReport)
-                return (
-                  <div className="mt-4">
-                    <p
-                      className={cn(
-                        'text-5xl font-bold tabular-nums',
-                        gradeDisplay === 'N/A' ? 'text-muted-foreground' : GRADE_TEXT_COLOR[gradeDisplay]
-                      )}
-                    >
-                      {gradeDisplay}
-                      <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
-                        {gradeDisplay === 'N/A' ? 'Not enough signal yet' : GRADE_LABEL[gradeDisplay]}
-                      </span>
-                    </p>
-                    {gradeDisplay !== 'N/A' && (
-                      <p className="mt-2 max-w-2xl text-sm text-foreground">
-                        {whereYouStand.headline.strongestLine} {whereYouStand.headline.constraintLine}
+              <div className="mt-4">
+                <p className={cn('text-5xl font-bold tabular-nums', GRADE_TEXT_COLOR[whereYouStand.grade])}>
+                  {whereYouStand.grade}
+                  <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
+                    {GRADE_LABEL[whereYouStand.grade]}
+                  </span>
+                </p>
+                <p className="mt-2 max-w-2xl text-sm text-foreground">
+                  {whereYouStand.headline.strongestLine} {whereYouStand.headline.constraintLine}
+                </p>
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                  This grade is <strong className="font-semibold text-foreground">only ever scored on real signal</strong> —
+                  categories like references and networking count toward it once you&apos;ve actually
+                  done that work in NextChapter, not before. Anything below an A right now is a
+                  snapshot, not a ceiling: a B is a genuinely good start with real gaps still open,
+                  and each category you complete fills in more of your full Executive Dossier.
+                </p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  {whereYouStand.decomposition.map((d) => (
+                    <div key={d.label} className="rounded-lg border border-border p-3 text-sm">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {d.label}
                       </p>
-                    )}
-                    <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                      {whereYouStand.decomposition.map((d) => (
-                        <div key={d.label} className="rounded-lg border border-border p-3 text-sm">
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            {d.label}
-                          </p>
-                          <p className={cn('mt-1 font-semibold tabular-nums', GRADE_TEXT_COLOR[d.grade])}>
-                            {d.grade}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">{d.note}</p>
-                        </div>
-                      ))}
+                      <p className={cn('mt-1 font-semibold tabular-nums', GRADE_TEXT_COLOR[d.grade])}>
+                        {d.grade}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">{d.note}</p>
                     </div>
-                    <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
-                      <p className="text-sm font-medium text-foreground">
-                        Your realistic path: {whereYouStand.realisticPath}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Typical weekly commitment: {whereYouStand.weeklyHours}.
-                      </p>
-                    </div>
-                  </div>
-                )
-              })()
+                  ))}
+                </div>
+                <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Your realistic path: {whereYouStand.realisticPath}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Typical weekly commitment: {whereYouStand.weeklyHours}.
+                  </p>
+                </div>
+              </div>
             )}
             <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
               Everyone will not make it — but doing the real work meaningfully improves your odds.
@@ -502,25 +494,36 @@ export default async function MarketRealityReportPage() {
             </div>
           </div>
 
-          {showCoachingCTA && (
-            <div className="mt-6">
-              <CoachingCTACard />
-            </div>
-          )}
-
           {/* SECTION 2 — "What's working" (spec §3.2). Reuses the existing
               strengths field unchanged — already specific/evidenced by
               design, already capped at 3-5 (marketRealityReportSchema). */}
           <div className="mt-10 border-t border-border pt-8">
             <SectionHeading>What&apos;s working</SectionHeading>
-            <div className="mt-4 divide-y divide-border">
+            <ul className="mt-4 space-y-3">
               {(report.strengths as unknown as Strength[]).map((s) => (
-                <div key={s.title} className="py-3 first:pt-0">
+                <li key={s.title}>
                   <p className="font-semibold text-foreground">{s.title}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{s.detail}</p>
-                </div>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{s.detail}</p>
+                </li>
               ))}
-            </div>
+            </ul>
+          </div>
+
+          {/* Areas for improvement — mirrors "What's working" exactly, just
+              reading report.weaknesses instead of report.strengths. Both
+              fields are generated together by the same LLM call
+              (marketRealityReportSchema requires 2-5 of each) — this was
+              already persisted on every report, just never rendered. */}
+          <div className="mt-10 border-t border-border pt-8">
+            <SectionHeading>Areas for improvement</SectionHeading>
+            <ul className="mt-4 space-y-3">
+              {(report.weaknesses as unknown as Strength[]).map((w) => (
+                <li key={w.title}>
+                  <p className="font-semibold text-foreground">{w.title}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{w.detail}</p>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* SECTION 3 — "What to fix on your resume" (spec §3.3). Ordered
@@ -575,14 +578,11 @@ export default async function MarketRealityReportPage() {
               Framed as interview prep, never as flaws. Recording an answer
               (ReviewerExplanationForm -> submitReviewerExplanation ->
               resolveReviewerDetection) removes the item immediately — this
-              section reads live, unresolved rows only. */}
-          <div className="mt-10 border-t border-border pt-8">
-            <SectionHeading>How a recruiter will read this</SectionHeading>
-            {recruiterReadItems.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Nothing here right now — no open questions a reviewer would likely have.
-              </p>
-            ) : (
+              section reads live, unresolved rows only. Hidden entirely (not
+              a filler message) when there's nothing real to show. */}
+          {recruiterReadItems.length > 0 && (
+            <div className="mt-10 border-t border-border pt-8">
+              <SectionHeading>How a recruiter will read this</SectionHeading>
               <div className="mt-4 divide-y divide-border">
                 {recruiterReadItems.map((item) => (
                   <div key={item.id} className="py-3 first:pt-0">
@@ -591,22 +591,19 @@ export default async function MarketRealityReportPage() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* SECTION 5 — "Getting past the filters" (spec §3.5/§4). A
-              matrix, not a score. */}
-          <div className="mt-10 border-t border-border pt-8">
-            <SectionHeading>Getting past the filters</SectionHeading>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Most resumes are filtered before a person ever reads them — this isn&apos;t a comment
-              on you, it&apos;s a mechanical hurdle every candidate clears the same way.
-            </p>
-            {!atsMatrix ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Upload a resume to see how it parses across applicant tracking systems.
-              </p>
-            ) : (
+              matrix, not a score. Hidden entirely (not a filler nudge) until
+              a resume has actually been parsed into an ATS matrix. */}
+          {atsMatrix && (
+            <div className="mt-10 border-t border-border pt-8">
+              <SectionHeading>Getting past the filters</SectionHeading>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                <li>Most resumes are filtered by an applicant tracking system before a person reads them.</li>
+                <li>This is a <strong className="font-semibold text-foreground">mechanical hurdle</strong>, not a comment on you — every candidate clears the same check.</li>
+              </ul>
               <div className="mt-4 space-y-3">
                 {atsMatrix.cleanParsers.length > 0 && (
                   <p className="text-sm text-foreground">
@@ -630,13 +627,18 @@ export default async function MarketRealityReportPage() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* SECTION 6 — "What else moves the needle" (spec §3.6). Ordering
               is computed per candidate (getMoveTheNeedle), not fixed. */}
           <div className="mt-10 border-t border-border pt-8">
             <SectionHeading>What else moves the needle</SectionHeading>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Each category below is a real, live part of NextChapter — completing it adds
+              confirmed signal to your <strong className="font-semibold text-foreground">Executive Dossier</strong> and
+              raises your Market Reality Grade. Nothing here is scored against you until you do it.
+            </p>
             <div className="mt-4 divide-y divide-border">
               {moveTheNeedle.map((lever, i) => (
                 <Link
@@ -806,15 +808,6 @@ export default async function MarketRealityReportPage() {
           <Suspense fallback={null}>
             <WeeklyFocusSection candidateId={profile.id} />
           </Suspense>
-
-          {/* Glossary — moved to the back so the report leads with the
-              candidate's own results, not the explainer. */}
-          <div className="mt-10 border-t border-border pt-8 print:hidden">
-            <SectionHeading>Understanding your grades</SectionHeading>
-            <div className="mt-4">
-              <GradeSystemExplainer />
-            </div>
-          </div>
         </div>
       )}
     </div>

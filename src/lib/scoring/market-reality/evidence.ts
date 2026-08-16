@@ -24,14 +24,15 @@ export async function computeEvidenceComponent(candidateId: string): Promise<Com
   // Completion: how much of the grid is filled in, 0-100.
   const completionScore = clamp((grid.cellsMeasured / grid.cellsTotal) * 100)
 
-  // Quality: average of every measured cell's score — genuinely zero
-  // contribution when nothing is measured yet (day one, honestly zero, per
-  // §3.6), not a neutral default that would understate an early candidate's
-  // actual state.
+  // Quality: average of every measured cell's score.
   const measuredScores = grid.rows.flatMap((r) => r.cells.filter((c) => c.measured && c.score !== null).map((c) => c.score as number))
   const qualityScore = measuredScores.length > 0 ? clamp(measuredScores.reduce((s, v) => s + v, 0) / measuredScores.length) : 0
 
-  const score = grid.cellsMeasured === 0 ? 0 : clamp(0.6 * completionScore + 0.4 * qualityScore)
+  // Null, not 0, when nothing is measured yet — per composite.ts's §3.6
+  // contract, this excludes Evidence from the composite entirely (weight
+  // redistributed to whatever IS measured) rather than scoring an unearned
+  // floor for a day-one candidate who simply hasn't done the work yet.
+  const score = grid.cellsMeasured === 0 ? null : clamp(0.6 * completionScore + 0.4 * qualityScore)
 
   const drivers: string[] = []
   if (grid.cellsMeasured === 0) {
