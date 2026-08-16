@@ -904,6 +904,15 @@ model CandidateProfile {
   // page view.
   skillGapSuggestions             Json?
   skillGapSuggestionsFingerprint  String?
+  // Candidate-confirmed "Skills You Have" — seeded from resumeKeywords the
+  // first time the Skills Assessment is completed (confirmation step right
+  // after the questionnaire), then independently editable. resumeKeywords
+  // itself stays untouched and auto-refreshed on resume re-upload; this is
+  // the candidate-facing, candidate-editable copy shown on the Skills
+  // Assessment/hub pages. Empty + skillsHaveConfirmedAt null means "never
+  // confirmed yet" — falls back to displaying resumeKeywords directly.
+  confirmedSkillsHave              String[]  @default([])
+  skillsHaveConfirmedAt            DateTime?
   interimConsultingInterest       Boolean   @default(false)
   searchStrategyConfirmedAt       DateTime?
   // Restrictive covenant from a current/former employer (non-compete,

@@ -1,46 +1,15 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { SkillsToBuildForm } from '@/components/dashboard/SkillsToBuildForm'
-import { SkillsYouHaveCard } from '@/components/dashboard/SkillsYouHaveCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { getOrGenerateSkillGapSuggestions } from '@/lib/skills/skill-gap-suggestions'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'Skills & Behavioral Assessments' }
-
-// getOrGenerateSkillGapSuggestions calls the LLM on a cache miss (resume
-// re-upload, changed target role/industries) — isolated here so that cost
-// never blocks the two assessment cards above it, same pattern as
-// SearchStrategyGuidanceCard on the Search Strategy page.
-async function SkillsToBuildCard({
-  candidateId,
-  skillsToBuild,
-  targetRole,
-}: {
-  candidateId: string
-  skillsToBuild: string[]
-  targetRole: string | null
-}) {
-  const suggestions = await getOrGenerateSkillGapSuggestions(candidateId)
-  return <SkillsToBuildForm initialSkills={skillsToBuild} suggestions={suggestions} targetRole={targetRole} />
-}
-
-function SkillsToBuildSkeleton() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Spinner size={16} />
-      Putting together skill suggestions…
-    </div>
-  )
-}
 
 // Work Interests (spec module 5, O*NET RIASEC) isn't built yet — blocked on
 // an O*NET Web Services account only the account owner can register.
@@ -220,40 +189,10 @@ export default async function SkillsAssessmentsPage() {
                   </Button>
 
                   {assessment.key === 'skills' && (
-                    <div className="space-y-4 border-t border-border pt-3">
-                      <details className="group/have overflow-hidden rounded-lg border border-border">
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 [&::-webkit-details-marker]:hidden">
-                          <p className="text-sm font-medium text-foreground">Skills You Have</p>
-                          <span className="flex shrink-0 items-center gap-3">
-                            <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
-                              Show
-                            </span>
-                            <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open/have:rotate-180" aria-hidden />
-                          </span>
-                        </summary>
-                        <div className="space-y-2 border-t border-border p-3">
-                          <p className="text-xs text-muted-foreground">
-                            Pulled from your resume — read-only here; re-upload your resume to refresh it.
-                          </p>
-                          <SkillsYouHaveCard resumeKeywords={profile.resumeKeywords} />
-                        </div>
-                      </details>
-
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-foreground">Skills You Need to Build</p>
-                        <p className="text-sm text-muted-foreground">
-                          Skills worth building for your next job — pick from the suggestions below or
-                          add your own. Feeds your Learning recommendations and Coaching Notes.
-                        </p>
-                        <Suspense fallback={<SkillsToBuildSkeleton />}>
-                          <SkillsToBuildCard
-                            candidateId={profile.id}
-                            skillsToBuild={profile.skillsToBuild}
-                            targetRole={profile.targetRoleType}
-                          />
-                        </Suspense>
-                      </div>
-                    </div>
+                    <p className="border-t border-border pt-3 text-xs text-muted-foreground">
+                      Skills You Have and Skills You Need to Build now live on the assessment itself —
+                      confirm them right after you answer the questions above.
+                    </p>
                   )}
                 </div>
               </details>
