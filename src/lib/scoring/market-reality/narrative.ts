@@ -26,8 +26,6 @@ export interface MarketRealityHeadline {
 const COMPONENT_LABEL: Record<MarketRealityComponent, string> = {
   EXPERIENCE: 'experience',
   RESUME: 'resume',
-  EVIDENCE: 'evidence',
-  EFFORT: 'effort',
   MARKET: 'market',
 }
 
@@ -74,18 +72,19 @@ async function getComponentDriverText(candidateId: string, component: MarketReal
     return getResumeAnalysisDriverText(candidateId, component)
   }
 
+  // Only MARKET reaches here now — Evidence/Effort are no longer weighted
+  // components or possible driving/strongest components (see composite.ts).
   const row = await prisma.marketRealityComponentScore.findUnique({
     where: { candidateId },
-    select: { evidenceDrivers: true, marketDrivers: true, effortDrivers: true },
+    select: { marketDrivers: true },
   })
-  const fieldMap = { EVIDENCE: row?.evidenceDrivers, MARKET: row?.marketDrivers, EFFORT: row?.effortDrivers } as const
-  const drivers = (fieldMap[component] as string[] | null) ?? []
+  const drivers = (row?.marketDrivers as string[] | null) ?? []
   if (drivers.length === 0) return `No data yet for ${COMPONENT_LABEL[component]}.`
   // Market drivers are deliberately 2 sentences (cause + path, §3.5: "an F
   // on Market must never read as a dead end") — join both rather than
   // truncating to drivers[0], which would drop the path half and leave
   // only the cause, reading exactly like the dead end the spec forbids.
-  return component === 'MARKET' ? drivers.join(' ') : drivers[0]
+  return drivers.join(' ')
 }
 
 export async function buildMarketRealityHeadline(candidateId: string): Promise<MarketRealityHeadline | null> {
@@ -101,8 +100,6 @@ export async function buildMarketRealityHeadline(candidateId: string): Promise<M
   const scores: Partial<Record<MarketRealityComponent, number>> = {
     EXPERIENCE: row.experienceScore ?? undefined,
     RESUME: row.resumeScore ?? undefined,
-    EVIDENCE: row.evidenceScore ?? undefined,
-    EFFORT: row.effortScore ?? undefined,
     MARKET: row.marketScore ?? undefined,
   }
   const strongestScore = scores[strongestComponent]

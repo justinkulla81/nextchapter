@@ -4,7 +4,6 @@ import { Suspense } from 'react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
-import { getOrDraftWeeklyFocus } from '@/lib/reports/weekly-focus'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -28,8 +27,8 @@ import {
   getResumeFixes,
   getRecruiterReadItems,
   getAtsMatrix,
-  getMoveTheNeedle,
 } from '@/lib/reports/market-reality-sections'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { ReviewerExplanationForm } from '@/components/dashboard/ReviewerExplanationForm'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
@@ -95,53 +94,6 @@ async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: str
           ))}
         </div>
       </div>
-    </div>
-  )
-}
-
-const WEEKLY_FOCUS_SECTIONS: { key: 'increase' | 'adjust' | 'maintain' | 'startNew'; label: string; color: string }[] = [
-  { key: 'increase', label: 'Do more of', color: 'text-success' },
-  { key: 'adjust', label: 'Adjust', color: 'text-warning' },
-  { key: 'maintain', label: 'Keep doing', color: 'text-brand' },
-  { key: 'startNew', label: 'Start new', color: 'text-orange' },
-]
-
-// Reads the same self-cached weekly guidance the dashboard's WeeklyFocusCard
-// shows — a cache hit in the common case, so this essentially never
-// triggers a second Anthropic call for the same week. Isolated in its own
-// Suspense boundary anyway, same reasoning as SearchStrategyGuidanceSection
-// above. Renders nothing until the candidate has started a Search Sprint.
-// Bulleted, not boxed — each line is Victoria's read on ONE mandatory
-// onboarding item or ONE big platform category (references, network, jobs)
-// that the "What else moves the needle" section above already links to.
-async function WeeklyFocusSection({ candidateId }: { candidateId: string }) {
-  const focus = await getOrDraftWeeklyFocus(candidateId)
-  if (!focus) return null
-
-  return (
-    <div className="mt-10 border-t border-border pt-8 print:hidden">
-      <div className="flex items-center gap-3">
-        <VictoriaAvatar size={36} />
-        <SectionHeading>Victoria&apos;s Advice for Your Weekly Search Strategy</SectionHeading>
-      </div>
-      <p className="mt-3 text-sm text-muted-foreground">
-        First, finish any mandatory onboarding still open — it&apos;s a handful of one-time steps
-        and it&apos;s what unlocks real scoring for the categories below. Then focus your week on
-        the platform categories that move your grade: <strong className="font-semibold text-foreground">references</strong>,{' '}
-        <strong className="font-semibold text-foreground">networking</strong>, and{' '}
-        <strong className="font-semibold text-foreground">jobs</strong>.
-      </p>
-      <ul className="mt-4 space-y-3">
-        {WEEKLY_FOCUS_SECTIONS.map((section) => (
-          <li key={section.key} className="rounded-lg border border-border bg-white p-4">
-            <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
-            <p className="mt-1 text-sm text-foreground">{focus[section.key].text}</p>
-            <p className="mt-2 text-sm text-foreground">
-              <strong className="font-semibold">Recommendation:</strong> {focus[section.key].recommendation}
-            </p>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
@@ -250,13 +202,28 @@ export default async function MarketRealityReportPage() {
   // Spec §3), read live rather than frozen into the report row so a
   // resolved reviewer question or a freshly-recomputed component score is
   // never stale (see market-reality-sections.ts's own header comment).
-  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, moveTheNeedle] = await Promise.all([
+  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness] = await Promise.all([
     getWhereYouStand(profile.id),
     getResumeFixes(profile.id, report?.resumeRewrites ?? null),
     getRecruiterReadItems(profile.id),
     getAtsMatrix(profile.id),
-    getMoveTheNeedle(profile.id),
+    computeDossierCompleteness(profile.id),
   ])
+
+  // Personalization checklist — the same profile-confirmation fields
+  // already gathered into the report's own prompt (market-reality-report.ts)
+  // and used to gate report regeneration (completed-tasks.ts), rendered
+  // directly here since they're already on `profile`. This is the report's
+  // "next steps": unlike the pre-dashboard onboarding wizard (which is
+  // already 100% done by the time this page is reachable at all), these
+  // stay genuinely incomplete for a while after registration.
+  const personalizationSteps = [
+    { key: 'profile', label: 'Confirm your profile details', done: profile.profileConfirmedAt !== null, href: '/dashboard/profile' },
+    { key: 'industry', label: 'Confirm your industry', done: profile.industryConfirmedAt !== null, href: '/dashboard/profile' },
+    { key: 'function', label: 'Confirm your function, title, and years', done: profile.functionConfirmedAt !== null, href: '/dashboard/profile' },
+    { key: 'salary', label: 'Confirm salary and work authorization', done: profile.salaryConfirmedAt !== null && profile.workAuthConfirmedAt !== null, href: '/dashboard/profile' },
+    { key: 'linkedin', label: 'Confirm your LinkedIn status', done: profile.linkedInConfirmedAt !== null, href: '/dashboard/profile' },
+  ]
 
   // Derived from the same canonical Weekly Search Score points ramp everything
   // else reads from (1 point = 1 minute) — this used to be a separately
@@ -630,29 +597,46 @@ export default async function MarketRealityReportPage() {
             </div>
           )}
 
-          {/* SECTION 6 — "What else moves the needle" (spec §3.6). Ordering
-              is computed per candidate (getMoveTheNeedle), not fixed. */}
+          {/* Next steps — personalization checklist (day-one setup, in
+              scope) plus a single lightweight Dossier-progress teaser.
+              Evidence/Effort content itself (the six "what else moves the
+              needle" levers, weekly Effort strategy) has moved to the
+              Portfolio page — this report stays scoped to job goals, red
+              flags, personalization, and resume. */}
           <div className="mt-10 border-t border-border pt-8">
-            <SectionHeading>What else moves the needle</SectionHeading>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Each category below is a real, live part of NextChapter — completing it adds
-              confirmed signal to your <strong className="font-semibold text-foreground">Executive Dossier</strong> and
-              raises your Market Reality Grade. Nothing here is scored against you until you do it.
+            <SectionHeading>Next steps</SectionHeading>
+            <ul className="mt-4 space-y-2 text-sm">
+              {personalizationSteps.map((step) =>
+                step.done ? (
+                  <li key={step.key} className="flex items-center gap-2 text-muted-foreground">
+                    <span className="text-success" aria-hidden>✓</span>
+                    <span className="line-through">{step.label}</span>
+                  </li>
+                ) : (
+                  <li key={step.key}>
+                    <Link
+                      href={step.href}
+                      className="flex items-center gap-2 text-foreground underline-offset-4 hover:underline"
+                    >
+                      <span className="text-muted-foreground" aria-hidden>○</span>
+                      {step.label}
+                    </Link>
+                  </li>
+                )
+              )}
+            </ul>
+            <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
+              Beyond this, your{' '}
+              <strong className="font-semibold text-foreground">Executive Dossier</strong> is{' '}
+              <span className="font-semibold text-foreground tabular-nums">
+                {dossierCompleteness.metCount} of {dossierCompleteness.totalCount}
+              </span>{' '}
+              steps complete — built from real work over time (references, networking, and more),
+              separate from this grade.{' '}
+              <Link href="/dashboard/portfolio" className="text-primary underline underline-offset-4">
+                See what moves it →
+              </Link>
             </p>
-            <div className="mt-4 divide-y divide-border">
-              {moveTheNeedle.map((lever, i) => (
-                <Link
-                  key={lever.key}
-                  href={lever.href}
-                  className="block py-3 first:pt-0 hover:bg-muted/30"
-                >
-                  <p className="font-semibold text-foreground">
-                    {i + 1}. {lever.label}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">{lever.copy}</p>
-                </Link>
-              ))}
-            </div>
           </div>
 
           {/* SECTION 7 — "Your next week" (spec §3.7). Reuses the existing
@@ -805,9 +789,6 @@ export default async function MarketRealityReportPage() {
             </div>
           )}
 
-          <Suspense fallback={null}>
-            <WeeklyFocusSection candidateId={profile.id} />
-          </Suspense>
         </div>
       )}
     </div>

@@ -4,11 +4,6 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketRealityReportEmail from '@/emails/market-reality-report'
 
-interface Strength {
-  title: string
-  detail: string
-}
-
 export async function sendMarketRealityReportEmail(candidateId: string) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping market reality report email.')
@@ -41,9 +36,6 @@ export async function sendMarketRealityReportEmail(candidateId: string) {
     const email = userData.user?.email
     if (!email) return { sent: false as const }
 
-    const strengths = report.strengths as unknown as Strength[]
-    const weaknesses = report.weaknesses as unknown as Strength[]
-
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     const firstName = candidate.firstName || candidate.displayName || 'there'
@@ -53,11 +45,9 @@ export async function sendMarketRealityReportEmail(candidateId: string) {
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',
       to: email,
-      subject: `Your NextChapter Report, ${firstName}`,
+      subject: `Your Market Reality Grade is ready, ${firstName}`,
       react: MarketRealityReportEmail({
         candidateName: firstName,
-        topStrengths: strengths.slice(0, 3),
-        topWeakness: weaknesses[0] ?? null,
         reportUrl: `${appUrl}/dashboard/market-reality`,
       }),
     })

@@ -1,21 +1,25 @@
-// Composite grade — Master Build Script §3.6/§3.5/§3.7, superseding the
-// Phase 4 four-component version. Key differences from that version:
-//   - Five components, not four: Experience/Resume (the old "Record" split
-//     in two) plus Evidence and Effort — weighted per §3.4's band-dependent
-//     config (composite-weights.config.ts).
+// Composite grade — the Market Reality Grade is a day-one artifact: what's
+// true about your resume and experience right now, not a measure of
+// platform activity.
+//   - Two weighted components: Experience and Resume — weighted per §3.4's
+//     band-dependent config (composite-weights.config.ts).
 //   - Market is never weighted — it applies as a one-band cap (§3.5): the
 //     composite grade may never exceed Market's own band by more than one.
-//   - Measured-only, proportionally reweighted (§3.6): the composite
-//     computes over whichever weighted components have real data, scaling
-//     their weights up to fill the gap, rather than requiring all four
-//     non-null or returning null entirely. A day-one candidate with zero
-//     Evidence and zero Effort is graded on Experience + Resume alone —
-//     the grade gets more complete over time, it doesn't climb out of a
-//     hole. Returns null only when NOTHING is measured yet.
+//   - Measured-only, proportionally reweighted (§3.6): a candidate with a
+//     resume but no completed ResumeAnalysis experience score yet (or vice
+//     versa) is graded on whichever IS measured, weight scaled up to fill
+//     the gap, rather than requiring both non-null. Returns null only when
+//     NOTHING is measured yet.
+//   - Evidence and Effort (references, networking, platform activity) are
+//     deliberately excluded from this grade — they're day-two-onward signal
+//     that belongs to the Dossier (dossier-unlock.ts), not to this report.
+//     They're still computed and stored on MarketRealityComponentScore for
+//     population analytics and the Dossier's own "what moves the needle"
+//     levers; this file just doesn't read them into the weighted sum.
 // There is exactly one headline grade — per the user's original
-// correction, preserved from the Phase 4 version: "There is no second
-// headline number. Difficulty is not separate from it. Difficulty is the
-// Market Reality Grade."
+// correction, preserved from earlier versions: "There is no second headline
+// number. Difficulty is not separate from it. Difficulty is the Market
+// Reality Grade."
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
@@ -66,8 +70,6 @@ export async function computeMarketRealityCompositeGrade(candidateId: string): P
   const allScores: Record<WeightedComponent, number | null> = {
     EXPERIENCE: row.experienceScore,
     RESUME: row.resumeScore,
-    EVIDENCE: row.evidenceScore,
-    EFFORT: row.effortScore,
   }
 
   const measured = (Object.keys(allScores) as WeightedComponent[]).filter((key) => allScores[key] !== null)

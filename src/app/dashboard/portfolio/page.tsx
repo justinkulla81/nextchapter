@@ -13,6 +13,8 @@ import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
+import { getMoveTheNeedle } from '@/lib/reports/market-reality-sections'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
 
@@ -22,7 +24,7 @@ const RESUME_UPDATE_POINTS = estimateActionEffort({ actionType: 'RESUME_UPDATE' 
 export default async function PortfolioPage() {
   const profile = await getDashboardData()
 
-  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade, learningBadgeCount] =
+  const [narrativeRows, reportHistory, marketRealitySnapshots, coach, grade, learningBadgeCount, moveTheNeedle, dossierCompleteness] =
     await Promise.all([
       prisma.candidateNarrative.findMany({
         where: { candidateId: profile.id },
@@ -43,6 +45,13 @@ export default async function PortfolioPage() {
         : null,
       computeDossierCompetencies(profile as unknown as CandidateWithGradeRelations),
       prisma.learningBadge.count({ where: { candidateId: profile.id } }),
+      // What builds the Dossier over time (references, network, skills,
+      // interim work, recruiter network, coaching) — relocated here from
+      // the Market Reality Report, which is now scoped to day-one signal
+      // only (job goals, red flags, personalization, resume). Reused as-is,
+      // not reimplemented.
+      getMoveTheNeedle(profile.id),
+      computeDossierCompleteness(profile.id),
     ])
 
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
@@ -176,6 +185,48 @@ export default async function PortfolioPage() {
             </p>
           </div>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Build Your Dossier</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground tabular-nums">
+                {dossierCompleteness.metCount} of {dossierCompleteness.totalCount}
+              </span>{' '}
+              steps complete. This is real work done over time — separate from your Market Reality
+              Grade, and what unlocks recruiter visibility and the Executive Dossier above.
+            </p>
+            <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+              {dossierCompleteness.requirements.map((r) => (
+                <li key={r.key} className="flex items-center gap-2">
+                  <span className={r.met ? 'text-success' : 'text-muted-foreground'} aria-hidden>
+                    {r.met ? '✓' : '○'}
+                  </span>
+                  <span className={r.met ? 'text-foreground' : 'text-muted-foreground'}>{r.label}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="space-y-2 border-t border-border pt-3">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                What moves the needle most
+              </p>
+              {moveTheNeedle.map((lever, i) => (
+                <Link
+                  key={lever.key}
+                  href={lever.href}
+                  className="block rounded-lg border border-border p-3 text-sm hover:bg-muted/30"
+                >
+                  <p className="font-medium text-foreground">
+                    {i + 1}. {lever.label}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{lever.copy}</p>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {profile.coachId &&
           (hasCoachDossierAccess ? (

@@ -18,7 +18,7 @@ import { translateDimensionVectors, type DimensionVectors } from '@/lib/scoring/
 import { translateWorkStyleVectors } from '@/lib/scoring/work-style-vectors'
 import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
-import { computeDossierCompetencies, GRADE_LABEL } from '@/lib/scoring/dossier-competencies'
+import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { computeApplicationTrends } from '@/lib/network/application-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
@@ -28,8 +28,7 @@ import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
-import { hasStartedSprint, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
-import { TIER_UNLOCKS } from '@/lib/community/unlock-tier'
+import { getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { computeWhatMovedThisWeek, computeWeeksOfImprovement } from '@/lib/scoring/market-reality-history'
 import {
   CURRENT_JOB_STATUS_LABELS,
@@ -133,35 +132,28 @@ function joinResumeFeedback(feedback: Prisma.JsonValue[]): string {
 
 const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
-You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, Current Market Reality (A-F), made up of six categories — Target Fit plus five hiring-manager competency categories (Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, Ownership & Reliability) — with weekly effort (Networking/Learning/Working) folded in as an input, not a second grade. Reference the grade and its individual categories by name where relevant instead of a single generic "score."
+You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, the Market Reality Grade (A-F) — a day-one read on their resume and real work experience, capped by how many similar roles actually exist in the market. It does NOT reflect references, networking, or other ongoing platform activity — that builds a separate thing, their Dossier, over time, and is out of scope for this report. Reference the grade by name where relevant instead of a single generic "score."
 
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
 
-HARD REQUIREMENT — if "Started Search Sprint" below is "no", this week's effort has no real history yet. Do not invent a narrative about their execution so far — instead, in the hill-to-climb narrative, explain that weekly effort starts as a blank page and becomes real once they commit to their first Search Sprint.
-
-HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," or any equivalent framing as one of the 7 action-plan day items. That's not a discrete task with a real link or a way to verify it — it's the platform's own weekly goal-setting mechanic, which already runs separately and already rewards itself. Mentioning it belongs only in the hill-to-climb narrative or the action-plan intro (see above), never as a checklist item a candidate would "mark done."
-
-HARD REQUIREMENT — Strengths (part 1) and the Action Plan (part 4) are ALSO rendered, unchanged, on a newer version of this report that leads with a different, newer grade (the Market Reality Grade — see "New Market Reality Grade" data below). Never state or imply the six-category Current Market Reality letter grade, or name any of its six categories (Target Fit, Leadership & Management, Skills & Execution, Communication & Collaboration, Adaptability & Change Readiness, Ownership & Reliability), inside Strengths or the Action Plan — ground those two sections only in the specific facts below (resume findings, references, network activity, market data), never in a letter grade that won't appear next to them. Weaknesses, Hill to Climb, and Gap Analysis are unaffected by this rule — the six-category grade and its categories remain fully in scope there.
+HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," build your network, or any other ongoing-effort/Dossier-building framing as one of the 7 action-plan day items — this report's action plan is scoped to job goals, resume, and personalization only. Those other actions live in the Dossier instead (see the Portfolio page), not here.
 
 HARD REQUIREMENT — never say anything that ranks employers or schools against each other, never state or imply a probability of being hired, never imply that a gap, a short tenure, or a career break is a character issue, and never use consolation framing ("unfortunately," "sadly," or similar) — state the situation and the path forward instead.
 
-Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in the hill-to-climb narrative or the action plan intro): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work meaningfully improves their odds, and weekly effort is the lever entirely in their hands. When you introduce the action plan, briefly explain that following through on it is how they raise their Current Market Reality toward an A, and name what an A unlocks: we're ready to unabashedly support and market them as an excellent candidate, plus real perks as they build it up over time: ${TIER_UNLOCKS[5]} at Tier 5.
+Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in the hill-to-climb narrative or the action plan intro): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work on their resume, positioning, and search fundamentals meaningfully improves their odds. This grade reflects what's true today, not effort — never imply the 7-day action plan itself raises this specific grade; it becomes a fuller picture of the candidate once they build out their Dossier (references, network, verified work) elsewhere on the platform.
 
 Write:
 1. Strengths (3-5): specific, evidenced by their actual data below, not generic praise. For a low-band candidate this section must still be short but never empty — find the real floor and name it (a real team size actually managed, a real process improvement, a real completed reference) rather than manufacturing praise or skipping the section.
-2. Weaknesses (2-5): an "accountability mirror," not a resume nitpick list — candidly name the ways this candidate could realistically fail or stall in a real search (self-report/reference contradictions, low job-search intensity, thin network activity, unrealistic target vs. actual experience, weak follow-through signals), evidenced by their actual data below. Be direct, not harsh. If "Target role" is flagged as vague/no clear direction below, combine that with their other motivation signals (job search intensity, tradeoff rankings, flexibility preferences) to name whether they seem to genuinely lack direction or just haven't written it down yet — don't treat vagueness alone as damning.
+2. Weaknesses (2-5): an "accountability mirror," not a resume nitpick list — candidly name the ways this candidate could realistically fail or stall in a real search (self-report contradictions, low job-search intensity, unrealistic target vs. actual experience, real resume presentation gaps), evidenced by their actual data below. Be direct, not harsh. If "Target role" is flagged as vague/no clear direction below, combine that with their other motivation signals (job search intensity, tradeoff rankings, flexibility preferences) to name whether they seem to genuinely lack direction or just haven't written it down yet — don't treat vagueness alone as damning.
    - HARD REQUIREMENT: if "Management/IC preference vs. goals conflict" below is YES, name this tension as one of the weaknesses (or fold it into the gap analysis). Trust that they genuinely want to be an individual contributor — never suggest they secretly want to manage — but be direct that their team-management history and/or their stated target role point toward a more senior/managerial track, and they'll need to either retarget their search toward true IC-track roles (which may mean a different title or level than they wrote down) or consciously plan for the trade-off a more senior title actually requires (less hands-on work, more people management, even if that's not their preference).
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, straight talk is non-negotiable — do not soften or omit this: pivoting is genuinely harder than a lateral search. Name at least one concrete reason why in the weaknesses or hill-to-climb narrative — a longer realistic timeline, the extra work of translating past achievements into the target function/industry's language (on the resume, in interviews, in networking conversations), and a heavier dependence on warm introductions and networking since keyword-matched job boards won't surface an unconventional background. Never frame the pivot itself as a mistake or discourage it — only be honest about the work it requires.
-3. Hill to climb: one honest, holistic evaluation of how hard finding a job will realistically be for this candidate, given everything below (their Current Market Reality and its categories, experience, market conditions, job search intensity, consistency/self-awareness signals, resume/network completeness). Choose a "tone" — "very_positive" for strong candidates who are doing the right things, "positive_with_work" for solid candidates with real gaps, "significant_climb" for candidates facing a genuinely hard market position — and write 2-5 narrative sentences that are honest about the difficulty but never discouraging: always end on what consistent weekly effort (via the actions below) does to improve their odds, even where Target Fit is structurally harder to move. Never imply the grade guarantees an outcome.
+3. Hill to climb: one honest, holistic evaluation of how hard finding a job will realistically be for this candidate, given everything below (their Market Reality Grade, experience, market conditions, job search intensity, self-awareness signals, resume completeness). Choose a "tone" — "very_positive" for strong candidates who are doing the right things, "positive_with_work" for solid candidates with real gaps, "significant_climb" for candidates facing a genuinely hard market position — and write 2-5 narrative sentences that are honest about the difficulty but never discouraging: always end on what real work on their resume, positioning, and target does to improve their odds. Never imply the grade guarantees an outcome.
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, the tone and narrative must reflect that pivoting is a harder path than a lateral move (see the weaknesses instruction above) — never pick "very_positive" on the strength of a lateral candidate's profile alone if they're pivoting. Still end on what's in their control: the transferable-skills story they build, the networking they do, and the specificity of the target they pick all move the needle even on a pivot.
 4. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
    - HARD REQUIREMENT: write every item's "text" in this exact shape: a short action name (3-6 words, no reasoning in it) + " — " + one short clause on why it matters, in plain language a candidate would find compelling. Example: "Confirm your industry — recruiters match you on this first." The UI hyperlinks only the part before the dash, so the action name must stand alone as something clickable; never put the reason before the dash or omit the dash.
    - After satisfying every HARD REQUIREMENT item below, fill any remaining day slots with items that make progress on "Currently open gaps" (see candidate data below) rather than generic advice — when a gap lists an existing platform resource, point the candidate at it by name instead of re-deriving generic advice unrelated to any open gap.
    - HARD REQUIREMENT: if "Resume on file" below says "no", one of the 7 days MUST include uploading a resume, and must explain that it meaningfully improves their score and lets this report generate specific, evidence-based resume suggestions. If "Resume on file" says "yes", one of the 7 days MUST instead include applying this report's/the resume analysis's suggestions to improve it. Never do both, never do neither.
-   - HARD REQUIREMENT: if "LinkedIn status confirmed" below says "no", one of the 7 days MUST include confirming whether they have a LinkedIn URL or don't have one yet, tagged actionType "LINKEDIN_SETUP". If "LinkedIn status confirmed" says "yes" but "LinkedIn URL on file" says "no", one of the 7 days MUST include actually creating a LinkedIn profile, tagged actionType "LINKEDIN_SETUP", explaining briefly why having one is critical to a modern job search (visibility to recruiters, network effects). If both say "yes", one of the 7 days MUST instead include concrete active-use steps — completing the profile fully, posting, being active daily — also tagged "LINKEDIN_SETUP".
-   - HARD REQUIREMENT: one of the 7 days MUST include 3-7 separate items, each a distinct LinkedIn post-topic idea genuinely grounded in the candidate's real work history/achievements/function below (not generic "share an article" filler) — each such idea as its own item tagged actionType "LINKEDIN_POST_IDEA".
-   - HARD REQUIREMENT: if "Networking list (25 people) submitted" below says "no", one of the 7 days MUST reference building and submitting that list of 25 people they know who could help their search, tagged actionType "NETWORKING_LIST". If it says "yes", do NOT include this item at all — it's already done.
-   - HARD REQUIREMENT: if "Asked someone for help" below says "no", one of the 7 days MUST include reaching out to ask someone for help, tagged actionType "OUTREACH_MESSAGE" — do NOT write the actual outreach message yourself, the platform already supplies a ready-to-use script; just reference that they should use it. If it says "yes", do NOT include this item at all — it's already done.
+   - HARD REQUIREMENT: if "LinkedIn status confirmed" below says "no", one of the 7 days MUST include confirming whether they have a LinkedIn URL or don't have one yet, tagged actionType "LINKEDIN_SETUP". If "LinkedIn status confirmed" says "yes" but "LinkedIn URL on file" says "no", one of the 7 days MUST include actually creating a LinkedIn profile, tagged actionType "LINKEDIN_SETUP", explaining briefly why having one is critical to a modern job search (visibility to recruiters, network effects). If both say "yes", do NOT include this item — active LinkedIn use (posting, being active) lives in the Dossier's action list, not here.
    - If any job posting has landed an interview (see "Interview landed" below), mention it and point them to this platform's own generated interview prep for that job, tagged actionType "INTERVIEW_PREP", rather than re-deriving interview advice yourself.
    - If any job posting has an offer (see "Offer received" below), mention it and point them to this platform's own generated negotiation advice for that job, tagged actionType "NEGOTIATION_ADVICE", rather than re-deriving negotiation advice yourself.
    - HARD REQUIREMENT: if "Profile confirmed" below says "no", one of the 7 days MUST include confirming their name/contact/address details (auto-filled from their resume, may need correction), tagged actionType "PROFILE_CONFIRM". If "yes", do NOT include this item.
@@ -175,8 +167,8 @@ Write:
 7. Executive Summary (this appears at the very top of the report, before the grades — write it so it stands alone): two parts, each 1-4 sentences.
    - improvementNarrative: see "Report-over-report change" below.
      - HARD REQUIREMENT: if "Is this the candidate's first-ever report" is "yes", there is nothing to compare against — say so plainly and frame this as their baseline ("this is where you stand today"), never claim improvement or decline.
-     - Otherwise, credit them SPECIFICALLY by name for any real new data they added since their last report (e.g. "two new completed references," "an updated resume," "your work-style assessment") — never a vague "you've been active." Connect it to what it actually did ONLY if the grade movement data below supports that connection (e.g. a category moving up, a category's confidence improving) — never invent a causal link the data doesn't support. If nothing new was added and nothing moved, say so plainly and honestly rather than manufacturing false credit — that's a real, useful signal too (nudge toward action, don't scold).
-   - whatToDoMore: the single highest-leverage thing(s) they should do more of right now, grounded in "Currently open gaps" above and any category still graded low — concrete and specific, not generic advice.
+     - Otherwise, credit them SPECIFICALLY by name for any real new data they added since their last report (e.g. "an updated resume," "your work-style assessment") — never a vague "you've been active." Connect it to what it actually did ONLY if the grade movement data below supports that connection — never invent a causal link the data doesn't support. If nothing new was added and nothing moved, say so plainly and honestly rather than manufacturing false credit — that's a real, useful signal too (nudge toward action, don't scold).
+   - whatToDoMore: the single highest-leverage thing(s) they should do more of right now on their resume, positioning, or target — grounded in "Currently open gaps" above, concrete and specific, not generic advice.
 8. Resume rewrites (0-3): "Weak bullets to rewrite" below lists up to 3 real, verbatim-quoted bullets already flagged by the resume scoring engine as weak. For EACH one supplied, write a rewritten version that keeps every real fact (no invented numbers, no invented outcomes) but leads with the result and states it as a from/to change wherever the original implies one. Copy the "before" field VERBATIM, character-for-character, from the supplied quote — it's matched back to the original finding by exact text, so a paraphrased "before" will silently discard the rewrite. If no weak bullets are supplied below, return an empty array — never invent a bullet to rewrite.
 
 Candidate data:
@@ -266,10 +258,9 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     candidate.targetRoleType
   )
 
-  const [grade, startedSprint, latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
+  const [grade, latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
     await Promise.all([
       computeDossierCompetencies(candidate),
-      hasStartedSprint(candidateId),
       prisma.learningBadge.findFirst({
         where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
         orderBy: { completedAt: 'desc' },
@@ -361,11 +352,11 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
   const summary = `
 ${DIRECTNESS_INSTRUCTION[directnessLevel]}
 
-Started Search Sprint: ${startedSprint ? 'yes' : 'no'}
-Current Market Reality: ${grade.grade} (${GRADE_LABEL[grade.grade]}, ${grade.score}/100)
-  ${grade.categories.map((c) => `${c.label}: ${c.grade} (${c.score}/100)`).join('\n  ')}
-Weekly effort: ${grade.weeklyPoints}/${grade.weeklyPointsTarget} points
-  ${grade.weeklyEngines.map((e) => `${e.label}: ${e.grade} (${e.score}/100)`).join('\n  ')}
+Market Reality Grade: ${
+    newGradeHeadline
+      ? `${newGradeHeadline.headline} ${newGradeHeadline.strongestLine} ${newGradeHeadline.constraintLine}`
+      : 'not enough data yet to compute'
+  }
 Currently open gaps (named reasons a hiring manager would notice about this candidate right now — when choosing action-plan items in part 4 below, beyond what's already required, prioritize items that make progress on these, especially ones with an existing platform resource named):
   ${
     namedReasons
@@ -445,12 +436,6 @@ Resume analysis: ${
     latestResume
       ? `ATS readability ${latestResume.atsScore ?? 'n/a'}/100 (${joinResumeFeedback(latestResume.atsFeedback) || 'n/a'}); Results-orientation ${latestResume.resultsScore ?? 'n/a'}/100 (${joinResumeFeedback(latestResume.resultsFeedback) || 'n/a'}); Experience evaluation ${latestResume.experienceScore ?? 'n/a'}/100 (${joinResumeFeedback(latestResume.experienceFeedback) || 'n/a'})`
       : 'no resume uploaded yet'
-  }
-
-New Market Reality Grade (for grounding Strengths/Action Plan only — see the HARD REQUIREMENT above about never naming the six-category grade in those two sections instead): ${
-    newGradeHeadline
-      ? `${newGradeHeadline.headline} ${newGradeHeadline.strongestLine} ${newGradeHeadline.constraintLine}`
-      : 'not enough data yet to compute'
   }
 
 Weak bullets to rewrite (for part 8 only — copy "before" verbatim from these): ${

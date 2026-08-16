@@ -80,14 +80,10 @@ export async function getWhereYouStand(candidateId: string): Promise<WhereYouSta
       note: 'Level, function, and geography — scarcity rises with seniority.',
     })
   }
-  if (row.effortScore !== null) {
-    decomposition.push({
-      label: 'How strong your warm network is',
-      grade: scoreToGrade(row.effortScore),
-      control: 'High',
-      note: 'The dominant channel above director level — weeks to months to build.',
-    })
-  }
+  // No network/effort tile here by design — this grade is a day-one
+  // artifact (record + market), not a measure of platform activity. Network
+  // strength lives in the Dossier instead (see getMoveTheNeedle below,
+  // rendered on the Portfolio page).
 
   return {
     grade,
