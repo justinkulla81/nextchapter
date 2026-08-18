@@ -63,6 +63,20 @@ async function sortCuratedVideosByPopularity(videos: CuratedVideo[]): Promise<Cu
   return sortCuratedVideos(videos).sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0))
 }
 
+// Popularity-sorts first, then stable-partitions matched-tagged videos to
+// the front — same "surface the matched ones" intent as toolsForYou below,
+// but applied as a boost within the existing longForm/shorts carousels
+// rather than a separate section. A dedicated "For You" carousel would
+// render empty for every candidate until an admin tags videos (the catalog
+// starts fully untagged); boosting within the existing carousel degrades
+// gracefully to today's plain popularity order instead.
+async function sortGeneralByMatchThenPopularity(videos: CuratedVideo[], matchedIds: Set<string>): Promise<CuratedVideo[]> {
+  const sorted = await sortCuratedVideosByPopularity(videos)
+  const matched = sorted.filter((v) => matchedIds.has(v.id))
+  const rest = sorted.filter((v) => !matchedIds.has(v.id))
+  return [...matched, ...rest]
+}
+
 // candidateId is optional and personalizes the result two ways when given:
 //   1. individual dislikes — any CuratedVideo the candidate has thumbs-down'd
 //      is excluded outright.
@@ -127,6 +141,47 @@ export async function getCarouselVideos(candidateId?: string): Promise<{
   }
 
   const general = filtered.filter((v) => v.category === 'GENERAL')
+  const generalMatchedIds = new Set<string>()
+  if (candidateId) {
+    const generalProfile = await prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: {
+        industryBucket: true,
+        secondaryIndustryContext: true,
+        targetFunction: true,
+        secondaryFunction: true,
+        skillsToBuild: true,
+        negotiationComfort: true,
+        interviewComfort: true,
+      },
+    })
+    const industryMatches = new Set(
+      [generalProfile?.industryBucket, normalizeIndustryBucket(generalProfile?.secondaryIndustryContext ?? null)].filter(
+        (v): v is string => !!v
+      )
+    )
+    const functionMatches = new Set(
+      [generalProfile?.targetFunction, generalProfile?.secondaryFunction].filter((v): v is string => !!v)
+    )
+    // videoSkill matched case-insensitively against skillsToBuild — plus a
+    // low negotiationComfort/interviewComfort acting as an implicit
+    // "salary negotiation"/"interview skills" skill signal, same low-comfort
+    // threshold (<50) used elsewhere in this codebase (e.g. storyComfort in
+    // build-learning-plan.ts).
+    const skillTags = (generalProfile?.skillsToBuild ?? []).map((s) => s.toLowerCase())
+    if ((generalProfile?.negotiationComfort ?? 100) < 50) skillTags.push('salary negotiation')
+    if ((generalProfile?.interviewComfort ?? 100) < 50) skillTags.push('interview')
+
+    for (const v of general) {
+      const industryHit = v.videoIndustry !== null && industryMatches.has(v.videoIndustry)
+      const functionHit = v.videoFunction !== null && functionMatches.has(v.videoFunction)
+      const skillHit =
+        v.videoSkill !== null &&
+        skillTags.some((s) => s.includes(v.videoSkill!.toLowerCase()) || v.videoSkill!.toLowerCase().includes(s))
+      if (industryHit || functionHit || skillHit) generalMatchedIds.add(v.id)
+    }
+  }
+
   const aiToolVideos = filtered.filter((v) => v.category === 'AI_TOOLS')
   const aiTips = aiToolVideos.filter((v) => v.aiToolIndustry === null && v.aiToolFunction === null)
   const taggedAiTools = aiToolVideos.filter((v) => v.aiToolIndustry !== null || v.aiToolFunction !== null)
@@ -153,8 +208,8 @@ export async function getCarouselVideos(candidateId?: string): Promise<{
   }
 
   return {
-    longForm: await sortCuratedVideosByPopularity(general.filter((v) => v.format === 'LONG_FORM')),
-    shorts: await sortCuratedVideosByPopularity(general.filter((v) => v.format === 'SHORT')),
+    longForm: await sortGeneralByMatchThenPopularity(general.filter((v) => v.format === 'LONG_FORM'), generalMatchedIds),
+    shorts: await sortGeneralByMatchThenPopularity(general.filter((v) => v.format === 'SHORT'), generalMatchedIds),
     toolsForYou: await sortCuratedVideosByPopularity(toolsForYou),
     aiTips: await sortCuratedVideosByPopularity(aiTips),
   }

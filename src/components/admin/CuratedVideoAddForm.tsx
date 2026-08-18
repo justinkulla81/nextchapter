@@ -50,6 +50,32 @@ export function CuratedVideoAddForm({ youtubeConfigured }: { youtubeConfigured: 
           </div>
         </>
       )}
+      <div className="space-y-1">
+        <p className="text-xs font-medium text-muted-foreground">
+          Personalization tags (optional) — matching either dimension boosts this video to the top
+          of a candidate&apos;s Career and Interview Advice carousel.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1">
+            <label htmlFor="videoIndustry" className="text-xs font-medium text-muted-foreground">
+              Industry
+            </label>
+            <Input id="videoIndustry" name="videoIndustry" placeholder="e.g. Healthcare" />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="videoFunction" className="text-xs font-medium text-muted-foreground">
+              Function
+            </label>
+            <Input id="videoFunction" name="videoFunction" placeholder="e.g. Finance" />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="videoSkill" className="text-xs font-medium text-muted-foreground">
+              Skill
+            </label>
+            <Input id="videoSkill" name="videoSkill" placeholder="e.g. Salary Negotiation" />
+          </div>
+        </div>
+      </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <SubmitButton pendingLabel="Adding…">Add video</SubmitButton>
     </form>

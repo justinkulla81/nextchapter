@@ -53,6 +53,9 @@ export async function addCuratedVideoAction(_prevState: FormState, formData: For
   const videoIdOrUrl = (formData.get('videoIdOrUrl') as string | null)?.trim()
   const manualTitle = (formData.get('title') as string | null)?.trim()
   const manualThumbnailUrl = (formData.get('thumbnailUrl') as string | null)?.trim()
+  const videoIndustry = (formData.get('videoIndustry') as string | null)?.trim() || null
+  const videoFunction = (formData.get('videoFunction') as string | null)?.trim() || null
+  const videoSkill = (formData.get('videoSkill') as string | null)?.trim() || null
 
   if (!videoIdOrUrl) {
     return { error: 'Paste a YouTube URL or video ID.' }
@@ -102,11 +105,11 @@ export async function addCuratedVideoAction(_prevState: FormState, formData: For
   if (existing) {
     await prisma.curatedVideo.update({
       where: { id: existing.id },
-      data: { ...data, source: 'ADMIN_ADDED', addedByAdminId: admin.id, removedAt: null },
+      data: { ...data, videoIndustry, videoFunction, videoSkill, source: 'ADMIN_ADDED', addedByAdminId: admin.id, removedAt: null },
     })
   } else {
     await prisma.curatedVideo.create({
-      data: { ...data, youtubeVideoId, source: 'ADMIN_ADDED', addedByAdminId: admin.id },
+      data: { ...data, videoIndustry, videoFunction, videoSkill, youtubeVideoId, source: 'ADMIN_ADDED', addedByAdminId: admin.id },
     })
   }
 
