@@ -41,7 +41,7 @@ export function DailyMessageBox({ pageKey, content }: { pageKey: PageKey; conten
         <p className="pr-6 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
           Daily Message
         </p>
-        <h2 className="text-sm font-semibold text-navy">{content.title}</h2>
+        <p className="text-sm font-semibold text-navy">{content.title}</p>
         {content.bullets.length > 0 && (
           <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
             {content.bullets.map((bullet, i) => (

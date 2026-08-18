@@ -159,14 +159,6 @@ function buildSections(
       title: 'Working and Learning',
       links: [
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
-        {
-          href: '/dashboard/market-intelligence',
-          label: 'Market Intelligence',
-          icon: LineChart,
-          badge: 'Premium',
-          muted: true,
-          disabled: true,
-        },
         { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
@@ -176,6 +168,14 @@ function buildSections(
     {
       title: 'Data',
       links: [
+        {
+          href: '/dashboard/market-intelligence',
+          label: 'Market Intelligence',
+          icon: LineChart,
+          badge: 'Premium',
+          muted: true,
+          disabled: true,
+        },
         { href: '/dashboard/network/contacts', label: 'My Contacts', icon: Contact, ...gmailLock },
         {
           href: '/dashboard/portfolio',

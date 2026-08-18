@@ -26,7 +26,7 @@ export function PreConnectDailyMessage({
     <Card className="border-brand/30 bg-brand/5">
       <CardContent className="space-y-2">
         <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Daily Message</p>
-        <h2 className="text-sm font-semibold text-navy">Welcome, {firstName}!</h2>
+        <p className="text-sm font-semibold text-navy">Welcome, {firstName}!</p>
         <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
           <li>
             <Link
