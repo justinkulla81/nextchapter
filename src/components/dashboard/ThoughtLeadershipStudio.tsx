@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import type { ContentVenue } from '@prisma/client'
 import {
   generateIdeasAction,
@@ -11,6 +11,7 @@ import { markLinkedInActivity } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { InlineLoadingState } from '@/components/ui/spinner'
+import { PostToLinkedInButton } from '@/components/dashboard/marketing-plan/PostToLinkedInButton'
 import { CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 
 interface PostIdea {
@@ -18,9 +19,31 @@ interface PostIdea {
   angle: string
 }
 
-function IdeaCard({ idea, venues }: { idea: PostIdea; venues: ContentVenue[] }) {
+type LinkedInState = { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
+
+function IdeaCard({
+  idea,
+  venues,
+  linkedin,
+}: {
+  idea: PostIdea
+  venues: ContentVenue[]
+  linkedin?: LinkedInState
+}) {
   const [draftState, draftAction, drafting] = useActionState(draftPostAction, undefined)
   const [venue, setVenue] = useState<ContentVenue>(venues[0])
+  // Drafts start read-only (server-generated text) but need to become
+  // editable once they land — the candidate should be able to tweak the
+  // suggestion before posting it, same as any other draft on this page.
+  // Mirrors the one-time-adoption effect pattern used elsewhere for
+  // useActionState results (e.g. SkillsAssessmentForm).
+  const [draftText, setDraftText] = useState<string | null>(null)
+  useEffect(() => {
+    if (draftState?.draft !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDraftText(draftState.draft)
+    }
+  }, [draftState])
 
   return (
     <div className="rounded-lg border border-border p-4">
@@ -62,14 +85,26 @@ function IdeaCard({ idea, venues }: { idea: PostIdea; venues: ContentVenue[] }) 
         {drafting && <InlineLoadingState label="Drafting your post…" />}
       </form>
       {draftState?.error && <p className="mt-2 text-sm text-destructive">{draftState.error}</p>}
-      {draftState?.draft && (
+      {draftText !== null && (
         <div className="mt-3 space-y-2">
-          <Textarea defaultValue={draftState.draft} rows={8} />
-          <form action={markLinkedInActivity}>
-            <Button type="submit" size="sm">
-              I posted this
-            </Button>
-          </form>
+          <Textarea value={draftText} onChange={(e) => setDraftText(e.target.value)} rows={8} />
+          {venue === 'LINKEDIN' && linkedin?.configured ? (
+            // Real direct-post path for LinkedIn — logs a DIRECT_POST
+            // LinkedInActivityLog row and awards points itself (see
+            // postToLinkedInAction), so the self-report button below would
+            // be redundant here specifically.
+            <PostToLinkedInButton
+              text={draftText}
+              connected={linkedin.connected}
+              blockedByConfidentialMode={linkedin.blockedByConfidentialMode}
+            />
+          ) : (
+            <form action={markLinkedInActivity}>
+              <Button type="submit" size="sm">
+                I posted this
+              </Button>
+            </form>
+          )}
         </div>
       )}
     </div>
@@ -105,8 +140,10 @@ function ArticleGenerator() {
 
 export function ThoughtLeadershipStudio({
   venues,
+  linkedin,
 }: {
   venues: ContentVenue[]
+  linkedin?: LinkedInState
 }) {
   const [ideasState, generateAction, generating] = useActionState(generateIdeasAction, undefined)
 
@@ -123,7 +160,7 @@ export function ThoughtLeadershipStudio({
       {ideasState?.ideas && (
         <div className="space-y-3">
           {ideasState.ideas.map((idea, i) => (
-            <IdeaCard key={i} idea={idea} venues={venues} />
+            <IdeaCard key={i} idea={idea} venues={venues} linkedin={linkedin} />
           ))}
         </div>
       )}

@@ -290,13 +290,13 @@ export default async function MarketingPlanPage({
               <p className="text-sm text-muted-foreground">
                 No pressure — these are here whenever being more public starts to feel okay.
               </p>
-              <ThoughtLeadershipStudio venues={profile.contentVenues} />
+              <ThoughtLeadershipStudio venues={profile.contentVenues} linkedin={linkedin} />
             </div>
           </>
         ) : (
           <div className="space-y-3">
             <SectionHeading>Post your story</SectionHeading>
-            <ThoughtLeadershipStudio venues={profile.contentVenues} />
+            <ThoughtLeadershipStudio venues={profile.contentVenues} linkedin={linkedin} />
           </div>
         )}
       </div>

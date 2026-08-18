@@ -1,101 +1,22 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CopyButton } from '@/components/ui/copy-button'
-import { cn } from '@/lib/utils'
-import { postToLinkedInAction, enableConfidentialLinkedInPosting } from '@/app/dashboard/marketing-plan/actions'
+import { PostToLinkedInButton } from '@/components/dashboard/marketing-plan/PostToLinkedInButton'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-
-// Posts the given text as a real LinkedIn feed update via the UGC Posts API
-// (see src/lib/linkedin/oauth.ts) — the only thing the w_member_social scope
-// actually allows (LinkedIn has no API to directly rewrite a profile's
-// About/Headline fields), so "Post to LinkedIn" here means publishing that
-// text as a status update, not editing the profile field itself.
-function PostToLinkedInButton({
-  text,
-  connected,
-  blockedByConfidentialMode,
-}: {
-  text: string
-  connected: boolean
-  blockedByConfidentialMode: boolean
-}) {
-  const [isPending, startTransition] = useTransition()
-  const [result, setResult] = useState<'idle' | 'posted' | 'error'>('idle')
-  const [enabledJustNow, setEnabledJustNow] = useState(false)
-
-  if (!connected) {
-    return (
-      <a
-        href="/api/auth/linkedin/start"
-        className={cn(
-          'inline-flex h-8 items-center rounded-md border border-input bg-white px-3 text-sm font-medium text-foreground transition-colors hover:border-brand/40'
-        )}
-      >
-        Connect LinkedIn to post
-      </a>
-    )
-  }
-
-  // §4.3: "LinkedIn posting disabled by default, with the reason stated" —
-  // and "if they enable posting deliberately, warn once: your current
-  // employer can see this." Re-checked server-side in postToLinkedInAction
-  // regardless of enabledJustNow.
-  if (blockedByConfidentialMode && !enabledJustNow) {
-    return (
-      <div className={cn('flex flex-col gap-1.5', isPending && 'cursor-progress [&_*]:cursor-progress')}>
-        <p className="text-xs text-muted-foreground">
-          Posting is off while Confidential Search Mode is on.
-        </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={isPending}
-          onClick={() => {
-            startTransition(async () => {
-              await enableConfidentialLinkedInPosting()
-              setEnabledJustNow(true)
-            })
-          }}
-        >
-          {isPending ? 'Enabling…' : 'Enable anyway — your current employer can see this'}
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        disabled={isPending}
-        className={isPending ? 'cursor-wait' : ''}
-        onClick={() => {
-          startTransition(async () => {
-            const ok = await postToLinkedInAction(text)
-            setResult(ok ? 'posted' : 'error')
-            setTimeout(() => setResult('idle'), 3000)
-          })
-        }}
-      >
-        {isPending ? 'Posting…' : 'Post to LinkedIn'}
-      </Button>
-      {result === 'posted' && <span className="text-xs font-medium text-success">Posted!</span>}
-      {result === 'error' && <span className="text-xs font-medium text-destructive">Couldn&apos;t post — try again</span>}
-    </div>
-  )
-}
 
 interface AdaptationItem {
   key: keyof NarrativeAdaptations
   label: string
-  // Only LinkedIn Headline/About are real LinkedIn surfaces — the direct-post
-  // button only makes sense next to those two.
+  // None of these eight items are genuinely post-worthy as-is — they're
+  // phrasing for a resume, cover letter, conversation, or interview answer,
+  // not a public status update (LinkedIn About/Headline included: LinkedIn
+  // has no API to rewrite a profile field, so "posting" that text would
+  // just publish it as an unrelated feed post — see the bug this field
+  // used to cause). Kept as an opt-in flag, not deleted outright, in case a
+  // future item here genuinely is post-worthy. The real "compose a LinkedIn
+  // post" flow lives in ThoughtLeadershipStudio, where drafts are actually
+  // written to be posted.
   showLinkedInPost?: boolean
 }
 
@@ -125,7 +46,7 @@ const GROUPS: AdaptationGroup[] = [
     items: [
       { key: 'resumeSummary', label: 'Resume Summary' },
       { key: 'coverLetterTemplate', label: 'Cover Letter' },
-      { key: 'linkedinAbout', label: 'LinkedIn About', showLinkedInPost: true },
+      { key: 'linkedinAbout', label: 'LinkedIn About' },
     ],
   },
   {
@@ -133,7 +54,7 @@ const GROUPS: AdaptationGroup[] = [
     items: [
       { key: 'tellMeAboutYourself', label: '"Tell Me About Yourself"' },
       { key: 'emailOpening', label: 'Email Opening' },
-      { key: 'linkedinHeadline', label: 'LinkedIn Headline', showLinkedInPost: true },
+      { key: 'linkedinHeadline', label: 'LinkedIn Headline' },
     ],
   },
 ]
