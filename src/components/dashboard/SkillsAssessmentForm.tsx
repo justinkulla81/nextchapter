@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from 'react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
 import { SkillsHaveForm } from '@/components/dashboard/SkillsHaveForm'
 import { SkillsNeedSection } from '@/components/dashboard/SkillsNeedSection'
+import { SkillsUnlockDialog } from '@/components/dashboard/SkillsUnlockDialog'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -90,6 +91,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
   // success effect below can adopt exactly what was submitted, without
   // reading a ref during render.
   const pendingSnapshotRef = useRef<string | null>(null)
+  const [showUnlockDialog, setShowUnlockDialog] = useState(false)
 
   const currentSnapshot = snapshotOf({
     topStrengths,
@@ -108,6 +110,9 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
     if (state?.success && pendingSnapshotRef.current !== null) {
       setHasSavedBefore(true)
       setLastSavedSnapshot(pendingSnapshotRef.current)
+      if (state.firstTimeCompletion) {
+        setShowUnlockDialog(true)
+      }
     }
   }, [state])
 
@@ -208,6 +213,8 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
       <div className="border-t border-border pt-6">
         <SkillsNeedSection initialSkills={profile.skillsToBuild} targetRole={profile.targetRoleType} />
       </div>
+
+      <SkillsUnlockDialog open={showUnlockDialog} onOpenChange={setShowUnlockDialog} />
     </div>
   )
 }
