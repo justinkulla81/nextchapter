@@ -2,11 +2,14 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getEmployerUnreadCount } from '@/lib/messaging/threads'
+import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discovery'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { CandidateCard } from '@/components/talent/CandidateCard'
 
 export default async function TalentHomePage() {
   const employer = await getTalentDashboardData()
 
-  const [activeRoleCount, interactionsByStatus, jobBoardPostings, unreadMessages] = await Promise.all([
+  const [activeRoleCount, interactionsByStatus, jobBoardPostings, unreadMessages, candidatesLookingForRoles] = await Promise.all([
     prisma.roleProfile.count({ where: { employerId: employer.id, isActive: true } }),
     prisma.candidateInteraction.groupBy({ by: ['status'], where: { employerId: employer.id }, _count: true }),
     prisma.exclusiveJobPosting.findMany({
@@ -14,7 +17,15 @@ export default async function TalentHomePage() {
       select: { id: true, title: true, status: true, rejectionReason: true },
     }),
     getEmployerUnreadCount(employer.id),
+    getCandidatesLookingForYourRoles(employer.id),
   ])
+
+  if (candidatesLookingForRoles.length > 0) {
+    captureServerEvent(employer.id, 'candidate_discovery_section_viewed', {
+      employerId: employer.id,
+      matchCount: candidatesLookingForRoles.length,
+    })
+  }
 
   const inConversation = interactionsByStatus.find((s) => s.status === 'IN_CONVERSATION')?._count ?? 0
   const hired = interactionsByStatus.find((s) => s.status === 'HIRED')?._count ?? 0
@@ -50,6 +61,30 @@ export default async function TalentHomePage() {
           </div>
         )}
       </section>
+
+      {candidatesLookingForRoles.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">
+            Candidates looking for roles like yours
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Matched on what they say they&apos;re looking for, across all your active roles — not just a
+            job-title search.
+          </p>
+          <div className="mt-3 space-y-3">
+            {candidatesLookingForRoles.map(({ candidate, match, roleId, roleTitle, effortSummary }) => (
+              <CandidateCard
+                key={candidate.id}
+                candidate={candidate}
+                match={match}
+                roleId={roleId}
+                effortSummary={effortSummary}
+                roleLabel={`Matches: ${roleTitle}`}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">At a glance</h2>

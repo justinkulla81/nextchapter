@@ -21,6 +21,7 @@ export function CandidateCard({
   match,
   roleId,
   effortSummary,
+  roleLabel,
 }: {
   candidate: Pick<
     CandidateProfile,
@@ -32,6 +33,11 @@ export function CandidateCard({
   // Evidence Brief (computeEffortSummaryLines) — narrative/counts only,
   // never the raw grade, same rule as everywhere else external audiences see.
   effortSummary?: string
+  // Which posted role this candidate best matched against — only meaningful
+  // on the cross-role discovery view, where a candidate could match several
+  // of the employer's active roles. Match Inbox (single-role context) omits
+  // this since the role is already the page's subject.
+  roleLabel?: string
 }) {
   const posthog = usePostHog()
 
@@ -46,9 +52,12 @@ export function CandidateCard({
               .join(' · ')}
           </p>
         </div>
-        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-          {match.label}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+            {match.label}
+          </span>
+          {roleLabel && <span className="text-xs text-muted-foreground">{roleLabel}</span>}
+        </div>
       </div>
       {effortSummary && <p className="text-xs text-muted-foreground">{effortSummary}</p>}
       <div className="flex gap-2 pt-1">
