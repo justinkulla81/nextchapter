@@ -250,6 +250,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   LINKEDIN_UNLOCK: { minutes: 3, points: 5 },
   WORK_SAMPLE_TYPE_CONFIRMED: { minutes: 3, points: 5 },
   NETWORK_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
+  NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
   // Drug test / background check / restrictive covenant — same one-time
   // confirm-bonus weight as the other small profile-checklist bundles.
   RED_FLAGS_CONFIRMED: { minutes: 3, points: 5 },
@@ -359,6 +360,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   LINKEDIN_UNLOCK: 'working',
   WORK_SAMPLE_TYPE_CONFIRMED: 'working',
   NETWORK_COMFORT_CONFIRMED: 'connecting',
+  NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED: 'working',
   LINKEDIN_PROFILE_ADDED: 'working',
   RED_FLAGS_CONFIRMED: 'effort',
   BENEFITS_PRIORITIES_CONFIRMED: 'effort',
@@ -402,6 +404,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   COMFORT_CHECK_CONFIRM: 'Personalize',
   PRIVACY_CONFIRMED: 'Personalize',
   NETWORK_COMFORT_CONFIRMED: 'Personalize',
+  NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED: 'Personalize',
   WORK_SAMPLE_TYPE_CONFIRMED: 'Personalize',
   MARKETING_PLAN_UNLOCK: 'Personalize',
   GIG_DIRECTORY_UNLOCK: 'Personalize',
@@ -738,6 +741,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Network with My Contacts' },
+  NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED: { href: '/dashboard/search-strategy', label: 'Search Strategy' },
   WATCHLIST_ADD: { href: '/dashboard/find-my-job#company-tracker', label: 'Find My Job' },
   // No single "all companies" index page exists yet (company pages are
   // reached from a job listing, a matched job, or search, per spec) — links
@@ -937,7 +941,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'TRACK_RECORD_COMPLETED',
     'WHAT_I_NEED_COMPLETED',
   ],
-  'search-strategy': [],
+  'search-strategy': ['NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED'],
   stats: [],
   'got-hired': [],
   benefits: [],

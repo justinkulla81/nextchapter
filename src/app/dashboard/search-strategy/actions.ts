@@ -306,3 +306,60 @@ export async function updateNetworkingWillingness(
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/network')
 }
+
+export async function updateNegotiationInterviewComfort(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'You need to be logged in to do this.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const negotiationComfortRaw = formData.get('negotiationComfort') as string | null
+  const interviewComfortRaw = formData.get('interviewComfort') as string | null
+  const negotiationComfort = negotiationComfortRaw ? Number(negotiationComfortRaw) : null
+  const interviewComfort = interviewComfortRaw ? Number(interviewComfortRaw) : null
+
+  if (negotiationComfort === null || interviewComfort === null) {
+    return { error: 'Please answer both questions.' }
+  }
+
+  const wasFirstCompletion = profile.negotiationComfort === null || profile.interviewComfort === null
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { negotiationComfort, interviewComfort },
+  })
+
+  captureServerEvent(profile.id, 'negotiation_interview_comfort_answered', {
+    negotiationComfort,
+    interviewComfort,
+  })
+
+  if (wasFirstCompletion && !profile.negotiationInterviewComfortBonusAt) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { negotiationInterviewComfortBonusAt: new Date() },
+    })
+    const sprint = await getCurrentWeekSprint(profile.id)
+    if (sprint) {
+      const effort = estimateActionEffort({ actionType: 'NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED' })
+      await autoCompleteEngagementAction(profile.id, {
+        actionType: 'NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED',
+        text: 'Answer the negotiation & interview comfort check-in',
+        points: effort.points,
+        estimatedMinutes: effort.minutes,
+      })
+    }
+  }
+
+  revalidatePath('/dashboard/search-strategy')
+  revalidatePath('/dashboard/interview-prep')
+}

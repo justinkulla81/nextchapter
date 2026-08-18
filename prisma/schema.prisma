@@ -840,6 +840,12 @@ model CandidateProfile {
   storyComfort       Int?
   interviewComfort   Int?
   elevatorPitchReady Int?
+  // Search Strategy — Negotiation & Interview Comfort section (0-100, same
+  // 4-stop scale as interviewComfort above, which this section re-surfaces
+  // rather than re-asking). A low score on either feeds skill-gap
+  // suggestions ("Negotiation Skills"/"Interview Skills") and prioritizes
+  // interview/negotiation-tagged videos on the Videos page.
+  negotiationComfort Int?
 
   // Part 4: Goals
   remotePreference    String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
@@ -911,8 +917,8 @@ model CandidateProfile {
   // the candidate-facing, candidate-editable copy shown on the Skills
   // Assessment/hub pages. Empty + skillsHaveConfirmedAt null means "never
   // confirmed yet" — falls back to displaying resumeKeywords directly.
-  confirmedSkillsHave              String[]  @default([])
-  skillsHaveConfirmedAt            DateTime?
+  confirmedSkillsHave             String[]  @default([])
+  skillsHaveConfirmedAt           DateTime?
   interimConsultingInterest       Boolean   @default(false)
   searchStrategyConfirmedAt       DateTime?
   // Restrictive covenant from a current/former employer (non-compete,
@@ -1139,6 +1145,11 @@ model CandidateProfile {
   // outreach target, same "personal target + suggested baseline" shape as
   // applicationVolumeGoal (15/week baseline) — see NETWORKING_OUTREACH_SUGGESTED_TARGET.
   networkingOutreachTargetPerWeek Int?
+
+  // Negotiation & Interview Comfort gate (Search Strategy) — one-time
+  // Weekly Sprint bonus, mirrors networkComfortBonusAt above. Set the
+  // first time negotiationComfort/interviewComfort are both answered here.
+  negotiationInterviewComfortBonusAt DateTime?
 
   // My Marketing Plan redesign — one-time Weekly Sprint bonus flags. Each
   // mirrors the networkComfortBonusAt/comfortCheckBonusAt shape above: set
@@ -5195,6 +5206,20 @@ model CuratedVideo {
   // candidate-facing card as part of "why this was recommended," alongside
   // the industry/function match.
   aiToolFocus     String?
+  // Only set when category = GENERAL — same shape as aiToolIndustry/
+  // aiToolFunction above but for the "Career and Interview Advice"/"Tips"
+  // carousels, which previously had zero personalization tagging. Either
+  // dimension matching is enough to surface a video (see getCarouselVideos'
+  // GENERAL-matching pass) — a video tagged with neither this nor
+  // videoSkill below stays in the untagged general-advice pool.
+  videoIndustry   String?
+  videoFunction   String?
+  // Only set when category = GENERAL — a short free-text skill label (e.g.
+  // "Salary Negotiation", "Behavioral Interviewing") matched case-
+  // insensitively against the candidate's skillsToBuild and low-comfort
+  // signals (negotiationComfort/interviewComfort). Admin-set at
+  // ingest/curation time, same role aiToolFocus plays for AI_TOOLS videos.
+  videoSkill      String?
   addedByAdminId  String?
   // Admin soft-delete. refreshYouTubeVideos() must never resurrect a video
   // that has this set on a later ingest run (see youtube-ingest.ts).
@@ -5720,9 +5745,9 @@ enum CompanyOwnershipType {
 }
 
 model Company {
-  id                      String           @id @default(cuid())
+  id                      String                @id @default(cuid())
   name                    String // display name, first-seen casing
-  canonicalNameNormalized String           @unique // via normalizeOrgName() — the real join key
+  canonicalNameNormalized String                @unique // via normalizeOrgName() — the real join key
   industry                String?
   sizeBand                CompanySizeBand?
   hqMetro                 String?
@@ -5737,9 +5762,9 @@ model Company {
   // reviewed by an admin, shown to candidates as "Unknown", never as a
   // guessed value.
   ownershipType           CompanyOwnershipType?
-  isVerified              Boolean          @default(false)
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
+  isVerified              Boolean               @default(false)
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
 
   signals             CompanySignal[]
   memberEmployment    MemberEmployment[]

@@ -10,6 +10,7 @@ import {
   isBlockersAndMotivationsComplete,
   isMarketingPlanWillingnessComplete,
   isNetworkingWillingnessComplete,
+  isNegotiationInterviewComfortComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
@@ -24,6 +25,7 @@ import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsF
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingPlanWillingnessForm } from '@/components/dashboard/MarketingPlanWillingnessForm'
 import { NetworkingWillingnessForm } from '@/components/dashboard/NetworkingWillingnessForm'
+import { NegotiationInterviewComfortForm } from '@/components/dashboard/NegotiationInterviewComfortForm'
 import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
@@ -174,6 +176,7 @@ export default async function SearchStrategyPage() {
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const marketingPlanWillingnessComplete = isMarketingPlanWillingnessComplete(profile)
   const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
+  const negotiationInterviewComfortComplete = isNegotiationInterviewComfortComplete(profile)
   const benefitsAnswered = !!profile.benefitsPrioritiesBonusAt
   const benefitsPoints = estimateActionEffort({ actionType: 'BENEFITS_PRIORITIES_CONFIRMED' }).points
   // getDashboardData doesn't order workHistory — sort here so the recency
@@ -446,6 +449,35 @@ export default async function SearchStrategyPage() {
                 : "What you're willing to do to reach out — and what's holding you back — shapes your outreach scripts and unlocks My Network."}
             </p>
             <NetworkingWillingnessForm profile={profile} />
+          </CardContent>
+        </details>
+      </Card>
+
+      <Card className="overflow-hidden p-0">
+        <details className="group" open={!negotiationInterviewComfortComplete}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Negotiation &amp; Interview Comfort
+              </CardTitle>
+              {negotiationInterviewComfortComplete && (
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <CardContent className="space-y-4 border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground">
+              {negotiationInterviewComfortComplete
+                ? 'Update this any time it changes — a low score shapes the skills we suggest and the career-advice videos we surface first.'
+                : "Where you're genuinely comfortable and where you're not, so the skills we suggest and the videos we surface actually target the gap."}
+            </p>
+            <NegotiationInterviewComfortForm profile={profile} />
           </CardContent>
         </details>
       </Card>

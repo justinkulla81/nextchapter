@@ -143,3 +143,16 @@ export function isNetworkingWillingnessComplete(candidate: {
 }): boolean {
   return !!(candidate.networkComfortLevel && candidate.networkingOutreachTargetPerWeek !== null)
 }
+
+// "Negotiation & Interview Comfort" section — re-surfaces interviewComfort
+// (already asked in Interview Prep's Comfort Check) alongside the new
+// negotiationComfort question, in one place, so a low score on either can
+// feed skill-gap-suggestions.ts and the Videos page's GENERAL-video
+// matching without requiring a trip through Interview Prep first. Same
+// non-required, unlocking-not-scoring status as the Willingness sections above.
+export function isNegotiationInterviewComfortComplete(candidate: {
+  negotiationComfort: number | null
+  interviewComfort: number | null
+}): boolean {
+  return candidate.negotiationComfort !== null && candidate.interviewComfort !== null
+}
