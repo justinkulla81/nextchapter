@@ -242,6 +242,40 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
 
   const sections: LearningPlanSection[] = []
 
+  // "Skills You're Building" — the one section actually driven by
+  // skillsToBuild as a filter, not just rationale text (every other
+  // section below passes skillsToBuild into withRationale purely for the
+  // "You said you want to build this" quote-back). Course has no per-skill
+  // tagging field, so this matches each free-text skill tag against
+  // title/description/keywords with the same case-insensitive
+  // bidirectional-substring semantics matchesCertification/the industry
+  // section already use — across every course category, not just one.
+  // Pushed first so it renders as the first section under Tools.
+  if (skillsToBuild.length > 0) {
+    const normalizedSkills = skillsToBuild.map((s) => s.toLowerCase())
+    const matchesSkill = (course: Course) => {
+      const haystack = [course.title, course.description, ...course.keywords].join(' ').toLowerCase()
+      const normalizedTitle = course.title.toLowerCase()
+      return normalizedSkills.some((skill) => haystack.includes(skill) || skill.includes(normalizedTitle))
+    }
+    const skillsBuildingCourses = allCourses.filter(matchesSkill)
+    if (skillsBuildingCourses.length > 0) {
+      sections.push({
+        id: 'skills-you-are-building',
+        title: "Skills You're Building",
+        items: withRationale(
+          skillsBuildingCourses.map(toLearningResource),
+          'skills',
+          gaps,
+          skillsToBuild,
+          "You said this is a skill you want to build.",
+          completionCounts,
+          candidate.certifications
+        ),
+      })
+    }
+  }
+
   const certificationsForCurrent =
     backgroundFunctions.length > 0
       ? certificationCourses.filter((c) => backgroundFunctions.some((fn) => c.targetFunctions.includes(fn)))
