@@ -1,12 +1,24 @@
 'use client'
 
-import { useActionState, useState, type KeyboardEvent } from 'react'
+import { useActionState, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
 import { confirmSkillsHave } from '@/app/dashboard/skills-assessment/actions'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
+
+function computeInitialSkills(resumeKeywords: string[], initialConfirmed: string[], strongAiSkills: boolean) {
+  const base = initialConfirmed.length > 0 ? initialConfirmed : resumeKeywords
+  if (strongAiSkills && !base.some((s) => s.toLowerCase() === 'ai skills')) {
+    return [...base, 'AI skills']
+  }
+  return base
+}
+
+function snapshotOf(skills: string[]) {
+  return JSON.stringify([...skills].sort())
+}
 
 // Editable "Skills You Have" — same chip-editing shape as SkillsToBuildForm
 // (add/remove/type-to-add), seeded from resumeKeywords rather than starting
@@ -19,7 +31,6 @@ export function SkillsHaveForm({
   resumeKeywords,
   initialConfirmed,
   strongAiSkills,
-  onSaved,
 }: {
   resumeKeywords: string[]
   initialConfirmed: string[]
@@ -30,17 +41,30 @@ export function SkillsHaveForm({
   // initial pre-fill, never re-injected after the candidate has started
   // editing (an explicit removal should stick).
   strongAiSkills: boolean
-  onSaved?: () => void
 }) {
   const [state, formAction] = useActionState(confirmSkillsHave, undefined)
-  const [skills, setSkills] = useState<string[]>(() => {
-    const base = initialConfirmed.length > 0 ? initialConfirmed : resumeKeywords
-    if (strongAiSkills && !base.some((s) => s.toLowerCase() === 'ai skills')) {
-      return [...base, 'AI skills']
-    }
-    return base
-  })
+  const [skills, setSkills] = useState<string[]>(() =>
+    computeInitialSkills(resumeKeywords, initialConfirmed, strongAiSkills)
+  )
   const [draft, setDraft] = useState('')
+
+  // "Saved" stays gray until the candidate actually changes the list, not
+  // just for a fixed 2s window (see SubmitButton's controlled `saved` prop).
+  // The snapshot is captured in the form's submit handler (an event, not
+  // render) so the success effect below can adopt exactly what was
+  // submitted, without reading a ref during render.
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState(() => snapshotOf(skills))
+  const [hasSavedBefore, setHasSavedBefore] = useState(initialConfirmed.length > 0)
+  const pendingSnapshotRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (state?.success && pendingSnapshotRef.current !== null) {
+      setHasSavedBefore(true)
+      setLastSavedSnapshot(pendingSnapshotRef.current)
+    }
+  }, [state])
+
+  const isDirty = snapshotOf(skills) !== lastSavedSnapshot
 
   function addSkill(value: string) {
     const trimmed = value.trim()
@@ -66,13 +90,13 @@ export function SkillsHaveForm({
   return (
     <form
       action={(formData) => {
+        pendingSnapshotRef.current = snapshotOf(skills)
         formAction(formData)
-        onSaved?.()
       }}
       className="space-y-3"
     >
       <div>
-        <Label>Skills You Have</Label>
+        <Label>2. Skills You Have</Label>
         <p className="text-xs text-muted-foreground">
           {resumeKeywords.length > 0
             ? "Pulled from your resume — edit if anything's off, then confirm."
@@ -118,8 +142,8 @@ export function SkillsHaveForm({
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <SubmitButton size="sm" pendingLabel="Saving…">
-        Confirm
+      <SubmitButton size="sm" pendingLabel="Saving…" saved={hasSavedBefore && !isDirty}>
+        Save
       </SubmitButton>
     </form>
   )

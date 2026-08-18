@@ -31,6 +31,11 @@ interface SkillGapProfile {
   targetIndustries: string[]
   aiFlexibilityLevel: number | null
   skillsToBuild: string[]
+  // The candidate's own edited "Skills You Have" list (Skills Assessment) —
+  // can diverge from resumeKeywords (additions, corrections). Excluded from
+  // suggestions the same way resumeKeywords is, so a skill a candidate
+  // added here never gets suggested right back as something to build.
+  confirmedSkillsHave: string[]
   // Self-identified strengths/growth areas (Skills Inventory assessment) —
   // real, accuracy-improving signal: strengths are excluded from
   // suggestions the same way skillsToBuild is, and growth areas are a
@@ -60,6 +65,7 @@ function computeFingerprint(profile: SkillGapProfile): string {
     String(profile.aiFlexibilityLevel ?? ''),
     [...profile.topStrengths].sort().join('|'),
     [...profile.growthAreas].sort().join('|'),
+    [...profile.confirmedSkillsHave].sort().join('|'),
   ].join('::')
 }
 
@@ -85,6 +91,7 @@ Current/most recent function: ${profile.primaryFunction ?? 'unknown'}
 Target role: ${profile.targetRoleType ?? 'unspecified'}
 Target industries: ${profile.targetIndustries.length > 0 ? profile.targetIndustries.join(', ') : 'unspecified'}
 Skills their resume already shows: ${profile.resumeKeywords.length > 0 ? profile.resumeKeywords.join(', ') : 'none extracted'}
+Skills they've confirmed they already have (never suggest these): ${profile.confirmedSkillsHave.length > 0 ? profile.confirmedSkillsHave.join(', ') : 'none confirmed yet'}
 Skills they've already picked to build: ${profile.skillsToBuild.length > 0 ? profile.skillsToBuild.join(', ') : 'none yet'}
 Self-identified strengths (already strong — don't suggest these): ${profile.topStrengths.length > 0 ? profile.topStrengths.join(', ') : 'none specified'}
 Self-identified growth areas (a real signal for what's worth suggesting, but only if it translates to a concrete skill/tool/credential — not a personality trait): ${profile.growthAreas.length > 0 ? profile.growthAreas.join(', ') : 'none specified'}
@@ -119,6 +126,7 @@ export async function getOrGenerateSkillGapSuggestions(candidateId: string): Pro
       targetIndustries: true,
       aiFlexibilityLevel: true,
       skillsToBuild: true,
+      confirmedSkillsHave: true,
       topStrengths: true,
       growthAreas: true,
       skillGapSuggestions: true,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
 import { SkillsHaveForm } from '@/components/dashboard/SkillsHaveForm'
 import { SkillsNeedSection } from '@/components/dashboard/SkillsNeedSection'
@@ -38,6 +38,24 @@ const MANAGEMENT_LABELS = [
   "It's my favorite thing",
 ] as const
 
+function snapshotOf(v: {
+  topStrengths: string[]
+  growthAreas: string[]
+  growthAreasElaboration: string
+  functionSkillConfidence: number | null
+  aiFlexibilityLevel: number | null
+  managementSkillConfidence: number | null
+}) {
+  return JSON.stringify({
+    topStrengths: [...v.topStrengths].sort(),
+    growthAreas: [...v.growthAreas].sort(),
+    growthAreasElaboration: v.growthAreasElaboration,
+    functionSkillConfidence: v.functionSkillConfidence,
+    aiFlexibilityLevel: v.aiFlexibilityLevel,
+    managementSkillConfidence: v.managementSkillConfidence,
+  })
+}
+
 export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateSkillsAssessment, undefined)
   // Asked from Track Record now (spec §4.2 item 16), not here — this just
@@ -46,40 +64,66 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
   const isPeopleManager = profile.isPeopleManager
   const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
   const [growthAreas, setGrowthAreas] = useState<string[]>(profile.growthAreas)
+  const [growthAreasElaboration, setGrowthAreasElaboration] = useState(profile.growthAreasElaboration ?? '')
+  const [functionSkillConfidence, setFunctionSkillConfidence] = useState(profile.functionSkillConfidence)
+  const [managementSkillConfidence, setManagementSkillConfidence] = useState(profile.managementSkillConfidence)
+  // Tracked live (not just adopted post-save) so the "Skills You Have"
+  // AI-skills auto-add below and the dirty-check snapshot both reflect the
+  // candidate's current, unsaved slider position, not a stale profile prop.
+  const [aiFlexibilityLevel, setAiFlexibilityLevel] = useState(profile.aiFlexibilityLevel)
 
   const functionLabel = profile.resumeLatestJobTitle ?? profile.primaryFunction
 
-  // Skills You Have / Skills You Need used to live as their own
-  // always-visible section on the Skills & Behavioral Assessments hub page
-  // — moved here, after the questionnaire, so first-time completion reads
-  // as one continuous flow: answer, then confirm what you have, then what
-  // you need. A candidate who already has a skillsAssessmentCompletedAt
-  // (retaking) sees all three sections together immediately, since they've
-  // already been through the sequence once. aiFlexibilityLevel is tracked
-  // live so the AI-skills auto-add below reflects whatever was just saved
-  // in this session, not a stale profile prop.
-  const [questionnaireDone, setQuestionnaireDone] = useState(!!profile.skillsAssessmentCompletedAt)
-  const [skillsHaveDone, setSkillsHaveDone] = useState(!!profile.skillsHaveConfirmedAt)
-  const [aiFlexibilityLevel, setAiFlexibilityLevel] = useState(profile.aiFlexibilityLevel)
+  // "Saved" stays gray until the candidate actually changes an answer, not
+  // just for a fixed 2s window (see SubmitButton's controlled `saved` prop).
+  const initialSnapshot = snapshotOf({
+    topStrengths: profile.topStrengths,
+    growthAreas: profile.growthAreas,
+    growthAreasElaboration: profile.growthAreasElaboration ?? '',
+    functionSkillConfidence: profile.functionSkillConfidence,
+    aiFlexibilityLevel: profile.aiFlexibilityLevel,
+    managementSkillConfidence: profile.managementSkillConfidence,
+  })
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState(initialSnapshot)
+  const [hasSavedBefore, setHasSavedBefore] = useState(!!profile.skillsAssessmentCompletedAt)
+  // Captured in the form's submit handler (an event, not render) so the
+  // success effect below can adopt exactly what was submitted, without
+  // reading a ref during render.
+  const pendingSnapshotRef = useRef<string | null>(null)
+
+  const currentSnapshot = snapshotOf({
+    topStrengths,
+    growthAreas,
+    growthAreasElaboration,
+    functionSkillConfidence,
+    aiFlexibilityLevel,
+    managementSkillConfidence,
+  })
 
   useEffect(() => {
     // One-time adoption of the server action's result, not a derived-render
     // loop — only ever fires right after a real form submission (state
     // transitions from undefined), same pattern as ConfidenceSlider's
     // suggestedValue effect.
-    if (state?.success) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setQuestionnaireDone(true)
-      setAiFlexibilityLevel(state.aiFlexibilityLevel ?? null)
+    if (state?.success && pendingSnapshotRef.current !== null) {
+      setHasSavedBefore(true)
+      setLastSavedSnapshot(pendingSnapshotRef.current)
     }
   }, [state])
+
+  const isDirty = currentSnapshot !== lastSavedSnapshot
 
   return (
     <div className="space-y-8">
       <form
-        action={formAction}
+        action={(formData) => {
+          pendingSnapshotRef.current = currentSnapshot
+          formAction(formData)
+        }}
         className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
       >
+        <p className="text-sm font-medium text-muted-foreground">1. Your skills snapshot</p>
+
         <div className="space-y-2">
           <Label>
             Every great candidate is exceptional at a few things rather than good at everything.
@@ -109,7 +153,8 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           />
           <Textarea
             name="growthAreasElaboration"
-            defaultValue={profile.growthAreasElaboration ?? ''}
+            value={growthAreasElaboration}
+            onChange={(e) => setGrowthAreasElaboration(e.target.value)}
             placeholder="In your own words (optional) — this helps your Dossier's Self-Awareness section sound like you, not a checklist."
             rows={3}
           />
@@ -124,6 +169,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           }
           defaultValue={profile.functionSkillConfidence}
           labels={CORE_SKILL_LABELS}
+          onChange={setFunctionSkillConfidence}
         />
 
         <ConfidenceSlider
@@ -131,6 +177,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           label="How confident are you in your AI skills?"
           defaultValue={profile.aiFlexibilityLevel}
           labels={CORE_SKILL_LABELS}
+          onChange={setAiFlexibilityLevel}
         />
 
         {isPeopleManager && (
@@ -139,30 +186,28 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
             label="How confident are you in your management skills?"
             defaultValue={profile.managementSkillConfidence}
             labels={MANAGEMENT_LABELS}
+            onChange={setManagementSkillConfidence}
           />
         )}
 
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-        <SubmitButton pendingLabel="Saving…">Save Skills Inventory</SubmitButton>
+        <SubmitButton pendingLabel="Saving…" saved={hasSavedBefore && !isDirty}>
+          Save
+        </SubmitButton>
       </form>
 
-      {questionnaireDone && (
-        <div className="border-t border-border pt-6">
-          <SkillsHaveForm
-            resumeKeywords={profile.resumeKeywords}
-            initialConfirmed={profile.confirmedSkillsHave}
-            strongAiSkills={aiFlexibilityLevel !== null && aiFlexibilityLevel >= STRONG_AI_THRESHOLD}
-            onSaved={() => setSkillsHaveDone(true)}
-          />
-        </div>
-      )}
+      <div className="border-t border-border pt-6">
+        <SkillsHaveForm
+          resumeKeywords={profile.resumeKeywords}
+          initialConfirmed={profile.confirmedSkillsHave}
+          strongAiSkills={aiFlexibilityLevel !== null && aiFlexibilityLevel >= STRONG_AI_THRESHOLD}
+        />
+      </div>
 
-      {skillsHaveDone && (
-        <div className="border-t border-border pt-6">
-          <SkillsNeedSection initialSkills={profile.skillsToBuild} targetRole={profile.targetRoleType} />
-        </div>
-      )}
+      <div className="border-t border-border pt-6">
+        <SkillsNeedSection initialSkills={profile.skillsToBuild} targetRole={profile.targetRoleType} />
+      </div>
     </div>
   )
 }

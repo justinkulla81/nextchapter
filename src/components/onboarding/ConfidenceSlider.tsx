@@ -11,6 +11,7 @@ export function ConfidenceSlider({
   defaultValue,
   labels,
   suggestedValue,
+  onChange,
 }: {
   name: string
   label: string
@@ -20,6 +21,7 @@ export function ConfidenceSlider({
   // themselves — used to "tailor" this slider toward a value the candidate
   // already implied elsewhere on the page (e.g. picking a matching Superpower).
   suggestedValue?: number | null
+  onChange?: (value: number) => void
 }) {
   const [value, setValue] = useState<number | null>(defaultValue ?? null)
   const [touched, setTouched] = useState(defaultValue !== null)
@@ -41,6 +43,7 @@ export function ConfidenceSlider({
   function select(stop: number) {
     setTouched(true)
     setValue(stop)
+    onChange?.(stop)
   }
 
   return (

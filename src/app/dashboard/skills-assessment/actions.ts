@@ -100,7 +100,7 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
   }
 }
 
-export type SkillsHaveFormState = { error?: string } | undefined
+export type SkillsHaveFormState = { error?: string; success?: boolean } | undefined
 
 // First-time confirmation (right after the questionnaire) or any later
 // edit — same action either way. confirmedSkillsHave is the candidate's
@@ -129,6 +129,8 @@ export async function confirmSkillsHave(
   revalidatePath('/dashboard/skills-assessment')
   revalidatePath('/dashboard/skills-assessments')
   revalidatePath('/dashboard/find-my-job')
+
+  return { success: true }
 }
 
 // Plain (non-form) server action the client wizard calls once it reaches

@@ -1,12 +1,16 @@
 'use client'
 
-import { useActionState, useState, type KeyboardEvent } from 'react'
+import { useActionState, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Plus, X } from 'lucide-react'
 import { updateSkillsToBuild } from '@/app/dashboard/skills-assessments/actions'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import type { SkillGapSuggestions } from '@/lib/skills/skill-gap-suggestions'
+
+function snapshotOf(skills: string[]) {
+  return JSON.stringify([...skills].sort())
+}
 
 export function SkillsToBuildForm({
   initialSkills,
@@ -23,6 +27,24 @@ export function SkillsToBuildForm({
   const [state, formAction] = useActionState(updateSkillsToBuild, undefined)
   const [skills, setSkills] = useState<string[]>(initialSkills)
   const [draft, setDraft] = useState('')
+
+  // "Saved" stays gray until the candidate actually changes the list, not
+  // just for a fixed 2s window (see SubmitButton's controlled `saved` prop).
+  // The snapshot is captured in the form's submit handler (an event, not
+  // render) so the success effect below can adopt exactly what was
+  // submitted, without reading a ref during render.
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState(() => snapshotOf(initialSkills))
+  const [hasSavedBefore, setHasSavedBefore] = useState(initialSkills.length > 0)
+  const pendingSnapshotRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (state?.success && pendingSnapshotRef.current !== null) {
+      setHasSavedBefore(true)
+      setLastSavedSnapshot(pendingSnapshotRef.current)
+    }
+  }, [state])
+
+  const isDirty = snapshotOf(skills) !== lastSavedSnapshot
 
   const suggestionGroups: { key: keyof SkillGapSuggestions; label: string }[] = [
     { key: 'resumeGaps', label: 'Common for your background, not on your resume' },
@@ -54,7 +76,13 @@ export function SkillsToBuildForm({
   const hasSuggestions = suggestionGroups.some((g) => (suggestions?.[g.key]?.length ?? 0) > 0)
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form
+      action={(formData) => {
+        pendingSnapshotRef.current = snapshotOf(skills)
+        formAction(formData)
+      }}
+      className="space-y-4"
+    >
       <div className="space-y-2">
         {skills.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -121,7 +149,7 @@ export function SkillsToBuildForm({
       )}
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <SubmitButton size="sm" pendingLabel="Saving…">
+      <SubmitButton size="sm" pendingLabel="Saving…" saved={hasSavedBefore && !isDirty}>
         Save
       </SubmitButton>
     </form>

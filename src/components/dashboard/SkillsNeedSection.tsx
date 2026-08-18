@@ -36,7 +36,7 @@ export function SkillsNeedSection({
   return (
     <div className="space-y-2">
       <div>
-        <Label>Skills You Need to Build</Label>
+        <Label>3. Skills You Need to Build</Label>
         <p className="text-sm text-muted-foreground">
           Skills worth building for your next job — pick from the suggestions below or add your
           own. Feeds your Learning recommendations and Coaching Notes.

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 
-export type FormState = { error?: string } | undefined
+export type FormState = { error?: string; success?: boolean } | undefined
 
 export async function updateSkillsToBuild(
   _prevState: FormState,
@@ -33,4 +33,6 @@ export async function updateSkillsToBuild(
 
   revalidatePath('/dashboard/skills-assessments')
   revalidatePath('/dashboard')
+
+  return { success: true }
 }

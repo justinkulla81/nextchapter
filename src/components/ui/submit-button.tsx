@@ -11,6 +11,12 @@ interface SubmitButtonProps
     VariantProps<typeof buttonVariants> {
   pendingLabel?: React.ReactNode
   savedLabel?: React.ReactNode
+  // Controlled override for the gray "Saved" state — pass this when the
+  // caller tracks its own dirty/saved state (e.g. "stay gray until the
+  // candidate changes something," rather than this component's default
+  // fixed 2s timer). When provided, the internal timer is skipped entirely
+  // and this value drives the saved look directly.
+  saved?: boolean
 }
 
 // How long the gray "Saved" confirmation shows before the button reverts to
@@ -33,6 +39,7 @@ export function SubmitButton({
   children,
   pendingLabel,
   savedLabel = 'Saved',
+  saved,
   className,
   disabled,
   ...props
@@ -40,15 +47,18 @@ export function SubmitButton({
   const { pending } = useFormStatus()
   const wasPending = useRef(false)
   const [justSaved, setJustSaved] = useState(false)
+  const controlled = saved !== undefined
 
   useEffect(() => {
     const finished = wasPending.current && !pending
     wasPending.current = pending
-    if (!finished) return
+    if (!finished || controlled) return
     setJustSaved(true)
     const timer = setTimeout(() => setJustSaved(false), SAVED_DISPLAY_MS)
     return () => clearTimeout(timer)
-  }, [pending])
+  }, [pending, controlled])
+
+  const showSaved = controlled ? saved : justSaved
 
   return (
     <Button
@@ -57,11 +67,11 @@ export function SubmitButton({
       className={cn(
         className,
         pending && 'cursor-progress',
-        justSaved && 'border-transparent bg-muted text-muted-foreground hover:bg-muted'
+        showSaved && 'border-transparent bg-muted text-muted-foreground hover:bg-muted'
       )}
       {...props}
     >
-      {pending ? (pendingLabel ?? children) : justSaved ? savedLabel : children}
+      {pending ? (pendingLabel ?? children) : showSaved ? savedLabel : children}
     </Button>
   )
 }
