@@ -42,8 +42,9 @@ export default function EmployerInterestEmail({ firstName, companyName }: Employ
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'},</p>
       <p>
-        <strong>{companyName}</strong> is interested in your profile. You decide whether to reveal
-        your identity to them — nothing is shared automatically.
+        <strong>{companyName}</strong>{' '}
+        is interested in your profile. You decide whether to reveal your identity to them —
+        nothing is shared automatically.
       </p>
       <a href="https://launchyournextchapter.com/dashboard" style={button}>
         Review on your dashboard →

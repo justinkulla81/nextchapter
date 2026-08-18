@@ -49,9 +49,9 @@ export default function BenefitsNetworkVerifyEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi there,</p>
       <p>
-        {alumName} has proposed listing <strong>{programName}</strong> from <strong>{institutionName}</strong> on
-        NextChapter&apos;s Alumni Benefits Network — a catalog of discounts and programs offered to NextChapter
-        members through alumni relationships.
+        {alumName} has proposed listing <strong>{programName}</strong> from{' '}
+        <strong>{institutionName}</strong> on NextChapter&apos;s Alumni Benefits Network — a catalog of discounts
+        and programs offered to NextChapter members through alumni relationships.
       </p>
       <p>
         Because you&apos;re receiving this at an address on {institutionName}&apos;s own domain, clicking the link

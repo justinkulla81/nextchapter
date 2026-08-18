@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
-import { orgNamesMatch } from '@/lib/text/org-name-match'
+import { orgNamesMatchStrict } from '@/lib/text/org-name-match'
 import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
 
 // Fires daily — for each candidate, finds the first still-unnotified applied
@@ -9,6 +9,17 @@ import { sendBackchannelMatchEmail } from '@/lib/email/send-backchannel-match'
 // email, and marks that job's backchannelEmailSentAt so it's never resent.
 // Deliberately at most one email per candidate per run (not one per
 // matching job) — this is an occasional nudge, not a digest.
+//
+// Uses orgNamesMatchStrict, not the looser orgNamesMatch — this feature
+// tells a real person "you know someone here, reach out to them," so a
+// false positive is actively harmful, not just a display quirk. Confirmed
+// against real production data: orgNamesMatch's substring-containment
+// fallback (fine for its original use — resume-derived company dedup)
+// matched "Cohere" to a contact's "Coherent Corp.", "InvestX" to "VEST",
+// and "Archimed" to "Chime" — completely unrelated companies that happen
+// to share a substring. Strict equality misses some real abbreviations
+// ("Hyland" for "Hyland Software") but that's a missed nudge, not a false
+// claim mailed to the candidate.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -55,8 +66,8 @@ export async function GET(request: NextRequest) {
           .filter((job) =>
             contacts.some(
               (c) =>
-                (c.company && orgNamesMatch(c.company, job.companyName!)) ||
-                (c.inferredCompany && orgNamesMatch(c.inferredCompany, job.companyName!))
+                (c.company && orgNamesMatchStrict(c.company, job.companyName!)) ||
+                (c.inferredCompany && orgNamesMatchStrict(c.inferredCompany, job.companyName!))
             )
           )
           .map((job) => job.companyName!.toLowerCase().trim())
@@ -66,8 +77,8 @@ export async function GET(request: NextRequest) {
         if (!job.companyName || job.backchannelEmailSentAt) continue
         const matchedContacts = contacts.filter(
           (c) =>
-            (c.company && orgNamesMatch(c.company, job.companyName!)) ||
-            (c.inferredCompany && orgNamesMatch(c.inferredCompany, job.companyName!))
+            (c.company && orgNamesMatchStrict(c.company, job.companyName!)) ||
+            (c.inferredCompany && orgNamesMatchStrict(c.inferredCompany, job.companyName!))
         )
         if (matchedContacts.length === 0) continue
 

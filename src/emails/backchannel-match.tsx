@@ -65,8 +65,10 @@ export default function BackchannelMatchEmail({
       {otherCompanyCount > 0 && (
         <p>
           That&apos;s not the only one — you have connections at{' '}
-          <strong>{otherCompanyCount} other {otherCompanyCount === 1 ? 'company' : 'companies'}</strong> you&apos;ve
-          applied to as well.
+          <strong>
+            {otherCompanyCount} other {otherCompanyCount === 1 ? 'company' : 'companies'}
+          </strong>{' '}
+          you&apos;ve applied to as well.
         </p>
       )}
       <p>

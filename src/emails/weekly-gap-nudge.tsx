@@ -65,8 +65,9 @@ export default function WeeklyGapNudgeEmail({
       {introCopy && <p>{introCopy}</p>}
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
-        you&apos;re at <strong>{weeklyPoints} of {weeklyPointsTarget}</strong> points for this
-        week&apos;s Weekly Search Score. There&apos;s still time — the &quot;More Actions
+        you&apos;re at <strong>{weeklyPoints} of {weeklyPointsTarget}</strong>{' '}
+        points for this week&apos;s Weekly Search Score. There&apos;s still time — the &quot;More
+        Actions
         Available&quot; list on your dashboard has quick options beyond what you committed to,
         and anything you complete there counts too.
       </p>

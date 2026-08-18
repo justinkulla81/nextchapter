@@ -61,8 +61,9 @@ export default function MarketDigestCandidateEmail({
       <p>{introCopy || "Here's this week's market update for your target role."}</p>
       {adzunaCount !== null && (
         <p>
-          <strong>{adzunaCount.toLocaleString()}</strong> open roles currently match your target — a rough read on
-          how active the market is right now.
+          <strong>{adzunaCount.toLocaleString()}</strong>{' '}
+          open roles currently match your target — a rough read on how active the market is right
+          now.
         </p>
       )}
       {blsYoyChangePct !== null && (
