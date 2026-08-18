@@ -3357,18 +3357,27 @@ model MarketResponseLog {
 // Adzuna's free tier is 1,000 calls/month for the whole app, so this is a
 // hard requirement, not an optimization. 48h TTL enforced in application code.
 model MarketConditionsSnapshot {
-  id              String   @id @default(cuid())
-  roleQuery       String // normalized lowercase query, e.g. "senior product manager"
-  location        String // normalized "city, state" | state | "us"
-  adzunaCount     Int?
-  adzunaError     String?
-  blsSocCode      String?
-  blsAreaCode     String?
-  blsYoyChangePct Float?
-  blsError        String?
-  fetchedAt       DateTime @default(now())
+  id        String @id @default(cuid())
+  roleQuery String // normalized lowercase query, e.g. "senior product manager"
+  location  String // normalized "city, state" | state | "us"
+  // Normalized lowercase target-industry term this row's ideal-count query
+  // was scoped to; "" (default) means no industry known — a generic,
+  // industry-unscoped row, same as every row before this field existed.
+  // Part of the cache key because adzunaIdealCount is industry-specific:
+  // two candidates with the same role/location but different target
+  // industries need separate ideal counts, not a shared one.
+  industry         String   @default("")
+  adzunaCount      Int? // "broader" — title-only match count
+  adzunaError      String?
+  adzunaIdealCount Int? // "ideal" — title AND industry AND geo match count; null when industry or geo is unknown, not zero
+  adzunaIdealError String?
+  blsSocCode       String?
+  blsAreaCode      String?
+  blsYoyChangePct  Float?
+  blsError         String?
+  fetchedAt        DateTime @default(now())
 
-  @@unique([roleQuery, location])
+  @@unique([roleQuery, location, industry])
   @@index([fetchedAt])
 }
 

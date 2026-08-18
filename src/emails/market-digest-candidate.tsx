@@ -4,6 +4,7 @@ interface MarketDigestCandidateEmailProps {
   firstName: string | null
   introCopy: string | null
   adzunaCount: number | null
+  adzunaIdealCount: number | null
   blsYoyChangePct: number | null
   nuggetTitle: string | null
   nuggetUrl: string | null
@@ -47,6 +48,7 @@ export default function MarketDigestCandidateEmail({
   firstName,
   introCopy,
   adzunaCount,
+  adzunaIdealCount,
   blsYoyChangePct,
   nuggetTitle,
   nuggetUrl,
@@ -59,11 +61,18 @@ export default function MarketDigestCandidateEmail({
       <p style={logo}>NextChapter</p>
       <p>Hi {firstName || 'there'},</p>
       <p>{introCopy || "Here's this week's market update for your target role."}</p>
+      {adzunaIdealCount !== null && (
+        <p>
+          <strong>{adzunaIdealCount.toLocaleString()}</strong>{' '}
+          open roles match your target title, industry, and location — the closest read we have on
+          what&apos;s realistically open to you right now.
+        </p>
+      )}
       {adzunaCount !== null && (
         <p>
+          {adzunaIdealCount !== null ? 'A broader search on just your target title turns up ' : ''}
           <strong>{adzunaCount.toLocaleString()}</strong>{' '}
-          open roles currently match your target — a rough read on how active the market is right
-          now.
+          open roles matching your target title{adzunaIdealCount !== null ? ' across any industry or location' : ' — a rough read on how active the market is right now'}.
         </p>
       )}
       {blsYoyChangePct !== null && (

@@ -184,6 +184,47 @@ function industryMatchBonus(
   return matches ? Math.round(10 * priorityMultiplier(candidate.priorityMission)) : 0
 }
 
+// "Ideal" match for the title/industry/geo tiering split (find-my-job
+// recommendations + market digest, per the "88,099 open roles" complaint —
+// a single unfiltered count/list reads as inflated, so real matches are
+// split into a small "ideal" tier that meets all three criteria and a
+// larger "broader" tier that's title-only). Every job in this pool is
+// already title/function-filtered by the surfacing pipeline, so this only
+// needs to check industry and geo — and geo deliberately means an actual
+// local/remote fit, not "willing to relocate," since papering over that
+// distinction is exactly what produced the inflated number in the first
+// place.
+function matchesTargetIndustry(
+  candidate: Pick<FitCandidate, 'targetIndustries' | 'industryContext' | 'secondaryIndustryContext'>,
+  postingText: string
+): boolean {
+  const targets = [candidate.industryContext, candidate.secondaryIndustryContext, ...candidate.targetIndustries].filter(
+    (s): s is string => !!s && s.trim().length > 0
+  )
+  if (targets.length === 0) return false
+  const lower = postingText.toLowerCase()
+  return targets.some((t) => lower.includes(t.toLowerCase()))
+}
+
+function matchesTargetGeo(
+  candidate: Pick<FitCandidate, 'remotePreference' | 'currentCity' | 'currentState'>,
+  posting: FitPostingLike
+): boolean {
+  const role = postingToRole(posting)
+  if (role.remotePolicy === 'remote' && (candidate.remotePreference === 'remote' || candidate.remotePreference === 'flexible')) {
+    return true
+  }
+  const location = (role.locationRequirement ?? '').toLowerCase()
+  if (candidate.currentCity && location.includes(candidate.currentCity.toLowerCase())) return true
+  if (candidate.currentState && location.includes(candidate.currentState.toLowerCase())) return true
+  return false
+}
+
+function isIdealMatch(candidate: FitCandidate, posting: FitPostingLike): boolean {
+  const postingText = `${posting.title} ${posting.description ?? ''} ${posting.location ?? ''}`
+  return matchesTargetIndustry(candidate, postingText) && matchesTargetGeo(candidate, posting)
+}
+
 // Best-effort extraction of a minimum-years requirement from free-text
 // posting copy ("5+ years", "3-5 years of experience") — same
 // regex-over-free-text approach already used for ATS salary parsing
@@ -332,6 +373,20 @@ export function computeBoardListingFitBucket(
 ): FitBucket {
   const postingLike = { ...posting, companySizeBand }
   return bucketFromScoreAndLevel(computeEnrichedFitScore(candidate, postingLike), candidate, postingLike)
+}
+
+// Ideal-vs-broader tiering (see isIdealMatch above) for a board listing —
+// same postingLike adapter as computeBoardListingFitBucket, so the two
+// stay consistent for the same posting.
+export function computeBoardListingIsIdealMatch(
+  candidate: FitCandidate,
+  posting: Pick<
+    ExclusiveJobPosting,
+    'title' | 'description' | 'targetFunction' | 'targetLevel' | 'targetRemotePolicy' | 'targetLocation' | 'location' | 'salaryMin' | 'salaryMax'
+  >,
+  companySizeBand?: CompanySizeBand | null
+): boolean {
+  return isIdealMatch(candidate, { ...posting, companySizeBand })
 }
 
 // How many candidates in the whole pool this pending posting is a
@@ -508,4 +563,25 @@ export function computeSurfacedJobFitBucket(
   }
   const score = computeEnrichedFitScore(candidate, postingLike)
   return bucketFromScoreAndLevel(score, candidate, postingLike)
+}
+
+// Ideal-vs-broader tiering (see isIdealMatch above) for a surfaced job —
+// same postingLike adapter as computeSurfacedJobFitBucket.
+export function computeSurfacedJobIsIdealMatch(
+  candidate: FitCandidate,
+  job: Pick<SurfacedJob, 'title' | 'location' | 'description'>,
+  companySizeBand?: CompanySizeBand | null
+): boolean {
+  return isIdealMatch(candidate, {
+    title: job.title,
+    description: job.description,
+    location: job.location,
+    salaryMin: null,
+    salaryMax: null,
+    targetFunction: null,
+    targetLevel: null,
+    targetRemotePolicy: null,
+    targetLocation: null,
+    companySizeBand,
+  })
 }

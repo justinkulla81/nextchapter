@@ -17,12 +17,18 @@ export interface MarketConditionsInput {
   primaryFunction: string | null
   city: string | null
   state: string | null
+  // Optional so existing callers that only need the broader title-only
+  // count keep compiling unchanged — omitting this simply means no
+  // ideal-count query runs (adzunaIdealCount comes back null, not zero).
+  targetIndustries?: string[]
 }
 
 export interface MarketConditions {
   dataAvailable: boolean
-  adzunaCount: number | null
+  adzunaCount: number | null // "broader" — title-only match count
   adzunaError: string | null
+  adzunaIdealCount: number | null // "ideal" — title AND industry AND geo; null when industry or geo unknown
+  adzunaIdealError: string | null
   blsSocCode: string | null
   blsAreaCode: string | null
   blsYoyChangePct: number | null

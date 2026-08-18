@@ -69,7 +69,12 @@ export async function searchAdzunaJobListings(
 export async function searchAdzunaJobs(
   what: string,
   where: string | null,
-  distanceMiles = 50
+  distanceMiles = 50,
+  // Extra term ANDed onto `what` via Adzuna's what_and param — narrows the
+  // count rather than the default fuzzy/any-word match `what` alone does.
+  // Used for the "ideal" (title AND industry) count; omitted for the
+  // "broader" (title-only) count.
+  extraAndTerm?: string | null
 ): Promise<AdzunaResult> {
   const appId = process.env.ADZUNA_APP_ID
   const appKey = process.env.ADZUNA_APP_KEY
@@ -84,6 +89,7 @@ export async function searchAdzunaJobs(
     what,
     results_per_page: '1',
   })
+  if (extraAndTerm) params.set('what_and', extraAndTerm)
   if (where) {
     params.set('where', where)
     // "How many jobs are near me" should mean a real commutable radius, not

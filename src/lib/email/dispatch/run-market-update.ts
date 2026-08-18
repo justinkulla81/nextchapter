@@ -24,6 +24,7 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
       primaryFunction: true,
       currentCity: true,
       currentState: true,
+      targetIndustries: true,
     },
   })
 
@@ -41,6 +42,7 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
         primaryFunction: candidate.primaryFunction,
         city: candidate.currentCity,
         state: candidate.currentState,
+        targetIndustries: candidate.targetIndustries,
       })
 
       if (!marketConditions.dataAvailable && !nugget) continue

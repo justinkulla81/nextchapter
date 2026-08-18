@@ -29,6 +29,13 @@ function NewBadge() {
   return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
 }
 
+// Marks a job that matches title, target industry, AND location/remote —
+// the "ideal" tier from the title-only "broader" match everything else in
+// this list is filtered to (see isIdealMatch in job-fit-bucket.ts).
+function IdealMatchBadge() {
+  return <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Ideal match</span>
+}
+
 const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
   { value: 'WRONG_FUNCTION', label: 'Wrong function' },
   { value: 'WRONG_INDUSTRY', label: 'Wrong industry' },
@@ -49,11 +56,13 @@ const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
 export function NextSurfacedJobCard({
   job,
   fitBucket,
+  idealMatch,
   worksHereContacts,
   worksHereTotalCount,
 }: {
   job: SurfacedJob
   fitBucket?: FitBucket
+  idealMatch?: boolean
   // Read-only company-name match against the candidate's own contact list —
   // unlike WhoCanHelpSection (used on applied jobs), there's no JobPosting
   // row here to link a contact to, so this is informational only: a warm
@@ -88,6 +97,7 @@ export function NextSurfacedJobCard({
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {isRecentlyListed(job.surfacedAt) && <NewBadge />}
+          {idealMatch && <IdealMatchBadge />}
           {fitBucket && <FitBadge bucket={fitBucket} />}
           <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </span>

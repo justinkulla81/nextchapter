@@ -35,6 +35,7 @@ export async function sendMarketDigestCandidateEmail(
       firstName: candidate.firstName,
       introCopy: introCopy ?? null,
       adzunaCount: marketConditions.adzunaCount,
+      adzunaIdealCount: marketConditions.adzunaIdealCount,
       blsYoyChangePct: marketConditions.blsYoyChangePct,
       nuggetTitle: nugget?.title ?? null,
       nuggetUrl: nugget?.url ?? null,

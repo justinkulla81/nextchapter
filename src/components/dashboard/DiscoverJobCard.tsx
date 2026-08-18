@@ -35,6 +35,13 @@ function NewBadge() {
   return <span className="rounded-full bg-orange/20 px-2 py-0.5 text-xs font-medium text-orange">New</span>
 }
 
+// Marks a job that matches title, target industry, AND location/remote —
+// the "ideal" tier from the title-only "broader" match everything else in
+// this list is filtered to (see isIdealMatch in job-fit-bucket.ts).
+function IdealMatchBadge() {
+  return <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Ideal match</span>
+}
+
 // A-List-only listing a non-A candidate can't see yet — shown masked
 // rather than omitted, so the board itself is a visible reason to reach an
 // A instead of a wall these candidates never even know exists. Real title
@@ -57,9 +64,11 @@ export function LockedDiscoverJobCard({ posting }: { posting: Pick<ExclusiveJobP
 export function DiscoverJobCard({
   posting,
   fitBucket,
+  idealMatch,
 }: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
+  idealMatch?: boolean
 }) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const confidential = posting.disclosure === 'CONFIDENTIAL'
@@ -87,6 +96,7 @@ export function DiscoverJobCard({
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {isRecentlyListed(posting.createdAt) && <NewBadge />}
+          {idealMatch && <IdealMatchBadge />}
           <FitBadge bucket={fitBucket} />
           <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
         </span>

@@ -62,7 +62,12 @@ import { Spinner } from '@/components/ui/spinner'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { computeBoardListingFitBucket, computeSurfacedJobFitBucket } from '@/lib/jobs/job-fit-bucket'
+import {
+  computeBoardListingFitBucket,
+  computeSurfacedJobFitBucket,
+  computeBoardListingIsIdealMatch,
+  computeSurfacedJobIsIdealMatch,
+} from '@/lib/jobs/job-fit-bucket'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
@@ -331,6 +336,7 @@ async function JobRecommendationsSection({
                     key={posting.id}
                     posting={posting}
                     fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
+                    idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
                   />
                 )),
                 ...visibleSurfacedJobs.map((job) => {
@@ -340,6 +346,7 @@ async function JobRecommendationsSection({
                       key={job.id}
                       job={job}
                       fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
+                      idealMatch={computeSurfacedJobIsIdealMatch(profile, job, companySizeBandFor(job.companyName))}
                       worksHereContacts={worksHere.contacts}
                       worksHereTotalCount={worksHere.totalCount}
                     />

@@ -12,37 +12,56 @@ function normalize(value: string | null): string {
   return (value ?? '').trim().toLowerCase()
 }
 
-function buildCacheKey(input: MarketConditionsInput): { roleQuery: string; location: string } {
+function buildCacheKey(input: MarketConditionsInput): { roleQuery: string; location: string; industry: string } {
   const occupation = lookupSocCode(input.primaryFunction)
   const roleQuery = normalize(input.roleType) || occupation?.title.toLowerCase() || 'general'
   const location =
     input.city && input.state
       ? `${normalize(input.city)}, ${normalize(input.state)}`
       : normalize(input.state) || 'us'
-  return { roleQuery, location }
+  const industry = normalize(input.targetIndustries?.[0] ?? null)
+  return { roleQuery, location, industry }
 }
 
 async function refreshMarketConditions(
   input: MarketConditionsInput,
   roleQuery: string,
-  location: string
+  location: string,
+  industry: string
 ): Promise<void> {
   const occupation = lookupSocCode(input.primaryFunction)
   const adzunaWhat = input.roleType || occupation?.title || input.primaryFunction || 'jobs'
   const adzunaWhere = input.city ? `${input.city} ${input.state ?? ''}`.trim() : input.state
+  const industryTerm = input.targetIndustries?.[0] ?? null
 
-  const [adzunaResult, blsResult] = await Promise.all([
+  // The ideal (title AND industry AND geo) count is only meaningful when
+  // both a location and a target industry are known — without geo it can't
+  // claim to be "near you," and without an industry term what_and would
+  // just duplicate the broader query.
+  const canComputeIdeal = !!adzunaWhere && !!industryTerm
+
+  const [adzunaResult, idealResult, blsResult] = await Promise.all([
     searchAdzunaJobs(adzunaWhat, adzunaWhere ?? null),
+    canComputeIdeal
+      ? searchAdzunaJobs(adzunaWhat, adzunaWhere, 50, industryTerm)
+      : Promise.resolve({
+          status: 'not_configured' as const,
+          count: null,
+          error: 'Need both a location and a target industry to compute an ideal-match count.',
+        }),
     lookupBlsTrend(input.primaryFunction, input.city, input.state),
   ])
 
   await prisma.marketConditionsSnapshot.upsert({
-    where: { roleQuery_location: { roleQuery, location } },
+    where: { roleQuery_location_industry: { roleQuery, location, industry } },
     create: {
       roleQuery,
       location,
+      industry,
       adzunaCount: adzunaResult.count,
       adzunaError: adzunaResult.error,
+      adzunaIdealCount: idealResult.count,
+      adzunaIdealError: idealResult.error,
       blsSocCode: blsResult.socCode,
       blsAreaCode: blsResult.areaCode,
       blsYoyChangePct: blsResult.yoyChangePct,
@@ -51,6 +70,8 @@ async function refreshMarketConditions(
     update: {
       adzunaCount: adzunaResult.count,
       adzunaError: adzunaResult.error,
+      adzunaIdealCount: idealResult.count,
+      adzunaIdealError: idealResult.error,
       blsSocCode: blsResult.socCode,
       blsAreaCode: blsResult.areaCode,
       blsYoyChangePct: blsResult.yoyChangePct,
@@ -69,21 +90,23 @@ async function refreshMarketConditions(
 // the next request — previously this awaited two live external API calls
 // (Adzuna + BLS) inline, blocking whatever page called it.
 export async function getMarketConditions(input: MarketConditionsInput): Promise<MarketConditions> {
-  const { roleQuery, location } = buildCacheKey(input)
+  const { roleQuery, location, industry } = buildCacheKey(input)
 
   const cached = await prisma.marketConditionsSnapshot.findUnique({
-    where: { roleQuery_location: { roleQuery, location } },
+    where: { roleQuery_location_industry: { roleQuery, location, industry } },
   })
 
   if (cached) {
     const isFresh = Date.now() - cached.fetchedAt.getTime() < CACHE_TTL_MS
     if (!isFresh) {
-      after(() => refreshMarketConditions(input, roleQuery, location))
+      after(() => refreshMarketConditions(input, roleQuery, location, industry))
     }
     return {
       dataAvailable: cached.adzunaCount !== null || cached.blsYoyChangePct !== null,
       adzunaCount: cached.adzunaCount,
       adzunaError: cached.adzunaError,
+      adzunaIdealCount: cached.adzunaIdealCount,
+      adzunaIdealError: cached.adzunaIdealError,
       blsSocCode: cached.blsSocCode,
       blsAreaCode: cached.blsAreaCode,
       blsYoyChangePct: cached.blsYoyChangePct,
@@ -92,11 +115,13 @@ export async function getMarketConditions(input: MarketConditionsInput): Promise
     }
   }
 
-  after(() => refreshMarketConditions(input, roleQuery, location))
+  after(() => refreshMarketConditions(input, roleQuery, location, industry))
   return {
     dataAvailable: false,
     adzunaCount: null,
     adzunaError: null,
+    adzunaIdealCount: null,
+    adzunaIdealError: null,
     blsSocCode: null,
     blsAreaCode: null,
     blsYoyChangePct: null,
