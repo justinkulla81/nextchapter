@@ -143,15 +143,16 @@ function buildSections(
         // default Connecting item with its own distinct "Premium" badge,
         // not folded into a generic collapsed catch-all category. Real
         // monetization surface area (see Prompt 78's negotiation
-        // coaching, the coaching-commission revenue stream).
-        { href: '/coaching', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium' },
+        // coaching, the coaching-commission revenue stream). Executive
+        // Coach, Executive Recruiter, and Market Intelligence now all route
+        // to the same /dashboard/premium waitlist page — one bundled
+        // account tier instead of three separate asks.
+        { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium' },
         {
-          href: '/dashboard/privacy',
+          href: '/dashboard/premium',
           label: 'Executive Recruiter',
           icon: Building2,
           badge: 'Premium',
-          muted: true,
-          disabled: true,
         },
       ],
     },
@@ -169,12 +170,10 @@ function buildSections(
       title: 'Data',
       links: [
         {
-          href: '/dashboard/market-intelligence',
+          href: '/dashboard/premium',
           label: 'Market Intelligence',
           icon: LineChart,
           badge: 'Premium',
-          muted: true,
-          disabled: true,
         },
         { href: '/dashboard/network/contacts', label: 'My Contacts', icon: Contact, ...gmailLock },
         {
