@@ -12,6 +12,7 @@ import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
 import { getHardGateStatus, isGmailConnected, isGateExemptPath } from '@/lib/dashboard/access-gate'
+import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { HardGateBlockingScreen } from '@/components/dashboard/HardGateBlockingScreen'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
@@ -85,7 +86,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       messagesUnreadCount={messagesUnreadCount}
       newBackchannelCount={newBackchannelCount}
       hasEmailConnection={gmailConnected}
-      linkedInConnected={profile.linkedinConnectionsImportedAt !== null}
+      linkedInConnected={isLinkedInConnected(profile)}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
     />
   )

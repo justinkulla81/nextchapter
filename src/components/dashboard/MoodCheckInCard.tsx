@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import type { Mood } from '@prisma/client'
 import { TrendingDown, Minus, TrendingUp, Zap, X, type LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { checkInMood, dismissMoodCard } from '@/app/dashboard/actions'
 import { MOOD_ORDER, MOOD_LABEL, MOOD_RESPONSE } from '@/lib/daily/mood-labels'
 
@@ -20,6 +22,8 @@ export function MoodCheckInCard({
   checkInsLast7Days,
   firstName,
   dismissedToday,
+  lowSentiment,
+  hasCoach,
 }: {
   todaysMood: Mood | null
   checkInsLast7Days: number
@@ -27,6 +31,13 @@ export function MoodCheckInCard({
   // Server-computed: whether this was already dismissed today (see
   // moodCardDismissedAt / startOfUTCDay) — resets automatically tomorrow.
   dismissedToday: boolean
+  // A real, trailing-two-week low-mood signal (see getSentimentAlert) — not
+  // a one-off bad day. Folded into this same card instead of a separate
+  // box below it, so the response to "how are you doing" reads as one
+  // consistent message from Victoria rather than two differently-voiced
+  // ones stacked on top of each other.
+  lowSentiment: boolean
+  hasCoach: boolean
 }) {
   const router = useRouter()
   const [optimisticMood, setOptimisticMood] = useState<Mood | null>(todaysMood)
@@ -100,7 +111,7 @@ export function MoodCheckInCard({
             </div>
           </div>
         ) : (
-          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4">
+          <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4">
             <p className="text-sm text-foreground">
               <span className="mr-1.5 inline-flex items-center align-text-bottom">
                 {(() => {
@@ -113,6 +124,43 @@ export function MoodCheckInCard({
             <p className="text-sm text-foreground">
               {`You've checked in ${checkInsLast7Days} / 7 days. Thanks for sharing, it helps us support you by knowing how you're doing. Keep it up!`}
             </p>
+            {lowSentiment && (
+              <div className="space-y-2 border-t border-border pt-3">
+                <p className="text-sm text-foreground">
+                  It looks like the last couple weeks have been rough. A search is hard on its
+                  own — a stretch of tough days doesn&apos;t mean anything&apos;s wrong with how
+                  you&apos;re doing it. A few things that actually help:
+                </p>
+                <ul className="ml-4 list-disc space-y-1 text-sm text-muted-foreground">
+                  <li>Reach out to someone you trust — not about the search, just to talk.</li>
+                  <li>Take a day away from the search entirely. It&apos;ll still be there tomorrow.</li>
+                  <li>
+                    Message someone from your{' '}
+                    <Link href="/dashboard/network" className="text-primary underline underline-offset-4">
+                      Support Network
+                    </Link>{' '}
+                    — you&apos;ve already got people on there who said they&apos;d help.
+                  </li>
+                  <li>If this keeps up, talking to a licensed professional can genuinely help.</li>
+                </ul>
+                {!hasCoach && (
+                  <div className="flex flex-col items-start gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Some of this is easier with a real person in your corner between sessions.
+                    </p>
+                    <Button
+                      nativeButton={false}
+                      render={<Link href="/coaching" />}
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                    >
+                      Consider Executive Coaching
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

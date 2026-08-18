@@ -52,6 +52,7 @@ import {
   isLikelyBulkOrPromotional,
   guessCompanyFromConfirmationText,
   guessCompanyFromRejectionText,
+  guessCompanyFromWorkdayTenant,
 } from '../src/lib/email-tracking/ats-patterns'
 import { extractDomain, extractEmailAddress } from '../src/lib/email-tracking/email-address'
 import { NON_COMPANY_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '../src/lib/text/email-domain'
@@ -68,14 +69,25 @@ const prisma = new PrismaClient()
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
 const DRY_RUN = process.argv.includes('--dry-run')
 
+// Mirrors guessCompanyFromDomain in src/lib/email-tracking/classify-email.ts
+// exactly, including the GENERIC_MAIL_SUBDOMAIN_LABELS fallback added after
+// this script was first written — without it, a dry run of this script
+// regresses already-correct rows (e.g. "Beehiiv" from mail.beehiiv.com back
+// down to "Mail"). Keep in sync if that function changes again.
+const GENERIC_MAIL_SUBDOMAIN_LABELS = new Set([
+  'app', 'talent', 'jobalerts', 'careers', 'jobs', 'hr', 'mail', 'notifications', 'no-reply', 'noreply', 'recruiting',
+])
+
 function guessCompanyFromDomain(fromAddress: string): string | null {
   const match = extractEmailAddress(fromAddress).match(/@([a-z0-9.-]+)$/i)
   if (!match) return null
   const domain = match[1].toLowerCase()
-  const root = domain.split('.').slice(-2).join('.')
+  const labels = domain.split('.')
+  const root = labels.slice(-2).join('.')
   if (NON_COMPANY_DOMAINS.has(root)) return null
-  const name = domain.split('.')[0]
-  return name.charAt(0).toUpperCase() + name.slice(1)
+  const name = labels[0]
+  const resolved = GENERIC_MAIL_SUBDOMAIN_LABELS.has(name) && labels.length > 2 ? root.split('.')[0] : name
+  return resolved.charAt(0).toUpperCase() + resolved.slice(1)
 }
 
 type Classification = {
@@ -107,7 +119,8 @@ function classifyInboundEmail(
     return {
       activityType: 'REJECTION',
       confidence: rejection.confidence,
-      companyName: companyName ?? guessCompanyFromRejectionText(subject, bodyPreview),
+      companyName:
+        companyName ?? guessCompanyFromRejectionText(subject, bodyPreview) ?? guessCompanyFromWorkdayTenant(fromAddress),
     }
   }
 
@@ -126,7 +139,8 @@ function classifyInboundEmail(
     return {
       activityType: 'APPLICATION_CONFIRMATION',
       confidence: confirmation.confidence,
-      companyName: companyName ?? guessCompanyFromConfirmationText(subject, bodyPreview),
+      companyName:
+        companyName ?? guessCompanyFromConfirmationText(subject, bodyPreview) ?? guessCompanyFromWorkdayTenant(fromAddress),
     }
   }
 

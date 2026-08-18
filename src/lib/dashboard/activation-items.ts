@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
+import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
 import { DOSSIER_REFERENCE_TARGET } from '@/lib/scoring/dossier-unlock'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -47,6 +48,7 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
         changePacePreference: true,
         changeReadiness: true,
         linkedinConnectionsImportedAt: true,
+        linkedInConnection: { select: { disconnectedAt: true } },
         // Set in onboarding/actions.ts, before account creation — see
         // getDashboardData's own redirect, which guarantees this is
         // already true for every candidate who can reach this code. This
@@ -63,7 +65,7 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
   ])
 
-  const linkedInConnected = profile.linkedinConnectionsImportedAt !== null
+  const linkedInConnected = isLinkedInConnected(profile)
   const searchStrategyQuestionsComplete =
     isSearchGoalsComplete(profile) && isBlockersAndMotivationsComplete(profile)
 

@@ -329,6 +329,32 @@ export function guessCompanyFromRejectionText(subject: string, bodyPreview: stri
   return bodyMatch ? bodyMatch[1].trim().replace(/[.,]+$/, '') : null
 }
 
+// Workday relays confirmation/rejection mail from <tenant-slug>@myworkday.com
+// — one shared domain for every employer, so guessCompanyFromDomain
+// correctly returns null for it (myworkday.com is in NON_COMPANY_DOMAINS).
+// Usually that's fine because the subject/body name the company in one of
+// the shapes above. But confirmed against a real production email — bare
+// "Application Received" subject, no display name, from
+// aenetworks@myworkday.com (A&E Networks) — some Workday tenants send with
+// neither, leaving the tenant slug in the address as the only signal left.
+// Same tradeoff as guessCompanyFromDomain: a rough, unpunctuated guess
+// (tenant slugs strip spaces/ampersands) beats companyName: null, which
+// silently drops the application via syncJobPostingFromEmail's
+// `if (!companyName) return` guard. Deliberately scoped to the bare
+// myworkday.com domain (not *.myworkday.com subdomains, which are usually
+// the generic-purpose-label shape guessCompanyFromDomain already handles).
+const WORKDAY_GENERIC_TENANT_LABELS = new Set([
+  'noreply', 'no-reply', 'notifications', 'notification', 'hr', 'careers', 'jobs', 'talent', 'workday', 'recruiting', 'donotreply',
+])
+
+export function guessCompanyFromWorkdayTenant(fromAddress: string): string | null {
+  const match = extractEmailAddress(fromAddress).match(/^([a-z0-9-]+)@myworkday\.com$/i)
+  if (!match) return null
+  const tenant = match[1].toLowerCase()
+  if (WORKDAY_GENERIC_TENANT_LABELS.has(tenant)) return null
+  return tenant.charAt(0).toUpperCase() + tenant.slice(1)
+}
+
 // Best-effort only — most confirmation subjects never name the role
 // ("Thanks for applying to Foo"), so this only fires on the shapes that
 // do ("...for the Senior PM role at Foo", "application for Product

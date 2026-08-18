@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
+import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 
 export type HardGateStatus = 'exempt' | 'search_strategy_required' | 'activation_required' | 'unlocked'
 
@@ -44,10 +45,11 @@ export function getHardGateStatus(profile: {
   changePacePreference: Parameters<typeof isBlockersAndMotivationsComplete>[0]['changePacePreference']
   changeReadiness: Parameters<typeof isBlockersAndMotivationsComplete>[0]['changeReadiness']
   linkedinConnectionsImportedAt: Date | null
+  linkedInConnection?: { disconnectedAt: Date | null } | null
 }, gmailConnected: boolean): HardGateStatus {
   if (!profile.subjectToHardGate) return 'exempt'
   if (!isSearchStrategyGateComplete(profile)) return 'search_strategy_required'
-  if (!gmailConnected || !profile.linkedinConnectionsImportedAt) return 'activation_required'
+  if (!gmailConnected || !isLinkedInConnected(profile)) return 'activation_required'
   return 'unlocked'
 }
 

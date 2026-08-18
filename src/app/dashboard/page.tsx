@@ -7,12 +7,10 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
-import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
 import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
-import { SentimentSupportCard } from '@/components/dashboard/SentimentSupportCard'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import {
@@ -23,7 +21,6 @@ import {
   hasStartedSprint,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
-import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
 import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
@@ -34,7 +31,6 @@ import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industrie
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { GotHiredCTACard } from '@/components/dashboard/GotHiredCTACard'
-import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { SessionImpactCard } from '@/components/dashboard/SessionImpactCard'
 import { getUnviewedSessionImpact } from '@/lib/coach/session-impact'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
@@ -49,6 +45,7 @@ import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
 import { getHardGateStatus } from '@/lib/dashboard/access-gate'
+import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { SearchPlanCard } from '@/components/dashboard/SearchPlanCard'
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
 
@@ -124,7 +121,6 @@ export default async function DashboardPage() {
     {
       data: { user },
     },
-    conversation,
     weeklyProgress,
     marketRealityGrade,
     todaysMood,
@@ -146,7 +142,6 @@ export default async function DashboardPage() {
     interimSignupCount,
   ] = await Promise.all([
     supabase.auth.getUser(),
-    getOrCreateCoachConversation(profile.id, profile.firstName),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
     computeMarketRealityCompositeGrade(profile.id),
     getTodaysMood(profile.id),
@@ -222,8 +217,6 @@ export default async function DashboardPage() {
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
     : 0
   const dayNumber = Math.floor(daysSinceRegistration) + 1
-  const showCoachingCTA =
-    daysSinceRegistration >= 7 && marketRealityGrade !== null && isAtOrBelowGrade(marketRealityGrade.grade, 'C')
 
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
@@ -234,7 +227,7 @@ export default async function DashboardPage() {
   // group unlocks on. Victoria's weekly focus is grounded in real Gmail/
   // Calendar/LinkedIn-derived activity, so there's nothing honest for her to
   // say before both are connected.
-  const linkedInConnected = profile.linkedinConnectionsImportedAt !== null
+  const linkedInConnected = isLinkedInConnected(profile)
   const bothConnectedUnlocked = !!emailConnection && !!calendarConnection && linkedInConnected
 
   return (
@@ -309,6 +302,8 @@ export default async function DashboardPage() {
           checkInsLast7Days={checkInSummary.checkInsLast7Days}
           firstName={profile.firstName}
           dismissedToday={moodCardDismissedToday}
+          lowSentiment={sentimentAlert.lowSentiment}
+          hasCoach={!!profile.coachId}
         />
 
         {/* Below Check In, per user request — Victoria's advice is real
@@ -348,8 +343,6 @@ export default async function DashboardPage() {
 
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
 
-      {sentimentAlert.lowSentiment && <SentimentSupportCard hasCoach={!!profile.coachId} />}
-
       {(showGotHiredCTA || needsCoachingForm) && (
         <div className="space-y-4">
           {showGotHiredCTA && <GotHiredCTACard />}
@@ -360,10 +353,6 @@ export default async function DashboardPage() {
       <Suspense fallback={null}>
         <SessionImpactSection candidateId={profile.id} />
       </Suspense>
-
-      <div className="space-y-4 border-t border-border pt-8">
-        <CoachChatCard initialMessages={conversation.messages} showExecutiveCoachCta={showCoachingCTA} />
-      </div>
 
       <GuideCallout pageSlot="dashboard" currentJobStatus={profile.currentJobStatus} />
     </div>

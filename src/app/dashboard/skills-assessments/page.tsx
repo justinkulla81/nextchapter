@@ -73,10 +73,15 @@ export default async function SkillsAssessmentsPage() {
     },
     {
       key: 'skills',
-      title: 'Skills Inventory',
+      title: 'Skills Assessment',
+      // Unlocks the most of any assessment here (personalized Learning
+      // page, Job/Skills Recommendations, Market Reality Report) — flagged
+      // as priority and pinned first in the list below so candidates do
+      // this one first, not buried under others by completion status.
+      priority: true,
       description:
         'A candid self-read on your core function, AI fluency, and a few other skills that drive how jobs and courses get matched to you.',
-      feeds: 'Feeds: Job Recommendations · Skills Recommendations · Market Reality Report',
+      feeds: 'Feeds: Job Recommendations · Skills Recommendations · Market Reality Report · Learning',
       sharedWith: 'Who sees it: no one — personalization only, used to match jobs and courses to you.',
       completedAt: profile.skillsAssessmentCompletedAt,
       points: estimateActionEffort({ actionType: 'SKILLS_ASSESSMENT_COMPLETED' }).points,
@@ -128,9 +133,17 @@ export default async function SkillsAssessmentsPage() {
       href: '/dashboard/references',
       ctaLabel: completedReferenceCount > 0 ? 'Manage references' : 'Request references',
     },
-    // Not-completed first — that's the one thing actually asking for
+    // Skills Assessment always first — it unlocks the most downstream
+    // personalization (Learning, Job/Skills Recommendations, Market
+    // Reality Report) of anything on this page, so it stays pinned to the
+    // top regardless of completion status. Everything else falls back to
+    // not-completed-first — that's the one thing actually asking for
     // attention on this page.
-  ].sort((a, b) => Number(!!a.completedAt) - Number(!!b.completedAt))
+  ].sort((a, b) => {
+    if ('priority' in a && a.priority) return -1
+    if ('priority' in b && b.priority) return 1
+    return Number(!!a.completedAt) - Number(!!b.completedAt)
+  })
 
   return (
     <div className="space-y-8">
@@ -156,9 +169,16 @@ export default async function SkillsAssessmentsPage() {
 
             return (
               <details key={assessment.key} className="group overflow-hidden rounded-lg border border-border">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
+                      {'priority' in assessment && assessment.priority && (
+                        <span className="shrink-0 rounded-full bg-orange/15 px-2 py-0.5 text-xs font-medium text-orange">
+                          Priority
+                        </span>
+                      )}
+                    </div>
                     <p
                       className={cn(
                         'truncate text-xs',
@@ -174,6 +194,9 @@ export default async function SkillsAssessmentsPage() {
                         +{assessment.points} pts
                       </span>
                     )}
+                    <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
+                      {assessment.ctaLabel}
+                    </Button>
                     <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
                       See details
                     </span>
@@ -184,9 +207,6 @@ export default async function SkillsAssessmentsPage() {
                   <p className="text-sm text-muted-foreground">{assessment.description}</p>
                   <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
                   <p className="text-xs font-medium text-muted-foreground">{assessment.sharedWith}</p>
-                  <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
-                    {assessment.ctaLabel}
-                  </Button>
 
                   {assessment.key === 'skills' && (
                     <p className="border-t border-border pt-3 text-xs text-muted-foreground">

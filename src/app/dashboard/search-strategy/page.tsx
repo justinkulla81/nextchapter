@@ -12,6 +12,10 @@ import {
   isNetworkingWillingnessComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
+import { getOrCreateCoachConversation } from '@/lib/coach/get-conversation'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { isAtOrBelowGrade } from '@/lib/coaching/grade-threshold'
+import { CoachChatCard } from '@/components/dashboard/CoachChatCard'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
@@ -201,6 +205,19 @@ export default async function SearchStrategyPage() {
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
   const currentSprint = await getCurrentWeekSprint(profile.id)
 
+  // Moved here from the main dashboard, per user request — Victoria's chat
+  // belongs alongside her Strategy Guidance rather than as a separate box
+  // at the bottom of the Success Dashboard.
+  const [conversation, marketRealityGrade] = await Promise.all([
+    getOrCreateCoachConversation(profile.id, profile.firstName),
+    computeMarketRealityCompositeGrade(profile.id),
+  ])
+  const daysSinceRegistration = profile.registrationCompletedAt
+    ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
+    : 0
+  const showCoachingCTA =
+    daysSinceRegistration >= 7 && marketRealityGrade !== null && isAtOrBelowGrade(marketRealityGrade.grade, 'C')
+
   const searchStrategySoFarCard = (
     <Card id="optional-questions" className="scroll-mt-4 overflow-hidden p-0">
       <details className="group" open={!optionalQuestionsAnswered}>
@@ -300,15 +317,19 @@ export default async function SearchStrategyPage() {
           changing week to week. */}
       <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
 
-      {hasAnsweredOnce ? (
-        <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
-          <SearchStrategyGuidanceCard profile={profile} checklist={checklist} />
-        </Suspense>
-      ) : (
-        <Suspense fallback={null}>
-          <SearchStrategyGuidanceTrigger profile={profile} />
-        </Suspense>
-      )}
+      <div className="space-y-4">
+        {hasAnsweredOnce ? (
+          <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
+            <SearchStrategyGuidanceCard profile={profile} checklist={checklist} />
+          </Suspense>
+        ) : (
+          <Suspense fallback={null}>
+            <SearchStrategyGuidanceTrigger profile={profile} />
+          </Suspense>
+        )}
+
+        <CoachChatCard initialMessages={conversation.messages} showExecutiveCoachCta={showCoachingCTA} />
+      </div>
 
       {searchStrategySoFarCard}
 

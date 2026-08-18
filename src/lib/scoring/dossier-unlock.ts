@@ -10,6 +10,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
+import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 
@@ -274,7 +275,10 @@ export async function getModuleGateStatus(candidateId: string): Promise<ModuleGa
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
       getDossierLadderTier(candidateId),
       isGmailConnected(candidateId),
-      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { linkedinConnectionsImportedAt: true } }),
+      prisma.candidateProfile.findUniqueOrThrow({
+        where: { id: candidateId },
+        select: { linkedinConnectionsImportedAt: true, linkedInConnection: { select: { disconnectedAt: true } } },
+      }),
       prisma.reviewerQuestion.count({ where: { candidateId, candidateExplanation: { not: null } } }),
       computeCurrentSprintStreak(candidateId, 3),
     ])
@@ -331,9 +335,9 @@ export async function getModuleGateStatus(candidateId: string): Promise<ModuleGa
     {
       key: 'linkedInGmailConnected',
       label: 'Your Network / Marketing Plan / My Contacts (one-click connect)',
-      unlocked: Boolean(linkedIn.linkedinConnectionsImportedAt) || gmailConnected,
+      unlocked: isLinkedInConnected(linkedIn) || gmailConnected,
       reason:
-        Boolean(linkedIn.linkedinConnectionsImportedAt) || gmailConnected
+        isLinkedInConnected(linkedIn) || gmailConnected
           ? 'Unlocked — LinkedIn or Gmail connected.'
           : 'Connect LinkedIn or Gmail to unlock (1 click).',
     },

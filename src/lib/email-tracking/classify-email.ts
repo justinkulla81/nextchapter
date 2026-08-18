@@ -11,6 +11,7 @@ import {
   matchNetworkingOutreach,
   guessCompanyFromConfirmationText,
   guessCompanyFromRejectionText,
+  guessCompanyFromWorkdayTenant,
   isLikelyBulkOrPromotional,
 } from './ats-patterns'
 import { extractDomain, extractEmailAddress } from './email-address'
@@ -106,7 +107,8 @@ export function classifyInboundEmail(
     return {
       activityType: 'REJECTION',
       confidence: rejection.confidence,
-      companyName: companyName ?? guessCompanyFromRejectionText(subject, bodyPreview),
+      companyName:
+        companyName ?? guessCompanyFromRejectionText(subject, bodyPreview) ?? guessCompanyFromWorkdayTenant(fromAddress),
     }
   }
 
@@ -125,7 +127,8 @@ export function classifyInboundEmail(
     return {
       activityType: 'APPLICATION_CONFIRMATION',
       confidence: confirmation.confidence,
-      companyName: companyName ?? guessCompanyFromConfirmationText(subject, bodyPreview),
+      companyName:
+        companyName ?? guessCompanyFromConfirmationText(subject, bodyPreview) ?? guessCompanyFromWorkdayTenant(fromAddress),
     }
   }
 
