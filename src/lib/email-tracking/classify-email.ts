@@ -10,6 +10,7 @@ import {
   matchIntroRequest,
   matchNetworkingOutreach,
   guessCompanyFromConfirmationText,
+  guessCompanyFromRejectionText,
   isLikelyBulkOrPromotional,
 } from './ats-patterns'
 import { extractDomain, extractEmailAddress } from './email-address'
@@ -102,7 +103,11 @@ export function classifyInboundEmail(
   // since it's what triggers Victoria's supportive reframe.
   const rejection = matchRejection(subject, bodyPreview)
   if (rejection.matched && winsOverBulk(rejection.confidence)) {
-    return { activityType: 'REJECTION', confidence: rejection.confidence, companyName }
+    return {
+      activityType: 'REJECTION',
+      confidence: rejection.confidence,
+      companyName: companyName ?? guessCompanyFromRejectionText(subject, bodyPreview),
+    }
   }
 
   const offer = matchOffer(subject, bodyPreview)

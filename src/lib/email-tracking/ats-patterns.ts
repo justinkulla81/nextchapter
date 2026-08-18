@@ -14,8 +14,21 @@ export interface PatternMatch {
   confidence: 'high' | 'low'
 }
 
+// Real ATS/email-client templates routinely emit a "smart" curly apostrophe
+// (U+2019, "'") instead of a straight one — confirmed on a real production
+// email (Paxos via Ashby: "we've decided to move forward with other
+// candidates" used U+2019) that silently missed every contraction pattern
+// below despite them already handling the straight apostrophe. Normalizing
+// once here, ahead of every category matcher (they all route through
+// testAny), fixes every contraction pattern in this file at once instead of
+// patching each one's character class individually.
+function normalizeApostrophes(text: string): string {
+  return text.replace(/[‘’ʼ]/g, "'")
+}
+
 function testAny(text: string, patterns: RegExp[]): boolean {
-  return patterns.some((p) => p.test(text))
+  const normalized = normalizeApostrophes(text)
+  return patterns.some((p) => p.test(normalized))
 }
 
 // --- BULK / PROMOTIONAL PRE-FILTER ---
@@ -98,7 +111,17 @@ export function isLikelyBulkOrPromotional(
 // --- INBOUND ---
 
 const REJECTION_HIGH_CONFIDENCE = [
-  /we (have )?decided to (move forward|proceed) with (other|another) candidates?/i,
+  // we decided / we have decided / we've decided — a real production miss:
+  // "we've decided to move forward with other candidates" (the contraction)
+  // didn't match the old `we (have )?decided` shape, since that requires a
+  // literal space between "we" and "decided" with nothing in between except
+  // an optional "have ". This let a genuine Ashby-hosted rejection
+  // ("Update from Paxos" — "...after careful consideration, we've decided
+  // to move forward with other candidates...") fall through to the
+  // APPLICATION_CONFIRMATION matcher instead, since its opening "Thank you
+  // for your interest in..." boilerplate matched that category's phrasing
+  // first.
+  /we('ve| have)? decided to (move forward|proceed) with (other|another) candidates?/i,
   /we regret to inform you/i,
   /will not be moving forward with your (application|candidacy)/i,
   /we('| ha)ve chosen to pursue other candidates/i,
@@ -116,8 +139,11 @@ const REJECTION_HIGH_CONFIDENCE = [
 ]
 // "Unfortunately" alone used to be in this list — dropped because it's a
 // single common English word that matches any unrelated marketing or
-// newsletter email that happens to use it, not just rejections.
-const REJECTION_LOW_CONFIDENCE = [/other applicants/i, /keep your resume on file/i]
+// newsletter email that happens to use it, not just rejections. "other
+// candidates" added alongside the existing "other applicants" as a
+// defense-in-depth low-confidence fallback for the same "went with someone
+// else" phrasing the high-confidence pattern above targets more precisely.
+const REJECTION_LOW_CONFIDENCE = [/other applicants/i, /other candidates/i, /keep your resume on file/i]
 
 export function matchRejection(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
@@ -267,6 +293,40 @@ export function guessCompanyFromConfirmationText(subject: string, bodyPreview: s
   if (bodyMatch) return bodyMatch[1].trim().replace(/[.,]+$/, '')
   const atMatch = bodyPreview.match(CONFIRMATION_COMPANY_AT_MENTION_IN_BODY)
   return atMatch ? atMatch[1].trim().replace(/[.,]+$/, '') : null
+}
+
+// A rejection's sender is always an ATS relay domain (ashbyhq.com,
+// greenhouse.io, myworkday.com, ...), never the employer's own domain — so
+// guessCompanyFromDomain (classify-email.ts) deliberately returns null for
+// it, same as it does for confirmations. Confirmations have a text-based
+// fallback for exactly this reason; rejections never did, so a rejection
+// from any ATS-relay domain landed with companyName: null and
+// syncJobPostingFromEmail's `if (!companyName) return` silently dropped it —
+// the REJECTION row still got created, but nothing ever touched the
+// candidate's actual JobPosting/declinedAt. Confirmed against a real
+// production rejection ("Your application to Corporate Development
+// Director at Farther") that correctly classified as REJECTION but never
+// updated the Farther JobPosting it was plainly about.
+//
+// Rejection subjects/bodies routinely reuse the exact same "application to
+// <Title> at <Company>" shape confirmations use (as in the Farther example
+// above), so that extraction is tried first. Two rejection-specific shapes
+// that confirmations never use are added as fallbacks: Ashby's own
+// "Update from <Company>" subject template, and the "Thank you for your
+// interest in <Company>" body opener nearly every polite rejection leads
+// with (the same phrase that misclassified this exact email as a
+// confirmation before the REJECTION_HIGH_CONFIDENCE contraction fix above).
+const REJECTION_COMPANY_UPDATE_FROM_SUBJECT = /^update (?:from|on your application (?:to|with))\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5})$/i
+const REJECTION_COMPANY_INTEREST_IN_BODY =
+  /interest in\s+([A-Z][\w&.,'│|-]*(?:\s[\w&.,'│|-]+){0,5}?)(?:\s+and\b|\.\s|,\s|\s+—|\s+-\s|\s*$)/i
+
+export function guessCompanyFromRejectionText(subject: string, bodyPreview: string): string | null {
+  const fromConfirmationShape = guessCompanyFromConfirmationText(subject, bodyPreview)
+  if (fromConfirmationShape) return fromConfirmationShape
+  const subjectMatch = subject.match(REJECTION_COMPANY_UPDATE_FROM_SUBJECT)
+  if (subjectMatch) return subjectMatch[1].trim()
+  const bodyMatch = bodyPreview.match(REJECTION_COMPANY_INTEREST_IN_BODY)
+  return bodyMatch ? bodyMatch[1].trim().replace(/[.,]+$/, '') : null
 }
 
 // Best-effort only — most confirmation subjects never name the role

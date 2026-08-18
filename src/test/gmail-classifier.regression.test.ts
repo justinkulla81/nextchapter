@@ -75,6 +75,19 @@ const EXPECTED: Record<string, Expected> = {
   // APPLICATION_CONFIRMATION just because it mentions jobs/applying; this is
   // exactly the shape of bug isLikelyBulkOrPromotional exists to catch.
   onPurposeCareersNewsletter: { activityType: 'NEEDS_REVIEW', companyName: null, title: null },
+  // Real rejection fixtures — this suite had zero REJECTION coverage before
+  // (see file header history), which is exactly how the "we've decided"
+  // contraction miss and the missing REJECTION company-name fallback both
+  // shipped unnoticed. Ashby's own template opens with "Thank you for your
+  // interest in <Company>" — the same phrase that used to win the
+  // APPLICATION_CONFIRMATION match before this email's rejection phrasing
+  // ("we've decided to move forward with other candidates") got its
+  // contraction fixed.
+  paxosRejection: { activityType: 'REJECTION', companyName: 'Paxos', title: null },
+  // Reuses the exact "application to <Title> at <Company>" subject shape
+  // confirmations use — the company-name fallback for REJECTION tries that
+  // shape first before falling back to rejection-specific patterns.
+  fartherRejection: { activityType: 'REJECTION', companyName: 'Farther', title: null },
 }
 
 describe('Gmail classifier regression suite (real production fixtures)', () => {
@@ -89,6 +102,13 @@ describe('Gmail classifier regression suite (real production fixtures)', () => {
       if (expected.activityType === 'APPLICATION_CONFIRMATION') {
         expect(result.companyName).toBe(expected.companyName)
         expect(guessTitleFromConfirmationText(fixture.subject, fixture.bodyPreview)).toBe(expected.title)
+      }
+
+      // A REJECTION with no companyName never reaches JobPosting.declinedAt
+      // (syncJobPostingFromEmail's `if (!companyName) return`) — this is the
+      // exact bug the guessCompanyFromRejectionText fallback exists to close.
+      if (expected.activityType === 'REJECTION') {
+        expect(result.companyName).toBe(expected.companyName)
       }
     })
   }
