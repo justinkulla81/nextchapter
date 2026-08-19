@@ -41,6 +41,12 @@ export function CreateAccountForm({
   const [resent, setResent] = useState(false)
   const [resendError, setResendError] = useState<string | null>(null)
   const [blocked, setBlocked] = useState<{ needsPassword: boolean } | null>(null)
+  // A manual escape hatch for the auto-send below — if that call hangs
+  // (a network stall, not a thrown error) rather than ever resolving,
+  // sent/error/blocked all stay false forever and the candidate is stuck
+  // looking at "Sending…" with nothing to click. attemptSend is safe to
+  // fire again concurrently — same idempotent Supabase call, same email.
+  const [manualResendPending, setManualResendPending] = useState(false)
 
   // §4.5: "Never send to a work address. If the registered address is a
   // corporate domain, warn and request a personal one." Resume-derived
@@ -254,10 +260,21 @@ export function CreateAccountForm({
   }
 
   return (
-    <div className="cursor-progress space-y-2 [&_*]:cursor-progress">
-      <p className="text-sm text-muted-foreground">
+    <div className="space-y-2">
+      <p className="cursor-progress text-sm text-muted-foreground [&_*]:cursor-progress">
         Sending a confirmation link to <span className="font-medium">{email}</span>…
       </p>
+      <button
+        type="button"
+        onClick={() => {
+          setManualResendPending(true)
+          attemptSend(email).finally(() => setManualResendPending(false))
+        }}
+        disabled={manualResendPending}
+        className="text-sm text-primary underline underline-offset-4 disabled:opacity-50"
+      >
+        Didn&apos;t get it right away? Send it again
+      </button>
     </div>
   )
 }

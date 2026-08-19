@@ -193,7 +193,13 @@ async function extractStructuralFacts(resumeText: string) {
   const client = getAnthropicClient()
   const stream = client.messages.stream({
     model: 'claude-sonnet-5',
-    max_tokens: 6000,
+    // Adaptive thinking draws from this same budget before the structured
+    // output is emitted — a detailed resume can burn most of 6000 tokens on
+    // thinking alone and leave the JSON output truncated mid-string
+    // (confirmed in production: "Unterminated string in JSON" from
+    // parsed_output failing on a real candidate's resume). Raised with
+    // headroom rather than tuned to the exact failure case.
+    max_tokens: 10000,
     thinking: { type: 'adaptive' },
     output_config: { format: zodOutputFormat(StructuralFactsSchema), effort: 'medium' },
     messages: [{ role: 'user', content: `${STRUCTURAL_PROMPT}${resumeText}` }],
@@ -206,7 +212,9 @@ async function extractQualitativeFacts(resumeText: string) {
   const client = getAnthropicClient()
   const stream = client.messages.stream({
     model: 'claude-sonnet-5',
-    max_tokens: 4000,
+    // See extractStructuralFacts above — same adaptive-thinking-eats-the-
+    // budget failure mode, raised with the same headroom.
+    max_tokens: 8000,
     thinking: { type: 'adaptive' },
     output_config: { format: zodOutputFormat(QualitativeFactsSchema), effort: 'medium' },
     messages: [{ role: 'user', content: `${QUALITATIVE_PROMPT}${resumeText}` }],
