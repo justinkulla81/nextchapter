@@ -2,6 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  // Forward the pathname as a REQUEST header (not a response header) so
+  // headers().get('x-pathname') in Server Component layouts (e.g.
+  // src/app/dashboard/layout.tsx) can actually see it — setting a header on
+  // the response only reaches the browser, not Next.js's internal request
+  // processing. request.headers is mutated in place, so this survives the
+  // supabaseResponse reassignment in the setAll cookie-refresh branch below.
+  request.headers.set('x-pathname', request.nextUrl.pathname)
+
   let supabaseResponse = NextResponse.next({ request })
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -71,11 +79,6 @@ export async function updateSession(request: NextRequest) {
     redirectUrl.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
-
-  // Server Component layouts (e.g. src/app/dashboard/layout.tsx) don't
-  // receive the current pathname as a prop — forward it via a response
-  // header so the dashboard-wide hard gate can read it with headers().
-  supabaseResponse.headers.set('x-pathname', request.nextUrl.pathname)
 
   return supabaseResponse
 }
