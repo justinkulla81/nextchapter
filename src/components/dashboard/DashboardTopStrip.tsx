@@ -116,7 +116,7 @@ export async function DashboardTopStrip({
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
           </summary>
           <div className="border-t border-border p-4">
-            <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} showLocked={isFirstVisit} />
+            <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} showLocked={isFirstVisit} combined />
           </div>
         </details>
         <MarkBadgesViewedOnMount earnedBadgesCount={earnedBadgesCount} />

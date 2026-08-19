@@ -55,12 +55,12 @@ export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   REFERENCE_CHAMPION: 'Reference Champion',
   AI_FLUENT: 'AI Fluent',
   GAP_CLOSER: 'Gap Closer',
-  CLEANED_UP: 'Cleaned Up',
-  ASKED: 'Asked',
-  KNOWN: 'Known',
-  BACKED: 'Backed',
-  CONSISTENT: 'Consistent',
-  DOCUMENTED: 'Documented',
+  CLEANED_UP: 'Resume Fully Reviewed',
+  ASKED: 'Reference Requested',
+  KNOWN: 'Profile Complete',
+  BACKED: 'First Reference Back',
+  CONSISTENT: '3-Week Sprint Streak',
+  DOCUMENTED: 'All Dossier Requirements Met',
   INSIDER: 'Insider',
   GUIDE: 'Guide',
   CONTRIBUTOR: 'Contributor',
@@ -79,7 +79,7 @@ export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
   REFERENCE_CHAMPION: 'Every reference you invited has completed the intake form.',
   AI_FLUENT: 'Captured a real AI Fluency example.',
   GAP_CLOSER: 'Closed a named Market Reality gap.',
-  CLEANED_UP: 'Resolved a flagged resume issue with an explanation.',
+  CLEANED_UP: 'Resolved every flagged issue on your resume, not just some of them.',
   ASKED: 'Sent your first reference request.',
   KNOWN: 'Your profile is 100% filled in.',
   BACKED: 'Your first reference came back.',
@@ -179,6 +179,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     latestAiProject,
     marketRealitySnapshots,
     dossierComplete,
+    totalReviewerQuestionCount,
     resolvedReviewerQuestionCount,
     profileFieldsConfirmed,
     threeWeekSprintStreak,
@@ -208,7 +209,10 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     // the closest existing signal (a flagged issue the candidate resolved
     // by explaining it — "neutralizes," per schema.prisma's own comment on
     // ReviewerQuestion) — an honest proxy, not the same thing as a fix
-    // actually being applied to the document.
+    // actually being applied to the document. Badge requires EVERY flagged
+    // issue resolved, not just one — a resume with 4 open flags and 1
+    // explained one isn't "cleaned up."
+    prisma.reviewerQuestion.count({ where: { candidateId } }),
     prisma.reviewerQuestion.count({ where: { candidateId, candidateExplanation: { not: null } } }),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
@@ -289,7 +293,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     REFERENCE_CHAMPION: referenceChampion,
     AI_FLUENT: Boolean(latestAiProject),
     GAP_CLOSER: gapCloserCount > 0,
-    CLEANED_UP: resolvedReviewerQuestionCount > 0,
+    CLEANED_UP: totalReviewerQuestionCount > 0 && resolvedReviewerQuestionCount === totalReviewerQuestionCount,
     ASKED: references.length > 0,
     KNOWN: profileKnown,
     BACKED: references.some((r) => r.status === 'COMPLETED'),
