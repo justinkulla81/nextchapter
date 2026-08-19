@@ -25,7 +25,6 @@ import { RESUME_BANDS, EXPERIENCE_BANDS, scoreToExperienceBand, scoreToResumeBan
 import type { ResumeAnalysisFacts } from '@/lib/scoring/resume-analysis/extract-facts'
 import { assertGeneratedFacts, checkFactAppearsInText } from '@/lib/scoring/self-check'
 import { GRADE_BAND_DESCRIPTION, type Grade } from '@/lib/scoring/grade'
-import { WEEKLY_HOURS_BY_GRADE, REALISTIC_PATH_BY_GRADE } from '@/lib/reports/market-reality-sections'
 import { DIFFICULTY_LABEL } from '@/lib/scoring/market-reality/narrative'
 import { prisma } from '@/lib/prisma'
 
@@ -387,8 +386,6 @@ describe('Scoring release-gate fixture harness (Master Build Script §16)', () =
     const CONSOLATION = /\b(don't worry|it's okay|rebuild before|not your fault)\b/i
 
     const tables: Record<string, Record<Grade, string>> = {
-      WEEKLY_HOURS_BY_GRADE,
-      REALISTIC_PATH_BY_GRADE,
       DIFFICULTY_LABEL,
       GRADE_BAND_DESCRIPTION,
     }
@@ -411,14 +408,6 @@ describe('Scoring release-gate fixture harness (Master Build Script §16)', () =
       for (const grade of ['A', 'B'] as Grade[]) {
         expect(table[grade], `${tableName}[${grade}] reads as consolation`).not.toMatch(CONSOLATION)
       }
-    }
-
-    // Whitcomb himself: whichever band his fixture lands in, the
-    // deterministic templates for that band read as a route forward, not
-    // just a diagnosis — REALISTIC_PATH_BY_GRADE names at least one
-    // concrete lever for every grade, including F.
-    for (const grade of ALL_GRADES) {
-      expect(REALISTIC_PATH_BY_GRADE[grade]).toMatch(/\b(fix|apply|reframe|coaching|warm|rebuild|skills|interim)\b/i)
     }
   })
 })

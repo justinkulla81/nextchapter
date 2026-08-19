@@ -17,9 +17,7 @@ import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
-import { pointsNeededForA } from '@/lib/weekly/action-effort'
 import { GRADE_LABEL, GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
-import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { GradeSystemExplainer } from '@/components/dashboard/GradeSystemExplainer'
 import { cn } from '@/lib/utils'
 import {
@@ -225,13 +223,6 @@ export default async function MarketRealityReportPage() {
     { key: 'linkedin', label: 'Confirm your LinkedIn status', done: profile.linkedInConfirmedAt !== null, href: '/dashboard/profile' },
   ]
 
-  // Derived from the same canonical Weekly Search Score points ramp everything
-  // else reads from (1 point = 1 minute) — this used to be a separately
-  // maintained hours target that had drifted out of sync with the points ramp.
-  const aTargetHours = Math.round((pointsNeededForA(weekNumber) / 60) * 10) / 10
-  const bTargetHours = Math.round(aTargetHours * 0.75 * 10) / 10
-  const casuallySearching = isCasuallySearching(profile.jobSearchDifficultyLevel, profile.searchIntensity)
-
   const candidateName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate'
   const preparedDate = report
     ? new Date(report.generatedAt).toLocaleDateString('en-US', {
@@ -417,48 +408,8 @@ export default async function MarketRealityReportPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 rounded-lg border border-brand/20 bg-brand/5 p-4">
-                  <p className="text-sm font-medium text-foreground">
-                    Your realistic path: {whereYouStand.realisticPath}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Typical weekly commitment: {whereYouStand.weeklyHours}.
-                  </p>
-                </div>
               </div>
             )}
-            <p className="mt-4 max-w-2xl text-sm text-muted-foreground">
-              Everyone will not make it — but doing the real work meaningfully improves your odds.
-              Weekly effort is the lever above that&apos;s entirely in your hands.
-            </p>
-            <div className="mt-4 rounded-lg border border-border bg-white p-4">
-              {casuallySearching ? (
-                <p className="text-sm font-medium text-foreground">
-                  When you&apos;re ready to prioritize this, your{' '}
-                  <Link href="/dashboard" className="text-primary underline underline-offset-4">
-                    Search Sprint
-                  </Link>{' '}
-                  will show you exactly what moves your grade toward an A — no clock running in the
-                  meantime.
-                </p>
-              ) : (
-                <>
-                  <p className="text-sm font-medium text-foreground">
-                    This week, a strong week of effort takes about{' '}
-                    <span className="font-semibold">{aTargetHours}h</span> of real committed work; a
-                    modest week takes about <span className="font-semibold">{bTargetHours}h</span>.
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    That target grows a little each week through Week 5, then holds steady — see
-                    your{' '}
-                    <Link href="/dashboard" className="text-primary underline underline-offset-4">
-                      Search Sprint
-                    </Link>{' '}
-                    for this week&apos;s exact commitment.
-                  </p>
-                </>
-              )}
-            </div>
           </div>
 
           {/* SECTION 2 — "What's working" (spec §3.2). Reuses the existing
@@ -499,7 +450,17 @@ export default async function MarketRealityReportPage() {
               one was generated and self-checked against the real quote. */}
           {resumeFixes && (
             <div className="mt-10 border-t border-border pt-8">
-              <SectionHeading>What to fix on your resume</SectionHeading>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <SectionHeading>What to fix on your resume</SectionHeading>
+                {resumeFixes.items.length > 0 && (
+                  <Link
+                    href="/dashboard/resume#resume-fixes"
+                    className="text-sm font-medium text-primary underline underline-offset-4"
+                  >
+                    Fix these in the Resume Editor →
+                  </Link>
+                )}
+              </div>
               {resumeFixes.items.length === 0 ? (
                 <p className="mt-3 text-sm text-muted-foreground">
                   No high-impact issues found on your current resume — nice work.
@@ -508,16 +469,9 @@ export default async function MarketRealityReportPage() {
                 <div className="mt-4 divide-y divide-border">
                   {resumeFixes.items.map((item, i) => (
                     <div key={i} className="space-y-2 py-3 first:pt-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          {item.dimension}
-                        </p>
-                        {item.pointValue > 0 && (
-                          <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                            +{item.pointValue} pts
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {item.dimension}
+                      </p>
                       <p className="text-sm text-foreground">{item.whatsWrong}</p>
                       <p className="text-sm text-muted-foreground">
                         <span className="font-medium">Fix:</span> {item.fix}
@@ -554,7 +508,12 @@ export default async function MarketRealityReportPage() {
                 {recruiterReadItems.map((item) => (
                   <div key={item.id} className="py-3 first:pt-0">
                     <p className="text-sm text-foreground">{item.whatAReviewerNotices}</p>
-                    <ReviewerExplanationForm id={item.id} placeholder={item.followUpPrompt} />
+                    <ReviewerExplanationForm
+                      id={item.id}
+                      placeholder={item.followUpPrompt}
+                      detectionType={item.detectionType}
+                      detectedContext={item.detectedContext}
+                    />
                   </div>
                 ))}
               </div>

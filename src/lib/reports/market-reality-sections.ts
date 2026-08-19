@@ -25,32 +25,6 @@ export interface WhereYouStand {
   grade: Grade
   headline: MarketRealityHeadline
   decomposition: { label: string; grade: Grade; control: 'High' | 'None'; note: string }[]
-  weeklyHours: string
-  realisticPath: string
-}
-
-// Exported (not just used internally) so the deterministic-template gates
-// in src/test/scoring-fixtures.test.ts (Master Build Script §16 gates 6/19)
-// can assert exhaustiveness and tonal consistency directly against these
-// tables — this file is explicitly template-only/zero-LLM (see header),
-// which is exactly what makes that a meaningful, non-flaky assertion.
-export const WEEKLY_HOURS_BY_GRADE: Record<Grade, string> = {
-  A: '3–5 hrs/week',
-  B: '6–10 hrs/week',
-  C: '6–10 hrs/week',
-  D: '10–15 hrs/week',
-  F: '15+ hrs/week, longer horizon',
-}
-
-// Report Structure Spec §5.2 — different bands get different realistic
-// primary paths, not the same ladder with a longer climb. A and A− collapse
-// to one row since Grade has no A− value.
-export const REALISTIC_PATH_BY_GRADE: Record<Grade, string> = {
-  A: 'Warm channels, search firms, selectivity. Speed matters more than volume.',
-  B: 'Fix presentation, add references, apply with intent. The standard path works.',
-  C: 'Presentation fixes plus positioning. Consider adjacent functions and less competitive markets. Interim work to generate current proof.',
-  D: 'Interim, contract, and fractional work first — this generates the evidence the resume lacks. Reframe around a narrower, more attainable target. Skills with a named gap.',
-  F: 'Rebuild before searching. Often a function or level reset. Coaching is the highest-value lever, not applications.',
 }
 
 export async function getWhereYouStand(candidateId: string): Promise<WhereYouStand | null> {
@@ -63,13 +37,25 @@ export async function getWhereYouStand(candidateId: string): Promise<WhereYouSta
   const grade = row.grade as Grade
   const decomposition: WhereYouStand['decomposition'] = []
 
-  if (row.experienceScore !== null && row.resumeScore !== null) {
-    const recordScore = Math.round((row.experienceScore + row.resumeScore) / 2)
+  // Experience and Resume are shown as separate tiles (not blended into one
+  // "record" score) specifically so the composite grade's math is visible —
+  // a candidate whose Experience is a B but whose Resume is a D can see
+  // directly why the two average down to a C, instead of reading a single
+  // combined grade with no way to tell which half is actually driving it.
+  if (row.experienceScore !== null) {
     decomposition.push({
-      label: 'How your record reads',
-      grade: scoreToGrade(recordScore),
+      label: 'Experience',
+      grade: scoreToGrade(row.experienceScore),
       control: 'High',
-      note: 'Fully in your control — days to weeks to fix.',
+      note: 'How your career record reads — fully in your control, days to weeks to fix.',
+    })
+  }
+  if (row.resumeScore !== null) {
+    decomposition.push({
+      label: 'Resume',
+      grade: scoreToGrade(row.resumeScore),
+      control: 'High',
+      note: 'How your resume document itself reads — fully in your control, days to weeks to fix.',
     })
   }
   if (row.marketScore !== null) {
@@ -85,13 +71,7 @@ export async function getWhereYouStand(candidateId: string): Promise<WhereYouSta
   // strength lives in the Dossier instead (see getMoveTheNeedle below,
   // rendered on the Portfolio page).
 
-  return {
-    grade,
-    headline,
-    decomposition,
-    weeklyHours: WEEKLY_HOURS_BY_GRADE[grade],
-    realisticPath: REALISTIC_PATH_BY_GRADE[grade],
-  }
+  return { grade, headline, decomposition }
 }
 
 // ── Section 3: "What to fix on your resume" ─────────────────────────────
@@ -162,6 +142,8 @@ export interface RecruiterReadItem {
   id: string
   whatAReviewerNotices: string
   followUpPrompt: string
+  detectionType: ReviewerDetectionType
+  detectedContext: Record<string, unknown>
 }
 
 function contextString(ctx: Record<string, unknown>, key: string): string {
@@ -204,6 +186,8 @@ export async function getRecruiterReadItems(candidateId: string): Promise<Recrui
     id: d.id,
     whatAReviewerNotices: WHAT_A_REVIEWER_NOTICES[d.detectionType](d.detectedContext),
     followUpPrompt: REVIEWER_DETECTION_FOLLOWUP[d.detectionType],
+    detectionType: d.detectionType,
+    detectedContext: d.detectedContext,
   }))
 }
 

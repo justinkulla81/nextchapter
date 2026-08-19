@@ -65,6 +65,11 @@ const GATE_EXEMPT_PATH_PREFIXES = [
   '/dashboard/profile',
   '/dashboard/settings',
   '/dashboard/support',
+  // Resume upload/analysis and the guided walkthrough happen naturally
+  // before a candidate has settled on a Search Strategy, not after — and
+  // the resume itself often informs what they put in Search Strategy.
+  // Gating it behind Search Strategy completion had it backwards.
+  '/dashboard/resume',
   // A gated candidate must be able to view their own already-generated
   // report — it was missing from this list entirely, silently blocking a
   // candidate from seeing their own Market Reality Report before they'd

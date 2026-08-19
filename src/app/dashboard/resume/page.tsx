@@ -4,13 +4,16 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { ResumeExportForm } from '@/components/dashboard/ResumeExportForm'
 import { ResumeFeedbackCard } from '@/components/dashboard/ResumeFeedbackCard'
+import { ResumeFixCard } from '@/components/dashboard/ResumeFixCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
 
 export const metadata: Metadata = { title: 'My Resume' }
@@ -50,6 +53,17 @@ export default async function ResumePage({
   const { fromGap } = await searchParams
 
   const latest = profile.resumes[0]
+
+  // Same itemized dimension-finding fixes shown on the Market Reality
+  // Report (getResumeFixes) — surfaced here too so they're addressable
+  // right where the candidate actually edits/re-uploads their resume,
+  // not only as read-only findings on a separate report page.
+  const latestReport = await prisma.marketRealityReport.findFirst({
+    where: { candidateId: profile.id },
+    orderBy: { generatedAt: 'desc' },
+    select: { resumeRewrites: true },
+  })
+  const resumeFixes = await getResumeFixes(profile.id, latestReport?.resumeRewrites ?? null)
 
   return (
     <div className="space-y-8">
@@ -145,6 +159,23 @@ export default async function ResumePage({
               {!latest.atsScore && !latest.analysisError && (
                 <p className="text-sm text-muted-foreground">Analyzing…</p>
               )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {resumeFixes && resumeFixes.items.length > 0 && (
+        <div id="resume-fixes" className="scroll-mt-4 space-y-4">
+          <h2 className="text-sm font-medium text-muted-foreground">Itemized resume fixes</h2>
+          <Card>
+            <CardContent className="space-y-3 pt-6">
+              {resumeFixes.items.map((item, i) => (
+                <ResumeFixCard
+                  key={i}
+                  item={item}
+                  applied={profile.resumeFixesAppliedKeys.includes(item.whatsWrong)}
+                />
+              ))}
             </CardContent>
           </Card>
         </div>
