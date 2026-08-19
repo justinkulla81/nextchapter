@@ -1,13 +1,33 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
+import { Compass } from 'lucide-react'
 import { submitGigDirectoryUnlock } from '@/app/dashboard/interim-work/actions'
+import { UnlockAnnouncementDialog } from '@/components/dashboard/UnlockAnnouncementDialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
+// This form only ever renders pre-unlock (complete-profile/page.tsx gates
+// it on isIncomplete('GIG_DIRECTORY_UNLOCK')), so every successful submit
+// is genuinely a first-time unlock — no separate "was this the first
+// time" signal needed from the server action.
 export function GigDirectoryUnlockForm() {
-  const [state, formAction, pending] = useActionState(submitGigDirectoryUnlock, undefined)
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [showUnlockDialog, setShowUnlockDialog] = useState(false)
+
+  function handleSubmit(formData: FormData) {
+    setError(null)
+    startTransition(async () => {
+      const result = await submitGigDirectoryUnlock(undefined, formData)
+      if (result?.error) {
+        setError(result.error)
+        return
+      }
+      setShowUnlockDialog(true)
+    })
+  }
 
   return (
     <div className="space-y-4 rounded-lg border border-border p-4">
@@ -29,18 +49,33 @@ export function GigDirectoryUnlockForm() {
           is inconsistent — treat it as a bridge, not a replacement income.
         </p>
       </div>
-      <form action={formAction} className="space-y-3">
+      <form action={handleSubmit} className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor="answer">
             What&apos;s your target rate or day-rate range for interim work, so this feels realistic?
           </Label>
           <Textarea id="answer" name="answer" required rows={2} />
         </div>
-        {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-        <Button type="submit" disabled={pending} className={pending ? 'cursor-progress' : ''}>
-          {pending ? 'Saving…' : 'See the directory'}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" disabled={isPending} className={isPending ? 'cursor-progress' : ''}>
+          {isPending ? 'Saving…' : 'See the directory'}
         </Button>
       </form>
+
+      <UnlockAnnouncementDialog
+        open={showUnlockDialog}
+        onOpenChange={setShowUnlockDialog}
+        introText="Setting your target rate just unlocked:"
+        analyticsKey="gig_directory"
+        items={[
+          {
+            href: '/dashboard/interim-work',
+            icon: Compass,
+            label: 'Find Interim Work',
+            description: 'Browse the interim/fractional directory with your target rate in mind.',
+          },
+        ]}
+      />
     </div>
   )
 }
