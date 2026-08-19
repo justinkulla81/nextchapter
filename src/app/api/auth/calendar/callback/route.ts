@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
@@ -7,6 +7,10 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+
+// Backgrounded first-sync (below) can still take a while on a heavy real
+// calendar, so this gets real headroom rather than the platform default.
+export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
@@ -66,11 +70,17 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Run the first sync immediately rather than waiting for the candidate
-    // to separately discover and click "Sync now" on the Calendar Activity
-    // page — best-effort, since the manual button is still a fallback.
-    await syncGoogleCalendarConnection(connection.id).catch((error) =>
-      console.error('Initial Calendar sync failed:', error)
+    // Kick off the first sync right away rather than waiting for the
+    // candidate to separately discover and click "Sync now" on the
+    // Calendar Activity page. Backgrounded via after(): a real calendar
+    // history can take long enough to sync that awaiting it here was
+    // blocking this redirect long enough to hit the platform's function
+    // timeout (504 FUNCTION_INVOCATION_TIMEOUT). Best-effort either way —
+    // the manual Sync now button is still a fallback.
+    after(() =>
+      syncGoogleCalendarConnection(connection.id).catch((error) =>
+        console.error('Initial Calendar sync failed:', error)
+      )
     )
 
     // One-time connection bonus — awarded once ever per candidate, not on

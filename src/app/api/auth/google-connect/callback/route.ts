@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import {
@@ -19,6 +19,11 @@ import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
 // together in buildCombinedGoogleAuthUrl), so this upserts both connection
 // rows and awards both one-time bonuses from the single callback — the
 // candidate only goes through Google's consent screen once.
+//
+// Backgrounded first-sync (below) can still take a while on a heavy real
+// inbox, so this gets real headroom rather than the platform default.
+export const maxDuration = 300
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
   const {
@@ -87,17 +92,24 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Run the first sync immediately rather than waiting for the candidate
-    // to separately discover and click "Sync now" — otherwise a fresh
-    // connection looks like it did nothing until that extra step happens.
-    // Best-effort: a sync failure here shouldn't block the connection itself
-    // from completing, since the manual Sync now button is still a fallback.
-    await Promise.all([
-      syncGmailConnection(emailConnection.id).catch((error) => console.error('Initial Gmail sync failed:', error)),
-      syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
-        console.error('Initial Calendar sync failed:', error)
-      ),
-    ])
+    // Kick off the first sync right away rather than waiting for the
+    // candidate to separately discover and click "Sync now" — otherwise a
+    // fresh connection looks like it did nothing until that extra step
+    // happens. Backgrounded via after(): a real inbox can be thousands of
+    // messages, and awaiting that here was blocking this redirect long
+    // enough to hit the platform's function timeout (504
+    // FUNCTION_INVOCATION_TIMEOUT) before the candidate ever got back to
+    // the app. Best-effort either way — a sync failure shouldn't block the
+    // connection itself from completing, since the manual Sync now button
+    // is still a fallback.
+    after(() =>
+      Promise.all([
+        syncGmailConnection(emailConnection.id).catch((error) => console.error('Initial Gmail sync failed:', error)),
+        syncGoogleCalendarConnection(calendarConnection.id).catch((error) =>
+          console.error('Initial Calendar sync failed:', error)
+        ),
+      ])
+    )
 
     const sprint = await getCurrentWeekSprint(profile.id)
     if (sprint) {

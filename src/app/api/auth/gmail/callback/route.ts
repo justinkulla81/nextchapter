@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, isGmailTrackingTester, fetchGoogleAccountEmail } from '@/lib/email-tracking/gmail-oauth'
@@ -8,6 +8,10 @@ import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
+
+// Backgrounded first-sync (below) can still take a while on a heavy real
+// inbox, so this gets real headroom rather than the platform default.
+export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
@@ -77,10 +81,14 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Run the first sync immediately rather than waiting for the candidate
-    // to separately discover and click "Sync now" on the Email Activity
-    // page — best-effort, since the manual button is still a fallback.
-    await syncGmailConnection(connection.id).catch((error) => console.error('Initial Gmail sync failed:', error))
+    // Kick off the first sync right away rather than waiting for the
+    // candidate to separately discover and click "Sync now" on the Email
+    // Activity page. Backgrounded via after(): a real inbox can be
+    // thousands of messages, and awaiting that here was blocking this
+    // redirect long enough to hit the platform's function timeout (504
+    // FUNCTION_INVOCATION_TIMEOUT). Best-effort either way — the manual
+    // Sync now button is still a fallback.
+    after(() => syncGmailConnection(connection.id).catch((error) => console.error('Initial Gmail sync failed:', error)))
 
     // One-time connection bonus — awarded once ever per candidate, not on
     // every reconnect. A genuine reconnect (clearing a real expiry) earns
