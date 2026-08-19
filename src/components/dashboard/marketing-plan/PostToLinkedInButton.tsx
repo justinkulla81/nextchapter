@@ -71,7 +71,9 @@ export function PostToLinkedInButton({
       <Button
         type="button"
         size="sm"
-        variant="outline"
+        // Green once there's real text to post — a visible cue that the
+        // button is actually ready to fire, not just decoration.
+        variant={text.trim() ? 'success' : 'outline'}
         disabled={isPending || !text.trim()}
         className={isPending ? 'cursor-wait' : ''}
         onClick={() => {

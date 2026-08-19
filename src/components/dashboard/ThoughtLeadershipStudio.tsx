@@ -21,7 +21,7 @@ export interface PostIdea {
 
 export type LinkedInState = { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 
-export function IdeaCard({
+function IdeaCard({
   idea,
   venues,
   linkedin,

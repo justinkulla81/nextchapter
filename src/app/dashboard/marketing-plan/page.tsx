@@ -173,7 +173,11 @@ export default async function MarketingPlanPage({
       <div className="space-y-4 border-t border-border pt-8">
         <SectionHeading>LinkedIn</SectionHeading>
         {linkedin.configured && <LinkedInConnectCard connected={linkedin.connected} />}
-        <LinkedInComposer linkedin={linkedin} />
+        <LinkedInComposer
+          linkedin={linkedin}
+          name={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
+          photoUrl={profile.profilePictureUrl}
+        />
 
         {/* Posting Tips — writing/growth/engagement mechanics, not
             personalized (same catalog for everyone, no industry match) —
