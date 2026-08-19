@@ -72,30 +72,39 @@ export function CreateAccountForm({
   }
 
   async function attemptSend(targetEmail: string) {
-    const availability = await checkEmailAvailableForSignup(targetEmail)
-    if (availability.blocked) {
-      setBlocked({ needsPassword: availability.needsPassword })
-      return
-    }
-
-    const { error } = await sendConfirmation(targetEmail)
-
-    if (error) {
-      // The pre-check above only catches a duplicate that has a
-      // CandidateProfile of its own to find — an auth.users row created
-      // some other way (e.g. directly through Supabase, with no matching
-      // profile) slips through it and only surfaces here, straight from
-      // Supabase's own signup validation. Route it to the same recovery UI
-      // rather than a bare, dead-end error string.
-      if (/already.*registered/i.test(error.message)) {
-        setBlocked({ needsPassword: false })
+    // Everything below can throw (a rejected server action, a network
+    // failure reaching Supabase) rather than resolving with an `{ error }`
+    // — without this catch, an uncaught rejection here leaves the UI stuck
+    // forever on the "Sending a confirmation link to…" state below, with no
+    // error shown and no email ever actually sent.
+    try {
+      const availability = await checkEmailAvailableForSignup(targetEmail)
+      if (availability.blocked) {
+        setBlocked({ needsPassword: availability.needsPassword })
         return
       }
-      setError(error.message)
-      return
-    }
 
-    setSent(true)
+      const { error } = await sendConfirmation(targetEmail)
+
+      if (error) {
+        // The pre-check above only catches a duplicate that has a
+        // CandidateProfile of its own to find — an auth.users row created
+        // some other way (e.g. directly through Supabase, with no matching
+        // profile) slips through it and only surfaces here, straight from
+        // Supabase's own signup validation. Route it to the same recovery UI
+        // rather than a bare, dead-end error string.
+        if (/already.*registered/i.test(error.message)) {
+          setBlocked({ needsPassword: false })
+          return
+        }
+        setError(error.message)
+        return
+      }
+
+      setSent(true)
+    } catch {
+      setError('Something went wrong sending your confirmation email. Try again below.')
+    }
   }
 
   useEffect(() => {
@@ -171,9 +180,16 @@ export function CreateAccountForm({
     return (
       <div className="space-y-2">
         <p className="text-sm text-destructive">{error}</p>
-        <p className="text-xs text-muted-foreground">
-          We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.
-        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null)
+            attemptSend(email)
+          }}
+          className="text-sm text-primary underline underline-offset-4"
+        >
+          Try again
+        </button>
       </div>
     )
   }
@@ -221,9 +237,9 @@ export function CreateAccountForm({
     return (
       <div className="space-y-3">
         <p className="text-sm text-foreground">
-          <span className="font-medium">{email}</span> looks like a work email. With Confidential
-          Search Mode on, we&apos;d rather send your confirmation link and future emails somewhere
-          your employer can&apos;t see.
+          <span className="font-medium">{email}</span>
+          {' '}looks like a work email. With Confidential Search Mode on, we&apos;d rather send
+          your confirmation link and future emails somewhere your employer can&apos;t see.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={() => setNeedsEmailInput(true)}>
