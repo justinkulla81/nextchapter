@@ -7,8 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
-import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
-import { estimateActionEffort } from '@/lib/weekly/action-effort'
+import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import type {
   ContentVenue,
   GapDurationBucket,
@@ -137,6 +136,8 @@ export async function updateSearchStrategy(
     console.error('Failed to recompute level rank after search strategy update:', error)
   }
 
+  await maybeAwardSearchStrategyCompleteBonus(profile.id)
+
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard')
   revalidatePath('/dashboard/market-reality')
@@ -199,41 +200,28 @@ export async function updateMarketingPlanWillingness(
   captureServerEvent(profile.id, 'thought_leadership_unlocked')
   captureServerEvent(profile.id, 'linkedin_tool_unlocked', { usageFrequency: linkedinUsageFrequency })
 
-  // Same one-time bonus-award pattern as the two forms this replaces — see
-  // submitThoughtLeadershipUnlock/submitLinkedInUnlock in
-  // marketing-plan/actions.ts and linkedin/actions.ts.
+  // No per-field points here anymore — Search Strategy's 7 pages only ever
+  // award the one SEARCH_STRATEGY_COMPLETE bonus below, once all 7 are
+  // done. contentUnlockBonusAt/linkedinUnlockBonusAt are still set as
+  // "answered, ever" bookkeeping — complete-profile's own standalone
+  // ThoughtLeadershipUnlockForm/LinkedInUnlockForm (marketing-plan/actions.ts,
+  // linkedin/actions.ts) still independently award MARKETING_PLAN_UNLOCK/
+  // LINKEDIN_UNLOCK points if a candidate reaches those forms first, and
+  // read these same flags to avoid re-awarding.
   if (!profile.contentUnlockBonusAt) {
     await prisma.candidateProfile.update({
       where: { id: profile.id },
       data: { contentUnlockBonusAt: new Date() },
     })
-    const sprint = await getCurrentWeekSprint(profile.id)
-    if (sprint) {
-      const effort = estimateActionEffort({ actionType: 'MARKETING_PLAN_UNLOCK' })
-      await autoCompleteEngagementAction(profile.id, {
-        actionType: 'MARKETING_PLAN_UNLOCK',
-        text: 'Set up your Marketing Plan',
-        points: effort.points,
-        estimatedMinutes: effort.minutes,
-      })
-    }
   }
   if (!profile.linkedinUnlockBonusAt) {
     await prisma.candidateProfile.update({
       where: { id: profile.id },
       data: { linkedinUnlockBonusAt: new Date() },
     })
-    const sprint = await getCurrentWeekSprint(profile.id)
-    if (sprint) {
-      const effort = estimateActionEffort({ actionType: 'LINKEDIN_UNLOCK' })
-      await autoCompleteEngagementAction(profile.id, {
-        actionType: 'LINKEDIN_UNLOCK',
-        text: 'Unlock the LinkedIn post generator',
-        points: effort.points,
-        estimatedMinutes: effort.minutes,
-      })
-    }
   }
+
+  await maybeAwardSearchStrategyCompleteBonus(profile.id)
 
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/marketing-plan')
@@ -286,22 +274,19 @@ export async function updateNetworkingWillingness(
   captureServerEvent(profile.id, 'network_comfort_answered', { comfortLevel: networkComfortLevel })
   captureServerEvent(profile.id, 'network_page_unlocked')
 
+  // No per-field points here anymore (see updateMarketingPlanWillingness
+  // above) — networkComfortBonusAt still gets set as bookkeeping;
+  // complete-profile's NetworkComfortCheck (network/actions.ts's
+  // setNetworkComfortLevel) still independently awards
+  // NETWORK_COMFORT_CONFIRMED if reached first, and reads this same flag.
   if (!profile.networkComfortBonusAt) {
     await prisma.candidateProfile.update({
       where: { id: profile.id },
       data: { networkComfortBonusAt: new Date() },
     })
-    const sprint = await getCurrentWeekSprint(profile.id)
-    if (sprint) {
-      const effort = estimateActionEffort({ actionType: 'NETWORK_COMFORT_CONFIRMED' })
-      await autoCompleteEngagementAction(profile.id, {
-        actionType: 'NETWORK_COMFORT_CONFIRMED',
-        text: 'Answer the network comfort check-in',
-        points: effort.points,
-        estimatedMinutes: effort.minutes,
-      })
-    }
   }
+
+  await maybeAwardSearchStrategyCompleteBonus(profile.id)
 
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/network')
@@ -343,22 +328,17 @@ export async function updateNegotiationInterviewComfort(
     interviewComfort,
   })
 
+  // No per-field points here anymore (see updateMarketingPlanWillingness
+  // above) — negotiationInterviewComfortBonusAt still gets set as
+  // bookkeeping.
   if (wasFirstCompletion && !profile.negotiationInterviewComfortBonusAt) {
     await prisma.candidateProfile.update({
       where: { id: profile.id },
       data: { negotiationInterviewComfortBonusAt: new Date() },
     })
-    const sprint = await getCurrentWeekSprint(profile.id)
-    if (sprint) {
-      const effort = estimateActionEffort({ actionType: 'NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED' })
-      await autoCompleteEngagementAction(profile.id, {
-        actionType: 'NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED',
-        text: 'Answer the negotiation & interview comfort check-in',
-        points: effort.points,
-        estimatedMinutes: effort.minutes,
-      })
-    }
   }
+
+  await maybeAwardSearchStrategyCompleteBonus(profile.id)
 
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/interview-prep')

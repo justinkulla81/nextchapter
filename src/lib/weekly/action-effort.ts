@@ -254,6 +254,14 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // weighted like GMAIL_CONNECTED/CALENDAR_CONNECTED for a comparable
   // one-time setup cost.
   BENEFITS_PRIORITIES_CONFIRMED: { minutes: 5, points: 10 },
+  // Search Strategy's 7 pages no longer each award their own points (see
+  // maybeAwardSearchStrategyCompleteBonus in lib/search-strategy.ts) — this
+  // one lump bonus, awarded once all 7 are complete, replaces what used to
+  // be split across MARKETING_PLAN_UNLOCK + LINKEDIN_UNLOCK +
+  // NETWORK_COMFORT_CONFIRMED + NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED +
+  // BENEFITS_PRIORITIES_CONFIRMED (5+5+5+5+10 = 30) plus the 5-question
+  // "Your Search Strategy So Far" bundle (5) — same total value, one award.
+  SEARCH_STRATEGY_COMPLETE: { minutes: 20, points: 35 },
 }
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
@@ -358,6 +366,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   LINKEDIN_PROFILE_ADDED: 'working',
   RED_FLAGS_CONFIRMED: 'effort',
   BENEFITS_PRIORITIES_CONFIRMED: 'effort',
+  SEARCH_STRATEGY_COMPLETE: 'working',
 }
 
 export function engineForActionType(actionType: string | undefined): SearchExecutionEngineKey {
@@ -411,6 +420,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   CALENDAR_RECONNECTED: 'Personalize',
   RED_FLAGS_CONFIRMED: 'Personalize',
   BENEFITS_PRIORITIES_CONFIRMED: 'Personalize',
+  SEARCH_STRATEGY_COMPLETE: 'Personalize',
 
   RESUME_UPDATE: 'Personalize',
   SKILLS_TRANSLATOR: 'Personalize',
@@ -761,6 +771,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LINKEDIN_PROFILE_ADDED: { href: '/dashboard/profile/personal#linkedin', label: 'Personal Information' },
   RED_FLAGS_CONFIRMED: { href: '/dashboard/profile/screening#screening-questions', label: 'Screening Questions' },
   BENEFITS_PRIORITIES_CONFIRMED: { href: '/dashboard/search-strategy#comp-benefits', label: 'Search Strategy' },
+  SEARCH_STRATEGY_COMPLETE: { href: '/dashboard/search-strategy', label: 'Search Strategy' },
 }
 
 
@@ -896,17 +907,13 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   ],
   resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
-  'marketing-plan': [
-    'LINKEDIN_POST_IDEA',
-    'THOUGHT_LEADERSHIP_SHARE',
-    'MARKETING_PLAN_UNLOCK',
-    'CORE_NARRATIVE_COMPLETE',
-    'WAYS_TO_SAY_IT_COMPLETE',
-    'TAILORED_NARRATIVE_COMPLETE',
-    'HARD_QUESTIONS_COMPLETE',
-    'PITCH_PRACTICE_WITH_COACH',
-    'SHARE_NARRATIVE_FOR_FEEDBACK',
-  ],
+  // No entry for 'marketing-plan' — the page's own Action Plan card (quick
+  // links to LinkedIn Posts/Narrative/Outreach Prep/Interview Prep/Hard
+  // Questions) replaces the generic self-report suggestion box. The action
+  // types themselves (LINKEDIN_POST_IDEA, CORE_NARRATIVE_COMPLETE, etc.)
+  // still award points wherever they're actually triggered — posting,
+  // drafting a narrative, sharing hard questions — this only stops them
+  // from also being suggested here.
   learning: ['LEARNING_MODULE', 'LEARNING_CERTIFICATE', 'LEARNING_NEW_TOOL', 'LEARNING_SESSION_ATTENDED'],
   webinars: ['VIDEO_WATCHED', 'VIDEO_REACTION'],
   linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK'],
@@ -932,7 +939,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'TRACK_RECORD_COMPLETED',
     'WHAT_I_NEED_COMPLETED',
   ],
-  'search-strategy': ['NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED'],
+  'search-strategy': ['SEARCH_STRATEGY_COMPLETE'],
   stats: [],
   'got-hired': [],
   benefits: [],

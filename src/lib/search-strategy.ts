@@ -156,3 +156,53 @@ export function isNegotiationInterviewComfortComplete(candidate: {
 }): boolean {
   return candidate.negotiationComfort !== null && candidate.interviewComfort !== null
 }
+
+// "Your Search Strategy So Far" section — the 5-field optional-questions
+// bundle (OptionalQuestionsForm). Mirrors the exact fields answerOptionalQuestions
+// requires answered.
+export function isSearchStrategySoFarComplete(candidate: {
+  networkingLevel: number | null
+  learnedNewSkillsLevel: number | null
+  triedPartTimeOrConsulting: boolean | null
+  triedExecutiveCoaching: boolean | null
+  connectedWithRecruiters: boolean | null
+}): boolean {
+  return [
+    candidate.networkingLevel,
+    candidate.learnedNewSkillsLevel,
+    candidate.triedPartTimeOrConsulting,
+    candidate.triedExecutiveCoaching,
+    candidate.connectedWithRecruiters,
+  ].every((f) => f !== null)
+}
+
+// "Compensation & Benefits" section — benefitsPrioritiesBonusAt is set the
+// first time answerBenefitsPriorities saves (see complete-profile/actions.ts),
+// regardless of whether it still also awards its own points.
+export function isBenefitsComplete(candidate: { benefitsPrioritiesBonusAt: Date | null }): boolean {
+  return !!candidate.benefitsPrioritiesBonusAt
+}
+
+// All 7 Search Strategy wizard pages — used both to gate
+// SEARCH_STRATEGY_COMPLETE (see maybeAwardSearchStrategyCompleteBonus in
+// search-strategy-complete.ts) and to drive the wizard's own step-complete
+// checkmarks.
+export function isSearchStrategyWizardComplete(
+  candidate: Parameters<typeof isSearchGoalsComplete>[0] &
+    Parameters<typeof isBlockersAndMotivationsComplete>[0] &
+    Parameters<typeof isMarketingPlanWillingnessComplete>[0] &
+    Parameters<typeof isNetworkingWillingnessComplete>[0] &
+    Parameters<typeof isNegotiationInterviewComfortComplete>[0] &
+    Parameters<typeof isSearchStrategySoFarComplete>[0] &
+    Parameters<typeof isBenefitsComplete>[0]
+): boolean {
+  return (
+    isSearchStrategySoFarComplete(candidate) &&
+    isSearchGoalsComplete(candidate) &&
+    isBlockersAndMotivationsComplete(candidate) &&
+    isMarketingPlanWillingnessComplete(candidate) &&
+    isNetworkingWillingnessComplete(candidate) &&
+    isNegotiationInterviewComfortComplete(candidate) &&
+    isBenefitsComplete(candidate)
+  )
+}

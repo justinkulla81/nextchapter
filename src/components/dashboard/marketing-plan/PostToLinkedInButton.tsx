@@ -16,10 +16,15 @@ export function PostToLinkedInButton({
   text,
   connected,
   blockedByConfidentialMode,
+  size = 'sm',
 }: {
   text: string
   connected: boolean
   blockedByConfidentialMode: boolean
+  // 'sm' everywhere this button is a secondary/inline action (idea cards,
+  // WaysToSayIt) — the primary compose-box surface (LinkedInComposer) wants
+  // it bigger since it's the one real call to action there.
+  size?: 'sm' | 'default' | 'lg'
 }) {
   const [isPending, startTransition] = useTransition()
   const [result, setResult] = useState<'idle' | 'posted' | 'error'>('idle')
@@ -70,7 +75,7 @@ export function PostToLinkedInButton({
     <div className="flex items-center gap-2">
       <Button
         type="button"
-        size="sm"
+        size={size}
         // Green once there's real text to post — a visible cue that the
         // button is actually ready to fire, not just decoration.
         variant={text.trim() ? 'success' : 'outline'}

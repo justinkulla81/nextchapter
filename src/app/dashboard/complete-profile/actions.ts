@@ -7,6 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 
 export type OptionalQuestionsState = { error?: string } | undefined
 
@@ -75,6 +76,8 @@ export async function answerOptionalQuestions(
       recruiterConnectionCount,
     },
   })
+
+  await maybeAwardSearchStrategyCompleteBonus(candidateId)
 
   revalidatePath('/dashboard/complete-profile')
   revalidatePath('/dashboard')
@@ -243,22 +246,18 @@ export async function answerBenefitsPriorities(
     wantsGymMembership,
   })
 
+  // No standalone points here anymore — this form only ever renders on
+  // Search Strategy, which awards SEARCH_STRATEGY_COMPLETE once all 7
+  // pages are done instead. benefitsPrioritiesBonusAt is still set as
+  // "answered, ever" bookkeeping (see isBenefitsComplete).
   if (!profile.benefitsPrioritiesBonusAt) {
     await prisma.candidateProfile.update({
       where: { id: profile.id },
       data: { benefitsPrioritiesBonusAt: new Date() },
     })
-    const sprint = await getCurrentWeekSprint(profile.id)
-    if (sprint) {
-      const effort = estimateActionEffort({ actionType: 'BENEFITS_PRIORITIES_CONFIRMED' })
-      await autoCompleteEngagementAction(profile.id, {
-        actionType: 'BENEFITS_PRIORITIES_CONFIRMED',
-        text: 'Answer your benefits & compensation priorities',
-        points: effort.points,
-        estimatedMinutes: effort.minutes,
-      })
-    }
   }
+
+  await maybeAwardSearchStrategyCompleteBonus(profile.id)
 
   revalidatePath('/dashboard/complete-profile')
   revalidatePath('/dashboard/search-strategy')

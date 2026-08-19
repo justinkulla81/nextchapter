@@ -11,13 +11,13 @@ import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 // gets drafted very differently depending on where it's actually going.
 const VENUE_INSTRUCTIONS: Record<ContentVenue, string> = {
   LINKEDIN:
-    'Format: a LinkedIn post, 150-250 words, first person, short punchy paragraphs (1-2 sentences each), at most 2 relevant hashtags at the very end.',
+    'Format: a LinkedIn post, 150-250 words, first person, short punchy paragraphs (1-2 sentences each), at most 2 relevant hashtags plus #nextchapter at the very end.',
   SUBSTACK:
     'Format: a Substack/newsletter piece, 400-600 words, more narrative and reflective than a social post — a real opening hook, 2-3 developed paragraphs, a closing thought. No hashtags.',
   PODCAST:
     'Format: a talking-points outline for recording a short podcast segment (not a written post) — a suggested opening line, then 3-5 bullet points covering what to say and in what order, plus one closing thought. Conversational, not a script to read verbatim.',
   INSTAGRAM_FACEBOOK_YOUTUBE:
-    'Format: a short social caption, 100-150 words, casual and punchy, plus one bracketed note suggesting a visual or hook for the post/video, and 3-5 relevant hashtags at the end.',
+    'Format: a short social caption, 100-150 words, casual and punchy, plus one bracketed note suggesting a visual or hook for the post/video, and 3-5 relevant hashtags plus #nextchapter at the end.',
   CONFERENCES:
     'Format: a conference talk proposal, 150-250 words — a compelling title, a 2-3 sentence abstract pitched to a program committee, and 3 bullet points of key takeaways attendees would walk away with.',
   WEBINARS:
@@ -117,9 +117,10 @@ Work history: ${
     ? `\n\nThe candidate's own reason for picking this topic: "${reason}" — reflect this personal angle in the draft, it's the real reason they want to write this.`
     : ''
 
-  const prompt = `${VICTORIA_VOICE_PROMPT}
-
-Draft real content for this idea:
+  // Deliberately NOT VICTORIA_VOICE_PROMPT — this text gets posted under the
+  // candidate's own name, not Victoria's, so it must read as the candidate
+  // speaking in first person and never mention Victoria or sign off as her.
+  const prompt = `Draft real content for this idea, written entirely in the CANDIDATE's own first-person voice — this will be posted publicly under the candidate's own name, not a coach's or assistant's. Never mention Victoria, NextChapter's coach, or any AI assistant, and never sign off with anything other than the candidate's own words.
 
 Title: ${idea.title}
 Angle: ${idea.angle}

@@ -1151,6 +1151,19 @@ model CandidateProfile {
   // first time negotiationComfort/interviewComfort are both answered here.
   negotiationInterviewComfortBonusAt DateTime?
 
+  // Search Strategy's 7-page wizard no longer awards points per page (see
+  // isSearchStrategySoFarComplete/isBenefitsComplete + the other 5
+  // isXComplete predicates in lib/search-strategy.ts) — this is the single
+  // SEARCH_STRATEGY_COMPLETE bonus awarded once, the first time all 7 are
+  // true. The per-page *BonusAt flags above (networkComfortBonusAt,
+  // negotiationInterviewComfortBonusAt, benefitsPrioritiesBonusAt,
+  // contentUnlockBonusAt, linkedinUnlockBonusAt) still get set as
+  // "answered, ever" bookkeeping — other surfaces (complete-profile's own
+  // standalone unlock forms, the Weekly Sprint suggestion list) still read
+  // them — they just no longer independently award points from Search
+  // Strategy's own save actions.
+  searchStrategyCompleteBonusAt DateTime?
+
   // My Marketing Plan redesign — one-time Weekly Sprint bonus flags. Each
   // mirrors the networkComfortBonusAt/comfortCheckBonusAt shape above: set
   // once, the first time its underlying content is saved, never re-awarded.

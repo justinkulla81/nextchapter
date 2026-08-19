@@ -8,6 +8,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { PostToLinkedInButton } from '@/components/dashboard/marketing-plan/PostToLinkedInButton'
+import { CONFIDENCE_STYLE } from '@/lib/scoring/grade'
+import { linkedInActivityCountToTier } from '@/lib/marketing/linkedin-activity-count-tier'
+import { cn } from '@/lib/utils'
 import type { PostIdea, LinkedInState } from '@/components/dashboard/ThoughtLeadershipStudio'
 
 // A single idea in the carousel — lightweight (title, angle, one small
@@ -55,17 +58,44 @@ export function LinkedInComposer({
   linkedin,
   name,
   photoUrl,
+  activityCount,
+  directPostCount,
 }: {
   linkedin: LinkedInState
   name: string
   photoUrl?: string | null
+  activityCount: number
+  directPostCount: number
 }) {
   const [postText, setPostText] = useState('')
   const [ideasState, generateAction, generating] = useActionState(generateIdeasAction, undefined)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const activityTier = linkedInActivityCountToTier(activityCount)
 
   return (
     <div className="space-y-4">
+      {activityCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            {activityTier === 'PROVISIONAL' ? (
+              <>
+                You&apos;re at {activityCount} day{activityCount === 1 ? '' : 's'} of LinkedIn activity — 3 or
+                more unlocks more detail here; 5 or more unlocks the full view.
+              </>
+            ) : (
+              <>
+                {activityCount} day{activityCount === 1 ? '' : 's'} of LinkedIn activity logged
+                {directPostCount > 0 &&
+                  ` — ${directPostCount} posted directly through NextChapter, the rest self-reported`}
+                .
+              </>
+            )}
+          </p>
+          <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-medium', CONFIDENCE_STYLE[activityTier])}>
+            {activityCount} day{activityCount === 1 ? '' : 's'}
+          </span>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
@@ -110,10 +140,11 @@ export function LinkedInComposer({
                 text={postText}
                 connected={linkedin.connected}
                 blockedByConfidentialMode={linkedin.blockedByConfidentialMode}
+                size="lg"
               />
             ) : (
               <form action={markLinkedInActivity}>
-                <Button type="submit" size="sm" variant={postText.trim() ? 'success' : 'outline'} disabled={!postText.trim()}>
+                <Button type="submit" size="lg" variant={postText.trim() ? 'success' : 'outline'} disabled={!postText.trim()}>
                   I posted this
                 </Button>
               </form>

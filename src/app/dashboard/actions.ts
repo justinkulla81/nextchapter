@@ -35,6 +35,7 @@ import {
 } from '@/lib/dashboard/page-content'
 import { clampMulti } from '@/lib/forms/clamp-multi'
 import { MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
+import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import type { PassiveToActiveTrigger } from '@/lib/dashboard/passive-to-active-prompt'
 
 export async function signOut() {
@@ -544,6 +545,8 @@ export async function updatePersonalContext(
     blockersCount: blockers.length,
     motivationsCount: motivations.length,
   })
+
+  await maybeAwardSearchStrategyCompleteBonus(profile.id)
 
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard')

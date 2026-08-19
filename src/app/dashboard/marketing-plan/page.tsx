@@ -17,8 +17,6 @@ import { getLinkedInTipsVideos } from '@/lib/content/curated-content'
 import { getCandidateContentLikeKeys, contentLikeKey } from '@/lib/content/content-likes'
 import { HardQuestionsSection } from '@/components/dashboard/marketing-plan/HardQuestionsSection'
 import { LowComfortActions } from '@/components/dashboard/marketing-plan/LowComfortActions'
-import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
-import { linkedInActivityCountToTier } from '@/lib/marketing/linkedin-activity-count-tier'
 import { isLinkedInPostingConfigured } from '@/lib/linkedin/oauth'
 import { shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
@@ -81,11 +79,6 @@ export default async function MarketingPlanPage({
     profile.publicDisclosureComfort === 'PRIVATE_ONLY' || profile.publicDisclosureComfort === 'CLOSE_CONTACTS_ONLY'
 
   const relevantTutorials = CONTENT_TUTORIALS.filter((t) => profile.contentVenues.includes(t.venue))
-  // The LinkedIn tutorial group renders inside the LinkedIn section below
-  // instead of the general "Tutorials for your venues" section, so LinkedIn
-  // help content isn't split across two places on the page.
-  const linkedInTutorials = relevantTutorials.find((t) => t.venue === 'LINKEDIN')
-  const otherTutorials = relevantTutorials.filter((t) => t.venue !== 'LINKEDIN')
   // ThoughtLeadershipStudio below only needs to cover non-LinkedIn venues
   // (Substack, etc.) — LinkedIn has its own compose box in the LinkedIn
   // section above it.
@@ -139,113 +132,47 @@ export default async function MarketingPlanPage({
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
-      <div className="space-y-1.5 rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
-        <p>
-          <span className="font-medium text-foreground">Core Narrative</span>{' '}
-          is your default professional story — draft it once and everything below adapts from it,
-          grouped by who you&apos;re talking to.
-        </p>
-        <p>
-          <span className="font-medium text-foreground">Tailored narratives</span>{' '}
-          let you tell a different version of your story for a specific scenario — a specific job,
-          a layoff, a pivot, a return after time off.
-        </p>
-        {isLowComfort ? (
-          <p>
-            Not everyone is ready to be public yet, and that&apos;s fine — this page also gives
-            you private ways to sharpen your story: practicing with your coach, sharing it with a
-            trusted contact, and the casual answers to the questions people actually ask you.
-          </p>
-        ) : (
-          <p>
-            <span className="font-medium text-foreground">Tutorials</span>{' '}
-            below are matched to the venues you said you&apos;d post on. Everything you post shows
-            up on your Certified Executive Dossier as real, visible activity — not just a resume
-            claim.
-          </p>
-        )}
-      </div>
+      {/* Action Plan — quick links to every section on this page, in the
+          order a candidate would actually work through them. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Action Plan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="grid gap-1.5 sm:grid-cols-2">
+            {[
+              { href: '#linkedin', label: 'LinkedIn Posts' },
+              { href: '#narrative', label: 'Narrative' },
+              { href: '#outreach-prep', label: 'Outreach Prep' },
+              { href: '#interview-prep', label: 'Interview Prep' },
+              ...(defaultNarrativeItem?.coreStatement
+                ? [{ href: '#hard-questions', label: 'Answer Hard Questions' }]
+                : []),
+            ].map((item) => (
+              <li key={item.href}>
+                <a href={item.href} className="text-sm text-primary underline underline-offset-4">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
 
-      {/* LinkedIn — connect status, a compose box for writing your own
-          post (with idea generation underneath as a fallback), posting
-          tips, and any related how-to tutorials, all in one place instead
-          of scattered across the page. */}
-      <div className="space-y-4 border-t border-border pt-8">
+      {/* LinkedIn — connect status plus a compose box for writing your own
+          post (with idea generation underneath as a fallback) and the
+          activity status line right above it. Posting tips and tutorials
+          now live in the Learning section near the bottom of the page. */}
+      <div id="linkedin" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <SectionHeading>LinkedIn</SectionHeading>
         {linkedin.configured && <LinkedInConnectCard connected={linkedin.connected} />}
         <LinkedInComposer
           linkedin={linkedin}
           name={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
           photoUrl={profile.profilePictureUrl}
+          activityCount={linkedInActivityCount}
+          directPostCount={directPostCount}
         />
-
-        {/* Posting Tips — writing/growth/engagement mechanics, not
-            personalized (same catalog for everyone, no industry match) —
-            see getLinkedInTipsVideos. Liking one adds it to My Favorites on
-            the Videos and Webinars page (getCandidateFavorites resolves any
-            liked CuratedVideo row regardless of category); clicks/likes/
-            dislikes all roll up into the admin Stats tab the same as every
-            other carousel. */}
-        {linkedInTips.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Posting Tips</h3>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {linkedInTips.map((video) => (
-                <CuratedVideoCard
-                  key={video.id}
-                  video={video}
-                  isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {linkedInTutorials && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Tutorials</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {linkedInTutorials.tutorials.map((tutorial) => (
-                <Card key={tutorial.url}>
-                  <CardHeader>
-                    <CardTitle className="text-base">
-                      <a
-                        href={tutorial.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline underline-offset-4"
-                      >
-                        {tutorial.name}
-                      </a>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{tutorial.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {linkedInActivityCount > 0 && (
-          <TierSummaryCard
-            title="LinkedIn Activity"
-            count={linkedInActivityCount}
-            unitLabel="day"
-            tier={linkedInActivityCountToTier(linkedInActivityCount)}
-            buildingAt={3}
-            highAt={5}
-            unlockedContent={
-              <p className="text-sm text-muted-foreground">
-                {linkedInActivityCount} day{linkedInActivityCount === 1 ? '' : 's'} of LinkedIn activity logged
-                {directPostCount > 0 &&
-                  ` — ${directPostCount} posted directly through NextChapter, the rest self-reported`}
-                .
-              </p>
-            }
-          />
-        )}
       </div>
 
       {/* Narrative — Core Narrative and every Tailored Narrative as one
@@ -273,7 +200,7 @@ export default async function MarketingPlanPage({
       </div>
 
       {defaultNarrativeItem?.coreStatement && (
-        <div className="space-y-3 border-t border-border pt-8">
+        <div id="hard-questions" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
           <SectionHeading>Answers to the Hard Questions</SectionHeading>
           <HardQuestionsSection hardQuestions={hardQuestions} routeToCoach={routeHardQuestionsToCoach} />
         </div>
@@ -284,7 +211,7 @@ export default async function MarketingPlanPage({
           recruiter replies, unanswered applications). Every item links
           straight to where it's actioned — mostly My Network with
           Contacts, since that's where a candidate actually follows up. */}
-      <div className="space-y-3 border-t border-border pt-8">
+      <div id="outreach-prep" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <SectionHeading>Outreach Prep</SectionHeading>
         <p className="text-sm text-muted-foreground">
           People and applications waiting on a reply from you — follow up before your story goes
@@ -346,38 +273,6 @@ export default async function MarketingPlanPage({
         </div>
       </div>
 
-      {otherTutorials.length > 0 && (
-        <div className="space-y-3 border-t border-border pt-8">
-          <SectionHeading>Tutorials for your venues</SectionHeading>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {otherTutorials.flatMap((group) =>
-              group.tutorials.map((tutorial) => (
-                <Card key={tutorial.url}>
-                  <CardHeader>
-                    <CardTitle className="text-base">
-                      <a
-                        href={tutorial.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline underline-offset-4"
-                      >
-                        {tutorial.name}
-                      </a>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1">
-                    <p className="text-xs font-medium uppercase text-muted-foreground">
-                      {CONTENT_VENUE_LABEL[group.venue]}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{tutorial.description}</p>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
       {isLowComfort && (
         <div className="space-y-6 border-t border-border pt-8">
           <div className="space-y-3">
@@ -407,18 +302,84 @@ export default async function MarketingPlanPage({
         </div>
       )}
 
-      <div className="rounded-lg border border-border p-4">
-        <p className="text-sm text-foreground">
-          Have an interview coming up? Your narrative above is the raw material — Interview Prep
-          adapts it into likely questions, talking points, and practice for a specific role.
-        </p>
-        <Link
-          href="/dashboard/interview-prep"
-          className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
-        >
-          Go to Interview Prep →
-        </Link>
+      <div id="interview-prep" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+        <SectionHeading>Interview Prep</SectionHeading>
+        <div className="rounded-lg border border-border p-4">
+          <p className="text-sm text-foreground">
+            Have an interview coming up? Your narrative above is the raw material — Interview Prep
+            adapts it into likely questions, talking points, and practice for a specific role.
+          </p>
+          <Link
+            href="/dashboard/interview-prep"
+            className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Go to Interview Prep →
+          </Link>
+        </div>
       </div>
+
+      {/* Learning — posting tips and how-to tutorials together in one
+          place, near the bottom of the page above Resources, instead of
+          split across the LinkedIn section and a separate venues block. */}
+      {(linkedInTips.length > 0 || relevantTutorials.length > 0) && (
+        <div className="space-y-6 border-t border-border pt-8">
+          <SectionHeading>Learning</SectionHeading>
+
+          {/* Writing/growth/engagement mechanics, not personalized (same
+              catalog for everyone, no industry match) — see
+              getLinkedInTipsVideos. Liking one adds it to My Favorites on
+              the Videos and Webinars page (getCandidateFavorites resolves
+              any liked CuratedVideo row regardless of category); clicks/
+              likes/dislikes all roll up into the admin Stats tab the same
+              as every other carousel. */}
+          {linkedInTips.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Posting Tips</h3>
+              <div className="flex gap-4 overflow-x-auto pb-2">
+                {linkedInTips.map((video) => (
+                  <CuratedVideoCard
+                    key={video.id}
+                    video={video}
+                    isLiked={likedKeys.has(contentLikeKey('CURATED_VIDEO', video.id))}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {relevantTutorials.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Tutorials</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {relevantTutorials.flatMap((group) =>
+                  group.tutorials.map((tutorial) => (
+                    <Card key={tutorial.url}>
+                      <CardHeader>
+                        <CardTitle className="text-base">
+                          <a
+                            href={tutorial.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-4"
+                          >
+                            {tutorial.name}
+                          </a>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1">
+                        <p className="text-xs font-medium uppercase text-muted-foreground">
+                          {CONTENT_VENUE_LABEL[group.venue]}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{tutorial.description}</p>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <GuideCallout pageSlot="marketing-plan" currentJobStatus={profile.currentJobStatus} />
     </div>

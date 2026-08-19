@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import {
   getSearchStage,
@@ -11,11 +10,14 @@ import {
   isMarketingPlanWillingnessComplete,
   isNetworkingWillingnessComplete,
   isNegotiationInterviewComfortComplete,
+  isSearchStrategySoFarComplete,
+  isBenefitsComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
+import { SearchStrategyWizard, type WizardStep } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
@@ -28,7 +30,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
-import { estimateActionEffort } from '@/lib/weekly/action-effort'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -173,8 +174,8 @@ export default async function SearchStrategyPage() {
   const marketingPlanWillingnessComplete = isMarketingPlanWillingnessComplete(profile)
   const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
   const negotiationInterviewComfortComplete = isNegotiationInterviewComfortComplete(profile)
-  const benefitsAnswered = !!profile.benefitsPrioritiesBonusAt
-  const benefitsPoints = estimateActionEffort({ actionType: 'BENEFITS_PRIORITIES_CONFIRMED' }).points
+  const optionalQuestionsAnswered = isSearchStrategySoFarComplete(profile)
+  const benefitsAnswered = isBenefitsComplete(profile)
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
   // actually reflects most-recent-first.
@@ -188,66 +189,197 @@ export default async function SearchStrategyPage() {
   const inferredFunction = profile.primaryFunction ?? null
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
-  // Mirrors fetchCompletion's optionalQuestionsAnswered check in
-  // profile-checklist.ts — kept in sync manually since this page reads the
-  // fields directly off the already-fetched profile instead of a second query.
-  // jobsAppliedBucket/interviewsReceivedCount are asked during onboarding now
-  // (see updateLocationAndSearchStatus), not here, so they're excluded from
-  // this card's own completion check.
-  const optionalQuestionsAnswered = [
-    profile.networkingLevel,
-    profile.learnedNewSkillsLevel,
-    profile.triedPartTimeOrConsulting,
-    profile.triedExecutiveCoaching,
-    profile.connectedWithRecruiters,
-  ].every((f) => f !== null)
-
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
   const currentSprint = await getCurrentWeekSprint(profile.id)
 
-  const searchStrategySoFarCard = (
-    <Card id="optional-questions" className="scroll-mt-4 overflow-hidden p-0">
-      <details className="group" open={!optionalQuestionsAnswered}>
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Strategy So Far</CardTitle>
-            {optionalQuestionsAnswered && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            {!optionalQuestionsAnswered && (
-              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">+5 pts</span>
-            )}
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </div>
-        </summary>
-        <CardContent className="space-y-4 border-t border-border pt-4">
+  // 7 pages, one at a time, like the Market Reality Assessment wizard — no
+  // per-page points anymore (see maybeAwardSearchStrategyCompleteBonus);
+  // completing all 7 awards one SEARCH_STRATEGY_COMPLETE bonus instead.
+  const wizardSteps: WizardStep[] = [
+    { key: 'so-far', label: 'So Far', complete: optionalQuestionsAnswered },
+    { key: 'target-role', label: 'Target Role & Company', complete: targetRoleComplete },
+    { key: 'blockers-motivations', label: 'Blockers & Motivations', complete: blockersMotivationsComplete },
+    { key: 'marketing-plan', label: 'Marketing Plan Willingness', complete: marketingPlanWillingnessComplete },
+    { key: 'networking', label: 'Networking Willingness', complete: networkingWillingnessComplete },
+    { key: 'negotiation-interview', label: 'Negotiation & Interview Comfort', complete: negotiationInterviewComfortComplete },
+    { key: 'benefits', label: 'Compensation & Benefits', complete: benefitsAnswered },
+  ]
+
+  const wizardStepContent = [
+    <Card key="so-far">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Your Search Strategy So Far</CardTitle>
           {optionalQuestionsAnswered && (
-            <p className="text-sm text-muted-foreground">
-              Update any answer below as your search progresses — Victoria&apos;s guidance above
-              refreshes based on what you report here.
-            </p>
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
           )}
-          <OptionalQuestionsForm
-            initial={{
-              networkingLevel: profile.networkingLevel,
-              learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
-              triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
-              triedExecutiveCoaching: profile.triedExecutiveCoaching,
-              connectedWithRecruiters: profile.connectedWithRecruiters,
-              recruiterConnectionCount: profile.recruiterConnectionCount,
-            }}
-          />
-        </CardContent>
-      </details>
-    </Card>
-  )
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {optionalQuestionsAnswered && (
+          <p className="text-sm text-muted-foreground">
+            Update any answer below as your search progresses — Victoria&apos;s guidance above
+            refreshes based on what you report here.
+          </p>
+        )}
+        <OptionalQuestionsForm
+          initial={{
+            networkingLevel: profile.networkingLevel,
+            learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
+            triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
+            triedExecutiveCoaching: profile.triedExecutiveCoaching,
+            connectedWithRecruiters: profile.connectedWithRecruiters,
+            recruiterConnectionCount: profile.recruiterConnectionCount,
+          }}
+        />
+      </CardContent>
+    </Card>,
+
+    <Card key="target-role">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
+          {targetRoleComplete && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {targetRoleComplete && (
+          <p className="text-sm text-muted-foreground">
+            Update this any time your target changes — a new role, a new industry, a different
+            seniority — and Victoria&apos;s guidance above and your job matches will refresh to
+            match.
+          </p>
+        )}
+        <SearchStrategyForm
+          profile={profile}
+          inferredIndustries={inferredIndustries}
+          inferredFunction={inferredFunction}
+          completedReferencesCount={completedReferencesCount}
+        />
+      </CardContent>
+    </Card>,
+
+    <Card key="blockers-motivations">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</CardTitle>
+          {blockersMotivationsComplete && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {blockersMotivationsComplete
+            ? "Update this any time it changes — Victoria's guidance above and her tone with you refresh to match."
+            : "Required, alongside Your Target Role & Company, before Victoria will review your strategy — what's actually in your way, and what's pulling you forward, shapes her advice as much as your target role does."}
+        </p>
+        <PersonalContextForm profile={profile} />
+      </CardContent>
+    </Card>,
+
+    <Card key="marketing-plan">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Marketing Plan Willingness</CardTitle>
+          {marketingPlanWillingnessComplete && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {marketingPlanWillingnessComplete
+            ? 'Update this any time your comfort level changes — it unlocks My Marketing Plan and the LinkedIn post generator.'
+            : "What you're willing to do publicly shapes your Marketing Plan and unlocks the LinkedIn post generator — answer these once here instead of hitting two separate locked pages."}
+        </p>
+        <MarketingPlanWillingnessForm profile={profile} />
+      </CardContent>
+    </Card>,
+
+    <Card key="networking">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Networking Willingness</CardTitle>
+          {networkingWillingnessComplete && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {networkingWillingnessComplete
+            ? 'Update this any time it changes — it unlocks My Network and calibrates your outreach scripts.'
+            : "What you're willing to do to reach out — and what's holding you back — shapes your outreach scripts and unlocks My Network."}
+        </p>
+        <NetworkingWillingnessForm profile={profile} />
+      </CardContent>
+    </Card>,
+
+    <Card key="negotiation-interview">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Negotiation &amp; Interview Comfort
+          </CardTitle>
+          {negotiationInterviewComfortComplete && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {negotiationInterviewComfortComplete
+            ? 'Update this any time it changes — a low score shapes the skills we suggest and the career-advice videos we surface first.'
+            : "Where you're genuinely comfortable and where you're not, so the skills we suggest and the videos we surface actually target the gap."}
+        </p>
+        <NegotiationInterviewComfortForm profile={profile} />
+      </CardContent>
+    </Card>,
+
+    <Card key="benefits">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Compensation &amp; Benefits</CardTitle>
+          {benefitsAnswered && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          What matters to you beyond salary — helps your coach and recruiter contacts steer you
+          toward roles and offers that actually fit.
+        </p>
+        {benefitsAnswered ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+            Answered
+          </p>
+        ) : (
+          <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
+        )}
+      </CardContent>
+    </Card>,
+  ]
 
   const actionPlanCard = checklist.incomplete.length > 0 && (
     <Card>
@@ -314,197 +446,9 @@ export default async function SearchStrategyPage() {
         )}
       </div>
 
-      {searchStrategySoFarCard}
-
       {actionPlanCard}
 
-      <Card className="overflow-hidden p-0">
-        <details className="group" open={!targetRoleComplete}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
-              {targetRoleComplete && (
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-              )}
-            </div>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            {targetRoleComplete && (
-              <p className="text-sm text-muted-foreground">
-                Update this any time your target changes — a new role, a new industry, a different
-                seniority — and Victoria&apos;s guidance above and your job matches will refresh to
-                match.
-              </p>
-            )}
-            <SearchStrategyForm
-              profile={profile}
-              inferredIndustries={inferredIndustries}
-              inferredFunction={inferredFunction}
-              completedReferencesCount={completedReferencesCount}
-            />
-          </CardContent>
-        </details>
-      </Card>
-
-      <Card className="overflow-hidden p-0">
-        <details className="group" open={!blockersMotivationsComplete}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</CardTitle>
-              {blockersMotivationsComplete && (
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-              )}
-            </div>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <p className="text-sm text-muted-foreground">
-              {blockersMotivationsComplete
-                ? "Update this any time it changes — Victoria's guidance above and her tone with you refresh to match."
-                : "Required, alongside Your Target Role & Company above, before Victoria will review your strategy — what's actually in your way, and what's pulling you forward, shapes her advice as much as your target role does."}
-            </p>
-            <PersonalContextForm profile={profile} />
-          </CardContent>
-        </details>
-      </Card>
-
-      <Card className="overflow-hidden p-0">
-        <details className="group" open={!marketingPlanWillingnessComplete}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Marketing Plan Willingness</CardTitle>
-              {marketingPlanWillingnessComplete && (
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-              )}
-            </div>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <p className="text-sm text-muted-foreground">
-              {marketingPlanWillingnessComplete
-                ? 'Update this any time your comfort level changes — it unlocks My Marketing Plan and the LinkedIn post generator.'
-                : "What you're willing to do publicly shapes your Marketing Plan and unlocks the LinkedIn post generator — answer these once here instead of hitting two separate locked pages."}
-            </p>
-            <MarketingPlanWillingnessForm profile={profile} />
-          </CardContent>
-        </details>
-      </Card>
-
-      <Card className="overflow-hidden p-0">
-        <details className="group" open={!networkingWillingnessComplete}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Networking Willingness</CardTitle>
-              {networkingWillingnessComplete && (
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-              )}
-            </div>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <p className="text-sm text-muted-foreground">
-              {networkingWillingnessComplete
-                ? 'Update this any time it changes — it unlocks My Network and calibrates your outreach scripts.'
-                : "What you're willing to do to reach out — and what's holding you back — shapes your outreach scripts and unlocks My Network."}
-            </p>
-            <NetworkingWillingnessForm profile={profile} />
-          </CardContent>
-        </details>
-      </Card>
-
-      <Card className="overflow-hidden p-0">
-        <details className="group" open={!negotiationInterviewComfortComplete}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Negotiation &amp; Interview Comfort
-              </CardTitle>
-              {negotiationInterviewComfortComplete && (
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-              )}
-            </div>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <p className="text-sm text-muted-foreground">
-              {negotiationInterviewComfortComplete
-                ? 'Update this any time it changes — a low score shapes the skills we suggest and the career-advice videos we surface first.'
-                : "Where you're genuinely comfortable and where you're not, so the skills we suggest and the videos we surface actually target the gap."}
-            </p>
-            <NegotiationInterviewComfortForm profile={profile} />
-          </CardContent>
-        </details>
-      </Card>
-
-      <Card id="comp-benefits" className="scroll-mt-4 overflow-hidden p-0">
-        <details className="group" open={!benefitsAnswered}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Compensation &amp; Benefits
-              </CardTitle>
-              {benefitsAnswered && (
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-              )}
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              {!benefitsAnswered && (
-                <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                  +{benefitsPoints} pts
-                </span>
-              )}
-              <ChevronDown
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                aria-hidden
-              />
-            </div>
-          </summary>
-          <CardContent className="space-y-4 border-t border-border pt-4">
-            <p className="text-sm text-muted-foreground">
-              What matters to you beyond salary — helps your coach and recruiter contacts steer
-              you toward roles and offers that actually fit.
-            </p>
-            {benefitsAnswered ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-                Answered
-              </p>
-            ) : (
-              <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
-            )}
-          </CardContent>
-        </details>
-      </Card>
+      <SearchStrategyWizard steps={wizardSteps}>{wizardStepContent}</SearchStrategyWizard>
 
       {stage === 'QUIETLY_LOOKING' && (
         <Card>
