@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { createInterimListing, toggleInterimListingActive } from './actions'
 import { InterimListingCreateForm } from '@/components/admin/InterimListingCreateForm'
 import { InterimListingDesignationForm } from '@/components/admin/InterimListingDesignationForm'
+import { InterimListingLogoForm } from '@/components/admin/InterimListingLogoForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { InterimListingCategory } from '@prisma/client'
@@ -83,6 +84,7 @@ export default async function InterimListingsAdminPage() {
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-2">
                         <InterimListingDesignationForm listingId={listing.id} designation={listing.designation} />
+                        <InterimListingLogoForm listingId={listing.id} logoUrl={listing.logoUrl} />
                         <form action={toggleInterimListingActive.bind(null, listing.id, listing.isActive)}>
                           <SubmitButton variant="ghost" size="sm">
                             {listing.isActive ? 'Deactivate' : 'Activate'}

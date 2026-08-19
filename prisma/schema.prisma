@@ -5538,6 +5538,11 @@ model InterimListing {
   name            String
   description     String
   url             String
+  // Admin-pasted logo image URL — shown in the carousel view on
+  // /dashboard/interim-work (marketplaces/expert networks). Optional: a
+  // listing with no logo yet falls back to an initial-letter badge rather
+  // than blocking on every partner having a hosted logo image up front.
+  logoUrl         String?
   designation     InterimListingDesignation   @default(INCLUDED_FOR_QUALITY)
   audienceFocus   InterimListingAudienceFocus @default(GENERAL)
   // Free-text nuance on the designation, e.g. Toptal's client-referral

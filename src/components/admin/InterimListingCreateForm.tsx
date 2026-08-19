@@ -87,6 +87,10 @@ export function InterimListingCreateForm({
         <Input id="url" name="url" type="url" required placeholder="https://" />
       </div>
       <div className="space-y-2">
+        <Label htmlFor="logoUrl">Logo URL (optional)</Label>
+        <Input id="logoUrl" name="logoUrl" type="url" placeholder="https://" />
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" name="description" required rows={2} />
       </div>

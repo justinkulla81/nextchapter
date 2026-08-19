@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { InterimLaunchPlanTracker } from '@/components/dashboard/InterimLaunchPlanTracker'
 import { InterimListingGrid } from '@/components/dashboard/InterimListingGrid'
+import { InterimListingCarousel } from '@/components/dashboard/InterimListingCarousel'
 import { WorkHistoryForm } from '@/components/dashboard/WorkHistoryForm'
 import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { getInterimLaunchPlan } from '@/lib/gig-directory/interim-launch-plan'
@@ -82,16 +83,26 @@ export default async function InterimWorkPage() {
         <PageHeaderBoxes pageKey="interim-work" candidateId={profile.id} />
       </div>
 
-      {/* Section 1 — Set Up Your Own Consultancy */}
-      <section id="launch-phase-1" className="scroll-mt-4 space-y-6 border-b border-border pb-10">
-        <div>
-          <h2 className="text-lg font-semibold">1. Set up your own consultancy</h2>
-          <p className="text-sm text-muted-foreground">
-            The fastest path for most candidates: package what you already do as an independent
-            offer and go straight to your network, rather than waiting on a marketplace to match
-            you.
-          </p>
-        </div>
+      {/* Section 1 — Set Up Your Own Consultancy — collapsed by default (a
+          full phase-by-phase tracker plus three sub-forms is a lot to land
+          on before a candidate has even chosen this path); the summary line
+          alone carries the "what is this and why" explanation. */}
+      <details id="launch-phase-1" className="group scroll-mt-4 space-y-6 border-b border-border pb-10">
+        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">1. Set up your own consultancy</h2>
+              <p className="text-sm text-muted-foreground">
+                The fastest path for most candidates: package what you already do as an independent
+                offer and go straight to your network, rather than waiting on a marketplace to match
+                you.
+              </p>
+            </div>
+            <span className="mt-1 shrink-0 text-xs font-medium text-muted-foreground underline underline-offset-4 group-open:hidden">
+              Show launch plan
+            </span>
+          </div>
+        </summary>
 
         <InterimLaunchPlanTracker phases={phases} />
 
@@ -155,7 +166,7 @@ export default async function InterimWorkPage() {
             </div>
           </div>
         )}
-      </section>
+      </details>
 
       {!profile.gigDirectoryUnlockAnswer ? (
         <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
@@ -202,7 +213,7 @@ export default async function InterimWorkPage() {
                 arrangement.
               </p>
             </div>
-            <InterimListingGrid listings={marketplaceListings} signedUpIds={signedUpIds} showSignupCheckbox />
+            <InterimListingCarousel listings={marketplaceListings} signedUpIds={signedUpIds} showSignupCheckbox />
           </section>
 
           {/* Section 3 — Expert Networks */}
@@ -222,7 +233,7 @@ export default async function InterimWorkPage() {
                 with your coach before signing up.
               </p>
             )}
-            <InterimListingGrid listings={expertNetworkListings} signedUpIds={signedUpIds} />
+            <InterimListingCarousel listings={expertNetworkListings} signedUpIds={signedUpIds} />
           </section>
 
           {/* Section 4 — Board & Advisory (Phase 8, §A2.4 — a Membership perk) */}

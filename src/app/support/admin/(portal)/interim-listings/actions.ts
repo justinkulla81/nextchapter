@@ -15,6 +15,7 @@ export async function createInterimListing(_prevState: FormState, formData: Form
   const name = (formData.get('name') as string | null)?.trim()
   const description = (formData.get('description') as string | null)?.trim()
   const url = (formData.get('url') as string | null)?.trim()
+  const logoUrl = (formData.get('logoUrl') as string | null)?.trim()
   const designation = (formData.get('designation') as InterimListingDesignation | null) ?? 'INCLUDED_FOR_QUALITY'
   const designationNote = (formData.get('designationNote') as string | null)?.trim()
 
@@ -24,7 +25,7 @@ export async function createInterimListing(_prevState: FormState, formData: Form
   if (!url) return { error: 'URL is required.' }
 
   const listing = await prisma.interimListing.create({
-    data: { category, name, description, url, designation, designationNote: designationNote || null },
+    data: { category, name, description, url, logoUrl: logoUrl || null, designation, designationNote: designationNote || null },
   })
 
   captureServerEvent(admin?.email ?? 'admin', 'interim_listing_created', { listingId: listing.id, category })
@@ -35,6 +36,17 @@ export async function toggleInterimListingActive(listingId: string, current: boo
   await requireAdmin()
   await prisma.interimListing.update({ where: { id: listingId }, data: { isActive: !current } })
   revalidatePath('/support/admin/interim-listings')
+}
+
+export async function updateInterimListingLogo(_prevState: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin()
+  const listingId = formData.get('listingId') as string | null
+  const logoUrl = (formData.get('logoUrl') as string | null)?.trim()
+  if (!listingId) return { error: 'Missing listing.' }
+
+  await prisma.interimListing.update({ where: { id: listingId }, data: { logoUrl: logoUrl || null } })
+  revalidatePath('/support/admin/interim-listings')
+  revalidatePath('/dashboard/interim-work')
 }
 
 export async function updateInterimListingDesignation(
