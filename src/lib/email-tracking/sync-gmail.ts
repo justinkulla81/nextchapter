@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
-import { matchResumeShared, matchCourseCompletion, isLikelyBulkOrPromotional } from './ats-patterns'
+import { matchResumeShared, matchCourseCompletion, matchCourseEnrollment, isLikelyBulkOrPromotional } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
 import { extractEmailAddress, extractDisplayName, extractDomain } from './email-address'
 import { ATS_AND_JOB_BOARD_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
@@ -48,21 +48,42 @@ const LEARNING_PLATFORM_DOMAINS = new Set(['coursera.org', 'edx.org'])
 // Course titles are admin-editable now (the Course table), so this always
 // re-fetches rather than caching across the module's lifetime — this only
 // runs for the rare inbound email that already matched course-completion
-// phrasing from a known learning-platform domain, so the extra query is
-// cheap relative to how infrequently it's called.
-async function findCompletedCatalogTitle(text: string): Promise<string | null> {
+// or course-enrollment phrasing from a known learning-platform domain, so
+// the extra query is cheap relative to how infrequently it's called.
+async function findCatalogTitleInText(text: string): Promise<string | null> {
   const catalogTitles = await getAllCourseTitles()
   const lower = text.toLowerCase()
   return catalogTitles.find((title) => lower.includes(title.toLowerCase())) ?? null
 }
 
-// Mirrors markRecommendationCompleted's (learning/actions.ts) manual
-// "Mark done" click exactly — same LearningBadge shape, same downstream
-// rewrite call — so an email-detected completion is indistinguishable from
-// one a candidate clicked themselves. Guards against duplicate badges,
-// since the manual path only avoids re-showing the button but never
-// checks for an existing row itself.
+// The Learning page reads this to show a card's "Enrolled"/"Course
+// Complete" status pill — separate from LearningBadge below, which only
+// ever represents a finished achievement, never an in-progress one.
+// Upserted (not created) so a later completion email can move an existing
+// ENROLLED row to COMPLETED instead of leaving two conflicting rows.
+async function upsertCourseActivityFromEmail(
+  candidateId: string,
+  title: string,
+  provider: string,
+  status: 'ENROLLED' | 'COMPLETED'
+): Promise<void> {
+  await prisma.candidateCourseActivity.upsert({
+    where: { candidateId_courseTitle: { candidateId, courseTitle: title } },
+    create: { candidateId, courseTitle: title, provider, status },
+    // Never downgrade an already-COMPLETED row back to ENROLLED — a
+    // completion email for a course also implies its enrollment email (if
+    // any) is now stale information.
+    update: status === 'COMPLETED' ? { status: 'COMPLETED', provider, detectedAt: new Date() } : {},
+  })
+}
+
+// Creates the same LearningBadge shape a candidate's own "Mark done" click
+// used to (that button is gone now — this email detection is the only path
+// left), including the downstream rewrite call. Guards against duplicate
+// badges since nothing upstream de-dupes.
 async function markCourseCompletedFromEmail(candidateId: string, title: string, provider: string): Promise<void> {
+  await upsertCourseActivityFromEmail(candidateId, title, provider, 'COMPLETED')
+
   const existing = await prisma.learningBadge.findFirst({
     where: { candidateId, title, badgeType: 'course_completed' },
   })
@@ -77,6 +98,14 @@ async function markCourseCompletedFromEmail(candidateId: string, title: string, 
   } catch (error) {
     console.error('Failed to apply learning-closes-barrier baseline rewrite:', error)
   }
+}
+
+// No LearningBadge/points here — enrolling isn't an achievement, just a
+// status the card surfaces so a candidate can see which recommendations
+// they've already started.
+async function markCourseEnrolledFromEmail(candidateId: string, title: string, provider: string): Promise<void> {
+  await upsertCourseActivityFromEmail(candidateId, title, provider, 'ENROLLED')
+  captureServerEvent(candidateId, 'learning_course_enrolled', { title, provider, source: 'email' })
 }
 
 interface GmailHeader {
@@ -407,15 +436,25 @@ async function processMessage(
     }
   }
 
-  // Course-completion detection — independent of the primary classification
-  // above (a completion email doesn't fit any of those categories). Gated
-  // to mail from the platforms' own domains so "congratulations, you
-  // completed X" phrasing is never guessed from an arbitrary sender.
+  // Course-completion/enrollment detection — independent of the primary
+  // classification above (neither fits any of those categories). Gated to
+  // mail from the platforms' own domains so "congratulations, you
+  // completed X" / "you're enrolled" phrasing is never guessed from an
+  // arbitrary sender. Completion checked first: a completion email that
+  // happens to also mention "enrolled" somewhere should never be read as a
+  // fresh enrollment.
   const senderPlatformDomain = direction === 'INBOUND' ? senderRootDomain : null
-  if (senderPlatformDomain && LEARNING_PLATFORM_DOMAINS.has(senderPlatformDomain) && matchCourseCompletion(subject, bodyPreview)) {
-    const completedTitle = await findCompletedCatalogTitle(`${subject} ${bodyPreview}`)
-    if (completedTitle) {
-      await markCourseCompletedFromEmail(connection.candidateId, completedTitle, senderPlatformDomain)
+  if (senderPlatformDomain && LEARNING_PLATFORM_DOMAINS.has(senderPlatformDomain)) {
+    if (matchCourseCompletion(subject, bodyPreview)) {
+      const completedTitle = await findCatalogTitleInText(`${subject} ${bodyPreview}`)
+      if (completedTitle) {
+        await markCourseCompletedFromEmail(connection.candidateId, completedTitle, senderPlatformDomain)
+      }
+    } else if (matchCourseEnrollment(subject, bodyPreview)) {
+      const enrolledTitle = await findCatalogTitleInText(`${subject} ${bodyPreview}`)
+      if (enrolledTitle) {
+        await markCourseEnrolledFromEmail(connection.candidateId, enrolledTitle, senderPlatformDomain)
+      }
     }
   }
 

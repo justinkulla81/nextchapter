@@ -1,9 +1,9 @@
 import { Check } from 'lucide-react'
 import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
-import { SubmitButton } from '@/components/ui/submit-button'
-import { markRecommendationCompleted } from '@/app/dashboard/learning/actions'
+import { SponsorBadge } from '@/components/dashboard/learning/SponsorBadge'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { LEARNING_PROVIDERS } from '@/lib/constants/learning-partners'
+import { cn } from '@/lib/utils'
 import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
 
 // Platform-recognizable colors (not the individual school/company logos —
@@ -22,10 +22,18 @@ export function LearningResourceCard({
   item,
   section,
   completed,
+  enrolled = false,
+  carousel = false,
 }: {
   item: LearningPlanItem
   section: string
   completed: boolean
+  // Detected from Gmail (see markCourseEnrolledFromEmail in sync-gmail.ts)
+  // — there's no manual way to set this, same as completed below.
+  enrolled?: boolean
+  // Fixed width + no shrink, for a horizontal-scroll carousel row instead
+  // of a grid cell.
+  carousel?: boolean
 }) {
   // Admin-managed courses (Course.provider) aren't limited to the known
   // platform slugs above — fall back to a plain, unbranded "included for
@@ -39,12 +47,14 @@ export function LearningResourceCard({
   const points = estimateActionEffort({ actionType: item.actionType }).points
 
   return (
-    <div className="space-y-2 rounded-lg border border-border p-4">
+    <div className={cn('space-y-2 rounded-lg border border-border p-4', carousel && 'w-80 shrink-0')}>
       {(item.logoUrl || item.sponsor) && (
         <div className="flex items-center gap-2">
-          {item.logoUrl && (
+          {item.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- admin-provided external URL, not a local asset
-            <img src={item.logoUrl} alt="" className="size-6 shrink-0 rounded object-contain" />
+            <img src={item.logoUrl} alt="" className="size-7 shrink-0 rounded object-contain" />
+          ) : (
+            item.sponsor && <SponsorBadge sponsor={item.sponsor} />
           )}
           {item.sponsor && (
             <p className="text-xs font-semibold tracking-wide text-foreground uppercase">{item.sponsor}</p>
@@ -98,14 +108,12 @@ export function LearningResourceCard({
 
       {completed ? (
         <span className="flex items-center gap-1 text-xs font-medium text-success">
-          <Check className="size-3.5" /> Done
+          <Check className="size-3.5" /> Course Complete
         </span>
       ) : (
-        <form action={markRecommendationCompleted.bind(null, item.title, provider.name)}>
-          <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
-            Mark done
-          </SubmitButton>
-        </form>
+        enrolled && (
+          <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">Enrolled</span>
+        )
       )}
     </div>
   )

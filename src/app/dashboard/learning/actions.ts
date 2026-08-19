@@ -8,40 +8,6 @@ import { polishAiProjectDescription } from '@/lib/learning/polish-ai-project'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions'
 
-// One-click completion from a recommendation card — skips the manual
-// title/type/date form since we already know what it is and that it's done
-// today; still creates a real LearningBadge so it counts toward the
-// Certified Executive Dossier the same as a manually logged one.
-export async function markRecommendationCompleted(title: string, provider: string | null): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-
-  await prisma.learningBadge.create({
-    data: {
-      candidateId: profile.id,
-      title,
-      provider,
-      badgeType: 'course_completed',
-      completedAt: new Date(),
-    },
-  })
-
-  captureServerEvent(profile.id, 'learning_recommendation_completed', { title, provider })
-
-  try {
-    await applyLearningClosesBarrierRewrite(profile.id)
-  } catch (error) {
-    console.error('Failed to apply learning-closes-barrier baseline rewrite:', error)
-  }
-
-  revalidatePath('/dashboard/learning')
-}
-
 export type LogAiProjectFormState = { error?: string } | undefined
 
 export async function logAiProject(

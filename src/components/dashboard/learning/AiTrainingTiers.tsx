@@ -19,10 +19,12 @@ export function AiTrainingTiers({
   defaultTier,
   coursesByLevel,
   completedTitles,
+  enrolledTitles,
 }: {
   defaultTier: CourseSkillLevel
   coursesByLevel: Record<CourseSkillLevel, LearningPlanItem[]>
   completedTitles: Set<string>
+  enrolledTitles: Set<string>
 }) {
   const [tier, setTier] = useState<CourseSkillLevel>(defaultTier)
   const posthog = usePostHog()
@@ -67,22 +69,24 @@ export function AiTrainingTiers({
           ))}
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {courses.length === 0 ? (
-          <p className="text-sm text-muted-foreground sm:col-span-2">
-            No {COURSE_SKILL_LEVEL_LABELS[tier].toLowerCase()} courses yet — check back soon.
-          </p>
-        ) : (
-          courses.map((course) => (
+      {courses.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No {COURSE_SKILL_LEVEL_LABELS[tier].toLowerCase()} courses yet — check back soon.
+        </p>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {courses.map((course) => (
             <LearningResourceCard
               key={course.title}
               item={course}
               section="ai_training"
               completed={completedTitles.has(course.title)}
+              enrolled={enrolledTitles.has(course.title)}
+              carousel
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

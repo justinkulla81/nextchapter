@@ -44,16 +44,18 @@ function BadgeBreakdownContent({ badges }: { badges: LearningBadge[] }) {
   )
 }
 
-function renderSection(section: LearningPlanSection, completedTitles: Set<string>) {
+function renderSection(section: LearningPlanSection, completedTitles: Set<string>, enrolledTitles: Set<string>) {
   return (
     <LearningSection key={section.id} id={section.id} title={section.title}>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="flex gap-4 overflow-x-auto pb-2">
         {section.items.map((item) => (
           <LearningResourceCard
             key={item.title}
             item={item}
             section={section.id}
             completed={completedTitles.has(item.title)}
+            enrolled={enrolledTitles.has(item.title)}
+            carousel
           />
         ))}
       </div>
@@ -64,11 +66,15 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 export default async function LearningPage() {
   const profile = await getDashboardData()
   const weekStart = getMondayOfWeek(new Date())
-  const [plan, badges, learningEvents, assessmentResponseCount] = await Promise.all([
+  const [plan, badges, courseActivity, learningEvents, assessmentResponseCount] = await Promise.all([
     buildLearningPlan(profile.id),
     prisma.learningBadge.findMany({
       where: { candidateId: profile.id },
       orderBy: { completedAt: 'desc' },
+    }),
+    prisma.candidateCourseActivity.findMany({
+      where: { candidateId: profile.id, status: 'ENROLLED' },
+      select: { courseTitle: true },
     }),
     prisma.trackedCalendarEvent.findMany({
       where: { candidateId: profile.id, eventType: 'LEARNING', dismissedAt: null },
@@ -80,6 +86,7 @@ export default async function LearningPage() {
   const badgeMix = computeBadgeTypeMix(badges.map((b) => b.badgeType))
 
   const completedTitles = new Set(badges.map((b) => b.title))
+  const enrolledTitles = new Set(courseActivity.map((c) => c.courseTitle))
   const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
   const learningMinutesThisWeek = learningEventsThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
 
@@ -142,6 +149,7 @@ export default async function LearningPage() {
           defaultTier={plan.aiTrainingTier}
           coursesByLevel={plan.aiTrainingCoursesByLevel}
           completedTitles={completedTitles}
+          enrolledTitles={enrolledTitles}
         />
       </LearningSection>
 
@@ -151,16 +159,21 @@ export default async function LearningPage() {
           tools={plan.aiTools}
           functionTraining={plan.functionTraining}
           completedTitles={completedTitles}
+          enrolledTitles={enrolledTitles}
         />
       </LearningSection>
 
-      {plan.sections.filter((s) => s.id !== 'speaking-leadership').map((s) => renderSection(s, completedTitles))}
+      {plan.sections
+        .filter((s) => s.id !== 'speaking-leadership')
+        .map((s) => renderSection(s, completedTitles, enrolledTitles))}
 
       <LearningSection title="Interview Skills">
         <InterviewSkillsSection data={plan.interviewSkills} />
       </LearningSection>
 
-      {plan.sections.filter((s) => s.id === 'speaking-leadership').map((s) => renderSection(s, completedTitles))}
+      {plan.sections
+        .filter((s) => s.id === 'speaking-leadership')
+        .map((s) => renderSection(s, completedTitles, enrolledTitles))}
 
       {badges.length > 0 && (
         <div className="pt-2">

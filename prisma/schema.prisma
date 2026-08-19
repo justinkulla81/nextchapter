@@ -1289,6 +1289,7 @@ model CandidateProfile {
   interviewResponses             InterviewResponse[]
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
+  courseActivity                 CandidateCourseActivity[]
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
@@ -2082,6 +2083,34 @@ model LearningBadge {
   verified        Boolean  @default(false)
   createdAt       DateTime @default(now())
 
+  @@index([candidateId])
+}
+
+enum CourseActivityStatus {
+  ENROLLED
+  COMPLETED
+}
+
+// Per-course "Enrolled"/"Course Complete" status shown on the Learning
+// page's recommendation cards — detected automatically from Gmail
+// (COURSE_ENROLLMENT_PATTERNS/COURSE_COMPLETION_PATTERNS in
+// ats-patterns.ts) rather than a manual "Mark done" click, which no longer
+// exists. COMPLETED additionally creates a LearningBadge (see
+// markCourseCompletedFromEmail in sync-gmail.ts) so it still counts toward
+// the Certified Executive Dossier and Weekly Search Score — this table
+// exists to drive the card's own status pill, including the ENROLLED state
+// LearningBadge has no equivalent for.
+model CandidateCourseActivity {
+  id          String               @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  courseTitle String
+  provider    String?
+  status      CourseActivityStatus
+  detectedAt  DateTime             @default(now())
+
+  @@unique([candidateId, courseTitle])
   @@index([candidateId])
 }
 

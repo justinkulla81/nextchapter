@@ -114,11 +114,13 @@ export function ToolsForRoleSection({
   tools,
   functionTraining,
   completedTitles,
+  enrolledTitles,
 }: {
   role: string | null
   tools: LearningPlanAiTool[]
   functionTraining: LearningPlanItem[]
   completedTitles: Set<string>
+  enrolledTitles: Set<string>
 }) {
   return (
     <div className="space-y-4">
@@ -138,13 +140,15 @@ export function ToolsForRoleSection({
       {functionTraining.length > 0 && (
         <div className="space-y-3 pt-2">
           <h3 className="text-sm font-medium text-foreground">Courses & certifications for {role || 'your field'}</h3>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex gap-4 overflow-x-auto pb-2">
             {functionTraining.map((item) => (
               <LearningResourceCard
                 key={item.title}
                 item={item}
                 section="function_training"
                 completed={completedTitles.has(item.title)}
+                enrolled={enrolledTitles.has(item.title)}
+                carousel
               />
             ))}
           </div>

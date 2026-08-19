@@ -683,3 +683,18 @@ const COURSE_COMPLETION_PATTERNS = [
 export function matchCourseCompletion(subject: string, bodyPreview: string): boolean {
   return testAny(`${subject} ${bodyPreview}`, COURSE_COMPLETION_PATTERNS)
 }
+
+// Coursera/edX's own standardized enrollment-confirmation phrasing — same
+// domain-gating as completion above, checked second (see sync-gmail.ts) so
+// a completion email that happens to also say "enrolled" somewhere in its
+// body never gets misread as a fresh enrollment.
+const COURSE_ENROLLMENT_PATTERNS = [
+  /you('re| are)\s+(now\s+)?enrolled/i,
+  /enrollment\s+(is\s+)?confirm/i,
+  /you('ve| have)\s+successfully\s+enrolled/i,
+  /welcome\s+to\s+(the\s+)?course/i,
+]
+
+export function matchCourseEnrollment(subject: string, bodyPreview: string): boolean {
+  return testAny(`${subject} ${bodyPreview}`, COURSE_ENROLLMENT_PATTERNS)
+}
