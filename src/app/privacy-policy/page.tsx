@@ -116,10 +116,11 @@ export default function PrivacyPolicyPage() {
             <li>Change your visibility setting at any time from Dashboard → Privacy.</li>
             <li>Update or correct your profile information at any time.</li>
             <li>
-              <strong>Delete your account and all associated data</strong> at any time,
-              immediately and without contacting support, from Dashboard → Privacy → Danger Zone.
-              This permanently removes your profile, resume, references, work samples, and
-              reports.
+              <strong>Deactivate your account</strong> at any time, immediately and without
+              contacting support, from Dashboard → Privacy → Danger Zone — this makes your account
+              unusable but keeps your data intact. For a permanent deletion of your profile,
+              resume, references, work samples, and reports, email
+              support@launchyournextchapter.com.
             </li>
             <li>Unsubscribe from reminder emails via the link in any reminder email.</li>
           </ul>

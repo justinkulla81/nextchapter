@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
@@ -219,15 +218,19 @@ export async function setRecruiterDatabaseOptIn(optIn: boolean): Promise<void> {
   revalidatePath('/dashboard/find-my-job')
 }
 
-export type DeleteAccountFormState = { error?: string } | undefined
+export type DeactivateAccountFormState = { error?: string } | undefined
 
-export async function deleteMyAccount(
-  _prevState: DeleteAccountFormState,
+// Deliberately NOT a delete — see deactivatedAt's own schema comment. Every
+// row stays intact; this only blocks dashboard access (getDashboardData)
+// and signs the session out. Real deletion only ever happens by request to
+// support@launchyournextchapter.com, per the Danger Zone's own copy.
+export async function deactivateMyAccount(
+  _prevState: DeactivateAccountFormState,
   formData: FormData
-): Promise<DeleteAccountFormState> {
+): Promise<DeactivateAccountFormState> {
   const confirmation = formData.get('confirmation') as string | null
-  if (confirmation?.trim().toUpperCase() !== 'DELETE') {
-    return { error: 'Type DELETE (all caps) to confirm.' }
+  if (confirmation?.trim().toUpperCase() !== 'DEACTIVATE') {
+    return { error: 'Type DEACTIVATE (all caps) to confirm.' }
   }
 
   const supabase = await createClient()
@@ -241,12 +244,11 @@ export async function deleteMyAccount(
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
-  // Deletes the profile and every related row (references, resumes, work
-  // samples, reports, etc.) via onDelete: Cascade on each relation.
-  await prisma.candidateProfile.delete({ where: { id: profile.id } })
-
-  const admin = createAdminClient()
-  await admin.auth.admin.deleteUser(user.id)
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { deactivatedAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'account_deactivated')
 
   await supabase.auth.signOut()
 

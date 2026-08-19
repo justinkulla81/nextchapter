@@ -59,6 +59,14 @@ export const getDashboardData = cache(async () => {
     redirect('/onboarding')
   }
 
+  // Deactivated (see deactivatedAt's own schema comment) — signs the
+  // session out and sends them to a plain explanation page rather than
+  // silently blocking every dashboard route one-by-one.
+  if (profile.deactivatedAt) {
+    await supabase.auth.signOut()
+    redirect('/account-deactivated')
+  }
+
   const { profile: syncedBase, justRegistered } = await syncRegistrationCompletion(user, profile)
   profile = { ...profile, ...syncedBase }
 

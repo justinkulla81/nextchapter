@@ -95,7 +95,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'How do I delete my account and my data?',
         answer:
-          'Go to Dashboard → Privacy and click "Delete my account" in the Danger Zone. It deletes your profile, resume, references, work samples, and reports immediately — no waiting on support.',
+          'Go to Dashboard → Privacy and click "Deactivate my account" in the Danger Zone to make it unusable right away. For a real, permanent deletion of your data, email support@launchyournextchapter.com.',
       },
     ],
   },

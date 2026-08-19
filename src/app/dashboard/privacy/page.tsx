@@ -138,7 +138,8 @@ export default async function PrivacyPage() {
         <div>
           <h2 className="text-lg font-semibold text-destructive">Danger zone</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Permanently delete your account and all associated data.
+            Deactivate your account — makes it unusable without deleting anything. For a real,
+            permanent deletion, email support instead.
           </p>
         </div>
         <DeleteAccountForm />
