@@ -54,14 +54,12 @@ import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { getSelfAwarenessRead, type SelfAwarenessInputs } from '@/lib/scoring/self-awareness'
 import { computeReferenceWeights } from '@/lib/references/collusion-check'
-import { getCurrentWeekSprint, getMondayOfWeek, getCandidateWeekNumber, type CommittedAction } from '@/lib/weekly/sprint'
-import { pointsNeededForA, gradeForWeeklyPoints, engineForActionType, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
+import { pointsNeededForA, engineForActionType, getEarnedPoints } from '@/lib/weekly/action-effort'
 import {
   scoreToGrade,
   CATEGORY_ORDER,
   CATEGORY_LABEL,
-  CATEGORY_MINIMUM_ENFORCED_FROM_WEEK,
-  CATEGORY_MINIMUM_SCORE_FLOOR,
   WEEKLY_ENGINE_LABEL,
   type CategoryKey,
   type ConfidenceLevel,
@@ -625,101 +623,6 @@ export async function computeWeeklyEngines(
   return { engines, weeklyPoints, weeklyPointsTarget, visibilityBonus }
 }
 
-// Did the candidate earn an A the calendar week immediately before the
-// current one? Recomputed directly from that week's WeeklySprint rather
-// than read back from a MarketRealityReport snapshot, since reports aren't
-// generated on a strict weekly cadence.
-async function hadPriorWeekA(candidateId: string, weekNumber: number): Promise<boolean> {
-  if (weekNumber <= 1) return false
-
-  const priorMonday = getMondayOfWeek(new Date())
-  priorMonday.setUTCDate(priorMonday.getUTCDate() - 7)
-
-  const priorSprint = await prisma.weeklySprint.findUnique({
-    where: { candidateId_weekStartDate: { candidateId, weekStartDate: priorMonday } },
-  })
-  if (!priorSprint) return false
-
-  const priorActions = priorSprint.committedActions as unknown as CommittedAction[]
-  const priorPoints = priorActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
-  const priorTarget = pointsNeededForA(weekNumber - 1)
-
-  return gradeForWeeklyPoints(priorPoints, priorTarget) === 'A'
-}
-
-// The non-compounding weekly blend: baseline (stable, only moves via a
-// rewrite-action event or a full retake) plus a bounded nudge from this
-// week's effort — never a running multiplier across weeks. A perfect week
-// moves the grade up to 15 points; a dead week moves it down up to 15; an
-// average, at-target week leaves the baseline untouched.
-function blendCategoryScore(baselineScore: number, weeklyPerformanceRatio: number): number {
-  const nudge = Math.max(-15, Math.min(15, (weeklyPerformanceRatio - 0.5) * 30))
-  return clamp(baselineScore + nudge)
-}
-
-export async function computeDossierCompetencies(candidate: CandidateWithGradeRelations): Promise<DossierCompetencies> {
-  const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
-  const [baseline, categoriesLive, { engines, weeklyPoints, weeklyPointsTarget, visibilityBonus }] = await Promise.all([
-    getCategoryBaseline(candidate),
-    computeCategoryGrades(candidate),
-    computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier, candidate.confidentialSearchMode),
-  ])
-
-  const hasExecutiveCoach = candidate.coach?.focus === 'EXECUTIVE'
-  const hadAGradeLastWeek = await hadPriorWeekA(candidate.id, weekNumber)
-  const bonusMultiplier = 1 + Math.min(0.2, (hasExecutiveCoach ? 0.1 : 0) + (hadAGradeLastWeek ? 0.1 : 0))
-  const recognizedWeeklyPoints = Math.round(weeklyPoints * bonusMultiplier)
-
-  const weeklyPerformanceRatio =
-    weeklyPointsTarget > 0 ? Math.min(1.5, recognizedWeeklyPoints / weeklyPointsTarget) : 0
-
-  const laggingEngines = engines.filter((e) => e.score < CATEGORY_MINIMUM_SCORE_FLOOR).map((e) => e.key)
-  const categoryMinimumsMet =
-    candidate._count.weeklySprints < CATEGORY_MINIMUM_ENFORCED_FROM_WEEK || laggingEngines.length === 0
-
-  // The weekly nudge (and the week-4+ engine floor) apply to the grade as a
-  // whole, not per category — categories keep their own baselines but move
-  // together with the week's overall effort level. Live-computed category
-  // scores (categoriesLive) are used for confidence/self-awareness/commentary;
-  // the graded score/grade per category comes from the blended baseline.
-  const categories: CategoryGrade[] = categoriesLive.map((c) => {
-    const blendedScore = blendCategoryScore(baseline[c.key] ?? c.score, weeklyPerformanceRatio)
-    return { ...c, score: blendedScore, grade: scoreToGrade(blendedScore) }
-  })
-
-  let overallScore = clamp(categories.reduce((sum, c) => sum + c.score, 0) / categories.length)
-  let overallGrade = scoreToGrade(overallScore)
-  if (!categoryMinimumsMet && overallGrade === 'A') {
-    overallGrade = 'B'
-    overallScore = Math.min(overallScore, 89)
-  }
-
-  // Manual, human-reviewed bypass for the rare, obviously-exceptional
-  // profile — see CandidateProfile.exceptionalGradeOverride. Applied last,
-  // after the weekly-activity gate above, and deliberately doesn't touch
-  // overallScore or the six category scores underneath, so report/Dossier
-  // narrative text still reflects the candidate's real computed standing.
-  if (candidate.exceptionalGradeOverride) {
-    overallGrade = 'A'
-  }
-
-  return {
-    score: overallScore,
-    grade: overallGrade,
-    categories,
-    weeklyEngines: engines,
-    categoryMinimumsMet,
-    laggingEngines,
-    weeklyPoints,
-    weeklyPointsTarget,
-    recognizedWeeklyPoints,
-    weeklyVisibilityBonus: visibilityBonus,
-    bonusMultiplier,
-    hasExecutiveCoach,
-    hadPriorWeekA: hadAGradeLastWeek,
-  }
-}
-
 export const GRADE_RELATIONS_INCLUDE = {
   references: true,
   workSamples: true,
@@ -738,19 +641,6 @@ export const GRADE_RELATIONS_INCLUDE = {
   _count: { select: { weeklySprints: true } },
   coach: { select: { focus: true } },
 } as const
-
-// Single-candidate convenience wrapper for the live A-grade gates (the
-// bounty-claim submission gate and the Exclusive Jobs unlock check;
-// recruiter visibility instead reads from stored report snapshots — see
-// the match-inbox query).
-export async function getCurrentGrade(candidateId: string): Promise<Grade> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    include: GRADE_RELATIONS_INCLUDE,
-  })
-  const grade = await computeDossierCompetencies(candidate as unknown as CandidateWithGradeRelations)
-  return grade.grade
-}
 
 // Legacy shape, stored in MarketRealityReport.dossierGradeAtGeneration
 // (and MarketRealitySnapshot-adjacent JSON) before the Scoring Model 2.0

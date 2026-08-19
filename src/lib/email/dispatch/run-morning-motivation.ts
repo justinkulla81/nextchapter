@@ -7,7 +7,9 @@ import { sendWeeklyGoalAssignedEmail } from '@/lib/email/send-weekly-goal-assign
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
-import { computeDossierCompetencies, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
+import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { CATEGORY_MINIMUM_SCORE_FLOOR } from '@/lib/scoring/grade'
 import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
 
 // isGoalBonus rows are the one-time welcome/commitment credit, not a real
@@ -76,7 +78,17 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
       const completedLastWeek = actionLabels(priorActions.filter((a) => a.completed))
       const thisWeekPlan = actionLabels(currentSprint.committedActions as unknown as CommittedAction[]).slice(0, 5)
 
-      const grade = await computeDossierCompetencies(candidate as CandidateWithGradeRelations)
+      const [composite, weeklyEngineData] = await Promise.all([
+        computeMarketRealityCompositeGrade(candidate.id),
+        computeWeeklyEngines(candidate.id, weekNumber, candidate.privacyTier, candidate.confidentialSearchMode),
+      ])
+      const laggingEngines = weeklyEngineData.engines
+        .filter((e) => e.score < CATEGORY_MINIMUM_SCORE_FLOOR)
+        .map((e) => e.key)
+
+      // No composite grade yet (no resume/experience data measured) — skip
+      // rather than send an email with a fabricated grade.
+      if (!composite) continue
 
       const result = await sendWeeklyGoalAssignedEmail(
         candidate,
@@ -84,9 +96,9 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
           lastWeekPoints,
           lastWeekTarget,
           thisWeekTarget,
-          grade: grade.grade,
+          grade: composite.grade,
           weeklySprintsCount: weekNumber,
-          laggingEngines: grade.laggingEngines,
+          laggingEngines,
           completedLastWeek,
           thisWeekPlan,
         },

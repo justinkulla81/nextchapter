@@ -8,7 +8,7 @@ import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import { getWeeklyOutcomes } from '@/lib/weekly/outcomes'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
-import { computeWhatMovedThisWeek, type MarketRealitySnapshotLike } from '@/lib/scoring/market-reality-history'
+import { computeGradeMovement, type MarketRealitySnapshotLike } from '@/lib/scoring/market-reality-history'
 
 export interface WeeklyFocusSection {
   text: string
@@ -83,7 +83,7 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
   if (!sprint) return null
 
   const snapshots = recentSnapshotsDesc.slice().reverse() as unknown as MarketRealitySnapshotLike[]
-  const movers = computeWhatMovedThisWeek(snapshots)
+  const gradeMovement = computeGradeMovement(snapshots)
   const latestNamedReasons = (
     recentSnapshotsDesc.length > 0 ? (recentSnapshotsDesc[0].namedReasons as unknown as NamedReason[]) : []
   ) as NamedReason[]
@@ -103,9 +103,9 @@ export async function getOrDraftWeeklyFocus(candidateId: string): Promise<Weekly
       })
       .join('\n') || 'None flagged right now.'
   const strengthLines = topStrengths.map((s) => `- ${s.text}`).join('\n') || 'None flagged right now.'
-  const moverLines =
-    movers.map((m) => `${m.label} moved ${m.direction === 'up' ? 'up' : 'down'} from ${m.fromGrade} to ${m.toGrade}`).join('; ') ||
-    'No category grade changes since last week.'
+  const moverLines = gradeMovement
+    ? `Market Reality Grade moved ${gradeMovement.direction} from ${gradeMovement.fromGrade} to ${gradeMovement.toGrade}`
+    : 'No Market Reality Grade change since last week.'
 
   const summary = `
 Target role: ${candidate.targetRoleType ?? 'not specified'}

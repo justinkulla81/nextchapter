@@ -1,37 +1,30 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { GRADE_VALUE, type CategoryGrade, type CategoryKey } from '@/lib/scoring/grade'
+import { GRADE_VALUE, type Grade } from '@/lib/scoring/grade'
 
 // Everything here derives "what moved," "best week," and streaks straight
-// from real archived data (MarketRealitySnapshot.dimensions, WeeklySprint,
+// from real archived data (MarketRealitySnapshot.grade, WeeklySprint,
 // WeeklyBadgeEarned) — never a fabricated causal story. See spec §9.3: the
 // mockup's "you narrowed your target from three functions to one" ties a
 // grade movement to a specific real-world action, but there's no field-
 // level change history to attribute that honestly from, so "what moved"
-// here reports the real grade movement only (category + direction +
-// from/to grade), not an invented cause.
+// here reports the real grade movement only (direction + from/to grade),
+// not an invented cause.
+//
+// Used to compute off the six-category MarketRealitySnapshot.dimensions
+// array — that field has been written as an empty array since the Market
+// Reality Grade became a single composite score (see
+// generateMarketRealitySnapshot in market-reality-snapshot.ts), so every
+// function below now reads the one grade the snapshot always carries
+// instead.
 
 export interface MarketRealitySnapshotLike {
   weekStartDate: Date
-  dimensions: unknown
+  grade: string
 }
 
-function parseCategories(snapshot: MarketRealitySnapshotLike): CategoryGrade[] {
-  return snapshot.dimensions as unknown as CategoryGrade[]
-}
-
-function averageScore(snapshot: MarketRealitySnapshotLike): number {
-  const categories = parseCategories(snapshot)
-  if (categories.length === 0) return 0
-  return categories.reduce((sum, c) => sum + c.score, 0) / categories.length
-}
-
-// Per-category score series, oldest to newest, for sparklines — snapshots
-// must already be sorted oldest-to-newest.
-export function getCategoryScoreHistory(snapshots: MarketRealitySnapshotLike[], key: CategoryKey): number[] {
-  return snapshots
-    .map((s) => parseCategories(s).find((c) => c.key === key)?.score)
-    .filter((score): score is number => score !== undefined)
+function gradeScore(snapshot: MarketRealitySnapshotLike): number {
+  return GRADE_VALUE[snapshot.grade as Grade] ?? 0
 }
 
 const ORDINAL_SUFFIX = (n: number): string => {
@@ -45,7 +38,7 @@ const ORDINAL_SUFFIX = (n: number): string => {
 // filler sentence. Snapshots must be sorted oldest to newest.
 export function computeBestWeekSentence(snapshots: MarketRealitySnapshotLike[]): string | null {
   if (snapshots.length < 2) return null
-  const scores = snapshots.map(averageScore)
+  const scores = snapshots.map(gradeScore)
   const latest = scores[scores.length - 1]
 
   if (latest >= Math.max(...scores)) {
@@ -69,48 +62,28 @@ export function computeBestWeekSentence(snapshots: MarketRealitySnapshotLike[]):
   return null
 }
 
-export interface CategoryMover {
-  key: CategoryKey
-  label: string
+export interface GradeMovement {
   direction: 'up' | 'down'
-  fromGrade: CategoryGrade['grade']
-  toGrade: CategoryGrade['grade']
+  fromGrade: Grade
+  toGrade: Grade
 }
 
-// Up to 3 categories whose letter grade changed since last week, biggest
-// movers first. Snapshots must be sorted oldest to newest.
-export function computeWhatMovedThisWeek(snapshots: MarketRealitySnapshotLike[]): CategoryMover[] {
-  if (snapshots.length < 2) return []
-  const prev = parseCategories(snapshots[snapshots.length - 2])
-  const curr = parseCategories(snapshots[snapshots.length - 1])
-  const prevByKey = new Map(prev.map((c) => [c.key, c]))
-
-  const movers: CategoryMover[] = []
-  for (const c of curr) {
-    const p = prevByKey.get(c.key)
-    if (!p || p.grade === c.grade) continue
-    movers.push({
-      key: c.key,
-      label: c.label,
-      direction: GRADE_VALUE[c.grade] > GRADE_VALUE[p.grade] ? 'up' : 'down',
-      fromGrade: p.grade,
-      toGrade: c.grade,
-    })
-  }
-
-  movers.sort(
-    (a, b) =>
-      Math.abs(GRADE_VALUE[b.toGrade] - GRADE_VALUE[b.fromGrade]) -
-      Math.abs(GRADE_VALUE[a.toGrade] - GRADE_VALUE[a.fromGrade])
-  )
-  return movers.slice(0, 3)
+// Whether (and how) the single Market Reality Grade moved since the prior
+// snapshot — replaces the old per-category "what moved this week" list now
+// that there's one grade, not six. Snapshots must be sorted oldest to newest.
+export function computeGradeMovement(snapshots: MarketRealitySnapshotLike[]): GradeMovement | null {
+  if (snapshots.length < 2) return null
+  const fromGrade = snapshots[snapshots.length - 2].grade as Grade
+  const toGrade = snapshots[snapshots.length - 1].grade as Grade
+  if (fromGrade === toGrade) return null
+  return { direction: GRADE_VALUE[toGrade] > GRADE_VALUE[fromGrade] ? 'up' : 'down', fromGrade, toGrade }
 }
 
-// Consecutive weeks (most recent backward) where the average score rose
-// vs. the week before. Snapshots must be sorted oldest to newest.
+// Consecutive weeks (most recent backward) where the grade rose vs. the
+// week before. Snapshots must be sorted oldest to newest.
 export function computeWeeksOfImprovement(snapshots: MarketRealitySnapshotLike[]): number {
   if (snapshots.length < 2) return 0
-  const scores = snapshots.map(averageScore)
+  const scores = snapshots.map(gradeScore)
   let streak = 0
   for (let i = scores.length - 1; i > 0; i--) {
     if (scores[i] > scores[i - 1]) streak++

@@ -6,7 +6,8 @@ import { LINKEDIN_POINTS_WINDOW_DAYS } from '@/lib/constants/linkedin'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
-import { computeDossierCompetencies, GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/dossier-competencies'
+import { GRADE_RELATIONS_INCLUDE } from '@/lib/scoring/dossier-competencies'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
@@ -43,7 +44,7 @@ export async function generateCoachReply(
   windowStart.setDate(windowStart.getDate() - LINKEDIN_POINTS_WINDOW_DAYS)
   const recentLinkedInPosts = candidate.linkedInActivityLogs.filter((l) => l.loggedAt > windowStart).length
 
-  const grade = await computeDossierCompetencies(candidate)
+  const composite = await computeMarketRealityCompositeGrade(candidate.id)
   const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
@@ -57,7 +58,7 @@ Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Target function: ${candidate.targetFunction ?? 'not specified'}
 Industry background: ${candidate.industryContext ?? 'not specified'}
 Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}
-Current Market Reality: ${grade.grade} (${GRADE_LABEL[grade.grade]})
+Current Market Reality: ${composite ? `${composite.grade} (${GRADE_LABEL[composite.grade]})` : 'not enough data yet'}
 LinkedIn URL on file: ${candidate.linkedInUrl ? 'yes' : 'no'}
 LinkedIn posts logged in the last ${LINKEDIN_POINTS_WINDOW_DAYS} days: ${recentLinkedInPosts}
 Networking list (25 people) submitted: ${candidate.networkingListSubmittedAt ? 'yes' : 'no'}

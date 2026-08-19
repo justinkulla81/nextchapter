@@ -3,21 +3,17 @@ import Link from 'next/link'
 import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { computeDossierCompetencies } from '@/lib/scoring/dossier-competencies'
+import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
+import { getWhereYouStand } from '@/lib/reports/market-reality-sections'
 import {
   WEEKLY_ENGINE_LABEL,
   WEEKLY_ENGINE_EXPLANATION,
   GRADE_TEXT_COLOR,
-  CATEGORY_ORDER,
   type WeeklyEngine,
 } from '@/lib/scoring/grade'
 import type { Grade } from '@/lib/scoring/grade'
-import {
-  getCategoryScoreHistory,
-  computeBestWeekSentence,
-  computeWhatMovedThisWeek,
-} from '@/lib/scoring/market-reality-history'
-import { MarketRealityOverview } from '@/components/dashboard/MarketRealityOverview'
+import { computeBestWeekSentence, computeGradeMovement } from '@/lib/scoring/market-reality-history'
+import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { cn } from '@/lib/utils'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
@@ -77,8 +73,13 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
   const seniorityBand = bandParam && (VALID_BANDS as string[]).includes(bandParam) ? (bandParam as SeniorityBand) : undefined
   const fnParam = typeof params.fn === 'string' ? params.fn : undefined
 
+  // Needed up front — computeWeeklyEngines takes it as a direct argument
+  // rather than looking it up itself (see dossier-competencies.ts).
+  const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
+
   const [
-    grade,
+    weeklyEngineData,
+    whereYouStand,
     applicationsCount,
     applicationsThisWeekCount,
     referencesSentCount,
@@ -88,13 +89,13 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     marketRealitySnapshots,
     weeklyBadges,
     milestoneBadges,
-    weekNumber,
     leaderboardResults,
     leaderboardPersonalBests,
     leaderboardBadgeHistory,
     ,
   ] = await Promise.all([
-    computeDossierCompetencies(profile),
+    computeWeeklyEngines(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
+    getWhereYouStand(profile.id),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),
@@ -107,7 +108,6 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     }),
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
-    getCandidateWeekNumber(profile.id, weekStartDate),
     // PART FOUR §14/§15/§19 — all 6 boards, filtered by the seniority
     // band/function this render is scoped to. `own` is populated for this
     // candidate regardless of public opt-in (see computeBoard's doc
@@ -153,12 +153,9 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
 
   const heroSnapshots = marketRealitySnapshots.slice(-12)
-  const categoryHistory = new Map(
-    CATEGORY_ORDER.map((key) => [key, getCategoryScoreHistory(heroSnapshots, key)])
-  )
 
   const completedActionsCount = committedActions.filter((a) => a.completed).length
-  const onTrackThisWeek = grade.weeklyPoints >= grade.weeklyPointsTarget
+  const onTrackThisWeek = weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget
 
   // Flag support resources only when things are trending down AND landing
   // low right now — a dip from Fired up to Moving isn't the same signal as
@@ -178,7 +175,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         <h1 className="text-2xl font-semibold tracking-tight">Your Stats</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Everything behind your dashboard summary, in one place: your streak and badges, your
-          Market Reality grade and its six categories, this week&apos;s effort, how you&apos;ve
+          Market Reality grade and what&apos;s driving it, this week&apos;s effort, how you&apos;ve
           been feeling, and every action you&apos;ve done or could do.
         </p>
         <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
@@ -203,17 +200,17 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
           <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="brand" />
           <StatTile
             icon={TrendingUp}
-            value={grade.grade}
-            valueClassName={GRADE_TEXT_COLOR[grade.grade]}
+            value={whereYouStand?.grade ?? '—'}
+            valueClassName={whereYouStand ? GRADE_TEXT_COLOR[whereYouStand.grade] : undefined}
             label="Market Reality grade"
-            accent={gradeAccent(grade.grade)}
+            accent={whereYouStand ? gradeAccent(whereYouStand.grade) : 'brand'}
             href="#market-reality"
           />
           <StatTile
             icon={Target}
-            value={`${grade.weeklyPoints} / ${grade.weeklyPointsTarget}`}
+            value={`${weeklyEngineData.weeklyPoints} / ${weeklyEngineData.weeklyPointsTarget}`}
             label="points this week"
-            accent={grade.weeklyPoints >= grade.weeklyPointsTarget ? 'success' : 'brand'}
+            accent={weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget ? 'success' : 'brand'}
             href="#actions"
           />
           <StatTile icon={Award} value={`${earnedBadgesCount} / ${totalBadgesCount}`} label="badges earned" accent="success" href="#badges" />
@@ -304,23 +301,89 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         </CardContent>
       </Card>
 
-      <div id="market-reality" className="scroll-mt-4">
-        <MarketRealityOverview
-          weekLabel={`Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-          currentGrade={grade.grade}
-          previousGrade={previousMarketRealityGrade}
-          bestWeekSentence={computeBestWeekSentence(heroSnapshots)}
-          categories={grade.categories}
-          categoryHistory={categoryHistory}
-          whatMoved={computeWhatMovedThisWeek(heroSnapshots)}
-          archiveSnapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-            id: s.id,
-            weekStartDate: s.weekStartDate,
-            grade: s.grade as Grade,
-            namedReasons: s.namedReasons as unknown as NamedReason[],
-          }))}
-        />
-      </div>
+      <Card id="market-reality" className="scroll-mt-4">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!whereYouStand ? (
+            <p className="text-sm text-muted-foreground">
+              Not enough data yet for your Market Reality Grade — upload a resume to get your first read.
+            </p>
+          ) : (
+            <>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-3">
+                  <span className={cn('text-4xl font-bold tabular-nums', GRADE_TEXT_COLOR[whereYouStand.grade])}>
+                    {whereYouStand.grade}
+                  </span>
+                  {previousMarketRealityGrade && previousMarketRealityGrade !== whereYouStand.grade && (
+                    <span
+                      className={cn(
+                        'rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap',
+                        whereYouStand.grade < previousMarketRealityGrade
+                          ? 'bg-success/10 text-success'
+                          : 'bg-error/10 text-error'
+                      )}
+                    >
+                      {whereYouStand.grade < previousMarketRealityGrade ? '↑' : '↓'} from {previousMarketRealityGrade}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {computeBestWeekSentence(heroSnapshots) ??
+                    `Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+                </p>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-3">
+                {whereYouStand.decomposition.map((d) => (
+                  <div key={d.label} className="rounded-lg border border-border p-3 text-sm">
+                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{d.label}</p>
+                    <p className={cn('mt-1 font-semibold tabular-nums', GRADE_TEXT_COLOR[d.grade])}>{d.grade}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{d.note}</p>
+                  </div>
+                ))}
+              </div>
+
+              {(() => {
+                const movement = computeGradeMovement(heroSnapshots)
+                return (
+                  movement && (
+                    <p className="text-sm text-foreground">
+                      <span className={movement.direction === 'up' ? 'text-success' : 'text-error'}>
+                        {movement.direction === 'up' ? '↑' : '↓'}
+                      </span>{' '}
+                      Market Reality Grade moved {movement.fromGrade} → {movement.toGrade} this week
+                    </p>
+                  )
+                )
+              })()}
+
+              <div className="space-y-2 border-t border-border pt-4">
+                <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                  Market Reality Summaries, week by week
+                </h4>
+                <MarketRealitySnapshotArchive
+                  snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
+                    id: s.id,
+                    weekStartDate: s.weekStartDate,
+                    grade: s.grade as Grade,
+                    namedReasons: s.namedReasons as unknown as NamedReason[],
+                  }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The full narrative behind any week&apos;s grade lives on your{' '}
+                  <Link href="/dashboard/market-reality" className="text-primary underline underline-offset-4">
+                    Market Reality Report
+                  </Link>
+                  .
+                </p>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <Card id="actions" className="scroll-mt-4">
         <CardHeader>
@@ -342,8 +405,8 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
                 {onTrackThisWeek ? 'On track' : 'Behind pace'}: you&apos;ve done{' '}
                 <span className="tabular-nums">{completedActionsCount}</span> action
                 {completedActionsCount === 1 ? '' : 's'} and earned{' '}
-                <span className="tabular-nums">{grade.weeklyPoints}</span> of{' '}
-                <span className="tabular-nums">{grade.weeklyPointsTarget}</span> points this week
+                <span className="tabular-nums">{weeklyEngineData.weeklyPoints}</span> of{' '}
+                <span className="tabular-nums">{weeklyEngineData.weeklyPointsTarget}</span> points this week
               </div>
 
               {completedByEngine.size === 0 && (
@@ -355,7 +418,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
                 />
               )}
 
-              {grade.weeklyEngines.map((e) => {
+              {weeklyEngineData.engines.map((e) => {
                 const actions = completedByEngine.get(e.key)
                 return (
                   <div key={e.key}>
