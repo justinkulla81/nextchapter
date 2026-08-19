@@ -470,7 +470,12 @@ export default async function NetworkPage({
     prisma.supportNetworkContact.findMany({
       where: { candidateId: profile.id, removedAt: null },
       orderBy: { createdAt: 'desc' },
-      include: { outreachLogs: { select: { id: true }, take: 1 } },
+      include: {
+        outreachLogs: { select: { id: true }, take: 1 },
+        // Real total, not just the take:1 existence check above — feeds
+        // Priority Contacts' "emailed N times" count.
+        _count: { select: { outreachLogs: true } },
+      },
     }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
     getNeedsFollowUpList(profile.id),
@@ -485,7 +490,7 @@ export default async function NetworkPage({
     getMatchedAlumniGroups(profile.id),
   ])
   const outreachMix = computeOutreachRelationshipMix(outreachLogs.map((l) => l.contact?.relationshipTags ?? []))
-  const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0 }))
+  const contacts = rawContacts.map((c) => ({ ...c, hasReachedOut: c.outreachLogs.length > 0, outreachCount: c._count.outreachLogs }))
   // Drops off this list the moment an outreach is logged against them — see
   // toggleContactPriority's comment for why (they belong in Needs a
   // Follow-up from then on instead).

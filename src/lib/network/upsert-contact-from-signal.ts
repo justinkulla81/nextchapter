@@ -29,7 +29,15 @@ export async function upsertContactFromSignal(
     ? params.workHistoryCompanies.some((company) => orgNamesMatch(company, inferredCompany))
     : false
 
-  const existing = await prisma.supportNetworkContact.findFirst({ where: { candidateId, email } })
+  // Matches on EITHER the primary `email` column or the `emails` array — a
+  // contact re-imported/re-detected under their 2nd or 3rd address (see
+  // `emails`' own schema comment) was matching neither before, so every
+  // repeat signal for that address created a brand-new duplicate contact
+  // instead of updating the real one, silently splitting that person's
+  // outreach history across rows.
+  const existing = await prisma.supportNetworkContact.findFirst({
+    where: { candidateId, OR: [{ email }, { emails: { has: email } }] },
+  })
 
   if (existing) {
     const tags = new Set(existing.relationshipTags)
@@ -37,10 +45,14 @@ export async function upsertContactFromSignal(
     for (const tag of params.autoTags) tags.add(tag)
     const nextTags = Array.from(tags)
     const tagsChanged = nextTags.length !== existing.relationshipTags.length
-    if (tagsChanged || !existing.inferredCompany || !existing.inferredSchool) {
+    const nextEmails = existing.emails.includes(email) ? existing.emails : [...existing.emails, email].slice(0, 3)
+    const emailsChanged = nextEmails.length !== existing.emails.length
+    if (tagsChanged || emailsChanged || !existing.email || !existing.inferredCompany || !existing.inferredSchool) {
       await prisma.supportNetworkContact.update({
         where: { id: existing.id },
         data: {
+          email: existing.email ?? email,
+          emails: nextEmails,
           inferredCompany: existing.inferredCompany ?? inferredCompany,
           inferredSchool: existing.inferredSchool ?? inferredSchool,
           relationshipTags: nextTags,

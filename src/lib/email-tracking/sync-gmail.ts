@@ -432,8 +432,12 @@ async function processMessage(
   if (direction === 'OUTBOUND') {
     const recipientEmail = extractEmailAddress(to).toLowerCase()
     if (recipientEmail.includes('@')) {
+      // Same OR-both-fields match as upsertContactFromSignal — a contact
+      // known only by a 2nd/3rd address (see SupportNetworkContact.emails'
+      // own schema comment) was matching neither the primary `email` column
+      // nor being auto-logged here.
       const matchedContact = await prisma.supportNetworkContact.findFirst({
-        where: { candidateId: connection.candidateId, email: recipientEmail },
+        where: { candidateId: connection.candidateId, OR: [{ email: recipientEmail }, { emails: { has: recipientEmail } }] },
       })
       if (matchedContact) {
         await prisma.outreachLog

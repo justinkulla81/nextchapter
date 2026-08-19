@@ -16,6 +16,12 @@ export interface PriorityContactItem {
   linkedinUrl: string | null
   company: string | null
   title: string | null
+  // Lifetime count, not scoped to this list's "haven't reached out yet"
+  // filter — normally 0 here by definition (see this card's own header
+  // comment), so a nonzero value is worth surfacing on its own: either a
+  // real reach-out that hasn't cleared this contact off the list yet, or a
+  // sign the underlying match missed it.
+  outreachCount?: number
 }
 
 const PAGE_SIZE = 5
@@ -94,6 +100,11 @@ export function PriorityContactsCard({ contacts }: { contacts: PriorityContactIt
                 {(contact.title || contact.company) && (
                   <p className="truncate text-xs text-muted-foreground">
                     {[contact.title, contact.company].filter(Boolean).join(' at ')}
+                  </p>
+                )}
+                {!!contact.outreachCount && (
+                  <p className="truncate text-xs text-muted-foreground">
+                    Emailed {contact.outreachCount} time{contact.outreachCount === 1 ? '' : 's'}
                   </p>
                 )}
               </div>

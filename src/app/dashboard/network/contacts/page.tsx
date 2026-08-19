@@ -118,7 +118,10 @@ export default async function ContactDirectoryPage({
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      include: { outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 } },
+      include: {
+        outreachLogs: { orderBy: { loggedAt: 'desc' }, take: 1 },
+        _count: { select: { outreachLogs: true } },
+      },
     }),
     prisma.supportNetworkContact.count({ where: { candidateId: profile.id, priorityPointsAwardedAt: { not: null } } }),
     getSuggestedContactsToAdd(profile.id),
@@ -141,6 +144,7 @@ export default async function ContactDirectoryPage({
     hasReachedOut: c.outreachLogs.length > 0,
     lastOutreachChannel: c.outreachLogs[0]?.channel ?? null,
     lastOutreachAt: c.outreachLogs[0]?.loggedAt ?? null,
+    outreachCount: c._count.outreachLogs,
     membership: c.email ? (memberships.get(c.email.toLowerCase()) ?? null) : null,
     isAtCurrentEmployer:
       companyMatchesCurrentEmployer(currentEmployerName, c.company) ||

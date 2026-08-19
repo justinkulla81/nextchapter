@@ -21,10 +21,19 @@ const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
   RELATIONSHIP_TAG_OPTIONS.map((o) => [o.value, o.label])
 ) as Record<RelationshipTag, string>
 
+const OUTREACH_CHANNEL_LABEL: Record<string, string> = {
+  EMAIL: 'email',
+  LINKEDIN: 'LinkedIn message',
+  PHONE: 'phone call',
+  TEXT: 'text',
+  MEETING: 'meeting',
+}
+
 export interface ContactRowData extends SupportNetworkContact {
   hasReachedOut: boolean
   lastOutreachChannel: string | null
   lastOutreachAt: Date | null
+  outreachCount: number
   membership: NextChapterMembership | null
   // §4.4: "Flag contacts who currently work at their employer before
   // sending." Computed server-side (src/lib/network/current-employer-flag.ts)
@@ -450,6 +459,25 @@ function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
 
   return (
     <div className="space-y-4">
+      <div className="space-y-1 rounded-lg border border-border bg-background p-3">
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Communications</p>
+        {contact.outreachCount > 0 ? (
+          <p className="text-sm text-foreground">
+            You&apos;ve reached out {contact.outreachCount} time{contact.outreachCount === 1 ? '' : 's'}
+            {contact.lastOutreachAt && contact.lastOutreachChannel && (
+              <>
+                {' '}
+                — most recently by {OUTREACH_CHANNEL_LABEL[contact.lastOutreachChannel] ?? contact.lastOutreachChannel.toLowerCase()}{' '}
+                on {contact.lastOutreachAt.toLocaleDateString()}
+              </>
+            )}
+            .
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">No outreach logged with {contact.name} yet.</p>
+        )}
+      </div>
+
       <form
         action={updateContact.bind(null, contact.id)}
         className="space-y-3"
