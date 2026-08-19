@@ -22,11 +22,9 @@ const FOCUS_SECTIONS: { key: keyof WeeklyFocus; label: string; color: string }[]
 // to reflect on, since that's the honest "nothing to say yet" state.
 export async function WeeklyFocusCard({
   candidateId,
-  isMonday,
   locked,
 }: {
   candidateId: string
-  isMonday: boolean
   locked: boolean
 }) {
   // Skip the (self-cached but still real) LLM draft entirely while locked —
@@ -57,7 +55,7 @@ export async function WeeklyFocusCard({
   if (!focus) return null
 
   return (
-    <Accordion defaultValue={isMonday ? ['weekly-focus'] : []}>
+    <Accordion defaultValue={['weekly-focus']}>
       <AccordionItem value="weekly-focus" className="border-brand/20 bg-brand/5">
         <AccordionTrigger className="px-5 py-4 hover:text-foreground">
           <div className="flex items-center gap-3">
@@ -71,17 +69,16 @@ export async function WeeklyFocusCard({
           </div>
         </AccordionTrigger>
         <AccordionContent className="px-5 pb-5">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <ul className="space-y-2.5">
             {FOCUS_SECTIONS.map((section) => (
-              <div key={section.key} className="rounded-lg border border-border bg-white p-4">
-                <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
-                <p className="mt-1 text-sm text-foreground">{focus[section.key].text}</p>
-                <p className="mt-3 text-sm text-foreground">
-                  <span className="font-semibold">Recommendation:</span> {focus[section.key].recommendation}
-                </p>
-              </div>
+              <li key={section.key} className="flex flex-wrap gap-x-1.5 text-sm">
+                <span className={`shrink-0 font-semibold ${section.color}`}>{section.label}:</span>
+                <span className="text-foreground">
+                  {focus[section.key].text} {focus[section.key].recommendation}
+                </span>
+              </li>
             ))}
-          </div>
+          </ul>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -122,7 +122,6 @@ export default async function DashboardPage() {
 
   const weekStartDate = getMondayOfWeek(new Date())
   const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
-  const isMonday = new Date().getUTCDay() === 1
 
   // All of these are independent of one another — issuing them together
   // instead of one-by-one turns ~9 sequential round trips into one parallel
@@ -302,7 +301,7 @@ export default async function DashboardPage() {
             it stays locked (orange lock, non-expandable) until the Get
             Started gate clears. */}
         <Suspense fallback={<WeeklyFocusSkeleton />}>
-          <WeeklyFocusCard candidateId={profile.id} isMonday={isMonday} locked={!bothConnectedUnlocked} />
+          <WeeklyFocusCard candidateId={profile.id} locked={!bothConnectedUnlocked} />
         </Suspense>
 
         <ReconnectBanner candidateId={profile.id} variant="link" />
