@@ -44,6 +44,7 @@ async function fetchCompletion(candidateId: string) {
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
       select: {
+        assessmentCompletedAt: true,
         profileConfirmedAt: true,
         industryConfirmedAt: true,
         functionConfirmedAt: true,
@@ -81,6 +82,7 @@ async function fetchCompletion(candidateId: string) {
   ].every((f) => f !== null)
 
   const completion: Record<ProfileChecklistActionType, boolean> = {
+    ASSESSMENT_COMPLETE: !!profile.assessmentCompletedAt,
     WORKING_STYLE_QUIZ: assessmentResponseCount > 0,
     SKILLS_ASSESSMENT_COMPLETED: !!profile.skillsAssessmentCompletedAt,
     PROFILE_CONFIRM: !!profile.profileConfirmedAt,
@@ -114,6 +116,7 @@ async function fetchCompletion(candidateId: string) {
   // ANSWER_OPTIONAL_QUESTIONS is derived from several fields at once,
   // PROFILE_PICTURE_UPLOADED is live-checked) — those stay null.
   const completedAt: Record<ProfileChecklistActionType, Date | null> = {
+    ASSESSMENT_COMPLETE: profile.assessmentCompletedAt,
     WORKING_STYLE_QUIZ: null,
     SKILLS_ASSESSMENT_COMPLETED: profile.skillsAssessmentCompletedAt,
     PROFILE_CONFIRM: profile.profileConfirmedAt,

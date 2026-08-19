@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { NetworkComfortLevel } from '@prisma/client'
 import type { Grade } from '@/lib/scoring/grade'
 import { GRADE_LABEL, GRADE_BAND_DESCRIPTION, GRADE_TEXT_COLOR, GRADE_RING_STROKE } from '@/lib/scoring/grade'
 import { cn } from '@/lib/utils'
@@ -80,6 +81,41 @@ function GradeRing({ grade }: { grade: Grade | null }) {
   )
 }
 
+// Comfort with being visibly "looking" is a real lever on the Market
+// component of this grade — warm introductions and referrals are the
+// highest-yield channel this app knows of (see network/backchannel.ts), and
+// they only reach a candidate who's willing to let their network know.
+// Framed both ways without judgment: comfortable candidates get told it's
+// working in their favor; the other two levels get a plain, respectful
+// statement of the real tradeoff, never pressure to change their mind — the
+// same restraint Confidential Search Mode's own copy uses elsewhere.
+const COMFORTABLE_LEVELS: NetworkComfortLevel[] = ['VERY_COMFORTABLE', 'SOMEWHAT_COMFORTABLE']
+
+const NETWORK_COMFORT_COPY: Record<NetworkComfortLevel, string> = {
+  VERY_COMFORTABLE:
+    "You said you're very comfortable letting your network know you're searching — that's a real advantage. Warm introductions and referrals are the highest-yield way people land roles, and they only reach candidates willing to be visible. That openness works in your favor as this grade moves.",
+  SOMEWHAT_COMFORTABLE:
+    "You said you're somewhat comfortable letting your network know you're searching — that's worth something. Warm introductions and referrals are the highest-yield way people land roles, and every bit of visibility opens up more of them.",
+  NOT_VERY_COMFORTABLE:
+    "You said you'd rather keep your search fairly quiet — that's a real boundary, and it's yours to set. It does mean fewer warm-introduction paths are open right now, so your plan will lean more on other channels.",
+  RATHER_NOT:
+    "You said you'd rather not let your network know you're searching — that's a real boundary, and we'll respect it. It does mean the warm-introduction channel is mostly closed for now, so your plan will lean on other channels instead.",
+}
+
+function NetworkComfortCallout({ level }: { level: NetworkComfortLevel }) {
+  const comfortable = COMFORTABLE_LEVELS.includes(level)
+  return (
+    <div
+      className={cn(
+        'w-full max-w-lg space-y-1 rounded-lg border px-4 py-3 text-left text-sm',
+        comfortable ? 'border-brand/30 bg-brand/5' : 'border-border bg-muted/40'
+      )}
+    >
+      <p className="text-foreground">{NETWORK_COMFORT_COPY[level]}</p>
+    </div>
+  )
+}
+
 const HARD_HILL_GRADES: Grade[] = ['C', 'D', 'F']
 
 function HardHillCallout() {
@@ -98,12 +134,20 @@ function HardHillCallout() {
   )
 }
 
-export function GradeReveal({ grade }: { grade: Grade | null }) {
+export function GradeReveal({
+  grade,
+  networkComfortLevel,
+}: {
+  grade: Grade | null
+  networkComfortLevel?: NetworkComfortLevel | null
+}) {
   return (
     <div className="flex flex-col items-center gap-6">
       <GradeRing grade={grade} />
 
       <GradeLegend />
+
+      {networkComfortLevel && <NetworkComfortCallout level={networkComfortLevel} />}
 
       {grade !== null && HARD_HILL_GRADES.includes(grade) && <HardHillCallout />}
     </div>

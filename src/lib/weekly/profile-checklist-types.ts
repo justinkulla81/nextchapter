@@ -3,6 +3,7 @@
 // can filter these action types out of its rendered list without pulling
 // in the server-only DB-querying half of that file.
 export const PROFILE_CHECKLIST_ACTION_TYPES = [
+  'ASSESSMENT_COMPLETE',
   'WORKING_STYLE_QUIZ',
   'SKILLS_ASSESSMENT_COMPLETED',
   'PROFILE_CONFIRM',
@@ -31,6 +32,7 @@ export type ProfileChecklistActionType = (typeof PROFILE_CHECKLIST_ACTION_TYPES)
 // source of truth so a rename here reaches every surface; see
 // canonical-labels.ts for why this matters for already-completed rows.
 export const PROFILE_CHECKLIST_LABEL_BY_TYPE: Record<ProfileChecklistActionType, string> = {
+  ASSESSMENT_COMPLETE: 'Complete your Market Reality Assessment',
   WORKING_STYLE_QUIZ: 'Take the Behavioral Assessment',
   SKILLS_ASSESSMENT_COMPLETED: 'Take the Skills Assessment',
   PROFILE_CONFIRM: 'Confirm your basic profile info',

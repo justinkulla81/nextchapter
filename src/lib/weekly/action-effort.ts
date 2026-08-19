@@ -83,6 +83,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   NEGOTIATION_ADVICE: { minutes: 20, points: 20 },
 
   // One-time items
+  // "Your Path" (updateSituation in onboarding/actions.ts) — the one
+  // pre-account question that finishes assessmentComplete and computes the
+  // initial grade. Was referenced in ENGINE_BY_ACTION_TYPE below but never
+  // actually given a point value or wired into the profile checklist, so it
+  // never rendered or credited anywhere — completing this now that gap.
+  ASSESSMENT_COMPLETE: { minutes: 10, points: 10 },
   WORKING_STYLE_QUIZ: { minutes: 25, points: 25 },
   SKILLS_ASSESSMENT_COMPLETED: { minutes: 15, points: 20 },
   // Assessment Layer spec Part 3 ("How I Perform") — 40 items, a bit more
@@ -393,6 +399,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   // grading economy; this map and ACTION_TYPE_LINK below are purely
   // presentational (which nav group a row sorts into, where it links).
   SEARCH_STRATEGY_CHECKLIST: 'Personalize',
+  ASSESSMENT_COMPLETE: 'Personalize',
   WORKING_STYLE_QUIZ: 'Personalize',
   SKILLS_ASSESSMENT_COMPLETED: 'Personalize',
   PERFORMANCE_ASSESSMENT_COMPLETED: 'Personalize',

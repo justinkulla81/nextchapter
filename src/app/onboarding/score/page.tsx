@@ -122,7 +122,11 @@ export default async function ScorePage() {
         Create your account to get your full report and action plan
       </Button>
 
-      <GradeReveal grade={composite?.grade ?? null} />
+      <GradeReveal grade={composite?.grade ?? null} networkComfortLevel={profile.networkComfortLevel} />
+
+      <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
+        Create your account to get your full report and action plan
+      </Button>
     </div>
   )
 }
