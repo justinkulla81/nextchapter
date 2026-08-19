@@ -49,8 +49,6 @@ async function fetchCompletion(candidateId: string) {
         functionConfirmedAt: true,
         salaryConfirmedAt: true,
         workAuthConfirmedAt: true,
-        jobsAppliedBucket: true,
-        interviewsReceivedCount: true,
         networkingLevel: true,
         learnedNewSkillsLevel: true,
         triedPartTimeOrConsulting: true,
@@ -75,8 +73,6 @@ async function fetchCompletion(candidateId: string) {
   if (!profile) return null
 
   const optionalQuestionsAnswered = [
-    profile.jobsAppliedBucket,
-    profile.interviewsReceivedCount,
     profile.networkingLevel,
     profile.learnedNewSkillsLevel,
     profile.triedPartTimeOrConsulting,

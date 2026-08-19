@@ -10,7 +10,6 @@ import {
 import { CANONICAL_TASK_MENU, type CanonicalTask } from '@/lib/weekly/task-menu'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
-import { isGmailTrackingTester } from '@/lib/email-tracking/gmail-oauth'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -316,29 +315,6 @@ export async function getSuggestedActions(candidateId: string, weekNumber = 1): 
 
   const usedTypes = new Set([...personalized.map((a) => a.actionType).filter(Boolean), ...completedOneTimeTypes])
   const suggestions = [...personalized]
-
-  // Internal testing only — surfaces the Gmail/Calendar connect (see
-  // GoogleConnectPrompt) as a real suggested action instead of it only
-  // being discoverable on the Network/Find My Job pages. Text names
-  // whichever service is actually still missing — each connects
-  // separately, so claiming "one click, both" was inaccurate for anyone
-  // who'd already connected one of the two.
-  if (profile?.email && (await isGmailTrackingTester(profile.email)) && !usedTypes.has('GMAIL_CONNECTED')) {
-    const [hasEmailConnection, hasCalendarConnection] = await Promise.all([
-      prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
-      prisma.calendarConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),
-    ])
-    if (!hasEmailConnection || !hasCalendarConnection) {
-      const text =
-        !hasEmailConnection && !hasCalendarConnection
-          ? 'Connect your Gmail and Calendar'
-          : !hasEmailConnection
-            ? 'Connect your Gmail'
-            : 'Connect your Calendar'
-      suggestions.push({ text, actionType: 'GMAIL_CONNECTED' })
-      usedTypes.add('GMAIL_CONNECTED')
-    }
-  }
 
   // Learning's certificate/new-tool actions are split into a "started"
   // step (in the canonical menu, self-report, small) and a "complete" step

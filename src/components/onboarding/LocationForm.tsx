@@ -15,28 +15,12 @@ const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDuratio
   ([value, label]) => ({ value, label })
 )
 
-const APPLICATIONS_OPTIONS = [
-  { value: 'none', label: 'None yet' },
-  { value: 'under_10', label: 'Under 10' },
-  { value: '10_50', label: '10-50' },
-  { value: '50_plus', label: '50+' },
-] as const
-
-const INTERVIEWS_OPTIONS = [
-  { value: 'none', label: 'None yet' },
-  { value: 'a_few', label: 'A few' },
-  { value: 'several', label: 'Several' },
-  { value: 'late_stages', label: 'In late stages' },
-] as const
-
 export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateLocationAndSearchStatus, undefined)
   const [remotePreference, setRemotePreference] = useState<string | null>(profile.remotePreference)
   const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
   const [justStartedSearch, setJustStartedSearch] = useState(profile.justStartedSearch)
   const [gapDuration, setGapDuration] = useState<GapDurationBucket | null>(profile.gapDuration)
-  const [applicationsBucket, setApplicationsBucket] = useState<string | null>(profile.applicationsBucket)
-  const [interviewsBucket, setInterviewsBucket] = useState<string | null>(profile.interviewsBucket)
 
   return (
     <form
@@ -118,29 +102,23 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
       </div>
 
       {!justStartedSearch && (
-        <>
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>How many roles have you applied to?</Label>
-            <ChoiceButtons
-              name="applicationsBucket"
-              options={APPLICATIONS_OPTIONS}
-              value={applicationsBucket as (typeof APPLICATIONS_OPTIONS)[number]['value'] | null}
-              onChange={setApplicationsBucket}
-              responsive
-            />
+            <Label htmlFor="jobsAppliedCount">How many roles have you applied to?</Label>
+            <Input id="jobsAppliedCount" name="jobsAppliedCount" type="number" min={0} />
           </div>
 
           <div className="space-y-2">
-            <Label>How many interviews have you had?</Label>
-            <ChoiceButtons
-              name="interviewsBucket"
-              options={INTERVIEWS_OPTIONS}
-              value={interviewsBucket as (typeof INTERVIEWS_OPTIONS)[number]['value'] | null}
-              onChange={setInterviewsBucket}
-              responsive
+            <Label htmlFor="interviewsCount">How many interviews have you had?</Label>
+            <Input
+              id="interviewsCount"
+              name="interviewsCount"
+              type="number"
+              min={0}
+              defaultValue={profile.interviewsReceivedCount ?? ''}
             />
           </div>
-        </>
+        </div>
       )}
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

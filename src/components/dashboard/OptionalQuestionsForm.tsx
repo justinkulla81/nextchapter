@@ -8,12 +8,6 @@ import { Input } from '@/components/ui/input'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { cn } from '@/lib/utils'
 
-const JOBS_APPLIED_OPTIONS = [
-  { value: '0-20', label: '0–20' },
-  { value: '20-100', label: '20–100' },
-  { value: '100+', label: '100+' },
-] as const
-
 const NETWORKING_LEVEL_OPTIONS = [
   { value: '1', label: 'Not much' },
   { value: '2', label: 'Some, but I should do more' },
@@ -40,8 +34,6 @@ export function OptionalQuestionsForm({
   initial,
 }: {
   initial?: {
-    jobsAppliedBucket: string | null
-    interviewsReceivedCount: number | null
     networkingLevel: number | null
     learnedNewSkillsLevel: number | null
     triedPartTimeOrConsulting: boolean | null
@@ -54,7 +46,6 @@ export function OptionalQuestionsForm({
     answerOptionalQuestions,
     undefined
   )
-  const [jobsAppliedBucket, setJobsAppliedBucket] = useState(initial?.jobsAppliedBucket ?? '')
   const [networkingLevel, setNetworkingLevel] = useState(initial?.networkingLevel?.toString() ?? '')
   const [learnedNewSkillsLevel, setLearnedNewSkillsLevel] = useState(initial?.learnedNewSkillsLevel?.toString() ?? '')
   const [triedPartTimeOrConsulting, setTriedPartTimeOrConsulting] = useState(
@@ -69,29 +60,6 @@ export function OptionalQuestionsForm({
 
   return (
     <form action={formAction} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
-      <div className="space-y-2">
-        <Label>How many jobs have you applied for?</Label>
-        <ChoiceButtons
-          name="jobsAppliedBucket"
-          options={JOBS_APPLIED_OPTIONS}
-          value={jobsAppliedBucket || null}
-          onChange={setJobsAppliedBucket}
-          columns={3}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="interviewsReceivedCount">How many interviews have you received?</Label>
-        <Input
-          id="interviewsReceivedCount"
-          name="interviewsReceivedCount"
-          type="number"
-          min={0}
-          defaultValue={initial?.interviewsReceivedCount ?? undefined}
-          className="max-w-32"
-        />
-      </div>
-
       <div className="space-y-2">
         <Label>How much have you been networking?</Label>
         <ChoiceButtons

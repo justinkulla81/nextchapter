@@ -19,11 +19,15 @@ async function getAuthedProfile() {
   return getOrCreateCandidateProfile(user.id)
 }
 
-// The 7 optional job-search-activity fields first asked in onboarding
+// 5 optional job-search-activity fields first asked in onboarding
 // (CircumstancesForm) — until now they had no way to be answered
 // afterward if skipped, even though ANSWER_OPTIONAL_QUESTIONS has always
 // been a real one-time Search Action. This is that missing form's action,
 // mirroring updateCircumstances's parsing for the same fields exactly.
+// jobsAppliedBucket/interviewsReceivedCount used to live here too, but
+// they're now asked (as exact numbers) during onboarding's search-status
+// screen instead — see updateLocationAndSearchStatus — so they were
+// dropped from this form to stop asking the candidate twice.
 export async function answerOptionalQuestions(
   _prevState: OptionalQuestionsState,
   formData: FormData
@@ -32,9 +36,6 @@ export async function answerOptionalQuestions(
   if (!profile) return { error: 'You need to be logged in to do this.' }
   const candidateId = profile.id
 
-  const jobsAppliedBucket = (formData.get('jobsAppliedBucket') as string) || null
-  const interviewsReceivedRaw = formData.get('interviewsReceivedCount')
-  const interviewsReceivedCount = interviewsReceivedRaw ? Number(interviewsReceivedRaw) : null
   const networkingLevelRaw = formData.get('networkingLevel')
   const networkingLevel = networkingLevelRaw ? Number(networkingLevelRaw) : null
   const learnedNewSkillsLevelRaw = formData.get('learnedNewSkillsLevel')
@@ -53,8 +54,6 @@ export async function answerOptionalQuestions(
     connectedWithRecruiters && recruiterConnectionCountRaw ? Number(recruiterConnectionCountRaw) : null
 
   const allAnswered = [
-    jobsAppliedBucket,
-    interviewsReceivedCount,
     networkingLevel,
     learnedNewSkillsLevel,
     triedPartTimeOrConsulting,
@@ -68,8 +67,6 @@ export async function answerOptionalQuestions(
   await prisma.candidateProfile.update({
     where: { id: candidateId },
     data: {
-      jobsAppliedBucket,
-      interviewsReceivedCount,
       networkingLevel,
       learnedNewSkillsLevel,
       triedPartTimeOrConsulting,

@@ -336,7 +336,7 @@ function ActionRow({
     link = { href: connectHref(hasEmailConnection, hasCalendarConnection), label: 'Connect' }
   }
   if (actionType === 'GET_STARTED_LINKEDIN') {
-    link = { href: '/dashboard/network/contacts?buildList=1#import', label: 'Connect' }
+    link = { href: '/api/auth/linkedin/start', label: 'Connect' }
   }
   // "Action name — why it matters," never the whole sentence underlined —
   // hyperlink only the short label; the reason renders as plain text next to

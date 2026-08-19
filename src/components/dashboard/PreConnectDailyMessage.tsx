@@ -30,7 +30,7 @@ export function PreConnectDailyMessage({
         <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
           <li>
             <Link
-              href="/dashboard/network/contacts?buildList=1#import"
+              href="/api/auth/linkedin/start"
               className="font-medium text-primary underline underline-offset-4"
             >
               Connect LinkedIn

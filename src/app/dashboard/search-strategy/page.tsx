@@ -191,9 +191,10 @@ export default async function SearchStrategyPage() {
   // Mirrors fetchCompletion's optionalQuestionsAnswered check in
   // profile-checklist.ts — kept in sync manually since this page reads the
   // fields directly off the already-fetched profile instead of a second query.
+  // jobsAppliedBucket/interviewsReceivedCount are asked during onboarding now
+  // (see updateLocationAndSearchStatus), not here, so they're excluded from
+  // this card's own completion check.
   const optionalQuestionsAnswered = [
-    profile.jobsAppliedBucket,
-    profile.interviewsReceivedCount,
     profile.networkingLevel,
     profile.learnedNewSkillsLevel,
     profile.triedPartTimeOrConsulting,
@@ -235,8 +236,6 @@ export default async function SearchStrategyPage() {
           )}
           <OptionalQuestionsForm
             initial={{
-              jobsAppliedBucket: profile.jobsAppliedBucket,
-              interviewsReceivedCount: profile.interviewsReceivedCount,
               networkingLevel: profile.networkingLevel,
               learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
               triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,

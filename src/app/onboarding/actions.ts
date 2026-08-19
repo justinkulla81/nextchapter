@@ -156,17 +156,35 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
   redirect('/onboarding/location')
 }
 
+// Converts an exact application count into the same bucket vocabulary the
+// dashboard Search Strategy page's jobsAppliedBucket already uses — that
+// field has several live consumers (weekly action verification, profile
+// checklist, suggested actions) that only ever check it for null vs.
+// non-null, so writing a derived bucket here keeps them working unchanged
+// while letting onboarding itself ask for a precise number instead of a
+// bucket, per the "we already answered this, don't ask twice with worse
+// precision" fix.
+function deriveJobsAppliedBucket(count: number): '0-20' | '20-100' | '100+' {
+  if (count <= 20) return '0-20'
+  if (count <= 100) return '20-100'
+  return '100+'
+}
+
 // Screen 2 of 4 — where they're searching from and willing to go. Same
 // reuse-existing-field logic as updateResumeConfirm above.
 // Screen 2 of 3 — combines what were originally two separate screens
 // (location, then a follow-up "where are you in your search" screen) into
 // one page: both are short, thematically adjacent ("where you're searching
 // from and how far along you are"), and splitting them cost an extra click
-// with no benefit. computeFunnelDiagnosis still reads the four
-// gapDuration/justStartedSearch/applicationsBucket/interviewsBucket fields
-// exactly as before. Both onboardingLocationConfirmedAt and
+// with no benefit. Both onboardingLocationConfirmedAt and
 // onboardingSearchStatusConfirmedAt are set together so onboarding/page.tsx's
 // redirect chain and comfort/page.tsx's own guard keep working unchanged.
+//
+// Applications/interviews are asked here as exact numbers (not buckets) and
+// written straight into jobsAppliedBucket (derived) / interviewsReceivedCount
+// — the same fields the dashboard Search Strategy page's "Your Search
+// Strategy So Far" card used to ask again. That duplicate ask was removed
+// from OptionalQuestionsForm; this is now the only place these get asked.
 export async function updateLocationAndSearchStatus(
   _prevState: FormState,
   formData: FormData
@@ -181,8 +199,10 @@ export async function updateLocationAndSearchStatus(
 
   const justStartedSearch = formData.get('justStartedSearch') === 'on'
   const gapDuration = formData.get('gapDuration') as string | null
-  const applicationsBucket = justStartedSearch ? 'none' : (formData.get('applicationsBucket') as string | null)
-  const interviewsBucket = justStartedSearch ? 'none' : (formData.get('interviewsBucket') as string | null)
+  const jobsAppliedCountRaw = formData.get('jobsAppliedCount')
+  const interviewsCountRaw = formData.get('interviewsCount')
+  const jobsAppliedCount = justStartedSearch ? 0 : jobsAppliedCountRaw ? Number(jobsAppliedCountRaw) : null
+  const interviewsCount = justStartedSearch ? 0 : interviewsCountRaw ? Number(interviewsCountRaw) : null
 
   if (!remotePreference) {
     return { error: 'Please tell us your work-location preference before continuing.' }
@@ -190,7 +210,7 @@ export async function updateLocationAndSearchStatus(
   if (!gapDuration || !(gapDuration in GAP_DURATION_LABELS)) {
     return { error: 'Please tell us how long you have been searching before continuing.' }
   }
-  if (!justStartedSearch && (!applicationsBucket || !interviewsBucket)) {
+  if (!justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
     return { error: 'Please answer both search-status questions, or check "I just started" above.' }
   }
 
@@ -206,8 +226,8 @@ export async function updateLocationAndSearchStatus(
       onboardingLocationConfirmedAt: now,
       justStartedSearch,
       gapDuration: gapDuration as GapDurationBucket,
-      applicationsBucket,
-      interviewsBucket,
+      jobsAppliedBucket: deriveJobsAppliedBucket(jobsAppliedCount as number),
+      interviewsReceivedCount: interviewsCount,
       onboardingSearchStatusConfirmedAt: now,
     },
   })
