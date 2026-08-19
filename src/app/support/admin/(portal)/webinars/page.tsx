@@ -7,7 +7,7 @@ import { CancelWebinarButton } from '@/components/admin/CancelWebinarButton'
 import { CuratedVideoAddForm } from '@/components/admin/CuratedVideoAddForm'
 import { PodcastCreateForm } from '@/components/admin/PodcastCreateForm'
 import { RemoveCuratedContentButton } from '@/components/admin/RemoveCuratedContentButton'
-import { getCarouselVideos, getCarouselPodcasts, getLinkedInTipsVideos } from '@/lib/content/curated-content'
+import { getCarouselVideos, getCarouselPodcasts, getLinkedInTipsVideos, getMotivationalVideos } from '@/lib/content/curated-content'
 import { getAdminContentStats } from '@/lib/content/content-stats'
 import { isYouTubeIngestConfigured } from '@/lib/content/youtube-ingest'
 
@@ -25,7 +25,7 @@ export default async function AdminWebinarsPage({
   await requireAdmin()
   const params = await searchParams
 
-  const [connection, webinars, { longForm, shorts, toolsForYou, aiTips }, podcasts, linkedInTips, stats] =
+  const [connection, webinars, { longForm, shorts, toolsForYou, aiTips }, podcasts, linkedInTips, motivational, stats] =
     await Promise.all([
       prisma.adminGoogleCalendarConnection.findFirst(),
       prisma.webinar.findMany({
@@ -39,6 +39,7 @@ export default async function AdminWebinarsPage({
       getCarouselVideos(),
       getCarouselPodcasts(),
       getLinkedInTipsVideos(),
+      getMotivationalVideos(),
       getAdminContentStats(),
     ])
   // Admin's AI Tools tab shows the whole catalog in one list, unsplit by
@@ -83,6 +84,9 @@ export default async function AdminWebinarsPage({
             </TabsTrigger>
             <TabsTrigger value="linkedin-tips" className="shrink-0 px-3 py-2">
               LinkedIn Tips ({linkedInTips.length})
+            </TabsTrigger>
+            <TabsTrigger value="motivational" className="shrink-0 px-3 py-2">
+              Motivational ({motivational.length})
             </TabsTrigger>
             <TabsTrigger value="webinars" className="shrink-0 px-3 py-2">
               Webinars ({webinars.length})
@@ -194,6 +198,36 @@ export default async function AdminWebinarsPage({
               <p className="text-sm text-muted-foreground">No LinkedIn Tips videos yet.</p>
             ) : (
               linkedInTips.map((video) => (
+                <div
+                  key={video.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{video.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {video.channelTitle} ·{' '}
+                      {video.source === 'ADMIN_ADDED' ? 'Added by admin' : 'Auto-pulled'}
+                    </p>
+                  </div>
+                  <RemoveCuratedContentButton kind="video" id={video.id} itemLabel={video.title} />
+                </div>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="motivational" className="mt-6 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Encouragement/perspective videos shown in a carousel on the dashboard&apos;s Check In
+            card — never shown alongside the low-sentiment help-advice block, since that&apos;s the
+            one moment a candidate should see focused support content, not a content carousel. Add
+            one the same way as Videos, with category set to Motivational.
+          </p>
+          <div className="space-y-2">
+            {motivational.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No motivational videos yet.</p>
+            ) : (
+              motivational.map((video) => (
                 <div
                   key={video.id}
                   className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"

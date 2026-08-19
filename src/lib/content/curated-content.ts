@@ -236,6 +236,24 @@ export async function getLinkedInTipsVideos(candidateId?: string): Promise<Curat
   return sortCuratedVideos(videos.filter((v) => !dislikedIds.has(v.id)))
 }
 
+// The Check In card's motivation carousel — category = MOTIVATIONAL, same
+// catalog for every candidate. Same dislike-only-no-author-block rationale
+// as getLinkedInTipsVideos above.
+export async function getMotivationalVideos(candidateId?: string): Promise<CuratedVideo[]> {
+  const videos = await prisma.curatedVideo.findMany({
+    where: { removedAt: null, category: 'MOTIVATIONAL' },
+  })
+
+  if (!candidateId) return sortCuratedVideos(videos)
+
+  const dislikes = await prisma.contentDislike.findMany({
+    where: { candidateId, contentType: 'CURATED_VIDEO' },
+    select: { contentId: true },
+  })
+  const dislikedIds = new Set(dislikes.map((d) => d.contentId))
+  return sortCuratedVideos(videos.filter((v) => !dislikedIds.has(v.id)))
+}
+
 // candidateId optional, same admin-vs-candidate rationale as
 // getCarouselVideos above. Podcasts have no "author" concept (per spec), so
 // only individual dislikes are filtered — no block-by-author logic here.

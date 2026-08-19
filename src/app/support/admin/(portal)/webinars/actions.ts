@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { createWebinar } from '@/lib/webinars/webinars'
 import { fetchYouTubeVideoMetadata, extractYouTubeVideoId, isYouTubeIngestConfigured } from '@/lib/content/youtube-ingest'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { VideoCategory } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
@@ -56,6 +57,8 @@ export async function addCuratedVideoAction(_prevState: FormState, formData: For
   const videoIndustry = (formData.get('videoIndustry') as string | null)?.trim() || null
   const videoFunction = (formData.get('videoFunction') as string | null)?.trim() || null
   const videoSkill = (formData.get('videoSkill') as string | null)?.trim() || null
+  const categoryRaw = formData.get('category') as string | null
+  const category: VideoCategory = categoryRaw && categoryRaw in VideoCategory ? (categoryRaw as VideoCategory) : 'GENERAL'
 
   if (!videoIdOrUrl) {
     return { error: 'Paste a YouTube URL or video ID.' }
@@ -105,11 +108,11 @@ export async function addCuratedVideoAction(_prevState: FormState, formData: For
   if (existing) {
     await prisma.curatedVideo.update({
       where: { id: existing.id },
-      data: { ...data, videoIndustry, videoFunction, videoSkill, source: 'ADMIN_ADDED', addedByAdminId: admin.id, removedAt: null },
+      data: { ...data, category, videoIndustry, videoFunction, videoSkill, source: 'ADMIN_ADDED', addedByAdminId: admin.id, removedAt: null },
     })
   } else {
     await prisma.curatedVideo.create({
-      data: { ...data, videoIndustry, videoFunction, videoSkill, youtubeVideoId, source: 'ADMIN_ADDED', addedByAdminId: admin.id },
+      data: { ...data, category, videoIndustry, videoFunction, videoSkill, youtubeVideoId, source: 'ADMIN_ADDED', addedByAdminId: admin.id },
     })
   }
 

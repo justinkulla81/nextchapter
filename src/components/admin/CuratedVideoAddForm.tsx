@@ -4,11 +4,21 @@ import { useActionState } from 'react'
 import { addCuratedVideoAction } from '@/app/support/admin/(portal)/webinars/actions'
 import { Input } from '@/components/ui/input'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+const CATEGORY_LABELS: Record<string, string> = {
+  GENERAL: 'General (Videos/Shorts carousels)',
+  AI_TOOLS: 'Tools for You (AI tool demos)',
+  LINKEDIN_TIPS: 'LinkedIn Tips',
+  MOTIVATIONAL: 'Motivational (Check In carousel)',
+}
 
 // One form covers both Videos and Shorts — format (LONG_FORM vs. SHORT) is
 // derived automatically from the fetched duration (see
 // src/lib/content/youtube-ingest.ts's formatFromDuration), so the admin
-// never has to pick it.
+// never has to pick it. Category defaults to General — pick a different one
+// here instead of the old workaround (add as General, then re-tag directly
+// in the database).
 export function CuratedVideoAddForm({ youtubeConfigured }: { youtubeConfigured: boolean }) {
   const [state, formAction] = useActionState(addCuratedVideoAction, undefined)
 
@@ -25,6 +35,23 @@ export function CuratedVideoAddForm({ youtubeConfigured }: { youtubeConfigured: 
           placeholder="https://www.youtube.com/watch?v=... or the 11-character video ID"
           required
         />
+      </div>
+      <div className="space-y-1">
+        <label htmlFor="category" className="text-xs font-medium text-muted-foreground">
+          Category
+        </label>
+        <Select name="category" defaultValue="GENERAL">
+          <SelectTrigger id="category">
+            <SelectValue>{(v: string | null) => (v ? CATEGORY_LABELS[v] : undefined)}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       {!youtubeConfigured && (
         <>

@@ -51,6 +51,8 @@ import { getHardGateStatus } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
+import { getMotivationalVideos } from '@/lib/content/curated-content'
+import { getCandidateContentLikeKeys, contentLikeKey } from '@/lib/content/content-likes'
 
 // One step up the A>B>C>D>F ladder — A has no "better" so it maps to
 // itself, but that case is never actually rendered (the Improve Your
@@ -148,6 +150,8 @@ export default async function DashboardPage() {
     dossierCompleteness,
     dossierStatus,
     resumeFixes,
+    motivationalVideos,
+    contentLikeKeys,
   ] = await Promise.all([
     supabase.auth.getUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
@@ -184,6 +188,9 @@ export default async function DashboardPage() {
     // resume-fix items the Market Reality Report itself shows (see
     // getResumeFixes), not a separate invented list.
     getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
+    // Check In card's motivation carousel.
+    getMotivationalVideos(profile.id),
+    getCandidateContentLikeKeys(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
   // Same recency sort + inference as search-strategy/page.tsx so this
@@ -284,6 +291,10 @@ export default async function DashboardPage() {
           dismissedToday={moodCardDismissedToday}
           lowSentiment={sentimentAlert.lowSentiment}
           hasCoach={!!profile.coachId}
+          motivationalVideos={motivationalVideos}
+          likedVideoIds={motivationalVideos
+            .filter((v) => contentLikeKeys.has(contentLikeKey('CURATED_VIDEO', v.id)))
+            .map((v) => v.id)}
         />
 
         {/* Below Check In, per user request — Victoria's advice is real

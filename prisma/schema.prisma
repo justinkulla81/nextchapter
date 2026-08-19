@@ -5240,6 +5240,11 @@ enum VideoCategory {
   GENERAL
   AI_TOOLS
   LINKEDIN_TIPS
+  // Encouragement/perspective videos shown on the dashboard's Check In card
+  // carousel — never shown alongside the low-sentiment help-advice block
+  // (see MoodCheckInCard), since that's the one moment a candidate should
+  // see focused support content, not a content carousel.
+  MOTIVATIONAL
 }
 
 model CuratedVideo {
