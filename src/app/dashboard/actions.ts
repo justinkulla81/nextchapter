@@ -177,6 +177,22 @@ export async function dismissDailyMessageBox(pageKey: PageKey) {
   revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
 }
 
+// "How NextChapter works with Victoria" welcome video on the dashboard's
+// Daily Message card — fires the moment playback starts, not on a close/
+// dismiss click, so a candidate who never presses play still sees it next
+// time. Idempotent (only the first play sets the timestamp) since a
+// re-watch after the first shouldn't matter either way.
+export async function markWelcomeVideoWatched() {
+  const profile = await getAuthedProfile()
+  if (!profile || profile.welcomeVideoWatchedAt) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { welcomeVideoWatchedAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'welcome_video_watched')
+}
+
 // Action Plan box's minimize/maximize arrow — same day-boundary contract as
 // dismissDailyMessageBox above (12:01am Pacific), but bidirectional: unlike
 // Daily Message, maximizing before the boundary clears the dismissal record

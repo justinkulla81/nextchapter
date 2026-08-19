@@ -1231,6 +1231,11 @@ model CandidateProfile {
   contractAccepted      Boolean   @default(false)
   contractAcceptedAt    DateTime?
   introCommittedAt      DateTime? // set once the candidate finishes the post-signup welcome/payoff page and clicks "I'm committed" — gates dashboard access, backs its 5-point Search Sprint bonus
+  // "How NextChapter works with Victoria" welcome video, shown at the
+  // bottom of the dashboard's Daily Message card until watched once — set
+  // the moment playback starts (see markWelcomeVideoWatched), not on close/
+  // dismiss, so skipping past it without playing doesn't count.
+  welcomeVideoWatchedAt DateTime?
   // The dashboard-wide hard gate (Search Strategy required, then Gmail+
   // LinkedIn to activate the Search Plan — see src/lib/dashboard/access-gate.ts)
   // applies only to candidates who signed up after this shipped. Set once,

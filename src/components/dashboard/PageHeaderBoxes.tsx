@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { prisma } from '@/lib/prisma'
 import { getPageBoxContent, type PageKey } from '@/lib/dashboard/page-content'
 import { getWatchlistAlertContent } from '@/lib/company-tracker/watchlist'
 import { getSearchStrategyDailyMessageOverride } from '@/lib/weekly/search-strategy-checklist'
@@ -39,9 +40,20 @@ export async function PageHeaderBoxes({
     ? null
     : await getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert ?? searchStrategyAlert)
 
+  // "How NextChapter works with Victoria" — dashboard-only, appended below
+  // whichever Daily Message content is currently rotating in rather than
+  // tied to one specific rotation entry, so it stays visible across the
+  // daily rotation until actually watched (see markWelcomeVideoWatched).
+  const showWelcomeVideo =
+    pageKey === 'dashboard' &&
+    !(await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { welcomeVideoWatchedAt: true } }))
+      ?.welcomeVideoWatchedAt
+
   return (
     <div className="space-y-3">
-      {dailyMessageOverride ?? <DailyMessageBox pageKey={pageKey} content={dailyMessage} />}
+      {dailyMessageOverride ?? (
+        <DailyMessageBox pageKey={pageKey} content={dailyMessage} showWelcomeVideo={showWelcomeVideo} />
+      )}
       <ActionPlanBox pageKey={pageKey} candidateId={candidateId} lifetimeProgress={lifetimeProgress} />
     </div>
   )
