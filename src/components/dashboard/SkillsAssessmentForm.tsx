@@ -1,11 +1,12 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useState, useTransition } from 'react'
+import Link from 'next/link'
+import { CheckCircle2 } from 'lucide-react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
-import { SkillsHaveForm } from '@/components/dashboard/SkillsHaveForm'
-import { SkillsNeedSection } from '@/components/dashboard/SkillsNeedSection'
+import { SkillsHaveAndNeedForm } from '@/components/dashboard/SkillsHaveAndNeedForm'
 import { SkillsUnlockDialog } from '@/components/dashboard/SkillsUnlockDialog'
-import { SubmitButton } from '@/components/ui/submit-button'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
@@ -39,26 +40,20 @@ const MANAGEMENT_LABELS = [
   "It's my favorite thing",
 ] as const
 
-function snapshotOf(v: {
-  topStrengths: string[]
-  growthAreas: string[]
-  growthAreasElaboration: string
-  functionSkillConfidence: number | null
-  aiFlexibilityLevel: number | null
-  managementSkillConfidence: number | null
-}) {
-  return JSON.stringify({
-    topStrengths: [...v.topStrengths].sort(),
-    growthAreas: [...v.growthAreas].sort(),
-    growthAreasElaboration: v.growthAreasElaboration,
-    functionSkillConfidence: v.functionSkillConfidence,
-    aiFlexibilityLevel: v.aiFlexibilityLevel,
-    managementSkillConfidence: v.managementSkillConfidence,
-  })
-}
+type Step = 'skills' | 'have-need' | 'done'
 
+// Two pages, not three separate save-as-you-go forms: "Your Skills" (the
+// confidence/strengths questionnaire) then "Skills You Have & Need to
+// Build" (one combined step, one "Confirm" — not "Save," since this is the
+// end of the flow, not an editable settings form) — matching the
+// Market Reality Assessment's own pagination pattern instead of a single
+// long scroll of three independently-saved cards. Confirming step 2 shows
+// a completion screen offering Learn New Skills or back to the dashboard.
+// Each step calls its server action directly inside a transition rather
+// than via useActionState+useEffect, so advancing to the next step happens
+// right where the action resolves instead of reacting to state changes
+// from an effect.
 export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile }) {
-  const [state, formAction, pending] = useActionState(updateSkillsAssessment, undefined)
   // Asked from Track Record now (spec §4.2 item 16), not here — this just
   // reads the value Track Record wrote to gate the management-confidence
   // slider below, rather than asking it again.
@@ -66,155 +61,157 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
   const [topStrengths, setTopStrengths] = useState<string[]>(profile.topStrengths)
   const [growthAreas, setGrowthAreas] = useState<string[]>(profile.growthAreas)
   const [growthAreasElaboration, setGrowthAreasElaboration] = useState(profile.growthAreasElaboration ?? '')
-  const [functionSkillConfidence, setFunctionSkillConfidence] = useState(profile.functionSkillConfidence)
-  const [managementSkillConfidence, setManagementSkillConfidence] = useState(profile.managementSkillConfidence)
-  // Tracked live (not just adopted post-save) so the "Skills You Have"
-  // AI-skills auto-add below and the dirty-check snapshot both reflect the
-  // candidate's current, unsaved slider position, not a stale profile prop.
+  const [, setFunctionSkillConfidence] = useState(profile.functionSkillConfidence)
+  const [, setManagementSkillConfidence] = useState(profile.managementSkillConfidence)
+  // Tracked live (not just adopted post-save) so the Skills You Have step's
+  // AI-skills auto-add reflects the candidate's current, unsaved slider
+  // position, not a stale profile prop.
   const [aiFlexibilityLevel, setAiFlexibilityLevel] = useState(profile.aiFlexibilityLevel)
 
   const functionLabel = profile.resumeLatestJobTitle ?? profile.primaryFunction
 
-  // "Saved" stays gray until the candidate actually changes an answer, not
-  // just for a fixed 2s window (see SubmitButton's controlled `saved` prop).
-  const initialSnapshot = snapshotOf({
-    topStrengths: profile.topStrengths,
-    growthAreas: profile.growthAreas,
-    growthAreasElaboration: profile.growthAreasElaboration ?? '',
-    functionSkillConfidence: profile.functionSkillConfidence,
-    aiFlexibilityLevel: profile.aiFlexibilityLevel,
-    managementSkillConfidence: profile.managementSkillConfidence,
-  })
-  const [lastSavedSnapshot, setLastSavedSnapshot] = useState(initialSnapshot)
-  const [hasSavedBefore, setHasSavedBefore] = useState(!!profile.skillsAssessmentCompletedAt)
-  // Captured in the form's submit handler (an event, not render) so the
-  // success effect below can adopt exactly what was submitted, without
-  // reading a ref during render.
-  const pendingSnapshotRef = useRef<string | null>(null)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
   const [showUnlockDialog, setShowUnlockDialog] = useState(false)
+  const [step, setStep] = useState<Step>('skills')
 
-  const currentSnapshot = snapshotOf({
-    topStrengths,
-    growthAreas,
-    growthAreasElaboration,
-    functionSkillConfidence,
-    aiFlexibilityLevel,
-    managementSkillConfidence,
-  })
-
-  useEffect(() => {
-    // One-time adoption of the server action's result, not a derived-render
-    // loop — only ever fires right after a real form submission (state
-    // transitions from undefined), same pattern as ConfidenceSlider's
-    // suggestedValue effect.
-    if (state?.success && pendingSnapshotRef.current !== null) {
-      setHasSavedBefore(true)
-      setLastSavedSnapshot(pendingSnapshotRef.current)
-      if (state.firstTimeCompletion) {
+  function handleContinue(formData: FormData) {
+    setError(null)
+    startTransition(async () => {
+      const result = await updateSkillsAssessment(undefined, formData)
+      if (result?.error) {
+        setError(result.error)
+        return
+      }
+      if (result?.firstTimeCompletion) {
         setShowUnlockDialog(true)
       }
-    }
-  }, [state])
+      setStep('have-need')
+    })
+  }
 
-  const isDirty = currentSnapshot !== lastSavedSnapshot
+  if (step === 'done') {
+    return (
+      <div className="space-y-4 text-center">
+        <CheckCircle2 className="mx-auto size-10 text-success" aria-hidden />
+        <div>
+          <p className="font-medium text-foreground">Skills Inventory saved</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This now personalizes your Job Recommendations, Skills Recommendations, and Market
+            Reality Report.
+          </p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Button nativeButton={false} render={<Link href="/dashboard/learning" />}>
+            Learn New Skills
+          </Button>
+          <Button variant="outline" nativeButton={false} render={<Link href="/dashboard" />}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === 'have-need') {
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setStep('skills')}
+          className="text-sm text-muted-foreground underline underline-offset-4"
+        >
+          ← Back to Your Skills
+        </button>
+        <SkillsHaveAndNeedForm
+          resumeKeywords={profile.resumeKeywords}
+          initialSkillsHave={profile.confirmedSkillsHave}
+          strongAiSkills={aiFlexibilityLevel !== null && aiFlexibilityLevel >= STRONG_AI_THRESHOLD}
+          initialSkillsNeed={profile.skillsToBuild}
+          targetRole={profile.targetRoleType}
+          onConfirmed={() => setStep('done')}
+        />
+        <SkillsUnlockDialog open={showUnlockDialog} onOpenChange={setShowUnlockDialog} />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-8">
-      <form
-        action={(formData) => {
-          pendingSnapshotRef.current = currentSnapshot
-          formAction(formData)
-        }}
-        className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
-      >
-        <p className="text-sm font-medium text-muted-foreground">1. Your skills snapshot</p>
-
-        <div className="space-y-2">
-          <Label>
-            Every great candidate is exceptional at a few things rather than good at everything.
-            Select up to {TOP_STRENGTHS_MAX} strengths that best describe where you truly stand out.
-          </Label>
-          <MultiChoiceButtons
-            name="topStrengths"
-            options={TOP_STRENGTH_OPTIONS}
-            value={topStrengths}
-            onChange={setTopStrengths}
-            columns={2}
-            max={TOP_STRENGTHS_MAX}
-          />
-        </div>
-
-        <div id="growth-areas" className="scroll-mt-4 space-y-2">
-          <Label>
-            Everyone has room to grow, too. Select up to {GROWTH_AREAS_MAX} areas you&apos;re actively working on.
-          </Label>
-          <MultiChoiceButtons
-            name="growthAreas"
-            options={GROWTH_AREA_OPTIONS}
-            value={growthAreas}
-            onChange={setGrowthAreas}
-            columns={2}
-            max={GROWTH_AREAS_MAX}
-          />
-          <Textarea
-            name="growthAreasElaboration"
-            value={growthAreasElaboration}
-            onChange={(e) => setGrowthAreasElaboration(e.target.value)}
-            placeholder="In your own words (optional) — this helps your Dossier's Self-Awareness section sound like you, not a checklist."
-            rows={3}
-          />
-        </div>
-
-        <ConfidenceSlider
-          name="functionSkillConfidence"
-          label={
-            functionLabel
-              ? `How confident are you in your core job function (as a ${functionLabel})?`
-              : 'How confident are you in your core job function skills?'
-          }
-          defaultValue={profile.functionSkillConfidence}
-          labels={CORE_SKILL_LABELS}
-          onChange={setFunctionSkillConfidence}
-        />
-
-        <ConfidenceSlider
-          name="aiFlexibilityLevel"
-          label="How confident are you in your AI skills?"
-          defaultValue={profile.aiFlexibilityLevel}
-          labels={CORE_SKILL_LABELS}
-          onChange={setAiFlexibilityLevel}
-        />
-
-        {isPeopleManager && (
-          <ConfidenceSlider
-            name="managementSkillConfidence"
-            label="How confident are you in your management skills?"
-            defaultValue={profile.managementSkillConfidence}
-            labels={MANAGEMENT_LABELS}
-            onChange={setManagementSkillConfidence}
-          />
-        )}
-
-        {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-
-        <SubmitButton pendingLabel="Saving…" saved={hasSavedBefore && !isDirty}>
-          Save
-        </SubmitButton>
-      </form>
-
-      <div className="border-t border-border pt-6">
-        <SkillsHaveForm
-          resumeKeywords={profile.resumeKeywords}
-          initialConfirmed={profile.confirmedSkillsHave}
-          strongAiSkills={aiFlexibilityLevel !== null && aiFlexibilityLevel >= STRONG_AI_THRESHOLD}
+    <form
+      action={handleContinue}
+      className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
+    >
+      <div className="space-y-2">
+        <Label>
+          Every great candidate is exceptional at a few things rather than good at everything.
+          Select up to {TOP_STRENGTHS_MAX} strengths that best describe where you truly stand out.
+        </Label>
+        <MultiChoiceButtons
+          name="topStrengths"
+          options={TOP_STRENGTH_OPTIONS}
+          value={topStrengths}
+          onChange={setTopStrengths}
+          columns={2}
+          max={TOP_STRENGTHS_MAX}
         />
       </div>
 
-      <div className="border-t border-border pt-6">
-        <SkillsNeedSection initialSkills={profile.skillsToBuild} targetRole={profile.targetRoleType} />
+      <div id="growth-areas" className="scroll-mt-4 space-y-2">
+        <Label>
+          Everyone has room to grow, too. Select up to {GROWTH_AREAS_MAX} areas you&apos;re actively working on.
+        </Label>
+        <MultiChoiceButtons
+          name="growthAreas"
+          options={GROWTH_AREA_OPTIONS}
+          value={growthAreas}
+          onChange={setGrowthAreas}
+          columns={2}
+          max={GROWTH_AREAS_MAX}
+        />
+        <Textarea
+          name="growthAreasElaboration"
+          value={growthAreasElaboration}
+          onChange={(e) => setGrowthAreasElaboration(e.target.value)}
+          placeholder="In your own words (optional) — this helps your Dossier's Self-Awareness section sound like you, not a checklist."
+          rows={3}
+        />
       </div>
 
-      <SkillsUnlockDialog open={showUnlockDialog} onOpenChange={setShowUnlockDialog} />
-    </div>
+      <ConfidenceSlider
+        name="functionSkillConfidence"
+        label={
+          functionLabel
+            ? `How confident are you in your core job function (as a ${functionLabel})?`
+            : 'How confident are you in your core job function skills?'
+        }
+        defaultValue={profile.functionSkillConfidence}
+        labels={CORE_SKILL_LABELS}
+        onChange={setFunctionSkillConfidence}
+      />
+
+      <ConfidenceSlider
+        name="aiFlexibilityLevel"
+        label="How confident are you in your AI skills?"
+        defaultValue={profile.aiFlexibilityLevel}
+        labels={CORE_SKILL_LABELS}
+        onChange={setAiFlexibilityLevel}
+      />
+
+      {isPeopleManager && (
+        <ConfidenceSlider
+          name="managementSkillConfidence"
+          label="How confident are you in your management skills?"
+          defaultValue={profile.managementSkillConfidence}
+          labels={MANAGEMENT_LABELS}
+          onChange={setManagementSkillConfidence}
+        />
+      )}
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <Button type="submit" disabled={pending}>
+        {pending ? 'Saving…' : 'Continue'}
+      </Button>
+    </form>
   )
 }
