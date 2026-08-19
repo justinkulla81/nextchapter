@@ -21,6 +21,8 @@ import { isLinkedInPostingConfigured } from '@/lib/linkedin/oauth'
 import { shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import { formatRelativeTime } from '@/lib/format-relative-time'
+import { Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import type { HardQuestionAnswers } from '@/lib/narrative/hard-questions'
 
@@ -28,6 +30,25 @@ export const metadata: Metadata = { title: 'My Marketing Plan' }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return <h2 className="text-lg font-semibold">{children}</h2>
+}
+
+// Same checked/unchecked-circle row language as TierSummaryCard's MixRow
+// ("A well-rounded mix") — so the Action Plan reads consistently with the
+// rest of the dashboard's checklists instead of a plain link list.
+function ActionPlanRow({ href, label, done }: { href: string; label: string; done: boolean }) {
+  return (
+    <a href={href} className={cn('flex items-center gap-2 text-sm hover:underline', done ? 'text-success' : 'text-foreground')}>
+      <span
+        className={cn(
+          'flex size-4 shrink-0 items-center justify-center rounded-full border',
+          done ? 'border-success bg-success/10' : 'border-border'
+        )}
+      >
+        {done && <Check className="size-3" />}
+      </span>
+      {label}
+    </a>
+  )
 }
 
 export default async function MarketingPlanPage({
@@ -133,26 +154,28 @@ export default async function MarketingPlanPage({
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
       {/* Action Plan — quick links to every section on this page, in the
-          order a candidate would actually work through them. */}
+          order a candidate would actually work through them, each checked
+          off once there's real signal it's done. */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Action Plan</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="grid gap-1.5 sm:grid-cols-2">
+          <ul className="grid gap-2 sm:grid-cols-2">
             {[
-              { href: '#linkedin', label: 'LinkedIn Posts' },
-              { href: '#narrative', label: 'Narrative' },
-              { href: '#outreach-prep', label: 'Outreach Prep' },
-              { href: '#interview-prep', label: 'Interview Prep' },
+              ...(linkedin.configured
+                ? [{ href: '#linkedin', label: 'Connect LinkedIn', done: linkedin.connected }]
+                : []),
+              { href: '#linkedin', label: 'LinkedIn Posts', done: linkedInActivityCount > 0 },
+              { href: '#narrative', label: 'Narrative', done: narratives.length > 0 },
+              { href: '#outreach-prep', label: 'Outreach Prep', done: followUps.length === 0 },
+              { href: '#interview-prep', label: 'Interview Prep', done: profile.interviewComfort !== null },
               ...(defaultNarrativeItem?.coreStatement
-                ? [{ href: '#hard-questions', label: 'Answer Hard Questions' }]
+                ? [{ href: '#hard-questions', label: 'Answer Hard Questions', done: hardQuestions !== null }]
                 : []),
             ].map((item) => (
-              <li key={item.href}>
-                <a href={item.href} className="text-sm text-primary underline underline-offset-4">
-                  {item.label}
-                </a>
+              <li key={item.label}>
+                <ActionPlanRow href={item.href} label={item.label} done={item.done} />
               </li>
             ))}
           </ul>
