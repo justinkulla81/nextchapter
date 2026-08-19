@@ -14,14 +14,14 @@ import { InlineLoadingState } from '@/components/ui/spinner'
 import { PostToLinkedInButton } from '@/components/dashboard/marketing-plan/PostToLinkedInButton'
 import { CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
 
-interface PostIdea {
+export interface PostIdea {
   title: string
   angle: string
 }
 
-type LinkedInState = { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
+export type LinkedInState = { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 
-function IdeaCard({
+export function IdeaCard({
   idea,
   venues,
   linkedin,

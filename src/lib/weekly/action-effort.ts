@@ -49,11 +49,6 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // this fires again per tailored narrative rather than once total.
   TAILORED_NARRATIVE_COMPLETE: { minutes: 10, points: 15 },
   HARD_QUESTIONS_COMPLETE: { minutes: 10, points: 15 },
-  // One-time confirm bonus — same weight as COMFORT_CHECK_CONFIRM/
-  // NETWORK_COMFORT_CONFIRMED below, claimed with an explicit click rather
-  // than auto-awarded on render (design-principles.md: every state change
-  // needs visible feedback).
-  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: { minutes: 3, points: 5 },
   // Low-comfort alternatives to LINKEDIN_POST_IDEA/THOUGHT_LEADERSHIP_SHARE
   // above — same self-report shape and comparable point weight to their
   // public-posting counterparts, for a candidate who isn't ready to post
@@ -295,7 +290,6 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   WAYS_TO_SAY_IT_COMPLETE: 'working',
   TAILORED_NARRATIVE_COMPLETE: 'working',
   HARD_QUESTIONS_COMPLETE: 'working',
-  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: 'working',
   PITCH_PRACTICE_WITH_COACH: 'working',
   SHARE_NARRATIVE_FOR_FEEDBACK: 'working',
   RESUME_UPDATE: 'working',
@@ -428,7 +422,6 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   WAYS_TO_SAY_IT_COMPLETE: 'Personalize',
   TAILORED_NARRATIVE_COMPLETE: 'Personalize',
   HARD_QUESTIONS_COMPLETE: 'Personalize',
-  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: 'Personalize',
   PITCH_PRACTICE_WITH_COACH: 'Personalize',
   SHARE_NARRATIVE_FOR_FEEDBACK: 'Personalize',
   LINKEDIN_SETUP: 'Personalize',
@@ -703,7 +696,6 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   WAYS_TO_SAY_IT_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   TAILORED_NARRATIVE_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   HARD_QUESTIONS_COMPLETE: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
-  PUBLIC_VISIBILITY_COMFORT_CONFIRMED: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   PITCH_PRACTICE_WITH_COACH: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   SHARE_NARRATIVE_FOR_FEEDBACK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
   LEARNING_MODULE: { href: '/dashboard/learning', label: 'Learning' },
@@ -912,7 +904,6 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'WAYS_TO_SAY_IT_COMPLETE',
     'TAILORED_NARRATIVE_COMPLETE',
     'HARD_QUESTIONS_COMPLETE',
-    'PUBLIC_VISIBILITY_COMFORT_CONFIRMED',
     'PITCH_PRACTICE_WITH_COACH',
     'SHARE_NARRATIVE_FOR_FEEDBACK',
   ],

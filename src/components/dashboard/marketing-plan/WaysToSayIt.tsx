@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CopyButton } from '@/components/ui/copy-button'
 import { PostToLinkedInButton } from '@/components/dashboard/marketing-plan/PostToLinkedInButton'
@@ -67,12 +68,18 @@ export function WaysToSayIt({
   linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <h2 className="text-sm font-medium text-muted-foreground">Ways to say it</h2>
       {GROUPS.map((group) => (
-        <div key={group.question} className="space-y-3">
-          <h3 className="text-base font-semibold text-foreground">{group.question}</h3>
-          <div className="space-y-3">
+        <details key={group.question} className="group rounded-lg border border-border">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+            {group.question}
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <div className="space-y-3 border-t border-border p-4">
             {group.items.map((item) => (
               <Card key={item.key}>
                 <CardHeader>
@@ -94,7 +101,7 @@ export function WaysToSayIt({
               </Card>
             ))}
           </div>
-        </div>
+        </details>
       ))}
     </div>
   )

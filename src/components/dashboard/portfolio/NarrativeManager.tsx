@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
+import { CopyButton } from '@/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import {
   createNarrativeCore,
@@ -15,6 +16,7 @@ import {
   renameNarrative,
   updateNarrativeStatement,
 } from '@/app/dashboard/portfolio/actions'
+import { WaysToSayIt } from '@/components/dashboard/marketing-plan/WaysToSayIt'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
 export interface NarrativeItem {
@@ -25,37 +27,9 @@ export interface NarrativeItem {
   isDefault: boolean
 }
 
-const ADAPTATION_LABELS: Record<keyof NarrativeAdaptations, string> = {
-  linkedinHeadline: 'LinkedIn Headline',
-  linkedinAbout: 'LinkedIn About',
-  resumeSummary: 'Resume Summary',
-  emailOpening: 'Email Opening',
-  verbal30s: '30-Second Verbal',
-  tellMeAboutYourself: '"Tell Me About Yourself"',
-  friendsAndFamily: 'For Friends & Family',
-  conversationOpener: 'Conversation Opener',
-  coverLetterTemplate: 'Cover Letter',
-}
+type LinkedInState = { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={() => {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-      }}
-    >
-      {copied ? 'Copied' : 'Copy'}
-    </Button>
-  )
-}
-
-function NarrativeRow({ narrative }: { narrative: NarrativeItem }) {
+function NarrativeRow({ narrative, linkedin }: { narrative: NarrativeItem; linkedin?: LinkedInState }) {
   const [isPending, startTransition] = useTransition()
   const [expanded, setExpanded] = useState(false)
   const [renaming, setRenaming] = useState(false)
@@ -196,22 +170,7 @@ function NarrativeRow({ narrative }: { narrative: NarrativeItem }) {
               </div>
             )}
 
-            {narrative.adaptations && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  Six ways to say it
-                </p>
-                {(Object.keys(ADAPTATION_LABELS) as (keyof NarrativeAdaptations)[]).map((key) => (
-                  <div key={key} className="rounded-md border border-border p-3">
-                    <p className="text-xs font-medium text-muted-foreground">{ADAPTATION_LABELS[key]}</p>
-                    <p className="mt-1 mb-2 text-sm whitespace-pre-line text-foreground">
-                      {narrative.adaptations![key]}
-                    </p>
-                    <CopyButton text={narrative.adaptations![key]} />
-                  </div>
-                ))}
-              </div>
-            )}
+            {narrative.adaptations && <WaysToSayIt adaptations={narrative.adaptations} linkedin={linkedin} />}
 
             <div className="border-t border-border pt-3">
               {narrative.isDefault ? (
@@ -337,13 +296,23 @@ export function NewNarrativeForm({
   )
 }
 
-export function NarrativeManager({ narratives }: { narratives: NarrativeItem[] }) {
+export function NarrativeManager({
+  narratives,
+  initialLabel,
+  initialScenario,
+  linkedin,
+}: {
+  narratives: NarrativeItem[]
+  initialLabel?: string
+  initialScenario?: string
+  linkedin?: LinkedInState
+}) {
   return (
     <div className="space-y-3">
       {narratives.map((n) => (
-        <NarrativeRow key={n.id} narrative={n} />
+        <NarrativeRow key={n.id} narrative={n} linkedin={linkedin} />
       ))}
-      <NewNarrativeForm onCreated={() => {}} />
+      <NewNarrativeForm onCreated={() => {}} initialLabel={initialLabel} initialScenario={initialScenario} />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { ContentVenue, PublicDisclosureComfort } from '@prisma/client'
+import type { ContentVenue } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -133,55 +133,6 @@ export async function generateHardQuestionsAction() {
 
   await generateHardQuestions(profile.id)
   captureServerEvent(profile.id, 'hard_questions_generated')
-  revalidatePath('/dashboard/marketing-plan')
-}
-
-// publicDisclosureComfort is first set on Search Strategy's Marketing Plan
-// Willingness section, but drives real branching on this page (isLowComfort)
-// too, so it needs its own live edit surface here — see
-// PublicVisibilityComfortEditor. A candidate's comfort with being visible
-// genuinely changes over a search;
-// this lets them re-answer anytime, mirroring setNetworkComfortLevel's
-// always-editable pattern. Re-answering never re-awards or claws back the
-// one-time PUBLIC_VISIBILITY_COMFORT_CONFIRMED bonus below — that's keyed
-// off "answered at all, ever," not the specific value.
-export async function updatePublicDisclosureComfort(value: PublicDisclosureComfort) {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { publicDisclosureComfort: value },
-  })
-  captureServerEvent(profile.id, 'public_disclosure_comfort_updated', { value })
-  revalidatePath('/dashboard/marketing-plan')
-}
-
-// One-time PUBLIC_VISIBILITY_COMFORT_CONFIRMED bonus — an explicit "claim my
-// points" click, never auto-awarded on render (design-principles.md: every
-// state change needs visible feedback, so the click itself IS that
-// feedback). Requires publicDisclosureComfort to already be answered.
-export async function confirmPublicVisibilityComfort() {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-  if (!profile.publicDisclosureComfort || profile.publicVisibilityComfortBonusAt) return
-
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { publicVisibilityComfortBonusAt: new Date() },
-  })
-  captureServerEvent(profile.id, 'public_visibility_comfort_confirmed')
-
-  const sprint = await getCurrentWeekSprint(profile.id)
-  if (sprint) {
-    const effort = estimateActionEffort({ actionType: 'PUBLIC_VISIBILITY_COMFORT_CONFIRMED' })
-    await autoCompleteEngagementAction(profile.id, {
-      actionType: 'PUBLIC_VISIBILITY_COMFORT_CONFIRMED',
-      text: 'Confirm your public visibility comfort level',
-      points: effort.points,
-      estimatedMinutes: effort.minutes,
-    })
-  }
   revalidatePath('/dashboard/marketing-plan')
 }
 
