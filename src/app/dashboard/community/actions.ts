@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { Prisma } from '@prisma/client'
+import { Prisma, type CommunityModerationCategory } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -10,7 +10,6 @@ import { sendPostInterestNotification } from '@/lib/email/send-post-interest-not
 import { sendEncouragementNote, markEncouragementNoteRead } from '@/lib/community/encouragement'
 import { acknowledgeAutoJoinNotices, leaveCommunity } from '@/lib/community/communities'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import {
   getOrCreatePeerThread,
   sendPeerMessage,
@@ -18,10 +17,9 @@ import {
   blockCandidate,
   unblockCandidate,
 } from '@/lib/messaging/peer-threads'
-import { classifyCommunityPost, moderationOutcome, type ModerationOutcome } from '@/lib/community/moderation'
 import { canParticipateInCommunity } from '@/lib/community/access'
 import { resolveCommunityIdentity } from '@/lib/community/identity'
-import type { CommunityModerationCategory, CommunityModerationStatus } from '@prisma/client'
+import { createModeratedCommunityPost } from '@/lib/community/create-post'
 
 export type FormState = { error?: string } | undefined
 
@@ -186,103 +184,11 @@ export async function createCommunityPost(
     return { error: 'Write something first.' }
   }
 
-  // Snapshot-at-post-time, same convention as postCity/postFunction/
-  // postIndustry above — read from the candidate's education/work-history/
-  // resume-analysis relations so group- and seniority-filtered feed views
-  // can match against them later without a join back to data that may since
-  // have changed.
-  const [primarySchool, recentCompanies, latestResumeAnalysis] = await Promise.all([
-    prisma.educationEntry.findFirst({ where: { candidateId: profile.id, isPrimary: true }, select: { schoolNameNormalized: true } }),
-    prisma.workHistoryEntry.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { startDate: 'desc' },
-      select: { companyNameNormalized: true },
-      distinct: ['companyNameNormalized'],
-      take: 3,
-    }),
-    prisma.resumeAnalysis.findFirst({
-      where: { candidateId: profile.id },
-      orderBy: { createdAt: 'desc' },
-      select: { seniorityBand: true },
-    }),
-  ])
-
-  // §14 — every post is classified before it's visible to anyone but its
-  // author. A classifier failure fails CLOSED: held for manual review, same
-  // as an auto-hold category, rather than publishing unmoderated content.
-  // Silently blocking a clean post until a human clears it is the safer
-  // failure mode of the two.
-  let category: CommunityModerationCategory | null = null
-  let confidence: number | null = null
-  let reasoning = 'Automated classification failed before this post could be reviewed — held for manual review.'
-  let outcome: ModerationOutcome = 'HOLD'
-  try {
-    const classification = await classifyCommunityPost(description)
-    category = classification.category
-    confidence = classification.confidenceScore
-    reasoning = classification.reasoning
-    outcome = moderationOutcome(category)
-  } catch (error) {
-    console.error('Community post classification failed:', error)
-  }
-
-  const moderationStatus: CommunityModerationStatus =
-    outcome === 'HOLD' ? 'HELD' : outcome === 'REMOVE' ? 'REMOVED' : 'PUBLISHED'
-  // REMOVED posts are still persisted (never silently dropped) so the admin
-  // moderation queue has a real audit trail, but isActive:false keeps them
-  // out of every other query that already filters on isActive.
-  const isActive = outcome !== 'REMOVE'
-
-  // §4.2: "No employer, title, or location on the profile" for Confidential
-  // Search Mode candidates. Stripped at write time (not just at render) so
-  // it's never available to leak through any future rendering surface —
-  // postFunction/postIndustry/postIndustryBucket/postSeniorityBand are kept
-  // (broad categories for Community "peers like you" groups, not employer
-  // or location) but city/state/metro and company names are not.
-  const post = await prisma.communityPost.create({
-    data: {
-      candidateId: profile.id,
-      postType: postType as (typeof SUBMITTABLE_POST_TYPES)[number],
-      description,
-      externalUrl,
-      postCity: profile.confidentialSearchMode ? null : profile.currentCity,
-      postState: profile.confidentialSearchMode ? null : profile.currentState,
-      postFunction: profile.primaryFunction,
-      postIndustry: profile.industryContext,
-      postIndustryBucket: profile.industryBucket,
-      postMetroArea: profile.confidentialSearchMode ? null : profile.metroArea,
-      postSchools: primarySchool?.schoolNameNormalized ? [primarySchool.schoolNameNormalized] : [],
-      postCompanies: profile.confidentialSearchMode
-        ? []
-        : recentCompanies.map((c) => c.companyNameNormalized).filter(Boolean),
-      postSeniorityBand: latestResumeAnalysis?.seniorityBand ?? null,
-      isActive,
-      moderationStatus,
-      moderationCategory: category,
-      moderationConfidence: confidence,
-      moderationReasoning: reasoning,
-      moderatedAt: new Date(),
-    },
+  const { outcome, category } = await createModeratedCommunityPost(profile, {
+    postType: postType as (typeof SUBMITTABLE_POST_TYPES)[number],
+    description,
+    externalUrl,
   })
-
-  captureServerEvent(profile.id, 'community_post_created', { postId: post.id, postType })
-  captureServerEvent(profile.id, 'community_post_moderated', { postId: post.id, category, outcome, confidence })
-
-  // Sharing an update is real, verifiable effort — award the points
-  // automatically instead of requiring a separate self-report toggle in the
-  // Weekly Search Sprint. Scoped to UPDATE only (not SELF_INTRO, a one-time
-  // onboarding milestone rather than the ongoing "share" behavior this
-  // rewards), and skipped for auto-removed posts (spam/doxxing isn't real
-  // search effort) — held/published posts still earn it, since a
-  // false-positive hold shouldn't cost a candidate their points.
-  if (postType === 'UPDATE' && outcome !== 'REMOVE') {
-    await autoCompleteEngagementAction(profile.id, {
-      actionType: 'ENGAGE_POST_UPDATE',
-      text: 'Post an update on your own progress',
-      points: 10,
-      estimatedMinutes: 10,
-    })
-  }
 
   revalidatePath('/dashboard/community')
   revalidatePath('/dashboard')

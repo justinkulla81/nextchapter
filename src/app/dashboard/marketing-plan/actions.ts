@@ -11,6 +11,8 @@ import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { generateHardQuestions, shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
 import { isLinkedInPostingConfigured, publishLinkedInPost } from '@/lib/linkedin/oauth'
+import { canParticipateInCommunity } from '@/lib/community/access'
+import { createModeratedCommunityPost } from '@/lib/community/create-post'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -235,6 +237,21 @@ export async function postToLinkedInAction(text: string): Promise<boolean> {
     data: { candidateId: profile.id, source: 'DIRECT_POST', textLength: text.trim().length },
   })
   captureServerEvent(profile.id, 'linkedin_post_published', { source: 'direct_post' })
+
+  // Mirror the real published text into the Community feed as a real
+  // UPDATE post — same moderation/classification/points path a manually
+  // typed post goes through (see createModeratedCommunityPost), never a
+  // lower-scrutiny shortcut just because the text came from LinkedIn.
+  // Best-effort: a candidate's real LinkedIn post already succeeded above,
+  // so a failure here shouldn't be reported back as the whole action
+  // failing. Same community-participation gate the manual composer checks
+  // — publishing to LinkedIn doesn't bypass Community's own eligibility
+  // rules.
+  if (await canParticipateInCommunity(profile.id, profile.privacyTier, profile.confidentialSearchMode)) {
+    await createModeratedCommunityPost(profile, { postType: 'UPDATE', description: text.trim() }).catch((error) =>
+      console.error('Failed to mirror LinkedIn post into Community feed:', error)
+    )
+  }
 
   const sprint = await getCurrentWeekSprint(profile.id)
   if (sprint) {
