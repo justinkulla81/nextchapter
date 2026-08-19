@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { ResumeConfirmForm } from '@/components/onboarding/ResumeConfirmForm'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
-import { StepLabel } from '@/components/onboarding/StepLabel'
 
 export default async function ConfirmPage() {
   const profile = await getCandidateProfileForUser()
@@ -17,7 +16,6 @@ export default async function ConfirmPage() {
   return (
     <div className="flex flex-col items-center gap-6 text-center">
       <div className="max-w-xl space-y-1 text-left">
-        <StepLabel step={3} total={5} />
         <div className="flex items-center gap-2">
           <VictoriaAvatar size={56} />
           <p className="text-muted-foreground">Victoria says:</p>

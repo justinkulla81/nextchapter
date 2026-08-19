@@ -7,17 +7,20 @@ import { cn } from '@/lib/utils'
 const STEPS = [
   { href: '/onboarding/desire', label: 'Your Path' },
   { href: '/onboarding/resume', label: 'Resume' },
+  { href: '/onboarding/confirm', label: 'Confirm' },
+  { href: '/onboarding/location', label: 'Location' },
+  { href: '/onboarding/comfort', label: 'Comfort Check' },
 ]
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
 
   // The shared onboarding layout renders this on every /onboarding/** page,
-  // but these 2 steps are only the pre-account assessment — contract,
+  // but these 5 steps are only the pre-account assessment — contract,
   // create-account, score, working-style, and the coach forms all happen
-  // after that's already done. Showing "step 2 of 2" progress dots on a
-  // page that isn't part of that sequence at all just reads as
-  // stale/wrong, so render nothing outside the actual 2 step routes.
+  // after that's already done. Showing progress dots on a page that isn't
+  // part of that sequence at all just reads as stale/wrong, so render
+  // nothing outside the actual 5 step routes.
   if (!STEPS.some((step) => step.href === pathname)) return null
 
   return (
@@ -26,12 +29,18 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
         const isActive = pathname === step.href
         const isDone = completion[i]
         // A completed, non-active step is a real "go back and change my
-        // answer" affordance — the page itself no longer auto-redirects
-        // away once answered (see onboarding/desire/page.tsx), so this link
-        // reliably lands on the editable form, pre-filled with the current
-        // answer. An incomplete future step stays non-interactive; you
-        // can't skip ahead by clicking it.
-        const isClickable = isDone && !isActive
+        // answer" affordance only for Your Path and Resume — those two
+        // pages no longer auto-redirect away once answered (see
+        // onboarding/desire/page.tsx), so the link reliably lands on the
+        // editable form, pre-filled with the current answer. Confirm,
+        // Location, and Comfort Check all auto-redirect forward once their
+        // *ConfirmedAt field is set (see e.g. onboarding/location/page.tsx),
+        // so making those clickable would just bounce the candidate right
+        // back to their current step — render them as plain checkmarks
+        // instead. An incomplete future step stays non-interactive either
+        // way; you can't skip ahead by clicking it.
+        const supportsRevisit = i < 2
+        const isClickable = isDone && !isActive && supportsRevisit
         const content = (
           <>
             <div

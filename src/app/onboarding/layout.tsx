@@ -45,7 +45,13 @@ export default async function OnboardingLayout({ children }: { children: React.R
           <Logo className="text-2xl" />
         </div>
         <OnboardingStepper
-          completion={[profile?.desireComplete ?? false, profile?.resumeStepComplete ?? false]}
+          completion={[
+            profile?.desireComplete ?? false,
+            profile?.resumeStepComplete ?? false,
+            !!profile?.onboardingResumeConfirmedAt,
+            !!profile?.onboardingLocationConfirmedAt,
+            !!profile?.onboardingComfortConfirmedAt,
+          ]}
         />
       </header>
       <main className="flex flex-1 justify-center px-6 py-12">

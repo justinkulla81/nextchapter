@@ -51,16 +51,6 @@ export function ResumeConfirmForm({ profile }: { profile: CandidateProfile }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="industryContext">The industry your background is in</Label>
-        <Input
-          id="industryContext"
-          name="industryContext"
-          defaultValue={profile.industryContext ?? ''}
-          placeholder="e.g. Healthcare"
-        />
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="targetRoleType">What role are you targeting next?</Label>
         <Input
           id="targetRoleType"
@@ -71,10 +61,17 @@ export function ResumeConfirmForm({ profile }: { profile: CandidateProfile }) {
       </div>
 
       <div className="space-y-2">
-        <Label>Industries you&apos;d consider</Label>
+        <Label>Your industries</Label>
         <TagInput
-          name="targetIndustries"
-          defaultValue={profile.targetIndustries}
+          name="industries"
+          defaultValue={
+            profile.industryContext
+              ? [
+                  profile.industryContext,
+                  ...profile.targetIndustries.filter((i) => i !== profile.industryContext),
+                ]
+              : profile.targetIndustries
+          }
           placeholder="e.g. Healthcare, Fintech"
           capitalizeFirstLetter
         />

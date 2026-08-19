@@ -128,9 +128,13 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
 
   const highestLevelReached = formData.get('highestLevelReached') as string | null
   const primaryFunction = formData.get('primaryFunction') as string | null
-  const industryContext = (formData.get('industryContext') as string | null)?.trim() || null
   const targetRoleType = (formData.get('targetRoleType') as string | null)?.trim() || null
-  const targetIndustries = formData.getAll('targetIndustries').map(String).filter(Boolean)
+  // Candidate now enters one merged list of industries — the first tag
+  // doubles as industryContext (the single "background industry" string
+  // several downstream consumers, e.g. Community industry grouping, still
+  // read), while the full list becomes targetIndustries.
+  const targetIndustries = formData.getAll('industries').map(String).filter(Boolean)
+  const industryContext = targetIndustries[0] ?? null
 
   if (!highestLevelReached || !primaryFunction) {
     return { error: 'Please confirm your level and function before continuing.' }
