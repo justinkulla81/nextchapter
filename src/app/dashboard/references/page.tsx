@@ -50,8 +50,7 @@ export default async function ReferencesPage({
 }: {
   searchParams: Promise<{ name?: string; email?: string }>
 }) {
-  const profile = await getDashboardData()
-  const params = await searchParams
+  const [profile, params] = await Promise.all([getDashboardData(), searchParams])
 
   const [pendingQuotes, workHistoryEntries] = await Promise.all([
     prisma.referenceQuote.findMany({

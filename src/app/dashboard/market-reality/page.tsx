@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
@@ -15,6 +16,7 @@ import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmatio
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { countCompletedTasks, TASKS_REQUIRED_TO_REGENERATE_REPORT } from '@/lib/dashboard/completed-tasks'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
+import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { GRADE_LABEL, GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
@@ -156,31 +158,34 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 export default async function MarketRealityReportPage() {
   const profile = await getDashboardData()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  let report = await prisma.marketRealityReport.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'desc' },
-  })
+  const [{ data: { user } }, report] = await Promise.all([
+    createClient().then((supabase) => supabase.auth.getUser()),
+    prisma.marketRealityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+    }),
+  ])
 
   // Normally generated as a fire-and-forget side effect of the first
   // dashboard load after registration (see getDashboardData's justRegistered
   // branch). If this page is reached before that's finished — or it failed
-  // silently — don't leave the candidate stuck on "check back in a moment"
-  // forever; generate it directly, here, on demand.
+  // silently — kick off generation now instead of leaving the candidate
+  // stuck on "check back in a moment" forever, but don't block this
+  // request on an LLM call that can take many seconds — the page already
+  // has a real "generating" loading state below for exactly this gap, and
+  // a reload once it's done shows the finished report. claimReportGeneration
+  // guards against this racing the registration-time after() callback above.
   if (!report) {
-    try {
-      await generateMarketRealityReport(profile.id)
-      report = await prisma.marketRealityReport.findFirst({
-        where: { candidateId: profile.id },
-        orderBy: { generatedAt: 'desc' },
-      })
-    } catch (error) {
-      console.error('Failed to generate market reality report on demand:', error)
-    }
+    after(async () => {
+      if (await claimReportGeneration(profile.id)) {
+        try {
+          await generateMarketRealityReport(profile.id)
+          await sendMarketRealityReportEmail(profile.id)
+        } catch (error) {
+          console.error('Failed to generate market reality report on demand:', error)
+        }
+      }
+    })
   }
   // See dashboard/page.tsx's identical fallback — the registration-time
   // after() callback that normally generates AND emails this report can get

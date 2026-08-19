@@ -23,7 +23,7 @@ import {
   type TargetListFilters,
 } from '@/lib/market-intelligence/target-list'
 import { getDecisionMakerSignals } from '@/lib/market-intelligence/decision-makers'
-import { getWarmPathContactsForCompany } from '@/lib/market-intelligence/warm-paths'
+import { getWarmPathCandidateContacts, matchWarmPathContacts } from '@/lib/market-intelligence/warm-paths'
 import { getLatestWeeklyBrief } from '@/lib/market-intelligence/weekly-brief'
 import { generateWeeklyBriefAction } from './actions'
 
@@ -81,14 +81,20 @@ export default async function MarketIntelligencePage({
 
   // Decision-maker + warm-path enrichment only for the (already bounded to
   // 20) companies actually rendered — never for the full Company table.
+  // The candidate's contact list is fetched once here (not once per
+  // company) — matchWarmPathContacts below is then pure in-memory work.
+  const warmPathContacts =
+    canTargetList && canContactData ? await getWarmPathCandidateContacts(profile.id) : []
   const enrichment =
     canTargetList && (canDecisionMakers || canContactData)
       ? await Promise.all(
-          targetCompanies.map(async (c) => ({
-            companyId: c.id,
-            decisionMakers: canDecisionMakers ? await getDecisionMakerSignals(c.id, profile.id) : [],
-            warmPaths: canContactData ? await getWarmPathContactsForCompany(profile.id, c.name) : [],
-          }))
+          targetCompanies.map(async (c) => {
+            const [decisionMakers, warmPaths] = await Promise.all([
+              canDecisionMakers ? getDecisionMakerSignals(c.id, profile.id) : Promise.resolve([]),
+              canContactData ? Promise.resolve(matchWarmPathContacts(warmPathContacts, c.name)) : Promise.resolve([]),
+            ])
+            return { companyId: c.id, decisionMakers, warmPaths }
+          })
         )
       : []
   const enrichmentByCompany = new Map(enrichment.map((e) => [e.companyId, e]))

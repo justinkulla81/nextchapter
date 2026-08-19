@@ -631,22 +631,22 @@ async function CommunityTab({
     )
   }
 
-  // Resets the Support Network nav badge's baseline the moment they can
-  // actually see feed content — whether that's the intro-gated preview
-  // below or the full feed further down.
-  await prisma.candidateProfile.update({
-    where: { id: candidateId },
-    data: { communityLastViewedAt: new Date() },
-  })
-
-  // Idempotent past the first visit — only creates a membership row for a
-  // dimension (city/function/industry/ex-company) that has no row at all yet.
-  await syncAutoJoinedCommunities(candidateId)
-
-  const hasIntroduced = await prisma.communityPost.findFirst({
-    where: { candidateId, postType: 'SELF_INTRO' },
-    select: { id: true },
-  })
+  const [, , hasIntroduced] = await Promise.all([
+    // Resets the Support Network nav badge's baseline the moment they can
+    // actually see feed content — whether that's the intro-gated preview
+    // below or the full feed further down.
+    prisma.candidateProfile.update({
+      where: { id: candidateId },
+      data: { communityLastViewedAt: new Date() },
+    }),
+    // Idempotent past the first visit — only creates a membership row for a
+    // dimension (city/function/industry/ex-company) that has no row at all yet.
+    syncAutoJoinedCommunities(candidateId),
+    prisma.communityPost.findFirst({
+      where: { candidateId, postType: 'SELF_INTRO' },
+      select: { id: true },
+    }),
+  ])
 
   if (!hasIntroduced) {
     const [previewPosts, previewCommunityFeed, previewMarketBrief] = await Promise.all([
@@ -716,7 +716,7 @@ async function CommunityTab({
   ])
   const activeCommunity = communities.find((c) => c.communityId === searchParams.community) ?? null
 
-  const [posts, communityFeed, marketBrief, unreadNotes, cohort, groups] = await Promise.all([
+  const [posts, communityFeed, marketBrief, unreadNotes, cohort, groups, leaderboardTeaser] = await Promise.all([
     prisma.communityPost.findMany({
       where: {
         isActive: true,
@@ -730,19 +730,19 @@ async function CommunityTab({
         _count: { select: { reactions: true } },
       },
       orderBy: { createdAt: 'desc' },
+      take: 50,
     }),
     getCommunityFeed(),
     getMarketBriefFeedItems(),
     getUnreadEncouragementNotes(candidateId),
     layoffCohortId ? getCohortInfo(layoffCohortId, candidateId) : Promise.resolve(null),
     getCandidateGroups(candidateId),
+    // §19 — condensed top-3-of-Action-Score module. Skipped entirely for
+    // Confidential Search Mode candidates: this is a public teaser inviting
+    // opt-in, and §4.1 hard-excludes them from ever appearing here regardless.
+    confidentialSearchMode ? Promise.resolve(null) : computeBoard('ACTION_SCORE', {}, candidateId),
   ])
   const feed = [...communityFeed, ...marketBrief]
-
-  // §19 — condensed top-3-of-Action-Score module. Skipped entirely for
-  // Confidential Search Mode candidates: this is a public teaser inviting
-  // opt-in, and §4.1 hard-excludes them from ever appearing here regardless.
-  const leaderboardTeaser = confidentialSearchMode ? null : await computeBoard('ACTION_SCORE', {}, candidateId)
 
   return (
     <div className="space-y-8">

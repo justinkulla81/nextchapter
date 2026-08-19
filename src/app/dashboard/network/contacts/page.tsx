@@ -35,8 +35,7 @@ export default async function ContactDirectoryPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const sp = await searchParams
-  const profile = await getDashboardData()
+  const [sp, profile] = await Promise.all([searchParams, getDashboardData()])
 
   const q = typeof sp.q === 'string' ? sp.q.trim() : ''
   const sortKey: ContactSortKey = (SORT_KEYS as readonly string[]).includes(sp.sort as string)
@@ -129,12 +128,14 @@ export default async function ContactDirectoryPage({
     // zero matches for their current filter.
     prisma.supportNetworkContact.count({ where: { candidateId: profile.id, removedAt: null } }).then((c) => c > 0),
   ])
-  // Only looked up for the ~50 contacts on the current page, not the whole
-  // list — this used to run against all 27,000+ emails at once.
-  const memberships = await lookupNextChapterMemberships(rawContacts.map((c) => c.email))
-  // §4.4 — only fetched (and only ever true) for Confidential Search Mode
-  // candidates, so this is free for everyone else.
-  const currentEmployerName = profile.confidentialSearchMode ? await getCurrentEmployerName(profile.id) : null
+  const [memberships, currentEmployerName] = await Promise.all([
+    // Only looked up for the ~50 contacts on the current page, not the whole
+    // list — this used to run against all 27,000+ emails at once.
+    lookupNextChapterMemberships(rawContacts.map((c) => c.email)),
+    // §4.4 — only fetched (and only ever true) for Confidential Search Mode
+    // candidates, so this is free for everyone else.
+    profile.confidentialSearchMode ? getCurrentEmployerName(profile.id) : Promise.resolve(null),
+  ])
   const contacts = rawContacts.map((c) => ({
     ...c,
     hasReachedOut: c.outreachLogs.length > 0,

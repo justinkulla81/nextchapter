@@ -37,13 +37,13 @@ function InterimSignupBreakdownContent({ signups }: { signups: { listing: { name
 
 export default async function InterimWorkPage() {
   const profile = await getDashboardData()
-  const phases = await getInterimLaunchPlan(profile)
 
   const marketplaceCategories = getRelevantMarketplaceCategories(profile)
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember] = await Promise.all([
+  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember] = await Promise.all([
+    getInterimLaunchPlan(profile),
     getActiveListings(marketplaceCategories),
     getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
     getActiveListings([

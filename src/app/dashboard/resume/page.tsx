@@ -49,8 +49,7 @@ export default async function ResumePage({
 }: {
   searchParams: Promise<{ fromGap?: string }>
 }) {
-  const profile = await getDashboardData()
-  const { fromGap } = await searchParams
+  const [profile, { fromGap }] = await Promise.all([getDashboardData(), searchParams])
 
   const latest = profile.resumes[0]
 

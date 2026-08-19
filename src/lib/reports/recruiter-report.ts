@@ -85,22 +85,47 @@ function locationPreferenceLabel(
 }
 
 export async function getRecruiterReportData(candidateId: string): Promise<RecruiterReportData> {
-  const candidate = await prisma.candidateProfile.findUniqueOrThrow({
-    where: { id: candidateId },
-    include: {
-      references: {
-        where: {
-          status: 'COMPLETED',
-          // A candidate-disputed reference is held out of the Dossier until
-          // resolved — see the dispute mechanism on the References page.
-          OR: [{ candidateDisputedAt: null }, { disputeResolvedAt: { not: null } }],
+  const [candidate, peerSupportCount] = await Promise.all([
+    prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: candidateId },
+      include: {
+        references: {
+          where: {
+            status: 'COMPLETED',
+            // A candidate-disputed reference is held out of the Dossier until
+            // resolved — see the dispute mechanism on the References page.
+            OR: [{ candidateDisputedAt: null }, { disputeResolvedAt: { not: null } }],
+          },
+          // Only the fields this report and buildReferenceVerification
+          // actually read — was pulling every Reference column.
+          select: {
+            status: true,
+            candidateDisputedAt: true,
+            disputeResolvedAt: true,
+            relationshipType: true,
+            completedAt: true,
+            availableForHiringManagerCall: true,
+            refereeName: true,
+            strengthSummary: true,
+            wouldHireAgain: true,
+          },
         },
+        // Capped — this is a lifetime achievement list that only grows;
+        // 50 is far past what any real candidate has accumulated, so this
+        // never trims real content, just bounds the query. Only the fields
+        // actually read below, not every LearningBadge column.
+        learningBadges: {
+          orderBy: { completedAt: 'desc' },
+          take: 50,
+          select: { badgeType: true, title: true, provider: true, completedAt: true, verified: true, description: true, judgmentCall: true },
+        },
+        jobPostings: { select: { appliedAt: true } },
+        outreachLogs: { select: { id: true } },
       },
-      learningBadges: { orderBy: { completedAt: 'desc' } },
-      jobPostings: { select: { appliedAt: true } },
-      outreachLogs: { select: { id: true } },
-    },
-  })
+    }),
+    // Doesn't depend on the candidate query above — only needs candidateId.
+    computeCandidatePeerSupportCount(candidateId),
+  ])
 
   const candidateName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'This candidate'
 
@@ -112,7 +137,6 @@ export async function getRecruiterReportData(candidateId: string): Promise<Recru
     (text) => ({ text, evidenceType: 'verified_fact' as const })
   )
 
-  const peerSupportCount = await computeCandidatePeerSupportCount(candidateId)
   const peerSupportNarrative = communityTierNarrative(peerSupportCount)
   const peerSupportLine = peerSupportNarrative
     ? {

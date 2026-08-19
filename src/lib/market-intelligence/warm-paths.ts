@@ -23,8 +23,26 @@ export interface WarmPathContact {
   relationshipTags: string[]
 }
 
-export async function getWarmPathContactsForCompany(candidateId: string, companyName: string): Promise<WarmPathContact[]> {
-  const contacts = await prisma.supportNetworkContact.findMany({
+interface WarmPathCandidateContact {
+  id: string
+  name: string
+  title: string | null
+  company: string | null
+  inferredCompany: string | null
+  warmth: string
+  relationshipTags: string[]
+}
+
+// Split from the old getWarmPathContactsForCompany(candidateId, companyName)
+// on purpose — every real caller (market-intelligence/page.tsx,
+// weekly-brief.ts) needs this matched against many companies for the same
+// candidate in one request, and the old shape re-fetched this candidate's
+// entire contact list from scratch on every single company, once per
+// company (up to 20+ full-table reads for one page load). Fetch once with
+// this, then call matchWarmPathContacts per company — pure in-memory work,
+// no further queries.
+export async function getWarmPathCandidateContacts(candidateId: string): Promise<WarmPathCandidateContact[]> {
+  return prisma.supportNetworkContact.findMany({
     where: {
       candidateId,
       removedAt: null,
@@ -32,7 +50,9 @@ export async function getWarmPathContactsForCompany(candidateId: string, company
     },
     select: { id: true, name: true, title: true, company: true, inferredCompany: true, warmth: true, relationshipTags: true },
   })
+}
 
+export function matchWarmPathContacts(contacts: WarmPathCandidateContact[], companyName: string): WarmPathContact[] {
   return contacts
     .filter((c) => (c.company && orgNamesMatch(c.company, companyName)) || (c.inferredCompany && orgNamesMatch(c.inferredCompany, companyName)))
     .map((c) => ({ id: c.id, name: c.name, title: c.title, warmth: c.warmth, relationshipTags: c.relationshipTags }))

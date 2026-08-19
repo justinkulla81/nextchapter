@@ -33,12 +33,9 @@ const MARKET_INTEL_INCLUDED = [
 const PRICE_LABEL = '$799/month'
 
 export default async function PremiumPage() {
-  const profile = await getDashboardData()
-
-  const supabase = await createClient()
-  const {
+  const [profile, {
     data: { user },
-  } = await supabase.auth.getUser()
+  }] = await Promise.all([getDashboardData(), createClient().then((supabase) => supabase.auth.getUser())])
 
   const knownContact = user?.email
     ? { email: user.email, firstName: profile.firstName, lastName: profile.lastName }

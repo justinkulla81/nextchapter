@@ -18,13 +18,14 @@ export default async function DashboardCoachingFormPage() {
     redirect('/dashboard')
   }
 
-  const mainFormDone = await hasSubmittedCoachingOnboardingForm(profile.id)
-  const disclosureDone = await hasSubmittedConfidentialDisclosure(profile.id)
+  const [mainFormDone, disclosureDone, coach] = await Promise.all([
+    hasSubmittedCoachingOnboardingForm(profile.id),
+    hasSubmittedConfidentialDisclosure(profile.id),
+    prisma.coach.findUniqueOrThrow({ where: { id: profile.coachId }, select: { fullName: true } }),
+  ])
   if (mainFormDone && disclosureDone) {
     redirect('/dashboard')
   }
-
-  const coach = await prisma.coach.findUniqueOrThrow({ where: { id: profile.coachId }, select: { fullName: true } })
 
   if (mainFormDone) {
     return (

@@ -13,6 +13,11 @@ export default async function RemovedContactsPage() {
     where: { candidateId: profile.id, removedAt: { not: null } },
     orderBy: { name: 'asc' },
     select: { id: true, name: true, company: true, linkedinUrl: true },
+    // No pagination UI on this page — bounded here since a real candidate
+    // can have 27,000+ contacts (see the main Contact Directory's own
+    // comment on this), and an unbounded list would ship every one of them
+    // to the client on every visit.
+    take: 500,
   })
 
   return (

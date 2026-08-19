@@ -5,7 +5,7 @@ import { getAnthropicClient } from '@/lib/anthropic'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { getMarketConditions } from '@/lib/market'
 import { computeCompBandForTarget } from '@/lib/market-intelligence/comp-bands'
-import { getWarmPathContactsForCompany } from '@/lib/market-intelligence/warm-paths'
+import { getWarmPathCandidateContacts, matchWarmPathContacts } from '@/lib/market-intelligence/warm-paths'
 
 // Partners Master Build Script §A3.4 — Premium weekly personalized market
 // brief. "Generated, not curated by hand," but every line must trace to a
@@ -81,6 +81,9 @@ async function factsForBrief(candidateId: string): Promise<{ facts: BriefFact[];
       },
     })
     const companyByNorm = new Map(companies.map((c) => [c.canonicalNameNormalized, c]))
+    // Fetched once here rather than once per watchlist entry — see
+    // getWarmPathCandidateContacts's own comment for why.
+    const warmPathContacts = await getWarmPathCandidateContacts(candidateId)
 
     for (const entry of watchlist) {
       const company = companyByNorm.get(entry.companyNameNormalized)
@@ -91,7 +94,7 @@ async function factsForBrief(candidateId: string): Promise<{ facts: BriefFact[];
         })
       }
 
-      const warmPaths = await getWarmPathContactsForCompany(candidateId, entry.companyName)
+      const warmPaths = matchWarmPathContacts(warmPathContacts, entry.companyName)
       if (warmPaths.length > 0) {
         const strongest = warmPaths.find((w) => w.warmth === 'HOT') ?? warmPaths.find((w) => w.warmth === 'WARM') ?? warmPaths[0]
         facts.push({

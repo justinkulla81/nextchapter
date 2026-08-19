@@ -432,9 +432,14 @@ async function FindMyJobBody({
   // stale-while-revalidate tradeoff already accepted everywhere else in
   // this app's slow-load fixes, and a far smaller cost than the whole page
   // appearing to vanish.
-  const emailConnection = await prisma.emailConnection.findFirst({
-    where: { candidateId: profile.id, disconnectedAt: null },
-  })
+  const [emailConnection, currentEmployerName] = await Promise.all([
+    prisma.emailConnection.findFirst({
+      where: { candidateId: profile.id, disconnectedAt: null },
+    }),
+    // §4.8 — only fetched (and only ever true) for Confidential Search Mode
+    // candidates.
+    profile.confidentialSearchMode ? getCurrentEmployerName(profile.id) : Promise.resolve(null),
+  ])
   if (emailConnection) {
     after(() =>
       syncGmailConnection(emailConnection.id).catch((error) => console.error('Email auto-sync failed:', error))
@@ -442,9 +447,6 @@ async function FindMyJobBody({
   }
   const jobPostings = profile.jobPostings
   const preSyncLastSyncAt = emailConnection?.lastSyncAt?.toISOString() ?? null
-  // §4.8 — only fetched (and only ever true) for Confidential Search Mode
-  // candidates.
-  const currentEmployerName = profile.confidentialSearchMode ? await getCurrentEmployerName(profile.id) : null
 
   // EMAIL_DETECTED rows don't consume a fit-check slot — they were never
   // analyzed, so they shouldn't block adding a URL-based one.
@@ -485,17 +487,18 @@ async function FindMyJobBody({
       ?.applicationTrends ?? null
 
   const isAList = dossierStatus.unlocked
-  // Needs isAList to decide which A_LIST_ONLY postings this candidate can
-  // actually open — can't join the barrier above since dossierStatus isn't
-  // known until it resolves.
-  const watchlistView = await getWatchlistView(profile.id, isAList)
-
   // Scoped to just the companies already-applied-to postings mention — the
   // separate, larger set of companies from board/surfaced listings is
   // resolved independently inside JobRecommendationsSection so that slower
   // lookup never blocks this page's main render.
   const appliedCompanyNames = [...new Set(jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
-  const appliedCompanyBands = await Promise.all(appliedCompanyNames.map((name) => resolveCompanySizeBand(name)))
+  // Needs isAList to decide which A_LIST_ONLY postings this candidate can
+  // actually open — can't join the barrier above since dossierStatus isn't
+  // known until it resolves. Independent of appliedCompanyBands, so run together.
+  const [watchlistView, appliedCompanyBands] = await Promise.all([
+    getWatchlistView(profile.id, isAList),
+    Promise.all(appliedCompanyNames.map((name) => resolveCompanySizeBand(name))),
+  ])
   const companySizeBandByName = new Map(
     appliedCompanyNames.map((name, i) => [normalizeOrgName(name), appliedCompanyBands[i].band])
   )
@@ -576,15 +579,23 @@ async function FindMyJobBody({
       ? await Promise.all([
           prisma.trackedEmailActivity.findMany({
             where: { candidateId: profile.id, direction: 'INBOUND', dismissedAt: null, confidence: 'high' },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
           }),
           prisma.trackedEmailActivity.findMany({
             where: { candidateId: profile.id, direction: 'OUTBOUND', hasResumeAttachment: true, dismissedAt: null },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
           }),
           prisma.trackedEmailActivity.findMany({
             where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
           }),
           prisma.trackedCalendarEvent.findMany({
             where: { candidateId: profile.id, isRecruiterContact: true, dismissedAt: null },
+            orderBy: { detectedAt: 'desc' },
+            take: 100,
           }),
         ])
       : [[], [], [], []]

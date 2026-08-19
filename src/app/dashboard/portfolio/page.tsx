@@ -25,7 +25,7 @@ export default async function PortfolioPage() {
   const [
     narrativeRows,
     reportHistory,
-    marketRealitySnapshots,
+    marketRealitySnapshotCount,
     coach,
     dossierStatus,
     learningBadgeCount,
@@ -42,9 +42,10 @@ export default async function PortfolioPage() {
         take: 6,
         select: { id: true, generatedAt: true },
       }),
-      prisma.marketRealitySnapshot.findMany({
+      // Only the count is ever read below (hasMarketRealitySnapshot) — was
+      // pulling every column of every snapshot row just to check .length.
+      prisma.marketRealitySnapshot.count({
         where: { candidateId: profile.id },
-        orderBy: { weekStartDate: 'asc' },
       }),
       profile.coachId
         ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
@@ -84,7 +85,7 @@ export default async function PortfolioPage() {
     hasCoverLetter: coverLettersCount > 0,
     hasNarrative: narratives.length > 0,
     hasMarketRealityReport: reportHistory.length > 0,
-    hasMarketRealitySnapshot: marketRealitySnapshots.length > 0,
+    hasMarketRealitySnapshot: marketRealitySnapshotCount > 0,
     hasWorkSample: profile.workSamples.length > 0,
     hasCompletedReference: completedReferenceCount > 0,
     hasLearningBadge: learningBadgeCount > 0,
