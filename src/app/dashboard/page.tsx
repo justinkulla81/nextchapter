@@ -1,9 +1,12 @@
 import type { MarketRealityReport } from '@prisma/client'
 import { Suspense } from 'react'
 import { after } from 'next/server'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { Grade } from '@/lib/scoring/grade'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
@@ -46,8 +49,13 @@ import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCar
 import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
 import { getHardGateStatus } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
-import { SearchPlanCard } from '@/components/dashboard/SearchPlanCard'
-import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
+import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { getResumeFixes } from '@/lib/reports/market-reality-sections'
+
+// One step up the A>B>C>D>F ladder — A has no "better" so it maps to
+// itself, but that case is never actually rendered (the Improve Your
+// Market Reality card is gated on grade !== 'A').
+const NEXT_BETTER_GRADE: Record<Grade, Grade> = { F: 'D', D: 'C', C: 'B', B: 'A', A: 'A' }
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -137,9 +145,9 @@ export default async function DashboardPage() {
     needsFollowUp,
     priorityContacts,
     passiveToActivePrompt,
-    learningBadgeCount,
-    outreachLogCount,
-    interimSignupCount,
+    dossierCompleteness,
+    dossierStatus,
+    resumeFixes,
   ] = await Promise.all([
     supabase.auth.getUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
@@ -166,14 +174,16 @@ export default async function DashboardPage() {
     // §10-12 — read-only trigger check; PassiveToActivePromptCard records
     // "shown" itself once it actually renders (see that component).
     evaluatePassiveToActivePrompt(profile.id),
-    // #931/#932 Search Plan — same simple counts each area's own page
-    // already computes (learning/page.tsx's badges.length, network/page.tsx's
-    // outreachLogs.length, interim-work/page.tsx's interimSignups.length),
-    // re-queried here rather than threaded through props since this page
-    // never otherwise fetches them.
-    prisma.learningBadge.count({ where: { candidateId: profile.id } }),
-    prisma.outreachLog.count({ where: { candidateId: profile.id } }),
-    prisma.interimMarketplaceSignup.count({ where: { candidateId: profile.id } }),
+    // Build Your Dossier summary (condensed here, full checklist + "what
+    // moves the needle" lives on /dashboard/portfolio — this card links
+    // through rather than duplicating it) and the Executive Dossier
+    // lock/unlock status shown alongside it.
+    computeDossierCompleteness(profile.id),
+    isDossierUnlocked(profile.id),
+    // Improve Your Market Reality — reuses the same real, point-ranked
+    // resume-fix items the Market Reality Report itself shows (see
+    // getResumeFixes), not a separate invented list.
+    getResumeFixes(profile.id, profile.marketRealityReports[0]?.resumeRewrites ?? null),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
   // Same recency sort + inference as search-strategy/page.tsx so this
@@ -203,15 +213,6 @@ export default async function DashboardPage() {
   // (already fetched above) instead of a second isGmailConnected() query —
   // same "has a live, non-disconnected EmailConnection row" check either way.
   const hardGateStatus = getHardGateStatus(profile, !!emailConnection)
-
-  // Same jobSearchPattern.applicationTrends read as find-my-job/page.tsx —
-  // computed once at report-generation time, never recomputed live here.
-  const totalApplications =
-    (
-      profile.marketRealityReports[0]?.jobSearchPattern as unknown as {
-        applicationTrends: ApplicationTrendsResult | null
-      } | null
-    )?.applicationTrends?.totalApplications ?? 0
 
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -272,27 +273,6 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
-      {/* #931/#932 "Search Plan" — once a candidate has cleared the hard
-          gate, this is "here's your plan," shown before "here's this
-          week's focus" (WeeklyFocusCard) below. Also shown to 'exempt' candidates
-          (pre-existing accounts grandfathered out of the hard gate itself,
-          per access-gate.ts) — they already have unrestricted dashboard
-          access today, so this is purely additive value for them, not a
-          gate to clear; restricting it to literal 'unlocked' would hide it
-          from nearly every candidate who signed up before the hard gate
-          shipped. */}
-      {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
-        <SearchPlanCard
-          completedReferencesCount={completedReferencesCount}
-          learningBadgeCount={learningBadgeCount}
-          outreachLogCount={outreachLogCount}
-          totalApplications={totalApplications}
-          interimSignupCount={interimSignupCount}
-          linkedInActivityCount={profile.linkedInActivityLogs.length}
-          laggingEngines={weeklyProgress.laggingEngines}
-        />
-      )}
-
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />
 
@@ -324,10 +304,6 @@ export default async function DashboardPage() {
         <SuccessSprintCard
           actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
           suggestedActions={suggestedActions}
-          weeklySprintsCount={profile._count.weeklySprints}
-          engines={weeklyProgress.engines}
-          laggingEngines={weeklyProgress.laggingEngines}
-          categoryMinimumsMet={weeklyProgress.categoryMinimumsMet}
           weeklyPoints={weeklyProgress.weeklyPoints}
           weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
           onTrack={onTrack}
@@ -339,6 +315,83 @@ export default async function DashboardPage() {
           completedReferencesCount={completedReferencesCount}
           weekStartDate={weekStartDate}
         />
+
+        {/* Build Your Dossier — the real §7.2 dossier-completeness checklist
+            (computeDossierCompleteness), not the old Search Plan's six
+            weekly-effort areas, which never actually matched what unlocks
+            the Dossier. Condensed here on purpose: the full checklist +
+            "what moves the needle" lives on /dashboard/portfolio; this is a
+            progress summary that links through, not a duplicate. Shown to
+            everyone who's cleared the hard gate (or is exempt from it),
+            same audience the old Search Plan card used. */}
+        {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Build Your Dossier</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground tabular-nums">
+                  {dossierCompleteness.metCount} of {dossierCompleteness.totalCount}
+                </span>{' '}
+                steps complete — real work done over time, separate from your Market Reality Grade.
+                {dossierStatus.unlocked
+                  ? ' Your Executive Dossier is unlocked.'
+                  : ` Executive Dossier: ${dossierStatus.reason}`}
+              </p>
+              <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+                {dossierCompleteness.requirements.map((r) => (
+                  <li key={r.key} className="flex items-center gap-2">
+                    <span className={r.met ? 'text-success' : 'text-muted-foreground'} aria-hidden>
+                      {r.met ? '✓' : '○'}
+                    </span>
+                    <span className={r.met ? 'text-foreground' : 'text-muted-foreground'}>{r.label}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/dashboard/portfolio" className="text-sm font-medium text-primary underline underline-offset-4">
+                See your full Dossier progress →
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Improve Your Market Reality — real, point-ranked resume fixes
+            (same list the Market Reality Report itself shows), not a
+            separate invented list. Only shown when there's real room to
+            improve (not already an A) and real fixes to show. */}
+        {marketRealityGrade?.grade &&
+          marketRealityGrade.grade !== 'A' &&
+          resumeFixes &&
+          resumeFixes.items.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Improve Your Market Reality ({marketRealityGrade.grade} → {NEXT_BETTER_GRADE[marketRealityGrade.grade]})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  The fastest lever on your grade is your resume — here&apos;s what&apos;s actually costing you
+                  points.
+                </p>
+                <div className="space-y-2">
+                  {resumeFixes.items.slice(0, 4).map((item, i) => (
+                    <div key={i} className="rounded-lg border border-border p-3 text-sm">
+                      <p className="font-medium text-foreground">{item.whatsWrong}</p>
+                      <p className="mt-1 text-muted-foreground">{item.fix}</p>
+                      <span className="mt-1 inline-block text-xs font-semibold text-brand tabular-nums">
+                        +{item.pointValue} pts
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
+                  See your full report →
+                </Link>
+              </CardContent>
+            </Card>
+          )}
       </div>
 
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}

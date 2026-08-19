@@ -21,9 +21,6 @@ import type { ProfileChecklistItem } from '@/lib/weekly/profile-checklist'
 import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import type { SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
-import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK } from '@/lib/scoring/grade'
-import type { WeeklyEngine } from '@/lib/scoring/grade'
-import { WeeklyEngineChecklist } from '@/components/dashboard/WeeklyEngineChecklist'
 import { cn } from '@/lib/utils'
 
 interface SuggestedAction extends SuggestedActionLike {
@@ -508,10 +505,6 @@ function PersonalBestLine({ weeklyPoints }: { weeklyPoints: number }) {
 export function SuccessSprintCard({
   actions,
   suggestedActions,
-  weeklySprintsCount,
-  engines,
-  laggingEngines,
-  categoryMinimumsMet,
   weeklyPoints,
   weeklyPointsTarget,
   onTrack,
@@ -525,10 +518,6 @@ export function SuccessSprintCard({
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
-  weeklySprintsCount: number
-  engines: WeeklyEngine[]
-  laggingEngines: WeeklyEngine['key'][]
-  categoryMinimumsMet: boolean
   weeklyPoints: number
   weeklyPointsTarget: number
   onTrack: boolean
@@ -871,24 +860,6 @@ export function SuccessSprintCard({
           )}
         </div>
 
-        {weeklySprintsCount >= CATEGORY_MINIMUM_ENFORCED_FROM_WEEK && (
-          <div className="border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-foreground">Week 4+ Requirements</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              From here on, an A requires real work across all four areas — not just one
-              you&apos;re comfortable with.
-            </p>
-            <div className="mt-3">
-              <WeeklyEngineChecklist engines={engines} laggingEngines={laggingEngines} />
-            </div>
-            {!categoryMinimumsMet && (
-              <p className="mt-3 text-sm font-medium text-foreground">
-                Your grade is capped at B until every engine clears the bar — real effort spread
-                across all four, not stacked in one.
-              </p>
-            )}
-          </div>
-        )}
       </CardContent>
     </Card>
   )
