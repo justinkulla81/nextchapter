@@ -111,12 +111,12 @@ function buildSections(
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
-        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
       ],
     },
     {
       title: 'Connecting',
       links: [
+        { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
         {
           href: '/dashboard/network',
           label: 'Network with Contacts',

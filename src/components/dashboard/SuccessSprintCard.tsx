@@ -252,21 +252,29 @@ const GROUP_ICON: Record<string, { icon: ComponentType<{ className?: string; str
   Other: { icon: Sparkles, color: 'bg-muted text-muted-foreground' },
 }
 
-// The two Get Started items gate every other row in the list — until both
-// are connected, everything else is real but not yet actionable (auto-
-// detection, matching, and networking all depend on one or both of these).
-// These four are the exception: pure self-reported onboarding forms with no
-// dependency on Gmail/Calendar/LinkedIn data, so there's no honest reason to
-// block them behind a connection step.
+// The two Get Started items, plus having a real Profile and Search Strategy
+// on file, gate every other row in the list — until all of that's done,
+// everything else is real but not yet actionable (auto-detection, matching,
+// and networking all depend on knowing who this candidate is and what
+// they're looking for, not just on Gmail/Calendar/LinkedIn data). These four
+// are the exception: pure self-reported onboarding forms with no dependency
+// on any of that, so there's no honest reason to block them behind it —
+// they're exactly what a candidate needs to complete to clear the gate.
 const UNLOCK_EXEMPT_ACTION_TYPES = new Set([
   'PROFILE_CONFIRM', // consolidated "Complete My Personal Information" row
   'RED_FLAGS_CONFIRMED', // consolidated "Complete Screening Questions" row
   'BENEFITS_PRIORITIES_CONFIRMED', // consolidated "Set your Search Goals" row
   'WORKING_STYLE_QUIZ', // "Take the Behavioral Assessment"
+  'SEARCH_STRATEGY_CHECKLIST', // the Search Strategy completeness row itself
 ])
 
-function isRowLocked(row: Row, bothConnectedUnlocked: boolean): boolean {
-  if (bothConnectedUnlocked) return false
+// Same fields PROFILE_SECTION_GROUPS' "Complete My Personal Information"
+// row (and the My Profile nav page) treats as the whole of a real profile —
+// reused here rather than a second, possibly-drifting definition of "done."
+const PROFILE_UNLOCK_TYPES = ['PROFILE_CONFIRM', 'INDUSTRY_CONFIRM', 'FUNCTION_CONFIRM', 'SALARY_CONFIRM'] as const
+
+function isRowLocked(row: Row, everythingUnlocked: boolean): boolean {
+  if (everythingUnlocked) return false
   if (row.actionType && UNLOCK_EXEMPT_ACTION_TYPES.has(row.actionType)) return false
   return true
 }
@@ -312,11 +320,13 @@ function ActionRow({
   priority,
   fromCoach,
   locked,
+  lockReason,
   hasEmailConnection,
   hasCalendarConnection,
   completedReferencesCount,
 }: Row & {
   locked?: boolean
+  lockReason?: string
   hasEmailConnection: boolean
   hasCalendarConnection: boolean
   completedReferencesCount: number
@@ -353,7 +363,7 @@ function ActionRow({
   // one-time ones.
   const achieved = recurring && targetCount ? count >= targetCount : completed
   const isPriority = !!priority && !achieved && !locked
-  const lockReason = 'Unlocks once you connect Gmail/Calendar and LinkedIn above'
+  const resolvedLockReason = lockReason ?? 'Unlocks once you connect Gmail/Calendar and LinkedIn above'
   return (
     <div
       className={cn(
@@ -371,7 +381,7 @@ function ActionRow({
             'flex w-[74px] shrink-0 items-center justify-center gap-1 rounded-full px-2 py-0.5 text-center text-[11px] font-medium',
             locked ? 'bg-orange/15 text-orange' : fromCoach ? 'bg-orange/15 text-orange' : 'bg-muted text-muted-foreground'
           )}
-          title={locked ? lockReason : undefined}
+          title={locked ? resolvedLockReason : undefined}
         >
           {locked ? (
             <Lock className="size-3" aria-hidden />
@@ -386,7 +396,7 @@ function ActionRow({
         {locked ? (
           <span
             className="shrink-0 text-[13px] font-medium text-muted-foreground"
-            title={lockReason}
+            title={resolvedLockReason}
           >
             {label}
           </span>
@@ -531,11 +541,26 @@ export function SuccessSprintCard({
   weekStartDate: Date
 }) {
   // The Get Started gate — everything else in this list (barring
-  // UNLOCK_EXEMPT_ACTION_TYPES) stays grayed and locked until both are
-  // connected, since real detection/matching/networking all depend on one
-  // or both of these.
+  // UNLOCK_EXEMPT_ACTION_TYPES) stays grayed and locked until Gmail/
+  // Calendar/LinkedIn are connected AND the candidate has a real Profile
+  // and Search Strategy on file — Connecting and Working and Learning rows
+  // (networking, matching, auto-detection) only make sense once there's a
+  // real "who is this candidate, what are they looking for" to act on.
   const gmailCalendarConnected = hasEmailConnection && hasCalendarConnection
-  const bothConnectedUnlocked = gmailCalendarConnected && linkedInConnected
+  const connectionsUnlocked = gmailCalendarConnected && linkedInConnected
+  const profileComplete = PROFILE_UNLOCK_TYPES.every(
+    (type) => profileChecklistItems.find((item) => item.actionType === type)?.complete
+  )
+  const searchStrategyComplete = searchStrategyChecklist.incomplete.length === 0
+  const bothConnectedUnlocked = connectionsUnlocked && profileComplete && searchStrategyComplete
+  const lockReason = [
+    !profileComplete && 'complete My Profile',
+    !searchStrategyComplete && 'complete My Search Strategy',
+    !connectionsUnlocked && 'connect Gmail/Calendar and LinkedIn above',
+  ]
+    .filter((v): v is string => !!v)
+    .reduce((sentence, part, i, arr) => (i === 0 ? part : i === arr.length - 1 ? `${sentence} and ${part}` : `${sentence}, ${part}`), '')
+  const resolvedLockReasonText = lockReason ? `Unlocks once you ${lockReason}` : undefined
 
   // isGoalBonus rows (the one-time welcome/commitment credit) are a
   // historical point award, not a real action to show in this list — their
@@ -810,6 +835,7 @@ export function SuccessSprintCard({
                         key={i}
                         {...row}
                         locked={isRowLocked(row, bothConnectedUnlocked)}
+                        lockReason={resolvedLockReasonText}
                         hasEmailConnection={hasEmailConnection}
                         hasCalendarConnection={hasCalendarConnection}
                         completedReferencesCount={completedReferencesCount}
@@ -827,6 +853,7 @@ export function SuccessSprintCard({
                           key={i}
                           {...row}
                           locked={isRowLocked(row, bothConnectedUnlocked)}
+                          lockReason={resolvedLockReasonText}
                           hasEmailConnection={hasEmailConnection}
                           hasCalendarConnection={hasCalendarConnection}
                           completedReferencesCount={completedReferencesCount}
