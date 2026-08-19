@@ -28,6 +28,7 @@ interface ProofOfWork {
   recruiterNoticeCount: number
   atsFilterCount: number
   topIssue: string | null
+  topIssueAction: string | null
 }
 
 async function getProofOfWork(candidateId: string): Promise<ProofOfWork | null> {
@@ -62,6 +63,7 @@ async function getProofOfWork(candidateId: string): Promise<ProofOfWork | null> 
     recruiterNoticeCount: resultsFeedback.length + experienceFeedback.length,
     atsFilterCount: atsFeedback.length,
     topIssue: lowestScored?.feedback[0]?.issue ?? null,
+    topIssueAction: lowestScored?.feedback[0]?.action ?? null,
   }
 }
 
@@ -82,54 +84,57 @@ export default async function ScorePage() {
   ])
 
   return (
-    <div className="flex flex-col items-center gap-8 text-center">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Current Market Reality'}
-        </h1>
-        {proofOfWork ? (
-          <div className="mx-auto mt-2 max-w-xl space-y-1 text-left">
-            <div className="flex items-center gap-2">
-              <VictoriaAvatar size={24} />
-              <p className="text-xs text-muted-foreground">Victoria says:</p>
-            </div>
-            <div className="relative ml-2 rounded-2xl bg-muted/50 px-6 py-5">
-              <div className="absolute -top-2 left-8 size-4 rotate-45 rounded-[3px] bg-muted/50" />
-              <p className="text-sm text-foreground">
-                &ldquo;I read your resume. There{' '}
-                {proofOfWork.recruiterNoticeCount === 1 ? 'is' : 'are'}{' '}
-                <span className="font-semibold">
-                  {proofOfWork.recruiterNoticeCount} thing{proofOfWork.recruiterNoticeCount === 1 ? '' : 's'}
-                </span>{' '}
-                a recruiter will notice, and{' '}
-                <span className="font-semibold">
-                  {proofOfWork.atsFilterCount} thing{proofOfWork.atsFilterCount === 1 ? '' : 's'}
-                </span>{' '}
-                that applicant tracking systems will filter out before a person ever sees it
-                {proofOfWork.topIssue && (
-                  <>
-                    {' '}
-                    — and one costing you more than the rest combined:{' '}
-                    <span className="font-semibold">{proofOfWork.topIssue}</span>
-                  </>
-                )}
-                .&rdquo;
-              </p>
-            </div>
-          </div>
-        ) : (
-          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground italic">
-            &ldquo;Your initial grade is based on what you&apos;ve told me. The confidence level on
-            each Market Reality dimension will increase as I see which roles you&apos;re drawn to,
-            which you reject, and what the market returns. The grade gets more accurate as we work
-            together.&rdquo;
-          </p>
-        )}
+    <div className="flex flex-col items-center gap-6 text-center">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Current Market Reality'}
+      </h1>
+
+      <div className="mx-auto w-full max-w-xl space-y-1 text-left">
+        <div className="flex items-center gap-2">
+          <VictoriaAvatar size={24} />
+          <p className="text-xs text-muted-foreground">Victoria says:</p>
+        </div>
+        <div className="relative ml-2 rounded-2xl bg-muted/50 px-6 py-5">
+          <div className="absolute -top-2 left-8 size-4 rotate-45 rounded-[3px] bg-muted/50" />
+          {proofOfWork ? (
+            <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
+              <li>
+                <span className="font-semibold">{proofOfWork.recruiterNoticeCount}</span> thing
+                {proofOfWork.recruiterNoticeCount === 1 ? '' : 's'} a recruiter will notice
+              </li>
+              <li>
+                <span className="font-semibold">{proofOfWork.atsFilterCount}</span> thing
+                {proofOfWork.atsFilterCount === 1 ? '' : 's'} that applicant tracking systems will
+                filter out before a person ever sees it
+              </li>
+              {proofOfWork.topIssue && (
+                <li>
+                  Costing you the most: {proofOfWork.topIssue}
+                  {proofOfWork.topIssueAction && (
+                    <details className="mt-1">
+                      <summary className="cursor-pointer text-xs font-medium text-primary">
+                        How to fix it
+                      </summary>
+                      <p className="mt-1 text-sm text-muted-foreground">{proofOfWork.topIssueAction}</p>
+                    </details>
+                  )}
+                </li>
+              )}
+            </ul>
+          ) : (
+            <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
+              <li>Your initial grade is based on what you&apos;ve told me</li>
+              <li>Confidence goes up as I see which roles you&apos;re drawn to, which you reject, and what the market returns</li>
+            </ul>
+          )}
+        </div>
       </div>
-      <GradeReveal grade={composite?.grade ?? null} />
+
       <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
         Create your account to get your full report and action plan
       </Button>
+
+      <GradeReveal grade={composite?.grade ?? null} />
     </div>
   )
 }
