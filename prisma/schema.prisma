@@ -1171,7 +1171,14 @@ model CandidateProfile {
   // GMAIL_TRACKING_TESTER_EMAILS list with a per-candidate toggle an admin
   // can flip without a deploy. isGmailTrackingTester() checks this OR the
   // env var OR the manual TrackingTesterAllowlistEntry table.
-  gmailTrackingTesterEnabled Boolean   @default(false)
+  //
+  // Defaults true so every new candidate clears our own allow-list gate the
+  // moment their profile is created — no more admin having to remember to
+  // flip this per candidate. This does NOT clear Google's own, separate
+  // OAuth consent-screen test-user list (no API for that; still a manual
+  // add in Cloud Console per email while the app is in Testing mode) — see
+  // the admin allow-list page's own pro-tip banner.
+  gmailTrackingTesterEnabled Boolean   @default(true)
   // Set once, the first time this candidate hits the Gmail/Calendar OAuth
   // hard gate while not yet an approved tester — triggers an admin
   // notification email (name/email/link to add them as a Google Cloud

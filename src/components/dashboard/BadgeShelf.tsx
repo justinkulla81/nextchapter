@@ -47,10 +47,16 @@ function Shelf<T extends { key: string; label: string; description: string; earn
   title,
   badges,
   gridCols,
+  showLocked,
 }: {
   title: string
   badges: T[]
   gridCols: string
+  // Every locked slot is shown the first time a candidate ever sees this
+  // shelf, so they can see the full 32-badge board up front — after that,
+  // an always-visible wall of grayed-out locks reads as noise, so only
+  // what's actually been earned stays on display.
+  showLocked: boolean
 }) {
   const sorted = sortEarnedFirst(badges)
   const earned = sorted.filter((b) => b.earned)
@@ -65,7 +71,10 @@ function Shelf<T extends { key: string; label: string; description: string; earn
           ))}
         </div>
       )}
-      {locked.length > 0 && (
+      {earned.length === 0 && !showLocked && (
+        <p className="mt-2 text-xs text-muted-foreground">None earned yet.</p>
+      )}
+      {locked.length > 0 && showLocked && (
         <div className={cn('flex flex-wrap gap-1.5', earned.length > 0 ? 'mt-3' : 'mt-2')}>
           {locked.map((b) => (
             <LockedBadgeChip key={b.key} label={b.label} description={b.description} />
@@ -79,14 +88,19 @@ function Shelf<T extends { key: string; label: string; description: string; earn
 export function BadgeShelf({
   weeklyBadges,
   milestoneBadges,
+  showLocked = true,
 }: {
   weeklyBadges: WeeklyBadgeStatus[]
   milestoneBadges: MilestoneBadgeStatus[]
+  // Defaults true so every other existing caller (e.g. the Stats page's
+  // full badge board) keeps showing the complete locked set unless it
+  // opts into the dashboard top strip's first-visit-only behavior.
+  showLocked?: boolean
 }) {
   return (
     <div className="space-y-6">
-      <Shelf title="This week's badges" badges={weeklyBadges} gridCols="grid-cols-3 sm:grid-cols-4" />
-      <Shelf title="Milestones" badges={milestoneBadges} gridCols="grid-cols-3 sm:grid-cols-5" />
+      <Shelf title="This week's badges" badges={weeklyBadges} gridCols="grid-cols-3 sm:grid-cols-4" showLocked={showLocked} />
+      <Shelf title="Milestones" badges={milestoneBadges} gridCols="grid-cols-3 sm:grid-cols-5" showLocked={showLocked} />
     </div>
   )
 }

@@ -298,14 +298,17 @@ function NavContent({
                   className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium whitespace-nowrap text-muted-foreground/60"
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
+                    <Icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                    <span className="truncate">{link.label}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    {badgeEl}
                     <Lock
-                      className={cn('size-4 shrink-0', link.lockReason ? 'text-orange' : 'text-muted-foreground/60')}
+                      className={cn('size-3.5 shrink-0', link.lockReason ? 'text-orange' : 'text-muted-foreground/60')}
                       strokeWidth={1.75}
                       aria-hidden
                     />
-                    <span className="truncate">{link.label}</span>
                   </span>
-                  {badgeEl}
                 </div>
               )
             }

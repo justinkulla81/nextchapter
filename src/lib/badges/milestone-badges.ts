@@ -21,6 +21,7 @@ import { LEADERBOARD_BADGE_LABEL, LEADERBOARD_BADGE_KEYS, type LeaderboardBadgeK
 // deliberately NOT one of them — §7.8: "does NOT qualify for Community...
 // 'everyone here has done the work' has to be true." Never add it here.
 export type MilestoneBadgeKey =
+  | 'MARKET_REALITY_COMPLETE'
   | 'SEVEN_DAY_STREAK'
   | 'THIRTY_DAY_STREAK'
   | 'NINETY_DAY_STREAK'
@@ -43,6 +44,7 @@ export type MilestoneBadgeKey =
   | LeaderboardBadgeKey
 
 export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
+  MARKET_REALITY_COMPLETE: 'Market Reality Assessment',
   SEVEN_DAY_STREAK: '7-Day Streak',
   THIRTY_DAY_STREAK: '30-Day Streak',
   NINETY_DAY_STREAK: '90-Day Streak',
@@ -66,6 +68,7 @@ export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
 }
 
 export const MILESTONE_BADGE_DESCRIPTION: Record<MilestoneBadgeKey, string> = {
+  MARKET_REALITY_COMPLETE: 'Completed your Market Reality Assessment and got your first grade.',
   SEVEN_DAY_STREAK: 'Checked in 7 days in a row.',
   THIRTY_DAY_STREAK: 'Checked in 30 days in a row.',
   NINETY_DAY_STREAK: 'Checked in 90 days in a row.',
@@ -186,7 +189,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
   ] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
-      select: { longestStreak: true, workHistory: { select: { engagementType: true } } },
+      select: { longestStreak: true, assessmentComplete: true, workHistory: { select: { engagementType: true } } },
     }),
     prisma.dailyCheckIn.findMany({ where: { candidateId }, select: { checkedInAt: true }, take: 500 }),
     prisma.weeklySprint.findMany({ where: { candidateId }, select: { weekStartDate: true, committedActions: true } }),
@@ -275,6 +278,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
   )
 
   const earned: Record<MilestoneBadgeKey, boolean> = {
+    MARKET_REALITY_COMPLETE: candidate.assessmentComplete,
     SEVEN_DAY_STREAK: candidate.longestStreak >= 7,
     THIRTY_DAY_STREAK: candidate.longestStreak >= 30,
     NINETY_DAY_STREAK: candidate.longestStreak >= 90,

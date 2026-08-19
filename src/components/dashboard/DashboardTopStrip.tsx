@@ -57,6 +57,12 @@ export async function DashboardTopStrip({
   ])
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
   const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
+  // First-ever dashboard visit shows the full board (all 32 slots, most
+  // locked) so a brand-new candidate can see the whole game up front —
+  // every visit after that only shows what's actually been earned, since a
+  // permanent wall of grayed-out locks stops being informative and starts
+  // being clutter once there's real progress to show instead.
+  const isFirstVisit = badgesLastSeenCount === null
 
   return (
     <Card>
@@ -110,7 +116,7 @@ export async function DashboardTopStrip({
             <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
           </summary>
           <div className="border-t border-border p-4">
-            <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} />
+            <BadgeShelf weeklyBadges={weeklyBadges} milestoneBadges={milestoneBadges} showLocked={isFirstVisit} />
           </div>
         </details>
         <MarkBadgesViewedOnMount earnedBadgesCount={earnedBadgesCount} />

@@ -28,7 +28,6 @@ interface ProofOfWork {
   recruiterNoticeCount: number
   atsFilterCount: number
   topIssue: string | null
-  topIssueAction: string | null
 }
 
 async function getProofOfWork(candidateId: string): Promise<ProofOfWork | null> {
@@ -63,7 +62,6 @@ async function getProofOfWork(candidateId: string): Promise<ProofOfWork | null> 
     recruiterNoticeCount: resultsFeedback.length + experienceFeedback.length,
     atsFilterCount: atsFeedback.length,
     topIssue: lowestScored?.feedback[0]?.issue ?? null,
-    topIssueAction: lowestScored?.feedback[0]?.action ?? null,
   }
 }
 
@@ -108,17 +106,7 @@ export default async function ScorePage() {
                 filter out before a person ever sees it
               </li>
               {proofOfWork.topIssue && (
-                <li>
-                  Costing you the most: {proofOfWork.topIssue}
-                  {proofOfWork.topIssueAction && (
-                    <details className="mt-1">
-                      <summary className="cursor-pointer text-xs font-medium text-primary">
-                        How to fix it
-                      </summary>
-                      <p className="mt-1 text-sm text-muted-foreground">{proofOfWork.topIssueAction}</p>
-                    </details>
-                  )}
-                </li>
+                <li>Costing you the most: {proofOfWork.topIssue}</li>
               )}
             </ul>
           ) : (
