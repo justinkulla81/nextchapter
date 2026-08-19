@@ -175,25 +175,31 @@ Candidate data:
 `
 
 export async function generateMarketRealityReport(candidateId: string): Promise<void> {
+  // workSamples/communityPosts/surfacedJobs/_count.weeklySprints/coach were
+  // included here but never read anywhere below — dropped rather than
+  // capped, since they're pure dead weight on every report generation.
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
     include: {
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
-      workHistory: true,
+      // Ordered/capped — this is a lifetime work history that only grows;
+      // 20 comfortably covers any real candidate's list.
+      workHistory: { orderBy: { startDate: 'desc' }, take: 20 },
       references: { where: { status: 'COMPLETED' } },
       resumes: { orderBy: { uploadedAt: 'desc' }, take: 1 },
       jobPostings: {
         where: {
           OR: [{ fitScore: { not: null } }, { interviewLandedAt: { not: null } }, { offerReceivedAt: { not: null } }],
         },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
       },
-      linkedInActivityLogs: true,
-      workSamples: true,
-      communityPosts: { where: { isActive: true } },
-      surfacedJobs: { select: { reaction: true } },
-      _count: { select: { weeklySprints: true } },
-      coach: { select: { focus: true } },
+      // Only ever read as "count logged in the last 30 days" below — filter
+      // at the DB level instead of pulling every log this candidate has
+      // ever created just to filter it in JS.
+      linkedInActivityLogs: { where: { loggedAt: { gt: thirtyDaysAgo } } },
     },
   })
 
@@ -211,13 +217,6 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
   const latestResume = candidate.resumes[0]
   const hasResume = candidate.resumes.length > 0
 
-  const marketConditions = await getMarketConditions({
-    roleType: candidate.targetRoleType,
-    primaryFunction: candidate.primaryFunction,
-    city: candidate.currentCity,
-    state: candidate.currentState,
-  })
-
   // Additional, uncached, more-specific counts for the report's own market
   // commentary — role/location-level data alone doesn't tell a candidate
   // whether THEIR exact title or THEIR target industry has real openings.
@@ -232,11 +231,81 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     : null
   const targetIndustry = candidate.targetIndustries[0] ?? null
 
-  const [titleSpecificResult, industrySpecificResult] = await Promise.all([
+  const managementGoalConflict = detectManagementGoalConflict(
+    candidate.managementSkillConfidence,
+    candidate.teamSizeManaged,
+    candidate.targetRoleType
+  )
+
+  // Every one of these depends only on `candidate` (already fetched above),
+  // never on each other — batched into one Promise.all instead of 5
+  // sequential stages so the DB reads, Adzuna calls, and the grade-refresh
+  // chain (MRG §11, internally sequential but independent of everything
+  // else here) all run concurrently before the LLM call below.
+  const [
+    marketConditions,
+    titleSpecificResult,
+    industrySpecificResult,
+    latestAiProject,
+    jobPattern,
+    applicationTrends,
+    priorReport,
+    marketRealitySnapshots,
+    gradeRefresh,
+    latestResumeAnalysisFindings,
+    weekNumber,
+  ] = await Promise.all([
+    getMarketConditions({
+      roleType: candidate.targetRoleType,
+      primaryFunction: candidate.primaryFunction,
+      city: candidate.currentCity,
+      state: candidate.currentState,
+    }),
     exactTitle ? searchAdzunaJobs(exactTitle, marketWhere ?? null) : Promise.resolve(null),
     targetIndustry && candidate.primaryFunction
       ? searchAdzunaJobs(`${candidate.primaryFunction} ${targetIndustry}`, marketWhere ?? null)
       : Promise.resolve(null),
+    prisma.learningBadge.findFirst({
+      where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
+      orderBy: { completedAt: 'desc' },
+    }),
+    generateJobPattern(candidateId),
+    computeApplicationTrends(candidateId),
+    // The most recent EXISTING report — relative to the new one about to
+    // be generated below, this is "last time." Null on a candidate's
+    // first-ever report, handled explicitly in the Executive Summary
+    // prompt instructions above rather than fabricating a comparison.
+    prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
+    prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
+    // MRG §11 — refresh the 5-component Market Reality Grade composite
+    // (MarketRealityComponentScore) in the same pass as everything else,
+    // so report generation is the one designated "recompute moment."
+    // Non-fatal — the rest of the report must still generate even if a
+    // candidate has no resume/data yet (computeMarketRealityCompositeGrade
+    // already returns null in that case — see composite.ts).
+    (async () => {
+      try {
+        await computeMarketRealityComponents(candidateId)
+        const compositeGrade = await computeMarketRealityCompositeGrade(candidateId)
+        const newGradeHeadline = await buildMarketRealityHeadline(candidateId)
+        return { compositeGrade, newGradeHeadline }
+      } catch (error) {
+        console.error('Failed to refresh Market Reality Grade composite for report generation:', error)
+        return { compositeGrade: null, newGradeHeadline: null }
+      }
+    })(),
+    // Up to 3 real, verbatim-quoted weak bullets from the latest
+    // ResumeAnalysis (resume-analysis/compute.ts) — passed into part 8 of
+    // the prompt above so the model can write a real before/after rewrite
+    // (Report Structure Spec §3.3) instead of a generic instruction.
+    // Findings quote the offending text in quotes; only the
+    // highest-point-value quoted findings are used.
+    prisma.resumeAnalysis.findFirst({
+      where: { candidateId },
+      orderBy: { createdAt: 'desc' },
+      select: { dimensionFindings: true },
+    }),
+    getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date())),
   ])
   // A 0 count on a highly specific query is far more likely to mean the
   // query itself didn't match anything sensible than a real, honest "zero
@@ -251,55 +320,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     industrySpecificResult.count > 0
       ? industrySpecificResult.count
       : null
-
-  const managementGoalConflict = detectManagementGoalConflict(
-    candidate.managementSkillConfidence,
-    candidate.teamSizeManaged,
-    candidate.targetRoleType
-  )
-
-  const [latestAiProject, jobPattern, applicationTrends, priorReport, marketRealitySnapshots] =
-    await Promise.all([
-      prisma.learningBadge.findFirst({
-        where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
-        orderBy: { completedAt: 'desc' },
-      }),
-      generateJobPattern(candidateId),
-      computeApplicationTrends(candidateId),
-      // The most recent EXISTING report — relative to the new one about to
-      // be generated below, this is "last time." Null on a candidate's
-      // first-ever report, handled explicitly in the Executive Summary
-      // prompt instructions above rather than fabricating a comparison.
-      prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
-      prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
-    ])
-
-  // MRG §11 — refresh the 5-component Market Reality Grade composite
-  // (MarketRealityComponentScore) in the same pass as everything else above,
-  // so report generation is the one designated "recompute moment." Non-fatal
-  // — the rest of the report must still generate even if a candidate has no
-  // resume/data yet (computeMarketRealityCompositeGrade already returns null
-  // in that case — see composite.ts).
-  let newGradeHeadline: Awaited<ReturnType<typeof buildMarketRealityHeadline>> = null
-  let compositeGrade: Awaited<ReturnType<typeof computeMarketRealityCompositeGrade>> = null
-  try {
-    await computeMarketRealityComponents(candidateId)
-    compositeGrade = await computeMarketRealityCompositeGrade(candidateId)
-    newGradeHeadline = await buildMarketRealityHeadline(candidateId)
-  } catch (error) {
-    console.error('Failed to refresh Market Reality Grade composite for report generation:', error)
-  }
-
-  // Up to 3 real, verbatim-quoted weak bullets from the latest ResumeAnalysis
-  // (resume-analysis/compute.ts) — passed into part 8 of the prompt above so
-  // the model can write a real before/after rewrite (Report Structure Spec
-  // §3.3) instead of a generic instruction. Findings quote the offending
-  // text in quotes; only the highest-point-value quoted findings are used.
-  const latestResumeAnalysisFindings = await prisma.resumeAnalysis.findFirst({
-    where: { candidateId },
-    orderBy: { createdAt: 'desc' },
-    select: { dimensionFindings: true },
-  })
+  const { compositeGrade, newGradeHeadline } = gradeRefresh
   const weakBulletQuotes: string[] = latestResumeAnalysisFindings
     ? Object.values(latestResumeAnalysisFindings.dimensionFindings as unknown as Record<DimensionKey, Finding[]>)
         .flat()
@@ -340,7 +361,6 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     gapDuration: candidate.gapDuration,
   })
 
-  const weekNumber = await getCandidateWeekNumber(candidate.id, getMondayOfWeek(new Date()))
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
     isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
@@ -447,7 +467,7 @@ Job-fit feedback: ${
 
 LinkedIn status confirmed: ${candidate.linkedInConfirmedAt ? 'yes' : 'no'}
 LinkedIn URL on file: ${candidate.linkedInUrl ? 'yes' : 'no (candidate may have explicitly said they don’t have one yet)'}
-LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.filter((l) => l.loggedAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length}
+LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.length}
 Networking list (25 people) submitted: ${candidate.networkingListSubmittedAt ? 'yes' : 'no'}
 Asked someone for help: ${candidate.askedForHelpAt ? 'yes' : 'no'}
 Interview landed: ${

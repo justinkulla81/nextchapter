@@ -28,10 +28,10 @@ export interface WhereYouStand {
 }
 
 export async function getWhereYouStand(candidateId: string): Promise<WhereYouStand | null> {
-  const [row, headline] = await Promise.all([
-    prisma.marketRealityComponentScore.findUnique({ where: { candidateId } }),
-    buildMarketRealityHeadline(candidateId),
-  ])
+  const row = await prisma.marketRealityComponentScore.findUnique({ where: { candidateId } })
+  // Passes the already-fetched row through so buildMarketRealityHeadline
+  // doesn't re-query the same MarketRealityComponentScore row again.
+  const headline = row ? await buildMarketRealityHeadline(candidateId, row) : null
   if (!row || !headline || row.grade === null) return null
 
   const grade = row.grade as Grade

@@ -192,8 +192,15 @@ export default async function MarketRealityReportPage() {
   // cut off before the email step ever runs, leaving a real, generated
   // report permanently unsent. Close that gap on every load, not just the
   // first — this is what actually fixes it for reports that already exist.
+  // Backgrounded via after(): sendMarketRealityReportEmail makes two live
+  // external network calls (Supabase admin getUserById, then Resend) that
+  // have no business blocking this page's render.
   if (report && !report.emailSentAt) {
-    await sendMarketRealityReportEmail(profile.id)
+    after(() =>
+      sendMarketRealityReportEmail(profile.id).catch((error) =>
+        console.error('Failed to send market reality report email:', error)
+      )
+    )
   }
 
   const completedTasks = countCompletedTasks(profile)

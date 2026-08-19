@@ -87,8 +87,14 @@ async function getComponentDriverText(candidateId: string, component: MarketReal
   return drivers.join(' ')
 }
 
-export async function buildMarketRealityHeadline(candidateId: string): Promise<MarketRealityHeadline | null> {
-  const row = await prisma.marketRealityComponentScore.findUnique({ where: { candidateId } })
+// `prefetchedRow` lets a caller that already has this exact row (e.g.
+// getWhereYouStand, which reads it for its own decomposition tiles) pass it
+// through instead of this function re-querying the same row a second time.
+export async function buildMarketRealityHeadline(
+  candidateId: string,
+  prefetchedRow?: Awaited<ReturnType<typeof prisma.marketRealityComponentScore.findUnique>>
+): Promise<MarketRealityHeadline | null> {
+  const row = prefetchedRow !== undefined ? prefetchedRow : await prisma.marketRealityComponentScore.findUnique({ where: { candidateId } })
   if (!row || row.compositeScore === null || !row.grade || !row.drivingComponent || !row.strongestComponent) {
     return null
   }
