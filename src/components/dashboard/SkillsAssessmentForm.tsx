@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { BookOpen, CheckCircle2, Video } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
 import { SkillsHaveAndNeedForm } from '@/components/dashboard/SkillsHaveAndNeedForm'
 import { UnlockAnnouncementDialog } from '@/components/dashboard/UnlockAnnouncementDialog'
@@ -139,13 +139,13 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           items={[
             {
               href: '/dashboard/learning',
-              icon: BookOpen,
+              icon: 'book-open',
               label: 'Learn New Skills',
               description: 'Courses picked for the skills you just told us you want to build.',
             },
             {
               href: '/dashboard/webinars',
-              icon: Video,
+              icon: 'video',
               label: 'Videos and Webinars',
               description: 'Videos matched to your skills and target role.',
             },

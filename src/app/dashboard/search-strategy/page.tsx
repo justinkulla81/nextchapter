@@ -30,7 +30,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
-import { Megaphone, Share2, Users } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -209,13 +208,13 @@ export default async function SearchStrategyPage() {
         items: [
           {
             href: '/dashboard/marketing-plan',
-            icon: Megaphone,
+            icon: 'megaphone',
             label: 'My Marketing Plan',
             description: 'Draft your narrative and post ideas grounded in your real background.',
           },
           {
             href: '/dashboard/linkedin',
-            icon: Share2,
+            icon: 'share2',
             label: 'LinkedIn',
             description: 'Generate and post directly to LinkedIn.',
           },
@@ -231,7 +230,7 @@ export default async function SearchStrategyPage() {
         items: [
           {
             href: '/dashboard/network',
-            icon: Users,
+            icon: 'users',
             label: 'My Network',
             description: 'Outreach scripts calibrated to what you said you were comfortable with.',
           },

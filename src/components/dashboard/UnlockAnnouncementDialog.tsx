@@ -3,13 +3,33 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
-import { PartyPopper, X, type LucideIcon } from 'lucide-react'
+import { PartyPopper, X, Megaphone, Share2, Users, Compass, BookOpen, Video } from 'lucide-react'
 import { Dialog, DialogClose, DialogPopup } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
+// A Lucide icon is a component reference, not serializable data — a
+// producer of UnlockItem[] that's a Server Component (search-strategy/
+// page.tsx's per-step `unlock` config) can't pass one directly to this
+// Client Component; React throws "Functions cannot be passed directly to
+// Client Components" at request time (not caught by tsc, only surfaces on
+// a real render). A string key resolved to the real component here, inside
+// the client boundary, sidesteps that entirely — client-only producers
+// (GigDirectoryUnlockForm, SkillsAssessmentForm) use the same keys for
+// consistency, even though they could pass a component reference safely.
+const UNLOCK_ICON_MAP = {
+  megaphone: Megaphone,
+  share2: Share2,
+  users: Users,
+  compass: Compass,
+  'book-open': BookOpen,
+  video: Video,
+} as const
+
+export type UnlockIconKey = keyof typeof UNLOCK_ICON_MAP
+
 export interface UnlockItem {
   href: string
-  icon: LucideIcon
+  icon: UnlockIconKey
   label: string
   description: string
 }
@@ -61,23 +81,26 @@ export function UnlockAnnouncementDialog({
         <p className="mt-1 text-sm text-muted-foreground">{introText}</p>
 
         <div className="mt-4 space-y-3">
-          {items.map(({ href, icon: Icon, label, description }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => {
-                posthog?.capture('unlock_dialog_link_clicked', { key: analyticsKey, href })
-                onOpenChange(false)
-              }}
-              className="flex items-start gap-3 rounded-lg border border-brand/30 bg-brand/5 p-3 transition-colors hover:bg-brand/10"
-            >
-              <Icon className="mt-0.5 size-4 shrink-0 text-brand" />
-              <div>
-                <p className="text-sm font-medium text-foreground">{label}</p>
-                <p className="text-xs text-muted-foreground">{description}</p>
-              </div>
-            </Link>
-          ))}
+          {items.map(({ href, icon, label, description }) => {
+            const Icon = UNLOCK_ICON_MAP[icon]
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => {
+                  posthog?.capture('unlock_dialog_link_clicked', { key: analyticsKey, href })
+                  onOpenChange(false)
+                }}
+                className="flex items-start gap-3 rounded-lg border border-brand/30 bg-brand/5 p-3 transition-colors hover:bg-brand/10"
+              >
+                <Icon className="mt-0.5 size-4 shrink-0 text-brand" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
+              </Link>
+            )
+          })}
         </div>
 
         <Button className="mt-5 w-full" onClick={() => onOpenChange(false)}>

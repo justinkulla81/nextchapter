@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Compass } from 'lucide-react'
 import { submitGigDirectoryUnlock } from '@/app/dashboard/interim-work/actions'
 import { UnlockAnnouncementDialog } from '@/components/dashboard/UnlockAnnouncementDialog'
 import { Button } from '@/components/ui/button'
@@ -70,7 +69,7 @@ export function GigDirectoryUnlockForm() {
         items={[
           {
             href: '/dashboard/interim-work',
-            icon: Compass,
+            icon: 'compass',
             label: 'Find Interim Work',
             description: 'Browse the interim/fractional directory with your target rate in mind.',
           },
