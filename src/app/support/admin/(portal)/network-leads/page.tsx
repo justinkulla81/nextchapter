@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { ContactOutreachStatusForm } from '@/components/admin/ContactOutreachStatusForm'
-import { updateContactAdminNotes } from './actions'
+import { updateContactAdminNotes, removeLeadTag } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import type { ContactAdminOutreachStatus, RelationshipTag } from '@prisma/client'
 
@@ -11,6 +11,7 @@ export const maxDuration = 30
 
 interface Row {
   id: string
+  tag: RelationshipTag
   name: string
   email: string | null
   company: string | null
@@ -58,20 +59,21 @@ export default async function NetworkLeadsAdminPage() {
 
   const rowsByTag: Partial<Record<RelationshipTag, Row[]>> = { RECRUITER: [], COACH: [], HIRING_MANAGER: [] }
   for (const c of contacts) {
-    const row: Row = {
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      company: c.company ?? c.inferredCompany,
-      candidateName: [c.candidate.firstName, c.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed',
-      candidateEmail: getAuthEmail(authUsers, c.candidate.userId),
-      source: c.source,
-      addedAt: c.createdAt,
-      outreachStatus: c.adminOutreachStatus,
-      notes: c.adminNotes,
-    }
     for (const { tag } of LEAD_TAGS) {
-      if (c.relationshipTags.includes(tag)) rowsByTag[tag]!.push(row)
+      if (!c.relationshipTags.includes(tag)) continue
+      rowsByTag[tag]!.push({
+        id: c.id,
+        tag,
+        name: c.name,
+        email: c.email,
+        company: c.company ?? c.inferredCompany,
+        candidateName: [c.candidate.firstName, c.candidate.lastName].filter(Boolean).join(' ') || 'Unnamed',
+        candidateEmail: getAuthEmail(authUsers, c.candidate.userId),
+        source: c.source,
+        addedAt: c.createdAt,
+        outreachStatus: c.adminOutreachStatus,
+        notes: c.adminNotes,
+      })
     }
   }
 
@@ -110,6 +112,21 @@ export default async function NetworkLeadsAdminPage() {
     {
       header: 'Outreach status',
       render: (r) => <ContactOutreachStatusForm contactId={r.id} status={r.outreachStatus} />,
+    },
+    {
+      header: '',
+      render: (r) => (
+        <form action={removeLeadTag.bind(null, r.id, r.tag)}>
+          <SubmitButton
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
+            title="Not actually a recruiter/coach/hiring manager — remove from this list"
+          >
+            Remove
+          </SubmitButton>
+        </form>
+      ),
     },
   ]
 
