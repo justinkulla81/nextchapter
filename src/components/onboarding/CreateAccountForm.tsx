@@ -65,6 +65,13 @@ export function CreateAccountForm({
   // set-state-in-effect lint rule. handleUseEmailAnyway (below) fires the
   // send itself, from a real click, once the candidate confirms.
   const firedRef = useRef(corporateEmailWarning)
+  // Separate from firedRef on purpose: firedRef starts pre-fired (true)
+  // whenever the warning is showing, specifically so the auto-send effect
+  // skips it — but that same "already true" value was wrongly reused as the
+  // guard here too, which made this handler's `if (firedRef.current...)
+  // return` fire immediately and silently no-op the actual send. This ref
+  // starts false regardless of the warning, so the click really sends.
+  const anywaySentRef = useRef(false)
 
   async function sendConfirmation(targetEmail: string) {
     const supabase = createClient()
@@ -125,8 +132,8 @@ export function CreateAccountForm({
   // this unblocks only ever needs to happen once, right here.
   function handleUseEmailAnyway() {
     setUseAnywayConfirmed(true)
-    if (firedRef.current || !initialEmail) return
-    firedRef.current = true
+    if (anywaySentRef.current || !initialEmail) return
+    anywaySentRef.current = true
     attemptSend(initialEmail)
   }
 
