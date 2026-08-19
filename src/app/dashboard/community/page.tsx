@@ -7,7 +7,6 @@ import { getCommunityFeed } from '@/lib/community/community-feed'
 import { getMarketBriefFeedItems } from '@/lib/community/market-content'
 import { mergeCommunityStream } from '@/lib/community/unified-feed'
 import { getUnreadEncouragementNotes } from '@/lib/community/encouragement'
-import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { buildSelfIntroDraft } from '@/lib/community/self-intro'
 import { getCohortInfo } from '@/lib/community/layoff-cohort'
 import {
@@ -19,12 +18,11 @@ import {
 import {
   getCandidateThreads,
   getThreadWithMessages,
-  getCandidateUnreadCount,
   markThreadRead,
   getCandidateEligibleRecruiters,
   getCandidateEligibleEmployers,
 } from '@/lib/messaging/threads'
-import { getPeerThreads, getPeerThreadWithMessages, getPeerUnreadCount, getOrCreatePeerThread, markPeerThreadRead } from '@/lib/messaging/peer-threads'
+import { getPeerThreads, getPeerThreadWithMessages, getOrCreatePeerThread, markPeerThreadRead } from '@/lib/messaging/peer-threads'
 import { PeerMessageBubbles } from '@/components/messaging/PeerMessageBubbles'
 import { PeerThreadSafetyControls } from '@/components/messaging/PeerThreadSafetyControls'
 import { sendPeerCandidateMessage } from '@/app/dashboard/community/actions'
@@ -56,7 +54,7 @@ import { computeBoard } from '@/lib/leaderboard/queries'
 import { cn } from '@/lib/utils'
 import type { Prisma, PrivacyTier } from '@prisma/client'
 
-export const metadata: Metadata = { title: 'Support Network' }
+export const metadata: Metadata = { title: 'NextChapter Community' }
 
 
 const PARTNER_TYPE_LABEL = {
@@ -147,48 +145,11 @@ export default async function SupportNetworkPage({
   // Computed off the profile snapshot already in hand, before CommunityTab's
   // unconditional communityLastViewedAt reset fires later in this same
   // request — reading it after that reset would always show zero.
-  const [communityUnreadCount, messagesUnreadCount, peerUnreadCount] = await Promise.all([
-    getSupportNetworkUnreadCount(profile.id, profile.communityLastViewedAt),
-    getCandidateUnreadCount(profile.id),
-    getPeerUnreadCount(profile.id),
-  ])
-
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Support Network</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">NextChapter Community</h1>
         <PageHeaderBoxes pageKey="community" candidateId={profile.id} />
-      </div>
-
-      <div className="flex gap-6 border-b border-border">
-        <Link
-          href="/dashboard/community?tab=community"
-          className={cn(
-            'flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium transition-colors',
-            tab === 'community' ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
-          )}
-        >
-          Community messages
-          {communityUnreadCount > 0 && (
-            <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase tabular-nums">
-              {communityUnreadCount}
-            </span>
-          )}
-        </Link>
-        <Link
-          href="/dashboard/community?tab=messages"
-          className={cn(
-            'flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium transition-colors',
-            tab === 'messages' ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
-          )}
-        >
-          Messages
-          {messagesUnreadCount + peerUnreadCount > 0 && (
-            <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase tabular-nums">
-              {messagesUnreadCount + peerUnreadCount}
-            </span>
-          )}
-        </Link>
       </div>
 
       {tab === 'messages' ? (
@@ -747,9 +708,6 @@ async function CommunityTab({
   return (
     <div className="space-y-8">
       {confidentialSearchMode && <ConfidentialModeIndicator />}
-      <p className="text-sm text-muted-foreground">
-        Ask for help, offer help, or share a job — nobody searches well entirely alone.
-      </p>
 
       {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
 
@@ -809,19 +767,27 @@ async function CommunityTab({
       )}
 
       <div className="overflow-hidden rounded-lg border border-border">
-        <div className="border-b border-border bg-brand/5 px-4 py-3">
-          <p className="text-sm font-semibold text-foreground">Community Feed</p>
-          <p className="text-xs text-muted-foreground">
-            Post an update below, or browse what everyone else is sharing.
-          </p>
-        </div>
-
-        <div className="border-b border-border p-4">
+        <div className="space-y-3 border-b border-border bg-brand/5 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Post to the Community</p>
+              <p className="text-xs text-muted-foreground">
+                Ask for help, offer help, share a job, or post an update.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/privacy"
+              className="shrink-0 text-xs font-medium text-primary underline underline-offset-4"
+            >
+              Privacy settings
+            </Link>
+          </div>
           <CommunityPostForm />
         </div>
 
         {(groups.length > 0 || communities.length > 0) && (
           <div className="space-y-2 border-b border-border bg-off-white/60 p-3">
+            <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Filters</p>
             <CommunityGroupStrip
               groups={groups}
               otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}}
@@ -829,6 +795,10 @@ async function CommunityTab({
             <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
           </div>
         )}
+
+        <div className="border-b border-border px-4 py-2">
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Feed</p>
+        </div>
 
         {posts.length === 0 && feed.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">Nothing to show yet — check back soon.</p>

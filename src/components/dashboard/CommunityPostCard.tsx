@@ -4,6 +4,7 @@ import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from 
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { resolveCommunityIdentity, type CommunityIdentitySource } from '@/lib/community/identity'
 import { Card, CardContent } from '@/components/ui/card'
+import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CommunityPostReportButton } from '@/components/dashboard/CommunityPostReportButton'
 import { cn } from '@/lib/utils'
@@ -19,24 +20,28 @@ export function CommunityPostCard({
   }
   isOwnPost: boolean
 }) {
-  const posterName = resolveCommunityIdentity(post.candidate).displayName
+  const { displayName: posterName, avatarUrl: posterAvatarUrl } = resolveCommunityIdentity(post.candidate)
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
+  const isAutomated = post.postType === 'MILESTONE' || post.postType === 'LIKED_CONTENT'
 
   return (
     <Card>
       <CardContent className="space-y-2 pt-6">
         <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              {posterName && <p className="text-sm font-medium text-foreground">{posterName}</p>}
-              {post.postType !== 'UPDATE' && (
-                <p className="text-xs font-medium uppercase text-muted-foreground">
-                  {COMMUNITY_POST_TYPE_LABELS[post.postType]}
-                </p>
-              )}
+          <div className="flex min-w-0 items-start gap-2">
+            {posterName && <AvatarDisplay name={posterName} url={posterAvatarUrl} size={28} />}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                {posterName && <p className="text-sm font-medium text-foreground">{posterName}</p>}
+                {post.postType !== 'UPDATE' && (
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                    {COMMUNITY_POST_TYPE_LABELS[post.postType]}
+                  </p>
+                )}
+              </div>
+              {post.title && <p className="font-medium">{post.title}</p>}
             </div>
-            {post.title && <p className="font-medium">{post.title}</p>}
           </div>
           {isOwnPost ? (
             <form action={deactivateCommunityPost.bind(null, post.id)}>
@@ -51,7 +56,7 @@ export function CommunityPostCard({
                   removed. peer-threads.ts itself is untouched; other,
                   non-Community-originated entry points to peer messaging
                   are unaffected. */}
-              {post.postType !== 'MILESTONE' && post.postType !== 'LIKED_CONTENT' && (
+              {!isAutomated && (
                 <form action={expressInterest.bind(null, post.id)}>
                   <SubmitButton variant="outline" size="sm">
                     I&apos;m interested
@@ -88,7 +93,7 @@ export function CommunityPostCard({
                   {cheerCount > 0 && <span className="tabular-nums">{cheerCount}</span>}
                 </SubmitButton>
               </form>
-              <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />
+              {!isAutomated && <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />}
             </div>
           )}
         </div>

@@ -17,6 +17,7 @@ import {
   Megaphone,
   Star,
   MessageCircle,
+  Inbox,
   GraduationCap,
   Building2,
   BookOpen,
@@ -133,10 +134,13 @@ function buildSections(
           href: '/dashboard/community',
           label: 'NextChapter Community',
           icon: MessageCircle,
-          badge:
-            supportNetworkUnreadCount + messagesUnreadCount > 0
-              ? String(supportNetworkUnreadCount + messagesUnreadCount)
-              : undefined,
+          badge: supportNetworkUnreadCount > 0 ? String(supportNetworkUnreadCount) : undefined,
+        },
+        {
+          href: '/dashboard/messages',
+          label: 'My Inbox',
+          icon: Inbox,
+          badge: messagesUnreadCount > 0 ? String(messagesUnreadCount) : undefined,
         },
         // Deliberately protected during this redesign, not incidentally
         // preserved — Executive Coach stays a top-level, expanded-by-

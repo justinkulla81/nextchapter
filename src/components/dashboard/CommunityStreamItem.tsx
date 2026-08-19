@@ -39,16 +39,17 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
   }
 
   const post = item.post
-  const posterName = resolveCommunityIdentity(post.candidate).displayName
+  const { displayName: posterName, avatarUrl: posterAvatarUrl } = resolveCommunityIdentity(post.candidate)
   const isOwnPost = post.candidateId === candidateId
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
+  const isAutomated = post.postType === 'MILESTONE' || post.postType === 'LIKED_CONTENT'
 
   return (
     <div className="space-y-2 p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-2">
-          {posterName && <AvatarDisplay name={posterName} size={28} />}
+          {posterName && <AvatarDisplay name={posterName} url={posterAvatarUrl} size={28} />}
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               {posterName && <p className="text-sm font-medium text-foreground">{posterName}</p>}
@@ -74,8 +75,7 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
             </SubmitButton>
           </form>
         ) : (
-          post.postType !== 'MILESTONE' &&
-          post.postType !== 'LIKED_CONTENT' && (
+          !isAutomated && (
             <form action={expressInterest.bind(null, post.id)}>
               <SubmitButton variant="outline" size="sm">
                 I&apos;m interested
@@ -117,7 +117,7 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
                 {cheerCount > 0 && <span className="tabular-nums">{cheerCount}</span>}
               </SubmitButton>
             </form>
-            <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />
+            {!isAutomated && <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />}
           </div>
         )}
       </div>
