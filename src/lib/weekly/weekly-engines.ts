@@ -64,7 +64,7 @@ export async function computeWeeklyProgress(
 
   const weeklyPoints = Object.values(pointsByEngine).reduce((sum, p) => sum + p, 0)
 
-  const engines: WeeklyEngine[] = (['learning', 'effort', 'working', 'connecting'] as const).map((key) => {
+  const engines: WeeklyEngine[] = (['effort', 'connecting', 'working', 'learning'] as const).map((key) => {
     const score = perEngineTarget > 0 ? clamp((pointsByEngine[key] / perEngineTarget) * 100) : 0
     return { key, label: WEEKLY_ENGINE_LABEL[key], score, grade: scoreToGrade(score) }
   })

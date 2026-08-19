@@ -138,7 +138,8 @@ async function addAttendeesToNetwork(
 async function processEvent(
   connection: CalendarConnection,
   event: GoogleCalendarEvent,
-  workHistoryCompanies: string[]
+  workHistoryCompanies: string[],
+  registeredAt: Date | null
 ): Promise<boolean> {
   if (event.status === 'cancelled') return false
   if (!event.start?.dateTime) return false // all-day events carry no real "meeting happened" signal
@@ -206,10 +207,19 @@ async function processEvent(
   })
 
   // Points only for high-confidence classified events — never for
-  // NEEDS_REVIEW or NOT_JOB_SEARCH (don't guess, don't credit personal time).
+  // NEEDS_REVIEW or NOT_JOB_SEARCH (don't guess, don't credit personal time)
+  // — and never for an event that happened before this candidate
+  // registered (a first sync's backfill window can reach back further than
+  // that; see registeredAt in syncGoogleCalendarConnection). Attendee import
+  // below stays ungated by registeredAt — a contact from a backfilled
+  // historical meeting is still a real contact worth having in the network
+  // list, same "keep real history, just don't score it" split as
+  // sync-job-postings.ts's awardPoints.
+  const eventDate = new Date(event.start.dateTime)
+  const awardPoints = !registeredAt || eventDate >= registeredAt
   if (classification.confidence === 'high') {
     const actionType = ACTION_TYPE_BY_EVENT_TYPE[classification.eventType]
-    if (actionType) {
+    if (actionType && awardPoints) {
       const effort = estimateActionEffort({ actionType })
       await autoCompleteEngagementAction(connection.candidateId, {
         actionType,
@@ -269,15 +279,26 @@ export async function syncGoogleCalendarConnection(connectionId: string): Promis
   // Fetched once per sync, not once per event — feeds the FORMER_COLLEAGUE
   // auto-tag when a networking-call/interview attendee's email domain
   // matches a past employer.
-  const workHistory = await prisma.workHistoryEntry.findMany({
-    where: { candidateId: connection.candidateId },
-    select: { companyName: true },
-  })
+  const [workHistory, candidate] = await Promise.all([
+    prisma.workHistoryEntry.findMany({
+      where: { candidateId: connection.candidateId },
+      select: { companyName: true },
+    }),
+    prisma.candidateProfile.findUnique({
+      where: { id: connection.candidateId },
+      select: { registrationCompletedAt: true },
+    }),
+  ])
   const workHistoryCompanies = workHistory.map((w) => w.companyName)
+  // Same reasoning as sync-gmail.ts's registeredAt — a first-ever sync can
+  // backfill weeks of real calendar history, but that predates this
+  // candidate having an account, so it shouldn't inflate whatever week it
+  // lands in.
+  const registeredAt = candidate?.registrationCompletedAt ?? null
 
   let synced = 0
   for (const event of newEvents) {
-    if (await processEvent(connection, event, workHistoryCompanies)) synced++
+    if (await processEvent(connection, event, workHistoryCompanies, registeredAt)) synced++
   }
 
   await prisma.calendarConnection.update({ where: { id: connection.id }, data: { lastSyncAt: new Date() } })

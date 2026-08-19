@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.redirect(new URL('/dashboard/marketing-plan?linkedinConnected=1', request.url))
+    return NextResponse.redirect(new URL('/dashboard?linkedinConnected=1', request.url))
   } catch (err) {
     console.error('LinkedIn OAuth callback failed:', err)
     return NextResponse.redirect(new URL('/dashboard/marketing-plan?linkedinError=exchange_failed', request.url))

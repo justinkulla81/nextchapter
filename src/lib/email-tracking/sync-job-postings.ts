@@ -35,7 +35,12 @@ export async function syncJobPostingFromEmail(
   companyName: string | null,
   subject: string,
   bodyPreview: string,
-  emailDate: Date
+  emailDate: Date,
+  // False for backfilled mail from before the candidate registered — the
+  // JobPosting record itself still gets created/updated either way (real
+  // tracker history), just without also crediting this week's Search
+  // Action points for something that happened before they had an account.
+  awardPoints: boolean
 ): Promise<void> {
   if (!companyName) return
   const normalized = normalizeOrgName(companyName)
@@ -58,7 +63,7 @@ export async function syncJobPostingFromEmail(
     if (existingMatch) {
       if (!existingMatch.appliedAt) {
         await prisma.jobPosting.update({ where: { id: existingMatch.id }, data: { appliedAt: emailDate } })
-        await creditApplicationSubmitted(candidateId)
+        if (awardPoints) await creditApplicationSubmitted(candidateId)
       }
       return
     }
@@ -90,7 +95,7 @@ export async function syncJobPostingFromEmail(
         appliedAt: emailDate,
       },
     })
-    await creditApplicationSubmitted(candidateId)
+    if (awardPoints) await creditApplicationSubmitted(candidateId)
     return
   }
 

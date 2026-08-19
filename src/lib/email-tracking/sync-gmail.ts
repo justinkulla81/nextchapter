@@ -298,7 +298,8 @@ async function processMessage(
   messageId: string,
   fetched: FetchedMessage,
   direction: EmailDirection,
-  workHistoryCompanies: string[]
+  workHistoryCompanies: string[],
+  registeredAt: Date | null
 ): Promise<ProcessResult> {
   const { message, insufficientScope } = fetched
   if (insufficientScope) return 'insufficient_scope'
@@ -314,6 +315,12 @@ async function processMessage(
   const emailDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date()
 
   const listUnsubscribe = getHeader(message.payload?.headers, 'List-Unsubscribe')
+
+  // Real activity from before this candidate had an account still belongs
+  // in the tracker (see syncJobPostingFromEmail's own record-keeping below),
+  // but never earns this week's Search Action points — see registeredAt's
+  // definition in syncGmailConnection for why.
+  const awardPoints = !registeredAt || emailDate >= registeredAt
 
   const classification =
     direction === 'INBOUND'
@@ -468,14 +475,16 @@ async function processMessage(
       classification.companyName,
       subject,
       bodyPreview,
-      emailDate
+      emailDate,
+      awardPoints
     ).catch((error) => console.error('Failed to sync job posting from email:', error))
   }
 
   // Points only for high-confidence Sent-folder categories — never for
   // NEEDS_REVIEW (don't guess), never for Inbox categories (those aren't a
-  // candidate action, so nothing to award).
-  if (direction === 'OUTBOUND' && classification.confidence === 'high') {
+  // candidate action, so nothing to award) — and never for mail sent
+  // before this candidate registered (see awardPoints above).
+  if (direction === 'OUTBOUND' && classification.confidence === 'high' && awardPoints) {
     const actionType = SENT_ACTION_TYPE_BY_ACTIVITY[classification.activityType]
     if (actionType) {
       const effort = estimateActionEffort({ actionType })
@@ -554,11 +563,25 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
   // Fetched once per sync, not once per message — feeds the FORMER_COLLEAGUE
   // auto-tag when an auto-added contact's email domain matches a past
   // employer (same pattern as sync-google-calendar.ts).
-  const workHistory = await prisma.workHistoryEntry.findMany({
-    where: { candidateId: connection.candidateId },
-    select: { companyName: true },
-  })
+  const [workHistory, candidate] = await Promise.all([
+    prisma.workHistoryEntry.findMany({
+      where: { candidateId: connection.candidateId },
+      select: { companyName: true },
+    }),
+    prisma.candidateProfile.findUnique({
+      where: { id: connection.candidateId },
+      select: { registrationCompletedAt: true },
+    }),
+  ])
   const workHistoryCompanies = workHistory.map((w) => w.companyName)
+  // A first-ever sync backfills up to FIRST_SYNC_BACKFILL_MS of history into
+  // the tracker (real signal worth keeping), but that history predates the
+  // candidate ever having a real account — Search Action points are a
+  // WEEKLY, "did you do something this week" measure, so backfilled mail
+  // from before registration should sync into My Applications/the outreach
+  // log without also inflating whatever week it lands in. Falls back to
+  // "no floor" only for the pathological case of a null registration date.
+  const registeredAt = candidate?.registrationCompletedAt ?? null
 
   // Fetching is bounded-concurrency (see fetchMessages) since it's pure
   // network I/O with no shared state. Persisting stays sequential (not
@@ -584,7 +607,7 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
     try {
       const fetched = inboxFetched.get(id)
       if (!fetched) continue
-      const result = await processMessage(connection, id, fetched, 'INBOUND', workHistoryCompanies)
+      const result = await processMessage(connection, id, fetched, 'INBOUND', workHistoryCompanies, registeredAt)
       if (result === 'insufficient_scope') scopeInsufficient = true
       else if (result === 'synced') synced++
     } catch (error) {
@@ -596,7 +619,7 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
     try {
       const fetched = sentFetched.get(id)
       if (!fetched) continue
-      const result = await processMessage(connection, id, fetched, 'OUTBOUND', workHistoryCompanies)
+      const result = await processMessage(connection, id, fetched, 'OUTBOUND', workHistoryCompanies, registeredAt)
       if (result === 'insufficient_scope') scopeInsufficient = true
       else if (result === 'synced') synced++
     } catch (error) {
