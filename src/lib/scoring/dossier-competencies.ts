@@ -507,31 +507,12 @@ export async function computeCategoryGrades(
   }))
 }
 
-// Reads the persisted per-category baseline, backfilling it from a live
-// computation the first time a candidate is graded (so there's never a
-// "no baseline yet" gap for an existing candidate mid-migration).
-export async function getCategoryBaseline(
-  candidate: CandidateWithGradeRelations
-): Promise<Record<CategoryKey, number>> {
-  const stored = candidate.categoryBaselineScores as Record<CategoryKey, number> | null
-  if (stored) return stored
-
-  // The baseline feeds the displayed Current Market Reality (see
-  // computeDossierCompetencies below), so it's seeded without the flexibility
-  // signal — see the includeFlexibilitySignal comment in
-  // computeCategoryGrades.
-  const categories = await computeCategoryGrades(candidate, { includeFlexibilitySignal: false })
-  const baseline = Object.fromEntries(categories.map((c) => [c.key, c.score])) as Record<CategoryKey, number>
-  await prisma.candidateProfile.update({
-    where: { id: candidate.id },
-    data: { categoryBaselineScores: baseline, categoryBaselineUpdatedAt: new Date() },
-  })
-  return baseline
-}
-
 // Called by rewrite-actions.ts when a real event (a landed interview, a
 // reference that rebuts a named weakness, etc.) should move a category's
-// baseline directly, rather than waiting for the bounded weekly nudge.
+// baseline directly. No candidate-facing grade reads this baseline anymore
+// (see the six-category grade removal) — it's kept because
+// bias-detection.ts's fairness audit still reads categoryBaselineScores
+// directly for its avgSkillsExecutionScore cohort metric.
 export async function updateCategoryBaseline(
   candidateId: string,
   category: CategoryKey,
