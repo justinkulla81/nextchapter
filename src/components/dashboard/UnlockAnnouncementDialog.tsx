@@ -3,40 +3,48 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
-import { BookOpen, PartyPopper, Video, X } from 'lucide-react'
+import { PartyPopper, X, type LucideIcon } from 'lucide-react'
 import { Dialog, DialogClose, DialogPopup } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
-const UNLOCKED_PAGES = [
-  {
-    href: '/dashboard/learning',
-    icon: BookOpen,
-    label: 'Learn New Skills',
-    description: 'Courses picked for the skills you just told us you want to build.',
-  },
-  {
-    href: '/dashboard/webinars',
-    icon: Video,
-    label: 'Videos and Webinars',
-    description: 'Videos matched to your skills and target role.',
-  },
-] as const
+export interface UnlockItem {
+  href: string
+  icon: LucideIcon
+  label: string
+  description: string
+}
 
-// One-time celebration shown right after a candidate's first-ever Skills
-// Assessment completion — the exact moment DashboardNav flips
-// skillsAssessmentCompleted from false to true and unlocks these two nav
-// items (see the skillsLock object there). No animation/toast library
-// exists in this codebase (checked package.json), so this leans on the
-// Dialog primitive's own built-in enter/exit transition rather than adding
-// one, and reuses the same orange/Lock visual language LockedFeatureNotice
-// uses for the locked state — inverted here to brand-colored icons for the
-// unlocked moment.
-export function SkillsUnlockDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+// Generic "you just unlocked X" celebration — generalized from the one-off
+// SkillsUnlockDialog (Skills Assessment → Learning + Videos) so any
+// unlock/badge-award moment across the app can reuse the same pattern
+// instead of hand-rolling its own dialog. No animation/toast library exists
+// in this codebase (checked package.json), so this leans on the Dialog
+// primitive's own built-in enter/exit transition, and reuses the same
+// orange/Lock visual language LockedFeatureNotice uses for the locked
+// state — inverted here to brand-colored icons for the unlocked moment.
+// `analyticsKey` namespaces the PostHog events (e.g. "skills",
+// "marketing_plan_willingness") so each trigger site's opens/clicks are
+// distinguishable in the data.
+export function UnlockAnnouncementDialog({
+  open,
+  onOpenChange,
+  title = 'New pages unlocked!',
+  introText,
+  items,
+  analyticsKey,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title?: string
+  introText: string
+  items: UnlockItem[]
+  analyticsKey: string
+}) {
   const posthog = usePostHog()
 
   useEffect(() => {
-    if (open) posthog?.capture('skills_unlock_dialog_shown')
-  }, [open, posthog])
+    if (open) posthog?.capture('unlock_dialog_shown', { key: analyticsKey })
+  }, [open, posthog, analyticsKey])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,19 +56,17 @@ export function SkillsUnlockDialog({ open, onOpenChange }: { open: boolean; onOp
 
         <div className="flex items-center gap-2">
           <PartyPopper className="size-5 text-brand" />
-          <h2 className="text-lg font-semibold tracking-tight">New pages unlocked!</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Completing your Skills Assessment just unlocked:
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{introText}</p>
 
         <div className="mt-4 space-y-3">
-          {UNLOCKED_PAGES.map(({ href, icon: Icon, label, description }) => (
+          {items.map(({ href, icon: Icon, label, description }) => (
             <Link
               key={href}
               href={href}
               onClick={() => {
-                posthog?.capture('skills_unlock_dialog_link_clicked', { href })
+                posthog?.capture('unlock_dialog_link_clicked', { key: analyticsKey, href })
                 onOpenChange(false)
               }}
               className="flex items-start gap-3 rounded-lg border border-brand/30 bg-brand/5 p-3 transition-colors hover:bg-brand/10"

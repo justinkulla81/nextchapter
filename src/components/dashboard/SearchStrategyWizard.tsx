@@ -2,11 +2,16 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { UnlockAnnouncementDialog, type UnlockItem } from '@/components/dashboard/UnlockAnnouncementDialog'
 
 export interface WizardStep {
   key: string
   label: string
   complete: boolean
+  // Shown once, the moment this step transitions from incomplete to
+  // complete — only the two steps that genuinely unlock another page
+  // (Marketing Plan Willingness, Networking Willingness) set this.
+  unlock?: { introText: string; items: UnlockItem[] }
 }
 
 // Field-level anchors that used to scroll straight to a specific card
@@ -44,11 +49,17 @@ export function SearchStrategyWizard({ steps, children }: { steps: WizardStep[];
   })
   const prevCompleteRef = useRef(steps.map((s) => s.complete))
   const hashScrolledRef = useRef(false)
+  const [unlockStep, setUnlockStep] = useState<WizardStep | null>(null)
 
   useEffect(() => {
     const prev = prevCompleteRef.current
-    if (!prev[currentStep] && steps[currentStep]?.complete && currentStep < steps.length - 1) {
-      setCurrentStep((s) => s + 1)
+    const justCompleted = !prev[currentStep] && steps[currentStep]?.complete
+    // Reacting to the profile data a server action just revalidated in, not
+    // a render-time-derivable value.
+    if (justCompleted) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (steps[currentStep]?.unlock) setUnlockStep(steps[currentStep])
+      if (currentStep < steps.length - 1) setCurrentStep((s) => s + 1)
     }
     prevCompleteRef.current = steps.map((s) => s.complete)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,6 +140,18 @@ export function SearchStrategyWizard({ steps, children }: { steps: WizardStep[];
           <span className="w-20" aria-hidden />
         )}
       </div>
+
+      {unlockStep?.unlock && (
+        <UnlockAnnouncementDialog
+          open={!!unlockStep}
+          onOpenChange={(open) => {
+            if (!open) setUnlockStep(null)
+          }}
+          introText={unlockStep.unlock.introText}
+          items={unlockStep.unlock.items}
+          analyticsKey={`search_strategy_${unlockStep.key}`}
+        />
+      )}
     </div>
   )
 }

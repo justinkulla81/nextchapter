@@ -30,6 +30,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
+import { Megaphone, Share2, Users } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -199,8 +200,44 @@ export default async function SearchStrategyPage() {
     { key: 'so-far', label: 'So Far', complete: optionalQuestionsAnswered },
     { key: 'target-role', label: 'Target Role & Company', complete: targetRoleComplete },
     { key: 'blockers-motivations', label: 'Blockers & Motivations', complete: blockersMotivationsComplete },
-    { key: 'marketing-plan', label: 'Marketing Plan Willingness', complete: marketingPlanWillingnessComplete },
-    { key: 'networking', label: 'Networking Willingness', complete: networkingWillingnessComplete },
+    {
+      key: 'marketing-plan',
+      label: 'Marketing Plan Willingness',
+      complete: marketingPlanWillingnessComplete,
+      unlock: {
+        introText: 'Answering Marketing Plan Willingness just unlocked:',
+        items: [
+          {
+            href: '/dashboard/marketing-plan',
+            icon: Megaphone,
+            label: 'My Marketing Plan',
+            description: 'Draft your narrative and post ideas grounded in your real background.',
+          },
+          {
+            href: '/dashboard/linkedin',
+            icon: Share2,
+            label: 'LinkedIn',
+            description: 'Generate and post directly to LinkedIn.',
+          },
+        ],
+      },
+    },
+    {
+      key: 'networking',
+      label: 'Networking Willingness',
+      complete: networkingWillingnessComplete,
+      unlock: {
+        introText: 'Answering Networking Willingness just unlocked:',
+        items: [
+          {
+            href: '/dashboard/network',
+            icon: Users,
+            label: 'My Network',
+            description: 'Outreach scripts calibrated to what you said you were comfortable with.',
+          },
+        ],
+      },
+    },
     { key: 'negotiation-interview', label: 'Negotiation & Interview Comfort', complete: negotiationInterviewComfortComplete },
     { key: 'benefits', label: 'Compensation & Benefits', complete: benefitsAnswered },
   ]

@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { CheckCircle2 } from 'lucide-react'
+import { BookOpen, CheckCircle2, Video } from 'lucide-react'
 import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/actions'
 import { SkillsHaveAndNeedForm } from '@/components/dashboard/SkillsHaveAndNeedForm'
-import { SkillsUnlockDialog } from '@/components/dashboard/SkillsUnlockDialog'
+import { UnlockAnnouncementDialog } from '@/components/dashboard/UnlockAnnouncementDialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -131,7 +131,26 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           targetRole={profile.targetRoleType}
           onConfirmed={() => setStep('done')}
         />
-        <SkillsUnlockDialog open={showUnlockDialog} onOpenChange={setShowUnlockDialog} />
+        <UnlockAnnouncementDialog
+          open={showUnlockDialog}
+          onOpenChange={setShowUnlockDialog}
+          introText="Completing your Skills Assessment just unlocked:"
+          analyticsKey="skills"
+          items={[
+            {
+              href: '/dashboard/learning',
+              icon: BookOpen,
+              label: 'Learn New Skills',
+              description: 'Courses picked for the skills you just told us you want to build.',
+            },
+            {
+              href: '/dashboard/webinars',
+              icon: Video,
+              label: 'Videos and Webinars',
+              description: 'Videos matched to your skills and target role.',
+            },
+          ]}
+        />
       </div>
     )
   }
