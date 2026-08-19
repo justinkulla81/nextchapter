@@ -4,7 +4,6 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
@@ -72,10 +71,12 @@ export default async function AdminCandidatesPage({
         highestLevelReached: true,
         recruiterDatabaseOptIn: true,
         signupIp: true,
-        marketRealityReports: {
-          orderBy: { generatedAt: 'desc' },
+        // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+        // MarketRealityReport — a report only generates on specific triggers.
+        marketRealitySnapshots: {
+          orderBy: { weekStartDate: 'desc' },
           take: 1,
-          select: { dossierGradeAtGeneration: true },
+          select: { grade: true },
         },
       },
     }),
@@ -84,7 +85,7 @@ export default async function AdminCandidatesPage({
   ])
 
   const rows: Row[] = candidates.map((c) => {
-    const grade = normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)
+    const grade = c.marketRealitySnapshots[0]?.grade ?? null
     return {
       id: c.id,
       name: [c.firstName, c.lastName].filter(Boolean).join(' ') || 'Unnamed',
@@ -93,7 +94,7 @@ export default async function AdminCandidatesPage({
       intensityLabel: c.searchIntensity ? INTENSITY_LABEL[c.searchIntensity] : null,
       primaryFunction: c.primaryFunction,
       level: c.highestLevelReached,
-      grade: grade?.grade ?? null,
+      grade,
       optedIn: c.recruiterDatabaseOptIn,
       signupIp: c.signupIp,
     }

@@ -1,6 +1,5 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import type { Grade } from '@/lib/scoring/grade'
 import { suppressSmallCells, type MaybeSuppressed } from '@/lib/admin/cell-suppression'
 
@@ -50,10 +49,12 @@ export async function computeStructuralCorrelation(): Promise<Record<string, May
       jobHoppingFlag: true,
       careerTrajectory: true,
       bountyClaims: { select: { status: true } },
-      marketRealityReports: {
-        orderBy: { generatedAt: 'desc' },
+      // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+      // MarketRealityReport — a report only generates on specific triggers.
+      marketRealitySnapshots: {
+        orderBy: { weekStartDate: 'desc' },
         take: 1,
-        select: { dossierGradeAtGeneration: true },
+        select: { grade: true },
       },
     },
   })
@@ -61,7 +62,7 @@ export async function computeStructuralCorrelation(): Promise<Record<string, May
   const enriched = candidates.map((c) => ({
     ...c,
     hasApprovedOffer: c.bountyClaims.some((b) => b.status === 'APPROVED'),
-    grade: normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)?.grade ?? null,
+    grade: (c.marketRealitySnapshots[0]?.grade as Grade | undefined) ?? null,
   }))
 
   const hasMBA = [

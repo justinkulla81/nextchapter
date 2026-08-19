@@ -5,7 +5,6 @@ import type { CommittedAction } from '@/lib/weekly/sprint'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { getKeyCoachingOnboardingAnswers } from '@/lib/coach/onboarding-form'
 import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 import { getLatestDimensionSnapshot } from '@/lib/coach/dimension-history'
@@ -154,7 +153,7 @@ async function generateOpeningQuestion(facts: string): Promise<string> {
 export async function getPreSessionBrief(candidateId: string): Promise<PreSessionBrief> {
   const [
     candidate,
-    recentReports,
+    recentSnapshots,
     currentSprint,
     avoidancePattern,
     moodInfo,
@@ -163,11 +162,15 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
     dimensions,
   ] = await Promise.all([
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-      prisma.marketRealityReport.findMany({
+      // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+      // MarketRealityReport — a report only generates on specific triggers,
+      // so "latest vs. previous report" could land weeks apart or find only
+      // one at all; the weekly snapshot doesn't have that gap.
+      prisma.marketRealitySnapshot.findMany({
         where: { candidateId },
-        orderBy: { generatedAt: 'desc' },
+        orderBy: { weekStartDate: 'desc' },
         take: 2,
-        select: { dossierGradeAtGeneration: true },
+        select: { grade: true },
       }),
       prisma.weeklySprint.findUnique({
         where: { candidateId_weekStartDate: { candidateId, weekStartDate: getMondayOfWeek(new Date()) } },
@@ -187,11 +190,9 @@ export async function getPreSessionBrief(candidateId: string): Promise<PreSessio
   const interventionSuggestions =
     concerningDimensions.length >= 2 ? getInterventionSuggestions(concerningDimensions.map((d) => d.key)) : []
 
-  const [latestReport, previousReport] = recentReports
-  const executionGrade =
-    normalizeGradeSnapshot(latestReport?.dossierGradeAtGeneration)?.grade ?? null
-  const previousGrade =
-    normalizeGradeSnapshot(previousReport?.dossierGradeAtGeneration)?.grade ?? null
+  const [latestSnapshot, previousSnapshot] = recentSnapshots
+  const executionGrade = (latestSnapshot?.grade as Grade | undefined) ?? null
+  const previousGrade = (previousSnapshot?.grade as Grade | undefined) ?? null
   const trend: Trend =
     executionGrade && previousGrade
       ? GRADE_ORDER.indexOf(executionGrade) > GRADE_ORDER.indexOf(previousGrade)

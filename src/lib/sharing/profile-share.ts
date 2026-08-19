@@ -2,8 +2,8 @@ import 'server-only'
 import type { ShareRecipientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { DossierCompetencies } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
+import type { Grade } from '@/lib/scoring/grade'
+import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { sanitizeRoleTitle, selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
 
 export type ShareStatus = 'active' | 'expired' | 'revoked' | 'not_found'
@@ -40,7 +40,7 @@ export interface SharedProfileView {
   resumeSignedUrl: string | null
   references: SharedReference[]
   targetCompMin: number | null
-  marketRealityGrade: DossierCompetencies | null
+  marketRealityGrade: Grade | null
   gapExplanation: string | null
 }
 
@@ -75,7 +75,6 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
           resumes: { orderBy: { uploadedAt: 'desc' }, take: 1 },
           references: { where: { status: 'COMPLETED' } },
           narratives: { orderBy: { generatedAt: 'asc' }, take: 1 },
-          marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
         },
       },
     },
@@ -170,16 +169,15 @@ export async function getSharedProfileView(token: string): Promise<SharedProfile
     }
   }
 
-  // Coach — full profile, including the Current Market Reality and Search
-  // Action Grade snapshot from the most recent report. Private Victoria chat
-  // history is never included.
-  const latestReport = candidate.marketRealityReports[0]
+  // Coach — full profile, including the live Current Market Reality grade.
+  // Private Victoria chat history is never included.
+  const composite = await computeMarketRealityCompositeGrade(candidate.id)
   return {
     ...base,
     resumeSignedUrl: await signResume(),
     references: referencesFor(),
     targetCompMin: candidate.targetCompMin,
-    marketRealityGrade: normalizeGradeSnapshot(latestReport?.dossierGradeAtGeneration),
+    marketRealityGrade: composite?.grade ?? null,
     gapExplanation: candidate.gapExplanation,
   }
 }

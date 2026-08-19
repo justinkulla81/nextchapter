@@ -1,8 +1,6 @@
 import 'server-only'
-import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { MOOD_SCORE } from '@/lib/daily/mood-labels'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import type { Grade } from '@/lib/scoring/grade'
 import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
 
@@ -69,10 +67,12 @@ const CANDIDATE_PERFORMANCE_SELECT = {
   dailyCheckIns: {
     select: { mood: true, checkedInAt: true },
   },
-  marketRealityReports: {
-    orderBy: { generatedAt: 'desc' },
+  // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+  // MarketRealityReport — a report only generates on specific triggers.
+  marketRealitySnapshots: {
+    orderBy: { weekStartDate: 'desc' },
     take: 1,
-    select: { dossierGradeAtGeneration: true },
+    select: { grade: true },
   },
   jobPostings: { where: { appliedAt: { not: null } }, select: { id: true } },
   outreachLogs: { select: { id: true } },
@@ -88,7 +88,7 @@ type CandidateForPerformance = {
   createdAt: Date
   registrationCompletedAt: Date | null
   dailyCheckIns: { mood: string; checkedInAt: Date }[]
-  marketRealityReports: { dossierGradeAtGeneration: Prisma.JsonValue }[]
+  marketRealitySnapshots: { grade: string }[]
   jobPostings: { id: string }[]
   outreachLogs: { id: string }[]
   weeklySprints: { committedActions: unknown }[]
@@ -110,7 +110,7 @@ function buildPerformanceRow(c: CandidateForPerformance, email: string, now: Dat
             checkInsInWindow.length
         )
   const lowSentiment = sentimentScore !== null && sentimentScore < 30
-  const grade = normalizeGradeSnapshot(c.marketRealityReports[0]?.dossierGradeAtGeneration)
+  const recentGrade = (c.marketRealitySnapshots[0]?.grade as Grade | undefined) ?? null
 
   const jobsAppliedCount = c.jobPostings.length
   const networkingCount = c.outreachLogs.length
@@ -131,7 +131,7 @@ function buildPerformanceRow(c: CandidateForPerformance, email: string, now: Dat
     email,
     sentimentScore,
     lowSentiment,
-    recentGrade: grade?.grade ?? null,
+    recentGrade,
     jobsAppliedCount,
     networkingCount,
     actionsDoneCount,

@@ -66,19 +66,7 @@ import {
   type CategoryGrade,
   type WeeklyEngine,
   type WeeklyEngineKey,
-  type DossierCompetencies,
-  type Grade,
 } from '@/lib/scoring/grade'
-
-export type {
-  Grade,
-  CategoryKey,
-  CategoryGrade,
-  WeeklyEngine,
-  WeeklyEngineKey,
-  DossierCompetencies,
-} from '@/lib/scoring/grade'
-export { scoreToGrade, GRADE_LABEL, type ConfidenceLevel } from '@/lib/scoring/grade'
 
 export type CandidateWithGradeRelations = CandidateProfile & {
   references: Reference[]
@@ -642,56 +630,3 @@ export const GRADE_RELATIONS_INCLUDE = {
   coach: { select: { focus: true } },
 } as const
 
-// Legacy shape, stored in MarketRealityReport.dossierGradeAtGeneration
-// (and MarketRealitySnapshot-adjacent JSON) before the Scoring Model 2.0
-// collapse — kept narrow and local to this one adapter, not re-exported,
-// since nothing should be written in this shape going forward.
-interface LegacyDossierCompetenciesSnapshot {
-  marketReality: { score: number; grade: Grade }
-  searchExecution: {
-    engines: WeeklyEngine[]
-    categoryMinimumsMet: boolean
-    laggingEngines: WeeklyEngineKey[]
-    weeklyPoints: number
-    weeklyPointsTarget: number
-    bonusMultiplier?: number
-    hasExecutiveCoach?: boolean
-    hadPriorWeekA?: boolean
-    recognizedWeeklyPoints?: number
-    weeklyVisibilityBonus?: number
-  }
-}
-
-function isLegacySnapshot(raw: object): raw is LegacyDossierCompetenciesSnapshot {
-  return 'marketReality' in raw && 'searchExecution' in raw
-}
-
-// Reads a stored grade snapshot in either shape. Old (pre-collapse) rows
-// have no six-category breakdown to recover — the dimensions they stored
-// don't map cleanly onto the new categories, so rather than fabricate a
-// wrong-looking breakdown, categories comes back empty and callers that
-// render it should treat that the same as "not available for this report."
-// The overall grade, weekly engines, and bonus fields all carry over
-// faithfully, since those kept the same shape or a directly compatible one
-// (the four weekly engine keys didn't change).
-export function normalizeGradeSnapshot(raw: unknown): DossierCompetencies | null {
-  if (!raw || typeof raw !== 'object') return null
-  if (isLegacySnapshot(raw)) {
-    return {
-      score: raw.marketReality.score,
-      grade: raw.marketReality.grade,
-      categories: [],
-      weeklyEngines: raw.searchExecution.engines,
-      categoryMinimumsMet: raw.searchExecution.categoryMinimumsMet,
-      laggingEngines: raw.searchExecution.laggingEngines,
-      weeklyPoints: raw.searchExecution.weeklyPoints,
-      weeklyPointsTarget: raw.searchExecution.weeklyPointsTarget,
-      recognizedWeeklyPoints: raw.searchExecution.recognizedWeeklyPoints ?? raw.searchExecution.weeklyPoints,
-      weeklyVisibilityBonus: raw.searchExecution.weeklyVisibilityBonus ?? 0,
-      bonusMultiplier: raw.searchExecution.bonusMultiplier ?? 1,
-      hasExecutiveCoach: raw.searchExecution.hasExecutiveCoach ?? false,
-      hadPriorWeekA: raw.searchExecution.hadPriorWeekA ?? false,
-    }
-  }
-  return raw as DossierCompetencies
-}

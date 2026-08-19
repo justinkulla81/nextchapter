@@ -1,7 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 
 const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
 
@@ -24,21 +23,23 @@ function trendFor(latest: Grade | null, previous: Grade | null): Trend {
   return 'flat'
 }
 
+// Reads MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+// MarketRealityReport — a report only generates on specific triggers, so
+// "latest vs. previous report" could compare two reports weeks apart or
+// find only one at all; the weekly snapshot doesn't have that gap.
 export async function getCoachClientSummaries(coachId: string): Promise<ClientSummary[]> {
   const clients = await prisma.candidateProfile.findMany({
     where: { coachId },
     include: {
-      marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 2, select: { dossierGradeAtGeneration: true } },
+      marketRealitySnapshots: { orderBy: { weekStartDate: 'desc' }, take: 2, select: { grade: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
 
   return clients.map((c) => {
-    const [latestReport, previousReport] = c.marketRealityReports
-    const latestGrade =
-      normalizeGradeSnapshot(latestReport?.dossierGradeAtGeneration)?.grade ?? null
-    const previousGrade =
-      normalizeGradeSnapshot(previousReport?.dossierGradeAtGeneration)?.grade ?? null
+    const [latestSnapshot, previousSnapshot] = c.marketRealitySnapshots
+    const latestGrade = (latestSnapshot?.grade as Grade | undefined) ?? null
+    const previousGrade = (previousSnapshot?.grade as Grade | undefined) ?? null
 
     const weekNumber = c.registrationCompletedAt
       ? Math.floor((Date.now() - c.registrationCompletedAt.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1

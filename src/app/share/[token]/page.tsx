@@ -204,9 +204,9 @@ export default async function SharedProfilePage({
               <div>
                 <p className="text-xs text-muted-foreground">Current Market Reality</p>
                 <p className="text-lg font-semibold">
-                  {view.marketRealityGrade.grade}{' '}
+                  {view.marketRealityGrade}{' '}
                   <span className="text-sm font-normal text-muted-foreground">
-                    ({GRADE_LABEL[view.marketRealityGrade.grade]})
+                    ({GRADE_LABEL[view.marketRealityGrade]})
                   </span>
                 </p>
               </div>

@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { MOOD_LABEL } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
 import { getDimensionHistory, type DimensionHistoryPoint } from '@/lib/coach/dimension-history'
 import type { SessionDimensionKey } from '@/lib/coach/session-dimensions'
 
@@ -34,13 +33,15 @@ export interface FullClientView {
 }
 
 export async function getFullClientView(candidateId: string): Promise<FullClientView> {
-  const [candidate, reports, workHistory, references, moods, sessions, dimensionHistory] = await Promise.all([
+  const [candidate, snapshots, workHistory, references, moods, sessions, dimensionHistory] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } }),
-    prisma.marketRealityReport.findMany({
+    // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+    // MarketRealityReport — a report only generates on specific triggers.
+    prisma.marketRealitySnapshot.findMany({
       where: { candidateId },
-      orderBy: { generatedAt: 'desc' },
+      orderBy: { weekStartDate: 'desc' },
       take: 5,
-      select: { generatedAt: true, dossierGradeAtGeneration: true },
+      select: { weekStartDate: true, grade: true },
     }),
     prisma.workHistoryEntry.findMany({
       where: { candidateId },
@@ -84,14 +85,11 @@ export async function getFullClientView(candidateId: string): Promise<FullClient
     targetRoleType: candidate.targetRoleType,
     primaryFunction: candidate.primaryFunction,
     targetIndustries: candidate.targetIndustries,
-    gradeHistory: reports.map((r) => {
-      const grade = normalizeGradeSnapshot(r.dossierGradeAtGeneration)
-      return {
-        generatedAt: r.generatedAt,
-        executionGrade: grade?.grade ?? null,
-        marketGrade: grade?.grade ?? null,
-      }
-    }),
+    gradeHistory: snapshots.map((s) => ({
+      generatedAt: s.weekStartDate,
+      executionGrade: (s.grade as Grade | null) ?? null,
+      marketGrade: (s.grade as Grade | null) ?? null,
+    })),
     workHistory,
     references: references.map((r) => ({
       refereeName: r.refereeName,

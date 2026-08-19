@@ -3,7 +3,7 @@ import type { AdminNudgeType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
+import type { Grade } from '@/lib/scoring/grade'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 
@@ -242,18 +242,20 @@ async function buildCommunityDraft(candidateId: string, firstName: string): Prom
 }
 
 async function buildRecruiterHelpDraft(candidateId: string, firstName: string): Promise<NudgeDraft> {
-  const [profile, latestReport] = await Promise.all([
+  const [profile, latestSnapshot] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: { recruiterDatabaseOptIn: true, coachId: true },
     }),
-    prisma.marketRealityReport.findFirst({
+    // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
+    // MarketRealityReport — a report only generates on specific triggers.
+    prisma.marketRealitySnapshot.findFirst({
       where: { candidateId },
-      orderBy: { generatedAt: 'desc' },
-      select: { dossierGradeAtGeneration: true },
+      orderBy: { weekStartDate: 'desc' },
+      select: { grade: true },
     }),
   ])
-  const grade = latestReport ? normalizeGradeSnapshot(latestReport.dossierGradeAtGeneration)?.grade : null
+  const grade = (latestSnapshot?.grade as Grade | undefined) ?? null
 
   const statusLine = [
     grade ? `You're currently graded ${grade}.` : `You don't have a graded report yet.`,

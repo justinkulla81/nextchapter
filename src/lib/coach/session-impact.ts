@@ -3,14 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { detectAvoidancePattern } from '@/lib/coach/pre-session-brief'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
-import type { Grade } from '@/lib/scoring/grade'
-import { normalizeGradeSnapshot } from '@/lib/scoring/dossier-competencies'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getCoachingSettings } from '@/lib/admin/coaching-settings'
 
 export interface SessionImpactReport {
   sessionId: string
-  gradeMovement: { from: Grade | null; to: Grade | null }
+  dossierCompleteness: { metCount: number; totalCount: number }
   actionsCompletedSinceLastSession: number
   avoidancePatternStillPresent: string | null
   summary: string
@@ -33,19 +32,8 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
   const [latestSession, previousSession] = sessions
   const windowStart = previousSession?.occurredAt ?? null
 
-  const [gradeBefore, gradeAfter, sprintsInWindow, avoidancePattern] = await Promise.all([
-    windowStart
-      ? prisma.marketRealityReport.findFirst({
-          where: { candidateId, generatedAt: { lte: windowStart } },
-          orderBy: { generatedAt: 'desc' },
-          select: { dossierGradeAtGeneration: true },
-        })
-      : null,
-    prisma.marketRealityReport.findFirst({
-      where: { candidateId, generatedAt: { lte: latestSession.occurredAt } },
-      orderBy: { generatedAt: 'desc' },
-      select: { dossierGradeAtGeneration: true },
-    }),
+  const [dossierCompleteness, sprintsInWindow, avoidancePattern] = await Promise.all([
+    computeDossierCompleteness(candidateId),
     prisma.weeklySprint.findMany({
       where: {
         candidateId,
@@ -58,18 +46,13 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
     detectAvoidancePattern(candidateId),
   ])
 
-  const gradeFrom =
-    normalizeGradeSnapshot(gradeBefore?.dossierGradeAtGeneration)?.grade ?? null
-  const gradeTo =
-    normalizeGradeSnapshot(gradeAfter?.dossierGradeAtGeneration)?.grade ?? null
-
   const actionsCompletedSinceLastSession = sprintsInWindow.reduce((sum, sprint) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]
     return sum + actions.filter((a) => a.completed).length
   }, 0)
 
   const facts = [
-    windowStart ? `Grade moved from ${gradeFrom ?? 'no grade'} to ${gradeTo ?? 'no grade'} since the last session.` : `Current grade: ${gradeTo ?? 'no grade yet'}.`,
+    `Dossier completeness: ${dossierCompleteness.metCount} of ${dossierCompleteness.totalCount} requirements met.`,
     `Completed ${actionsCompletedSinceLastSession} action${actionsCompletedSinceLastSession === 1 ? '' : 's'} since the last session.`,
     avoidancePattern
       ? `Still avoiding "${avoidancePattern.actionType}" actions (${avoidancePattern.weeksAvoided} weeks running).`
@@ -81,7 +64,7 @@ export async function getSessionImpactReport(candidateId: string): Promise<Sessi
 
   return {
     sessionId: latestSession.id,
-    gradeMovement: { from: gradeFrom, to: gradeTo },
+    dossierCompleteness: { metCount: dossierCompleteness.metCount, totalCount: dossierCompleteness.totalCount },
     actionsCompletedSinceLastSession,
     avoidancePatternStillPresent: avoidancePattern?.actionType ?? null,
     summary,
