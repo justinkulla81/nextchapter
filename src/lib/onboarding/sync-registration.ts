@@ -1,9 +1,11 @@
 import 'server-only'
+import { after } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 import { prisma } from '@/lib/prisma'
 import type { CandidateProfile } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { findIdentityMatchesForCandidate } from '@/lib/onboarding/identity-match'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -78,6 +80,19 @@ export async function syncRegistrationCompletion(
   })
 
   captureServerEvent(updated.id, 'account_created', { email: updated.email ?? undefined })
+
+  // This real person may already exist elsewhere — a reference, a coach/
+  // recruiter invite lead, or someone else's outreach/LinkedIn contact.
+  // Flags matches for admin review; never links anything automatically.
+  // Failure here must never block registration itself finishing.
+  if (confirmedEmail) {
+    const fullName = [updated.firstName, updated.lastName].filter(Boolean).join(' ').trim() || null
+    after(() =>
+      findIdentityMatchesForCandidate(updated.id, confirmedEmail, fullName).catch((error) =>
+        console.error('Failed to check for candidate identity matches:', error)
+      )
+    )
+  }
 
   return { profile: updated, justRegistered: true }
 }

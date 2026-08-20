@@ -1332,6 +1332,9 @@ model CandidateProfile {
   workHistory                    WorkHistoryEntry[]
   educationHistory               EducationEntry[]
   references                     Reference[]
+  referencedAsRefereeBy          Reference[]              @relation("RefereeCandidate")
+  linkedFromContacts             SupportNetworkContact[]  @relation("SupportNetworkContactLinkedCandidate")
+  identityMatches                CandidateIdentityMatch[]
   referenceQuotes                ReferenceQuote[]
   competencyScores               CompetencyScore[]
   claimedEmployerReferences      EmployerReferenceSubmission[]
@@ -1827,6 +1830,12 @@ model Reference {
   refereeName          String
   refereeTitle         String? // the REFEREE's own title (e.g. "VP Engineering"), not the candidate's — see "Their title" on ReferenceRequestForm
   refereeCompany       String? // the REFEREE's own company, not the candidate's
+  // Set only via admin-confirmed CandidateIdentityMatch — never inferred or
+  // auto-linked. The referee is a real NextChapter member in their own
+  // right; this is purely an FYI cross-link, not required for the
+  // reference flow (token-based, email-only) to keep working.
+  refereeCandidateId   String?
+  refereeCandidate     CandidateProfile? @relation("RefereeCandidate", fields: [refereeCandidateId], references: [id], onDelete: SetNull)
   relationshipType     ReferenceType
   yearsWorkedTogether  Int?
   verifiedRelationship Boolean         @default(false)
@@ -3736,6 +3745,60 @@ model ScholarshipApplication {
   @@index([status])
 }
 
+enum CandidateIdentityMatchSource {
+  REFERENCE // Reference.refereeEmail matched this candidate's confirmed email
+  COACH_INVITE // CoachClientInvite.invitedEmail matched — signed up organically, not via the invite link
+  RECRUITER_LEAD // SourcedCandidate.email matched — same, organic signup rather than the invite link
+  CONTACT // SupportNetworkContact.email/emails[] (someone else's outreach/LinkedIn import) matched
+}
+
+enum CandidateIdentityMatchStrength {
+  EMAIL_EXACT
+  PHONE_EXACT
+  FUZZY_NAME_WORK_LOCATION // CONTACT only — name + company overlap with this candidate's own WorkHistoryEntry, no email/phone on file
+}
+
+enum CandidateIdentityMatchStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+// A newly-registered candidate may already exist elsewhere in the system as
+// a reference, a coach/recruiter invite lead, or someone else's outreach/
+// LinkedIn contact — all of which are free-text records with no real link to
+// a CandidateProfile until a human confirms it's the same person. Always
+// admin-reviewed, exactly like BountyClaim/ScholarshipApplication — no code
+// path here ever auto-confirms, regardless of match strength (explicit
+// product decision: even an exact email match still requires a click,
+// because the actual link operation touches another person's data, not just
+// this candidate's own).
+model CandidateIdentityMatch {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  source         CandidateIdentityMatchSource
+  sourceRecordId String // id of the Reference/CoachClientInvite/SourcedCandidate/SupportNetworkContact row
+  strength       CandidateIdentityMatchStrength
+
+  // Denormalized snapshot for admin display — the source record can change
+  // (or even be deleted) after this flag is created; the review UI should
+  // still show what matched at detection time.
+  matchedName    String?
+  matchedEmail   String?
+  matchedCompany String?
+
+  status       CandidateIdentityMatchStatus @default(PENDING)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([candidateId, source, sourceRecordId])
+  @@index([status])
+}
+
 // Prompt 76 — one Gmail connection per candidate. GMAIL only for now (Outlook
 // dropped from this pass). Testing-mode only: no candidate outside the
 // internal testing allow-list can complete this connection until a real CASA
@@ -3976,6 +4039,12 @@ model SupportNetworkContact {
   // stale), so this is candidate-confirmed only, set from the Company
   // page's "Still there?" / "They left" buttons. Null = unconfirmed.
   employmentStatusAtCompany ContactEmploymentStatus?
+  // Set only via admin-confirmed CandidateIdentityMatch — this contact IS a
+  // real NextChapter member in their own right. Nullable/fan-in: the same
+  // real person can be a contact in many different candidates' lists, each
+  // with its own row here, all pointing at the one real CandidateProfile.
+  linkedCandidateId         String?
+  linkedCandidate           CandidateProfile?          @relation("SupportNetworkContactLinkedCandidate", fields: [linkedCandidateId], references: [id], onDelete: SetNull)
   // Multi-select "who is this person" tags — see RelationshipTag's comment.
   relationshipTags        RelationshipTag[]          @default([])
   // Set when the candidate marks SAME_SCHOOL and names the school.

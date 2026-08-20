@@ -29,6 +29,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
     bountyClaims: approvalsNeeded.pendingBountyClaims,
     referenceDisputes: approvalsNeeded.unresolvedReferenceDisputes,
     scholarshipApplications: approvalsNeeded.pendingScholarshipApplications,
+    identityMatches: approvalsNeeded.pendingIdentityMatches,
     reportedMessages,
     communityModeration,
     // Job Board listings are their own review queue (shown on the Job Board

@@ -10,6 +10,7 @@ export interface AdminApprovalsNeeded {
   unresolvedReferenceDisputes: number
   pendingIntroRequests: number
   pendingScholarshipApplications: number
+  pendingIdentityMatches: number
 }
 
 export interface AdminRecentActivity {
@@ -59,6 +60,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     unresolvedReferenceDisputes,
     pendingIntroRequests,
     pendingScholarshipApplications,
+    pendingIdentityMatches,
     newCandidateSignups,
     newJobBoardListings,
     newRecruiterOptIns,
@@ -75,6 +77,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
     prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
     prisma.scholarshipApplication.count({ where: { status: 'PENDING' } }),
+    prisma.candidateIdentityMatch.count({ where: { status: 'PENDING' } }),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
     prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo }, status: { not: 'rejected' } } }),
     prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
@@ -94,6 +97,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
       unresolvedReferenceDisputes,
       pendingIntroRequests,
       pendingScholarshipApplications,
+      pendingIdentityMatches,
     },
     recentActivity: {
       newCandidateSignups,
