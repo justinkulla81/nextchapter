@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
+import { ReferralForm } from '@/components/marketing/ReferralForm'
 import { ReferralShareBox } from '@/components/marketing/ReferralShareBox'
 
 export const metadata: Metadata = {
@@ -34,6 +35,14 @@ export default function ReferPage() {
           link and let them start whenever they&apos;re ready.
         </p>
         <div className="mt-8">
+          <ReferralForm />
+        </div>
+        <div className="mt-6 flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
+          <span>or share it yourself</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+        <div className="mt-6">
           <ReferralShareBox />
         </div>
       </div>
