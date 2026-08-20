@@ -7,8 +7,15 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import type { MatchResult } from '@/lib/matching/compute-match-score'
 import { expressInterest, saveCandidate } from '@/app/talent/(app)/roles/[id]/candidates/actions'
 
-function displayIdentity(candidate: Pick<CandidateProfile, 'privacyTier' | 'firstName' | 'lastName' | 'highestLevelReached' | 'primaryFunction'>): string {
-  if (candidate.privacyTier === 'PUBLIC' && candidate.firstName) {
+function displayIdentity(
+  candidate: Pick<CandidateProfile, 'privacyTier' | 'firstName' | 'lastName' | 'highestLevelReached' | 'primaryFunction'>,
+  // Locked (Dossier not unlocked) candidates stay anonymized regardless of
+  // their own privacyTier choice — the teaser is the same for everyone
+  // until real evidence/effort is on file, not something a PUBLIC-tier
+  // candidate can opt out of by their privacy setting alone.
+  locked: boolean
+): string {
+  if (!locked && candidate.privacyTier === 'PUBLIC' && candidate.firstName) {
     return `${candidate.firstName} ${candidate.lastName?.charAt(0) ?? ''}.`.trim()
   }
   const level = candidate.highestLevelReached ?? 'Experienced'
@@ -22,6 +29,7 @@ export function CandidateCard({
   roleId,
   effortSummary,
   roleLabel,
+  locked = false,
 }: {
   candidate: Pick<
     CandidateProfile,
@@ -38,19 +46,32 @@ export function CandidateCard({
   // of the employer's active roles. Match Inbox (single-role context) omits
   // this since the role is already the page's subject.
   roleLabel?: string
+  // Dossier not yet unlocked — a real match, shown as a teaser (name
+  // withheld, no Save/Compare) rather than filtered out entirely. Express
+  // Interest still works: it's the same expressInterest action every
+  // unlocked candidate uses, which already emails the candidate and shows
+  // up in their dashboard's employer-interest inbox — a locked candidate
+  // who hears a real employer is interested has real reason to finish
+  // unlocking, and the employer already registered interest for when they do.
+  locked?: boolean
 }) {
   const posthog = usePostHog()
 
   return (
-    <div className="space-y-2 rounded-lg border border-border p-4">
+    <div className={locked ? 'space-y-2 rounded-lg border border-dashed border-border p-4' : 'space-y-2 rounded-lg border border-border p-4'}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium text-foreground">{displayIdentity(candidate)}</p>
+          <p className="font-medium text-foreground">{displayIdentity(candidate, locked)}</p>
           <p className="text-sm text-muted-foreground">
             {[candidate.primaryFunction, candidate.highestLevelReached, candidate.currentCity]
               .filter(Boolean)
               .join(' · ')}
           </p>
+          {locked && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Name unlocks once their Executive Dossier completes.
+            </p>
+          )}
         </div>
         <div className="flex flex-col items-end gap-1">
           <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
@@ -64,16 +85,18 @@ export function CandidateCard({
         <form action={expressInterest.bind(null, candidate.id, roleId)}>
           <SubmitButton
             size="sm"
-            onClick={() => posthog?.capture('express_interest_clicked', { candidateId: candidate.id, roleId })}
+            onClick={() => posthog?.capture('express_interest_clicked', { candidateId: candidate.id, roleId, locked })}
           >
-            Express Interest
+            {locked ? "I'm interested — notify me" : 'Express Interest'}
           </SubmitButton>
         </form>
-        <form action={saveCandidate.bind(null, candidate.id, roleId)}>
-          <Button type="submit" variant="outline" size="sm">
-            Save for later
-          </Button>
-        </form>
+        {!locked && (
+          <form action={saveCandidate.bind(null, candidate.id, roleId)}>
+            <Button type="submit" variant="outline" size="sm">
+              Save for later
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   )

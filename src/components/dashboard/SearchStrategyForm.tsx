@@ -446,6 +446,12 @@ export function SearchStrategyForm({
           />
         )}
         <div className="flex items-start gap-2">
+          <Checkbox id="travelWillingness" name="travelWillingness" value="on" defaultChecked={profile.travelWillingness} />
+          <Label htmlFor="travelWillingness" className="font-normal">
+            I&apos;m willing to travel for a role (not the same as relocating)
+          </Label>
+        </div>
+        <div className="flex items-start gap-2">
           <Checkbox
             id="interimConsultingInterest"
             name="interimConsultingInterest"

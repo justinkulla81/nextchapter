@@ -7,6 +7,7 @@ import { updateResumeDetails, duplicateResumeAsNewVersion } from '@/app/dashboar
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ResumeViewButton } from '@/components/dashboard/ResumeViewButton'
 import { cn } from '@/lib/utils'
 
 export interface ResumeVersionItem extends Pick<Resume, 'id' | 'fileName' | 'label' | 'description' | 'uploadedAt'> {
@@ -72,9 +73,13 @@ function ResumeVersionRow({
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs font-medium">
           {version.signedUrl && (
-            <a href={version.signedUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            <ResumeViewButton
+              signedUrl={version.signedUrl}
+              title={version.label || version.fileName}
+              className="text-primary hover:underline"
+            >
               View
-            </a>
+            </ResumeViewButton>
           )}
           <button type="button" onClick={onToggle} className="text-muted-foreground hover:text-foreground">
             {isExpanded ? 'Hide' : 'Edit'}

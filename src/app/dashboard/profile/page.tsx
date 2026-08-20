@@ -112,13 +112,28 @@ export default async function ProfileHubPage() {
           Everything about you lives in one of the sections below.
         </p>
         {totalItems > 0 && (
-          <p className="text-sm text-foreground">
-            {percentComplete === 100
-              ? "You're fully set up — nice work."
-              : `Your profile is ${percentComplete}% complete — you're in good shape. ${
-                  firstIncompleteSection ? `One thing would make it stronger: ${firstIncompleteSection.title.toLowerCase()}.` : ''
-                }`}
-          </p>
+          <div className="space-y-1.5">
+            <p className="text-sm text-foreground">
+              {percentComplete === 100
+                ? "You're fully set up — nice work."
+                : `Your profile is ${percentComplete}% complete — you're in good shape. ${
+                    firstIncompleteSection ? `One thing would make it stronger: ${firstIncompleteSection.title.toLowerCase()}.` : ''
+                  }`}
+            </p>
+            <div
+              role="progressbar"
+              aria-valuenow={percentComplete}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Profile completion"
+              className="h-1.5 w-full overflow-hidden rounded-full bg-off-white"
+            >
+              <div
+                className={cn('h-full rounded-full transition-all', percentComplete === 100 ? 'bg-success' : 'bg-brand')}
+                style={{ width: `${percentComplete}%` }}
+              />
+            </div>
+          </div>
         )}
         <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>

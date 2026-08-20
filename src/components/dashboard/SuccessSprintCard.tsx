@@ -21,6 +21,7 @@ import type { ProfileChecklistItem } from '@/lib/weekly/profile-checklist'
 import { CANONICAL_ACTION_LABEL } from '@/lib/weekly/canonical-labels'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
 import type { SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
+import type { Grade } from '@/lib/scoring/grade'
 import { cn } from '@/lib/utils'
 
 interface SuggestedAction extends SuggestedActionLike {
@@ -515,6 +516,7 @@ export function SuccessSprintCard({
   searchStrategyChecklist,
   completedReferencesCount,
   weekStartDate,
+  marketRealityGrade,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -528,6 +530,12 @@ export function SuccessSprintCard({
   searchStrategyChecklist: SearchStrategyChecklist
   completedReferencesCount: number
   weekStartDate: Date
+  // Real "would updating your resume move the needle" signal — anything
+  // short of an A means there's genuine room for a resume update to help,
+  // per composite.ts's own grading. Surfaces RESUME_UPDATE as a Priority
+  // row only when that's actually true, not unconditionally like
+  // OUTREACH_MESSAGE/JOB_APPLICATION_SUBMITTED.
+  marketRealityGrade: Grade | null
 }) {
   // The Get Started gate — everything else in this list (barring
   // UNLOCK_EXEMPT_ACTION_TYPES) stays grayed and locked until Gmail/
@@ -616,6 +624,7 @@ export function SuccessSprintCard({
     if (actionType === 'LEARNING_SESSION_ATTENDED') return true
     if (actionType === 'LINKEDIN_POST_IDEA') return true
     if (actionType === 'THOUGHT_LEADERSHIP_SHARE') return true
+    if (actionType === 'RESUME_UPDATE') return marketRealityGrade !== null && marketRealityGrade !== 'A'
     return false
   }
 
@@ -832,25 +841,34 @@ export function SuccessSprintCard({
                     ))}
                   </ActionGroup>
                 )}
-                {GROUP_ORDER.map((group) => {
-                  const items = sortForDisplay(groups[group])
-                  if (items.length === 0) return null
-                  return (
-                    <ActionGroup key={group} title={group}>
-                      {items.map((row, i) => (
-                        <ActionRow
-                          key={i}
-                          {...row}
-                          locked={isRowLocked(row, bothConnectedUnlocked)}
-                          lockReason={resolvedLockReasonText}
-                          hasEmailConnection={hasEmailConnection}
-                          hasCalendarConnection={hasCalendarConnection}
-                          completedReferencesCount={completedReferencesCount}
-                        />
-                      ))}
-                    </ActionGroup>
-                  )
-                })}
+                {GROUP_ORDER.some((group) => groups[group].length > 0) && (
+                  <details className="group/all">
+                    <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground underline underline-offset-4 [&::-webkit-details-marker]:hidden">
+                      Show all activity
+                    </summary>
+                    <div className="mt-4 space-y-4">
+                      {GROUP_ORDER.map((group) => {
+                        const items = sortForDisplay(groups[group])
+                        if (items.length === 0) return null
+                        return (
+                          <ActionGroup key={group} title={group}>
+                            {items.map((row, i) => (
+                              <ActionRow
+                                key={i}
+                                {...row}
+                                locked={isRowLocked(row, bothConnectedUnlocked)}
+                                lockReason={resolvedLockReasonText}
+                                hasEmailConnection={hasEmailConnection}
+                                hasCalendarConnection={hasCalendarConnection}
+                                completedReferencesCount={completedReferencesCount}
+                              />
+                            ))}
+                          </ActionGroup>
+                        )
+                      })}
+                    </div>
+                  </details>
+                )}
               </div>
             </>
           ) : (

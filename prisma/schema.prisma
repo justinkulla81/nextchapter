@@ -877,6 +877,8 @@ model CandidateProfile {
   startLowerRationale String?
   openToRelocation    Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
   relocationNotes     String?
+  travelWillingness   Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Stored now; not yet wired into job-matching filters, matching the other flexibility fields' current unused-for-filtering state.
+  aiDisplacementReason String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Stored now, not yet wired into search-strategy guidance — see AI_DISPLACEMENT_OPTIONS's comment.
   equityImportant     Boolean  @default(false)
   dealBreakers        String?
 

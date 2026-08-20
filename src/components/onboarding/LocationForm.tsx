@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
-import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS } from '@/lib/constants/onboarding'
+import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_DISPLACEMENT_OPTIONS } from '@/lib/constants/onboarding'
 
 const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDurationBucket, string][]).map(
   ([value, label]) => ({ value, label })
@@ -19,8 +19,10 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateLocationAndSearchStatus, undefined)
   const [remotePreference, setRemotePreference] = useState<string | null>(profile.remotePreference)
   const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
+  const [travelWillingness, setTravelWillingness] = useState(profile.travelWillingness)
   const [justStartedSearch, setJustStartedSearch] = useState(profile.justStartedSearch)
   const [gapDuration, setGapDuration] = useState<GapDurationBucket | null>(profile.gapDuration)
+  const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
 
   return (
     <form
@@ -72,6 +74,19 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
         )}
       </div>
 
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="travelWillingness"
+          name="travelWillingness"
+          value="on"
+          defaultChecked={travelWillingness}
+          onCheckedChange={(checked) => setTravelWillingness(checked === true)}
+        />
+        <Label htmlFor="travelWillingness" className="font-normal">
+          I&apos;m willing to travel for a role (not the same as relocating)
+        </Label>
+      </div>
+
       <div className="border-t border-border pt-5">
         <h2 className="text-sm font-semibold text-foreground">Where are you in your search?</h2>
         <p className="mt-1 text-sm text-muted-foreground">This tells us which part of the process to focus on first.</p>
@@ -84,6 +99,19 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
           options={GAP_DURATION_OPTIONS}
           value={gapDuration}
           onChange={setGapDuration}
+          responsive
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
+        </Label>
+        <ChoiceButtons
+          name="aiDisplacementReason"
+          options={AI_DISPLACEMENT_OPTIONS}
+          value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
+          onChange={setAiDisplacementReason}
           responsive
         />
       </div>

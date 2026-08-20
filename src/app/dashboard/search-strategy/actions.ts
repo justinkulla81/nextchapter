@@ -78,6 +78,7 @@ export async function updateSearchStrategy(
   const isPivoting = formData.get('isPivoting') === 'on'
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = openToRelocation ? (formData.get('relocationNotes') as string | null)?.trim() || null : null
+  const travelWillingness = formData.get('travelWillingness') === 'on'
   const interimConsultingInterest = formData.get('interimConsultingInterest') === 'on'
   const compFlexible = formData.get('compFlexible') === 'on'
   const equityImportant = formData.get('equityImportant') === 'on'
@@ -108,6 +109,7 @@ export async function updateSearchStrategy(
       isPivoting,
       openToRelocation,
       relocationNotes,
+      travelWillingness,
       interimConsultingInterest,
       // Only overwrite when a value was actually entered here — this field
       // is also editable from Search Goals (BenefitsPrioritiesForm), and an

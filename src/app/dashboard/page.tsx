@@ -327,6 +327,7 @@ export default async function DashboardPage() {
           searchStrategyChecklist={searchStrategyChecklist}
           completedReferencesCount={completedReferencesCount}
           weekStartDate={weekStartDate}
+          marketRealityGrade={marketRealityGrade?.grade ?? null}
         />
 
         {/* Build Your Dossier — the real §7.2 dossier-completeness checklist

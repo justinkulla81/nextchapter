@@ -211,6 +211,8 @@ export async function updateLocationAndSearchStatus(
   const remotePreference = formData.get('remotePreference') as string | null
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = (formData.get('relocationNotes') as string | null)?.trim() || null
+  const travelWillingness = formData.get('travelWillingness') === 'on'
+  const aiDisplacementReason = (formData.get('aiDisplacementReason') as string | null) || null
 
   const justStartedSearch = formData.get('justStartedSearch') === 'on'
   const gapDuration = formData.get('gapDuration') as string | null
@@ -238,6 +240,8 @@ export async function updateLocationAndSearchStatus(
       remotePreference,
       openToRelocation,
       relocationNotes: openToRelocation ? relocationNotes : null,
+      travelWillingness,
+      aiDisplacementReason,
       onboardingLocationConfirmedAt: now,
       justStartedSearch,
       gapDuration: gapDuration as GapDurationBucket,

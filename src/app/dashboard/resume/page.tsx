@@ -10,6 +10,7 @@ import { ResumeVersionsList, type ResumeVersionItem } from '@/components/dashboa
 import { ResumeExportForm } from '@/components/dashboard/ResumeExportForm'
 import { ResumeFeedbackCard } from '@/components/dashboard/ResumeFeedbackCard'
 import { ResumeFixCard } from '@/components/dashboard/ResumeFixCard'
+import { ResumeViewButton } from '@/components/dashboard/ResumeViewButton'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -33,14 +34,13 @@ async function ResumeViewLink({ filePath }: { filePath: string }) {
   const { data } = await admin.storage.from('resumes').createSignedUrl(filePath, 60 * 10)
   if (!data?.signedUrl) return null
   return (
-    <a
-      href={data.signedUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <ResumeViewButton
+      signedUrl={data.signedUrl}
+      title="Resume"
       className="text-sm text-primary underline underline-offset-4"
     >
       View
-    </a>
+    </ResumeViewButton>
   )
 }
 

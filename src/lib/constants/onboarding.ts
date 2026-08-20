@@ -53,6 +53,19 @@ export const GAP_DURATION_LABELS: Record<GapDurationBucket, string> = {
   TWELVE_PLUS_MONTHS: '12+ months',
 }
 
+// Optional, gently framed — a candidate whose role ended for AI-related
+// reasons faces a real, distinct search (a market shift, not a personal
+// shortfall), but "prefer not to say" is a first-class option since this
+// can feel loaded right after a job loss. Not yet wired into any
+// downstream guidance — stored as a data point for now, same as
+// travelWillingness.
+export const AI_DISPLACEMENT_OPTIONS = [
+  { value: 'yes', label: 'Yes, directly' },
+  { value: 'partly', label: 'Partly' },
+  { value: 'no', label: 'Not that I know of' },
+  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+] as const
+
 export const LOCATION_PREFERENCE_OPTIONS = [
   { value: 'onsite', label: 'On-site' },
   { value: 'remote', label: 'Remote' },

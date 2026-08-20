@@ -55,6 +55,10 @@ export interface MatchedCandidate {
   roleId: string
   roleTitle: string
   effortSummary: string
+  // Dossier not yet unlocked — CandidateCard renders this row as an
+  // anonymized teaser (name withheld, no Save/Compare) instead of full
+  // detail. Real matches, not filtered out — see CandidateCard's `locked` prop.
+  locked: boolean
 }
 
 // Candidates whose stated target overlaps with ANY of this employer's active
@@ -93,11 +97,13 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
   if (intentMatched.length === 0) return []
 
   // Same "opted-in candidates are a small pool" precedent as the per-role
-  // Match Inbox — live isDossierUnlocked() per row is fine here.
+  // Match Inbox — live isDossierUnlocked() per row is fine here. Locked
+  // candidates stay in the list (as teasers) rather than being filtered
+  // out — see MatchedCandidate.locked.
   const unlockStatuses = await Promise.all(intentMatched.map((c) => isDossierUnlocked(c.id)))
-  const unlocked = intentMatched.filter((_, i) => unlockStatuses[i].unlocked)
+  const lockedById = new Map(intentMatched.map((c, i) => [c.id, !unlockStatuses[i].unlocked]))
 
-  const scored: MatchedCandidate[] = unlocked.map((candidate) => {
+  const scored: MatchedCandidate[] = intentMatched.map((candidate) => {
     const best = roles
       .filter((r) => candidateWantsRole(candidate, r))
       .map((role) => ({ role, match: computeMatchScore(candidate, { ...role, employerCompanySizeBand }) }))
@@ -111,8 +117,21 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
       .map((line) => line.replace(/\.$/, ''))
       .join(', ')
 
-    return { candidate, match: best.match, roleId: best.role.id, roleTitle: best.role.roleTitle, effortSummary }
+    return {
+      candidate,
+      match: best.match,
+      roleId: best.role.id,
+      roleTitle: best.role.roleTitle,
+      effortSummary,
+      locked: lockedById.get(candidate.id) ?? false,
+    }
   })
 
-  return scored.sort((a, b) => b.match.score - a.match.score).slice(0, limit)
+  // Unlocked candidates rank first regardless of raw match score — this is
+  // a small preview widget (default limit 8), and a full-detail match is
+  // worth more here than a higher-scoring teaser the employer can't act on
+  // as directly yet.
+  return scored
+    .sort((a, b) => Number(a.locked) - Number(b.locked) || b.match.score - a.match.score)
+    .slice(0, limit)
 }
