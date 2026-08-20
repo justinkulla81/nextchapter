@@ -103,10 +103,10 @@ export default function Home() {
               For coaches
             </Link>
             <Link
-              href="/employers"
+              href="/for-organizations"
               className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block"
             >
-              For employers →
+              For organizations →
             </Link>
             <Button nativeButton={false} size="default" variant="success" render={<Link href="/auth/login" />}>
               Log in
