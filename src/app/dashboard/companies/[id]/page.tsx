@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { Building2, TrendingUp, TrendingDown, Minus, Users, Lock, MessageSquare, Sparkles } from 'lucide-react'
@@ -14,6 +15,7 @@ import {
   type InsiderSummary,
 } from '@/lib/companies/insider-network'
 import { getUntaggedWorkHistory } from '@/lib/companies/employment-tagging'
+import { getCandidateContactsAtCompany } from '@/lib/companies/candidate-contacts-at-company'
 import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@/lib/companies/company-intel'
 import { computeCompanyFitForCandidate } from '@/lib/companies/company-fit'
 import type { RankedSkill } from '@/lib/companies/skills-extraction'
@@ -72,12 +74,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // is just an alias, not a wait.
   const company = companyRow
 
-  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier] = await Promise.all([
+  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere] = await Promise.all([
     prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
     prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
     hasTaggedEmployment(profile.id),
     getPublishedIntelForCompany(id),
     getCandidateMarketIntelTier(profile.id),
+    getCandidateContactsAtCompany(profile.id, company.name),
   ])
   // Partners Master Build Script §A3.3 — insider network access is a Plus+
   // Market Intelligence feature. Company pages, hiring trajectory, posting
@@ -319,6 +322,34 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           )}
         </CardContent>
       </Card>
+
+      {/* ── Your own contacts at this company ── */}
+      {ownContactsHere.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="size-4" aria-hidden="true" />
+              Your contacts here
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {ownContactsHere.map((contact) => (
+                <Link
+                  key={contact.id}
+                  href={`/dashboard/network/contacts/${contact.id}`}
+                  className="flex items-center justify-between gap-3 p-3 hover:bg-muted/50"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{contact.name}</p>
+                    {contact.title && <p className="text-xs text-muted-foreground">{contact.title}</p>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── People who know this company (insider network) ── */}
       <Card>
