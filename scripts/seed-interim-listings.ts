@@ -88,6 +88,94 @@ const LISTINGS: SeedListing[] = [
     sortOrder: 1,
   },
 
+  // AI-training/data-work marketplaces — the fastest-growing category of
+  // paid interim work for laid-off professionals as of this writing (2026):
+  // companies pay subject-matter experts and engineers to train, label, and
+  // evaluate AI models. Grouped under MARKETPLACE_TECHNICAL alongside
+  // Mercor, matching that category's existing "AI/technical background"
+  // framing (see the enum's own comment in schema.prisma).
+  {
+    category: 'MARKETPLACE_TECHNICAL',
+    name: 'micro1',
+    description: 'AI-vetted marketplace connecting engineers and technical experts with paid AI-training and evaluation work.',
+    url: 'https://www.micro1.ai',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 3,
+  },
+  {
+    category: 'MARKETPLACE_TECHNICAL',
+    name: 'Turing',
+    description: 'Remote software-engineering marketplace that also runs paid AI-training and model-evaluation work for engineers.',
+    url: 'https://www.turing.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 4,
+  },
+  {
+    category: 'MARKETPLACE_TECHNICAL',
+    name: 'Surge AI',
+    description: 'Pays subject-matter experts and engineers to train and evaluate AI models for major AI labs.',
+    url: 'https://www.surgehq.ai',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 5,
+  },
+  {
+    category: 'MARKETPLACE_TECHNICAL',
+    name: 'Scale AI',
+    description: 'Large AI data-labeling and model-evaluation platform that contracts domain experts for paid AI-training work.',
+    url: 'https://scale.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 6,
+  },
+  {
+    category: 'MARKETPLACE_TECHNICAL',
+    name: 'Labelbox',
+    description: 'AI training-data platform that contracts subject-matter experts to label, review, and evaluate data for AI models.',
+    url: 'https://labelbox.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 7,
+  },
+  {
+    category: 'MARKETPLACE_ANY_FUNCTION',
+    name: 'Prolific',
+    description: 'Paid participation in research studies and AI-training data collection — no specific technical background required.',
+    url: 'https://www.prolific.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 2,
+  },
+  {
+    category: 'MARKETPLACE_ANY_FUNCTION',
+    name: 'Braintrust',
+    description: 'Talent network spanning engineering, design, product, and AI-training work; contractors keep their full rate with no agency markup.',
+    url: 'https://www.usebraintrust.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 3,
+  },
+  {
+    category: 'MARKETPLACE_MARKETING',
+    name: 'Chief Outsiders',
+    description: 'Fractional CMO firm placing experienced marketing executives with growth-stage companies on a part-time basis.',
+    url: 'https://www.chiefoutsiders.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 2,
+  },
+  {
+    category: 'MARKETPLACE_GENERAL',
+    name: 'GigX',
+    description: 'Self-service directory of fractional C-suite executives — companies browse and contact profiles directly at no cost.',
+    url: 'https://www.gigx.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    designationNote: 'Unlike most listings here, GigX charges the executive a membership fee (up to ~$89/mo) to keep a profile listed — companies browse for free.',
+    sortOrder: 3,
+  },
+  {
+    category: 'MARKETPLACE_GENERAL',
+    name: 'NeoGig',
+    description: 'Boutique fractional-executive matchmaker focused on CMO/CFO placements with early-to-mid-stage companies.',
+    url: 'https://www.yourneogig.com',
+    designation: 'INCLUDED_FOR_QUALITY',
+    sortOrder: 4,
+  },
+
   // Expert networks
   {
     category: 'EXPERT_NETWORK',

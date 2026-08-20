@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 import { markInterimMarketplaceSignup } from '@/app/dashboard/interim-work/actions'
-import type { InterimListing } from '@prisma/client'
+import type { InterimListing, InterimSignupSource } from '@prisma/client'
 
 interface InterimListingGridProps {
   listings: InterimListing[]
-  signedUpIds: Set<string>
+  signedUpIds: Map<string, InterimSignupSource>
   showSignupCheckbox?: boolean
 }
 

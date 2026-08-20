@@ -1,12 +1,12 @@
-import { Check } from 'lucide-react'
+import { Check, Mail } from 'lucide-react'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { OutboundPartnerLink } from '@/components/dashboard/OutboundPartnerLink'
 import { markInterimMarketplaceSignup } from '@/app/dashboard/interim-work/actions'
-import type { InterimListing } from '@prisma/client'
+import type { InterimListing, InterimSignupSource } from '@prisma/client'
 
 interface InterimListingCarouselProps {
   listings: InterimListing[]
-  signedUpIds: Set<string>
+  signedUpIds: Map<string, InterimSignupSource>
   showSignupCheckbox?: boolean
 }
 
@@ -21,7 +21,8 @@ export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckb
   return (
     <div className="flex gap-4 overflow-x-auto pb-2">
       {listings.map((listing) => {
-        const signedUp = signedUpIds.has(listing.id)
+        const signupSource = signedUpIds.get(listing.id)
+        const signedUp = signupSource !== undefined
         return (
           <div
             key={listing.id}
@@ -66,6 +67,11 @@ export function InterimListingCarousel({ listings, signedUpIds, showSignupCheckb
                   {signedUp ? (
                     <p className="flex items-center gap-1.5 text-xs font-medium text-success">
                       <Check className="size-3.5" /> Profile created
+                      {signupSource === 'GMAIL_DETECTED' && (
+                        <span className="flex items-center gap-1 text-muted-foreground" title="Found automatically from a confirmation email in your connected Gmail">
+                          <Mail className="size-3" /> auto-detected
+                        </span>
+                      )}
                     </p>
                   ) : (
                     <form action={markInterimMarketplaceSignup.bind(null, listing.id)}>

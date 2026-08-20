@@ -5681,13 +5681,19 @@ model InterimListing {
 // — persisted (not just this week's Sprint JSON) so the checkbox reflects
 // a durable checked state and the points-eligible action only logs once
 // per listing per candidate, ever.
+enum InterimSignupSource {
+  SELF_REPORTED // candidate clicked "I created a profile"
+  GMAIL_DETECTED // found via a real confirmation/welcome email from the listing's own domain in a connected inbox — see sync-gmail.ts's interim-listing-domain block
+}
+
 model InterimMarketplaceSignup {
-  id          String           @id @default(cuid())
+  id          String              @id @default(cuid())
   candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   listingId   String
-  listing     InterimListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  createdAt   DateTime         @default(now())
+  listing     InterimListing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  source      InterimSignupSource @default(SELF_REPORTED)
+  createdAt   DateTime            @default(now())
 
   @@unique([candidateId, listingId])
 }

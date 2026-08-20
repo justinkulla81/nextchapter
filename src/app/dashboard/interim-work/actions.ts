@@ -6,7 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { logCatalogAction, getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
+import { markInterimMarketplaceSignupCore } from '@/lib/interim-work/mark-signup'
 
 export type FormState = { error?: string } | undefined
 
@@ -138,31 +139,7 @@ export async function markInterimMarketplaceSignup(listingId: string) {
   if (!user) return
 
   const profile = await getOrCreateCandidateProfile(user.id)
-
-  const listing = await prisma.interimListing.findUnique({ where: { id: listingId } })
-  if (!listing) return
-
-  const result = await prisma.interimMarketplaceSignup.createMany({
-    data: [{ candidateId: profile.id, listingId }],
-    skipDuplicates: true,
-  })
-
-  // Only award points/log the action the first time — skipDuplicates means a
-  // repeat click here did nothing, so don't double-count it.
-  if (result.count > 0) {
-    const effort = estimateActionEffort({ actionType: 'INTERIM_PROFILE_CREATED' })
-    await logCatalogAction(profile.id, {
-      text: `Created a profile on ${listing.name}`,
-      actionType: 'INTERIM_PROFILE_CREATED',
-      points: effort.points,
-      estimatedMinutes: effort.minutes,
-      recurring: false,
-    })
-    captureServerEvent(profile.id, 'interim_marketplace_signup_logged', {
-      listingId,
-      listingName: listing.name,
-    })
-  }
+  await markInterimMarketplaceSignupCore(profile.id, listingId, 'SELF_REPORTED')
 
   revalidatePath('/dashboard/interim-work', 'layout')
 }

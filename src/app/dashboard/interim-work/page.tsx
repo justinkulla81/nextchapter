@@ -14,7 +14,7 @@ import { hasLegalRestrictionFlag } from '@/lib/interim-work/expert-network-cauti
 import { getActiveListings, getSignedUpListingIds } from '@/lib/interim-work/listings'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { InterimListingCategory } from '@prisma/client'
-import { setBoardDiversityListingsOptIn } from './actions'
+import { setBoardDiversityListingsOptIn, markInterimMarketplaceSignup } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { prisma } from '@/lib/prisma'
@@ -23,6 +23,14 @@ import { computeMarketplaceSignupMix } from '@/lib/interim-work/marketplace-sign
 import { isActiveMember } from '@/lib/membership/subscription'
 
 export const metadata: Metadata = { title: 'Interim Work' }
+
+// Module-level helper, not called inline inside the component body —
+// Date.now() is an impure call the react-hooks/purity rule flags wherever a
+// component function reads it directly (see recruiters/search/[candidateId]
+// /page.tsx's daysSince for the same pattern).
+function twoDaysAgo(): Date {
+  return new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+}
 
 // Modest by design — just the marketplace names, not a category breakdown
 // like ApplicationTrendsContent on the Find a Job page.
@@ -43,30 +51,45 @@ export default async function InterimWorkPage() {
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember] = await Promise.all([
-    getInterimLaunchPlan(profile),
-    getActiveListings(marketplaceCategories),
-    getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
-    getActiveListings([
-      boardReady ? InterimListingCategory.BOARD_ADVISORY : InterimListingCategory.NONPROFIT_BOARD,
-    ]),
-    getSignedUpListingIds(profile.id),
-    // Powers the Interim Work progressive-unlock card below — every
-    // marketplace/expert-network/board listing this candidate has signed up
-    // for, with the listing's name and category (the category feeds the
-    // "well-rounded pursuit" mix checklist).
-    prisma.interimMarketplaceSignup.findMany({
-      where: { candidateId: profile.id },
-      select: { listing: { select: { name: true, category: true } } },
-      orderBy: { createdAt: 'desc' },
-    }),
-    // Phase 8, §A2.4 -- "board and advisory listings" is a Membership perk
-    // per the plan catalog's own feature list. Fetched here (not gated at
-    // the query level) so a non-member still sees the section header and a
-    // real, explained locked state rather than the section disappearing.
-    isActiveMember(profile.id),
-  ])
+  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs] =
+    await Promise.all([
+      getInterimLaunchPlan(profile),
+      getActiveListings(marketplaceCategories),
+      getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
+      getActiveListings([
+        boardReady ? InterimListingCategory.BOARD_ADVISORY : InterimListingCategory.NONPROFIT_BOARD,
+      ]),
+      getSignedUpListingIds(profile.id),
+      // Powers the Interim Work progressive-unlock card below — every
+      // marketplace/expert-network/board listing this candidate has signed up
+      // for, with the listing's name and category (the category feeds the
+      // "well-rounded pursuit" mix checklist).
+      prisma.interimMarketplaceSignup.findMany({
+        where: { candidateId: profile.id },
+        select: { listing: { select: { name: true, category: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+      // Phase 8, §A2.4 -- "board and advisory listings" is a Membership perk
+      // per the plan catalog's own feature list. Fetched here (not gated at
+      // the query level) so a non-member still sees the section header and a
+      // real, explained locked state rather than the section disappearing.
+      isActiveMember(profile.id),
+      // Real click-through evidence (OutboundPartnerLink, section
+      // 'interim_work') from more than 2 days ago — old enough that
+      // "haven't gotten around to it yet" is a fair read, not "clicked 30
+      // seconds ago." Feeds the "you looked but didn't register" nudge below.
+      prisma.partnerClickThrough.findMany({
+        where: { candidateId: profile.id, section: 'interim_work', createdAt: { lt: twoDaysAgo() } },
+        select: { partnerName: true },
+        distinct: ['partnerName'],
+      }),
+    ])
   const interimSignupMix = computeMarketplaceSignupMix(interimSignups.map((s) => s.listing.category))
+
+  const clickedPartnerNames = new Set(oldClickThroughs.map((c) => c.partnerName))
+  const clickedNotRegistered = [...marketplaceListings, ...expertNetworkListings, ...allBoardListings].filter(
+    (l) => clickedPartnerNames.has(l.name) && !signedUpIds.has(l.id)
+  )
 
   // WOMEN_FOCUSED listings (Athena Alliance, theBoardlist) only show once the
   // candidate has directly opted in via boardDiversityListingsOptIn — never
@@ -185,6 +208,26 @@ export default async function InterimWorkPage() {
         </div>
       ) : (
         <>
+          {clickedNotRegistered.length > 0 && (
+            <div className="rounded-lg border border-dashed border-brand/40 bg-brand/5 p-4">
+              <p className="text-sm font-medium text-foreground">
+                You looked at {clickedNotRegistered.length === 1 ? 'this one' : 'these'} but haven&apos;t registered yet
+              </p>
+              <ul className="mt-2 space-y-2">
+                {clickedNotRegistered.map((listing) => (
+                  <li key={listing.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm text-foreground">{listing.name}</span>
+                    <form action={markInterimMarketplaceSignup.bind(null, listing.id)}>
+                      <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                        I signed up
+                      </SubmitButton>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {interimSignups.length > 0 && (
             <TierSummaryCard
               title="Interim Work Signups"

@@ -13,6 +13,8 @@ import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions'
 import { getAllCourseTitles } from '@/lib/learning/courses'
+import { markInterimMarketplaceSignupCore } from '@/lib/interim-work/mark-signup'
+import { getInterimListingDomainMap } from '@/lib/interim-work/listings'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
@@ -299,7 +301,8 @@ async function processMessage(
   fetched: FetchedMessage,
   direction: EmailDirection,
   workHistoryCompanies: string[],
-  registeredAt: Date | null
+  registeredAt: Date | null,
+  interimListingDomainMap: Map<string, { id: string; name: string }>
 ): Promise<ProcessResult> {
   const { message, insufficientScope } = fetched
   if (insufficientScope) return 'insufficient_scope'
@@ -469,6 +472,23 @@ async function processMessage(
     }
   }
 
+  // Interim Work marketplace registration detection — any inbound mail from
+  // a listing's own domain (a welcome email, a "confirm your account" link,
+  // a workforce-invite notification) is real evidence the candidate signed
+  // up there, no subject/body keyword matching needed since receiving mail
+  // from the domain at all is already the signal. Same
+  // markInterimMarketplaceSignupCore the manual "I created a profile"
+  // button calls, tagged GMAIL_DETECTED so the UI can show how it was
+  // found. Only ever runs for candidates who completed the (currently
+  // testing-mode-only) Gmail connection — everyone else keeps using the
+  // manual button, which this never replaces.
+  if (senderPlatformDomain) {
+    const matchedListing = interimListingDomainMap.get(senderPlatformDomain)
+    if (matchedListing) {
+      await markInterimMarketplaceSignupCore(connection.candidateId, matchedListing.id, 'GMAIL_DETECTED')
+    }
+  }
+
   // Mirrors application confirmations/interview invites/rejections into the
   // candidate's My Applications list — see sync-job-postings.ts. Only for
   // high-confidence inbound mail, same bar as point-awarding below.
@@ -566,8 +586,10 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
 
   // Fetched once per sync, not once per message — feeds the FORMER_COLLEAGUE
   // auto-tag when an auto-added contact's email domain matches a past
-  // employer (same pattern as sync-google-calendar.ts).
-  const [workHistory, candidate] = await Promise.all([
+  // employer (same pattern as sync-google-calendar.ts). interimListingDomainMap
+  // is the same "once per sync" treatment for Interim Work registration
+  // detection below.
+  const [workHistory, candidate, interimListingDomainMap] = await Promise.all([
     prisma.workHistoryEntry.findMany({
       where: { candidateId: connection.candidateId },
       select: { companyName: true },
@@ -576,6 +598,7 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
       where: { id: connection.candidateId },
       select: { registrationCompletedAt: true },
     }),
+    getInterimListingDomainMap(),
   ])
   const workHistoryCompanies = workHistory.map((w) => w.companyName)
   // A first-ever sync backfills up to FIRST_SYNC_BACKFILL_MS of history into
@@ -611,7 +634,7 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
     try {
       const fetched = inboxFetched.get(id)
       if (!fetched) continue
-      const result = await processMessage(connection, id, fetched, 'INBOUND', workHistoryCompanies, registeredAt)
+      const result = await processMessage(connection, id, fetched, 'INBOUND', workHistoryCompanies, registeredAt, interimListingDomainMap)
       if (result === 'insufficient_scope') scopeInsufficient = true
       else if (result === 'synced') synced++
     } catch (error) {
@@ -623,7 +646,7 @@ export async function syncGmailConnection(connectionId: string): Promise<{ synce
     try {
       const fetched = sentFetched.get(id)
       if (!fetched) continue
-      const result = await processMessage(connection, id, fetched, 'OUTBOUND', workHistoryCompanies, registeredAt)
+      const result = await processMessage(connection, id, fetched, 'OUTBOUND', workHistoryCompanies, registeredAt, interimListingDomainMap)
       if (result === 'insufficient_scope') scopeInsufficient = true
       else if (result === 'synced') synced++
     } catch (error) {
