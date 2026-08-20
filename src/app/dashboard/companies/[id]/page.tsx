@@ -15,7 +15,7 @@ import {
   type InsiderSummary,
 } from '@/lib/companies/insider-network'
 import { autoTagAllWorkHistory } from '@/lib/companies/employment-tagging'
-import { getCandidateContactsAtCompany } from '@/lib/companies/candidate-contacts-at-company'
+import { getCandidateContactsAtCompany, countOtherMembersWithContactAtCompany } from '@/lib/companies/candidate-contacts-at-company'
 import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@/lib/companies/company-intel'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { suppressSmallCells, isSuppressedCell } from '@/lib/admin/cell-suppression'
@@ -25,6 +25,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { ManualTagForm, CurrentEmployerInsiderOptIn } from '@/components/companies/EmploymentTagging'
 import { AskInsiderForm, AnswerInsiderRequestForm } from '@/components/companies/InsiderNetworkControls'
+import { ContactEmploymentStatusButtons } from '@/components/companies/ContactEmploymentStatusButtons'
 import { SubmitIntelForm, MarkHelpfulButton } from '@/components/companies/CompanyIntelControls'
 import { getCandidateMarketIntelTier, tierMeetsFeature, MARKET_INTEL_TIER_LABEL } from '@/lib/market-intelligence/access'
 
@@ -77,7 +78,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // as tagged, not "add where you've worked to unlock this."
   await autoTagAllWorkHistory(profile.id)
 
-  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, ownOutcomeHere] =
+  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, otherMembersContactCount, ownOutcomeHere] =
     await Promise.all([
       prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
       prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
@@ -85,6 +86,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       getPublishedIntelForCompany(id),
       getCandidateMarketIntelTier(profile.id),
       getCandidateContactsAtCompany(profile.id, company.name),
+      countOtherMembersWithContactAtCompany(profile.id, company.name),
       // "How to get hired here" auto-expands only once the candidate has
       // genuinely interviewed and been rejected AT THIS company — matched
       // the same way company-fit.ts does elsewhere on this page (normalized
@@ -310,30 +312,51 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         </CardContent>
       </Card>
 
-      {/* ── Your own contacts at this company ── */}
+      {/* ── Your own contacts at this company ──
+          Grouped by employmentStatusAtCompany — candidate-confirmed only
+          (see that field's schema comment for why this can't be inferred).
+          Unconfirmed contacts get inline "Still there?"/"They left" buttons
+          right where the candidate is already looking at this company. */}
       {ownContactsHere.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="size-4" aria-hidden="true" />
-              Your contacts here
+              Your contacts here ({ownContactsHere.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {ownContactsHere.map((contact) => (
-                <Link
-                  key={contact.id}
-                  href={`/dashboard/network/contacts/${contact.id}`}
-                  className="flex items-center justify-between gap-3 p-3 hover:bg-muted/50"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{contact.name}</p>
-                    {contact.title && <p className="text-xs text-muted-foreground">{contact.title}</p>}
+          <CardContent className="space-y-4">
+            {(
+              [
+                ['CURRENT', 'Current'],
+                ['FORMER', 'Former'],
+                [null, 'Unconfirmed'],
+              ] as const
+            ).map(([status, label]) => {
+              const group = ownContactsHere.filter((c) => c.employmentStatusAtCompany === status)
+              if (group.length === 0) return null
+              return (
+                <div key={label} className="space-y-1.5">
+                  <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</p>
+                  <div className="divide-y divide-border rounded-lg border border-border">
+                    {group.map((contact) => (
+                      <div key={contact.id} className="flex items-center justify-between gap-3 p-3">
+                        <Link
+                          href={`/dashboard/network/contacts/${contact.id}`}
+                          className="min-w-0 hover:opacity-80"
+                        >
+                          <p className="text-sm font-medium text-foreground">{contact.name}</p>
+                          {contact.title && <p className="text-xs text-muted-foreground">{contact.title}</p>}
+                        </Link>
+                        {status === null && (
+                          <ContactEmploymentStatusButtons contactId={contact.id} companyPageId={id} />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              )
+            })}
           </CardContent>
         </Card>
       )}
@@ -345,6 +368,12 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
             <Users className="size-4" aria-hidden="true" />
             People who know this company
           </CardTitle>
+          {otherMembersContactCount > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {otherMembersContactCount} other NextChapter member{otherMembersContactCount === 1 ? ' has' : 's have'} a
+              personal contact here too.
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           {!alreadyTagged ? (

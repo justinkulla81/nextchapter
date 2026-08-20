@@ -3925,6 +3925,11 @@ model TrackedCalendarEvent {
   @@index([candidateId, eventType])
 }
 
+enum ContactEmploymentStatus {
+  CURRENT
+  FORMER
+}
+
 // One row per person in the candidate's 5x5 Support Network. category is
 // nullable because CSV-imported contacts land unsorted — the candidate
 // slots them into the 5 categories afterward.
@@ -3965,6 +3970,12 @@ model SupportNetworkContact {
   warmth                  ContactWarmth              @default(WARM)
   source                  ContactSource              @default(MANUAL)
   createdAt               DateTime                   @default(now())
+  // Whether this contact still works at `company` — no reliable signal
+  // exists to infer this (a LinkedIn export only ever captures a contact's
+  // company as of export time, with no way to tell if it's since gone
+  // stale), so this is candidate-confirmed only, set from the Company
+  // page's "Still there?" / "They left" buttons. Null = unconfirmed.
+  employmentStatusAtCompany ContactEmploymentStatus?
   // Multi-select "who is this person" tags — see RelationshipTag's comment.
   relationshipTags        RelationshipTag[]          @default([])
   // Set when the candidate marks SAME_SCHOOL and names the school.

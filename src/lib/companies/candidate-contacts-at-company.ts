@@ -36,3 +36,137 @@ export async function getCandidateContactsAtCompany(
     (c) => orgNamesMatch(c.company ?? '', companyName) || orgNamesMatch(c.inferredCompany ?? '', companyName)
   )
 }
+
+// Count-only, privacy-safe — never names or details, matching the existing
+// "How members have fared"/insider-count aggregate pattern elsewhere on the
+// Company page. Bounded to the first 500 matching rows (across ALL
+// candidates, not just one) rather than a true unbounded count — a plain
+// `contains` prefilter doesn't benefit from a btree index at this table's
+// real size (one candidate alone can have 27,000+ imported contacts), so an
+// exhaustive scan isn't worth it for a "roughly how many" stat.
+export async function countOtherMembersWithContactAtCompany(
+  candidateId: string,
+  companyName: string
+): Promise<number> {
+  const normalized = normalizeOrgName(companyName)
+  const prefilterToken = normalized.split(' ').find((w) => w.length >= 4) ?? normalized
+  if (!prefilterToken) return 0
+
+  const rows = await prisma.supportNetworkContact.findMany({
+    where: {
+      candidateId: { not: candidateId },
+      removedAt: null,
+      OR: [
+        { company: { contains: prefilterToken, mode: 'insensitive' } },
+        { inferredCompany: { contains: prefilterToken, mode: 'insensitive' } },
+      ],
+    },
+    select: { candidateId: true, company: true, inferredCompany: true },
+    take: 500,
+  })
+
+  const matchedCandidateIds = new Set(
+    rows
+      .filter((r) => orgNamesMatch(r.company ?? '', companyName) || orgNamesMatch(r.inferredCompany ?? '', companyName))
+      .map((r) => r.candidateId)
+  )
+  return matchedCandidateIds.size
+}
+
+// orgNamesMatch's own containment rule (see org-name-match.ts), reimplemented
+// against ALREADY-normalized strings — orgNamesMatch normalizes both inputs
+// on every call, which is fine at the small scale it's normally used at, but
+// turns into millions of redundant regex passes over the same handful of
+// distinct company strings when cross-referencing every company (~100+)
+// against every contact in the table (~30k+) below. Normalize once per
+// distinct value, then reuse.
+function normalizedNamesMatch(normA: string, normB: string): boolean {
+  if (!normA || !normB) return false
+  if (normA === normB) return true
+  const tightA = normA.replace(/\s+/g, '')
+  const tightB = normB.replace(/\s+/g, '')
+  if (tightA.length >= 4 && tightA === tightB) return true
+  if (normA.length < 4 || normB.length < 4) return false
+  return normA.includes(normB) || normB.includes(normA)
+}
+
+// Distinct, pre-normalized company/inferredCompany strings from a batch of
+// contact rows — the same handful of real companies recur across many rows
+// (~30k rows resolve to ~19k distinct strings in production today), so
+// normalizing once per distinct value instead of once per row is a real cut,
+// on top of avoiding the O(companies × rows) redundant normalization below.
+function distinctNormalizedCompanyStrings(rows: { company: string | null; inferredCompany: string | null }[]): string[] {
+  const raw = new Set<string>()
+  for (const r of rows) {
+    if (r.company) raw.add(r.company)
+    if (r.inferredCompany) raw.add(r.inferredCompany)
+  }
+  const normalized = new Set<string>()
+  for (const value of raw) {
+    const n = normalizeOrgName(value)
+    if (n) normalized.add(n)
+  }
+  return Array.from(normalized)
+}
+
+// Which of the given companies has AT LEAST ONE other member with a
+// personal contact there — the "NC connections (2nd degree)" filter on the
+// Companies list page. Fetches every other candidate's contacts ONCE
+// (~31k rows in production today) rather than one query per company, but
+// only ever called when that filter is actually toggled on — not on every
+// page load — since a full-table fetch on every visit isn't worth it for a
+// filter most visits won't use.
+export async function getCompaniesWithAnyMemberContact(
+  excludeCandidateId: string,
+  companyNames: string[]
+): Promise<Set<string>> {
+  const rows = await prisma.supportNetworkContact.findMany({
+    where: { candidateId: { not: excludeCandidateId }, removedAt: null },
+    select: { company: true, inferredCompany: true },
+  })
+  const contactNormalized = distinctNormalizedCompanyStrings(rows)
+
+  const matched = new Set<string>()
+  for (const companyName of companyNames) {
+    const normCompany = normalizeOrgName(companyName)
+    if (contactNormalized.some((n) => normalizedNamesMatch(n, normCompany))) {
+      matched.add(companyName)
+    }
+  }
+  return matched
+}
+
+// Per-company contact counts for the Companies list page — fetches the
+// candidate's own contacts ONCE (bounded by their own real total, however
+// large) and matches in memory against every company on the current page,
+// rather than one DB round trip with a `contains` prefilter per company
+// (25 round trips per page load, each re-scanning the same contact list).
+// Pre-normalizes each contact row once (see normalizedNamesMatch above) —
+// a candidate with a large real LinkedIn export (27,000+ rows) would
+// otherwise re-normalize the same strings once per company on the page.
+export async function getCandidateContactCountsByCompany(
+  candidateId: string,
+  companyNames: string[]
+): Promise<Map<string, number>> {
+  const ownContacts = await prisma.supportNetworkContact.findMany({
+    where: { candidateId, removedAt: null },
+    select: { company: true, inferredCompany: true },
+  })
+  // One entry per ROW (not per field) — a contact whose company AND
+  // inferredCompany both happen to match the same target company must still
+  // only count once, same as the original per-row `.filter()` semantics.
+  const rowNormalized = ownContacts.map((c) => ({
+    company: c.company ? normalizeOrgName(c.company) : '',
+    inferredCompany: c.inferredCompany ? normalizeOrgName(c.inferredCompany) : '',
+  }))
+
+  const counts = new Map<string, number>()
+  for (const companyName of companyNames) {
+    const normCompany = normalizeOrgName(companyName)
+    const count = rowNormalized.filter(
+      (r) => normalizedNamesMatch(r.company, normCompany) || normalizedNamesMatch(r.inferredCompany, normCompany)
+    ).length
+    if (count > 0) counts.set(companyName, count)
+  }
+  return counts
+}

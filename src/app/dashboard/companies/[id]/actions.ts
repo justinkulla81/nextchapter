@@ -17,6 +17,8 @@ import {
   setCurrentEmployerInsiderOptIn,
 } from '@/lib/companies/insider-network'
 import { submitCompanyIntel, markIntelHelpful, type IntelType } from '@/lib/companies/company-intel'
+import { prisma } from '@/lib/prisma'
+import type { ContactEmploymentStatus } from '@prisma/client'
 
 async function getProfile() {
   const supabase = await createClient()
@@ -216,5 +218,23 @@ export async function markHelpful(intelId: string, companyPageId: string): Promi
     })
     captureServerEvent(profile.id, 'company_intel_marked_helpful', { intelId })
   }
+  revalidatePath(`/dashboard/companies/${companyPageId}`)
+}
+
+// "Still there?" / "They left" on the Company page's "Your contacts here" —
+// see SupportNetworkContact.employmentStatusAtCompany's schema comment for
+// why this is candidate-confirmed only, never inferred.
+export async function setContactEmploymentStatus(
+  contactId: string,
+  status: ContactEmploymentStatus,
+  companyPageId: string
+): Promise<void> {
+  const profile = await getProfile()
+  if (!profile) return
+  await prisma.supportNetworkContact.updateMany({
+    where: { id: contactId, candidateId: profile.id },
+    data: { employmentStatusAtCompany: status },
+  })
+  captureServerEvent(profile.id, 'contact_employment_status_set', { contactId, status })
   revalidatePath(`/dashboard/companies/${companyPageId}`)
 }
