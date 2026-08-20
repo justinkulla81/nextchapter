@@ -93,7 +93,7 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 
 ## Supabase Storage buckets
 
-Four buckets, all accessed server-side via the service-role client (`admin.storage.from(...)`), never directly from the browser:
+All buckets are accessed server-side via the service-role client (`admin.storage.from(...)`), never directly from the browser. This table has drifted from reality before — update it whenever you add a bucket.
 
 | Bucket | Used by |
 |---|---|
@@ -101,6 +101,8 @@ Four buckets, all accessed server-side via the service-role client (`admin.stora
 | `work-samples` | Candidate work-sample uploads — public URLs (candidate explicitly chooses to share these) |
 | `avatars` | Profile pictures across all 4 portals |
 | `coach-logos` | Coach white-label branding upload (Coach Settings) |
+| `offer-letters` | Got-hired bounty claim offer-letter proof (`BountyClaim.offerLetterUrl`) — private |
+| `crucible-resumes` | Crucible teaser resume uploads (research dataset only, never scored) — private |
 
 ## Local development
 

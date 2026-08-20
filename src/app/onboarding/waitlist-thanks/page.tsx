@@ -19,6 +19,23 @@ export default function WaitlistThanksPage() {
           launches.
         </p>
       </div>
+      {/* Crucible entry point #2 (build spec §2) — the new-grad journey
+          itself isn't built yet (this page IS the new-grad journey today),
+          so this is where "prove what a resume can't" actually lives for
+          this audience right now. */}
+      <div className="mx-auto max-w-sm space-y-2 rounded-xl border border-border bg-off-white p-5">
+        <p className="font-semibold text-navy">In the meantime — prove what a resume can&apos;t.</p>
+        <p className="text-sm text-muted-foreground">
+          Take the Crucible challenge — 15 minutes, use any AI you want, get a scored work sample.
+        </p>
+        <Link
+          href="/crucible/test?src=nc_newgrad"
+          className="mt-2 inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand/90"
+        >
+          Take the Crucible challenge
+        </Link>
+      </div>
+
       <Link href="/" className="inline-block text-sm font-medium text-primary underline underline-offset-4">
         Back to launchyournextchapter.com
       </Link>

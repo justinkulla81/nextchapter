@@ -1333,6 +1333,7 @@ model CandidateProfile {
   educationHistory               EducationEntry[]
   references                     Reference[]
   referencedAsRefereeBy          Reference[]              @relation("RefereeCandidate")
+  crucibleSessions                CrucibleSession[]
   linkedFromContacts             SupportNetworkContact[]  @relation("SupportNetworkContactLinkedCandidate")
   identityMatches                CandidateIdentityMatch[]
   referenceQuotes                ReferenceQuote[]
@@ -7533,4 +7534,129 @@ model BenefitsNetworkCompletion {
 
   @@unique([listingId, candidateId])
   @@index([candidateId])
+}
+
+// ── Crucible (launchyournextchapter.com/crucible) ───────────────────────
+// Standalone landing page + teaser AI-judgment challenge, Part A of a
+// separate future two-part product — see the Crucible Part A build spec.
+// Works for both anonymous visitors (no NextChapter account — tracked via
+// a session-id cookie, candidateId stays null) and existing authenticated
+// candidates (NC_NEWGRAD/NC_ASSESSMENT sources, candidateId populated from
+// their real session). Deliberately does NOT reuse the onboarding
+// anonymous-Supabase-auth-session pattern — that would create a real
+// auth.users + CandidateProfile row for every throwaway teaser visitor,
+// most of whom will never become NextChapter candidates. Real account
+// creation only ever happens later, if/when someone converts via
+// /crucible/full or the main site — never as a side effect of just taking
+// the teaser.
+
+enum CrucibleSource {
+  LANDING
+  NC_NEWGRAD
+  NC_ASSESSMENT
+}
+
+// The raw "what kind of work are you going for?" pick (§10 addendum) — kept
+// distinct from `variant` (the challenge actually routed to) since intent x
+// score x degree-field is the flagship research query, and intent
+// distribution alone tells us which discipline variant to build next.
+enum CrucibleJobIntent {
+  TECH
+  MARKETING
+  DATA
+  DESIGN
+  BUSINESS
+  UNSURE
+}
+
+// The challenge actually served. Design/Business/Unsure route onto an
+// existing variant (Design→marketing, Business→data, Unsure→code) rather
+// than getting their own enum value — see the job-intent fork's routing
+// table. One real scenario per variant today (DoorList promo bug / MIDNIGHT
+// DROP / Promo memo) — a retry serves a DIFFERENT variant than the one just
+// attempted, which is what "no repeat content" actually means until a
+// second scenario per discipline exists.
+enum CrucibleVariant {
+  CODE
+  MARKETING
+  DATA
+}
+
+enum CrucibleSessionState {
+  STARTED
+  CHALLENGE
+  VERDICT
+  TOOLS
+  RESUME
+  SCORED
+}
+
+enum CrucibleVerdict {
+  SHIP
+  BLOCK
+  SHIP_WITH_CONDITIONS
+}
+
+enum CrucibleBranch {
+  PASS
+  GROWTH
+}
+
+model CrucibleSession {
+  id          String            @id @default(cuid())
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  // Captured upfront (right after the landing CTA, before the challenge)
+  // for LANDING-sourced sessions — never required for NC-sourced sessions,
+  // which already have a real candidate email on file.
+  email       String?
+  source      CrucibleSource    @default(LANDING)
+  jobIntent   CrucibleJobIntent?
+  variant     CrucibleVariant?
+  state       CrucibleSessionState @default(STARTED)
+
+  // [{ line: number, severity: 'critical'|'minor'|'cosmetic', note: string }]
+  flags      Json?
+  verdict    CrucibleVerdict?
+  worstThing String?          @db.Text
+  // { tools: string[], bestMove: string }
+  aiTools        Json?
+  resumeFilePath String? // crucible-resumes bucket, leads/<uuid>.<ext> — same "service-role upload, never scored" pattern as ResumeSubmissionLead
+  resumeFileName String?
+
+  score  Int?
+  band   String?
+  branch CrucibleBranch?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  retryOfId String?
+  retryOf   CrucibleSession?  @relation("CrucibleRetry", fields: [retryOfId], references: [id], onDelete: SetNull)
+  retries   CrucibleSession[] @relation("CrucibleRetry")
+
+  interests CrucibleInterest[]
+
+  @@index([email])
+  @@index([source])
+  @@index([candidateId])
+}
+
+enum CrucibleInterestKind {
+  FULL
+  LESSON
+}
+
+// "Reserve my full assessment" / "Start the lesson" — both routes are Part A
+// stubs (interest capture only, no real product behind them yet).
+model CrucibleInterest {
+  id        String              @id @default(cuid())
+  sessionId String
+  session   CrucibleSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  kind      CrucibleInterestKind
+  email     String
+  createdAt DateTime            @default(now())
+
+  @@index([kind])
+  @@index([email])
 }
