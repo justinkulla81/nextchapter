@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { Bell, Star } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -98,7 +99,16 @@ export function DashboardNetworkCard({
             )}
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium text-foreground">{item.contactName}</p>
+              {item.contactId ? (
+                <Link
+                  href={`/dashboard/network/contacts/${item.contactId}`}
+                  className="truncate text-[13px] font-medium text-foreground hover:underline"
+                >
+                  {item.contactName}
+                </Link>
+              ) : (
+                <p className="truncate text-[13px] font-medium text-foreground">{item.contactName}</p>
+              )}
               <p className="truncate text-xs text-muted-foreground">
                 {item.kind === 'meeting' ? 'Met' : 'Emailed you'} {formatDate(item.date)} — {item.subject}
               </p>
@@ -126,7 +136,12 @@ export function DashboardNetworkCard({
         {visiblePriorityContact && (
           <div className="flex items-center justify-between gap-3 py-2.5 text-sm">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium text-foreground">{visiblePriorityContact.name}</p>
+              <Link
+                href={`/dashboard/network/contacts/${visiblePriorityContact.contactId}`}
+                className="truncate text-[13px] font-medium text-foreground hover:underline"
+              >
+                {visiblePriorityContact.name}
+              </Link>
               <p className="truncate text-xs text-muted-foreground">
                 {visiblePriorityContact.company ? `Starred — ${visiblePriorityContact.company}` : 'Starred contact'}
               </p>

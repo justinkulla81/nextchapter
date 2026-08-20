@@ -96,7 +96,12 @@ export function PriorityContactsCard({ contacts }: { contacts: PriorityContactIt
               )}
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-foreground">{contact.name}</p>
+                <Link
+                  href={`/dashboard/network/contacts/${contact.id}`}
+                  className="truncate text-[13px] font-medium text-foreground hover:underline"
+                >
+                  {contact.name}
+                </Link>
                 {(contact.title || contact.company) && (
                   <p className="truncate text-xs text-muted-foreground">
                     {[contact.title, contact.company].filter(Boolean).join(' at ')}

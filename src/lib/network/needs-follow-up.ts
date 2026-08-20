@@ -37,6 +37,10 @@ export interface NeedsFollowUpItem {
   sourceId: string
   contactName: string
   contactEmail: string
+  // Set only when this signal matches a real SupportNetworkContact row (by
+  // email) — links to their profile page. Null for a cold/unmatched sender
+  // (e.g. a recruiter who's emailed but was never added to the network).
+  contactId: string | null
   date: Date
   subject: string
   gmailHref: string
@@ -91,11 +95,12 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
       : Promise.resolve([]),
     prisma.supportNetworkContact.findMany({
       where: { candidateId, email: { not: null } },
-      select: { name: true, email: true },
+      select: { id: true, name: true, email: true },
     }),
   ])
 
   const contactNameByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.name]))
+  const contactIdByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]))
 
   // fromAddress is the counterpart's address for BOTH directions — see
   // sync-gmail.ts, which deliberately stores `to` there for OUTBOUND rows.
@@ -136,6 +141,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         sourceId: meeting.id,
         contactName: formatDisplayName(rawName),
         contactEmail: address,
+        contactId: contactIdByEmail.get(address) ?? null,
         date: meeting.startTime,
         subject,
         gmailHref: gmailComposeHref(address, `Re: Thank you — ${subject}`),
@@ -174,6 +180,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         sourceId: activity.id,
         contactName: formatDisplayName(rawName),
         contactEmail: parsed.email,
+        contactId: contactIdByEmail.get(parsed.email) ?? null,
         date: activity.detectedAt,
         subject,
         gmailHref: gmailComposeHref(parsed.email, subject.startsWith('Re:') ? subject : `Re: ${subject}`),
@@ -204,6 +211,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
         sourceId: activity.id,
         contactName: formatDisplayName(rawName),
         contactEmail: address,
+        contactId: contactIdByEmail.get(address) ?? null,
         date: activity.detectedAt,
         subject,
         gmailHref: gmailComposeHref(address, subject.startsWith('Re:') ? subject : `Re: ${subject}`),

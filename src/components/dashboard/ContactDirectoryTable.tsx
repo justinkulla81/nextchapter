@@ -3,44 +3,21 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import type { SupportNetworkContact, RelationshipTag } from '@prisma/client'
+import type { RelationshipTag } from '@prisma/client'
 import { Star } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { SubmitButton } from '@/components/ui/submit-button'
-import { RelationshipTagsFieldset, RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
-import { TagInput } from '@/components/onboarding/TagInput'
-import { updateContact, deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
-import { MEMBERSHIP_LABEL, type NextChapterMembership } from '@/lib/network/next-chapter-membership'
+import { RELATIONSHIP_TAG_OPTIONS } from '@/components/dashboard/RelationshipTagsFieldset'
+import { deleteContact, restoreContact, toggleContactPriority } from '@/app/dashboard/network/actions'
+import { MEMBERSHIP_LABEL } from '@/lib/network/next-chapter-membership'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import type { ContactSortKey } from '@/app/dashboard/network/contacts/page'
+import { ContactDetailPanel, type ContactRowData } from '@/components/dashboard/ContactDetailPanel'
 import { cn } from '@/lib/utils'
 
 const RELATIONSHIP_LABEL: Record<RelationshipTag, string> = Object.fromEntries(
   RELATIONSHIP_TAG_OPTIONS.map((o) => [o.value, o.label])
 ) as Record<RelationshipTag, string>
-
-const OUTREACH_CHANNEL_LABEL: Record<string, string> = {
-  EMAIL: 'email',
-  LINKEDIN: 'LinkedIn message',
-  PHONE: 'phone call',
-  TEXT: 'text',
-  MEETING: 'meeting',
-}
-
-export interface ContactRowData extends SupportNetworkContact {
-  hasReachedOut: boolean
-  lastOutreachChannel: string | null
-  lastOutreachAt: Date | null
-  outreachCount: number
-  membership: NextChapterMembership | null
-  // §4.4: "Flag contacts who currently work at their employer before
-  // sending." Computed server-side (src/lib/network/current-employer-flag.ts)
-  // against the candidate's own WorkHistoryEntry — only ever true when the
-  // candidate is in Confidential Search Mode (see contacts/page.tsx).
-  isAtCurrentEmployer: boolean
-}
 
 function relationshipSummary(tags: RelationshipTag[], customTags: string[]): string {
   const labels = [...tags.map((t) => RELATIONSHIP_LABEL[t]), ...customTags]
@@ -387,6 +364,16 @@ function ContactRowExpandable({
                 )}
               </a>
             )}
+            {contact.linkedinUrl && (
+              <a
+                href={contact.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                LinkedIn
+              </a>
+            )}
           </div>
         </td>
         <td className="px-3 py-2 font-medium text-foreground">
@@ -438,134 +425,9 @@ function ContactRowExpandable({
 }
 
 function ContactNameLink({ contact }: { contact: ContactRowData }) {
-  if (!contact.linkedinUrl) return <>{contact.name}</>
   return (
-    <a
-      href={contact.linkedinUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-primary hover:underline"
-    >
+    <Link href={`/dashboard/network/contacts/${contact.id}`} className="text-primary hover:underline">
       {contact.name}
-    </a>
-  )
-}
-
-function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
-  const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(
-    contact.email ?? ''
-  )}`
-  const [dirty, setDirty] = useState(false)
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-1 rounded-lg border border-border bg-background p-3">
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Communications</p>
-        {contact.outreachCount > 0 ? (
-          <p className="text-sm text-foreground">
-            You&apos;ve reached out {contact.outreachCount} time{contact.outreachCount === 1 ? '' : 's'}
-            {contact.lastOutreachAt && contact.lastOutreachChannel && (
-              <>
-                {' '}
-                — most recently by {OUTREACH_CHANNEL_LABEL[contact.lastOutreachChannel] ?? contact.lastOutreachChannel.toLowerCase()}{' '}
-                on {contact.lastOutreachAt.toLocaleDateString()}
-              </>
-            )}
-            .
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">No outreach logged with {contact.name} yet.</p>
-        )}
-      </div>
-
-      <form
-        action={updateContact.bind(null, contact.id)}
-        className="space-y-3"
-        onChange={() => setDirty(true)}
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <LabeledInput name="name" label="Name" defaultValue={contact.name} required className="max-w-[220px]" />
-          <LabeledInput name="company" label="Company" defaultValue={contact.company ?? ''} className="max-w-[220px]" />
-          <LabeledInput name="title" label="Title" defaultValue={contact.title ?? ''} />
-          <LabeledInput name="phone" label="Phone" type="tel" defaultValue={contact.phone ?? ''} />
-          <LabeledInput name="linkedinUrl" label="LinkedIn URL" type="url" defaultValue={contact.linkedinUrl ?? ''} />
-        </div>
-
-        <div className="max-w-[320px] space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Emails (up to 3, first is primary)</label>
-          <TagInput
-            name="emails"
-            defaultValue={contact.emails.length > 0 ? contact.emails : contact.email ? [contact.email] : []}
-            placeholder="Add an email and press Enter"
-            maxTags={3}
-            inputType="email"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-end gap-3">
-          <RelationshipTagsFieldset
-            defaultTags={contact.relationshipTags}
-            inferredCompany={contact.inferredCompany}
-            inferredSchool={contact.inferredSchool}
-          />
-        </div>
-
-        <LabeledInput
-          name="customTags"
-          label="Custom tags (comma-separated)"
-          defaultValue={contact.customTags.join(', ')}
-          className="max-w-none"
-        />
-
-        <div className="space-y-1">
-          <label htmlFor="notes" className="text-xs font-medium text-muted-foreground">
-            Notes
-          </label>
-          <Textarea id="notes" name="notes" defaultValue={contact.notes ?? ''} rows={2} />
-        </div>
-
-        <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
-          Save
-        </SubmitButton>
-      </form>
-
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-        <a href={referenceHref} className="text-sm font-medium text-primary underline underline-offset-4">
-          Request a reference from {contact.name} →
-        </a>
-      </div>
-    </div>
-  )
-}
-
-function LabeledInput({
-  name,
-  label,
-  defaultValue,
-  type = 'text',
-  required,
-  className,
-}: {
-  name: string
-  label: string
-  defaultValue?: string
-  type?: string
-  required?: boolean
-  className?: string
-}) {
-  return (
-    <div className="space-y-1">
-      <label htmlFor={name} className="text-xs font-medium text-muted-foreground">
-        {label}
-      </label>
-      <Input
-        id={name}
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        required={required}
-        className={cn('h-8 text-sm', className)}
-      />
-    </div>
+    </Link>
   )
 }
