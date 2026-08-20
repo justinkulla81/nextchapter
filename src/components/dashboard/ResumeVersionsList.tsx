@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import type { Resume } from '@prisma/client'
 import { updateResumeDetails, duplicateResumeAsNewVersion } from '@/app/dashboard/resume/actions'
 import { Input } from '@/components/ui/input'
@@ -107,13 +108,21 @@ function ResumeVersionRow({
             </SubmitButton>
           </form>
 
-          <button
-            type="button"
-            onClick={() => startTransition(() => duplicateResumeAsNewVersion(version.id))}
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            Use as starting point for a new version
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => startTransition(() => duplicateResumeAsNewVersion(version.id))}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Use as starting point for a new version
+            </button>
+            <Link
+              href={`/dashboard/community?tab=messages&relation=peers&attachResumeId=${version.id}`}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Send to a contact
+            </Link>
+          </div>
         </div>
       )}
     </div>

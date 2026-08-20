@@ -5,13 +5,25 @@ import { uploadResume } from '@/app/dashboard/resume/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { NewNarrativeForm } from '@/components/dashboard/portfolio/NarrativeManager'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 
-export function ResumeUploadForm() {
+const NEW_NARRATIVE_VALUE = '__new__'
+const NONE_VALUE = '__none__'
+
+export interface ResumeUploadNarrativeOption {
+  id: string
+  label: string
+}
+
+export function ResumeUploadForm({ narratives = [] }: { narratives?: ResumeUploadNarrativeOption[] }) {
   const [state, formAction, pending] = useActionState(uploadResume, undefined)
   const [hasFile, setHasFile] = useState(false)
+  const [narrativeChoice, setNarrativeChoice] = useState<string>(NONE_VALUE)
+  const [creatingNarrative, setCreatingNarrative] = useState(false)
 
   if (state?.existingAccountFound) {
     return <ExistingAccountNotice needsPassword={false} />
@@ -20,6 +32,8 @@ export function ResumeUploadForm() {
   if (state?.existingAccountNeedsPassword) {
     return <ExistingAccountNotice needsPassword email={state.existingAccountEmail} />
   }
+
+  const selectedNarrativeId = narrativeChoice === NONE_VALUE || narrativeChoice === NEW_NARRATIVE_VALUE ? '' : narrativeChoice
 
   return (
     <form
@@ -49,6 +63,47 @@ export function ResumeUploadForm() {
           )}
         />
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="narrativeChoice">Align to a narrative (optional)</Label>
+        <p className="text-xs text-muted-foreground">
+          Pick one of your narratives and the analysis will ground its suggestions in that story —
+          e.g. flagging spots where the resume&apos;s framing doesn&apos;t match it.
+        </p>
+        <Select
+          name="narrativeChoiceDisplay"
+          value={narrativeChoice}
+          onValueChange={(value) => {
+            const next = value ?? NONE_VALUE
+            setNarrativeChoice(next)
+            setCreatingNarrative(next === NEW_NARRATIVE_VALUE)
+          }}
+        >
+          <SelectTrigger id="narrativeChoice" disabled={pending}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NONE_VALUE}>None</SelectItem>
+            {narratives.map((n) => (
+              <SelectItem key={n.id} value={n.id}>
+                {n.label}
+              </SelectItem>
+            ))}
+            <SelectItem value={NEW_NARRATIVE_VALUE}>+ New narrative</SelectItem>
+          </SelectContent>
+        </Select>
+        <input type="hidden" name="narrativeId" value={selectedNarrativeId} />
+      </div>
+
+      {creatingNarrative && (
+        <NewNarrativeForm
+          defaultOpen
+          onCreated={(id) => {
+            setCreatingNarrative(false)
+            setNarrativeChoice(id ?? NONE_VALUE)
+          }}
+        />
+      )}
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

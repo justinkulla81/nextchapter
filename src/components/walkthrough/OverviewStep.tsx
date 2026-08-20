@@ -16,10 +16,10 @@ export function OverviewStep({ nextStep, estimatedMinutes }: { nextStep: number;
           changes until you approve it.
         </p>
         <ul className="list-disc space-y-1.5 pl-5 text-muted-foreground">
-          <li>A batch of formatting and ATS fixes</li>
+          <li>Every finding on your resume — formatting, quantification, positioning, and more</li>
           <li>Your one-line target statement</li>
           <li>A few thin bullets, filled in from your own answers</li>
-          <li>A couple of things a reviewer might ask about</li>
+          <li>A couple of things a reviewer might ask about — including any gaps</li>
         </ul>
         <p className="text-muted-foreground">
           Every detection here is a question, not a verdict — if we read something wrong, you can correct it, mark

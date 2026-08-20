@@ -47,6 +47,7 @@ export async function sendPeerCandidateMessage(
   const threadId = formData.get('threadId') as string | null
   const otherCandidateId = formData.get('otherCandidateId') as string | null
   const body = (formData.get('body') as string | null) ?? ''
+  const attachedResumeId = (formData.get('attachedResumeId') as string | null)?.trim() || null
 
   try {
     const thread = threadId
@@ -55,8 +56,8 @@ export async function sendPeerCandidateMessage(
         ? await getOrCreatePeerThread(profile.id, otherCandidateId)
         : null
     if (!thread) return { error: 'Conversation not found.' }
-    await sendPeerMessage(thread.id, profile.id, body)
-    captureServerEvent(profile.id, 'peer_message_sent', { threadId: thread.id })
+    await sendPeerMessage(thread.id, profile.id, body, attachedResumeId)
+    captureServerEvent(profile.id, 'peer_message_sent', { threadId: thread.id, hasAttachment: !!attachedResumeId })
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not send message.' }
   }

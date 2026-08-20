@@ -348,6 +348,84 @@ export async function resolveReviewerQuestionAction(
   redirect(stepPath(nextStep))
 }
 
+// Gap-specific resolution for UNEXPLAINED_RECENT_GAP/UNEXPLAINED_CURRENT_GAP
+// reviewer questions — "there was interim/other work" branch (see
+// ReviewerQuestionStep's GapChoice). Adds a real WorkHistoryEntry
+// (engagementType: 'INTERIM') that closes the gap, then resolves the
+// underlying ReviewerQuestion/ResumeIssue as CORRECTED in the same call —
+// same two effects addWorkHistoryEntry + resolveReviewerQuestionAction
+// would each cause separately, combined into one action so the walkthrough
+// doesn't need two round-trips for a single candidate decision.
+export async function resolveGapWithInterimWorkAction(
+  _prev: WalkthroughFormState,
+  formData: FormData
+): Promise<WalkthroughFormState> {
+  const questionId = formData.get('id') as string | null
+  const stepLabel = (formData.get('stepLabel') as string | null) ?? 'reviewer-questions'
+  const nextStep = readNextStep(formData)
+  const companyName = (formData.get('companyName') as string | null)?.trim()
+  const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
+  const startDateRaw = formData.get('startDate') as string | null
+  const endDateRaw = (formData.get('endDate') as string | null)?.trim()
+  const isCurrent = formData.get('isCurrent') === 'on'
+
+  if (!questionId || nextStep === null) return { error: 'Something went wrong. Please try again.' }
+  if (!companyName || !roleTitle || !startDateRaw) {
+    return { error: 'Please fill in company, role, and start date.' }
+  }
+  const startDate = new Date(startDateRaw)
+  if (Number.isNaN(startDate.getTime())) return { error: 'Please enter a valid start date.' }
+  const endDate = !isCurrent && endDateRaw ? new Date(endDateRaw) : null
+  if (endDateRaw && endDate && Number.isNaN(endDate.getTime())) return { error: 'Please enter a valid end date.' }
+
+  let profile
+  try {
+    profile = await requireCandidateProfile()
+  } catch {
+    return { error: 'You need to be logged in to do this.' }
+  }
+
+  const question = await prisma.reviewerQuestion.findFirst({ where: { id: questionId, candidateId: profile.id } })
+  if (!question) return { error: 'We could not find that item. Please refresh and try again.' }
+
+  await prisma.workHistoryEntry.create({
+    data: {
+      candidateId: profile.id,
+      companyName,
+      roleTitle,
+      startDate,
+      endDate,
+      isCurrent,
+      engagementType: 'INTERIM',
+    },
+  })
+
+  await prisma.reviewerQuestion.update({
+    where: { id: question.id },
+    data: { resolutionType: 'CORRECTED', resolvedAt: new Date(), candidateExplanation: 'Interim work added to close this gap.' },
+  })
+  await prisma.resumeIssue.updateMany({
+    where: { reviewerQuestionId: questionId, resolvedAt: null },
+    data: {
+      resolvedAt: new Date(),
+      resolutionType: 'corrected_source_data',
+      surfacedInWalkthrough: true,
+      walkthroughStep: stepLabel,
+    },
+  })
+
+  await advanceStep(
+    profile.id,
+    { reviewerHandled: { [questionId]: { resolutionType: 'CORRECTED' } } },
+    nextStep,
+    stepLabel,
+    'fixed',
+    { reviewerQuestionId: questionId, detectionType: question.detectionType as ReviewerDetectionType, gapResolvedWithInterimWork: true }
+  )
+  revalidatePath('/dashboard/resume')
+  redirect(stepPath(nextStep))
+}
+
 // Restarts the walkthrough after completion (e.g. a new resume upload
 // surfaced fresh findings/detections) — a plain void action bound to a
 // button, same shape as markResumeFixApplied, since there's no per-field

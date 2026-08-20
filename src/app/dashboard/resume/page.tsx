@@ -68,13 +68,18 @@ export default async function ResumePage({
   // Report (getResumeFixes) — surfaced here too so they're addressable
   // right where the candidate actually edits/re-uploads their resume,
   // not only as read-only findings on a separate report page.
-  const [latestReport, versionUrls] = await Promise.all([
+  const [latestReport, versionUrls, narratives] = await Promise.all([
     prisma.marketRealityReport.findFirst({
       where: { candidateId: profile.id },
       orderBy: { generatedAt: 'desc' },
       select: { resumeRewrites: true },
     }),
     resolveVersionUrls(profile.resumes),
+    prisma.candidateNarrative.findMany({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'asc' },
+      select: { id: true, label: true },
+    }),
   ])
   const resumeFixes = await getResumeFixes(profile.id, latestReport?.resumeRewrites ?? null)
 
@@ -97,7 +102,7 @@ export default async function ResumePage({
 
       <ResumeVersionsList versions={versions} />
 
-      <ResumeUploadForm />
+      <ResumeUploadForm narratives={narratives} />
 
       {latest && (
         <Card>

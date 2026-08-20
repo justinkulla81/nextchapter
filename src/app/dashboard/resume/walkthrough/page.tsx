@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrCreateWalkthroughSession } from '@/lib/walkthrough/session'
 import { getMechanicalBatchFindings } from '@/lib/walkthrough/mechanical-findings'
 import { findReviewerCorrectionTarget } from '@/lib/walkthrough/reviewer-correction'
-import { REVIEWER_DETECTION_CHALLENGE_COPY, type ReviewerDetectionType } from '@/lib/scoring/resume-analysis/types'
+import { REVIEWER_DETECTION_CHALLENGE_COPY, DIMENSION_LABEL, type ReviewerDetectionType } from '@/lib/scoring/resume-analysis/types'
 import type { ReviewerResolutionType, WalkthroughScreen } from '@/lib/walkthrough/types'
 import { WalkthroughShell } from '@/components/walkthrough/WalkthroughShell'
 import { OverviewStep } from '@/components/walkthrough/OverviewStep'
@@ -17,13 +17,21 @@ import { ReviewSummaryStep } from '@/components/walkthrough/ReviewSummaryStep'
 
 export const metadata: Metadata = { title: 'Resume Fixer' }
 
-// §13.1's ~18-minute estimate for the full guided walkthrough — shown once,
-// on the overview screen only.
-const ESTIMATED_MINUTES = 18
+// §13.1's original ~18-minute estimate assumed a 2-dimension mechanical
+// batch — now that every dimension's findings get their own step (see
+// mechanical-findings.ts), the real total scales with how much this
+// candidate's resume actually needs, so this floor is padded per extra
+// step above the original ~12-step baseline instead of staying fixed.
+const BASELINE_MINUTES = 18
+const BASELINE_STEPS = 12
+const MINUTES_PER_EXTRA_STEP = 1.5
 
 const STEP_TITLE: Record<WalkthroughScreen['kind'], string> = {
   overview: 'Resume Fixer — fix your resume, one issue at a time',
-  mechanical: 'Formatting & ATS check',
+  // Overridden per-finding below (DIMENSION_LABEL[finding.dimension]) once
+  // the finding is loaded — this is only the fallback for the rare case
+  // the finding can't be found (see SkippedNotice).
+  mechanical: 'A finding on your resume',
   'target-line': 'Your target line',
   bullet: 'Strengthen this bullet',
   reviewer: 'What a reviewer might ask',
@@ -49,18 +57,23 @@ export default async function ResumeWalkthroughPage({
   const screen = session.screenPlan[step]
   if (!screen) return notFound()
 
-  const title = STEP_TITLE[screen.kind]
+  const estimatedMinutes = Math.round(
+    BASELINE_MINUTES + Math.max(0, totalSteps - BASELINE_STEPS) * MINUTES_PER_EXTRA_STEP
+  )
+
+  let title = STEP_TITLE[screen.kind]
   let body: React.ReactNode
 
   switch (screen.kind) {
     case 'overview': {
-      body = <OverviewStep nextStep={step + 1} estimatedMinutes={ESTIMATED_MINUTES} />
+      body = <OverviewStep nextStep={step + 1} estimatedMinutes={estimatedMinutes} />
       break
     }
 
     case 'mechanical': {
       const findings = await getMechanicalBatchFindings(profile.id)
       const found = findings.find((f) => f.key === screen.key)
+      if (found) title = DIMENSION_LABEL[found.dimension]
       body = found ? (
         <MechanicalFindingStep
           finding={found}

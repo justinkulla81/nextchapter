@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCommunityFeed } from '@/lib/community/community-feed'
 import { getMarketBriefFeedItems } from '@/lib/community/market-content'
 import { mergeCommunityStream } from '@/lib/community/unified-feed'
@@ -96,6 +97,9 @@ type SearchParams = {
   relation?: string
   community?: string
   group?: string
+  // Deep-linked from the resume page's "Send to a contact" action — a
+  // resume id to pre-select in the composer's attachment picker.
+  attachResumeId?: string
 }
 
 // `?group=dimension:value` — a fixed-size fact about the candidate (their
@@ -158,6 +162,7 @@ export default async function SupportNetworkPage({
           relationParam={params.relation}
           threadId={params.thread}
           withCandidateId={params.with}
+          attachResumeId={params.attachResumeId}
         />
       ) : (
         <CommunityTab
@@ -186,11 +191,13 @@ async function MessagesTab({
   relationParam,
   threadId,
   withCandidateId,
+  attachResumeId,
 }: {
   candidateId: string
   relationParam?: string
   threadId?: string
   withCandidateId?: string
+  attachResumeId?: string
 }) {
   const [candidateThreads, peerThreads] = await Promise.all([
     getCandidateThreads(candidateId),
@@ -245,7 +252,12 @@ async function MessagesTab({
       </div>
 
       {relation === 'peers' ? (
-        <PeerRelationPanel candidateId={candidateId} threadId={threadId} withCandidateId={withCandidateId} />
+        <PeerRelationPanel
+          candidateId={candidateId}
+          threadId={threadId}
+          withCandidateId={withCandidateId}
+          attachResumeId={attachResumeId}
+        />
       ) : (
         <InstitutionalRelationPanel
           candidateId={candidateId}
@@ -264,10 +276,12 @@ async function PeerRelationPanel({
   candidateId,
   threadId,
   withCandidateId,
+  attachResumeId,
 }: {
   candidateId: string
   threadId?: string
   withCandidateId?: string
+  attachResumeId?: string
 }) {
   // A "Message" link with no existing thread yet (?with={candidateId})
   // creates it on the fly, same first-contact path the send action itself
@@ -284,13 +298,39 @@ async function PeerRelationPanel({
     }
   }
 
-  const threads = await getPeerThreads(candidateId)
+  const [threads, ownResumes] = await Promise.all([
+    getPeerThreads(candidateId),
+    prisma.resume.findMany({
+      where: { candidateId },
+      orderBy: { uploadedAt: 'desc' },
+      select: { id: true, label: true, fileName: true },
+    }),
+  ])
 
   let activeThread: Awaited<ReturnType<typeof getPeerThreadWithMessages>> | null = null
   if (resolvedThreadId) {
     activeThread = await getPeerThreadWithMessages(resolvedThreadId, candidateId)
     if (activeThread) await markPeerThreadRead(resolvedThreadId, candidateId)
   }
+
+  // Signed URLs for any resume attachments in this thread — resolved here
+  // (not per-bubble) since a thread's attachment count is small and this
+  // avoids one Suspense-wrapped async component per attached message.
+  const attachedResumePaths = [
+    ...new Set((activeThread?.messages ?? []).map((m) => m.attachedResume?.filePath).filter((p): p is string => !!p)),
+  ]
+  const attachmentUrls =
+    attachedResumePaths.length > 0
+      ? new Map(
+          await Promise.all(
+            attachedResumePaths.map(async (path) => {
+              const admin = createAdminClient()
+              const { data } = await admin.storage.from('resumes').createSignedUrl(path, 60 * 10)
+              return [path, data?.signedUrl ?? null] as const
+            })
+          )
+        )
+      : new Map<string, string | null>()
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-start">
@@ -350,6 +390,7 @@ async function PeerRelationPanel({
                 selfCandidateId={candidateId}
                 partnerName={activeThread.partnerName}
                 partnerAvatarUrl={activeThread.partnerAvatarUrl}
+                attachmentUrls={attachmentUrls}
               />
             </div>
             {activeThread.isBlocked ? (
@@ -357,7 +398,12 @@ async function PeerRelationPanel({
                 You can no longer message in this conversation.
               </p>
             ) : (
-              <MessageComposer threadId={activeThread.id} action={sendPeerCandidateMessage} />
+              <MessageComposer
+                threadId={activeThread.id}
+                action={sendPeerCandidateMessage}
+                resumeOptions={ownResumes.map((r) => ({ id: r.id, label: r.label || r.fileName }))}
+                defaultAttachedResumeId={attachResumeId}
+              />
             )}
           </>
         )}

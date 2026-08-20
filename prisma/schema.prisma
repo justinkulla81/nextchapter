@@ -1640,6 +1640,10 @@ model CandidateNarrative {
   generatedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Resumes uploaded/aligned to this narrative (see Resume.narrativeId) —
+  // required back-relation, not otherwise traversed today.
+  resumes Resume[]
+
   @@index([candidateId, generatedAt])
 }
 
@@ -2615,6 +2619,14 @@ model Resume {
   label       String?
   description String? @db.Text
 
+  // Optional — chosen at upload time (see ResumeUploadForm's narrative
+  // picker). When set, analyzeResume() grounds its Experience-evaluation
+  // feedback in THIS narrative's coreStatement instead of always the
+  // candidate's earliest/default one. SetNull (not Cascade) so deleting a
+  // narrative never deletes the resume that was aligned to it.
+  narrativeId String?
+  narrative   CandidateNarrative? @relation(fields: [narrativeId], references: [id], onDelete: SetNull)
+
   atsScore           Int? // 0-100
   atsFeedback        Json[]    @default([]) // { issue: string, action: string } — issue framed as what a recruiter/hiring manager would notice
   resultsScore       Int? // 0-100 — quantified impact vs. vague duties
@@ -2627,6 +2639,9 @@ model Resume {
   uploadedAt DateTime @default(now())
 
   analyses ResumeAnalysis[]
+  // Messages this version was attached to (see Message.attachedResumeId) —
+  // required back-relation, not otherwise traversed today.
+  messages Message[]
 
   @@index([candidateId, uploadedAt])
 }
@@ -5176,6 +5191,14 @@ model Message {
   senderCandidateId String?
   body              String            @db.Text
   createdAt         DateTime          @default(now())
+
+  // Optional — a candidate sender can attach one of their own resume
+  // versions (see MessageComposer's resumeOptions prop, only ever passed
+  // on candidate-facing PEER-thread composers, never coach/recruiter/
+  // employer). SetNull, not Cascade — deleting a resume version doesn't
+  // delete the message history referencing it.
+  attachedResumeId String?
+  attachedResume   Resume? @relation(fields: [attachedResumeId], references: [id], onDelete: SetNull)
 
   @@index([threadId, createdAt])
 }

@@ -153,7 +153,12 @@ async function notifyNewPeerMessage(threadId: string, senderCandidateId: string)
   }
 }
 
-export async function sendPeerMessage(threadId: string, senderCandidateId: string, body: string) {
+export async function sendPeerMessage(
+  threadId: string,
+  senderCandidateId: string,
+  body: string,
+  attachedResumeId?: string | null
+) {
   const trimmed = body.trim()
   if (!trimmed) throw new Error('Message cannot be empty.')
 
@@ -168,11 +173,18 @@ export async function sendPeerMessage(threadId: string, senderCandidateId: strin
   const otherCandidateId = senderCandidateId === thread.peerCandidateAId ? thread.peerCandidateBId : thread.peerCandidateAId
   await assertNotBlocked(senderCandidateId, otherCandidateId)
 
+  // Never trust a resume id from the client alone — only ever attach one of
+  // the sender's own resume versions.
+  const verifiedResumeId = attachedResumeId
+    ? (await prisma.resume.findFirst({ where: { id: attachedResumeId, candidateId: senderCandidateId }, select: { id: true } }))
+        ?.id ?? null
+    : null
+
   const senderIsA = senderCandidateId === thread.peerCandidateAId
 
   const [message] = await prisma.$transaction([
     prisma.message.create({
-      data: { threadId, senderRole: 'CANDIDATE', body: trimmed, senderCandidateId },
+      data: { threadId, senderRole: 'CANDIDATE', body: trimmed, senderCandidateId, attachedResumeId: verifiedResumeId },
     }),
     prisma.messageThread.update({
       where: { id: threadId },
@@ -243,7 +255,10 @@ export async function getPeerThreadWithMessages(threadId: string, candidateId: s
   const thread = await prisma.messageThread.findUnique({
     where: { id: threadId },
     include: {
-      messages: { orderBy: { createdAt: 'asc' } },
+      messages: {
+        orderBy: { createdAt: 'asc' },
+        include: { attachedResume: { select: { id: true, label: true, fileName: true, filePath: true } } },
+      },
       peerCandidateA: { select: CANDIDATE_DISPLAY_SELECT },
       peerCandidateB: { select: CANDIDATE_DISPLAY_SELECT },
     },

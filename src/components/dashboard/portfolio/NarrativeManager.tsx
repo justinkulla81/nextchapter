@@ -205,17 +205,27 @@ export function NewNarrativeForm({
   onCreated,
   initialLabel,
   initialScenario,
+  defaultOpen = false,
 }: {
-  onCreated: () => void
+  // Optional id of the just-created narrative — ignored by callers that
+  // just want to know "something was created" (e.g. this file's own
+  // NarrativeManager), used by callers that need to auto-select it (e.g.
+  // ResumeUploadForm's narrative picker).
+  onCreated: (id?: string) => void
   initialLabel?: string
   initialScenario?: string
+  // Skip the collapsed "+ Add a narrative" button and show the fields
+  // immediately — for callers that already have their own trigger for
+  // entering "create a new narrative" mode (e.g. picking "+ New narrative"
+  // from ResumeUploadForm's select).
+  defaultOpen?: boolean
 }) {
   const [isPending, startTransition] = useTransition()
   // Deep-linked from another page (e.g. "Draft a narrative for this job" on
   // the Application Tracker) opens straight into the form, pre-filled,
   // instead of landing on a collapsed button the candidate has to notice
   // and click first.
-  const [open, setOpen] = useState(!!(initialLabel || initialScenario))
+  const [open, setOpen] = useState(defaultOpen || !!(initialLabel || initialScenario))
   const [label, setLabel] = useState(initialLabel ?? '')
   const [scenario, setScenario] = useState(initialScenario ?? '')
   const [error, setError] = useState(false)
@@ -243,7 +253,7 @@ export function NewNarrativeForm({
       setLabel('')
       setScenario('')
       setOpen(false)
-      onCreated()
+      onCreated(result.id)
     })
   }
 

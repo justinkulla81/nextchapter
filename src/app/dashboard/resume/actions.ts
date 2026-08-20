@@ -77,6 +77,17 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
     select: { atsScore: true, resultsScore: true, experienceScore: true },
   })
 
+  // Optional — set when the candidate picked (or just created) a narrative
+  // to align this upload to in ResumeUploadForm's picker. Verified against
+  // this candidate's own narratives, not trusted blindly from the client.
+  const requestedNarrativeId = (formData.get('narrativeId') as string | null)?.trim() || null
+  const narrativeId = requestedNarrativeId
+    ? (await prisma.candidateNarrative.findFirst({
+        where: { id: requestedNarrativeId, candidateId: profile.id },
+        select: { id: true },
+      }))?.id ?? null
+    : null
+
   const resume = await prisma.resume.create({
     data: {
       candidateId: profile.id,
@@ -86,6 +97,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
       fileType,
       extractedText: text,
       extractionError,
+      narrativeId,
     },
   })
 

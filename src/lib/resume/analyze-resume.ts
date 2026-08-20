@@ -95,9 +95,15 @@ export async function analyzeResume(resumeId: string): Promise<void> {
     2
   )
 
-  const defaultNarrative = await getDefaultNarrative(resume.candidateId)
-  const narrativeBlock = defaultNarrative
-    ? `\n\nCandidate's stated core narrative: ${defaultNarrative.coreStatement}`
+  // A candidate can align a specific upload to a specific narrative (see
+  // ResumeUploadForm's narrative picker) — when they have, ground feedback
+  // in THAT narrative's coreStatement instead of always the earliest/
+  // default one, so "suggestions come from that narrative" is literal.
+  const narrative = resume.narrativeId
+    ? await prisma.candidateNarrative.findUnique({ where: { id: resume.narrativeId } })
+    : await getDefaultNarrative(resume.candidateId)
+  const narrativeBlock = narrative
+    ? `\n\nCandidate's stated core narrative: ${narrative.coreStatement}`
     : ''
 
   try {
