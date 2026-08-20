@@ -113,6 +113,7 @@ function buildSections(
         { href: '/dashboard/profile', label: 'My Profile', icon: User },
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/membership', label: 'Membership', icon: Award },
       ],
     },
     {
@@ -174,12 +175,6 @@ function buildSections(
     {
       title: 'Data',
       links: [
-        {
-          href: '/dashboard/premium',
-          label: 'Market Intelligence',
-          icon: LineChart,
-          badge: 'Premium',
-        },
         { href: '/dashboard/network/contacts', label: 'Contacts', icon: Contact, ...gmailLock },
         { href: '/dashboard/companies', label: 'Companies', icon: Landmark },
         {
@@ -189,21 +184,21 @@ function buildSections(
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
         },
         { href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
-        { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
-      ],
-    },
-    {
-      title: 'Membership',
-      links: [
-        { href: '/dashboard/membership', label: 'Membership', icon: Award },
-        { href: '/dashboard/benefits-network', label: 'Alumni Benefits Network', icon: Gift },
+        {
+          href: '/dashboard/premium',
+          label: 'Market Intelligence',
+          icon: LineChart,
+          badge: 'Premium',
+        },
       ],
     },
     {
       title: 'Misc',
       links: [
+        { href: '/dashboard/benefits-network', label: 'Alumni Career Services and Benefit', icon: Gift },
         { href: '/dashboard/benefits', label: 'Benefits & Financial Bridge', icon: HeartHandshake },
         { href: '/dashboard/support', label: "I'm Struggling", icon: LifeBuoy },
+        { href: '/dashboard/privacy', label: 'Privacy Settings', icon: Shield },
         { href: '/faq', label: 'FAQ', icon: HelpCircle },
       ],
     },
