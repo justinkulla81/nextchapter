@@ -928,6 +928,12 @@ model CandidateProfile {
   // confirmed yet" — falls back to displaying resumeKeywords directly.
   confirmedSkillsHave             String[]  @default([])
   skillsHaveConfirmedAt           DateTime?
+  // Candidate-authored, edited on My Profile — "what could you help another
+  // NextChapter member with" (interview prep for a function, a specific
+  // tool, negotiating, breaking into an industry, ...), shown on their
+  // Contacts profile page. Same free-tag idiom as targetIndustries/
+  // skillsToBuild, not seeded from anything.
+  canTeach                        String[]  @default([])
   interimConsultingInterest       Boolean   @default(false)
   searchStrategyConfirmedAt       DateTime?
   // Restrictive covenant from a current/former employer (non-compete,

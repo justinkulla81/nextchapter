@@ -7,6 +7,7 @@ import { EducationConfirmForm } from '@/components/dashboard/EducationConfirmFor
 import { FunctionConfirmForm } from '@/components/dashboard/FunctionConfirmForm'
 import { SalaryConfirmForm } from '@/components/dashboard/SalaryConfirmForm'
 import { ResumeKeywordsForm } from '@/components/dashboard/ResumeKeywordsForm'
+import { CanTeachForm } from '@/components/dashboard/CanTeachForm'
 import { LinkedInConfirmForm } from '@/components/dashboard/LinkedInConfirmForm'
 import { ProfileSaveAllButton } from '@/components/dashboard/ProfileSaveAllButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -200,6 +201,17 @@ export default async function PersonalInformationPage() {
           </CardHeader>
           <CardContent>
             <ResumeKeywordsForm resumeKeywords={profile.resumeKeywords} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              What you can teach others
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CanTeachForm canTeach={profile.canTeach} />
           </CardContent>
         </Card>
       </div>

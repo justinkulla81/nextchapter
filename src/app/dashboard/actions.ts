@@ -397,6 +397,28 @@ export async function updateResumeKeywords(
   revalidatePath('/dashboard/profile')
 }
 
+// "What could you help another NextChapter member with" — shown on the
+// candidate's Contacts profile page (see member-profile.ts), edited here.
+export async function updateCanTeach(
+  _prevState: ConfirmFormState,
+  formData: FormData
+): Promise<ConfirmFormState> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+
+  const canTeach = formData
+    .getAll('canTeach')
+    .map((v) => v.toString().trim())
+    .filter(Boolean)
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { canTeach },
+  })
+  captureServerEvent(profile.id, 'can_teach_updated', { count: canTeach.length })
+  revalidatePath('/dashboard/profile')
+}
+
 export async function confirmFunctionAndExperience(
   _prevState: ConfirmFormState,
   formData: FormData

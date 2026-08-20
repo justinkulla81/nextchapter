@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
 import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { ContactDirectoryTable } from '@/components/dashboard/ContactDirectoryTable'
+import { NextChapterMembersSection } from '@/components/dashboard/NextChapterMembersSection'
 import { lookupNextChapterMemberships } from '@/lib/network/member-lookup'
+import { cn } from '@/lib/utils'
 import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
@@ -36,6 +39,32 @@ export default async function ContactDirectoryPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const [sp, profile] = await Promise.all([searchParams, getDashboardData()])
+
+  const scope: 'mine' | 'nextchapter' | 'all' =
+    sp.scope === 'nextchapter' || sp.scope === 'all' ? sp.scope : 'mine'
+
+  // Scope=nextchapter skips every SupportNetworkContact query entirely
+  // rather than fetching-and-hiding — this candidate's SupportNetworkContact
+  // table can be 27,000+ rows (a real LinkedIn export, see the perf
+  // comment below), and browsing NextChapter members shouldn't pay that
+  // cost just because it happens to share a page with the contact
+  // directory. scope=all still pays it (it genuinely needs both lists).
+  if (scope === 'nextchapter') {
+    return (
+      <div className="space-y-8">
+        <div className="space-y-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Contacts</h1>
+          <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
+        </div>
+        <ScopeTabs scope={scope} />
+        <NextChapterMembersSection
+          viewerCandidateId={profile.id}
+          query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
+          page={Math.max(1, Number(sp.mpage) || 1)}
+        />
+      </div>
+    )
+  }
 
   const q = typeof sp.q === 'string' ? sp.q.trim() : ''
   const sortKey: ContactSortKey = (SORT_KEYS as readonly string[]).includes(sp.sort as string)
@@ -229,9 +258,11 @@ export default async function ContactDirectoryPage({
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Contact Directory</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Contacts</h1>
         <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
       </div>
+
+      <ScopeTabs scope={scope} />
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
@@ -267,6 +298,14 @@ export default async function ContactDirectoryPage({
       />
 
       {hasAnyContacts && buildListSection}
+
+      {scope === 'all' && (
+        <NextChapterMembersSection
+          viewerCandidateId={profile.id}
+          query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
+          page={Math.max(1, Number(sp.mpage) || 1)}
+        />
+      )}
 
       <Accordion>
         <AccordionItem value="scripts">
@@ -305,6 +344,33 @@ export default async function ContactDirectoryPage({
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+    </div>
+  )
+}
+
+const SCOPE_TABS: { value: 'mine' | 'nextchapter' | 'all'; label: string }[] = [
+  { value: 'mine', label: 'Your Contacts' },
+  { value: 'nextchapter', label: 'NextChapter Contacts' },
+  { value: 'all', label: 'All' },
+]
+
+function ScopeTabs({ scope }: { scope: 'mine' | 'nextchapter' | 'all' }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {SCOPE_TABS.map((tab) => (
+        <Link
+          key={tab.value}
+          href={tab.value === 'mine' ? '/dashboard/network/contacts' : `/dashboard/network/contacts?scope=${tab.value}`}
+          className={cn(
+            'rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+            scope === tab.value
+              ? 'border-brand bg-brand/10 text-foreground'
+              : 'border-border text-muted-foreground hover:text-foreground'
+          )}
+        >
+          {tab.label}
+        </Link>
+      ))}
     </div>
   )
 }

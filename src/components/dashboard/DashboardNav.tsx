@@ -35,6 +35,7 @@ import {
   Gift,
   LineChart,
   Lock,
+  Landmark,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -179,7 +180,8 @@ function buildSections(
           icon: LineChart,
           badge: 'Premium',
         },
-        { href: '/dashboard/network/contacts', label: 'My Contacts', icon: Contact, ...gmailLock },
+        { href: '/dashboard/network/contacts', label: 'Contacts', icon: Contact, ...gmailLock },
+        { href: '/dashboard/companies', label: 'Companies', icon: Landmark },
         {
           href: '/dashboard/portfolio',
           label: 'My Portfolio',
