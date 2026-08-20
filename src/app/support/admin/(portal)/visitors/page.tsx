@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { classifyUserAgent } from '@/lib/http/user-agent'
+import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 
 export const maxDuration = 30
 
@@ -14,6 +15,7 @@ interface Row {
   href: string | null
   referrer: string | null
   userAgent: string | null
+  location: string | null
 }
 
 // Anonymous public-homepage traffic only — never candidate/coach/recruiter/
@@ -38,6 +40,14 @@ export default async function AdminVisitorsPage({
     prisma.homepageVisitEvent.count(),
   ])
 
+  // One lookup per unique IP on this page, not per row — same convention as
+  // the daily digest email (send-homepage-visitor-digest.ts) — comfortably
+  // stays under ip-api.com's free-tier rate limit even on a full 50-row page.
+  const uniqueIps = Array.from(new Set(events.map((e) => e.ip).filter((ip): ip is string => !!ip)))
+  const locationByIp = new Map(
+    await Promise.all(uniqueIps.map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const))
+  )
+
   const rows: Row[] = events.map((e) => ({
     id: e.id,
     createdAt: e.createdAt,
@@ -46,6 +56,7 @@ export default async function AdminVisitorsPage({
     href: e.href,
     referrer: e.referrer,
     userAgent: e.userAgent,
+    location: e.ip ? (locationByIp.get(e.ip) ?? null) : null,
   }))
 
   const result = paginatedResult(rows, total, params)
@@ -53,6 +64,7 @@ export default async function AdminVisitorsPage({
   const columns: AdminColumn<Row>[] = [
     { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => r.createdAt.toLocaleString() },
     { header: 'IP', render: (r) => r.ip ?? 'unknown' },
+    { header: 'Location', render: (r) => r.location ?? '—' },
     { header: 'Event', render: (r) => (r.eventType === 'PAGE_VIEW' ? 'Homepage view' : 'Link click') },
     {
       header: 'Detail',
