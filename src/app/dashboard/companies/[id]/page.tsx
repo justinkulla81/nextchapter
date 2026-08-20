@@ -14,21 +14,16 @@ import {
   getPendingInsiderRequestsForInsider,
   type InsiderSummary,
 } from '@/lib/companies/insider-network'
-import { getUntaggedWorkHistory } from '@/lib/companies/employment-tagging'
+import { autoTagAllWorkHistory } from '@/lib/companies/employment-tagging'
 import { getCandidateContactsAtCompany } from '@/lib/companies/candidate-contacts-at-company'
 import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@/lib/companies/company-intel'
-import { computeCompanyFitForCandidate } from '@/lib/companies/company-fit'
-import type { RankedSkill } from '@/lib/companies/skills-extraction'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { suppressSmallCells, isSuppressedCell } from '@/lib/admin/cell-suppression'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
-import { FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
-import {
-  ConfirmWorkHistoryButton,
-  ManualTagForm,
-  CurrentEmployerInsiderOptIn,
-} from '@/components/companies/EmploymentTagging'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { ManualTagForm, CurrentEmployerInsiderOptIn } from '@/components/companies/EmploymentTagging'
 import { AskInsiderForm, AnswerInsiderRequestForm } from '@/components/companies/InsiderNetworkControls'
 import { SubmitIntelForm, MarkHelpfulButton } from '@/components/companies/CompanyIntelControls'
 import { getCandidateMarketIntelTier, tierMeetsFeature, MARKET_INTEL_TIER_LABEL } from '@/lib/market-intelligence/access'
@@ -74,14 +69,35 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // is just an alias, not a wait.
   const company = companyRow
 
-  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere] = await Promise.all([
-    prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
-    prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
-    hasTaggedEmployment(profile.id),
-    getPublishedIntelForCompany(id),
-    getCandidateMarketIntelTier(profile.id),
-    getCandidateContactsAtCompany(profile.id, company.name),
-  ])
+  // NextChapter already has this candidate's work history — auto-tag it
+  // into the insider-network graph rather than requiring a manual
+  // per-company "Confirm" click for data already trusted everywhere else
+  // (see autoTagAllWorkHistory's own comment). Awaited before the
+  // hasTaggedEmployment check below so a first-ever visit already reads
+  // as tagged, not "add where you've worked to unlock this."
+  await autoTagAllWorkHistory(profile.id)
+
+  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, ownOutcomeHere] =
+    await Promise.all([
+      prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
+      prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
+      hasTaggedEmployment(profile.id),
+      getPublishedIntelForCompany(id),
+      getCandidateMarketIntelTier(profile.id),
+      getCandidateContactsAtCompany(profile.id, company.name),
+      // "How to get hired here" auto-expands only once the candidate has
+      // genuinely interviewed and been rejected AT THIS company — matched
+      // the same way company-fit.ts does elsewhere on this page (normalized
+      // equality against canonicalNameNormalized), not exact string match,
+      // since JobPosting.companyName is free text.
+      prisma.jobPosting.findMany({
+        where: { candidateId: profile.id, companyName: { not: null }, interviewLandedAt: { not: null }, declinedAt: { not: null } },
+        select: { companyName: true },
+      }),
+    ])
+  const hadInterviewAndRejection = ownOutcomeHere.some(
+    (p) => normalizeOrgName(p.companyName!) === company.canonicalNameNormalized
+  )
   // Partners Master Build Script §A3.3 — insider network access is a Plus+
   // Market Intelligence feature. Company pages, hiring trajectory, posting
   // age, and skills demanded (everything else on this page) stay open to
@@ -94,13 +110,10 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // out doesn't require paying" reasoning as tagging.
   const canInsiderNetwork = tierMeetsFeature(marketIntelTier, 'insider_network')
 
-  const topSkills = ((latestSignal?.topSkillsRequested as unknown as RankedSkill[] | undefined) ?? []).slice(0, 10)
   const topFunctions =
     (latestSignal?.topFunctionsHiring as unknown as { function: string; count: number }[] | undefined) ?? []
 
-  const [fit, untaggedWorkHistory, insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
-    computeCompanyFitForCandidate(profile.id, company.canonicalNameNormalized, topSkills),
-    alreadyTagged ? Promise.resolve([]) : getUntaggedWorkHistory(profile.id),
+  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
     alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
@@ -204,99 +217,60 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       </Card>
 
       {/* ── Contraction signal ──
-          No WARN monitoring agent exists anywhere in this codebase — zero
-          cron, zero model. Never fabricate a WARN number here; explicit
-          "not available yet" state instead of a fake callout box. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Contraction signal</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            WARN-filing monitoring isn&apos;t built yet, so this section can&apos;t show layoff filings for this
-            company. The hiring signal above (based on posting activity) is the only trajectory data currently
-            available.
-          </p>
-        </CardContent>
-      </Card>
+          Removed entirely rather than showing a permanent "not built yet"
+          placeholder — no WARN-filing monitoring exists anywhere in this
+          codebase, so there is never a real signal to show here. Add this
+          card back only once a real WARN/layoff data source exists. */}
 
-      {/* ── Skills they hire for ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Skills they hire for</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {topSkills.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Not enough posting text yet to extract a ranked skills list.</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-1.5">
-                {topSkills.map((s) => (
-                  <span
-                    key={s.term}
-                    className={
-                      fit.matchedSkills.includes(s.term)
-                        ? 'rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary'
-                        : 'rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground'
-                    }
-                  >
-                    {s.term}
-                  </span>
-                ))}
-              </div>
-              {fit.missingSkills.length > 0 && (
-                <p className="text-sm">
-                  You match {fit.matchedSkills.length} of their top {topSkills.length}. Missing:{' '}
-                  {fit.missingSkills.slice(0, 5).join(', ')}.
-                </p>
-              )}
+      {/* ── How to get hired here ──
+          Minimized by default — expanded automatically only once this
+          candidate has actually interviewed and been rejected here
+          (hadInterviewAndRejection), when the guidance is genuinely
+          relevant to look back on, not just "someone might read this
+          someday." */}
+      <Accordion defaultValue={hadInterviewAndRejection ? ['how-to-get-hired'] : []}>
+        <AccordionItem value="how-to-get-hired">
+          <AccordionTrigger className="px-5 py-4 hover:text-foreground">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-4" aria-hidden="true" />
+              <CardTitle>How to get hired here</CardTitle>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── How to get hired here ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="size-4" aria-hidden="true" />
-            How to get hired here
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            {publishedIntel.length === 0 ? (
-              <EmptyState
-                icon={Sparkles}
-                title="No guidance yet"
-                description="Be the first to share what the interview process here is really like."
-              />
-            ) : (
-              <div className="flex flex-col gap-3">
-                <ShowMoreList pageSize={5}>
-                  {publishedIntel.map((intel) => (
-                    <div key={intel.id} className="rounded-lg border border-border p-3">
-                      <p className="text-xs font-medium text-muted-foreground">{INTEL_TYPE_LABEL[intel.intelType as IntelType]}</p>
-                      <p className="mt-1 text-sm">{intel.body}</p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">
-                          {intel.roleLevelAtTime ? `A former ${intel.roleLevelAtTime}` : 'A member'}
-                          {intel.recencyBucket ? ` — ${TENURE_LABEL[intel.recencyBucket] ?? intel.recencyBucket}` : ''}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{intel.helpfulCount} found this helpful</span>
-                          <MarkHelpfulButton intelId={intel.id} companyPageId={id} />
+          </AccordionTrigger>
+          <AccordionContent className="px-5 pb-5">
+            <div className="flex flex-col gap-4">
+              {publishedIntel.length === 0 ? (
+                <EmptyState
+                  icon={Sparkles}
+                  title="No guidance yet"
+                  description="Be the first to share what the interview process here is really like."
+                />
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <ShowMoreList pageSize={5}>
+                    {publishedIntel.map((intel) => (
+                      <div key={intel.id} className="rounded-lg border border-border p-3">
+                        <p className="text-xs font-medium text-muted-foreground">{INTEL_TYPE_LABEL[intel.intelType as IntelType]}</p>
+                        <p className="mt-1 text-sm">{intel.body}</p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground">
+                            {intel.roleLevelAtTime ? `A former ${intel.roleLevelAtTime}` : 'A member'}
+                            {intel.recencyBucket ? ` — ${TENURE_LABEL[intel.recencyBucket] ?? intel.recencyBucket}` : ''}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{intel.helpfulCount} found this helpful</span>
+                            <MarkHelpfulButton intelId={intel.id} companyPageId={id} />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </ShowMoreList>
-              </div>
-            )}
-            <SubmitIntelForm companyId={id} companyPageId={id} />
-          </div>
-        </CardContent>
-      </Card>
+                    ))}
+                  </ShowMoreList>
+                </div>
+              )}
+              <SubmitIntelForm companyId={id} companyPageId={id} />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {/* ── How members have fared ── */}
       <Card>
@@ -365,28 +339,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
               <div className="flex items-start gap-2 rounded-lg border border-dashed border-border p-3">
                 <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">
-                  Add where you&apos;ve worked to unlock this. We&apos;ll pull it from your resume — just confirm.
-                  Members who tag their history can see who&apos;s worked at companies they&apos;re targeting, and
-                  get asked in return.
+                  Add where you&apos;ve worked to unlock this — members who&apos;ve worked somewhere can see who
+                  else has, and get asked in return.
                 </p>
               </div>
-              {untaggedWorkHistory.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  {untaggedWorkHistory.map((w) => (
-                    <div key={w.workHistoryEntryId} className="flex items-center justify-between rounded-lg border border-border p-3">
-                      <div>
-                        <p className="text-sm font-medium">{w.companyName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {w.roleTitle}
-                          {w.isCurrent && ' · Current'}
-                        </p>
-                      </div>
-                      <ConfirmWorkHistoryButton workHistoryEntryId={w.workHistoryEntryId} companyPageId={id} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <ManualTagForm companyPageId={id} defaultCompanyName={untaggedWorkHistory.length === 0 ? company.name : undefined} />
+              <ManualTagForm companyPageId={id} defaultCompanyName={company.name} />
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -465,22 +422,6 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         </CardContent>
       </Card>
 
-      {/* ── Your fit ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your fit</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {fit.bucket ? (
-            <p className="text-sm">
-              <span className="font-medium">{FIT_BUCKET_LABEL[fit.bucket]}</span> fit against their open roles
-              {fit.bestPostingTitle && ` (best match: "${fit.bestPostingTitle}")`}.
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">No open roles at this company to compare your fit against right now.</p>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }

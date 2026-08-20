@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { SIZE_BAND_LABEL } from '@/components/companies/CompanyMetaLine'
 
 export const metadata: Metadata = { title: 'Companies' }
 
@@ -79,8 +80,9 @@ export default async function CompaniesIndexPage({
                 <div className="min-w-0">
                   <p className="truncate font-medium text-foreground">{company.name}</p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {[company.industry, company.sizeBand, company.hqMetro].filter(Boolean).join(' · ') ||
-                      'Details still filling in'}
+                    {[company.industry, company.sizeBand ? SIZE_BAND_LABEL[company.sizeBand] : null, company.hqMetro]
+                      .filter(Boolean)
+                      .join(' · ') || 'Details still filling in'}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-4 text-sm">

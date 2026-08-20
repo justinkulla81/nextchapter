@@ -1,5 +1,19 @@
-import type { Company } from '@prisma/client'
+import type { Company, CompanySizeBand } from '@prisma/client'
 import { resolveCompanyMetadataIfMissing } from '@/lib/companies/company-lookup'
+
+// Human-readable employee-count ranges for the enum's own band comments
+// (schema.prisma) — "MID_LARGE" on its own reads as a database value, not
+// company size, to a candidate.
+export const SIZE_BAND_LABEL: Record<CompanySizeBand, string> = {
+  MICRO: '1-10 employees',
+  SMALL: '11-50 employees',
+  SMALL_MID: '51-200 employees',
+  MID: '201-1,000 employees',
+  MID_LARGE: '1,001-5,000 employees',
+  LARGE: '5,001-20,000 employees',
+  ENTERPRISE: '20,001-100,000 employees',
+  MEGA: '100,000+ employees',
+}
 
 // resolveCompanyMetadataIfMissing can make a real LLM call (industry/size
 // classification, see its own doc comment) the first time anyone views a
@@ -14,7 +28,9 @@ export async function CompanyMetaLine({ companyRow }: { companyRow: Company }) {
   const company = await resolveCompanyMetadataIfMissing(companyRow)
   return (
     <p className="text-sm text-muted-foreground">
-      {[company.industry, company.sizeBand, company.hqMetro].filter(Boolean).join(' · ') || 'Details still filling in'}
+      {[company.industry, company.sizeBand ? SIZE_BAND_LABEL[company.sizeBand] : null, company.hqMetro]
+        .filter(Boolean)
+        .join(' · ') || 'Details still filling in'}
     </p>
   )
 }

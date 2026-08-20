@@ -89,6 +89,20 @@ export async function confirmWorkHistoryEntry(
   return { ok: true, created: result.created, companyId: company.id }
 }
 
+// NextChapter already has this candidate's work history (resume-parsed or
+// self-entered) — requiring a manual per-company "Confirm" click before it
+// counts toward the insider-network graph was pure friction for data
+// already trusted everywhere else in the app. Auto-tags every untagged
+// entry the first time this runs for a candidate (idempotent past that —
+// getUntaggedWorkHistory returns nothing once everything's tagged).
+// visibleAsInsider still defaults to false for a current employer (see
+// tagEmployer) — this only creates the graph row, it never bypasses that
+// separate, explicit current-employer opt-in.
+export async function autoTagAllWorkHistory(candidateId: string): Promise<void> {
+  const untagged = await getUntaggedWorkHistory(candidateId)
+  await Promise.all(untagged.map((entry) => confirmWorkHistoryEntry(candidateId, entry.workHistoryEntryId)))
+}
+
 export interface ManualTagInput {
   candidateId: string
   companyName: string
