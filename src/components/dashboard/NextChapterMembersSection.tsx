@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { getMemberDisplayIdentity } from '@/lib/contacts/member-profile'
+import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
 
 const PAGE_SIZE = 25
 
@@ -81,7 +81,7 @@ export async function NextChapterMembersSection({
             return (
               <Link
                 key={member.id}
-                href={`/dashboard/contacts/members/${member.id}`}
+                href={`/dashboard/contacts/members/${encodeURIComponent(buildMemberProfileSlug(displayName, member.id))}`}
                 className="flex items-center gap-3 p-3 hover:bg-muted/50"
               >
                 {showPhoto && <AvatarDisplay name={displayName} url={member.profilePictureUrl} size={36} />}

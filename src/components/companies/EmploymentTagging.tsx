@@ -11,7 +11,7 @@ import {
   tagEmployerManual,
   optInCurrentEmployerInsider,
   type ActionFormState,
-} from '@/app/dashboard/companies/[id]/actions'
+} from '@/app/dashboard/companies/[slug]/actions'
 import { useState } from 'react'
 
 // Prompt 4.1's real contribution gate — "Add where you've worked to unlock

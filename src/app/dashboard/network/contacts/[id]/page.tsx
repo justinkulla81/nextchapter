@@ -77,7 +77,7 @@ export default async function ContactProfilePage({ params }: { params: Promise<{
         membership={membership}
         isAtCurrentEmployer={row.isAtCurrentEmployer}
         referenceHref={referenceHref}
-        companyCardHref={companyCard ? `/dashboard/companies/${companyCard.id}` : null}
+        companyCardHref={companyCard ? `/dashboard/companies/${encodeURIComponent(companyCard.canonicalNameNormalized)}` : null}
         sharedCompany={sharedCompany}
       />
     </div>

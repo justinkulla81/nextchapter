@@ -671,7 +671,7 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   'JOB_INTERESTED_REACTION',
   'WATCHLIST_ADD',
   // Verified via tagEmployer/submitCompanyIntel/answerInsiderRequest in
-  // src/app/dashboard/companies/[id]/actions.ts — all real DB writes, never
+  // src/app/dashboard/companies/[slug]/actions.ts — all real DB writes, never
   // a self-report click.
   'EMPLOYER_TAGGED',
   'COMPANY_INTEL_CONTRIBUTED',

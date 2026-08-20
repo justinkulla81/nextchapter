@@ -41,3 +41,28 @@ export function getMemberDisplayIdentity(candidate: MemberIdentitySource): { dis
     : `${firstName}${candidate.lastName ? ` ${candidate.lastName[0]}.` : ''}`.trim()
   return { displayName, showPhoto: isFullyPublic }
 }
+
+// Member profile URLs carry the name for readability, but the id is what's
+// actually looked up — CandidateProfile has no unique/slug-safe name field
+// (first/last name are neither unique nor guaranteed present), so a pretty
+// name alone can't be a real lookup key. Built from the SAME tier-respecting
+// displayName getMemberDisplayIdentity returns, never raw firstName/lastName
+// — a SEMI_PUBLIC member's full last name must never leak into the URL when
+// the page itself only ever shows their last initial.
+export function buildMemberProfileSlug(displayName: string, candidateId: string): string {
+  const namePart =
+    displayName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'member'
+  return `${namePart}--${candidateId}`
+}
+
+// The double-hyphen separator means a bare cuid (no `--` present) round-trips
+// unchanged — old bookmarked/shared /dashboard/contacts/members/<id> links
+// keep working with no redirect needed.
+export function extractCandidateIdFromMemberSlug(slug: string): string {
+  const separatorIndex = slug.lastIndexOf('--')
+  return separatorIndex === -1 ? slug : slug.slice(separatorIndex + 2)
+}

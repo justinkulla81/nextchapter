@@ -76,6 +76,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
     select: {
       id: true,
       name: true,
+      canonicalNameNormalized: true,
       industry: true,
       sizeBand: true,
       hqMetro: true,
@@ -177,7 +178,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
             return (
               <Link
                 key={company.id}
-                href={`/dashboard/companies/${company.id}`}
+                href={`/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}`}
                 className="flex items-center justify-between gap-4 p-4 hover:bg-muted/50"
               >
                 <div className="min-w-0">

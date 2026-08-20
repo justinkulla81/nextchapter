@@ -28,10 +28,17 @@ import { AskInsiderForm, AnswerInsiderRequestForm } from '@/components/companies
 import { ContactEmploymentStatusButtons } from '@/components/companies/ContactEmploymentStatusButtons'
 import { SubmitIntelForm, MarkHelpfulButton } from '@/components/companies/CompanyIntelControls'
 import { getCandidateMarketIntelTier, tierMeetsFeature, MARKET_INTEL_TIER_LABEL } from '@/lib/market-intelligence/access'
+import { getRecruitingFirmData } from '@/lib/companies/recruiting-firm'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
+import { Briefcase } from 'lucide-react'
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params
-  const company = await prisma.company.findUnique({ where: { id }, select: { name: true } })
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const company = await prisma.company.findUnique({
+    where: { canonicalNameNormalized: decodeURIComponent(slug) },
+    select: { name: true },
+  })
   return { title: company ? company.name : 'Company' }
 }
 
@@ -53,13 +60,13 @@ function InsiderLine({ insider }: { insider: InsiderSummary }) {
   )
 }
 
-export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function CompanyPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   // Independent of each other — no need for getDashboardData to finish
   // before the company row lookup starts.
   const [profile, companyRow] = await Promise.all([
     getDashboardData(),
-    prisma.company.findUnique({ where: { id } }),
+    prisma.company.findUnique({ where: { canonicalNameNormalized: decodeURIComponent(slug) } }),
   ])
   if (!companyRow) notFound()
 
@@ -69,6 +76,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // fields (name, canonicalNameNormalized, atsPlatform), so `company` here
   // is just an alias, not a wait.
   const company = companyRow
+  // Real DB id, still needed for every FK-based query below — only the URL
+  // itself is slug-based now (canonicalNameNormalized). `slug` (not `id`) is
+  // what gets passed as companyPageId to child forms/actions below, so
+  // revalidatePath matches this route's actual URL.
+  const id = company.id
 
   // NextChapter already has this candidate's work history — auto-tag it
   // into the insider-network graph rather than requiring a manual
@@ -78,7 +90,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   // as tagged, not "add where you've worked to unlock this."
   await autoTagAllWorkHistory(profile.id)
 
-  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, otherMembersContactCount, ownOutcomeHere] =
+  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, otherMembersContactCount, recruitingFirmData, dossierStatus, ownOutcomeHere] =
     await Promise.all([
       prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
       prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
@@ -87,6 +99,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       getCandidateMarketIntelTier(profile.id),
       getCandidateContactsAtCompany(profile.id, company.name),
       countOtherMembersWithContactAtCompany(profile.id, company.name),
+      getRecruitingFirmData(company.name),
+      isDossierUnlocked(profile.id),
       // "How to get hired here" auto-expands only once the candidate has
       // genuinely interviewed and been rejected AT THIS company — matched
       // the same way company-fit.ts does elsewhere on this page (normalized
@@ -260,7 +274,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                           </p>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">{intel.helpfulCount} found this helpful</span>
-                            <MarkHelpfulButton intelId={intel.id} companyPageId={id} />
+                            <MarkHelpfulButton intelId={intel.id} companyPageId={slug} />
                           </div>
                         </div>
                       </div>
@@ -268,7 +282,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                   </ShowMoreList>
                 </div>
               )}
-              <SubmitIntelForm companyId={id} companyPageId={id} />
+              <SubmitIntelForm companyId={id} companyPageId={slug} />
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -349,7 +363,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                           {contact.title && <p className="text-xs text-muted-foreground">{contact.title}</p>}
                         </Link>
                         {status === null && (
-                          <ContactEmploymentStatusButtons contactId={contact.id} companyPageId={id} />
+                          <ContactEmploymentStatusButtons contactId={contact.id} companyPageId={slug} />
                         )}
                       </div>
                     ))}
@@ -385,11 +399,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                   else has, and get asked in return.
                 </p>
               </div>
-              <ManualTagForm companyPageId={id} defaultCompanyName={company.name} />
+              <ManualTagForm companyPageId={slug} defaultCompanyName={company.name} />
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {currentEmployerUntagged && <CurrentEmployerInsiderOptIn companyId={id} companyPageId={id} />}
+              {currentEmployerUntagged && <CurrentEmployerInsiderOptIn companyId={id} companyPageId={slug} />}
 
               {/* Partners Master Build Script §A3.3 — insider network ACCESS
                   (browsing/asking insiders at this company) is Plus+.
@@ -420,7 +434,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                     {insiders.map((insider) => (
                       <div key={insider.memberEmploymentId} className="flex flex-col gap-2 rounded-lg border border-border p-3">
                         <InsiderLine insider={insider} />
-                        <AskInsiderForm companyId={id} insiderMemberEmploymentId={insider.memberEmploymentId} companyPageId={id} />
+                        <AskInsiderForm companyId={id} insiderMemberEmploymentId={insider.memberEmploymentId} companyPageId={slug} />
                       </div>
                     ))}
                   </ShowMoreList>
@@ -454,7 +468,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                   {pendingToAnswerHere.map((r) => (
                     <div key={r.id} className="flex flex-col gap-2 rounded-lg border border-border p-3">
                       <p className="text-sm font-medium">{r.question}</p>
-                      <AnswerInsiderRequestForm requestId={r.id} companyPageId={id} />
+                      <AnswerInsiderRequestForm requestId={r.id} companyPageId={slug} />
                     </div>
                   ))}
                 </div>
@@ -463,6 +477,82 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           )}
         </CardContent>
       </Card>
+
+      {/* ── Recruiting firm sections — only when this company IS a
+          recognized staffing/search firm (Recruiter.firmName or
+          RecruiterFirm.name fuzzy-matches it). Recruiters have no FK to
+          Company today (confirmed — everything is string-matched, same as
+          every other company link in this codebase), so this section
+          simply doesn't render for a company with zero matched recruiters,
+          rather than showing an empty "0 recruiters here" card on every
+          ordinary employer's page. Both sections gate on the exact same
+          isDossierUnlocked() bar as the rest of the Executive Recruiter
+          Network. */}
+      {recruitingFirmData.recruiters.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="size-4" aria-hidden="true" />
+                Jobs they&apos;re hiring for ({recruitingFirmData.jobs.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recruitingFirmData.jobs.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No open postings from this firm right now.</p>
+              ) : dossierStatus.unlocked ? (
+                <ShowMoreList pageSize={5}>
+                  {recruitingFirmData.jobs.map((job) => (
+                    <div key={job.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{job.title}</p>
+                        {job.location && <p className="text-xs text-muted-foreground">{job.location}</p>}
+                      </div>
+                      {job.audienceTier === 'A_LIST_ONLY' && (
+                        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                          Exclusive
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </ShowMoreList>
+              ) : (
+                <LockedFeatureNotice
+                  title="Jobs this firm is hiring for"
+                  requirement={`${recruitingFirmData.jobs.length} posting${recruitingFirmData.jobs.length === 1 ? '' : 's'} ready to view once your Dossier unlocks.`}
+                  status={dossierStatus.reason}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="size-4" aria-hidden="true" />
+                Recruiters here ({recruitingFirmData.recruiters.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {dossierStatus.unlocked ? (
+                <ul className="space-y-1">
+                  {recruitingFirmData.recruiters.map((r) => (
+                    <li key={r.id} className="text-sm text-foreground">
+                      {r.fullName}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <LockedFeatureNotice
+                  title="Recruiter names"
+                  requirement={`${recruitingFirmData.recruiters.length} recruiter${recruitingFirmData.recruiters.length === 1 ? '' : 's'} ready to view once your Dossier unlocks.`}
+                  status={dossierStatus.reason}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
 
     </div>
   )

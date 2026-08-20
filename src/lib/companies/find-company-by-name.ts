@@ -9,8 +9,10 @@ import { orgNamesMatch } from '@/lib/text/org-name-match'
 // equality. This is what makes "Jobs for the Future (JFF)" and "Jobs for
 // the Future" resolve to the same Company row — and generalizes to any
 // other name variant, not just that one.
-export async function findCompanyByName(name: string | null | undefined): Promise<{ id: string; name: string } | null> {
+export async function findCompanyByName(
+  name: string | null | undefined
+): Promise<{ id: string; name: string; canonicalNameNormalized: string } | null> {
   if (!name?.trim()) return null
-  const companies = await prisma.company.findMany({ select: { id: true, name: true } })
+  const companies = await prisma.company.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } })
   return companies.find((c) => orgNamesMatch(c.name, name)) ?? null
 }

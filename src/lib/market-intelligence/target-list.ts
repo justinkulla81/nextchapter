@@ -38,6 +38,7 @@ export interface TargetListFilters {
 export interface TargetListCompany {
   id: string
   name: string
+  canonicalNameNormalized: string
   industry: string | null
   sizeBand: CompanySizeBand | null
   hqMetro: string | null
@@ -70,6 +71,7 @@ export async function searchTargetCompanies(filters: TargetListFilters, limit = 
     select: {
       id: true,
       name: true,
+      canonicalNameNormalized: true,
       industry: true,
       sizeBand: true,
       hqMetro: true,
@@ -88,6 +90,7 @@ export async function searchTargetCompanies(filters: TargetListFilters, limit = 
     return {
       id: c.id,
       name: c.name,
+      canonicalNameNormalized: c.canonicalNameNormalized,
       industry: c.industry,
       sizeBand: c.sizeBand,
       hqMetro: c.hqMetro,

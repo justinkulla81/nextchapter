@@ -18,5 +18,5 @@ export async function goToCompanyPage(companyName: string): Promise<void> {
   if (!user) redirect('/auth/login')
 
   const company = await getOrCreateCompany(companyName)
-  redirect(`/dashboard/companies/${company.id}`)
+  redirect(`/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}`)
 }

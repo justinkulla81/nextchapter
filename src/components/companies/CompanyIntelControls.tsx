@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { submitIntel, markHelpful, type ActionFormState } from '@/app/dashboard/companies/[id]/actions'
+import { submitIntel, markHelpful, type ActionFormState } from '@/app/dashboard/companies/[slug]/actions'
 import { INTEL_TYPES, INTEL_TYPE_LABEL, type IntelType } from '@/lib/companies/intel-types'
 
 // "How to get hired here" contribution form — Prompt 3/4. Every prompt is

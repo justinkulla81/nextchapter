@@ -4,19 +4,21 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, MapPin, Target, HandHeart } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { isMemberProfilePublic, getMemberDisplayIdentity } from '@/lib/contacts/member-profile'
+import { isMemberProfilePublic, getMemberDisplayIdentity, extractCandidateIdFromMemberSlug } from '@/lib/contacts/member-profile'
 import { selectDisplayedWorkHistory, sanitizeRoleTitle } from '@/lib/work-history/sanitize'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { Button } from '@/components/ui/button'
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const id = extractCandidateIdFromMemberSlug(decodeURIComponent(slug))
   const candidate = await prisma.candidateProfile.findUnique({ where: { id }, select: { firstName: true } })
   return { title: candidate?.firstName ? `${candidate.firstName} — Contacts` : 'Contacts' }
 }
 
-export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function MemberProfilePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const id = extractCandidateIdFromMemberSlug(decodeURIComponent(slug))
   const viewer = await getDashboardData()
 
   const candidate = await prisma.candidateProfile.findUnique({
@@ -141,7 +143,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
                 <div key={entry.id} className="rounded-lg border border-border p-3 text-sm">
                   <p className="font-medium text-foreground">{sanitizeRoleTitle(entry.roleTitle)}</p>
                   {company ? (
-                    <Link href={`/dashboard/companies/${company.id}`} className="text-primary underline underline-offset-4">
+                    <Link href={`/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}`} className="text-primary underline underline-offset-4">
                       {company.name}
                     </Link>
                   ) : (

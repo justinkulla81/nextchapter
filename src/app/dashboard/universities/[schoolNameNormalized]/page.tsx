@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { getMemberDisplayIdentity } from '@/lib/contacts/member-profile'
+import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 
 export async function generateMetadata({
@@ -101,7 +101,7 @@ export default async function UniversityAlumniPage({
             return (
               <Link
                 key={alum.id}
-                href={`/dashboard/contacts/members/${alum.id}`}
+                href={`/dashboard/contacts/members/${encodeURIComponent(buildMemberProfileSlug(displayName, alum.id))}`}
                 className="flex items-start gap-3 rounded-lg border border-border p-4 hover:bg-muted/50"
               >
                 {showPhoto && <AvatarDisplay name={displayName} url={alum.profilePictureUrl} size={40} />}

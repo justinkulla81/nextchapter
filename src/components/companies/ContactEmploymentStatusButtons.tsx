@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
-import { setContactEmploymentStatus } from '@/app/dashboard/companies/[id]/actions'
+import { setContactEmploymentStatus } from '@/app/dashboard/companies/[slug]/actions'
 import { cn } from '@/lib/utils'
 
 export function ContactEmploymentStatusButtons({ contactId, companyPageId }: { contactId: string; companyPageId: string }) {

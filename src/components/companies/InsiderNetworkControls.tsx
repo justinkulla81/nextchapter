@@ -4,7 +4,7 @@ import { useActionState, useTransition, useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { askInsider, answerInsider, declineInsider, type ActionFormState } from '@/app/dashboard/companies/[id]/actions'
+import { askInsider, answerInsider, declineInsider, type ActionFormState } from '@/app/dashboard/companies/[slug]/actions'
 
 const SUGGESTED_QUESTIONS = [
   'What does the interview loop actually look like?',

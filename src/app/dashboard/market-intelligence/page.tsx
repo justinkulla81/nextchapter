@@ -317,7 +317,7 @@ export default async function MarketIntelligencePage({
                         return (
                           <tr key={c.id} className="border-b border-border/60">
                             <td className="py-2 pr-3">
-                              <Link href={`/dashboard/companies/${c.id}`} className="font-medium text-primary underline underline-offset-4">
+                              <Link href={`/dashboard/companies/${encodeURIComponent(c.canonicalNameNormalized)}`} className="font-medium text-primary underline underline-offset-4">
                                 {c.name}
                               </Link>
                             </td>
