@@ -25,6 +25,7 @@ import {
   type CommittedAction,
 } from '@/lib/weekly/sprint'
 import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
+import { MembershipStatusLadder } from '@/components/dashboard/MembershipStatusLadder'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
@@ -278,6 +279,8 @@ export default async function DashboardPage() {
           badgesLastSeenCount={profile.badgesLastSeenCount}
         />
       </Suspense>
+
+      <MembershipStatusLadder dossierUnlocked={dossierStatus.unlocked} reason={dossierStatus.reason} />
 
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />

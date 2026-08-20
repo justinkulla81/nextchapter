@@ -4,11 +4,13 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { hasRoleGrant } from '@/lib/auth/role-grants'
 import { getMembershipSubscription } from '@/lib/membership/subscription'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { prisma } from '@/lib/prisma'
 import { setPriorityCoachBookingPreference } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { MembershipSignupButtons } from '@/components/dashboard/MembershipSignupButtons'
 import { MembershipReactivateButton } from '@/components/dashboard/MembershipReactivateButton'
+import { MembershipStatusLadder } from '@/components/dashboard/MembershipStatusLadder'
 
 export const metadata: Metadata = { title: 'Membership' }
 
@@ -25,12 +27,13 @@ function formatPrice(cents: number, period: string): string {
 export default async function MembershipPage() {
   const profile = await getDashboardData()
 
-  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck] = await Promise.all([
+  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, dossierStatus] = await Promise.all([
     hasRoleGrant(profile.userId, 'alum'),
     getMembershipSubscription(profile.id),
     getCurrentPlan('membership_monthly'),
     getCurrentPlan('membership_annual'),
     prisma.membershipMarketCheck.findFirst({ where: { candidateId: profile.id }, orderBy: { checkedAt: 'desc' } }),
+    isDossierUnlocked(profile.id),
   ])
 
   const isActive = subscription?.status === 'ACTIVE'
@@ -45,6 +48,8 @@ export default async function MembershipPage() {
           you can give references and refer others. Membership adds the benefits below.
         </p>
       </div>
+
+      <MembershipStatusLadder dossierUnlocked={dossierStatus.unlocked} reason={dossierStatus.reason} />
 
       {!isAlum && (
         <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4 text-sm text-muted-foreground">
