@@ -211,19 +211,16 @@
   /* Partners Master Build Script §B3.3 / §B8 — theme by scope, not by
      page. `.theme-candidate` wraps the candidate dashboard root
      (src/app/dashboard/layout.tsx); `.theme-partner` wraps each partner
-     portal root (Coach/Recruiter/Talent/Admin layouts). Section-heading
-     level elements (bare h1/h2, plus anything opted into the shared
-     `font-heading` token — e.g. CardTitle) go serif only inside the
-     candidate scope. `.theme-partner` pins Inter explicitly, redundant
-     with the default today, so a future change to --font-heading's
-     default can't silently leak serif into partner surfaces. */
-  .theme-candidate {
-    --font-heading: var(--font-serif);
-  }
-  .theme-candidate h1,
-  .theme-candidate h2 {
-    font-family: var(--font-heading);
-  }
+     portal root (Coach/Recruiter/Talent/Admin layouts). Both use Inter for
+     headings (the root --font-heading default, see :root above) — the
+     candidate scope previously pinned serif for section-heading-level
+     elements (bare h1/h2, plus anything on the shared `font-heading`
+     token, e.g. CardTitle); removed after repeated candidate-facing
+     reports that it read as inconsistent/heavy across pages (Resume,
+     Resume Analysis, Skills & Behavioral Assessments). `.theme-partner`
+     still pins Inter explicitly, redundant with the default today, so a
+     future change to --font-heading's default can't silently leak serif
+     into partner surfaces. */
   .theme-partner {
     --font-heading: var(--font-sans);
   }
