@@ -13,6 +13,7 @@ export const CURRENT_JOB_STATUS_LABELS: Record<CurrentJobStatus, string> = {
   CAREER_PIVOT: 'Want to Pivot My Career',
   RELOCATED_FOR_FAMILY: 'Relocated for Family',
   NEW_GRADUATE_FIRST_JOB: 'New Graduate / First Job',
+  SEEKING_PROMOTION: 'Employed, Seeking a Promotion',
 }
 
 // Keys used by the homepage's situational entry cards and the persona
@@ -25,9 +26,16 @@ export const SITUATION_TO_JOB_STATUS = {
   just_laid_off: 'LAID_OFF',
   reentering_workforce: 'CAREGIVER_LEAVE_SABBATICAL',
   career_pivot: 'CAREER_PIVOT',
+  looking_for_promotion: 'SEEKING_PROMOTION',
 } as const satisfies Record<string, CurrentJobStatus>
 
-export type SituationKey = keyof typeof SITUATION_TO_JOB_STATUS
+// 'just_graduated' is a real SituationKey (a real button, a real choice)
+// but deliberately has NO CurrentJobStatus mapping — that persona doesn't
+// go through the normal resume/report flow at all yet (waitlist only, see
+// updateSituation's own comment), so there's no profile field to write for
+// it. Keep this union in sync with SITUATION_TO_JOB_STATUS's keys plus
+// this one exception.
+export type SituationKey = keyof typeof SITUATION_TO_JOB_STATUS | 'just_graduated'
 
 // Reverse of the above — lets a page that already knows a candidate's
 // currentJobStatus (e.g. re-visiting the situation picker to change a prior

@@ -169,6 +169,14 @@ enum CurrentJobStatus {
   CAREER_PIVOT
   RELOCATED_FOR_FAMILY
   NEW_GRADUATE_FIRST_JOB
+  // Still employed, actively looking for an internal promotion or raise —
+  // NOT "worried I'll be let go" (EMPLOYED_CONSIDERING_MOVE). Deliberately
+  // its own value rather than reusing that one: this persona's recommended
+  // strategy is the opposite in tone — build external leverage for an
+  // internal ask, not prepare an exit — and it must never inherit
+  // EMPLOYED_CONSIDERING_MOVE's Confidential Search Mode default (see
+  // confidential-mode.ts) or be counted by the "nervous employee" panel.
+  SEEKING_PROMOTION
 }
 
 enum GapDurationBucket {

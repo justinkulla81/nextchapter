@@ -13,6 +13,7 @@ import type { CurrentJobStatus, ConfidentialModeChangeSource } from '@prisma/cli
 const CONFIDENTIAL_DEFAULT_ON: ReadonlySet<CurrentJobStatus> = new Set([
   'EMPLOYED_CONSIDERING_MOVE', // closest match to "I'm worried I'll be let go" — still employed
   'RESIGNED', // garden leave, notice periods, reference risk
+  'SEEKING_PROMOTION', // still employed, and the whole point of this persona's strategy is a discreet/low-profile external search used as leverage — visibility risk is even more direct here than EMPLOYED_CONSIDERING_MOVE
 ])
 
 export function defaultConfidentialSearchMode(jobStatus: CurrentJobStatus): boolean {

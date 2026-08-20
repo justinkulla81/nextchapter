@@ -68,6 +68,21 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
 
   const situation = formData.get('situation') as SituationKey | null
 
+  // "Just graduated" isn't built yet — no CurrentJobStatus mapping, no
+  // resume/report flow. Captures an email to a waitlist instead of writing
+  // a profile field, then diverts straight to a "we'll let you know" page.
+  if (situation === 'just_graduated') {
+    const email = (formData.get('waitlistEmail') as string | null)?.trim()
+    if (!email || !email.includes('@')) {
+      return { error: 'Please enter a valid email so we can let you know when this launches.' }
+    }
+    await prisma.waitlistSignup.create({
+      data: { audience: 'new_grad_onboarding', payload: { candidateId, email } },
+    })
+    captureServerEvent(candidateId, 'new_grad_waitlist_joined')
+    redirect('/onboarding/waitlist-thanks')
+  }
+
   if (!situation || !(situation in SITUATION_TO_JOB_STATUS)) {
     return { error: 'Please choose the option that best describes you.' }
   }

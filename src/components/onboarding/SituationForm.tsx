@@ -1,13 +1,15 @@
 'use client'
 
 import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
-import { Shield, DoorOpen, Briefcase, RefreshCw, type LucideIcon } from 'lucide-react'
+import { Shield, DoorOpen, Briefcase, RefreshCw, GraduationCap, TrendingUp, type LucideIcon } from 'lucide-react'
 import { updateSituation } from '@/app/onboarding/actions'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
 
-// Same 4 personas as the homepage's SituationalButtons / /start pages — kept
+// Same 6 personas as the homepage's SituationalButtons / /start pages — kept
 // in sync manually since the marketing copy (icon + description) differs
 // slightly from what reads well inside the assessment.
 const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; description: string }[] = [
@@ -20,7 +22,7 @@ const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; de
   {
     situation: 'just_resigned',
     icon: DoorOpen,
-    label: 'I just resigned',
+    label: 'Resigned',
     description: 'Land on your feet — get your baseline grade now.',
   },
   {
@@ -35,6 +37,18 @@ const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; de
     label: "I'm re-entering the workforce",
     description: 'Close the gap with proof, not explanations.',
   },
+  {
+    situation: 'looking_for_promotion',
+    icon: TrendingUp,
+    label: 'Looking for a promotion',
+    description: "Still employed — build leverage for the ask, not an exit plan.",
+  },
+  {
+    situation: 'just_graduated',
+    icon: GraduationCap,
+    label: 'Just graduated',
+    description: "Coming soon — add your email and we'll let you know.",
+  },
 ]
 
 export function SituationForm({ initialSituation = null }: { initialSituation?: SituationKey | null }) {
@@ -45,10 +59,21 @@ export function SituationForm({ initialSituation = null }: { initialSituation?: 
   const autoSubmitted = useRef(false)
 
   // A homepage/marketing persona click already answered this — skip the
-  // step entirely rather than asking again.
+  // step entirely rather than asking again. Except 'just_graduated', which
+  // still needs an email typed in here — pre-select it instead of
+  // auto-submitting, so the email field is visible before anything's sent.
   useEffect(() => {
     const stored = sessionStorage.getItem(SITUATION_SESSION_KEY) as SituationKey | null
     sessionStorage.removeItem(SITUATION_SESSION_KEY)
+    if (stored === 'just_graduated') {
+      // Reading a one-time sessionStorage value left by an external
+      // navigation (the homepage's persona click), not React/render state —
+      // same justification as the sibling branch below.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelected('just_graduated')
+      setChecking(false)
+      return
+    }
     if (stored && SITUATIONS.some((s) => s.situation === stored) && !autoSubmitted.current) {
       autoSubmitted.current = true
       const formData = new FormData()
@@ -104,10 +129,20 @@ export function SituationForm({ initialSituation = null }: { initialSituation?: 
         })}
       </div>
 
+      {selected === 'just_graduated' && (
+        <div className="space-y-1">
+          <Label htmlFor="waitlistEmail">Your email</Label>
+          <Input id="waitlistEmail" name="waitlistEmail" type="email" required placeholder="you@example.com" />
+          <p className="text-xs text-muted-foreground">
+            We&apos;re building a new-grad experience — add your email and we&apos;ll let you know when it launches.
+          </p>
+        </div>
+      )}
+
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <Button type="submit" disabled={pending || !selected} className={pending ? 'cursor-progress' : ''}>
-        {pending ? 'Saving…' : 'Continue'}
+        {pending ? 'Saving…' : selected === 'just_graduated' ? 'Join the waitlist' : 'Continue'}
       </Button>
     </form>
   )

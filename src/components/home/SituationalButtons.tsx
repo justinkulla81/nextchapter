@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePostHog } from 'posthog-js/react'
-import { ArrowRight, Shield, DoorOpen, Briefcase, RefreshCw, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Shield, DoorOpen, Briefcase, RefreshCw, GraduationCap, TrendingUp, type LucideIcon } from 'lucide-react'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 
 // Career Pivot is deliberately not one of these — it's a cross-cutting
@@ -19,7 +19,7 @@ const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; de
   {
     situation: 'just_resigned',
     icon: DoorOpen,
-    label: 'I just resigned',
+    label: 'Resigned',
     description: 'Land on your feet — get your baseline grade now.',
   },
   {
@@ -34,6 +34,18 @@ const SITUATIONS: { situation: SituationKey; icon: LucideIcon; label: string; de
     label: "I'm re-entering the workforce",
     description: 'Prove your value after a break, starting today.',
   },
+  {
+    situation: 'looking_for_promotion',
+    icon: TrendingUp,
+    label: 'Looking for a promotion',
+    description: 'Still employed — build leverage for the ask, not an exit plan.',
+  },
+  {
+    situation: 'just_graduated',
+    icon: GraduationCap,
+    label: 'Just graduated',
+    description: "Coming soon — join the waitlist.",
+  },
 ]
 
 export function SituationalButtons() {
@@ -47,7 +59,7 @@ export function SituationalButtons() {
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
         Pick one and start now — we&apos;ll skip straight to what matters for your situation.
       </p>
-      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {SITUATIONS.map(({ situation, icon: Icon, label, description }) => (
           <Link
             key={situation}

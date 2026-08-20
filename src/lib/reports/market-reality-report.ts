@@ -403,7 +403,11 @@ Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Target function: ${candidate.targetFunction ?? 'not specified'}
 Industry background: ${candidate.industryContext ?? 'not specified'}
 Considering a pivot to a different function/industry, not just changing employers: ${candidate.isPivoting ? 'yes' : 'no'}
-Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : 'not specified'}
+Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : 'not specified'}${
+    candidate.currentJobStatus === 'SEEKING_PROMOTION'
+      ? ` — HARD REQUIREMENT: this candidate is currently employed and looking for a promotion or raise where they are, NOT preparing to leave or worried about being let go. Never ask about, speculate about, or reference job-security fears — that is not their situation and must stay entirely out of every section. The strengths/weaknesses/hill-to-climb/action-plan framing must reflect that they're negotiating from strength: having a job while searching is a real advantage (less financial pressure, no urgency-driven bad decisions, an employer who presumably already values them), and the honest strategy for them is different from every other persona here — build external leverage (real market interest, a competing offer, evidence of their market value) to bring back to their current employer for the promotion/raise ask, and treat the external search itself as something to run more discreetly/lower-profile than a candidate who's already out of work, since visibility risk cuts the other way for them. Weave negotiation-specific guidance into the weaknesses/action-plan/gap-analysis sections rather than generic job-search advice.`
+      : ''
+  }
 Location preference: ${candidate.remotePreference ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
 Deal breakers: ${candidate.dealBreakers ?? 'not specified'}

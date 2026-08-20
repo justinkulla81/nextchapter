@@ -10,6 +10,8 @@ export function getGoalLabel(currentJobStatus: CurrentJobStatus | null): string 
       return 'Get Your First Job'
     case 'CAREER_PIVOT':
       return 'Change your career'
+    case 'SEEKING_PROMOTION':
+      return 'Get a promotion'
     default:
       return 'Get a job'
   }

@@ -75,7 +75,14 @@ export const FUNCTION_FAMILY_LABELS: Record<FunctionFamily, string> = Object.fro
 
 // ── Persona (derived, invented — see file header) ─────────────────────────
 
-export type PersonaValue = 'worried_let_go' | 'just_resigned' | 'just_laid_off' | 'reentering_workforce' | 'career_pivot' | 'other'
+export type PersonaValue =
+  | 'worried_let_go'
+  | 'just_resigned'
+  | 'just_laid_off'
+  | 'reentering_workforce'
+  | 'career_pivot'
+  | 'looking_for_promotion'
+  | 'other'
 
 const JOB_STATUS_TO_PERSONA: Partial<Record<CurrentJobStatus, PersonaValue>> = Object.fromEntries(
   Object.entries(SITUATION_TO_JOB_STATUS).map(([situation, status]) => [status, situation])
@@ -87,6 +94,7 @@ export const PERSONA_LABELS: Record<PersonaValue, string> = {
   just_laid_off: 'Just laid off',
   reentering_workforce: 'Re-entering the workforce',
   career_pivot: 'Career pivot',
+  looking_for_promotion: 'Looking for a promotion',
   other: 'Other / unclassified',
 }
 
