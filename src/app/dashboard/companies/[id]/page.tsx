@@ -283,16 +283,29 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           ) : isSuppressedCell(outcomeCell) ? (
             <p className="text-sm text-muted-foreground">Insufficient data — fewer than 5 members have applied here.</p>
           ) : (
-            <p className="text-sm">
-              <span className="font-medium">{outcomeCell.applications} members applied.</span>{' '}
-              {outcomeCell.responses} heard back. {outcomeCell.interviews} reached interview.
-              {outcomeCell.applications > 0 && (
-                <>
-                  {' '}
-                  Response rate {Math.round((outcomeCell.responses / outcomeCell.applications) * 100)}%.
-                </>
+            <div className="space-y-1">
+              <p className="text-sm">
+                <span className="font-medium">{outcomeCell.applications} members applied.</span>{' '}
+                {outcomeCell.responses} heard back. {outcomeCell.interviews} reached interview.
+                {outcomeCell.applications > 0 && (
+                  <>
+                    {' '}
+                    Response rate {Math.round((outcomeCell.responses / outcomeCell.applications) * 100)}%.
+                  </>
+                )}
+              </p>
+              {outcomeCell.avgDaysToInterview !== null && (
+                <p className="text-sm text-muted-foreground">
+                  Averages {outcomeCell.avgDaysToInterview} days from submission to interview
+                  {outcomeCell.avgDaysToRejection !== null && `, ${outcomeCell.avgDaysToRejection} days to rejection`}.
+                </p>
               )}
-            </p>
+              {outcomeCell.avgDaysToInterview === null && outcomeCell.avgDaysToRejection !== null && (
+                <p className="text-sm text-muted-foreground">
+                  Averages {outcomeCell.avgDaysToRejection} days from submission to rejection.
+                </p>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

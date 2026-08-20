@@ -81,6 +81,8 @@ export async function GET(request: NextRequest) {
           responses: outcome.responses,
           interviews: outcome.interviews,
           offers: outcome.offers,
+          avgDaysToInterview: outcome.avgDaysToInterview,
+          avgDaysToRejection: outcome.avgDaysToRejection,
         },
         create: {
           companyId: company.id,
@@ -89,6 +91,8 @@ export async function GET(request: NextRequest) {
           responses: outcome.responses,
           interviews: outcome.interviews,
           offers: outcome.offers,
+          avgDaysToInterview: outcome.avgDaysToInterview,
+          avgDaysToRejection: outcome.avgDaysToRejection,
         },
       })
       outcomesWritten++

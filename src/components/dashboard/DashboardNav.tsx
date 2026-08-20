@@ -36,6 +36,7 @@ import {
   LineChart,
   Lock,
   Landmark,
+  School,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -177,6 +178,7 @@ function buildSections(
       links: [
         { href: '/dashboard/network/contacts', label: 'Contacts', icon: Contact, ...gmailLock },
         { href: '/dashboard/companies', label: 'Companies', icon: Landmark },
+        { href: '/dashboard/universities', label: 'Universities', icon: School },
         {
           href: '/dashboard/portfolio',
           label: 'My Portfolio',

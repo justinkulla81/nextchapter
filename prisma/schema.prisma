@@ -6058,6 +6058,13 @@ model CompanyApplicationOutcome {
   interviews   Int @default(0)
   offers       Int @default(0)
 
+  // Averaged over this company's applications that have both timestamps
+  // (appliedAt + interviewLandedAt / declinedAt) — null when no application
+  // to this company has a computable duration yet. Same
+  // appliedAt-to-X-days formula already used in rejection-insights.ts.
+  avgDaysToInterview Float?
+  avgDaysToRejection Float?
+
   createdAt DateTime @default(now())
 
   @@unique([companyId, weekStartDate])

@@ -37,6 +37,15 @@ export interface ComputedApplicationOutcome {
   responses: number
   interviews: number
   offers: number
+  avgDaysToInterview: number | null
+  avgDaysToRejection: number | null
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+function average(values: number[]): number | null {
+  if (values.length === 0) return null
+  return Math.round((values.reduce((sum, v) => sum + v, 0) / values.length) * 10) / 10
 }
 
 export async function computeAllApplicationOutcomes(): Promise<ComputedApplicationOutcome[]> {
@@ -61,7 +70,23 @@ export async function computeAllApplicationOutcomes(): Promise<ComputedApplicati
     const responses = postings.filter((p) => p.declinedAt || p.interviewLandedAt || p.offerReceivedAt).length
     const interviews = postings.filter((p) => p.interviewLandedAt).length
     const offers = postings.filter((p) => p.offerReceivedAt).length
-    results.push({ companyNameNormalized, applications, responses, interviews, offers })
+
+    const daysToInterview = postings
+      .filter((p) => p.appliedAt && p.interviewLandedAt)
+      .map((p) => (p.interviewLandedAt!.getTime() - p.appliedAt!.getTime()) / MS_PER_DAY)
+    const daysToRejection = postings
+      .filter((p) => p.appliedAt && p.declinedAt)
+      .map((p) => (p.declinedAt!.getTime() - p.appliedAt!.getTime()) / MS_PER_DAY)
+
+    results.push({
+      companyNameNormalized,
+      applications,
+      responses,
+      interviews,
+      offers,
+      avgDaysToInterview: average(daysToInterview),
+      avgDaysToRejection: average(daysToRejection),
+    })
   }
   return results
 }
