@@ -102,7 +102,7 @@ export function DashboardNetworkCard({
               {item.contactId ? (
                 <Link
                   href={`/dashboard/network/contacts/${item.contactId}`}
-                  className="truncate text-[13px] font-medium text-foreground hover:underline"
+                  className="truncate text-[13px] font-medium text-primary underline-offset-4 hover:underline"
                 >
                   {item.contactName}
                 </Link>

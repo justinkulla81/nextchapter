@@ -4,7 +4,11 @@ import { Suspense } from 'react'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
-import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
+import {
+  getOrDraftSearchStrategyGuidance,
+  getSearchStrategyActions,
+  getSearchStrategyActivitySignals,
+} from '@/lib/reports/search-strategy-guidance'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -53,11 +57,15 @@ async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: str
       applicationVolumeGoal: true,
       isPivoting: true,
       interimConsultingInterest: true,
+      blockers: true,
     },
   })
   if (!isSearchGoalsComplete(candidate)) return null
 
-  const guidance = await getOrDraftSearchStrategyGuidance(candidateId)
+  const [guidance, activitySignals] = await Promise.all([
+    getOrDraftSearchStrategyGuidance(candidateId),
+    getSearchStrategyActivitySignals(candidateId),
+  ])
   if (!guidance) return null
 
   return (
@@ -83,7 +91,7 @@ async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: str
       <div className="mt-4">
         <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
         <div className="mt-1.5 flex flex-col gap-2">
-          {getSearchStrategyActions(candidate).map((action) => (
+          {getSearchStrategyActions(candidate, activitySignals).map((action) => (
             <Link
               key={action.href}
               href={action.href}

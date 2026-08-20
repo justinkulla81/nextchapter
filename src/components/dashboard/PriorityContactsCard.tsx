@@ -98,7 +98,7 @@ export function PriorityContactsCard({ contacts }: { contacts: PriorityContactIt
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/dashboard/network/contacts/${contact.id}`}
-                  className="truncate text-[13px] font-medium text-foreground hover:underline"
+                  className="truncate text-[13px] font-medium text-primary underline-offset-4 hover:underline"
                 >
                   {contact.name}
                 </Link>

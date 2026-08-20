@@ -13,7 +13,11 @@ import {
   isSearchStrategySoFarComplete,
   isBenefitsComplete,
 } from '@/lib/search-strategy'
-import { getOrDraftSearchStrategyGuidance, getSearchStrategyActions } from '@/lib/reports/search-strategy-guidance'
+import {
+  getOrDraftSearchStrategyGuidance,
+  getSearchStrategyActions,
+  getSearchStrategyActivitySignals,
+} from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
@@ -26,6 +30,7 @@ import { NetworkingWillingnessForm } from '@/components/dashboard/NetworkingWill
 import { NegotiationInterviewComfortForm } from '@/components/dashboard/NegotiationInterviewComfortForm'
 import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -51,7 +56,10 @@ async function SearchStrategyGuidanceCard({
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
-  const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
+  const [strategyGuidance, activitySignals] = await Promise.all([
+    goalsComplete ? getOrDraftSearchStrategyGuidance(profile.id) : Promise.resolve(null),
+    getSearchStrategyActivitySignals(profile.id),
+  ])
 
   const missingSections = [
     !targetRoleComplete && 'Your Target Role & Company',
@@ -59,14 +67,15 @@ async function SearchStrategyGuidanceCard({
   ].filter((v): v is string => !!v)
 
   return (
-    <Card className="border-brand/20 bg-brand/5">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <VictoriaAvatar size={36} />
-          <CardTitle className="text-sm font-medium text-foreground">Strategy Guidance from Victoria</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <Accordion defaultValue={['strategy-guidance']}>
+      <AccordionItem value="strategy-guidance" className="border-brand/20 bg-brand/5">
+        <AccordionTrigger className="px-5 py-4 hover:text-foreground">
+          <div className="flex items-center gap-3">
+            <VictoriaAvatar size={36} />
+            <CardTitle className="text-sm font-medium text-foreground">Strategy Guidance from Victoria</CardTitle>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent className="px-5 pb-5">
         {strategyGuidance ? (
           <div className="space-y-4">
             <div className="space-y-3 text-sm">
@@ -105,7 +114,7 @@ async function SearchStrategyGuidanceCard({
             <div>
               <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
               <div className="mt-1.5 flex flex-col gap-2">
-                {getSearchStrategyActions(profile).map((action) => (
+                {getSearchStrategyActions(profile, activitySignals).map((action) => (
                   <Link
                     key={action.href}
                     href={action.href}
@@ -126,8 +135,9 @@ async function SearchStrategyGuidanceCard({
             I&apos;m updating your guidance based on your latest answers — check back in a moment.
           </p>
         )}
-      </CardContent>
-    </Card>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   )
 }
 

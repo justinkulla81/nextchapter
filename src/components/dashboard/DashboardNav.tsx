@@ -105,7 +105,7 @@ function buildSections(
   return [
     {
       title: null,
-      links: [{ href: '/dashboard', label: 'Success Dashboard', icon: Home }],
+      links: [{ href: '/dashboard', label: 'Success Dashboard (Homepage)', icon: Home }],
     },
     {
       title: 'Personalize',
