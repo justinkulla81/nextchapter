@@ -1304,11 +1304,12 @@ model CandidateProfile {
   // email a candidate might want off independently.
   recruiterUnlockNudgeOptedOut      Boolean   @default(false)
 
-  // Distinct Resume.atsFeedback/resultsFeedback/experienceFeedback item
-  // `issue` strings the candidate has marked as addressed — dedupe by exact
-  // string equality (no synthetic per-item id system). Backs the "Fix three
-  // things on your resume" unified-dashboard activation item (§12): complete
-  // once this array has 3+ entries. See src/app/dashboard/resume/actions.ts.
+  // Deprecated — was the "Mark as fixed" button's tracking field (distinct
+  // Resume.atsFeedback/resultsFeedback/experienceFeedback item `issue`
+  // strings). That button is gone; "Fix three things on your resume" now
+  // reads ResumeIssue.resolutionType instead (see activation-items.ts) since
+  // fixes only come from the Resume Fixer walkthrough now. Left in place as
+  // inert history rather than migrated — no code reads or writes it anymore.
   resumeFixesAppliedKeys String[] @default([])
 
   // Relations
@@ -2606,6 +2607,13 @@ model Resume {
   fileType        String // "pdf" | "docx"
   extractedText   String?
   extractionError String?
+
+  // Candidate-editable — defaults to fileName at upload time but can be
+  // renamed (e.g. "Tailored for VP Product roles") to tell versions apart
+  // once there are several. description is optional freeform context
+  // ("what's different about this one").
+  label       String?
+  description String? @db.Text
 
   atsScore           Int? // 0-100
   atsFeedback        Json[]    @default([]) // { issue: string, action: string } — issue framed as what a recruiter/hiring manager would notice

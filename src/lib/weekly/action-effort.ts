@@ -74,7 +74,6 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
 
   // Resume / Assets
   RESUME_UPDATE: { minutes: 30, points: 30 },
-  SKILLS_TRANSLATOR: { minutes: 15, points: 15 },
   LINKEDIN_SETUP: { minutes: 20, points: 20 },
 
   // Interview Prep
@@ -307,7 +306,6 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   PITCH_PRACTICE_WITH_COACH: 'working',
   SHARE_NARRATIVE_FOR_FEEDBACK: 'working',
   RESUME_UPDATE: 'working',
-  SKILLS_TRANSLATOR: 'working',
   LINKEDIN_SETUP: 'working',
 
   LEARNING_MODULE: 'learning',
@@ -430,7 +428,6 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   SEARCH_STRATEGY_COMPLETE: 'Personalize',
 
   RESUME_UPDATE: 'Personalize',
-  SKILLS_TRANSLATOR: 'Personalize',
   INTERVIEW_PREP: 'Personalize',
   INTERVIEW_BEHAVIORAL_PRACTICE: 'Personalize',
   LINKEDIN_POST_IDEA: 'Personalize',
@@ -722,7 +719,6 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   LEARNING_NEW_TOOL: { href: '/dashboard/learning', label: 'Learning' },
   LEARNING_SESSION_ATTENDED: { href: '/dashboard/learning', label: 'Learning' },
   RESUME_UPDATE: { href: '/dashboard/resume', label: 'Resume' },
-  SKILLS_TRANSLATOR: { href: '/dashboard/resume', label: 'Resume' },
   INTERVIEW_PREP: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   INTERVIEW_BEHAVIORAL_PRACTICE: { href: '/dashboard/interview-prep', label: 'Interview Prep' },
   NEGOTIATION_ADVICE: { href: '/dashboard/find-my-job#jobs-applied', label: 'Find My Job' },
@@ -912,7 +908,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'GMAIL_CONNECTED',
     'GMAIL_RECONNECTED',
   ],
-  resume: ['RESUME_UPDATE', 'SKILLS_TRANSLATOR'],
+  resume: ['RESUME_UPDATE'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
   // No entry for 'marketing-plan' — the page's own Action Plan card (quick
   // links to LinkedIn Posts/Narrative/Outreach Prep/Interview Prep/Hard

@@ -38,7 +38,6 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
 
   // Resume / Assets
   { text: 'Update your resume', actionType: 'RESUME_UPDATE' },
-  { text: 'Run the Skills Translator', actionType: 'SKILLS_TRANSLATOR' },
   { text: 'Optimize your LinkedIn profile', actionType: 'LINKEDIN_SETUP' },
 
   // Interview Prep

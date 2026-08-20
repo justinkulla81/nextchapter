@@ -15,14 +15,14 @@ import { GuidedBulletStep } from '@/components/walkthrough/GuidedBulletStep'
 import { ReviewerQuestionStep } from '@/components/walkthrough/ReviewerQuestionStep'
 import { ReviewSummaryStep } from '@/components/walkthrough/ReviewSummaryStep'
 
-export const metadata: Metadata = { title: 'Resume Walkthrough' }
+export const metadata: Metadata = { title: 'Resume Fixer' }
 
 // §13.1's ~18-minute estimate for the full guided walkthrough — shown once,
 // on the overview screen only.
 const ESTIMATED_MINUTES = 18
 
 const STEP_TITLE: Record<WalkthroughScreen['kind'], string> = {
-  overview: 'Fix your resume, one issue at a time',
+  overview: 'Resume Fixer — fix your resume, one issue at a time',
   mechanical: 'Formatting & ATS check',
   'target-line': 'Your target line',
   bullet: 'Strengthen this bullet',

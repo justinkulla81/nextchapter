@@ -6,12 +6,12 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
+import { ResumeVersionsList, type ResumeVersionItem } from '@/components/dashboard/ResumeVersionsList'
 import { ResumeExportForm } from '@/components/dashboard/ResumeExportForm'
 import { ResumeFeedbackCard } from '@/components/dashboard/ResumeFeedbackCard'
 import { ResumeFixCard } from '@/components/dashboard/ResumeFixCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { scoreToGrade, GRADE_LABEL } from '@/lib/scoring/grade'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
@@ -44,6 +44,17 @@ async function ResumeViewLink({ filePath }: { filePath: string }) {
   )
 }
 
+async function resolveVersionUrls(resumes: { id: string; filePath: string }[]): Promise<Map<string, string>> {
+  const admin = createAdminClient()
+  const entries = await Promise.all(
+    resumes.map(async (r) => {
+      const { data } = await admin.storage.from('resumes').createSignedUrl(r.filePath, 60 * 10)
+      return [r.id, data?.signedUrl ?? null] as const
+    })
+  )
+  return new Map(entries.filter((e): e is [string, string] => !!e[1]))
+}
+
 export default async function ResumePage({
   searchParams,
 }: {
@@ -57,12 +68,25 @@ export default async function ResumePage({
   // Report (getResumeFixes) — surfaced here too so they're addressable
   // right where the candidate actually edits/re-uploads their resume,
   // not only as read-only findings on a separate report page.
-  const latestReport = await prisma.marketRealityReport.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'desc' },
-    select: { resumeRewrites: true },
-  })
+  const [latestReport, versionUrls] = await Promise.all([
+    prisma.marketRealityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+      select: { resumeRewrites: true },
+    }),
+    resolveVersionUrls(profile.resumes),
+  ])
   const resumeFixes = await getResumeFixes(profile.id, latestReport?.resumeRewrites ?? null)
+
+  const versions: ResumeVersionItem[] = profile.resumes.map((resume, i) => ({
+    id: resume.id,
+    fileName: resume.fileName,
+    label: resume.label,
+    description: resume.description,
+    uploadedAt: resume.uploadedAt,
+    isLatest: i === 0,
+    signedUrl: versionUrls.get(resume.id) ?? null,
+  }))
 
   return (
     <div className="space-y-8">
@@ -71,15 +95,35 @@ export default async function ResumePage({
         <PageHeaderBoxes pageKey="resume" candidateId={profile.id} />
       </div>
 
+      <ResumeVersionsList versions={versions} />
+
       <ResumeUploadForm />
 
       {latest && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6">
+            <div className="space-y-1">
+              <p className="font-medium text-foreground">Want us to walk you through fixing it?</p>
+              <p className="text-sm text-muted-foreground">
+                The Resume Fixer — a guided, one-issue-at-a-time pass, about 18 minutes. Nothing changes
+                until you approve it.
+              </p>
+            </div>
+            <Button nativeButton={false} render={<Link href="/dashboard/resume/walkthrough" />}>
+              Open the Resume Fixer
+              <ArrowRight className="size-4" aria-hidden data-icon="inline-end" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {latest && (
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Resume Analysis</h2>
+          <p className="text-sm font-medium text-muted-foreground">Resume Analysis</p>
           <Card>
             <CardContent className="space-y-5 pt-6">
               <div className="flex items-center justify-between">
-                <p className="font-medium">{latest.fileName}</p>
+                <p className="font-medium">{latest.label || latest.fileName}</p>
                 <Suspense fallback={null}>
                   <ResumeViewLink filePath={latest.filePath} />
                 </Suspense>
@@ -91,52 +135,22 @@ export default async function ResumePage({
 
               {latest.atsScore !== null && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">
-                    ATS readability: {scoreToGrade(latest.atsScore)}{' '}
-                    <span className="text-muted-foreground">
-                      ({GRADE_LABEL[scoreToGrade(latest.atsScore)]})
-                    </span>
-                  </p>
-                  <div className="space-y-2">
-                    {asFeedbackItems(latest.atsFeedback).map((item, i) => (
-                      <ResumeFeedbackCard
-                        key={i}
-                        item={item}
-                        applied={profile.resumeFixesAppliedKeys.includes(item.issue)}
-                      />
-                    ))}
-                  </div>
+                  {asFeedbackItems(latest.atsFeedback).map((item, i) => (
+                    <ResumeFeedbackCard key={i} item={item} />
+                  ))}
                 </div>
               )}
 
               {latest.resultsScore !== null && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">
-                    Results orientation: {scoreToGrade(latest.resultsScore)}{' '}
-                    <span className="text-muted-foreground">
-                      ({GRADE_LABEL[scoreToGrade(latest.resultsScore)]})
-                    </span>
-                  </p>
-                  <div className="space-y-2">
-                    {asFeedbackItems(latest.resultsFeedback).map((item, i) => (
-                      <ResumeFeedbackCard
-                        key={i}
-                        item={item}
-                        applied={profile.resumeFixesAppliedKeys.includes(item.issue)}
-                      />
-                    ))}
-                  </div>
+                  {asFeedbackItems(latest.resultsFeedback).map((item, i) => (
+                    <ResumeFeedbackCard key={i} item={item} />
+                  ))}
                 </div>
               )}
 
               {latest.experienceScore !== null && (
                 <div id="action-plan" className="space-y-2">
-                  <p className="text-sm font-medium">
-                    Experience evaluation: {scoreToGrade(latest.experienceScore)}{' '}
-                    <span className="text-muted-foreground">
-                      ({GRADE_LABEL[scoreToGrade(latest.experienceScore)]})
-                    </span>
-                  </p>
                   {fromGap && (
                     <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
                       From your Market Reality Report: <span className="italic">&ldquo;{fromGap}&rdquo;</span> — the
@@ -145,11 +159,7 @@ export default async function ResumePage({
                   )}
                   <div className="space-y-2">
                     {asFeedbackItems(latest.experienceFeedback).map((item, i) => (
-                      <ResumeFeedbackCard
-                        key={i}
-                        item={item}
-                        applied={profile.resumeFixesAppliedKeys.includes(item.issue)}
-                      />
+                      <ResumeFeedbackCard key={i} item={item} />
                     ))}
                   </div>
                 </div>
@@ -165,49 +175,18 @@ export default async function ResumePage({
 
       {resumeFixes && resumeFixes.items.length > 0 && (
         <div id="resume-fixes" className="scroll-mt-4 space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Itemized resume fixes</h2>
+          <p className="text-sm font-medium text-muted-foreground">Itemized resume fixes</p>
           <Card>
             <CardContent className="space-y-3 pt-6">
               {resumeFixes.items.map((item, i) => (
-                <ResumeFixCard
-                  key={i}
-                  item={item}
-                  applied={profile.resumeFixesAppliedKeys.includes(item.whatsWrong)}
-                />
+                <ResumeFixCard key={i} item={item} />
               ))}
             </CardContent>
           </Card>
         </div>
       )}
 
-      {latest && (
-        <Card>
-          <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6">
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">Want us to walk you through fixing it?</p>
-              <p className="text-sm text-muted-foreground">
-                A guided, one-issue-at-a-time pass — about 18 minutes. Nothing changes until you approve it.
-              </p>
-            </div>
-            <Button nativeButton={false} render={<Link href="/dashboard/resume/walkthrough" />}>
-              Start guided walkthrough
-              <ArrowRight className="size-4" aria-hidden data-icon="inline-end" />
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
       <ResumeExportForm />
-
-      <div className="space-y-3 rounded-lg border border-border p-4">
-        <p className="text-sm font-medium text-foreground">What senior-level resume design looks like</p>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>Single column, no tables, sidebars, or text boxes — they read fine to a human but often scramble or drop content in an ATS.</li>
-          <li>No photo, icons, or graphics — they don&apos;t parse, and at this level they read as junior template design, not polish.</li>
-          <li>Generous whitespace over dense text — a cluttered page reads as unedited, not thorough.</li>
-          <li>One consistent font and size scale throughout — mixed fonts are one of the fastest ways a resume reads as unpolished.</li>
-        </ul>
-      </div>
 
       <div className="rounded-md border border-border bg-off-white p-3">
         <p className="text-sm text-foreground">
@@ -232,28 +211,6 @@ export default async function ResumePage({
           </a>
         </div>
       </div>
-
-      {profile.resumes.length > 1 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Previous uploads</h2>
-          {profile.resumes.slice(1).map((resume) => (
-            <Card key={resume.id}>
-              <CardContent className="flex items-center justify-between pt-6">
-                <div>
-                  <p className="font-medium">{resume.fileName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {resume.uploadedAt.toLocaleDateString()}
-                  </p>
-                </div>
-                <Suspense fallback={null}>
-                  <ResumeViewLink filePath={resume.filePath} />
-                </Suspense>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
     </div>
   )
 }

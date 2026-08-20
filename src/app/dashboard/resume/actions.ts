@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
-import type { EngagementType } from '@prisma/client'
+import { Prisma, type EngagementType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -82,6 +82,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
       candidateId: profile.id,
       filePath: path,
       fileName: file.name,
+      label: file.name,
       fileType,
       extractedText: text,
       extractionError,
@@ -187,35 +188,6 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   revalidatePath('/onboarding/resume')
 }
 
-// §12 activation item 1, "Fix three things on your resume" — marks one
-// Resume.atsFeedback/resultsFeedback/experienceFeedback item's `issue`
-// string as addressed. Dedupe by string equality (no synthetic per-item id
-// system — see resumeFixesAppliedKeys's own comment in schema.prisma).
-// Idempotent: marking the same issueKey twice is a no-op past the first
-// call, so the PostHog event only fires once per key. Returns void, not a
-// FormState — bound and used directly as a <form action>, same shape as
-// deleteWorkHistoryEntry/setPrimaryEngagement above, not routed through
-// useActionState, so there's no error string to surface in the UI.
-export async function markResumeFixApplied(issueKey: string): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-  if (!profile.resumeFixesAppliedKeys.includes(issueKey)) {
-    await prisma.candidateProfile.update({
-      where: { id: profile.id },
-      data: { resumeFixesAppliedKeys: { push: issueKey } },
-    })
-    captureServerEvent(profile.id, 'resume_fix_marked_applied', { candidateId: profile.id, issueKey })
-  }
-
-  revalidatePath('/dashboard/resume')
-  revalidatePath('/dashboard')
-}
-
 export async function setLinkedInUrl(_prevState: FormState, formData: FormData): Promise<FormState> {
   const supabase = await createClient()
 
@@ -264,6 +236,70 @@ export async function getResumeSignedUrl(resumeId: string): Promise<string | nul
   const admin = createAdminClient()
   const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
   return data?.signedUrl ?? null
+}
+
+// Renames a version and/or sets its description — purely cosmetic, tells
+// versions apart once there are several (e.g. "Tailored for VP Product
+// roles"). Falls back to the original label rather than clearing it if the
+// candidate submits an empty name.
+export async function updateResumeDetails(resumeId: string, formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const label = (formData.get('label') as string | null)?.trim()
+  const description = (formData.get('description') as string | null)?.trim() || null
+
+  await prisma.resume.updateMany({
+    where: { id: resumeId, candidateId: profile.id },
+    data: { ...(label ? { label } : {}), description },
+  })
+
+  revalidatePath('/dashboard/resume')
+}
+
+// "Use as starting point" — clones an existing version's file/extraction/
+// analysis into a new row so the candidate can rename/describe it as a
+// distinct version to build on, without losing the original. There's no
+// in-app resume editor yet, so the clone points at the same uploaded file
+// (a real re-upload with real changes is still how the content itself gets
+// edited) — this only gives the candidate a second, independently-labeled
+// row to work from.
+export async function duplicateResumeAsNewVersion(resumeId: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const source = await prisma.resume.findFirst({ where: { id: resumeId, candidateId: profile.id } })
+  if (!source) return
+
+  await prisma.resume.create({
+    data: {
+      candidateId: profile.id,
+      filePath: source.filePath,
+      fileName: source.fileName,
+      label: source.label ? `${source.label} (copy)` : `${source.fileName} (copy)`,
+      description: source.description,
+      fileType: source.fileType,
+      extractedText: source.extractedText,
+      atsScore: source.atsScore,
+      atsFeedback: (source.atsFeedback ?? []) as Prisma.InputJsonValue[],
+      resultsScore: source.resultsScore,
+      resultsFeedback: (source.resultsFeedback ?? []) as Prisma.InputJsonValue[],
+      experienceScore: source.experienceScore,
+      experienceFeedback: (source.experienceFeedback ?? []) as Prisma.InputJsonValue[],
+      analyzedAt: source.analyzedAt,
+    },
+  })
+
+  captureServerEvent(profile.id, 'resume_version_duplicated', { sourceResumeId: resumeId })
+  revalidatePath('/dashboard/resume')
 }
 
 const ENGAGEMENT_TYPES: EngagementType[] = ['FULL_TIME', 'FRACTIONAL', 'INTERIM', 'CONSULTING', 'INTERNSHIP']

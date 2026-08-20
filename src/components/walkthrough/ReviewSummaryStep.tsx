@@ -123,7 +123,7 @@ export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidat
 
       <form action={restartWalkthroughAction}>
         <SubmitButton variant="outline" size="sm" pendingLabel="Starting…">
-          Start a new walkthrough
+          Start the Resume Fixer again
         </SubmitButton>
       </form>
     </div>

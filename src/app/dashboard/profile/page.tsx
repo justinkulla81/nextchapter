@@ -109,7 +109,7 @@ export default async function ProfileHubPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
         <p className="text-muted-foreground">
-          Everything about you lives in one of the two sections below.
+          Everything about you lives in one of the sections below.
         </p>
         {totalItems > 0 && (
           <p className="text-sm text-foreground">
@@ -178,6 +178,39 @@ export default async function ProfileHubPage() {
               </details>
             )
           })}
+
+          {(() => {
+            const latestResume = profile.resumes[0]
+            const statusLine = latestResume
+              ? `Last uploaded ${latestResume.uploadedAt.toLocaleDateString()}`
+              : 'Not uploaded yet'
+            return (
+              <details className="group overflow-hidden rounded-lg border border-border">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">My Resume</p>
+                    <p className={cn('truncate text-xs', latestResume ? 'font-medium text-success' : 'text-muted-foreground')}>
+                      {statusLine}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <Button nativeButton={false} render={<Link href="/dashboard/resume" />} size="sm">
+                      Edit
+                    </Button>
+                    <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
+                      See details
+                    </span>
+                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                  </div>
+                </summary>
+                <div className="space-y-3 border-t border-border px-4 py-3">
+                  <p className="text-sm text-muted-foreground">
+                    Upload, rename, and manage versions of your resume, get it analyzed, and run the Resume Fixer.
+                  </p>
+                </div>
+              </details>
+            )
+          })()}
         </div>
       </div>
     </div>

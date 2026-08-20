@@ -26,15 +26,19 @@ export interface ActivationItemsResult {
 
 // §12 — one dashboard, one activation checklist. Every completion check
 // here reuses an existing, live signal (see access-gate.ts and
-// dossier-unlock.ts) rather than inventing a new one, with the sole
-// exception of resumeFixesAppliedKeys (new, additive CandidateProfile
-// field — see schema.prisma and dashboard/resume/actions.ts).
+// dossier-unlock.ts) rather than inventing a new one.
+//
+// resumeFixesAppliedKeys (the old "Mark as fixed" button on the resume
+// page) is no longer the resumeFixes gate — that button is gone (fixes now
+// only come from the Resume Fixer walkthrough), so this counts genuinely
+// resolved ResumeIssue rows instead (resolutionType 'fixed' or
+// 'corrected_source_data' — not 'declined_leave_as_is'/'dismissed_not_applicable',
+// which are real resolutions but not fixes).
 export async function getActivationItems(candidateId: string): Promise<ActivationItemsResult> {
-  const [profile, gmailConnected, sentReferenceCount, hasPersonalityProfile] = await Promise.all([
+  const [profile, gmailConnected, sentReferenceCount, hasPersonalityProfile, resumeIssuesFixedCount] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
-        resumeFixesAppliedKeys: true,
         targetRoleType: true,
         primaryFunction: true,
         targetIndustries: true,
@@ -63,6 +67,9 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
     // elsewhere in this codebase, which counts only COMPLETED references.
     prisma.reference.count({ where: { candidateId } }),
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
+    prisma.resumeIssue.count({
+      where: { candidateId, resolutionType: { in: ['fixed', 'corrected_source_data'] } },
+    }),
   ])
 
   const linkedInConnected = isLinkedInConnected(profile)
@@ -74,7 +81,7 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
       key: 'resumeFixes',
       label: 'Fix three things on your resume',
       estimatedMinutes: 20,
-      complete: profile.resumeFixesAppliedKeys.length >= 3,
+      complete: resumeIssuesFixedCount >= 3,
       href: '/dashboard/resume',
     },
     {

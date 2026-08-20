@@ -30,7 +30,7 @@ export function OverviewStep({ nextStep, estimatedMinutes }: { nextStep: number;
 
       <input type="hidden" name="nextStep" value={nextStep} />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <SubmitButton pendingLabel="Starting…">Start walkthrough</SubmitButton>
+      <SubmitButton pendingLabel="Starting…">Start the Resume Fixer</SubmitButton>
     </form>
   )
 }

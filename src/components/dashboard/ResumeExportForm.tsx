@@ -4,19 +4,20 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { InlineLoadingState } from '@/components/ui/spinner'
-import { RESUME_TEMPLATE_META, ACCENT_COLOR_OPTIONS } from '@/lib/resume/export/template-meta'
+import { RESUME_TEMPLATE_META } from '@/lib/resume/export/template-meta'
 import { cn } from '@/lib/utils'
 
 type Format = 'docx' | 'pdf'
 
 // "No control that can break parsing" (§13.2) — this picker only ever
-// offers a template id, one of a fixed accent-color palette (or none),
-// and a file format. There is no free-text style input, no font picker,
-// no spacing control — nothing here can reintroduce a banned layout
-// element, because none of those choices are exposed at all.
+// offers a template id and a file format. There is no free-text style
+// input, no font picker, no spacing control — nothing here can
+// reintroduce a banned layout element, because none of those choices are
+// exposed at all. Accent color is no longer candidate-chosen — each
+// template uses its own fixed default (omitting accentColor from the
+// export request tells the API to use it, see route.ts's own comment).
 export function ResumeExportForm() {
   const [templateId, setTemplateId] = useState(RESUME_TEMPLATE_META[0].id)
-  const [accentChoice, setAccentChoice] = useState<'default' | 'none' | string>('default')
   const [format, setFormat] = useState<Format>('pdf')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,24 +26,10 @@ export function ResumeExportForm() {
     setPending(true)
     setError(null)
     try {
-      const accentColor =
-        accentChoice === 'default'
-          ? undefined
-          : accentChoice === 'none'
-            ? null
-            : accentChoice
-
-      const body: Record<string, unknown> = { templateId, format }
-      if (accentColor === null) {
-        body.accentColor = null
-      } else if (accentColor !== undefined) {
-        body.accentColor = accentColor
-      }
-
       const response = await fetch('/api/resume/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ templateId, format }),
       })
 
       if (!response.ok) {
@@ -81,7 +68,7 @@ export function ResumeExportForm() {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">Template</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {RESUME_TEMPLATE_META.map((template) => (
               <button
                 key={template.id}
@@ -100,62 +87,6 @@ export function ResumeExportForm() {
                 <span className="block text-xs text-muted-foreground">{template.description}</span>
               </button>
             ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Accent color</p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => setAccentChoice('default')}
-              aria-pressed={accentChoice === 'default'}
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-sm transition-colors',
-                accentChoice === 'default'
-                  ? 'border-primary bg-primary/5 text-foreground'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Default
-            </button>
-            {ACCENT_COLOR_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                disabled={pending}
-                onClick={() => setAccentChoice(option.hex)}
-                aria-pressed={accentChoice === option.hex}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors',
-                  accentChoice === option.hex
-                    ? 'border-primary bg-primary/5 text-foreground'
-                    : 'border-border text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span
-                  className="size-3 rounded-full border border-black/10"
-                  style={{ backgroundColor: `#${option.hex}` }}
-                  aria-hidden="true"
-                />
-                {option.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => setAccentChoice('none')}
-              aria-pressed={accentChoice === 'none'}
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-sm transition-colors',
-                accentChoice === 'none'
-                  ? 'border-primary bg-primary/5 text-foreground'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              None
-            </button>
           </div>
         </div>
 
