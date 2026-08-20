@@ -2,6 +2,7 @@ import { ThumbsUp } from 'lucide-react'
 import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { resolveCommunityIdentity } from '@/lib/community/identity'
+import { isAutomatedPostType } from '@/lib/community/post-type'
 import { FEED_ITEM_STYLE } from '@/lib/community/feed-item-style'
 import type { UnifiedStreamItem } from '@/lib/community/unified-feed'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
@@ -43,7 +44,7 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
   const isOwnPost = post.candidateId === candidateId
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
-  const isAutomated = post.postType === 'MILESTONE' || post.postType === 'LIKED_CONTENT'
+  const isAutomated = isAutomatedPostType(post.postType)
 
   return (
     <div className="space-y-2 p-4">

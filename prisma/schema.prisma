@@ -526,6 +526,15 @@ model CandidateProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // One real row (see scripts/create-system-account.ts), backed by a real
+  // Supabase auth user, that authors admin-originated CommunityPosts (see
+  // src/lib/community/admin-story.ts) so ADMIN_STORY posts can use the same
+  // non-null candidateId FK every other post uses instead of a nullable
+  // column touching every author-identity call site. Every admin-facing
+  // candidate count/list must exclude isSystemAccount: true — see
+  // src/lib/admin/system-account-filter.ts.
+  isSystemAccount Boolean @default(false)
+
   // Captured once, at the very first CandidateProfile row creation
   // (including anonymous pre-registration profiles) — a simple bot signal
   // for admin: many accounts sharing one IP in a short window is suspicious
@@ -2999,6 +3008,7 @@ enum CommunityPostType {
   UPDATE // default type for the message-only composer, post Community+Circle merge
   MILESTONE // system-generated on a real milestone badge (e.g. WEEKLY_SPRINT_TARGET_HIT) — see maybeCreateMilestonePost
   LIKED_CONTENT // system-generated on a candidate's first Like of a Videos and Webinars carousel item — see maybeCreateContentLikePost
+  ADMIN_STORY // admin-authored, posted by the system CandidateProfile — see src/lib/community/admin-story.ts
 }
 
 // Master Build Script §14 — every post is classified into one of these

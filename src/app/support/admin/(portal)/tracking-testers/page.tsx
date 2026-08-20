@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
@@ -30,6 +31,7 @@ export default async function TrackingTestersPage({
   const params = parseListParams(rawParams, [], 25)
 
   const where: Prisma.CandidateProfileWhereInput = {
+    ...EXCLUDE_SYSTEM_ACCOUNT,
     ...(params.q && {
       OR: [
         { firstName: { contains: params.q, mode: 'insensitive' } },

@@ -44,6 +44,7 @@
 import 'server-only'
 import type { CurrentJobStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { getActivationItems } from '@/lib/dashboard/activation-items'
 import { computeDossierCompleteness, DOSSIER_REFERENCE_TARGET } from '@/lib/scoring/dossier-unlock'
 
@@ -297,6 +298,7 @@ async function loadCandidateFacts(): Promise<CandidateFacts[]> {
     bountyClaims,
   ] = await Promise.all([
     prisma.candidateProfile.findMany({
+      where: EXCLUDE_SYSTEM_ACCOUNT,
       select: {
         id: true,
         createdAt: true,
@@ -811,6 +813,7 @@ function topN(values: string[], n = 10): { value: string; count: number }[] {
 
 async function computeTargetsAndDemand(): Promise<TargetDemandMetrics> {
   const profiles = await prisma.candidateProfile.findMany({
+    where: EXCLUDE_SYSTEM_ACCOUNT,
     select: { targetRoleType: true, targetIndustries: true, metroArea: true },
   })
   return {

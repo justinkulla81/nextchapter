@@ -3,6 +3,7 @@ import type { Prisma, CurrentJobStatus, SearchIntensity } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
@@ -41,6 +42,7 @@ export default async function AdminCandidatesPage({
   const params = parseListParams(rawParams, ['status', 'intensity', 'level', 'optedIn'], 25)
 
   const where: Prisma.CandidateProfileWhereInput = {
+    ...EXCLUDE_SYSTEM_ACCOUNT,
     ...(params.filters.status && { currentJobStatus: params.filters.status as CurrentJobStatus }),
     ...(params.filters.intensity && { searchIntensity: params.filters.intensity as SearchIntensity }),
     ...(params.filters.level && { highestLevelReached: params.filters.level }),

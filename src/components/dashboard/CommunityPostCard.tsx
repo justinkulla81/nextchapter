@@ -3,6 +3,7 @@ import { ThumbsUp } from 'lucide-react'
 import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
 import { resolveCommunityIdentity, type CommunityIdentitySource } from '@/lib/community/identity'
+import { isAutomatedPostType } from '@/lib/community/post-type'
 import { Card, CardContent } from '@/components/ui/card'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -23,7 +24,7 @@ export function CommunityPostCard({
   const { displayName: posterName, avatarUrl: posterAvatarUrl } = resolveCommunityIdentity(post.candidate)
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
-  const isAutomated = post.postType === 'MILESTONE' || post.postType === 'LIKED_CONTENT'
+  const isAutomated = isAutomatedPostType(post.postType)
 
   return (
     <Card>

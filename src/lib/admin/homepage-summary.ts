@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -74,7 +75,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
     prisma.exclusiveJobPosting.count({ where: { createdAt: { gte: sevenDaysAgo }, status: { not: 'rejected' } } }),
     prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
-    prisma.candidateProfile.count(),
+    prisma.candidateProfile.count({ where: EXCLUDE_SYSTEM_ACCOUNT }),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { not: null } } }),
     prisma.coach.count(),
     prisma.recruiter.count(),

@@ -56,6 +56,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/employer-references', label: 'Employer References' },
         { href: '/support/admin/reported-messages', label: 'Reported Conversations', badge: badgeFor('reportedMessages') },
         { href: '/support/admin/community-moderation', label: 'Community Moderation', badge: badgeFor('communityModeration') },
+        { href: '/support/admin/community-stories', label: 'Community Stories' },
       ],
     },
     {

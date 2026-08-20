@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Grade } from '@/lib/scoring/grade'
 import { suppressSmallCells, type MaybeSuppressed } from '@/lib/admin/cell-suppression'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 
 export interface StructuralCorrelationRow {
   label: string
@@ -43,6 +44,7 @@ function summarizeSegment(
 // it had no such guard until now.
 export async function computeStructuralCorrelation(): Promise<Record<string, MaybeSuppressed<StructuralCorrelationRow>[]>> {
   const candidates = await prisma.candidateProfile.findMany({
+    where: EXCLUDE_SYSTEM_ACCOUNT,
     select: {
       hasMBA: true,
       highestEducationLevel: true,

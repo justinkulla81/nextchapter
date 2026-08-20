@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { MOOD_SCORE } from '@/lib/daily/mood-labels'
 import type { Grade } from '@/lib/scoring/grade'
 import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
@@ -150,7 +151,10 @@ function buildPerformanceRow(c: CandidateForPerformance, email: string, now: Dat
 // beats building a single mega-aggregate query.
 export async function getAllCandidatePerformance(): Promise<CandidatePerformanceRow[]> {
   const now = new Date()
-  const candidates = await prisma.candidateProfile.findMany({ select: CANDIDATE_PERFORMANCE_SELECT })
+  const candidates = await prisma.candidateProfile.findMany({
+    where: EXCLUDE_SYSTEM_ACCOUNT,
+    select: CANDIDATE_PERFORMANCE_SELECT,
+  })
   const authEmails = await getEmailsFor(candidates.map((c) => c.id))
   return candidates.map((c) => buildPerformanceRow(c, authEmails.get(c.id) ?? '—', now))
 }

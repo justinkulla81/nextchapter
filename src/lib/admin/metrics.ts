@@ -6,6 +6,7 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { scoreToGrade, GRADE_LABEL, type Grade } from '@/lib/scoring/grade'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { GapDurationBucket, MarketResponseType } from '@prisma/client'
@@ -59,6 +60,7 @@ type CandidateRow = Awaited<ReturnType<typeof loadAllCandidateRows>>[number]
 // full nested-relation query against the database twice per page load.
 async function loadAllCandidateRows() {
   return prisma.candidateProfile.findMany({
+    where: EXCLUDE_SYSTEM_ACCOUNT,
     select: {
       id: true,
       createdAt: true,
