@@ -51,6 +51,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/layoff-cohorts', label: 'Layoff Cohorts' },
         { href: '/support/admin/weekly-recognition', label: 'Weekly Recognition Archive' },
         { href: '/support/admin/bounty-claims', label: 'Offer Bonus Claims', badge: badgeFor('bountyClaims') },
+        { href: '/support/admin/scholarship-applications', label: 'Scholarship Applications', badge: badgeFor('scholarshipApplications') },
         { href: '/support/admin/references', label: 'References' },
         { href: '/support/admin/reference-disputes', label: 'Reference Disputes', badge: badgeFor('referenceDisputes') },
         { href: '/support/admin/employer-references', label: 'Employer References' },

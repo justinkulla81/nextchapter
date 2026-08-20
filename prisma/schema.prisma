@@ -1377,8 +1377,10 @@ model CandidateProfile {
   coachConversation              CoachConversation?
   narratives                     CandidateNarrative[]
   coachingWaitlistEntries        CoachingWaitlist[]
+  membershipTierWaitlistEntries  MembershipTierWaitlist[]
   guideLeadEntries               GuideLead[]
   bountyClaims                   BountyClaim[]
+  scholarshipApplications        ScholarshipApplication[]
   dailyCheckIns                  DailyCheckIn[]
   weeklySprints                  WeeklySprint[]
   sundayNightReports             SundayNightReport[]
@@ -3601,6 +3603,25 @@ model CoachingWaitlist {
   createdAt   DateTime          @default(now())
 }
 
+// Candidate membership-plan (dtc_* PlanCatalogEntry tiers, see plan-catalog.ts)
+// waitlist — same "kept separate from WaitlistSignup" reasoning as
+// CoachingWaitlist: needs a real candidateId relation and a typed tier column
+// for admin triage. No payment or access-control logic reads this model —
+// it is purely an interest signal until real billing exists (see IDEAS.md).
+model MembershipTierWaitlist {
+  id          String            @id @default(cuid())
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  email       String
+  firstName   String?
+  lastName    String?
+  tier        String // PlanCatalogEntry.planKey, e.g. "dtc_coaching_premium"
+  source      String // where the CTA was clicked from, e.g. "membership_plans_page"
+  createdAt   DateTime          @default(now())
+
+  @@index([tier])
+}
+
 // Public /resources/* guide-download leads — kept separate from WaitlistSignup
 // for the same reason CoachingWaitlist is: needs a real filterable column
 // (guideSlug) and a synchronous transactional email on submit, which the
@@ -3677,6 +3698,36 @@ model BountyClaim {
   // submission time, and the candidate's grade can move afterward. Null on
   // claims submitted before this gate existed (grandfathered, not re-checked).
   gradeAtSubmission String?
+
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}
+
+enum ScholarshipApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// A candidate facing real financial hardship can apply for reduced or free
+// access to a membership tier by describing their circumstances in an open
+// application. Always human-reviewed — mirrors BountyClaim exactly (same
+// PENDING/APPROVED/REJECTED shape, same reviewedBy/reviewedAt fields). No
+// code path anywhere sets status to APPROVED except an admin-invoked action;
+// there is no keyword-matching or self-reported-severity auto-approval.
+model ScholarshipApplication {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  tier  String // PlanCatalogEntry.planKey being requested, e.g. "dtc_coaching_premium"
+  story String @db.Text // open-text description of circumstances — no structured "prove it" fields
+
+  status       ScholarshipApplicationStatus @default(PENDING)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  decisionNote String? // shown to the candidate on rejection; optional on approval
 
   createdAt DateTime @default(now())
 

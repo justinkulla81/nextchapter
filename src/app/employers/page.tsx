@@ -194,6 +194,20 @@ export default async function EmployersPage() {
             For reference: LHH executive outplacement typically runs $8,000–15,000+ per person; LHH/Randstad
             RiseSmart mid-level $3,500–7,000; virtual-first providers (Careerminds, INTOO) $1,000–3,000.
           </p>
+
+          <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-light-gray bg-off-white p-6 text-center">
+            <p className="font-semibold text-navy">Running a large-scale reduction or a multi-year contract?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Core, Plus, and Premium are published, fixed list prices. For enterprise-scale engagements
+              beyond our standard volume tiers, we&apos;ll work out a custom quote with you directly.
+            </p>
+            <Link
+              href="#walkthrough"
+              className="mt-4 inline-flex items-center justify-center rounded-md border border-brand px-5 py-2.5 text-sm font-medium text-brand hover:bg-brand/5"
+            >
+              Contact us for a custom quote
+            </Link>
+          </div>
         </div>
 
         {/* Objection handling */}
