@@ -1,162 +1,141 @@
-// Crucible build spec §9 acceptance criteria — "scoring matches §4 exactly
-// against a test matrix (defect+block / defect+ship / herring-block /
-// no-flags each produce specified scores)." Also enforces §11's guarantee
-// that the same submission always produces the same score.
+// QA-judgment scoring (scoreQaSubmission) is pure/deterministic — same
+// inputs always produce the same breakdown, no LLM involved. The two
+// AI-graded activities (prompt-authoring, dataset-analysis) live in
+// ai-grading.ts and are NOT unit-tested here since they make a real network
+// call — combineCrucibleScores is tested instead, treating their resulting
+// numeric scores as plain inputs (which is exactly how actions.ts uses it).
 import { describe, it, expect } from 'vitest'
-import { scoreCrucibleSubmission, SCORING_VERSION, CONTENT_VERSION } from '@/lib/crucible/scoring'
-import type { CrucibleFlag, CrucibleSubmission } from '@/lib/crucible/scoring-types'
+import { scoreQaSubmission, combineCrucibleScores, SCORING_VERSION, CONTENT_VERSION } from '@/lib/crucible/scoring'
+import type { CrucibleAiTools, CrucibleQaSubmission } from '@/lib/crucible/scoring-types'
 
-function submission(overrides: Partial<CrucibleSubmission>): CrucibleSubmission {
-  return { flags: [], verdict: 'SHIP', worstThing: '', aiTools: null, ...overrides }
+function qa(overrides: Partial<CrucibleQaSubmission>): CrucibleQaSubmission {
+  return { selectedOptionIds: [], verdict: 'SHIP', ...overrides }
 }
 
-const defectFlagExact: CrucibleFlag = {
-  line: 25,
-  severity: 'minor',
-  mechanism: 'DATA_LOST_WRONG_NEVER_SAVED',
-  note: 'promo.uses is never saved back to the database',
-}
-const defectFlagNearMiss: CrucibleFlag = {
-  line: 25,
-  severity: 'minor',
-  mechanism: 'LOGIC_EDGE_CASE_ERROR',
-  note: 'this code never actually persists the change so it can be reused unlimited times',
-}
-const defectFlagWrongEverything: CrucibleFlag = {
-  line: 25,
-  severity: 'minor',
-  mechanism: 'LOGIC_EDGE_CASE_ERROR',
-  note: 'seems fine to me',
-}
-const herringCalibrated: CrucibleFlag = { line: 8, severity: 'cosmetic', mechanism: 'STYLE_CLUTTER', note: 'stray console.log' }
-const herringOverblocked: CrucibleFlag = { line: 8, severity: 'critical', mechanism: 'STYLE_CLUTTER', note: 'logs everything' }
+const VALID_AI_TOOLS: CrucibleAiTools = { tools: ['ChatGPT'], bestMove: 'Asked it to trace every db write in the diff' }
 
-describe('scoreCrucibleSubmission — CODE variant', () => {
-  it('defect (exact mechanism) + BLOCK + calibrated herring + driver bonus = 100', () => {
-    const result = scoreCrucibleSubmission(
-      'CODE',
-      submission({
-        flags: [defectFlagExact, herringCalibrated],
-        verdict: 'BLOCK',
-        worstThing: 'The promo usage count is never saved',
-        aiTools: { tools: ['ChatGPT'], bestMove: 'Asked it to trace every db write in the diff' },
-      })
-    )
-    expect(result.score).toBe(100)
-    expect(result.branch).toBe('PASS')
-    expect(result.band).toBe('Blocked it cold')
-    expect(result.breakdown.defectDetection).toBe('exact')
-  })
-
-  it('defect+block (no herring flag, no bonus) scores 85 — "Caught it"', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({ flags: [defectFlagExact], verdict: 'BLOCK' }))
-    expect(result.score).toBe(85)
-    expect(result.branch).toBe('PASS')
-    expect(result.band).toBe('Caught it')
+describe('scoreQaSubmission — CODE variant', () => {
+  it('defect selected + BLOCK earns full defect + verdict credit, herring stays calibrated by default', () => {
+    const result = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'BLOCK' }))
+    expect(result.defectDetection).toBe('exact')
+    expect(result.defectPoints).toBe(60)
+    expect(result.verdictPoints).toBe(25)
+    expect(result.herringOutcome).toBe('calibrated')
+    expect(result.herringPoints).toBe(5)
+    expect(result.rawPoints).toBe(90)
   })
 
   it('defect found but SHIPPED anyway earns detection credit, not verdict credit', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({ flags: [defectFlagExact], verdict: 'SHIP' }))
-    expect(result.score).toBe(60)
-    expect(result.breakdown.verdictPoints).toBe(0)
-    expect(result.branch).toBe('GROWTH')
+    const result = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'SHIP' }))
+    expect(result.defectPoints).toBe(60)
+    expect(result.verdictPoints).toBe(0)
   })
 
-  it('near-miss mechanism with matching keyword note earns 45, not 60', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({ flags: [defectFlagNearMiss], verdict: 'BLOCK' }))
-    expect(result.breakdown.defectDetection).toBe('near_miss')
-    expect(result.score).toBe(45 + 25)
+  it('SHIP_WITH_CONDITIONS earns verdict credit only when the defect was actually caught', () => {
+    const withDefect = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'SHIP_WITH_CONDITIONS' }))
+    expect(withDefect.verdictPoints).toBe(25)
+    const withoutDefect = scoreQaSubmission('CODE', qa({ selectedOptionIds: [], verdict: 'SHIP_WITH_CONDITIONS' }))
+    expect(withoutDefect.verdictPoints).toBe(0)
   })
 
-  it('right zone, wrong mechanism, note with no real understanding earns zero defect credit', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({ flags: [defectFlagWrongEverything], verdict: 'BLOCK' }))
-    expect(result.breakdown.defectDetection).toBe('none')
-    expect(result.score).toBe(25) // verdict alone — BLOCK without naming the defect still isn't credited as "correct" per spec (SHIP_WITH_CONDITIONS requires naming it; plain BLOCK is unconditional)
+  it('selecting a distractor instead of the real defect earns zero defect credit', () => {
+    const result = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_rounding'], verdict: 'BLOCK' }))
+    expect(result.defectDetection).toBe('none')
+    expect(result.defectPoints).toBe(0)
   })
 
-  it('herring flagged critical (over-blocking) costs points even with the real defect caught', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({ flags: [defectFlagExact, herringOverblocked], verdict: 'BLOCK' }))
-    expect(result.breakdown.herringOutcome).toBe('overblocked')
-    expect(result.score).toBe(60 + 25 - 10)
+  it('selecting the herring without blocking over it is merely ignored, not penalized', () => {
+    const result = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved', 'code_console_log'], verdict: 'SHIP' }))
+    expect(result.herringOutcome).toBe('ignored')
+    expect(result.herringPoints).toBe(0)
   })
 
-  it('citing the herring as the block reason in worst-thing text also overblocks, even with no flag', () => {
-    const result = scoreCrucibleSubmission(
-      'CODE',
-      submission({ flags: [defectFlagExact], verdict: 'BLOCK', worstThing: 'The console.log statement is the worst thing here' })
-    )
-    expect(result.breakdown.herringOutcome).toBe('overblocked')
-    expect(result.score).toBe(60 + 25 - 10)
+  it('selecting the herring AND blocking over it is overblocking — the calibration failure being measured', () => {
+    const result = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved', 'code_console_log'], verdict: 'BLOCK' }))
+    expect(result.herringOutcome).toBe('overblocked')
+    expect(result.herringPoints).toBe(-10)
+    expect(result.rawPoints).toBe(60 + 25 - 10)
   })
 
-  it('no flags at all, SHIP verdict — the glitch shipped, score 0', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({}))
+  it('nothing selected, SHIP verdict — worst case, raw points floor at herring-calibrated only', () => {
+    const result = scoreQaSubmission('CODE', qa({}))
+    expect(result.rawPoints).toBe(5)
+  })
+})
+
+describe('scoreQaSubmission — MARKETING and DATA use the same shape', () => {
+  it('MARKETING: selecting the fabricated-claim option + BLOCK', () => {
+    const result = scoreQaSubmission('MARKETING', qa({ selectedOptionIds: ['mktg_fabricated_claim'], verdict: 'BLOCK' }))
+    expect(result.defectDetection).toBe('exact')
+    expect(result.rawPoints).toBe(90)
+  })
+
+  it('DATA: selecting the headline-vs-table option + BLOCK', () => {
+    const result = scoreQaSubmission('DATA', qa({ selectedOptionIds: ['data_headline_contradicts_table'], verdict: 'BLOCK' }))
+    expect(result.defectDetection).toBe('exact')
+    expect(result.rawPoints).toBe(90)
+  })
+})
+
+describe('combineCrucibleScores', () => {
+  it('perfect QA + perfect AI-graded activities + driver bonus clamps at 100', () => {
+    const perfectQa = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'BLOCK' }))
+    const result = combineCrucibleScores(perfectQa, 100, 100, VALID_AI_TOOLS)
+    expect(result.score).toBe(100)
+    expect(result.band).toBe('Blocked it cold')
+    expect(result.branch).toBe('PASS')
+  })
+
+  it('worst case across all three activities, no bonus, scores 0', () => {
+    const worstQa = scoreQaSubmission('CODE', qa({}))
+    // rawPoints=5 here (herring-calibrated only) is the true floor for a
+    // SHIP verdict — combineCrucibleScores itself still clamps to 0 as a
+    // defensive floor, exercised directly by feeding it a synthetic
+    // zero-raw-points breakdown.
+    const zeroQa = { ...worstQa, rawPoints: 0, defectPoints: 0, verdictPoints: 0, herringPoints: 0 }
+    const result = combineCrucibleScores(zeroQa, 0, 0, null)
     expect(result.score).toBe(0)
     expect(result.band).toBe('The glitch shipped')
     expect(result.branch).toBe('GROWTH')
   })
 
+  it('weights QA 40%, prompt 30%, dataset 30%, then adds the flat driver bonus', () => {
+    // rawPoints=65 (defect 60 + verdict 0 + herring-calibrated 5) → 65/90 =
+    // 72.222...% → *0.4 = 28.888... ; prompt 0*0.3=0 ; dataset 0*0.3=0 →
+    // 28.888... rounds to 29.
+    const qaResult = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'SHIP' }))
+    const result = combineCrucibleScores(qaResult, 0, 0, null)
+    expect(result.score).toBe(29)
+    expect(result.branch).toBe('GROWTH')
+  })
+
+  it('breakdown reports the rounded weighted contribution of each AI-graded activity', () => {
+    const qaResult = scoreQaSubmission('CODE', qa({}))
+    const result = combineCrucibleScores(qaResult, 83, 67, null)
+    expect(result.breakdown.promptPoints).toBe(Math.round(83 * 0.3))
+    expect(result.breakdown.datasetPoints).toBe(Math.round(67 * 0.3))
+  })
+
   it('driver bonus requires both a tool AND a non-empty description of how', () => {
-    const withEmptyMove = scoreCrucibleSubmission('CODE', submission({ aiTools: { tools: ['Claude'], bestMove: '' } }))
+    const qaResult = scoreQaSubmission('CODE', qa({}))
+    const withEmptyMove = combineCrucibleScores(qaResult, 0, 0, { tools: ['Claude'], bestMove: '' })
     expect(withEmptyMove.breakdown.driverBonusEarned).toBe(false)
-    const withNoTools = scoreCrucibleSubmission('CODE', submission({ aiTools: { tools: [], bestMove: 'traced it' } }))
+    const withNoTools = combineCrucibleScores(qaResult, 0, 0, { tools: [], bestMove: 'traced it' })
     expect(withNoTools.breakdown.driverBonusEarned).toBe(false)
   })
 
-  it('score never goes negative even with maximum penalties', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({ flags: [herringOverblocked], verdict: 'SHIP' }))
-    expect(result.score).toBe(0)
-  })
-
-  it('is a pure function — identical submission always produces an identical score (§11 determinism guarantee)', () => {
-    const input = submission({ flags: [defectFlagExact, herringCalibrated], verdict: 'BLOCK' })
-    const a = scoreCrucibleSubmission('CODE', input)
-    const b = scoreCrucibleSubmission('CODE', input)
+  it('is a pure function — identical inputs always produce an identical result (§11 determinism guarantee)', () => {
+    const qaResult = scoreQaSubmission('CODE', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'BLOCK' }))
+    const a = combineCrucibleScores(qaResult, 75, 60, VALID_AI_TOOLS)
+    const b = combineCrucibleScores(qaResult, 75, 60, VALID_AI_TOOLS)
     expect(a).toEqual(b)
   })
 
   it('stamps the current scoring/content version on every result', () => {
-    const result = scoreCrucibleSubmission('CODE', submission({}))
+    const qaResult = scoreQaSubmission('CODE', qa({}))
+    const result = combineCrucibleScores(qaResult, 0, 0, null)
     expect(result.scoringVersion).toBe(SCORING_VERSION)
     expect(result.contentVersion).toBe(CONTENT_VERSION)
-  })
-})
-
-describe('scoreCrucibleSubmission — MARKETING and DATA variants use the same shape', () => {
-  it('MARKETING: flagging the fabricated TechCrunch line + BLOCK scores 85', () => {
-    const result = scoreCrucibleSubmission(
-      'MARKETING',
-      submission({
-        flags: [{ line: 11, severity: 'critical', mechanism: 'CLAIM_FALSE_UNVERIFIABLE', note: 'DoorList was never reviewed by TechCrunch, this is fabricated' }],
-        verdict: 'BLOCK',
-      })
-    )
-    expect(result.score).toBe(85)
-    expect(result.branch).toBe('PASS')
-  })
-
-  it('DATA: flagging the headline-vs-table contradiction + BLOCK scores 85', () => {
-    const result = scoreCrucibleSubmission(
-      'DATA',
-      submission({
-        flags: [{ line: 7, severity: 'critical', mechanism: 'CLAIM_FALSE_UNVERIFIABLE', note: 'the table shows 10.5% growth, not 40% — the math doesn\'t match' }],
-        verdict: 'BLOCK',
-      })
-    )
-    expect(result.score).toBe(85)
-    expect(result.branch).toBe('PASS')
-  })
-
-  it('DATA: flagging the confound line (18-19) instead of the headline still counts as the same defect zone', () => {
-    const result = scoreCrucibleSubmission(
-      'DATA',
-      submission({
-        flags: [{ line: 18, severity: 'minor', mechanism: 'CLAIM_FALSE_UNVERIFIABLE', note: 'Solstice is a seasonal confound never controlled for' }],
-        verdict: 'SHIP_WITH_CONDITIONS',
-      })
-    )
-    expect(result.breakdown.defectDetection).toBe('exact')
-    expect(result.score).toBe(85)
   })
 })
 

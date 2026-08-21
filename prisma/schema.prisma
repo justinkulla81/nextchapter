@@ -7594,7 +7594,8 @@ enum CrucibleVariant {
 enum CrucibleSessionState {
   STARTED
   CHALLENGE
-  VERDICT
+  PROMPT_TASK
+  DATASET_TASK
   TOOLS
   RESUME
   SCORED
@@ -7623,11 +7624,31 @@ model CrucibleSession {
   jobIntent   CrucibleJobIntent?
   variant     CrucibleVariant?
   state       CrucibleSessionState @default(STARTED)
+  // Read once at session start (getClientIp(), same helper as
+  // HomepageVisitEvent) — used only to rate-limit the two AI-graded
+  // activities below, never displayed or used for anything else.
+  ip          String?
 
-  // [{ line: number, severity: 'critical'|'minor'|'cosmetic', note: string }]
-  flags          Json?
-  verdict        CrucibleVerdict?
-  worstThing     String?          @db.Text
+  // QA judgment activity — string[] of CrucibleChecklistOption ids the
+  // candidate selected, scored deterministically (see scoring.ts). Replaced
+  // the original click-a-line-to-flag interaction, which testing showed was
+  // unclear with no visible "what am I even looking for" cue.
+  selectedOptionIds Json?
+  verdict           CrucibleVerdict?
+
+  // Prompt-authoring activity — candidate writes a prompt to get an AI to
+  // analyze/improve a fixed demo webpage. AI-graded (real per-attempt LLM
+  // cost — see checkAndRecordCrucibleAiUsage in rate-limit.ts).
+  promptSubmission String? @db.Text
+  promptScore      Int?
+  promptFeedback   String? @db.Text
+
+  // Dataset-analysis activity — candidate is given business context + a
+  // small dataset and asked to analyze/recommend. Also AI-graded.
+  datasetSubmission String? @db.Text
+  datasetScore      Int?
+  datasetFeedback   String? @db.Text
+
   // { tools: string[], bestMove: string }
   aiTools        Json?
   resumeFilePath String? // crucible-resumes bucket, leads/<uuid>.<ext> — same "service-role upload, never scored" pattern as ResumeSubmissionLead

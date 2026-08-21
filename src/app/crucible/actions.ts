@@ -4,11 +4,14 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { getClientIp } from '@/lib/http/client-ip'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { scoreCrucibleSubmission } from '@/lib/crucible/scoring'
+import { combineCrucibleScores, scoreQaSubmission } from '@/lib/crucible/scoring'
+import { gradeCrucibleDatasetTask, gradeCruciblePromptTask } from '@/lib/crucible/ai-grading'
+import { checkCrucibleAiRateLimit } from '@/lib/crucible/rate-limit'
 import { JOB_INTENT_TO_VARIANT, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
-import type { CrucibleFlag, CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
+import type { CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
 import type { CrucibleSource } from '@prisma/client'
 
 // Session identity is the row's own id, held in a plain (non-httpOnly-only
@@ -21,6 +24,15 @@ import type { CrucibleSource } from '@prisma/client'
 // of weight. Real account creation only happens later, if someone actually
 // converts via /crucible/full or the main site.
 const SESSION_COOKIE = 'crucible_session'
+
+// A neutral, non-punitive fallback for the two AI-graded activities — used
+// both when the AI call itself fails (see ai-grading.ts) and when a
+// candidate is rate-limited (checkCrucibleAiRateLimit). Either way, a
+// system-side limit shouldn't cost a real candidate a low score.
+const AI_GRADE_UNAVAILABLE = {
+  score: 50,
+  feedback: "We're at capacity for automatic scoring right now — this didn't count against you.",
+}
 
 async function getAuthedCandidate(): Promise<{ candidateId: string; email: string | null } | null> {
   const supabase = await createClient()
@@ -37,6 +49,7 @@ export type CrucibleStartResult = { sessionId: string; variant: CrucibleVariantK
 export async function startCrucibleSession(source: CrucibleSource, jobIntent: CrucibleJobIntentKey): Promise<CrucibleStartResult> {
   const variant = JOB_INTENT_TO_VARIANT[jobIntent]
   const authed = source === 'NC_NEWGRAD' || source === 'NC_ASSESSMENT' ? await getAuthedCandidate() : null
+  const ip = await getClientIp()
 
   const session = await prisma.crucibleSession.create({
     data: {
@@ -45,6 +58,7 @@ export async function startCrucibleSession(source: CrucibleSource, jobIntent: Cr
       variant,
       candidateId: authed?.candidateId ?? null,
       email: authed?.email ?? null,
+      ip,
       state: 'CHALLENGE',
     },
   })
@@ -73,23 +87,49 @@ export async function captureCrucibleEmail(sessionId: string, email: string): Pr
 
 export type SubmitChallengeInput = {
   sessionId: string
-  flags: CrucibleFlag[]
+  selectedOptionIds: string[]
   verdict: CrucibleVerdictValue
-  worstThing: string
 }
 
+// QA judgment — the deterministic activity. Scored again (cheaply) from
+// these same stored inputs at submitCrucibleAiTools time, once the two
+// AI-graded activities have also landed, rather than persisting an
+// intermediate score here.
 export async function submitCrucibleChallenge(input: SubmitChallengeInput): Promise<void> {
   const session = await requireSession(input.sessionId)
   await prisma.crucibleSession.update({
     where: { id: session.id },
     data: {
-      flags: input.flags as unknown as object,
+      selectedOptionIds: input.selectedOptionIds,
       verdict: input.verdict,
-      worstThing: input.worstThing,
-      state: 'TOOLS',
+      state: 'PROMPT_TASK',
     },
   })
-  captureServerEvent(session.candidateId ?? session.id, 'crucible_verdict', { verdict: input.verdict })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_verdict', { verdict: input.verdict, flagCount: input.selectedOptionIds.length })
+}
+
+export async function submitCruciblePromptTask(sessionId: string, promptText: string): Promise<void> {
+  const session = await requireSession(sessionId)
+  const allowed = await checkCrucibleAiRateLimit(session.ip)
+  const grade = allowed ? await gradeCruciblePromptTask(promptText) : AI_GRADE_UNAVAILABLE
+
+  await prisma.crucibleSession.update({
+    where: { id: session.id },
+    data: { promptSubmission: promptText, promptScore: grade.score, promptFeedback: grade.feedback, state: 'DATASET_TASK' },
+  })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_prompt_task', { score: grade.score, rateLimited: !allowed })
+}
+
+export async function submitCrucibleDatasetTask(sessionId: string, analysisText: string): Promise<void> {
+  const session = await requireSession(sessionId)
+  const allowed = await checkCrucibleAiRateLimit(session.ip)
+  const grade = allowed ? await gradeCrucibleDatasetTask(analysisText) : AI_GRADE_UNAVAILABLE
+
+  await prisma.crucibleSession.update({
+    where: { id: session.id },
+    data: { datasetSubmission: analysisText, datasetScore: grade.score, datasetFeedback: grade.feedback, state: 'TOOLS' },
+  })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_dataset_task', { score: grade.score, rateLimited: !allowed })
 }
 
 export type CrucibleResultSummary = {
@@ -98,23 +138,25 @@ export type CrucibleResultSummary = {
   branch: 'PASS' | 'GROWTH'
   fixExplanation: string
   herringExplanation: string
+  promptFeedback: string
+  datasetFeedback: string
 }
 
 // Scored here, immediately once AI-tools disclosure lands — that's the
-// last input the scoring engine actually reads (resume, submitted or
-// skipped afterward, is never part of scoring — see scoring.ts and its
-// dedicated purity test).
+// last input the final score reads (resume, submitted or skipped
+// afterward, is never part of scoring — see scoring.ts and its dedicated
+// purity test). QA is recomputed here (cheap, deterministic) from the
+// selections/verdict stored back in submitCrucibleChallenge.
 export async function submitCrucibleAiTools(sessionId: string, tools: string[], bestMove: string): Promise<CrucibleResultSummary> {
   const session = await requireSession(sessionId)
   if (!session.variant) throw new Error('Session has no variant.')
 
   const aiTools = { tools, bestMove }
-  const result = scoreCrucibleSubmission(session.variant, {
-    flags: (session.flags as unknown as CrucibleFlag[]) ?? [],
+  const qa = scoreQaSubmission(session.variant, {
+    selectedOptionIds: (session.selectedOptionIds as string[] | null) ?? [],
     verdict: session.verdict ?? 'SHIP',
-    worstThing: session.worstThing ?? '',
-    aiTools,
   })
+  const result = combineCrucibleScores(qa, session.promptScore ?? 0, session.datasetScore ?? 0, aiTools)
 
   await prisma.crucibleSession.update({
     where: { id: session.id },
@@ -136,11 +178,21 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     band: result.band,
     branch: result.branch,
     defect_found: result.breakdown.defectDetection,
-    herring_penalty: result.breakdown.herringOutcome,
+    herring_outcome: result.breakdown.herringOutcome,
+    prompt_points: result.breakdown.promptPoints,
+    dataset_points: result.breakdown.datasetPoints,
     driver_bonus: result.breakdown.driverBonusEarned,
   })
 
-  return { score: result.score, band: result.band, branch: result.branch, fixExplanation: content.fixExplanation, herringExplanation: content.herringExplanation }
+  return {
+    score: result.score,
+    band: result.band,
+    branch: result.branch,
+    fixExplanation: content.fixExplanation,
+    herringExplanation: content.herringExplanation,
+    promptFeedback: session.promptFeedback ?? '',
+    datasetFeedback: session.datasetFeedback ?? '',
+  }
 }
 
 export async function submitCrucibleResume(sessionId: string, file: File | null): Promise<void> {
@@ -220,6 +272,7 @@ export async function retryCrucibleChallenge(previousSessionId: string): Promise
   }
   const allVariants: CrucibleVariantKey[] = ['CODE', 'MARKETING', 'DATA']
   const nextVariant = allVariants.find((v) => v !== previous.variant) ?? allVariants[0]
+  const ip = await getClientIp()
 
   const session = await prisma.crucibleSession.create({
     data: {
@@ -228,6 +281,7 @@ export async function retryCrucibleChallenge(previousSessionId: string): Promise
       variant: nextVariant,
       candidateId: previous.candidateId,
       email: previous.email,
+      ip,
       state: 'CHALLENGE',
       retryOfId: previous.id,
     },

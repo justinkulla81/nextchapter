@@ -7,13 +7,15 @@ import {
   startCrucibleSession,
   captureCrucibleEmail,
   submitCrucibleChallenge,
+  submitCruciblePromptTask,
+  submitCrucibleDatasetTask,
   submitCrucibleAiTools,
   submitCrucibleResume,
   logCrucibleInterest,
   type CrucibleResultSummary,
 } from '@/app/crucible/actions'
-import { CRUCIBLE_VARIANTS, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
-import { MECHANISM_OPTIONS, type CrucibleFlag, type CrucibleSeverity, type CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
+import { CRUCIBLE_VARIANTS, CRUCIBLE_PROMPT_TASK, CRUCIBLE_DATASET_TASK, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
+import type { CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import type { CrucibleSource } from '@prisma/client'
 
-type Step = 'fork' | 'email' | 'intro' | 'challenge' | 'tools' | 'resume' | 'results'
+type Step = 'fork' | 'email' | 'intro' | 'qa' | 'prompt' | 'dataset' | 'tools' | 'resume' | 'results'
 
 const JOB_INTENT_OPTIONS: { value: CrucibleJobIntentKey; label: string }[] = [
   { value: 'TECH', label: 'Tech / Software' },
@@ -30,12 +32,6 @@ const JOB_INTENT_OPTIONS: { value: CrucibleJobIntentKey; label: string }[] = [
   { value: 'DESIGN', label: 'Design / Creative' },
   { value: 'BUSINESS', label: 'Business / Ops' },
   { value: 'UNSURE', label: 'Not sure yet' },
-]
-
-const SEVERITY_OPTIONS: { value: CrucibleSeverity; label: string }[] = [
-  { value: 'critical', label: 'Critical' },
-  { value: 'minor', label: 'Minor' },
-  { value: 'cosmetic', label: 'Cosmetic' },
 ]
 
 const AI_TOOL_OPTIONS = ['ChatGPT', 'Claude', 'Gemini', 'Grok', 'Copilot', 'Other', 'None, just me']
@@ -52,10 +48,10 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   const [skipResume, setSkipResume] = useState(initialSkipResume)
 
   const [email, setEmail] = useState('')
-  const [flags, setFlags] = useState<Map<number, CrucibleFlag>>(new Map())
-  const [openLine, setOpenLine] = useState<number | null>(null)
-  const [worstThing, setWorstThing] = useState('')
+  const [selectedOptionIds, setSelectedOptionIds] = useState<Set<string>>(new Set())
   const [verdict, setVerdict] = useState<CrucibleVerdictValue | null>(null)
+  const [promptText, setPromptText] = useState('')
+  const [analysisText, setAnalysisText] = useState('')
   const [aiTools, setAiTools] = useState<string[]>([])
   const [bestMove, setBestMove] = useState('')
   const [result, setResult] = useState<CrucibleResultSummary | null>(null)
@@ -90,42 +86,62 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
     })
   }
 
-  function toggleLine(line: number) {
-    setOpenLine((cur) => (cur === line ? null : line))
-  }
-
-  function updateFlag(line: number, patch: Partial<CrucibleFlag>) {
-    setFlags((prev) => {
-      const next = new Map(prev)
-      const existing = next.get(line) ?? { line, severity: 'minor' as CrucibleSeverity, mechanism: MECHANISM_OPTIONS[0].value, note: '' }
-      next.set(line, { ...existing, ...patch })
-      return next
-    })
-    posthog?.capture('crucible_flag_added', { line })
-  }
-
-  function removeFlag(line: number) {
-    setFlags((prev) => {
-      const next = new Map(prev)
-      next.delete(line)
+  function toggleOption(id: string) {
+    setSelectedOptionIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
 
   function submitChallenge() {
-    if (!sessionId || !verdict || !worstThing.trim()) {
-      setError('Give a verdict and answer the required question before continuing.')
+    if (!sessionId || !verdict) {
+      setError('Give a verdict before continuing.')
       return
     }
     setError(null)
-    const start = Date.now()
     startTransition(async () => {
       try {
-        await submitCrucibleChallenge({ sessionId, flags: Array.from(flags.values()), verdict, worstThing: worstThing.trim() })
-        posthog?.capture('crucible_verdict', { verdict, ms: Date.now() - start })
-        setStep('tools')
+        await submitCrucibleChallenge({ sessionId, selectedOptionIds: Array.from(selectedOptionIds), verdict })
+        posthog?.capture('crucible_verdict', { verdict, flagCount: selectedOptionIds.size })
+        setStep('prompt')
       } catch {
         setError('Something went wrong submitting your review.')
+      }
+    })
+  }
+
+  function submitPromptTask() {
+    if (!sessionId || !promptText.trim()) {
+      setError('Write a prompt before continuing.')
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      try {
+        await submitCruciblePromptTask(sessionId, promptText.trim())
+        posthog?.capture('crucible_prompt_task_submitted')
+        setStep('dataset')
+      } catch {
+        setError('Something went wrong submitting your prompt.')
+      }
+    })
+  }
+
+  function submitDatasetTask() {
+    if (!sessionId || !analysisText.trim()) {
+      setError('Write your analysis before continuing.')
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      try {
+        await submitCrucibleDatasetTask(sessionId, analysisText.trim())
+        posthog?.capture('crucible_dataset_task_submitted')
+        setStep('tools')
+      } catch {
+        setError('Something went wrong submitting your analysis.')
       }
     })
   }
@@ -212,95 +228,46 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-5 text-center">
           <h1 className="text-2xl font-semibold text-foreground">Here&apos;s the situation.</h1>
           <p className="mx-auto max-w-xl text-muted-foreground">
-            {`An AI agent wrote ${content.key === 'CODE' ? 'code' : content.key === 'MARKETING' ? 'marketing copy' : 'a memo'} for a real product. It looks finished. Your job is the one that matters now: decide if it ships. Use any AI you want — ChatGPT, Claude, Gemini, all of them. Copy the artifact into anything. We're measuring your judgment, not your typing. ~15 minutes. Instant result.`}
+            {`Three short activities, ~15 minutes total: judge a real AI mistake, write a prompt that would fix a real page, and read a real dataset. Use any AI you want — ChatGPT, Claude, Gemini, all of them. We're measuring your judgment, not your typing.`}
           </p>
-          <Button size="lg" onClick={() => setStep('challenge')}>
-            Show me {content.artifactLabel.toLowerCase()}
+          <Button size="lg" onClick={() => setStep('qa')}>
+            Start
           </Button>
         </div>
       )}
 
-      {step === 'challenge' && content && (
+      {step === 'qa' && content && (
         <div className="space-y-6">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">{content.scenarioTitle}</h1>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 1 of 3 — Judge the output</p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">{content.scenarioTitle}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{content.brief}</p>
           </div>
 
-          <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-            Click any line to flag something you&apos;d raise before this ships.
-          </div>
-
           <div className="overflow-x-auto rounded-lg border border-border bg-[#0D0A14] font-mono text-sm">
-            {content.lines.map((line) => {
-              const flag = flags.get(line.line)
-              return (
-                <div key={line.line}>
-                  <button
-                    type="button"
-                    onClick={() => toggleLine(line.line)}
-                    className={cn(
-                      'flex w-full items-start gap-3 px-3 py-1 text-left hover:bg-white/5',
-                      flag && 'bg-orange/20'
-                    )}
-                  >
-                    <span className="w-6 shrink-0 text-right text-white/30">{line.line}</span>
-                    <span className="flex-1 whitespace-pre text-white/90">{line.text || ' '}</span>
-                    {flag && (
-                      <span className="shrink-0 rounded-full bg-orange px-2 py-0.5 text-[10px] font-semibold text-white">
-                        {flag.severity}
-                      </span>
-                    )}
-                  </button>
-                  {openLine === line.line && (
-                    <div className="space-y-3 border-t border-white/10 bg-white p-4 font-sans">
-                      <div className="flex flex-wrap gap-2">
-                        {SEVERITY_OPTIONS.map((s) => (
-                          <button
-                            key={s.value}
-                            type="button"
-                            onClick={() => updateFlag(line.line, { severity: s.value })}
-                            className={cn(
-                              'rounded-full border px-3 py-1 text-xs font-medium',
-                              flag?.severity === s.value ? 'border-brand bg-brand text-white' : 'border-border text-foreground'
-                            )}
-                          >
-                            {s.label}
-                          </button>
-                        ))}
-                      </div>
-                      <select
-                        value={flag?.mechanism ?? MECHANISM_OPTIONS[0].value}
-                        onChange={(e) => updateFlag(line.line, { mechanism: e.target.value as CrucibleFlag['mechanism'] })}
-                        className="w-full rounded-md border border-border p-2 text-sm"
-                      >
-                        {MECHANISM_OPTIONS.map((m) => (
-                          <option key={m.value} value={m.value}>
-                            {m.label}
-                          </option>
-                        ))}
-                      </select>
-                      <Textarea
-                        placeholder="One-line note (optional but helps calibrate credit)"
-                        value={flag?.note ?? ''}
-                        onChange={(e) => updateFlag(line.line, { note: e.target.value })}
-                        rows={2}
-                      />
-                      <div className="flex justify-end">
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeFlag(line.line)}>
-                          Remove flag
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+            {content.lines.map((line) => (
+              <div key={line.line} className="flex items-start gap-3 px-3 py-1">
+                <span className="w-6 shrink-0 text-right text-white/30">{line.line}</span>
+                <span className="flex-1 whitespace-pre text-white/90">{line.text || ' '}</span>
+              </div>
+            ))}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="worst-thing">{content.worstThingPrompt}</Label>
-            <Textarea id="worst-thing" value={worstThing} onChange={(e) => setWorstThing(e.target.value)} rows={2} />
+            <p className="text-sm font-medium text-foreground">{content.checklistPrompt}</p>
+            <div className="space-y-2 rounded-lg border border-border p-3">
+              {content.checklistOptions.map((opt) => (
+                <label key={opt.id} className="flex cursor-pointer items-start gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={selectedOptionIds.has(opt.id)}
+                    onChange={() => toggleOption(opt.id)}
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -323,7 +290,96 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
           </div>
 
           <Button size="lg" className="w-full" disabled={isPending} onClick={submitChallenge}>
-            Submit my review
+            Continue
+          </Button>
+        </div>
+      )}
+
+      {step === 'prompt' && (
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 2 of 3 — Write a prompt</p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">{CRUCIBLE_PROMPT_TASK.pageTitle}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{CRUCIBLE_PROMPT_TASK.instructions}</p>
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-border bg-off-white p-5">
+            {CRUCIBLE_PROMPT_TASK.pageSections.map((section, i) => {
+              if (section.kind === 'heading') return <p key={i} className="text-lg font-bold text-navy">{section.text}</p>
+              if (section.kind === 'button')
+                return (
+                  <span key={i} className="inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white">
+                    {section.text}
+                  </span>
+                )
+              if (section.kind === 'field')
+                return (
+                  <p key={i} className="rounded-md border border-border bg-white px-3 py-2 font-mono text-xs text-foreground">
+                    {section.text}
+                  </p>
+                )
+              return (
+                <p key={i} className="text-sm text-muted-foreground">
+                  {section.text}
+                </p>
+              )
+            })}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="prompt-task">The prompt you&apos;d give an AI</Label>
+            <Textarea id="prompt-task" value={promptText} onChange={(e) => setPromptText(e.target.value)} rows={5} />
+          </div>
+
+          <Button size="lg" className="w-full" disabled={isPending} onClick={submitPromptTask}>
+            Continue
+          </Button>
+        </div>
+      )}
+
+      {step === 'dataset' && (
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 3 of 3 — Analyze a dataset</p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">Promo codes, two weeks in</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{CRUCIBLE_DATASET_TASK.businessContext}</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">{CRUCIBLE_DATASET_TASK.datasetDescription}</p>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-off-white">
+                  <tr>
+                    {CRUCIBLE_DATASET_TASK.columns.map((col) => (
+                      <th key={col} className="whitespace-nowrap px-3 py-2 font-semibold text-foreground">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {CRUCIBLE_DATASET_TASK.rows.map((row, i) => (
+                    <tr key={i} className="border-t border-border">
+                      {row.map((cell, j) => (
+                        <td key={j} className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dataset-task">{CRUCIBLE_DATASET_TASK.instructions}</Label>
+            <Textarea id="dataset-task" value={analysisText} onChange={(e) => setAnalysisText(e.target.value)} rows={5} />
+          </div>
+
+          <Button size="lg" className="w-full" disabled={isPending} onClick={submitDatasetTask}>
+            Continue
           </Button>
         </div>
       )}
@@ -395,12 +451,20 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
 
           <div className="space-y-4 rounded-lg border border-border p-4">
             <div>
-              <p className="text-sm font-semibold text-foreground">What actually broke</p>
+              <p className="text-sm font-semibold text-foreground">Activity 1 — What actually broke</p>
               <p className="mt-1 text-sm text-muted-foreground">{result.fixExplanation}</p>
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">Why the distraction wasn&apos;t worth blocking on</p>
               <p className="mt-1 text-sm text-muted-foreground">{result.herringExplanation}</p>
+            </div>
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-semibold text-foreground">Activity 2 — Your prompt</p>
+              <p className="mt-1 text-sm text-muted-foreground">{result.promptFeedback}</p>
+            </div>
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-semibold text-foreground">Activity 3 — Your analysis</p>
+              <p className="mt-1 text-sm text-muted-foreground">{result.datasetFeedback}</p>
             </div>
           </div>
 
