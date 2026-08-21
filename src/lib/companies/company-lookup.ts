@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { resolveCompanyIndustry } from '@/lib/market/company-industry'
+import { resolveCompanyDescription } from '@/lib/market/company-description'
 
 // Company.canonicalNameNormalized is the real join key between this new
 // table and the free-text company names on ExclusiveJobPosting/
@@ -58,16 +59,18 @@ export function lookupCompanyByNormalizedName(canonicalNameNormalized: string): 
 // never per-candidate and never recurring"). Once resolved, the result is
 // cached on the Company row itself, so a given company is never re-resolved.
 export async function resolveCompanyMetadataIfMissing(company: Company): Promise<Company> {
-  if (company.industry && company.sizeBand) return company
+  if (company.industry && company.sizeBand && company.description) return company
 
-  const [industryResult, sizeResult] = await Promise.all([
+  const [industryResult, sizeResult, descriptionResult] = await Promise.all([
     company.industry ? null : resolveCompanyIndustry(company.name),
     company.sizeBand ? null : resolveCompanySizeBand(company.name),
+    company.description ? null : resolveCompanyDescription(company.name),
   ])
 
-  const data: { industry?: string; sizeBand?: NonNullable<Company['sizeBand']> } = {}
+  const data: { industry?: string; sizeBand?: NonNullable<Company['sizeBand']>; description?: string } = {}
   if (industryResult?.bucket) data.industry = industryResult.bucket
   if (sizeResult?.band) data.sizeBand = sizeResult.band
+  if (descriptionResult) data.description = descriptionResult
 
   if (Object.keys(data).length === 0) return company
 

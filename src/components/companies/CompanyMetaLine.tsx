@@ -27,11 +27,14 @@ export const SIZE_BAND_LABEL: Record<CompanySizeBand, string> = {
 export async function CompanyMetaLine({ companyRow }: { companyRow: Company }) {
   const company = await resolveCompanyMetadataIfMissing(companyRow)
   return (
-    <p className="text-sm text-muted-foreground">
-      {[company.industry, company.sizeBand ? SIZE_BAND_LABEL[company.sizeBand] : null, company.hqMetro]
-        .filter(Boolean)
-        .join(' · ') || 'Details still filling in'}
-    </p>
+    <>
+      <p className="text-sm text-muted-foreground">
+        {[company.industry, company.sizeBand ? SIZE_BAND_LABEL[company.sizeBand] : null, company.hqMetro]
+          .filter(Boolean)
+          .join(' · ') || 'Details still filling in'}
+      </p>
+      {company.description && <p className="mt-1 text-sm text-foreground">{company.description}</p>}
+    </>
   )
 }
 

@@ -15,7 +15,11 @@ import {
   type InsiderSummary,
 } from '@/lib/companies/insider-network'
 import { autoTagAllWorkHistory } from '@/lib/companies/employment-tagging'
-import { getCandidateContactsAtCompany, countOtherMembersWithContactAtCompany } from '@/lib/companies/candidate-contacts-at-company'
+import {
+  getCandidateContactsAtCompany,
+  countOtherMembersWithContactAtCompany,
+  getSecondDegreeContactsAtCompany,
+} from '@/lib/companies/candidate-contacts-at-company'
 import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@/lib/companies/company-intel'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { suppressSmallCells, isSuppressedCell } from '@/lib/admin/cell-suppression'
@@ -90,7 +94,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // as tagged, not "add where you've worked to unlock this."
   await autoTagAllWorkHistory(profile.id)
 
-  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, otherMembersContactCount, recruitingFirmData, dossierStatus, ownOutcomeHere] =
+  const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, secondDegreeContacts, otherMembersContactCount, recruitingFirmData, dossierStatus, ownOutcomeHere] =
     await Promise.all([
       prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
       prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
@@ -98,6 +102,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       getPublishedIntelForCompany(id),
       getCandidateMarketIntelTier(profile.id),
       getCandidateContactsAtCompany(profile.id, company.name),
+      getSecondDegreeContactsAtCompany(profile.id, company.name),
       countOtherMembersWithContactAtCompany(profile.id, company.name),
       getRecruitingFirmData(company.name),
       isDossierUnlocked(profile.id),
@@ -371,6 +376,36 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                 </div>
               )
             })}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── 2nd-degree connections — "who do I know who knows someone
+          here?" Only the bridge contact's identity and a count are shown,
+          never the bridge's own contacts' names — see
+          getSecondDegreeContactsAtCompany's doc comment for why. ── */}
+      {secondDegreeContacts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="size-4" aria-hidden="true" />
+              People your contacts might know here
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {secondDegreeContacts.map(({ bridge, contactCount }) => (
+                <div key={bridge.id} className="flex items-center justify-between gap-3 p-3">
+                  <Link href={`/dashboard/network/contacts/${bridge.id}`} className="min-w-0 hover:opacity-80">
+                    <p className="text-sm font-medium text-foreground">{bridge.name}</p>
+                    {bridge.title && <p className="text-xs text-muted-foreground">{bridge.title}</p>}
+                  </Link>
+                  <p className="shrink-0 text-xs text-muted-foreground">
+                    Knows {contactCount} {contactCount === 1 ? 'person' : 'people'} here
+                  </p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

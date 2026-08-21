@@ -6035,6 +6035,10 @@ model Company {
   industry                String?
   sizeBand                CompanySizeBand?
   hqMetro                 String?
+  // One-sentence "what this company actually does" — lazily LLM-resolved
+  // and cached here forever, same cost-scoped pattern as industry/sizeBand
+  // (see resolveCompanyMetadataIfMissing in company-lookup.ts).
+  description             String?               @db.Text
   // No real per-employer ATS-vendor signal exists anywhere in this codebase
   // (AtsParseResult is about RESUME parsing, not the hiring company's own
   // ATS) — nullable, never populated this phase. The company page renders

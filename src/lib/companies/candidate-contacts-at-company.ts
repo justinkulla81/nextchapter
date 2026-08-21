@@ -136,6 +136,44 @@ export async function getCompaniesWithAnyMemberContact(
   return matched
 }
 
+export interface SecondDegreeConnection {
+  bridge: { id: string; name: string; title: string | null }
+  contactCount: number
+}
+
+// "Who do I know who knows someone here?" — a real 2-hop traversal, not an
+// aggregate guess. Only follows contacts with a linkedCandidateId, which is
+// admin-confirmed-only (see that field's schema comment) — a rare, curated
+// subset, never inferred. For each such contact, checks whether THEY (as a
+// real member in their own right) have their own contacts at this company.
+//
+// Deliberately returns only the bridge's identity and a COUNT of their
+// contacts here — never the actual names of the bridge's contacts. Those
+// belong to the bridge's own private network, not this candidate's; the
+// actionable unit for "2nd degree" is "ask this person you already know",
+// not browsing a stranger's contact list two hops away. Same privacy
+// posture as countOtherMembersWithContactAtCompany above.
+export async function getSecondDegreeContactsAtCompany(
+  candidateId: string,
+  companyName: string
+): Promise<SecondDegreeConnection[]> {
+  const ownLinkedContacts = await prisma.supportNetworkContact.findMany({
+    where: { candidateId, removedAt: null, linkedCandidateId: { not: null } },
+    select: { id: true, name: true, title: true, linkedCandidateId: true },
+  })
+  if (ownLinkedContacts.length === 0) return []
+
+  const results = await Promise.all(
+    ownLinkedContacts.map(async (bridge) => {
+      const theirContactsHere = await getCandidateContactsAtCompany(bridge.linkedCandidateId!, companyName)
+      return theirContactsHere.length > 0
+        ? { bridge: { id: bridge.id, name: bridge.name, title: bridge.title }, contactCount: theirContactsHere.length }
+        : null
+    })
+  )
+  return results.filter((r): r is SecondDegreeConnection => r !== null)
+}
+
 // Per-company contact counts for the Companies list page — fetches the
 // candidate's own contacts ONCE (bounded by their own real total, however
 // large) and matches in memory against every company on the current page,
