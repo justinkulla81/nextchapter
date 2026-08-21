@@ -9,12 +9,13 @@ import {
   submitCrucibleChallenge,
   submitCruciblePromptTask,
   submitCrucibleDatasetTask,
+  submitCrucibleResultsTask,
   submitCrucibleAiTools,
   submitCrucibleResume,
   logCrucibleInterest,
   type CrucibleResultSummary,
 } from '@/app/crucible/actions'
-import { getQaContent, CRUCIBLE_PROMPT_TASK, CRUCIBLE_DATASET_TASK, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
+import { getQaContent, CRUCIBLE_PROMPT_TASK, CRUCIBLE_DATASET_TASK, CRUCIBLE_RESULTS_TASK, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
 import type { CrucibleTierKey, CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import type { CrucibleSource } from '@prisma/client'
 
-type Step = 'fork' | 'email' | 'intro' | 'qa' | 'prompt' | 'dataset' | 'tools' | 'resume' | 'results'
+type Step = 'fork' | 'email' | 'intro' | 'qa' | 'prompt' | 'dataset' | 'results-task' | 'tools' | 'resume' | 'results'
 
 const JOB_INTENT_OPTIONS: { value: CrucibleJobIntentKey; label: string }[] = [
   { value: 'TECH', label: 'Tech / Software' },
@@ -72,6 +73,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   const [promptText, setPromptText] = useState('')
   const [datasetTier, setDatasetTier] = useState<CrucibleTierKey>('EASY')
   const [analysisText, setAnalysisText] = useState('')
+  const [resultsText, setResultsText] = useState('')
   const [aiTools, setAiTools] = useState<string[]>([])
   const [bestMove, setBestMove] = useState('')
   const [result, setResult] = useState<CrucibleResultSummary | null>(null)
@@ -180,10 +182,27 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
           setLevelUpNotice(`Sharp read. Try the ${TIER_LABEL[result.tier].toLowerCase()} version.`)
         } else {
           setLevelUpNotice(null)
-          setStep('tools')
+          setStep('results-task')
         }
       } catch {
         setError('Something went wrong submitting your analysis.')
+      }
+    })
+  }
+
+  function submitResultsTask() {
+    if (!sessionId || !resultsText.trim()) {
+      setError('Write your call before continuing.')
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      try {
+        await submitCrucibleResultsTask(sessionId, resultsText.trim())
+        posthog?.capture('crucible_results_task_submitted')
+        setStep('tools')
+      } catch {
+        setError('Something went wrong submitting your call.')
       }
     })
   }
@@ -229,6 +248,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   const qaContent = variant ? getQaContent(variant, qaTier) : null
   const promptContent = CRUCIBLE_PROMPT_TASK[promptTier]
   const datasetContent = CRUCIBLE_DATASET_TASK[datasetTier]
+  const resultsContent = CRUCIBLE_RESULTS_TASK
 
   return (
     <div className={cn('mx-auto max-w-3xl px-6 py-12', isPending && 'cursor-wait [&_*]:cursor-wait')}>
@@ -275,7 +295,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-5 text-center">
           <h1 className="text-2xl font-semibold text-foreground">Here&apos;s the situation.</h1>
           <p className="mx-auto max-w-xl text-muted-foreground">
-            {`Three short activities, ~15 minutes total: judge a real AI mistake, write a prompt that would fix a real page, and read a real dataset. Do well on one, and we'll give you a harder version. Use any AI you want — ChatGPT, Claude, Gemini, all of them. We're measuring your judgment, not your typing.`}
+            {`Four short activities, ~15 minutes total: judge a real AI mistake, write a prompt that would fix a real page, read a real dataset, and call whether a test result actually holds up. Do well on one, and we'll give you a harder version. Use any AI you want — ChatGPT, Claude, Gemini, all of them. We're measuring your judgment, not your typing.`}
           </p>
           <Button size="lg" onClick={() => setStep('qa')}>
             Start
@@ -287,7 +307,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-              Activity 1 of 3 — Judge the output
+              Activity 1 of 4 — Judge the output
               <TierBadge tier={qaTier} />
             </p>
             <h1 className="mt-1 text-xl font-semibold text-foreground">{qaContent.scenarioTitle}</h1>
@@ -349,7 +369,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-              Activity 2 of 3 — Write a prompt
+              Activity 2 of 4 — Write a prompt
               <TierBadge tier={promptTier} />
             </p>
             <h1 className="mt-1 text-xl font-semibold text-foreground">{promptContent.pageTitle}</h1>
@@ -394,7 +414,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-              Activity 3 of 3 — Analyze a dataset
+              Activity 3 of 4 — Analyze a dataset
               <TierBadge tier={datasetTier} />
             </p>
             <h1 className="mt-1 text-xl font-semibold text-foreground">Make the call</h1>
@@ -435,6 +455,53 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
           </div>
 
           <Button size="lg" className="w-full" disabled={isPending} onClick={submitDatasetTask}>
+            Continue
+          </Button>
+        </div>
+      )}
+
+      {step === 'results-task' && (
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 4 of 4 — Read the results</p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">Trust the result?</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{resultsContent.businessContext}</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">{resultsContent.datasetDescription}</p>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-off-white">
+                  <tr>
+                    {resultsContent.columns.map((col) => (
+                      <th key={col} className="whitespace-nowrap px-3 py-2 font-semibold text-foreground">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {resultsContent.rows.map((row, i) => (
+                    <tr key={i} className="border-t border-border">
+                      {row.map((cell, j) => (
+                        <td key={j} className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="results-task">{resultsContent.instructions}</Label>
+            <Textarea id="results-task" value={resultsText} onChange={(e) => setResultsText(e.target.value)} rows={5} />
+          </div>
+
+          <Button size="lg" className="w-full" disabled={isPending} onClick={submitResultsTask}>
             Continue
           </Button>
         </div>
@@ -533,6 +600,10 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
             <div className="border-t border-border pt-4">
               <p className="text-sm font-semibold text-foreground">Activity 3 — Your analysis</p>
               <p className="mt-1 text-sm text-muted-foreground">{result.datasetFeedback}</p>
+            </div>
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-semibold text-foreground">Activity 4 — Your call</p>
+              <p className="mt-1 text-sm text-muted-foreground">{result.resultsFeedback}</p>
             </div>
           </div>
 

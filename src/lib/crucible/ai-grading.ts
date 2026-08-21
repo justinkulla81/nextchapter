@@ -2,7 +2,7 @@ import 'server-only'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
-import { CRUCIBLE_DATASET_TASK, CRUCIBLE_PROMPT_TASK } from './variants'
+import { CRUCIBLE_DATASET_TASK, CRUCIBLE_PROMPT_TASK, CRUCIBLE_RESULTS_TASK } from './variants'
 import type { CrucibleAiGradeResult, CrucibleTierKey } from './scoring-types'
 
 // Real per-attempt LLM cost — every call here is rate-limited upstream (see
@@ -67,4 +67,13 @@ export function gradeCruciblePromptTask(tier: CrucibleTierKey, submission: strin
 export function gradeCrucibleDatasetTask(tier: CrucibleTierKey, submission: string): Promise<CrucibleAiGradeResult> {
   const content = CRUCIBLE_DATASET_TASK[tier]
   return gradeSubmission('dataset-analysis', `${content.businessContext}\n\n${content.instructions}`, content.gradingRubric, submission)
+}
+
+export function gradeCrucibleResultsTask(submission: string): Promise<CrucibleAiGradeResult> {
+  return gradeSubmission(
+    'read-the-results',
+    `${CRUCIBLE_RESULTS_TASK.businessContext}\n\n${CRUCIBLE_RESULTS_TASK.instructions}`,
+    CRUCIBLE_RESULTS_TASK.gradingRubric,
+    submission
+  )
 }

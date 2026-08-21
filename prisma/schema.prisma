@@ -7600,6 +7600,7 @@ enum CrucibleSessionState {
   CHALLENGE
   PROMPT_TASK
   DATASET_TASK
+  RESULTS_TASK
   TOOLS
   RESUME
   SCORED
@@ -7671,11 +7672,18 @@ model CrucibleSession {
   datasetFeedback   String?      @db.Text
   datasetTier       CrucibleTier @default(EASY)
 
+  // Read-the-Results activity — a test already ran and the result looks
+  // clean; candidate has to decide ship/kill/extend. AI-graded, single
+  // scenario (no difficulty ladder yet, unlike the other three activities).
+  resultsSubmission String? @db.Text
+  resultsScore      Int?
+  resultsFeedback   String? @db.Text
+
   // Real count of AI-grading calls made from this session (prompt + dataset
-  // combined), incremented once per call regardless of tier or pass/fail —
-  // the rate limiter (rate-limit.ts) sums this across a whole IP's recent
-  // sessions rather than counting sessions themselves, since one session
-  // clearing all 3 tiers of an activity now makes 3 real calls, not 1.
+  // + results combined), incremented once per call regardless of tier or
+  // pass/fail — the rate limiter (rate-limit.ts) sums this across a whole
+  // IP's recent sessions rather than counting sessions themselves, since one
+  // session clearing all 3 tiers of an activity now makes 3 real calls, not 1.
   aiGradeCallCount Int @default(0)
 
   // { tools: string[], bestMove: string }

@@ -51,6 +51,7 @@ export interface CrucibleScoreBreakdown {
   // mid-flow without implying the other activities count as zero.
   promptPoints: number | null
   datasetPoints: number | null
+  resultsPoints: number | null
 }
 
 // Highest tier actually reached per activity — the qualitative "how far did

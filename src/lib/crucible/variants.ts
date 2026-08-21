@@ -667,3 +667,25 @@ export const CRUCIBLE_DATASET_TASK: Record<CrucibleTierKey, CrucibleDatasetTaskC
       "A strong analysis notices Grayport looks like an obvious cut on direct revenue alone (3% of total, smallest of the five markets) — but doesn't stop there. It catches that Grayport's referral-attributed revenue ($2.8M) is over 2.5x its own direct revenue, an unusually large halo effect compared to every other city in the table. It compares the new compliance cost ($650K/year) against Grayport's TOTAL attributable revenue ($3.9M), not just direct revenue ($1.1M) — recognizing that exiting doesn't just forfeit $1.1M, it puts the $2.8M in other-city revenue at risk too. It recommends staying and absorbing the compliance cost, while flagging the real uncertainty (is the referral effect actually causal, or would it persist anyway?) rather than treating the number as ironclad. A weak analysis recommends exiting based on Grayport's small direct-revenue share alone, never engaging with the referral column, or engages with it only as a footnote that doesn't change the recommendation.",
   },
 }
+
+// ── Read-the-Results activity (universal, single scenario — no difficulty
+// ladder yet, unlike the other three activities). A test already ran and
+// the result looks clean; the candidate has to decide whether to trust it.
+// Reuses CrucibleDatasetTaskContent's shape since the content is
+// structurally identical (context + a small table + a decision) — the
+// difference is entirely in what the data represents: an open diagnostic
+// question there, a test result with a specific methodological trap here.
+export const CRUCIBLE_RESULTS_TASK: CrucibleDatasetTaskContent = {
+  businessContext:
+    "Stubs ran a 3-week test of a new \"Join Waitlist\" feature — when a show sells out, instead of just showing \"Sold Out,\" fans can join a waitlist and get auto-charged if a ticket frees up. The team only turned it on in 4 cities, chosen because those cities' Ops leads volunteered to help monitor the rollout closely. The results came back clean: those 4 cities saw 34% more post-sellout revenue than the rest of the company during the same window. Product wants to ship it everywhere by next week. You've been asked to sanity-check the result first.",
+  datasetDescription: 'Post-sellout revenue and pre-existing resale activity, waitlist cities vs. the rest of the company, same 3-week window.',
+  columns: ['Group', 'Avg. post-sellout revenue / show', 'Shows in window', 'Historical resale/scalping rate (before the test)'],
+  rows: [
+    ['Waitlist cities (4)', '$2,140', '26', '41%'],
+    ['Rest of company (12 cities)', '$1,596', '89', '18%'],
+  ],
+  instructions:
+    "Should Stubs roll the waitlist feature out to every city next week based on this result? Write your recommendation — be specific about what the data does and doesn't support.",
+  gradingRubric:
+    "A strong analysis notices the 4 waitlist cities weren't randomly assigned — they were chosen because their Ops leads volunteered — and that those same 4 cities already had a much higher historical resale/scalping rate (41% vs. 18%) BEFORE the test even started. That pre-existing difference means the 34% revenue lift is confounded: cities with more scalping activity naturally have more demand-after-sellout regardless of a waitlist feature, so some or all of the observed lift may be explained by which cities were picked, not by the feature itself. A strong recommendation doesn't say \"ship it everywhere\" based on this result alone — it calls for a properly randomized follow-up test across a representative mix of cities, or at minimum a phased rollout that compares each city to its OWN historical baseline rather than to other cities. A weak analysis takes the 34% lift at face value and recommends immediate company-wide rollout without asking why those 4 cities were chosen or noticing the resale-rate gap.",
+}

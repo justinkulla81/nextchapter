@@ -8,7 +8,7 @@ import { getClientIp } from '@/lib/http/client-ip'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { aiGradeTierPassed, combineCrucibleScores, qaTierPassed, scoreQaSubmission } from '@/lib/crucible/scoring'
-import { gradeCrucibleDatasetTask, gradeCruciblePromptTask } from '@/lib/crucible/ai-grading'
+import { gradeCrucibleDatasetTask, gradeCruciblePromptTask, gradeCrucibleResultsTask } from '@/lib/crucible/ai-grading'
 import { checkCrucibleAiRateLimit } from '@/lib/crucible/rate-limit'
 import { JOB_INTENT_TO_VARIANT, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
 import { CRUCIBLE_TIER_ORDER, type CrucibleTierKey, type CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
@@ -179,7 +179,7 @@ export async function submitCrucibleDatasetTask(sessionId: string, analysisText:
       datasetScore: grade.score,
       datasetFeedback: grade.feedback,
       datasetTier: next ?? session.datasetTier,
-      state: next ? 'DATASET_TASK' : 'TOOLS',
+      state: next ? 'DATASET_TASK' : 'RESULTS_TASK',
       aiGradeCallCount: allowed ? { increment: 1 } : undefined,
     },
   })
@@ -193,6 +193,27 @@ export async function submitCrucibleDatasetTask(sessionId: string, analysisText:
   return next ? { advanced: true, tier: next } : { advanced: false, tier: session.datasetTier }
 }
 
+// Read the Results — a fourth activity, single scenario (no difficulty
+// ladder yet). AI-graded like prompt/dataset, but there's nothing to
+// advance past, so this always finalizes in one submission.
+export async function submitCrucibleResultsTask(sessionId: string, analysisText: string): Promise<void> {
+  const session = await requireSession(sessionId)
+  const allowed = await checkCrucibleAiRateLimit(session.ip)
+  const grade = allowed ? await gradeCrucibleResultsTask(analysisText) : AI_GRADE_UNAVAILABLE
+
+  await prisma.crucibleSession.update({
+    where: { id: session.id },
+    data: {
+      resultsSubmission: analysisText,
+      resultsScore: grade.score,
+      resultsFeedback: grade.feedback,
+      state: 'TOOLS',
+      aiGradeCallCount: allowed ? { increment: 1 } : undefined,
+    },
+  })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_results_task', { score: grade.score, rateLimited: !allowed })
+}
+
 export type CrucibleResultSummary = {
   score: number
   band: string
@@ -201,6 +222,7 @@ export type CrucibleResultSummary = {
   herringExplanation: string
   promptFeedback: string
   datasetFeedback: string
+  resultsFeedback: string
   tiersReached: { qa: CrucibleTierKey; prompt: CrucibleTierKey; dataset: CrucibleTierKey }
 }
 
@@ -220,7 +242,14 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     verdict: session.verdict ?? 'SHIP',
   })
   const tiersReached = { qa: session.qaTier, prompt: session.promptTier, dataset: session.datasetTier }
-  const result = combineCrucibleScores(qa, session.promptScore ?? 0, session.datasetScore ?? 0, aiTools, tiersReached)
+  const result = combineCrucibleScores(
+    qa,
+    session.promptScore ?? 0,
+    session.datasetScore ?? 0,
+    session.resultsScore ?? 0,
+    aiTools,
+    tiersReached
+  )
 
   await prisma.crucibleSession.update({
     where: { id: session.id },
@@ -245,6 +274,7 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     herring_outcome: result.breakdown.herringOutcome,
     prompt_points: result.breakdown.promptPoints,
     dataset_points: result.breakdown.datasetPoints,
+    results_points: result.breakdown.resultsPoints,
     driver_bonus: result.breakdown.driverBonusEarned,
     qa_tier: tiersReached.qa,
     prompt_tier: tiersReached.prompt,
@@ -259,6 +289,7 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     herringExplanation: content.herringExplanation,
     promptFeedback: session.promptFeedback ?? '',
     datasetFeedback: session.datasetFeedback ?? '',
+    resultsFeedback: session.resultsFeedback ?? '',
     tiersReached,
   }
 }

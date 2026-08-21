@@ -19,12 +19,11 @@ import type {
 // Config is versioned data, not code constants sprinkled through the scoring
 // logic — bump SCORING_VERSION whenever weights/thresholds/answer keys
 // change, so every historical score stays recomputable and auditable
-// against the exact rules that produced it (see spec §11). v3: added the
-// easy/medium/hard difficulty ladder — QA content lookup is now tier-aware
-// (getQaContent), and pass/fail per tier gates advancement (see
-// qaTierPassed/aiGradeTierPassed below).
-export const SCORING_VERSION = 'v3'
-export const CONTENT_VERSION = 'v3'
+// against the exact rules that produced it (see spec §11). v4: added a
+// fourth activity, Read the Results — re-split the 60% previously shared
+// between prompt/dataset three ways instead of two.
+export const SCORING_VERSION = 'v4'
+export const CONTENT_VERSION = 'v4'
 
 const POINTS = {
   defectExact: 60,
@@ -58,9 +57,10 @@ export function aiGradeTierPassed(score: number): boolean {
 const QA_MAX_RAW = POINTS.defectExact + POINTS.verdictCorrect + POINTS.herringCalibrated
 
 // QA carries the most weight — it's the only activity with a deterministic,
-// unambiguous right answer. Prompt-authoring and dataset-analysis are each
-// worth less individually since AI grading has some inherent noise.
-const WEIGHTS = { qa: 0.4, prompt: 0.3, dataset: 0.3 } as const
+// unambiguous right answer. The three AI-graded activities split the
+// remaining 60% evenly since AI grading has some inherent noise regardless
+// of which one it is.
+const WEIGHTS = { qa: 0.4, prompt: 0.2, dataset: 0.2, results: 0.2 } as const
 
 export interface CrucibleQaScoreResult {
   defectDetection: CrucibleScoreBreakdown['defectDetection']
@@ -131,20 +131,23 @@ function scoreDriverBonus(aiTools: CrucibleAiTools | null): { earned: boolean; p
   return { earned, points: earned ? POINTS.driverBonus : 0 }
 }
 
-// Called once all three activities (QA, prompt, dataset) plus the AI-tools
-// disclosure are in — promptScore/datasetScore are the AI grader's 0-100
-// outputs (see ai-grading.ts), already resolved by the time this runs.
+// Called once all four activities (QA, prompt, dataset, results) plus the
+// AI-tools disclosure are in — promptScore/datasetScore/resultsScore are
+// the AI grader's 0-100 outputs (see ai-grading.ts), already resolved by
+// the time this runs.
 export function combineCrucibleScores(
   qa: CrucibleQaScoreResult,
   promptScore: number,
   datasetScore: number,
+  resultsScore: number,
   aiTools: CrucibleAiTools | null,
   tiersReached: CrucibleTiersReached
 ): CrucibleScoreResult {
   const qaPercent = Math.max(0, Math.min(100, (qa.rawPoints / QA_MAX_RAW) * 100))
   const { earned: driverBonusEarned, points: driverBonusPoints } = scoreDriverBonus(aiTools)
 
-  const weighted = qaPercent * WEIGHTS.qa + promptScore * WEIGHTS.prompt + datasetScore * WEIGHTS.dataset
+  const weighted =
+    qaPercent * WEIGHTS.qa + promptScore * WEIGHTS.prompt + datasetScore * WEIGHTS.dataset + resultsScore * WEIGHTS.results
   const score = Math.max(0, Math.min(100, Math.round(weighted + driverBonusPoints)))
   const band = CRUCIBLE_BAND_LABEL(score)
   const branch = score >= 75 ? 'PASS' : 'GROWTH'
@@ -159,6 +162,7 @@ export function combineCrucibleScores(
     driverBonusPoints,
     promptPoints: Math.round(promptScore * WEIGHTS.prompt),
     datasetPoints: Math.round(datasetScore * WEIGHTS.dataset),
+    resultsPoints: Math.round(resultsScore * WEIGHTS.results),
   }
 
   return { score, band, branch, breakdown, tiersReached, scoringVersion: SCORING_VERSION, contentVersion: CONTENT_VERSION }
