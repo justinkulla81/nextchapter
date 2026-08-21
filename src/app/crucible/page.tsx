@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CrucibleLandingTracker } from '@/components/crucible/CrucibleLandingTracker'
+import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 
 export const metadata: Metadata = {
-  title: 'noexperienceneeded.ai — Prove you\'re hireable',
+  // absolute, not a plain string — bypasses the root layout's "%s |
+  // NextChapter" title template so the browser tab reads as its own brand.
+  title: { absolute: 'noexperienceneeded.ai — Prove you\'re hireable' },
   description:
     'An AI wrote real code. It looks done. It isn\'t. You\'re not taking a test — the AI is. You\'re the judge. Free, 15 minutes, use any AI you want.',
 }
@@ -23,7 +26,7 @@ const RULES = [
   },
   {
     title: 'Resume optional. Score-proof.',
-    body: 'It never touches your score. We collect it to prove degrees don\'t predict this.',
+    body: 'It never touches your score. Attach it only if you want us to share it with real employers when you do well.',
   },
   {
     title: 'Real verdict, real stakes.',
@@ -51,13 +54,7 @@ export default async function CruciblePage({
       <CrucibleLandingTracker src={src ?? 'landing'} />
       {/* ── Header ── */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <span className="font-[family-name:var(--font-jetbrains-mono)] text-lg font-bold tracking-tight">
-          <span className="text-[#C8FF1A] [text-shadow:0_0_10px_rgba(200,255,26,0.55)]">no</span>
-          <span className="font-normal text-[#F5F3EE]/40">experience</span>
-          <span className="text-[#FF2E9A] [text-shadow:0_0_10px_rgba(255,46,154,0.55)]">needed</span>
-          <span className="text-[#2EE6FF]">.ai</span>
-        </span>
-        <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#F5F3EE]/50">by NextChapter</span>
+        <CrucibleWordmark dark className="text-lg" />
       </header>
 
       {/* ── Rejection ticker ── */}
@@ -234,7 +231,7 @@ export default async function CruciblePage({
       {/* ── Footer ── */}
       <footer className="border-t border-[#F5F3EE]/10 px-6 py-8 text-center">
         <p className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#F5F3EE]/40">
-          Built by NextChapter. Your data is yours — export or delete anytime.
+          Your data is yours — export or delete anytime.
         </p>
       </footer>
     </div>

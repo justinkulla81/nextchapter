@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Logo } from '@/components/Logo'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
+import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 
-export const metadata: Metadata = { title: 'The noexperienceneeded.ai Lesson' }
+export const metadata: Metadata = { title: { absolute: 'The noexperienceneeded.ai Lesson' } }
 
 export default function CrucibleLessonPage() {
   return (
@@ -11,7 +11,7 @@ export default function CrucibleLessonPage() {
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <Link href="/crucible">
-            <Logo className="text-xl" />
+            <CrucibleWordmark className="text-xl" />
           </Link>
         </div>
       </header>

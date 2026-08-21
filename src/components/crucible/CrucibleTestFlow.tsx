@@ -540,8 +540,8 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-4 text-center">
           <h1 className="text-xl font-semibold text-foreground">One optional thing.</h1>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
-            Upload your resume — it will never touch your score. We&apos;re building the proof that degrees don&apos;t
-            predict this skill. English majors, philosophy majors, self-taught: especially you.
+            Upload your resume if you want it shared with real employers when you do well — it never touches your
+            score either way. English majors, philosophy majors, self-taught: especially you.
           </p>
           <form
             className="mx-auto max-w-sm space-y-3 text-left"
