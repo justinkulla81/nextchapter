@@ -294,7 +294,7 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
   }
 }
 
-export async function submitCrucibleResume(sessionId: string, file: File | null): Promise<void> {
+export async function submitCrucibleResume(sessionId: string, file: File | null, shareConsent: boolean): Promise<void> {
   const session = await requireSession(sessionId)
 
   let filePath: string | null = null
@@ -310,12 +310,24 @@ export async function submitCrucibleResume(sessionId: string, file: File | null)
     }
   }
 
+  // Consent can never be true without a real file on this row — matches
+  // the employer directory's gate exactly (branch=PASS AND resumeFilePath
+  // NOT NULL AND resumeShareConsent=true).
+  const resumeShareConsent = !!filePath && shareConsent
+
   await prisma.crucibleSession.update({
     where: { id: session.id },
-    data: { resumeFilePath: filePath, resumeFileName: fileName, state: 'SCORED', completedAt: new Date() },
+    data: {
+      resumeFilePath: filePath,
+      resumeFileName: fileName,
+      resumeShareConsent,
+      resumeShareConsentAt: resumeShareConsent ? new Date() : null,
+      state: 'SCORED',
+      completedAt: new Date(),
+    },
   })
 
-  captureServerEvent(session.candidateId ?? session.id, 'crucible_resume', { uploaded: !!filePath })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_resume', { uploaded: !!filePath, shareConsent: resumeShareConsent })
 }
 
 export async function logCrucibleInterest(sessionId: string, kind: 'FULL' | 'LESSON', email: string): Promise<void> {

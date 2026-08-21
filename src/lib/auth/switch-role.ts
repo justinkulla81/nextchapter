@@ -23,6 +23,9 @@ const PORTAL_LOGIN_PATH: Partial<Record<RoleGrantRole, string>> = {
   employer_finance: '/employer/login',
   // Phase 7, §A8's hiring-manager portal.
   hiring_manager: '/hiring/login',
+  // NEN's own employer portal — a separate profile/table from
+  // employer_admin (which is /talent's), see CrucibleEmployerProfile.
+  nen_employer: '/crucible/employers/login',
 }
 
 // Re-auth on switch, not a same-session navigation — Partners Master Build

@@ -34,7 +34,8 @@
     "backfill:recruiter-introductions": "tsx --env-file=.env.local scripts/backfill-recruiter-introductions.ts",
     "verify:recruiter-phase6": "tsx --env-file=.env.local scripts/verify-recruiter-phase6.ts",
     "verify:hiring-phase7": "tsx --env-file=.env.local scripts/verify-hiring-phase7.ts",
-    "verify:membership-phase8": "tsx --env-file=.env.local scripts/verify-membership-phase8.ts"
+    "verify:membership-phase8": "tsx --env-file=.env.local scripts/verify-membership-phase8.ts",
+    "verify:crucible-employers": "tsx --env-file=.env.local scripts/verify-crucible-employers.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

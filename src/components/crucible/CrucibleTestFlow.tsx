@@ -76,6 +76,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   const [resultsText, setResultsText] = useState('')
   const [aiTools, setAiTools] = useState<string[]>([])
   const [bestMove, setBestMove] = useState('')
+  const [resumeShareConsent, setResumeShareConsent] = useState(false)
   const [result, setResult] = useState<CrucibleResultSummary | null>(null)
 
   function pickJobIntent(intent: CrucibleJobIntentKey) {
@@ -225,12 +226,12 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
     })
   }
 
-  function submitResume(file: File | null) {
+  function submitResume(file: File | null, shareConsent: boolean) {
     if (!sessionId) return
     setError(null)
     startTransition(async () => {
       try {
-        await submitCrucibleResume(sessionId, file)
+        await submitCrucibleResume(sessionId, file, shareConsent)
       } catch {
         // Resume upload failing must never block seeing results.
       }
@@ -548,18 +549,36 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
             onSubmit={(e) => {
               e.preventDefault()
               const input = (e.currentTarget.elements.namedItem('file') as HTMLInputElement) ?? null
-              submitResume(input?.files?.[0] ?? null)
+              submitResume(input?.files?.[0] ?? null, resumeShareConsent)
             }}
           >
             <Input name="file" type="file" accept=".pdf,.docx" />
+            <label className="flex items-start gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={resumeShareConsent}
+                onChange={(e) => setResumeShareConsent(e.target.checked)}
+              />
+              Share this resume with real employers hiring on noexperienceneeded.ai
+            </label>
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1" disabled={isPending}>
+              <Button type="submit" className="flex-1" disabled={isPending || !resumeShareConsent}>
                 Upload resume
               </Button>
-              <Button type="button" variant="outline" className="flex-1" disabled={isPending} onClick={() => submitResume(null)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                disabled={isPending}
+                onClick={() => submitResume(null, false)}
+              >
                 Skip — show my results
               </Button>
             </div>
+            {!resumeShareConsent && (
+              <p className="text-xs text-muted-foreground">Check the box above to enable uploading.</p>
+            )}
           </form>
         </div>
       )}

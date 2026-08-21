@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
+import { completeCrucibleEmployerSignupFromSession } from '@/app/crucible/employers/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 import { completeHiringManagerSignupFromSession } from '@/app/hiring/signup/actions'
@@ -36,6 +37,8 @@ export function CallbackHandler() {
   const nextIsRecruiter = searchParams.get('next') === 'recruiter' || pendingRole === 'recruiter'
   const nextIsCoach = searchParams.get('next') === 'coach' || pendingRole === 'coach'
   const nextIsHiring = searchParams.get('next') === 'hiring' || pendingRole === 'hiring'
+  const nextIsCrucibleEmployer =
+    searchParams.get('next') === 'crucible-employer' || pendingRole === 'crucible-employer'
   const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
@@ -123,6 +126,17 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/hiring/dashboard')
+      return
+    }
+    if (nextIsCrucibleEmployer) {
+      const result = await completeCrucibleEmployerSignupFromSession()
+      if (result.error) {
+        console.error('completeCrucibleEmployerSignupFromSession error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/crucible/employers/onboarding')
       return
     }
     if (nextIsEmployerSeat) {

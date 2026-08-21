@@ -14,7 +14,7 @@
 const COOKIE_NAME = 'nc_pending_signup_role'
 const MAX_AGE_SECONDS = 60 * 60 // matches how long a confirmation link stays clickable
 
-export type PendingSignupRole = 'recruiter' | 'employer' | 'coach' | 'hiring'
+export type PendingSignupRole = 'recruiter' | 'employer' | 'coach' | 'hiring' | 'crucible-employer'
 
 export function setPendingSignupRoleCookie(role: PendingSignupRole) {
   document.cookie = `${COOKIE_NAME}=${role}; path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax`
@@ -23,7 +23,13 @@ export function setPendingSignupRoleCookie(role: PendingSignupRole) {
 export function readPendingSignupRoleCookie(): PendingSignupRole | null {
   const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`))
   const value = match ? decodeURIComponent(match[1]) : null
-  return value === 'recruiter' || value === 'employer' || value === 'coach' || value === 'hiring' ? value : null
+  return value === 'recruiter' ||
+    value === 'employer' ||
+    value === 'coach' ||
+    value === 'hiring' ||
+    value === 'crucible-employer'
+    ? value
+    : null
 }
 
 export function clearPendingSignupRoleCookie() {

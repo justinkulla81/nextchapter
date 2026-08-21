@@ -84,3 +84,26 @@ export const getOrCreateEmployerProfile = cache(async (userId: string, companyNa
     throw error
   }
 })
+
+// NEN's own employer profile — deliberately a separate table from
+// EmployerProfile above (see CrucibleEmployerProfile's schema comment for
+// why): /talent's paid-tier, dossier-unlock-gated model doesn't fit NEN's
+// free, Crucible-pass-gated candidate pool. Same upsert + P2002-catch +
+// grantRoleIfMissing shape as getOrCreateEmployerProfile, targeting the
+// nen_employer role instead of employer_admin.
+export const getOrCreateCrucibleEmployerProfile = cache(async (userId: string, companyName = '') => {
+  try {
+    const profile = await prisma.crucibleEmployerProfile.upsert({
+      where: { userId },
+      update: {},
+      create: { userId, companyName },
+    })
+    await grantRoleIfMissing(userId, 'nen_employer')
+    return profile
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return prisma.crucibleEmployerProfile.findUniqueOrThrow({ where: { userId } })
+    }
+    throw error
+  }
+})

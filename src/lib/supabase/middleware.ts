@@ -62,12 +62,22 @@ export async function updateSession(request: NextRequest) {
   // these two caused a real "Page with redirect" indexing issue: Google
   // discovered /talent/login via the public /for-organizations page and
   // got redirected every time it crawled.
-  const protectedPaths = ['/dashboard', '/talent']
+  // /crucible/employers is NEN's own portal — an unauthenticated hit must
+  // land on NEN's own login, not the main site's /auth/login, or it stops
+  // feeling like its own product the moment someone gets bounced.
+  // /crucible/employers/contests/entry is a public, no-account entry link
+  // (see CrucibleContestEntry.token) — a candidate with no NextChapter
+  // account must be able to open and submit it.
+  const protectedPaths = ['/dashboard', '/talent', '/crucible/employers']
   const publicExceptions = [
     '/talent/signup',
     '/talent/seats/accept',
     '/talent/login',
     '/talent/forgot-password',
+    '/crucible/employers/signup',
+    '/crucible/employers/login',
+    '/crucible/employers/forgot-password',
+    '/crucible/employers/contests/entry',
   ]
   const isProtected =
     protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
@@ -75,7 +85,10 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/auth/login'
+    const portalLoginPath = Object.entries({ '/crucible/employers': '/crucible/employers/login' }).find(
+      ([prefix]) => request.nextUrl.pathname.startsWith(prefix)
+    )?.[1]
+    redirectUrl.pathname = portalLoginPath ?? '/auth/login'
     redirectUrl.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }

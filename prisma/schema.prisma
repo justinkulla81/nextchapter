@@ -6301,6 +6301,7 @@ enum RoleGrantRole {
   employer_legal
   employer_finance
   nc_admin
+  nen_employer
 }
 
 // The audit ledger for "who holds what role, granted by whom, when, and
@@ -7691,6 +7692,13 @@ model CrucibleSession {
   resumeFilePath String? // crucible-resumes bucket, leads/<uuid>.<ext> — same "service-role upload, never scored" pattern as ResumeSubmissionLead
   resumeFileName String?
 
+  // Explicit opt-in — true only when a resume was uploaded AND the
+  // candidate checked "share with employers" (CrucibleTestFlow's resume
+  // step). The employer directory's whole visibility gate is exactly
+  // branch=PASS AND resumeFilePath IS NOT NULL AND resumeShareConsent=true.
+  resumeShareConsent   Boolean   @default(false)
+  resumeShareConsentAt DateTime?
+
   score  Int?
   band   String?
   branch CrucibleBranch?
@@ -7702,11 +7710,14 @@ model CrucibleSession {
   retryOf   CrucibleSession?  @relation("CrucibleRetry", fields: [retryOfId], references: [id], onDelete: SetNull)
   retries   CrucibleSession[] @relation("CrucibleRetry")
 
-  interests CrucibleInterest[]
+  interests           CrucibleInterest[]
+  contestEntries      CrucibleContestEntry[]
+  employerResumeViews CrucibleEmployerResumeView[]
 
   @@index([email])
   @@index([source])
   @@index([candidateId])
+  @@index([branch, resumeShareConsent])
 }
 
 enum CrucibleInterestKind {
@@ -7726,4 +7737,133 @@ model CrucibleInterest {
 
   @@index([kind])
   @@index([email])
+}
+
+// ── NEN employer portal ─────────────────────────────────────────────────
+// The first authenticated portal under /crucible — everything above this
+// point (CrucibleSession, CrucibleInterest) is anonymous, cookie-based. An
+// employer is a real Supabase-auth'd user, resolved the same way every
+// other portal in this app resolves its role (profile table + RoleGrant),
+// deliberately NOT via /talent's EmployerProfile — that table carries
+// paid-tier/Stripe fields and a dossier-unlock gate that don't apply to
+// NEN's free, Crucible-pass-gated candidate pool, and reusing it would tie
+// NEN back to a NextChapter-shaped product after this session's rebrand
+// away from exactly that.
+
+enum CrucibleFunctionInterest {
+  TECH
+  MARKETING
+  DATA
+  DESIGN
+  BUSINESS
+  GENERALIST
+}
+
+model CrucibleEmployerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique // Supabase auth id — v1 is single-owner-per-company, no seats/team yet
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyName    String
+  companyWebsite String?
+  companySize    String? // "1-10" | "11-50" | "51-200" | "201-1000" | "1000+" — plain string, same convention as /talent's EmployerProfile.companySize
+  contactName    String?
+
+  functionInterest      CrucibleFunctionInterest?
+  onboardingCompletedAt DateTime?
+
+  contests    CrucibleContest[]
+  resumeViews CrucibleEmployerResumeView[]
+
+  @@index([functionInterest])
+}
+
+enum CrucibleContestState {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+// Employer-posted business problem candidates can submit ideas against for
+// a shot at a tailored paid hire. State is one-way (DRAFT -> OPEN ->
+// CLOSED, no reopen) — the simplest thing that supports "post it, let
+// qualified candidates respond, then review entries."
+model CrucibleContest {
+  id         String                  @id @default(cuid())
+  employerId String
+  employer   CrucibleEmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  title           String
+  businessProblem String  @db.Text
+  referenceFilePath String? // crucible-contest-files bucket, public-URL posture (employer knowingly shares it with candidates)
+  referenceFileName String?
+
+  targetFunction CrucibleFunctionInterest? // null = open to every PASS + resume-share-consented candidate, regardless of function
+  state          CrucibleContestState      @default(DRAFT)
+
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+  closedAt    DateTime?
+
+  entries CrucibleContestEntry[]
+
+  @@index([employerId])
+  @@index([state])
+}
+
+enum CrucibleContestEntryStatus {
+  INVITED
+  SUBMITTED
+}
+
+// One row per (contest, qualifying session) — created when the contest is
+// published and an invite email goes out, not when the candidate actually
+// responds. The row IS the invite: its cuid `token` is the entire access
+// mechanism for a candidate with no persistent account, and the
+// [contestId, sessionId] uniqueness below doubles as the notify
+// dispatcher's idempotency claim (create-then-send), so publishing twice
+// never double-invites anyone. Resubmission overwrites `submission` in
+// place — no versioning, no edit-window timer.
+model CrucibleContestEntry {
+  id        String          @id @default(cuid())
+  contestId String
+  contest   CrucibleContest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   CrucibleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  token String @unique @default(cuid())
+
+  status CrucibleContestEntryStatus @default(INVITED)
+
+  submission  String?   @db.Text
+  submittedAt DateTime?
+  openedAt    DateTime? // first time the candidate's link was actually opened
+  emailSentAt DateTime? // null until the invite email actually sends successfully
+
+  shortlisted   Boolean   @default(false) // employer's own manual flag for their review list — no AI ranking in v1
+  shortlistedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([contestId, sessionId])
+  @@index([contestId, status])
+}
+
+// Resume-view audit log AND the safeguard against an employer bulk-
+// scraping the directory: one row per (employerId, sessionId), so
+// re-viewing an already-seen candidate never counts twice against the
+// rolling 24h view cap enforced in application code.
+model CrucibleEmployerResumeView {
+  id         String                  @id @default(cuid())
+  employerId String
+  employer   CrucibleEmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  sessionId  String
+  session    CrucibleSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  contestId  String? // set when the view happened from a contest's entry list, null when from the general directory
+  viewedAt   DateTime                @default(now())
+
+  @@unique([employerId, sessionId])
+  @@index([employerId, viewedAt])
 }
