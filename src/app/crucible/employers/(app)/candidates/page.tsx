@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
-import { CRUCIBLE_BAND_LABEL } from '@/lib/crucible/variants'
+import { CRUCIBLE_BAND_LABEL, CRUCIBLE_VARIANTS, type CrucibleVariantKey } from '@/lib/crucible/variants'
 import { mapFunctionInterestToJobIntent } from '@/lib/crucible/employers/function-interest'
 import { CandidateResumeDownloadButton } from '@/components/crucible/employers/CandidateResumeDownloadButton'
 import { CandidateFunctionFilter } from '@/components/crucible/employers/CandidateFunctionFilter'
@@ -20,6 +20,18 @@ interface Row {
   variant: string | null
   aiTools: unknown
   resumeFileName: string | null
+}
+
+// Candidate-side intent labels (matches CrucibleTestFlow's JOB_INTENT_OPTIONS
+// wording) — kept as a small local map rather than a shared export since
+// this is the only employer-facing spot that needs it.
+const JOB_INTENT_LABEL: Record<string, string> = {
+  TECH: 'Tech / Software',
+  MARKETING: 'Marketing / Content',
+  DATA: 'Data / Analytics',
+  DESIGN: 'Design / Creative',
+  BUSINESS: 'Business / Ops',
+  UNSURE: 'Not sure yet',
 }
 
 // The whole free-tier pitch is full visibility, no teaser/locked tier — the
@@ -58,8 +70,11 @@ export default async function CrucibleEmployerCandidatesPage({
   const columns: AdminColumn<Row>[] = [
     { header: 'Score', className: 'px-3 py-2 tabular-nums', render: (r) => (r.score != null ? `${r.score}/100` : '—') },
     { header: 'Result', render: (r) => (r.score != null ? CRUCIBLE_BAND_LABEL(r.score) : '—') },
-    { header: 'Track', render: (r) => r.variant ?? '—' },
-    { header: 'Hiring for', render: (r) => r.jobIntent ?? '—' },
+    {
+      header: 'Track',
+      render: (r) => (r.variant ? (CRUCIBLE_VARIANTS[r.variant as CrucibleVariantKey]?.label ?? r.variant) : '—'),
+    },
+    { header: 'Hiring for', render: (r) => (r.jobIntent ? (JOB_INTENT_LABEL[r.jobIntent] ?? r.jobIntent) : '—') },
     {
       header: 'AI tools used',
       render: (r) => {

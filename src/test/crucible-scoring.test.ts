@@ -6,6 +6,7 @@
 // numeric scores as plain inputs (which is exactly how actions.ts uses it).
 import { describe, it, expect } from 'vitest'
 import { aiGradeTierPassed, combineCrucibleScores, qaTierPassed, scoreQaSubmission, SCORING_VERSION, CONTENT_VERSION } from '@/lib/crucible/scoring'
+import { getQaContent } from '@/lib/crucible/variants'
 import type { CrucibleAiTools, CrucibleQaSubmission, CrucibleTiersReached } from '@/lib/crucible/scoring-types'
 
 function qa(overrides: Partial<CrucibleQaSubmission>): CrucibleQaSubmission {
@@ -78,26 +79,63 @@ describe('scoreQaSubmission — MARKETING and DATA use the same shape at MEDIUM'
   })
 })
 
-describe('scoreQaSubmission — EASY and HARD tiers are universal regardless of variant', () => {
-  it('EASY: the same universal scenario scores correctly whether routed via CODE, MARKETING, or DATA', () => {
-    for (const variant of ['CODE', 'MARKETING', 'DATA'] as const) {
-      const result = scoreQaSubmission(variant, 'EASY', qa({ selectedOptionIds: ['qa_easy_date_equality'], verdict: 'BLOCK' }))
-      expect(result.defectDetection).toBe('exact')
-      expect(result.rawPoints).toBe(90)
+// Every variant now has genuinely distinct content at every tier (only
+// CODE ever asks a candidate to review actual code) — previously EASY/HARD
+// were one shared CODE-flavored scenario regardless of discipline. Each
+// variant's own real defect id from variants.ts scores correctly at both
+// tiers, and a different variant's id has no meaning against content it
+// wasn't written for.
+describe('scoreQaSubmission — every variant has distinct EASY/HARD content', () => {
+  const EASY_DEFECT_ID: Record<'CODE' | 'MARKETING' | 'DATA' | 'DESIGN' | 'BUSINESS', string> = {
+    CODE: 'qa_easy_date_equality',
+    MARKETING: 'mktg_easy_stacking_claim',
+    DATA: 'data_easy_promo_zero_miscount',
+    DESIGN: 'design_easy_contrast',
+    BUSINESS: 'biz_easy_migration_fee_ignored',
+  }
+  const HARD_DEFECT_ID: Record<'CODE' | 'MARKETING' | 'DATA' | 'DESIGN' | 'BUSINESS', string> = {
+    CODE: 'qa_hard_idempotency',
+    MARKETING: 'mktg_hard_charge_contradiction',
+    DATA: 'data_hard_loyalty_threshold_conflict',
+    DESIGN: 'design_hard_identical_avatars',
+    BUSINESS: 'biz_hard_liability_cap_mismatch',
+  }
+
+  it('EASY: each variant\'s own real defect id scores exact', () => {
+    for (const [variant, defectId] of Object.entries(EASY_DEFECT_ID) as [keyof typeof EASY_DEFECT_ID, string][]) {
+      const result = scoreQaSubmission(variant, 'EASY', qa({ selectedOptionIds: [defectId], verdict: 'BLOCK' }))
+      expect(result.defectDetection, `EASY/${variant}`).toBe('exact')
+      expect(result.rawPoints, `EASY/${variant}`).toBe(90)
     }
   })
 
-  it('HARD: the same universal scenario scores correctly regardless of variant', () => {
-    const result = scoreQaSubmission('MARKETING', 'HARD', qa({ selectedOptionIds: ['qa_hard_idempotency'], verdict: 'BLOCK' }))
-    expect(result.defectDetection).toBe('exact')
-    expect(result.rawPoints).toBe(90)
+  it('HARD: each variant\'s own real defect id scores exact', () => {
+    for (const [variant, defectId] of Object.entries(HARD_DEFECT_ID) as [keyof typeof HARD_DEFECT_ID, string][]) {
+      const result = scoreQaSubmission(variant, 'HARD', qa({ selectedOptionIds: [defectId], verdict: 'BLOCK' }))
+      expect(result.defectDetection, `HARD/${variant}`).toBe('exact')
+      expect(result.rawPoints, `HARD/${variant}`).toBe(90)
+    }
   })
 
-  it("EASY and MEDIUM checklist ids don't leak into each other's scoring", () => {
-    // A MEDIUM-tier id has no meaning against EASY content — no defect option
+  it("a variant's own MEDIUM-tier id has no meaning against its EASY content", () => {
+    // Cross-tier ids don't leak into each other's scoring — no defect option
     // matches, so it scores as a miss rather than accidentally matching.
     const result = scoreQaSubmission('CODE', 'EASY', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'BLOCK' }))
     expect(result.defectDetection).toBe('none')
+  })
+
+  it("only CODE's content ever mentions reviewing actual code", () => {
+    // Regression guard for the "only tech reviews code" requirement — every
+    // non-CODE variant's EASY/HARD checklist labels must be code-free.
+    const codeLikePattern = /console\.log|await db\.|function \(|const \w+ = require|=>\s*{/
+    for (const variant of ['MARKETING', 'DATA', 'DESIGN', 'BUSINESS'] as const) {
+      for (const tier of ['EASY', 'HARD'] as const) {
+        const content = getQaContent(variant, tier)
+        for (const option of content.checklistOptions) {
+          expect(codeLikePattern.test(option.label), `${variant}/${tier}: "${option.label}"`).toBe(false)
+        }
+      }
+    }
   })
 })
 

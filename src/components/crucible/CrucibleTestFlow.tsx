@@ -16,6 +16,7 @@ import {
   type CrucibleResultSummary,
 } from '@/app/crucible/actions'
 import { getQaContent, CRUCIBLE_PROMPT_TASK, CRUCIBLE_DATASET_TASK, CRUCIBLE_RESULTS_TASK, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
+import { CrucibleDesignMockup } from '@/components/crucible/CrucibleDesignMockup'
 import type { CrucibleTierKey, CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -315,14 +316,20 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
             <p className="mt-2 text-sm text-muted-foreground">{qaContent.brief}</p>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-border bg-[#0D0A14] font-mono text-sm">
-            {qaContent.lines.map((line) => (
-              <div key={line.line} className="flex items-start gap-3 px-3 py-1">
-                <span className="w-6 shrink-0 text-right text-white/30">{line.line}</span>
-                <span className="flex-1 whitespace-pre text-white/90">{line.text || ' '}</span>
-              </div>
-            ))}
-          </div>
+          {qaContent.visualMockup ? (
+            <div className="rounded-lg border border-border bg-muted/30 p-6">
+              <CrucibleDesignMockup id={qaContent.visualMockup} />
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-border bg-[#0D0A14] font-mono text-sm">
+              {qaContent.lines.map((line) => (
+                <div key={line.line} className="flex items-start gap-3 px-3 py-1">
+                  <span className="w-6 shrink-0 text-right text-white/30">{line.line}</span>
+                  <span className="flex-1 whitespace-pre text-white/90">{line.text || ' '}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">{qaContent.checklistPrompt}</p>

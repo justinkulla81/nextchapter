@@ -381,7 +381,7 @@ export async function retryCrucibleChallenge(previousSessionId: string): Promise
   if (previous.completedAt && Date.now() - previous.completedAt.getTime() < RETRY_WAIT_MS) {
     throw new Error('You can retry with a new challenge 24 hours after your last attempt.')
   }
-  const allVariants: CrucibleVariantKey[] = ['CODE', 'MARKETING', 'DATA']
+  const allVariants: CrucibleVariantKey[] = ['CODE', 'MARKETING', 'DATA', 'DESIGN', 'BUSINESS']
   const nextVariant = allVariants.find((v) => v !== previous.variant) ?? allVariants[0]
   const ip = await getClientIp()
 

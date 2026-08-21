@@ -21,9 +21,14 @@ import type {
 // change, so every historical score stays recomputable and auditable
 // against the exact rules that produced it (see spec §11). v4: added a
 // fourth activity, Read the Results — re-split the 60% previously shared
-// between prompt/dataset three ways instead of two.
+// between prompt/dataset three ways instead of two. v5 (content only,
+// scoring logic unchanged): every job-intent function now gets genuinely
+// distinct QA content at every tier — DESIGN and BUSINESS variants added,
+// DATA relabeled "Operations & Data Analysts," and the EASY/HARD tiers
+// (previously one shared CODE-flavored scenario for every discipline) are
+// now real per-variant content too.
 export const SCORING_VERSION = 'v4'
-export const CONTENT_VERSION = 'v4'
+export const CONTENT_VERSION = 'v5'
 
 const POINTS = {
   defectExact: 60,

@@ -13,6 +13,7 @@ export type CrucibleMechanism =
   | 'SECURITY_PRIVACY_RISK'
   | 'LOGIC_EDGE_CASE_ERROR'
   | 'STYLE_CLUTTER'
+  | 'USABILITY_ACCESSIBILITY_ISSUE'
 
 export type CrucibleVerdictValue = 'SHIP' | 'BLOCK' | 'SHIP_WITH_CONDITIONS'
 

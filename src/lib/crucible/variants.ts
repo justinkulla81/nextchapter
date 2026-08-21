@@ -1,20 +1,31 @@
 import type { CrucibleMechanism, CrucibleTierKey } from './scoring-types'
 
-export type CrucibleVariantKey = 'CODE' | 'MARKETING' | 'DATA'
+export type CrucibleVariantKey = 'CODE' | 'MARKETING' | 'DATA' | 'DESIGN' | 'BUSINESS'
 export type CrucibleJobIntentKey = 'TECH' | 'MARKETING' | 'DATA' | 'DESIGN' | 'BUSINESS' | 'UNSURE'
 
-// Job-intent fork routing — §10: "Design/Business/Unsure route onto an
-// existing variant... no wrong door." The raw pick is stored separately
-// (CrucibleSession.jobIntent) from the routed variant for the intent x
-// score x degree-field research query.
+// Job-intent fork routing — every intent now gets its own genuinely
+// distinct variant (previously DESIGN/BUSINESS silently shared MARKETING/
+// DATA's content, and UNSURE shared CODE's — see git history for the prior
+// mapping). Only CODE/TECH ever asks a candidate to review actual code;
+// UNSURE routes to BUSINESS as a discipline-neutral default rather than
+// code, so "not sure yet" never implies a tech test. The raw pick is stored
+// separately (CrucibleSession.jobIntent) from the routed variant for the
+// intent x score x degree-field research query.
 export const JOB_INTENT_TO_VARIANT: Record<CrucibleJobIntentKey, CrucibleVariantKey> = {
   TECH: 'CODE',
   MARKETING: 'MARKETING',
   DATA: 'DATA',
-  DESIGN: 'MARKETING',
-  BUSINESS: 'DATA',
-  UNSURE: 'CODE',
+  DESIGN: 'DESIGN',
+  BUSINESS: 'BUSINESS',
+  UNSURE: 'BUSINESS',
 }
+
+// The three DESIGN scenarios are judged by looking at a rendered mockup
+// (CrucibleDesignMockup.tsx), not reading text — the one activity in
+// Crucible where the defect is purely visual. `lines` stays an empty array
+// on these entries; CrucibleTestFlow.tsx branches on `visualMockup` being
+// set and renders the mockup component instead.
+export type CrucibleDesignMockupId = 'design_easy' | 'design_medium' | 'design_hard'
 
 export interface CrucibleArtifactLine {
   line: number
@@ -42,6 +53,8 @@ export interface CrucibleVariantContent {
   brief: string
   artifactLabel: string
   lines: CrucibleArtifactLine[]
+  // Set only on DESIGN entries — see CrucibleDesignMockupId above.
+  visualMockup?: CrucibleDesignMockupId
   checklistPrompt: string
   checklistOptions: CrucibleChecklistOption[]
   fixExplanation: string
@@ -262,7 +275,7 @@ export const CRUCIBLE_VARIANTS: Record<CrucibleVariantKey, CrucibleVariantConten
   },
   DATA: {
     key: 'DATA',
-    label: 'Data & Analytics',
+    label: 'Operations & Data Analysts',
     scenarioTitle: 'Stubs — Promo program memo to the CEO',
     brief:
       "An AI analyst drafted a memo to Stubs' CEO recommending tripling the Q4 promo budget, based on this quarter's results. It reads confident and well-organized. It goes out unless you block it.",
@@ -317,6 +330,147 @@ export const CRUCIBLE_VARIANTS: Record<CrucibleVariantKey, CrucibleVariantConten
       'The headline claims 40% revenue growth and a $4.2M Q4 projection — but the memo\'s own table shows $100,400 to $110,900, which is roughly 10.5%, not 40%. The projection is built on a number the memo\'s own data contradicts. Worse, the memo separately admits Solstice — the company\'s biggest event of the year — launched in the same month, an obvious confound never controlled for. The recommendation needs the actual promo-attributable lift isolated from the Solstice effect before anyone triples a budget on it.',
     herringExplanation:
       "\"Chart colors pending design review\" is a cosmetic placeholder note — normal, harmless, worth nothing to flag as a real problem. Focusing there while a 4x-overstated revenue claim heads to the CEO is the calibration failure being measured here.",
+  },
+  DESIGN: {
+    key: 'DESIGN',
+    label: 'Design',
+    scenarioTitle: 'Stubs — Checkout screen, mobile',
+    brief:
+      'An AI agent redesigned the mobile checkout screen for the MIDNIGHT DROP launch — it needed to ship fast and lean into urgency. It looks clean at a glance. It ships tonight unless you block it.',
+    artifactLabel: 'The screen',
+    lines: [],
+    visualMockup: 'design_medium',
+    checklistPrompt: "What's wrong with this screen? Select everything you'd raise before it ships.",
+    checklistOptions: [
+      {
+        id: 'design_medium_badge_overlap',
+        label: "The \"Only 2 left!\" urgency badge overlaps the ticket price, making the actual number unreadable at this screen width",
+        isDefect: true,
+        isHerring: false,
+        mechanism: 'USABILITY_ACCESSIBILITY_ISSUE',
+      },
+      {
+        id: 'design_medium_button_color',
+        label: 'A solid black "Pay now" button feels like an odd color choice for a purchase button',
+        isDefect: false,
+        isHerring: true,
+        mechanism: 'STYLE_CLUTTER',
+      },
+      {
+        id: 'design_medium_no_ticket_count',
+        label: "The number of tickets being purchased isn't shown anywhere on the screen",
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'LOGIC_EDGE_CASE_ERROR',
+      },
+      {
+        id: 'design_medium_shape_inconsistent',
+        label: "The urgency badge's pill shape doesn't match the rest of the screen's visual language",
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'STYLE_CLUTTER',
+      },
+      {
+        id: 'design_medium_promo_field',
+        label: 'There\'s a promo code field visible on this screen',
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'LOGIC_EDGE_CASE_ERROR',
+      },
+      {
+        id: 'design_medium_nothing_wrong',
+        label: 'Nothing here needs to change — this is safe to ship as-is',
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'LOGIC_EDGE_CASE_ERROR',
+      },
+    ],
+    fixExplanation:
+      "The \"Only 2 left!\" badge is positioned directly on top of the $148.00 total at this screen width — the actual price a customer is about to pay is genuinely obscured, not just visually busy. This isn't a matter of taste; a customer can no longer confirm what they're being charged before tapping Pay now. The fix is a layout change — move the badge so it doesn't overlap the price — not a copy or color change.",
+    herringExplanation:
+      "A black \"Pay now\" button is an unconventional but perfectly functional choice — plenty of real checkout flows use it. Flagging color preference as the reason to hold this screen while the price itself is unreadable is the calibration failure being measured here.",
+  },
+  BUSINESS: {
+    key: 'BUSINESS',
+    label: 'Business & Operations',
+    scenarioTitle: 'Stubs — Refund auto-approval policy',
+    brief:
+      "After last quarter's promo-code incident, the support team has a refund backlog over 400 tickets deep and is burning out. An AI agent drafted a new policy: reps can auto-approve any refund under $50 without manager review, to clear the queue faster. It takes effect tomorrow unless you block it.",
+    artifactLabel: 'The policy memo',
+    lines: [
+      { line: 1, text: 'TO: Support Team' },
+      { line: 2, text: 'FROM: Operations (AI-generated draft)' },
+      { line: 3, text: 'RE: New Refund Auto-Approval Policy' },
+      { line: 4, text: '' },
+      { line: 5, text: 'Effective tomorrow, reps can auto-approve any refund request under $50' },
+      { line: 6, text: 'without escalating to a manager.' },
+      { line: 7, text: '' },
+      { line: 8, text: 'Why: The refund backlog from the promo-code incident is over 400 tickets' },
+      { line: 9, text: 'deep, and manager review is the bottleneck. Removing it for smaller' },
+      { line: 10, text: 'refunds should clear the queue within a week.' },
+      { line: 11, text: '' },
+      { line: 12, text: 'Scope' },
+      { line: 13, text: '' },
+      { line: 14, text: '- Applies to any refund request under $50, regardless of reason' },
+      { line: 15, text: '- No manager sign-off required' },
+      { line: 16, text: '- Reps process and close the ticket in the same interaction' },
+      { line: 17, text: '' },
+      { line: 18, text: 'Tracking' },
+      { line: 19, text: '' },
+      { line: 20, text: '- All auto-approved refunds are logged in the weekly ops report' },
+      { line: 21, text: '- Weekly report is reviewed by Operations every Friday' },
+      { line: 22, text: '' },
+      { line: 23, text: "This policy stays in effect until the backlog clears, then we'll reassess." },
+    ],
+    checklistPrompt: "What's wrong with this policy? Select everything you'd raise before it takes effect.",
+    checklistOptions: [
+      {
+        id: 'biz_medium_no_cap',
+        label: "There's no limit on how many auto-approved refunds a single customer can request — someone could file many sub-$50 requests and drain money before the weekly review catches it",
+        isDefect: true,
+        isHerring: false,
+        mechanism: 'SECURITY_PRIVACY_RISK',
+      },
+      {
+        id: 'biz_medium_review_owner',
+        label: "The memo doesn't say who owns the Friday review if the assigned person is out",
+        isDefect: false,
+        isHerring: true,
+        mechanism: 'STYLE_CLUTTER',
+      },
+      {
+        id: 'biz_medium_still_needs_signoff',
+        label: 'Reps still need manager sign-off for refunds under $50, same as before',
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'LOGIC_EDGE_CASE_ERROR',
+      },
+      {
+        id: 'biz_medium_no_effective_date',
+        label: "The policy doesn't specify when it takes effect",
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'LOGIC_EDGE_CASE_ERROR',
+      },
+      {
+        id: 'biz_medium_incident_only',
+        label: 'This policy only applies to refunds tied to the promo-code incident',
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+      },
+      {
+        id: 'biz_medium_nothing_wrong',
+        label: 'Nothing here needs to change — this is safe to roll out as-is',
+        isDefect: false,
+        isHerring: false,
+        mechanism: 'LOGIC_EDGE_CASE_ERROR',
+      },
+    ],
+    fixExplanation:
+      "The policy removes manager review for any refund under $50 but sets no limit on how many separate sub-$50 refunds one customer can request. Someone who understands the threshold could file several separate requests, each auto-approved on the spot, and the only check — a weekly ops report — wouldn't catch it until Friday, after real money is already gone. The fix isn't removing the auto-approval; it's adding a per-customer daily or weekly cap alongside it.",
+    herringExplanation:
+      "Not naming a backup owner for the Friday review is a real gap, but it's a documentation fix, not a reason to hold the whole policy — the backlog is real and urgent. Treating an unnamed backup reviewer as equally serious as an unlimited refund-draining hole is the calibration failure being measured here.",
   },
 }
 
@@ -393,7 +547,7 @@ const CODE_HARD_LINES: CrucibleArtifactLine[] = [
   { line: 31, text: '}' },
 ]
 
-export const CRUCIBLE_QA_EASY: CrucibleVariantContent = {
+const CODE_EASY: CrucibleVariantContent = {
   key: 'CODE',
   label: 'Warm-up',
   scenarioTitle: 'Stubs — Daily standup reminder bot',
@@ -452,7 +606,7 @@ export const CRUCIBLE_QA_EASY: CrucibleVariantContent = {
     "The [DEBUG] log is genuinely something that shouldn't ship — noisy and unprofessional in a production log stream. But it doesn't affect behavior, doesn't cost anything, and doesn't reach a customer. Blocking the PR over it while the bot spams the whole channel all day is exactly the miscalibration this scenario is measuring.",
 }
 
-export const CRUCIBLE_QA_HARD: CrucibleVariantContent = {
+const CODE_HARD: CrucibleVariantContent = {
   key: 'CODE',
   label: 'High stakes',
   scenarioTitle: 'Stubs — Nightly refund reconciliation job',
@@ -511,12 +665,630 @@ export const CRUCIBLE_QA_HARD: CrucibleVariantContent = {
     "Printing order and refund IDs to console.log instead of a real logger is sloppy — those IDs aren't sensitive, and in a properly configured environment stdout gets captured into logs anyway, so it costs nothing functionally. It is not in the same universe as a bug that can refund a customer twice with real money, on autopilot, overnight.",
 }
 
-// Single lookup for QA content — MEDIUM stays discipline-routed (the
-// job-intent fork), EASY/HARD are universal regardless of which discipline
-// a candidate was routed into.
+const MARKETING_EASY: CrucibleVariantContent = {
+  key: 'MARKETING',
+  label: 'Marketing',
+  scenarioTitle: 'Stubs — Instagram Story caption for the referral program launch',
+  brief:
+    "Stubs' social team drafted a single Instagram Story caption promoting the new refer-a-friend program — one slide, small audience, posting this afternoon. Low stakes compared to a launch email, but it's about to promise customers something that isn't true anymore.",
+  artifactLabel: 'The caption draft',
+  lines: [
+    { line: 1, text: 'Caption (IG Story — posting today):' },
+    { line: 2, text: '' },
+    { line: 3, text: 'New way to save on Stubs 🎟️' },
+    { line: 4, text: '' },
+    { line: 5, text: 'Invite 3 friends and you both get $10 off your next ticket!' },
+    { line: 6, text: '' },
+    { line: 7, text: "Here's how it works:" },
+    { line: 8, text: '1. Share your unique referral link' },
+    { line: 9, text: '2. Your friend signs up and buys a ticket' },
+    { line: 10, text: '3. You both get $10 credit — instantly' },
+    { line: 11, text: '' },
+    { line: 12, text: 'Bonus: stack your referral credit with any active promo code for even more savings!' },
+    { line: 13, text: '' },
+    { line: 14, text: 'Tap the link in bio to get your code.' },
+    { line: 15, text: '' },
+    { line: 16, text: '#Stubs #ReferAFriend #SaveMoney #TicketDeals #LiveMusic #ConcertSeason #DealAlert #ShareTheLove' },
+  ],
+  checklistPrompt: "What's wrong with this caption? Select everything you'd raise before it posts.",
+  checklistOptions: [
+    {
+      id: 'mktg_easy_stacking_claim',
+      label: 'The caption tells customers to stack referral credit with active promo codes — a practice Stubs discontinued after the infinite-use promo bug',
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'mktg_easy_hashtag_overload',
+      label: 'Eight hashtags in one caption is excessive',
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'mktg_easy_credit_one_sided',
+      label: 'The $10 credit is described as going only to the person who refers, not the friend who signs up',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'mktg_easy_no_cta_link',
+      label: 'The caption never tells people where to find their referral link',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'mktg_easy_percentage_discount',
+      label: 'The referral credit is described as a percentage off rather than a flat dollar amount',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'mktg_easy_nothing_wrong',
+      label: 'Nothing here needs to change — this is safe to post as-is',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    'Line 12 tells customers to "stack your referral credit with any active promo code" — but combining discounts is exactly the mechanism Stubs shut down after the infinite-use promo-code bug, and code-stacking is no longer allowed. Posting this re-advertises a policy that no longer exists, which means customers will try to stack, get denied at checkout, and flood support with confused complaints about a feature the caption promised them. The line needs to be cut or rewritten, not softened.',
+  herringExplanation:
+    "Eight hashtags is a bit much stylistically, but it has zero functional or financial impact — it's a taste call, not a reason to hold a single Story post. Flagging that instead of the stacking claim is the calibration failure being measured here.",
+}
+
+const MARKETING_HARD: CrucibleVariantContent = {
+  key: 'MARKETING',
+  label: 'Marketing',
+  scenarioTitle: 'Stubs — Draft public statement on the promo-code incident',
+  brief:
+    "A reporter is asking for comment on the promo-code bug within the hour, and Comms wants this statement live on the blog and in the reporter's inbox by end of day. It reads calm and controlled. It goes out unless you block it.",
+  artifactLabel: 'The draft statement',
+  lines: [
+    { line: 1, text: 'FOR IMMEDIATE RELEASE' },
+    { line: 2, text: 'Stubs Statement on Promo Code Issue' },
+    { line: 3, text: '' },
+    { line: 4, text: '[Date]' },
+    { line: 5, text: '' },
+    { line: 6, text: 'Earlier this month, Stubs identified a technical issue that allowed a single promotional code to be redeemed an unlimited number of times, rather than the intended one-time use per account.' },
+    { line: 7, text: '' },
+    { line: 8, text: 'The issue has been fully resolved. Our engineering team deployed a fix within 24 hours of discovery, and we have conducted a full audit of affected orders.' },
+    { line: 9, text: '' },
+    { line: 10, text: 'Approximately 6,400 orders were affected, representing roughly $310,000 in discounts applied beyond what our promo terms allow.' },
+    { line: 11, text: '' },
+    { line: 12, text: 'No customer payment information was compromised, and no personal data was exposed as part of this issue.' },
+    { line: 13, text: '' },
+    { line: 14, text: 'Customers do not need to take any action. This matter has been fully resolved on our end.' },
+    { line: 15, text: '' },
+    { line: 16, text: 'To recover a portion of the improperly discounted amount, affected accounts will see a supplemental charge of up to $40 applied to the payment method on file within the next 7 business days.' },
+    { line: 17, text: '' },
+    { line: 18, text: "We take the trust our customers place in us seriously, and we've added additional safeguards to prevent this type of issue going forward." },
+    { line: 19, text: '' },
+    { line: 20, text: 'Media inquiries: press@stubs.com' },
+    { line: 21, text: '' },
+    { line: 22, text: '— Stubs Communications Team' },
+  ],
+  checklistPrompt: "What's wrong with this statement? Select everything you'd raise before it goes to press.",
+  checklistOptions: [
+    {
+      id: 'mktg_hard_charge_contradiction',
+      label: 'The statement tells customers no action is needed while separately disclosing an undisclosed charge of up to $40 to their card on file',
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'mktg_hard_no_named_exec',
+      label: "The release is attributed only to 'Stubs Communications Team' instead of a named executive",
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'mktg_hard_audit_in_progress',
+      label: 'The statement admits the audit of affected orders is still ongoing and the figures may change',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'mktg_hard_range_estimate',
+      label: 'The statement gives a low-to-high dollar range for the discounts instead of one figure',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'mktg_hard_first_time_claim',
+      label: 'The statement claims this is the first time Stubs has had a promo code issue',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'mktg_hard_nothing_wrong',
+      label: 'Nothing here needs to change — this is safe to release as-is',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    'Line 14 tells customers "no action needed... fully resolved," but line 16 — two lines later — discloses that Stubs will charge up to $40 to the payment method on file within 7 days to recover the improper discount. That is not "no action" — it is an unannounced charge to a card customers did not authorize for this specific amount, and a press statement that flatly denies any customer-facing consequence while a charge is already scheduled is a real billing-dispute and consumer-protection exposure. The two lines need to be reconciled before this goes to a reporter.',
+  herringExplanation:
+    "Attributing the release to 'Stubs Communications Team' instead of a named executive is a common PR-polish request, but it's a credibility preference, not a reason to hold a statement responding to an active press inquiry. Blocking on that instead of the buried $40 charge is the calibration failure being tested.",
+}
+
+const DATA_EASY: CrucibleVariantContent = {
+  key: 'DATA',
+  label: 'Operations & Data Analysts',
+  scenarioTitle: 'Stubs — Weekly support ticket digest for the #support channel',
+  brief:
+    "An ops analyst drafted the weekly ticket digest for the support team's Slack channel — internal only, posting in a few minutes. Nobody outside the team sees it, but the support lead uses these numbers to decide next week's staffing.",
+  artifactLabel: 'The digest draft',
+  lines: [
+    { line: 1, text: 'Weekly Support Digest — Week of Aug 10' },
+    { line: 2, text: '' },
+    { line: 3, text: 'Total tickets this week: 212 (up from 187 last week)' },
+    { line: 4, text: '' },
+    { line: 5, text: 'Top categories:' },
+    { line: 6, text: '- Refund status questions: 61' },
+    { line: 7, text: '- Login / password reset: 44' },
+    { line: 8, text: '- Promo code issues: 0' },
+    { line: 9, text: '- Event date changes: 38' },
+    { line: 10, text: '- Other: 69' },
+    { line: 11, text: '' },
+    { line: 12, text: 'Notable tickets flagged for follow-up:' },
+    { line: 13, text: '- 14 tickets tagged "promo code error" — customers confused after last month\'s discount code fix' },
+    { line: 14, text: '- 3 tickets escalated to engineering (app crash on iOS 17)' },
+    { line: 15, text: '' },
+    { line: 16, text: 'Staffing note: no changes recommended for next week based on current volume.' },
+    { line: 17, text: '' },
+    { line: 18, text: '— Compiled automatically from the ticket queue export' },
+  ],
+  checklistPrompt: "What's wrong with this digest? Select everything you'd raise before it posts.",
+  checklistOptions: [
+    {
+      id: 'data_easy_promo_zero_miscount',
+      label: "The digest reports zero promo code tickets for the week, but separately lists 14 tickets tagged 'promo code error' from that same week",
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'data_easy_auto_footer_note',
+      label: "The 'compiled automatically' footer probably shouldn't be visible to the whole channel",
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'data_easy_volume_direction',
+      label: 'Total ticket volume this week (212) is described as a decrease from last week (187)',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'data_easy_no_category_breakdown',
+      label: "The digest doesn't break tickets down by category",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'data_easy_escalation_miscategorized',
+      label: 'The 3 tickets escalated to engineering are about the promo code bug',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'data_easy_nothing_wrong',
+      label: 'Nothing here needs to change — this is fine to post as-is',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    'Line 8 reports "Promo code issues: 0" for the week, but line 13 — in the same digest — lists 14 tickets tagged "promo code error" from that exact week. The category count is not a rounding issue, it is a full miscount that erases an entire ticket category. Because the "no staffing changes" note in line 16 is based on that category breakdown, the recommendation is implicitly ignoring those 14 tickets.',
+  herringExplanation:
+    "The auto-generation footer is a minor internal-process note that's mildly out of place in a channel post, but it costs nothing and affects no one's decisions. Blocking on it instead of the 0-vs-14 promo ticket miscount is the calibration failure here.",
+}
+
+const DATA_HARD: CrucibleVariantContent = {
+  key: 'DATA',
+  label: 'Operations & Data Analysts',
+  scenarioTitle: 'Stubs — Promo bug clawback plan for Finance & Legal sign-off',
+  brief:
+    'Ops analytics drafted the recovery plan for the money lost to the infinite-use promo bug. Finance wants to start auto-charging flagged accounts tomorrow morning. Real money, real customers, and the model behind it goes unquestioned unless someone reads closely.',
+  artifactLabel: 'The recovery memo',
+  lines: [
+    { line: 1, text: 'MEMO: Promo Code Overuse — Recovery Plan' },
+    { line: 2, text: 'TO: Finance, Legal' },
+    { line: 3, text: 'FROM: Ops Analytics (AI-assisted draft)' },
+    { line: 4, text: '' },
+    { line: 5, text: 'Background' },
+    { line: 6, text: 'The SUMMER20 promo code was redeemable an unlimited number of times due to a validation bug, active for 11 days before the fix shipped.' },
+    { line: 7, text: '' },
+    { line: 8, text: 'Total exposure: 8,930 redemptions across 6,140 unique accounts, totaling $427,000 in discounts beyond intended terms.' },
+    { line: 9, text: '' },
+    { line: 10, text: 'Recovery Criteria' },
+    { line: 11, text: 'Any account with 3 or more redemptions of SUMMER20 will be classified as high-confidence misuse and auto-charged the discount difference on the card on file, starting tomorrow at 9am.' },
+    { line: 12, text: '' },
+    { line: 13, text: 'Accounts with 1-2 redemptions will not be charged; the cost is being absorbed as normal promo spend.' },
+    { line: 14, text: '' },
+    { line: 15, text: 'Model Validation' },
+    { line: 16, text: "We backtested this 3+ threshold against last year's holiday promo code, where accounts with 3+ redemptions had a 91% overlap with accounts later confirmed as fraudulent by the trust & safety team." },
+    { line: 17, text: '' },
+    { line: 18, text: 'Footnote: SUMMER20 was also included as a bonus perk in the "Stubs Gold" loyalty email blast, sent to 2,100 top-tier members, who were told they could redeem it up to 5 times as a loyalty benefit.' },
+    { line: 19, text: '' },
+    { line: 20, text: 'Financial Impact' },
+    { line: 21, text: 'Auto-charging all 3+ accounts is projected to recover approximately $310,000 of the $427,000 exposure.' },
+    { line: 22, text: '' },
+    { line: 23, text: 'Recommendation' },
+    { line: 24, text: 'Approve the 3+ threshold and begin auto-charging tomorrow at 9am as scheduled.' },
+  ],
+  checklistPrompt: "What's wrong with this plan? Select everything you'd raise before Finance and Legal sign off.",
+  checklistOptions: [
+    {
+      id: 'data_hard_loyalty_threshold_conflict',
+      label: 'The 3+ redemption auto-charge threshold will also flag the 2,100 Stubs Gold members who were told they could legitimately redeem the code up to 5 times',
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'data_hard_ai_assisted_label',
+      label: "The memo's From line discloses this is an '(AI-assisted draft)'",
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'data_hard_reduced_charge_claim',
+      label: 'Accounts with 1-2 redemptions will be charged a reduced amount rather than fully absorbed',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'data_hard_external_backtest_claim',
+      label: "The 91% fraud-overlap backtest comes from another company's data, not Stubs' own history",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'data_hard_no_exposure_figure_claim',
+      label: 'The memo never states a total dollar exposure figure for the bug',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'data_hard_nothing_wrong',
+      label: 'Nothing here needs to change — approve the plan as written',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    'Line 11 auto-charges any account with 3+ SUMMER20 redemptions as "high-confidence misuse," but line 18\'s footnote says 2,100 Stubs Gold loyalty members were explicitly told they could redeem SUMMER20 up to 5 times as a legitimate perk. Those loyalty accounts will trip the same 3+ threshold and get auto-charged as fraud for doing exactly what Stubs told them to do. The 91% fraud-overlap backtest in line 16 is from last year\'s promo, which was never distributed through a legitimate multi-use loyalty channel — so it doesn\'t validate this threshold for SUMMER20, and the Gold cohort needs to be excluded before auto-charging starts tomorrow.',
+  herringExplanation:
+    "Labeling the memo '(AI-assisted draft)' is a disclosure detail worth cleaning up before Finance and Legal see it, but it has zero bearing on whether the recovery plan is correct. Blocking on that instead of the loyalty-member misclassification is the calibration failure — real money would still get wrongly pulled from 2,100 good-faith customers' cards tomorrow at 9am.",
+}
+
+const BUSINESS_EASY: CrucibleVariantContent = {
+  key: 'BUSINESS',
+  label: 'Business & Operations',
+  scenarioTitle: 'Stubs — Proposal to switch support ticketing tools',
+  brief:
+    "The support team lead drafted a proposal to switch ticketing software from HelpDeskPro to TicketFlow, citing clear annual savings. It's a low-stakes internal tool call, going to the manager for approval this week — but the math doesn't hold up under its own numbers.",
+  artifactLabel: 'The proposal',
+  lines: [
+    { line: 1, text: 'Proposal: Switch support ticketing from HelpDeskPro to TicketFlow' },
+    { line: 2, text: '' },
+    { line: 3, text: 'Current cost: HelpDeskPro — $2,400/month ($28,800/year)' },
+    { line: 4, text: 'Proposed cost: TicketFlow — $1,650/month ($19,800/year)' },
+    { line: 5, text: '' },
+    { line: 6, text: 'Projected annual savings: $9,000' },
+    { line: 7, text: '' },
+    { line: 8, text: 'Migration plan:' },
+    { line: 9, text: '- Export all historical tickets from HelpDeskPro (one-time migration fee: $4,500, charged by HelpDeskPro on account closure)' },
+    { line: 10, text: '- Import into TicketFlow, estimated 2 weeks setup' },
+    { line: 11, text: '- Retrain support team (3 staff, ~2 hours each)' },
+    { line: 12, text: '' },
+    { line: 13, text: 'Recommendation: Switch immediately to start realizing the $9,000/year in savings.' },
+    { line: 14, text: '' },
+    { line: 15, text: "Contract note: HelpDeskPro requires 30 days' notice to cancel; TicketFlow contract is month-to-month." },
+    { line: 16, text: '' },
+    { line: 17, text: '— Submitted for manager approval' },
+  ],
+  checklistPrompt: "What's wrong with this proposal? Select everything you'd raise before it's approved.",
+  checklistOptions: [
+    {
+      id: 'biz_easy_migration_fee_ignored',
+      label: 'The $9,000 annual savings figure and the recommendation to switch immediately both ignore the $4,500 one-time migration fee disclosed elsewhere in the same proposal',
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_easy_no_named_requester',
+      label: 'The proposal is submitted without naming who is requesting the switch',
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'biz_easy_cost_comparison_reversed',
+      label: "TicketFlow's monthly cost is described as higher than HelpDeskPro's",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_easy_no_cancellation_terms_claim',
+      label: "The proposal doesn't mention any contract cancellation requirement for HelpDeskPro",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_easy_migration_timeline_claim',
+      label: 'The migration is estimated to take two months',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'biz_easy_nothing_wrong',
+      label: 'Nothing here needs to change — this is ready to approve as-is',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    'Line 6 projects "$9,000 in annual savings" and line 13 recommends switching immediately "to start realizing" that full amount — but line 9, in the same proposal, discloses a one-time $4,500 migration fee charged on account closure. Netting that against the $9,000 headline means first-year savings is actually $4,500, half of what\'s advertised, and the proposal never does that math anywhere. Whoever approves this based on the $9,000 figure is signing off on a number the document\'s own line 9 contradicts.',
+  herringExplanation:
+    "Not naming a requester on the submission line is a minor process gap worth a quick fix, but it has no bearing on whether the savings numbers are right. Blocking on that instead of the unreconciled migration fee is the calibration failure being tested.",
+}
+
+const BUSINESS_HARD: CrucibleVariantContent = {
+  key: 'BUSINESS',
+  label: 'Business & Operations',
+  scenarioTitle: 'Stubs — PromoLogic vendor contract renewal recommendation',
+  brief:
+    "Vendor Management drafted the case for renewing Stubs' 2-year contract with PromoLogic — the vendor whose platform powered the promo system with the infinite-redemption bug. Legal wants to countersign by Friday to lock in the discount. Real money, a live contract, and a liability clause nobody's cross-checked against what already happened.",
+  artifactLabel: 'The renewal memo',
+  lines: [
+    { line: 1, text: 'MEMO: PromoLogic Contract Renewal — Recommendation' },
+    { line: 2, text: 'TO: VP Operations, Legal' },
+    { line: 3, text: 'FROM: Vendor Management (AI-assisted draft)' },
+    { line: 4, text: '' },
+    { line: 5, text: 'Background' },
+    { line: 6, text: "PromoLogic has powered Stubs' promo code engine for 3 years. The current contract expires August 31; PromoLogic is offering a 2-year renewal at a locked rate if signed by Friday." },
+    { line: 7, text: '' },
+    { line: 8, text: 'Cost Comparison' },
+    { line: 9, text: 'Current annual cost: $180,000. Renewal rate: $162,000/year (10% discount), locked for 2 years if signed this week.' },
+    { line: 10, text: 'Switching to a competitor (TixSecure) would cost an estimated $210,000/year plus a 4-month migration.' },
+    { line: 11, text: '' },
+    { line: 12, text: 'Incident History' },
+    { line: 13, text: 'In May, a validation flaw in PromoLogic\'s code engine allowed the SUMMER20 promo code to be redeemed without limit for 11 days, costing Stubs approximately $427,000 in unauthorized discounts.' },
+    { line: 14, text: '' },
+    { line: 15, text: "PromoLogic's Response" },
+    { line: 16, text: 'PromoLogic issued a patch within 48 hours of notification and has offered a goodwill credit of $15,000 toward the renewal.' },
+    { line: 17, text: '' },
+    { line: 18, text: 'Liability Terms (Renewal Contract)' },
+    { line: 19, text: "The renewal agreement caps PromoLogic's liability for platform defects at $50,000 per incident, unchanged from the prior contract." },
+    { line: 20, text: '' },
+    { line: 21, text: 'Recommendation' },
+    { line: 22, text: "Given the cost savings and PromoLogic's fast response to the May incident, we recommend signing the 2-year renewal by Friday." },
+    { line: 23, text: '' },
+    { line: 24, text: '— Vendor Management Team' },
+  ],
+  checklistPrompt: "What's wrong with this recommendation? Select everything you'd raise before Legal signs.",
+  checklistOptions: [
+    {
+      id: 'biz_hard_liability_cap_mismatch',
+      label: "The renewal keeps PromoLogic's liability cap at $50,000 per incident, unchanged, even though the same type of incident already cost Stubs $427,000",
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'biz_hard_unsourced_competitor_estimate',
+      label: "The TixSecure cost comparison figures aren't sourced or dated",
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_hard_five_year_claim',
+      label: "PromoLogic has powered Stubs' promo engine for 5 years",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_hard_twenty_percent_discount_claim',
+      label: 'The renewal offers a 20% discount off the current rate',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_hard_recommends_switching_claim',
+      label: 'The memo recommends switching to TixSecure instead of renewing with PromoLogic',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'biz_hard_nothing_wrong',
+      label: 'Nothing here needs to change — sign the renewal as recommended',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    "Line 19 renews the same $50,000-per-incident liability cap from the prior contract, but line 13 confirms that the exact category of incident that cap is supposed to cover already cost Stubs $427,000 — more than eight times the cap — just three months ago. PromoLogic's $15,000 goodwill credit doesn't come close to closing that gap either. Signing a 2-year renewal without renegotiating the liability terms locks Stubs into bearing nearly all of the risk from a repeat incident, for two more years, in exchange for an $18,000/year discount.",
+  herringExplanation:
+    "The TixSecure comparison figures being unsourced is a legitimate gap in the memo's rigor, but TixSecure isn't the path being recommended — it doesn't change the actual decision on the table. Fixating on that instead of the liability cap mismatch is the calibration failure being tested; the $50,000 cap ships unchanged either way.",
+}
+
+const DESIGN_EASY: CrucibleVariantContent = {
+  key: 'DESIGN',
+  label: 'Design',
+  scenarioTitle: 'Stubs — Crew invite confirmation screen',
+  brief:
+    "An AI agent designed the mobile screen crew members see when they're invited to a venue team. Low stakes — nobody's shift depends on this one screen. But if the confirm button is unreadable, the invite just quietly never gets accepted.",
+  artifactLabel: 'The screen',
+  lines: [],
+  visualMockup: 'design_easy',
+  checklistPrompt: "What's wrong with this screen? Select everything you'd raise before it ships.",
+  checklistOptions: [
+    {
+      id: 'design_easy_contrast',
+      label: "The \"Confirm invite\" button text is so close in color to its own background that it's barely legible",
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'USABILITY_ACCESSIBILITY_ISSUE',
+    },
+    {
+      id: 'design_easy_illustration',
+      label: "There's no illustration or icon on the screen — it feels bare",
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'design_easy_wordmark_size',
+      label: 'The Stubs wordmark at the top is too small to read',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'design_easy_no_venue',
+      label: "The invite doesn't say which venue team this is for",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'design_easy_no_action_label',
+      label: "The button doesn't label what action it performs",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'design_easy_nothing_wrong',
+      label: 'Nothing here needs to change — this is safe to ship as-is',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    "The \"Confirm invite\" button's text color is nearly identical to its own background — a contrast ratio so low it fails basic accessibility guidelines and is genuinely hard to read even for someone without a vision impairment. The only real call to action on the screen is effectively invisible. The fix is a real contrast pass on the primary button, not a copy or layout change.",
+  herringExplanation:
+    "The missing illustration is a legitimate polish gap — the screen does feel a little bare — but it doesn't stop anyone from completing the flow. Naming it as the blocking issue while the actual button is unreadable is the calibration failure being measured here.",
+}
+
+const DESIGN_HARD: CrucibleVariantContent = {
+  key: 'DESIGN',
+  label: 'Design',
+  scenarioTitle: 'Stubs — Trust & Safety testimonials section',
+  brief:
+    "Legal and Comms need the public Trust & Safety page live today, and an AI agent added a 'Verified Buyers' testimonials section to build confidence after the promo-code story broke. It reads reassuring at a glance. It ships unless you block it.",
+  artifactLabel: 'The section',
+  lines: [],
+  visualMockup: 'design_hard',
+  checklistPrompt: "What's wrong with this section? Select everything you'd raise before it ships.",
+  checklistOptions: [
+    {
+      id: 'design_hard_identical_avatars',
+      label: "All three testimonials use the exact same avatar color and initials ('JM'), despite being attributed to three different named reviewers",
+      isDefect: true,
+      isHerring: false,
+      mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
+    },
+    {
+      id: 'design_hard_similar_quotes',
+      label: 'All three quotes sound similar in tone and length',
+      isDefect: false,
+      isHerring: true,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'design_hard_no_full_name',
+      label: "The reviewer names aren't shown in full",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'design_hard_no_verified_label',
+      label: "None of the cards actually say 'Verified Buyer'",
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+    {
+      id: 'design_hard_carousel',
+      label: 'The testimonials are shown as a horizontal carousel instead of a list',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'STYLE_CLUTTER',
+    },
+    {
+      id: 'design_hard_nothing_wrong',
+      label: 'Nothing here needs to change — this is safe to ship as-is',
+      isDefect: false,
+      isHerring: false,
+      mechanism: 'LOGIC_EDGE_CASE_ERROR',
+    },
+  ],
+  fixExplanation:
+    "Every 'Verified Buyer' card uses the identical avatar — same color, same initials 'JM' — even though the names attached (Jordan M., Priya S., Marcus T.) are three different people. Two of the three initials don't even match their own name. This isn't a subtle placeholder-art choice; it's the visual signature of fabricated or copy-pasted testimonials, and it's exactly the kind of detail a customer, a journalist, or a regulator would notice immediately and use to call the whole trust section fake — on the one page built specifically to rebuild trust after the promo-code story. The fix is real, distinct avatars, or no avatars at all — never the same one reused across different identities.",
+  herringExplanation:
+    "Three short, similarly upbeat quotes is a real but minor writing-variety issue — testimonials often do sound alike, and it doesn't undermine trust on its own. Flagging tone instead of the reused avatar — the actual authenticity red flag — is the calibration failure being measured here.",
+}
+
+export const CRUCIBLE_QA_EASY: Record<CrucibleVariantKey, CrucibleVariantContent> = {
+  CODE: CODE_EASY,
+  MARKETING: MARKETING_EASY,
+  DATA: DATA_EASY,
+  DESIGN: DESIGN_EASY,
+  BUSINESS: BUSINESS_EASY,
+}
+
+export const CRUCIBLE_QA_HARD: Record<CrucibleVariantKey, CrucibleVariantContent> = {
+  CODE: CODE_HARD,
+  MARKETING: MARKETING_HARD,
+  DATA: DATA_HARD,
+  DESIGN: DESIGN_HARD,
+  BUSINESS: BUSINESS_HARD,
+}
+
+// Single lookup for QA content — every variant now has genuinely distinct
+// content at every tier (previously only MEDIUM was discipline-specific;
+// EASY/HARD were one shared CODE-flavored scenario regardless of which
+// discipline a candidate was routed into — see git history).
 export function getQaContent(variant: CrucibleVariantKey, tier: CrucibleTierKey): CrucibleVariantContent {
-  if (tier === 'EASY') return CRUCIBLE_QA_EASY
-  if (tier === 'HARD') return CRUCIBLE_QA_HARD
+  if (tier === 'EASY') return CRUCIBLE_QA_EASY[variant]
+  if (tier === 'HARD') return CRUCIBLE_QA_HARD[variant]
   return CRUCIBLE_VARIANTS[variant]
 }
 
