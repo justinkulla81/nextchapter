@@ -16,6 +16,14 @@ export type CrucibleMechanism =
 
 export type CrucibleVerdictValue = 'SHIP' | 'BLOCK' | 'SHIP_WITH_CONDITIONS'
 
+// The difficulty ladder — every activity starts at EASY. Clearing a tier
+// (see qaTierPassed/aiGradeTierPassed in scoring.ts) reveals the next tier's
+// scenario for that SAME activity; not clearing it, or already being at
+// HARD, moves on to the next activity instead. Tier reached is a real
+// hiring signal shown alongside the score, not just a difficulty label.
+export type CrucibleTierKey = 'EASY' | 'MEDIUM' | 'HARD'
+export const CRUCIBLE_TIER_ORDER: CrucibleTierKey[] = ['EASY', 'MEDIUM', 'HARD']
+
 export interface CrucibleAiTools {
   tools: string[]
   bestMove: string
@@ -45,11 +53,23 @@ export interface CrucibleScoreBreakdown {
   datasetPoints: number | null
 }
 
+// Highest tier actually reached per activity — the qualitative "how far did
+// they get" signal, independent of the numeric score above (a candidate who
+// reaches HARD but stumbles the exact-match answer still scores lower than
+// a candidate who nails MEDIUM, but reaching HARD at all is itself real
+// evidence of depth this app never wants to hide behind one number).
+export interface CrucibleTiersReached {
+  qa: CrucibleTierKey
+  prompt: CrucibleTierKey
+  dataset: CrucibleTierKey
+}
+
 export interface CrucibleScoreResult {
   score: number
   band: string
   branch: 'PASS' | 'GROWTH'
   breakdown: CrucibleScoreBreakdown
+  tiersReached: CrucibleTiersReached
   scoringVersion: string
   contentVersion: string
 }

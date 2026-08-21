@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { CRUCIBLE_DATASET_TASK, CRUCIBLE_PROMPT_TASK } from './variants'
-import type { CrucibleAiGradeResult } from './scoring-types'
+import type { CrucibleAiGradeResult, CrucibleTierKey } from './scoring-types'
 
 // Real per-attempt LLM cost — every call here is rate-limited upstream (see
 // checkAndRecordCrucibleAiUsage in rate-limit.ts) before this module is
@@ -59,15 +59,12 @@ Score 0-100 based on how well the submission matches the rubric. Then write brie
   }
 }
 
-export function gradeCruciblePromptTask(submission: string): Promise<CrucibleAiGradeResult> {
-  return gradeSubmission('prompt-authoring', CRUCIBLE_PROMPT_TASK.instructions, CRUCIBLE_PROMPT_TASK.gradingRubric, submission)
+export function gradeCruciblePromptTask(tier: CrucibleTierKey, submission: string): Promise<CrucibleAiGradeResult> {
+  const content = CRUCIBLE_PROMPT_TASK[tier]
+  return gradeSubmission('prompt-authoring', content.instructions, content.gradingRubric, submission)
 }
 
-export function gradeCrucibleDatasetTask(submission: string): Promise<CrucibleAiGradeResult> {
-  return gradeSubmission(
-    'dataset-analysis',
-    `${CRUCIBLE_DATASET_TASK.businessContext}\n\n${CRUCIBLE_DATASET_TASK.instructions}`,
-    CRUCIBLE_DATASET_TASK.gradingRubric,
-    submission
-  )
+export function gradeCrucibleDatasetTask(tier: CrucibleTierKey, submission: string): Promise<CrucibleAiGradeResult> {
+  const content = CRUCIBLE_DATASET_TASK[tier]
+  return gradeSubmission('dataset-analysis', `${content.businessContext}\n\n${content.instructions}`, content.gradingRubric, submission)
 }

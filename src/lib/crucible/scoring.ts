@@ -6,18 +6,25 @@
 // combineCrucibleScores — combination stays pure even though one upstream
 // input isn't, so "same inputs → same final score" still holds at this
 // layer.
-import { CRUCIBLE_BAND_LABEL, CRUCIBLE_VARIANTS, type CrucibleVariantKey } from './variants'
-import type { CrucibleAiTools, CrucibleQaSubmission, CrucibleScoreBreakdown, CrucibleScoreResult } from './scoring-types'
+import { CRUCIBLE_BAND_LABEL, getQaContent, type CrucibleVariantKey } from './variants'
+import type {
+  CrucibleAiTools,
+  CrucibleQaSubmission,
+  CrucibleScoreBreakdown,
+  CrucibleScoreResult,
+  CrucibleTierKey,
+  CrucibleTiersReached,
+} from './scoring-types'
 
 // Config is versioned data, not code constants sprinkled through the scoring
 // logic — bump SCORING_VERSION whenever weights/thresholds/answer keys
 // change, so every historical score stays recomputable and auditable
-// against the exact rules that produced it (see spec §11). v2: replaced
-// free-form line-flagging with a fixed checklist, and added the two
-// AI-graded activities (prompt-authoring, dataset-analysis) as weighted
-// components of the final score.
-export const SCORING_VERSION = 'v2'
-export const CONTENT_VERSION = 'v2'
+// against the exact rules that produced it (see spec §11). v3: added the
+// easy/medium/hard difficulty ladder — QA content lookup is now tier-aware
+// (getQaContent), and pass/fail per tier gates advancement (see
+// qaTierPassed/aiGradeTierPassed below).
+export const SCORING_VERSION = 'v3'
+export const CONTENT_VERSION = 'v3'
 
 const POINTS = {
   defectExact: 60,
@@ -26,6 +33,24 @@ const POINTS = {
   herringOverblocked: -10,
   driverBonus: 10,
 } as const
+
+// A tier attempt "clears" when the candidate both caught the real issue AND
+// acted correctly on it — either is easy to get half-right (catch it but
+// still ship, or block without naming why), so both are required to unlock
+// the next tier. Same bar regardless of which tier this is — EASY isn't
+// graded on a curve, it's just a scenario with a shallower defect.
+export function qaTierPassed(qa: CrucibleQaScoreResult): boolean {
+  return qa.defectDetection === 'exact' && qa.verdictPoints > 0
+}
+
+// AI-graded activities clear a tier at 70+ — "good," not "perfect." Matches
+// the grading rubric's own language (gradeSubmission's prompt in
+// ai-grading.ts asks for a genuinely discerning score, not automatic high
+// marks), so 70 is a real bar, not a rubber stamp.
+export const AI_GRADE_PASS_THRESHOLD = 70
+export function aiGradeTierPassed(score: number): boolean {
+  return score >= AI_GRADE_PASS_THRESHOLD
+}
 
 // Best-case raw QA points (defect + verdict + herring-calibrated), used to
 // normalize the QA activity onto the same 0-100 scale as the two AI-graded
@@ -48,9 +73,10 @@ export interface CrucibleQaScoreResult {
 
 function scoreDefectDetection(
   variant: CrucibleVariantKey,
+  tier: CrucibleTierKey,
   selectedOptionIds: string[]
 ): { detection: CrucibleScoreBreakdown['defectDetection']; points: number } {
-  const defectOption = CRUCIBLE_VARIANTS[variant].checklistOptions.find((o) => o.isDefect)
+  const defectOption = getQaContent(variant, tier).checklistOptions.find((o) => o.isDefect)
   if (defectOption && selectedOptionIds.includes(defectOption.id)) {
     return { detection: 'exact', points: POINTS.defectExact }
   }
@@ -65,10 +91,11 @@ function scoreVerdict(verdict: CrucibleQaSubmission['verdict'], defectDetection:
 
 function scoreHerring(
   variant: CrucibleVariantKey,
+  tier: CrucibleTierKey,
   selectedOptionIds: string[],
   verdict: CrucibleQaSubmission['verdict']
 ): { outcome: CrucibleScoreBreakdown['herringOutcome']; points: number } {
-  const herringOption = CRUCIBLE_VARIANTS[variant].checklistOptions.find((o) => o.isHerring)
+  const herringOption = getQaContent(variant, tier).checklistOptions.find((o) => o.isHerring)
   const selected = !!herringOption && selectedOptionIds.includes(herringOption.id)
 
   if (!selected) return { outcome: 'calibrated', points: POINTS.herringCalibrated }
@@ -80,10 +107,14 @@ function scoreHerring(
   return { outcome: 'ignored', points: 0 }
 }
 
-export function scoreQaSubmission(variant: CrucibleVariantKey, submission: CrucibleQaSubmission): CrucibleQaScoreResult {
-  const { detection, points: defectPoints } = scoreDefectDetection(variant, submission.selectedOptionIds)
+export function scoreQaSubmission(
+  variant: CrucibleVariantKey,
+  tier: CrucibleTierKey,
+  submission: CrucibleQaSubmission
+): CrucibleQaScoreResult {
+  const { detection, points: defectPoints } = scoreDefectDetection(variant, tier, submission.selectedOptionIds)
   const verdictPoints = scoreVerdict(submission.verdict, detection)
-  const { outcome: herringOutcome, points: herringPoints } = scoreHerring(variant, submission.selectedOptionIds, submission.verdict)
+  const { outcome: herringOutcome, points: herringPoints } = scoreHerring(variant, tier, submission.selectedOptionIds, submission.verdict)
 
   return {
     defectDetection: detection,
@@ -107,7 +138,8 @@ export function combineCrucibleScores(
   qa: CrucibleQaScoreResult,
   promptScore: number,
   datasetScore: number,
-  aiTools: CrucibleAiTools | null
+  aiTools: CrucibleAiTools | null,
+  tiersReached: CrucibleTiersReached
 ): CrucibleScoreResult {
   const qaPercent = Math.max(0, Math.min(100, (qa.rawPoints / QA_MAX_RAW) * 100))
   const { earned: driverBonusEarned, points: driverBonusPoints } = scoreDriverBonus(aiTools)
@@ -129,5 +161,5 @@ export function combineCrucibleScores(
     datasetPoints: Math.round(datasetScore * WEIGHTS.dataset),
   }
 
-  return { score, band, branch, breakdown, scoringVersion: SCORING_VERSION, contentVersion: CONTENT_VERSION }
+  return { score, band, branch, breakdown, tiersReached, scoringVersion: SCORING_VERSION, contentVersion: CONTENT_VERSION }
 }

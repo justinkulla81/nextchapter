@@ -7611,6 +7611,15 @@ enum CrucibleVerdict {
   SHIP_WITH_CONDITIONS
 }
 
+// The difficulty ladder — every activity starts EASY; clearing a tier
+// reveals the next tier's scenario for that same activity (see
+// qaTierPassed/aiGradeTierPassed in scoring.ts).
+enum CrucibleTier {
+  EASY
+  MEDIUM
+  HARD
+}
+
 enum CrucibleBranch {
   PASS
   GROWTH
@@ -7637,21 +7646,37 @@ model CrucibleSession {
   // candidate selected, scored deterministically (see scoring.ts). Replaced
   // the original click-a-line-to-flag interaction, which testing showed was
   // unclear with no visible "what am I even looking for" cue.
+  //
+  // *Tier fields hold only the CURRENT/latest tier's inputs and score for
+  // each activity — clearing a tier overwrites these with the next tier's
+  // submission rather than archiving every intermediate attempt. What
+  // matters for the hiring signal is the highest tier reached and that
+  // tier's own result, not a full history of every round.
   selectedOptionIds Json?
   verdict           CrucibleVerdict?
+  qaTier            CrucibleTier     @default(EASY)
 
   // Prompt-authoring activity — candidate writes a prompt to get an AI to
   // analyze/improve a fixed demo webpage. AI-graded (real per-attempt LLM
-  // cost — see checkAndRecordCrucibleAiUsage in rate-limit.ts).
-  promptSubmission String? @db.Text
+  // cost — see checkCrucibleAiRateLimit in rate-limit.ts).
+  promptSubmission String?      @db.Text
   promptScore      Int?
-  promptFeedback   String? @db.Text
+  promptFeedback   String?      @db.Text
+  promptTier       CrucibleTier @default(EASY)
 
   // Dataset-analysis activity — candidate is given business context + a
   // small dataset and asked to analyze/recommend. Also AI-graded.
-  datasetSubmission String? @db.Text
+  datasetSubmission String?      @db.Text
   datasetScore      Int?
-  datasetFeedback   String? @db.Text
+  datasetFeedback   String?      @db.Text
+  datasetTier       CrucibleTier @default(EASY)
+
+  // Real count of AI-grading calls made from this session (prompt + dataset
+  // combined), incremented once per call regardless of tier or pass/fail —
+  // the rate limiter (rate-limit.ts) sums this across a whole IP's recent
+  // sessions rather than counting sessions themselves, since one session
+  // clearing all 3 tiers of an activity now makes 3 real calls, not 1.
+  aiGradeCallCount Int @default(0)
 
   // { tools: string[], bestMove: string }
   aiTools        Json?

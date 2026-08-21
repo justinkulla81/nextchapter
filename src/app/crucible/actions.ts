@@ -7,11 +7,11 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { getClientIp } from '@/lib/http/client-ip'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { combineCrucibleScores, scoreQaSubmission } from '@/lib/crucible/scoring'
+import { aiGradeTierPassed, combineCrucibleScores, qaTierPassed, scoreQaSubmission } from '@/lib/crucible/scoring'
 import { gradeCrucibleDatasetTask, gradeCruciblePromptTask } from '@/lib/crucible/ai-grading'
 import { checkCrucibleAiRateLimit } from '@/lib/crucible/rate-limit'
 import { JOB_INTENT_TO_VARIANT, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
-import type { CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
+import { CRUCIBLE_TIER_ORDER, type CrucibleTierKey, type CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
 import type { CrucibleSource } from '@prisma/client'
 
 // Session identity is the row's own id, held in a plain (non-httpOnly-only
@@ -28,10 +28,17 @@ const SESSION_COOKIE = 'crucible_session'
 // A neutral, non-punitive fallback for the two AI-graded activities — used
 // both when the AI call itself fails (see ai-grading.ts) and when a
 // candidate is rate-limited (checkCrucibleAiRateLimit). Either way, a
-// system-side limit shouldn't cost a real candidate a low score.
+// system-side limit shouldn't cost a real candidate a low score. Scored
+// just below the pass threshold on purpose — a system failure shouldn't
+// silently unlock harder content the candidate never actually earned.
 const AI_GRADE_UNAVAILABLE = {
   score: 50,
   feedback: "We're at capacity for automatic scoring right now — this didn't count against you.",
+}
+
+function nextTier(current: CrucibleTierKey): CrucibleTierKey | null {
+  const i = CRUCIBLE_TIER_ORDER.indexOf(current)
+  return i >= 0 && i < CRUCIBLE_TIER_ORDER.length - 1 ? CRUCIBLE_TIER_ORDER[i + 1] : null
 }
 
 async function getAuthedCandidate(): Promise<{ candidateId: string; email: string | null } | null> {
@@ -91,45 +98,99 @@ export type SubmitChallengeInput = {
   verdict: CrucibleVerdictValue
 }
 
-// QA judgment — the deterministic activity. Scored again (cheaply) from
-// these same stored inputs at submitCrucibleAiTools time, once the two
-// AI-graded activities have also landed, rather than persisting an
-// intermediate score here.
-export async function submitCrucibleChallenge(input: SubmitChallengeInput): Promise<void> {
+// Every "cleared a tier" outcome shares this shape — advanced:true means
+// stay on this same activity and render `tier`'s content next; advanced:
+// false means this activity is done (at `tier`, whether passed or not) and
+// the flow should move to the next activity.
+export type TierStepResult = { advanced: boolean; tier: CrucibleTierKey }
+
+// QA judgment — the deterministic activity. Re-scored (cheaply) from these
+// same stored inputs at submitCrucibleAiTools time using whichever tier
+// they finalized on, rather than persisting an intermediate score here.
+export async function submitCrucibleChallenge(input: SubmitChallengeInput): Promise<TierStepResult> {
   const session = await requireSession(input.sessionId)
+  if (!session.variant) throw new Error('Session has no variant.')
+
+  const qa = scoreQaSubmission(session.variant, session.qaTier, {
+    selectedOptionIds: input.selectedOptionIds,
+    verdict: input.verdict,
+  })
+  const passed = qaTierPassed(qa)
+  const next = passed ? nextTier(session.qaTier) : null
+
   await prisma.crucibleSession.update({
     where: { id: session.id },
     data: {
       selectedOptionIds: input.selectedOptionIds,
       verdict: input.verdict,
-      state: 'PROMPT_TASK',
+      qaTier: next ?? session.qaTier,
+      state: next ? 'CHALLENGE' : 'PROMPT_TASK',
     },
   })
-  captureServerEvent(session.candidateId ?? session.id, 'crucible_verdict', { verdict: input.verdict, flagCount: input.selectedOptionIds.length })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_verdict', {
+    verdict: input.verdict,
+    flagCount: input.selectedOptionIds.length,
+    tier: session.qaTier,
+    passed,
+  })
+
+  return next ? { advanced: true, tier: next } : { advanced: false, tier: session.qaTier }
 }
 
-export async function submitCruciblePromptTask(sessionId: string, promptText: string): Promise<void> {
+export async function submitCruciblePromptTask(sessionId: string, promptText: string): Promise<TierStepResult> {
   const session = await requireSession(sessionId)
   const allowed = await checkCrucibleAiRateLimit(session.ip)
-  const grade = allowed ? await gradeCruciblePromptTask(promptText) : AI_GRADE_UNAVAILABLE
+  const grade = allowed ? await gradeCruciblePromptTask(session.promptTier, promptText) : AI_GRADE_UNAVAILABLE
+  const passed = aiGradeTierPassed(grade.score)
+  const next = passed ? nextTier(session.promptTier) : null
 
   await prisma.crucibleSession.update({
     where: { id: session.id },
-    data: { promptSubmission: promptText, promptScore: grade.score, promptFeedback: grade.feedback, state: 'DATASET_TASK' },
+    data: {
+      promptSubmission: promptText,
+      promptScore: grade.score,
+      promptFeedback: grade.feedback,
+      promptTier: next ?? session.promptTier,
+      state: next ? 'PROMPT_TASK' : 'DATASET_TASK',
+      aiGradeCallCount: allowed ? { increment: 1 } : undefined,
+    },
   })
-  captureServerEvent(session.candidateId ?? session.id, 'crucible_prompt_task', { score: grade.score, rateLimited: !allowed })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_prompt_task', {
+    score: grade.score,
+    rateLimited: !allowed,
+    tier: session.promptTier,
+    passed,
+  })
+
+  return next ? { advanced: true, tier: next } : { advanced: false, tier: session.promptTier }
 }
 
-export async function submitCrucibleDatasetTask(sessionId: string, analysisText: string): Promise<void> {
+export async function submitCrucibleDatasetTask(sessionId: string, analysisText: string): Promise<TierStepResult> {
   const session = await requireSession(sessionId)
   const allowed = await checkCrucibleAiRateLimit(session.ip)
-  const grade = allowed ? await gradeCrucibleDatasetTask(analysisText) : AI_GRADE_UNAVAILABLE
+  const grade = allowed ? await gradeCrucibleDatasetTask(session.datasetTier, analysisText) : AI_GRADE_UNAVAILABLE
+  const passed = aiGradeTierPassed(grade.score)
+  const next = passed ? nextTier(session.datasetTier) : null
 
   await prisma.crucibleSession.update({
     where: { id: session.id },
-    data: { datasetSubmission: analysisText, datasetScore: grade.score, datasetFeedback: grade.feedback, state: 'TOOLS' },
+    data: {
+      datasetSubmission: analysisText,
+      datasetScore: grade.score,
+      datasetFeedback: grade.feedback,
+      datasetTier: next ?? session.datasetTier,
+      state: next ? 'DATASET_TASK' : 'TOOLS',
+      aiGradeCallCount: allowed ? { increment: 1 } : undefined,
+    },
   })
-  captureServerEvent(session.candidateId ?? session.id, 'crucible_dataset_task', { score: grade.score, rateLimited: !allowed })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_dataset_task', {
+    score: grade.score,
+    rateLimited: !allowed,
+    tier: session.datasetTier,
+    passed,
+  })
+
+  return next ? { advanced: true, tier: next } : { advanced: false, tier: session.datasetTier }
 }
 
 export type CrucibleResultSummary = {
@@ -140,23 +201,26 @@ export type CrucibleResultSummary = {
   herringExplanation: string
   promptFeedback: string
   datasetFeedback: string
+  tiersReached: { qa: CrucibleTierKey; prompt: CrucibleTierKey; dataset: CrucibleTierKey }
 }
 
 // Scored here, immediately once AI-tools disclosure lands — that's the
 // last input the final score reads (resume, submitted or skipped
 // afterward, is never part of scoring — see scoring.ts and its dedicated
 // purity test). QA is recomputed here (cheap, deterministic) from the
-// selections/verdict stored back in submitCrucibleChallenge.
+// selections/verdict stored back in submitCrucibleChallenge, at whichever
+// tier the candidate finalized on.
 export async function submitCrucibleAiTools(sessionId: string, tools: string[], bestMove: string): Promise<CrucibleResultSummary> {
   const session = await requireSession(sessionId)
   if (!session.variant) throw new Error('Session has no variant.')
 
   const aiTools = { tools, bestMove }
-  const qa = scoreQaSubmission(session.variant, {
+  const qa = scoreQaSubmission(session.variant, session.qaTier, {
     selectedOptionIds: (session.selectedOptionIds as string[] | null) ?? [],
     verdict: session.verdict ?? 'SHIP',
   })
-  const result = combineCrucibleScores(qa, session.promptScore ?? 0, session.datasetScore ?? 0, aiTools)
+  const tiersReached = { qa: session.qaTier, prompt: session.promptTier, dataset: session.datasetTier }
+  const result = combineCrucibleScores(qa, session.promptScore ?? 0, session.datasetScore ?? 0, aiTools, tiersReached)
 
   await prisma.crucibleSession.update({
     where: { id: session.id },
@@ -169,8 +233,8 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     },
   })
 
-  const { CRUCIBLE_VARIANTS } = await import('@/lib/crucible/variants')
-  const content = CRUCIBLE_VARIANTS[session.variant]
+  const { getQaContent } = await import('@/lib/crucible/variants')
+  const content = getQaContent(session.variant, session.qaTier)
 
   captureServerEvent(session.candidateId ?? session.id, 'crucible_tools', { tools, used_ai: tools.length > 0 })
   captureServerEvent(session.candidateId ?? session.id, 'crucible_scored', {
@@ -182,6 +246,9 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     prompt_points: result.breakdown.promptPoints,
     dataset_points: result.breakdown.datasetPoints,
     driver_bonus: result.breakdown.driverBonusEarned,
+    qa_tier: tiersReached.qa,
+    prompt_tier: tiersReached.prompt,
+    dataset_tier: tiersReached.dataset,
   })
 
   return {
@@ -192,6 +259,7 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     herringExplanation: content.herringExplanation,
     promptFeedback: session.promptFeedback ?? '',
     datasetFeedback: session.datasetFeedback ?? '',
+    tiersReached,
   }
 }
 
