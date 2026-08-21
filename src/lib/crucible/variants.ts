@@ -48,7 +48,7 @@ export interface CrucibleVariantContent {
   herringExplanation: string
 }
 
-// ── Variant 1 — CODE: "DoorList, ticketing app. An AI agent opened a PR:
+// ── Variant 1 — CODE: "Stubs, ticketing app. An AI agent opened a PR:
 // 'Add promo code support to checkout.'" — see build spec §4. Defect: the
 // incremented promo.uses is never persisted (no db.promos.save), so a
 // maxUses code is infinitely reusable. Red herring: leftover console.log.
@@ -84,14 +84,14 @@ const CODE_LINES: CrucibleArtifactLine[] = [
 
 // ── Variant 2 — MARKETING: "MIDNIGHT DROP" launch email to 40,214
 // recipients. Defect: a fabricated "#1 ticketing app" TechCrunch
-// endorsement — DoorList has never been reviewed by TechCrunch. Red
+// endorsement — Stubs has never been reviewed by TechCrunch. Red
 // herring: the emoji in the subject line (a taste call, not a block reason).
 const MARKETING_LINES: CrucibleArtifactLine[] = [
-  { line: 1, text: 'Subject: 🎉 MIDNIGHT DROP — Tickets Are Live on DoorList' },
+  { line: 1, text: 'Subject: 🎉 MIDNIGHT DROP — Tickets Are Live on Stubs' },
   { line: 2, text: '' },
   { line: 3, text: 'Hey [First Name],' },
   { line: 4, text: '' },
-  { line: 5, text: "It's happening. Tonight at midnight, the tickets you've been refreshing for go live on DoorList." },
+  { line: 5, text: "It's happening. Tonight at midnight, the tickets you've been refreshing for go live on Stubs." },
   { line: 6, text: '' },
   { line: 7, text: "Here's why you should be first in line:" },
   { line: 8, text: '' },
@@ -100,11 +100,11 @@ const MARKETING_LINES: CrucibleArtifactLine[] = [
   { line: 11, text: '- Rated the #1 ticketing app by TechCrunch' },
   { line: 12, text: '- Trusted by fans in over 40 cities' },
   { line: 13, text: '' },
-  { line: 14, text: "We built DoorList because buying tickets shouldn't feel like a fight. Tonight, see for yourself." },
+  { line: 14, text: "We built Stubs because buying tickets shouldn't feel like a fight. Tonight, see for yourself." },
   { line: 15, text: '' },
   { line: 16, text: "Set your alarm. Midnight. Don't miss it." },
   { line: 17, text: '' },
-  { line: 18, text: '— The DoorList Team' },
+  { line: 18, text: '— The Stubs Team' },
   { line: 19, text: '' },
   { line: 20, text: 'Sending to: 40,214 subscribers' },
 ]
@@ -147,9 +147,9 @@ export const CRUCIBLE_VARIANTS: Record<CrucibleVariantKey, CrucibleVariantConten
   CODE: {
     key: 'CODE',
     label: 'Engineering',
-    scenarioTitle: 'DoorList — Add promo code support to checkout',
+    scenarioTitle: 'Stubs — Add promo code support to checkout',
     brief:
-      'DoorList, a ticketing app. An AI agent opened a PR: "Add promo code support to checkout." The diff looks done. Visible tests pass — the happy path and the invalid-code path. It ships tonight unless you block it.',
+      'Stubs, a ticketing app. An AI agent opened a PR: "Add promo code support to checkout." The diff looks done. Visible tests pass — the happy path and the invalid-code path. It ships tonight unless you block it.',
     artifactLabel: 'The diff',
     lines: CODE_LINES,
     checklistPrompt: "What's wrong with this PR? Select everything you'd raise before it ships.",
@@ -205,16 +205,16 @@ export const CRUCIBLE_VARIANTS: Record<CrucibleVariantKey, CrucibleVariantConten
   MARKETING: {
     key: 'MARKETING',
     label: 'Marketing',
-    scenarioTitle: 'DoorList — MIDNIGHT DROP launch email',
+    scenarioTitle: 'Stubs — MIDNIGHT DROP launch email',
     brief:
-      'DoorList is launching a ticket drop tonight. An AI agent drafted the announcement email — 40,214 subscribers, sending in an hour. It reads clean and on-brand. It ships unless you block it.',
+      'Stubs is launching a ticket drop tonight. An AI agent drafted the announcement email — 40,214 subscribers, sending in an hour. It reads clean and on-brand. It ships unless you block it.',
     artifactLabel: 'The email draft',
     lines: MARKETING_LINES,
     checklistPrompt: "What's wrong with this email? Select everything you'd raise before it sends.",
     checklistOptions: [
       {
         id: 'mktg_fabricated_claim',
-        label: 'The email claims DoorList was rated #1 by TechCrunch — that claim is fabricated',
+        label: 'The email claims Stubs was rated #1 by TechCrunch — that claim is fabricated',
         isDefect: true,
         isHerring: false,
         mechanism: 'CLAIM_FALSE_UNVERIFIABLE',
@@ -256,16 +256,16 @@ export const CRUCIBLE_VARIANTS: Record<CrucibleVariantKey, CrucibleVariantConten
       },
     ],
     fixExplanation:
-      'DoorList has never been reviewed by TechCrunch. That bullet is a fabricated claim, not a rounding-up of something real — the AI invented a credibility signal because the email needed one. Sending it isn\'t just embarrassing if someone checks; it\'s a real FTC endorsement-claim problem and a screenshot risk the moment a competitor or journalist notices. The fix is deletion, not softening — cut the line, don\'t rephrase it.',
+      'Stubs has never been reviewed by TechCrunch. That bullet is a fabricated claim, not a rounding-up of something real — the AI invented a credibility signal because the email needed one. Sending it isn\'t just embarrassing if someone checks; it\'s a real FTC endorsement-claim problem and a screenshot risk the moment a competitor or journalist notices. The fix is deletion, not softening — cut the line, don\'t rephrase it.',
     herringExplanation:
       "The emoji in the subject line is a brand-voice/taste call, not a factual problem — reasonable people disagree about emoji in subject lines, but it's never a reason to hold a send. Naming it as the block reason (instead of the fabricated claim) is the calibration failure being measured here.",
   },
   DATA: {
     key: 'DATA',
     label: 'Data & Analytics',
-    scenarioTitle: 'DoorList — Promo program memo to the CEO',
+    scenarioTitle: 'Stubs — Promo program memo to the CEO',
     brief:
-      "An AI analyst drafted a memo to DoorList's CEO recommending tripling the Q4 promo budget, based on this quarter's results. It reads confident and well-organized. It goes out unless you block it.",
+      "An AI analyst drafted a memo to Stubs' CEO recommending tripling the Q4 promo budget, based on this quarter's results. It reads confident and well-organized. It goes out unless you block it.",
     artifactLabel: 'The memo',
     lines: DATA_LINES,
     checklistPrompt: "What's wrong with this memo? Select everything you'd raise before it goes out.",
@@ -347,9 +347,9 @@ export interface CruciblePromptTaskContent {
 }
 
 export const CRUCIBLE_PROMPT_TASK: CruciblePromptTaskContent = {
-  pageTitle: 'DoorList — Checkout',
+  pageTitle: 'Stubs — Checkout',
   pageSections: [
-    { kind: 'heading', text: 'DoorList Checkout' },
+    { kind: 'heading', text: 'Stubs Checkout' },
     { kind: 'note', text: 'Event: MIDNIGHT DROP — 2 tickets, General Admission' },
     { kind: 'field', text: 'Promo code: [__________]  [Apply]' },
     { kind: 'field', text: 'Card number: [__________]   Expiry: [____]   CVC: [___]' },
@@ -358,7 +358,7 @@ export const CRUCIBLE_PROMPT_TASK: CruciblePromptTaskContent = {
     { kind: 'note', text: 'Error state (shown when something fails): "Something went wrong. Please try again."' },
   ],
   instructions:
-    "This is a real DoorList checkout page. It works, but it's not good. Write the prompt you'd give an AI to analyze this page and propose specific, concrete improvements — not \"make it better.\" A prompt precise enough that the AI's output would actually be useful to a real product team.",
+    "This is a real Stubs checkout page. It works, but it's not good. Write the prompt you'd give an AI to analyze this page and propose specific, concrete improvements — not \"make it better.\" A prompt precise enough that the AI's output would actually be useful to a real product team.",
   gradingRubric:
     'A strong prompt names concrete problems actually visible on this page — no itemized price breakdown before payment (just a flat "$148.00" with no ticket price / fees / discount split), no visible trust or security signals near the card fields, an error message that gives no actionable information ("Something went wrong"), and no confirmation of whether a promo code was actually applied before charging the card — and asks for a structured, actionable output (e.g. a prioritized list of fixes, specific before/after copy, or a redesigned field layout) rather than a vague "improve the UX" ask. A weak prompt is generic, never references anything specific to this page, or just asks the AI to "make it better" / "improve conversion" with no direction on what to look for or what output it wants back.',
 }
@@ -380,7 +380,7 @@ export interface CrucibleDatasetTaskContent {
 
 export const CRUCIBLE_DATASET_TASK: CrucibleDatasetTaskContent = {
   businessContext:
-    "DoorList launched promo codes two weeks ago (the same feature from the engineering challenge). Support ticket volume is up sharply since, and the team is burning out. The Head of Support wants Engineering to freeze all new feature work until things calm down. Engineering says the data doesn't support a freeze. You've been asked to look at the numbers and make the call.",
+    "Stubs launched promo codes two weeks ago (the same feature from the engineering challenge). Support ticket volume is up sharply since, and the team is burning out. The Head of Support wants Engineering to freeze all new feature work until things calm down. Engineering says the data doesn't support a freeze. You've been asked to look at the numbers and make the call.",
   datasetDescription: 'Support ticket volume and resolution time by category, two weeks before vs. two weeks after the promo-code launch.',
   columns: ['Category', 'Tickets (before)', 'Tickets (after)', 'Avg. resolution (before)', 'Avg. resolution (after)'],
   rows: [
