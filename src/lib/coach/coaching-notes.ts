@@ -31,6 +31,7 @@ import { getVisibilityCalibration, type VisibilityCalibration } from '@/lib/coac
 import type { ApplicationTrendsResult } from '@/lib/network/application-trends'
 import { getAnonymizedReferenceBreakdown, type ReferenceBreakdown } from '@/lib/coach/reference-breakdown'
 import { getJobActivityBreakdown, type JobActivityBreakdown } from '@/lib/coach/job-activity'
+import { getSearchStrategyDiagnosis, type SearchPatternFlag } from '@/lib/coach/search-strategy-diagnosis'
 import { BLOCKER_OPTIONS, MOTIVATIONS_OPTIONS } from '@/lib/constants/onboarding'
 
 export interface GapAnalysisGap {
@@ -450,10 +451,14 @@ export interface CoachingNotes {
   // getJobActivityBreakdown — the coach-facing, all-time counterpart to the
   // candidate-facing weekly outcomes.
   jobActivity: JobActivityBreakdown
+  // Deterministic, no-LLM pattern flags (applying-without-interviews,
+  // apply/network imbalance, scattershot targeting, company repeats) — see
+  // search-strategy-diagnosis.ts. Safe to compute on every view.
+  searchPatternFlags: SearchPatternFlag[]
 }
 
 export async function getCoachingNotes(candidateId: string): Promise<CoachingNotes> {
-  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, confidentialDisclosure, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown, jobActivity] = await Promise.all([
+  const [candidate, moodHistory, sentimentAlert, visibilityComfortTrend, latestWeeklyVisibilityComfort, marketRealitySnapshots, avoidancePattern, latestReport, surfacedJobs, coachingOnboardingAnswers, confidentialDisclosure, selfAwarenessFlags, visibilityCalibration, appliedJobs, watchlistEntries, opennessToLearning, referenceBreakdown, jobActivity, searchPatternFlags] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -543,6 +548,7 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     getOpennessToLearning(candidateId),
     getAnonymizedReferenceBreakdown(candidateId),
     getJobActivityBreakdown(candidateId),
+    getSearchStrategyDiagnosis(candidateId),
   ])
 
   return {
@@ -601,5 +607,6 @@ export async function getCoachingNotes(candidateId: string): Promise<CoachingNot
     referenceBreakdown,
     personalContext: buildPersonalContext(candidate),
     jobActivity,
+    searchPatternFlags,
   }
 }

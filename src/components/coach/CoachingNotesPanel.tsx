@@ -50,6 +50,30 @@ export function CoachingNotesPanel({ notes }: { notes: CoachingNotes }) {
         </div>
       )}
 
+      {notes.searchPatternFlags.length > 0 && (
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <p className="text-sm font-semibold text-foreground">Search strategy patterns</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Deterministic reads on real activity — not self-reported, not LLM-generated.
+          </p>
+          <div className="mt-3 space-y-3">
+            {notes.searchPatternFlags.map((flag) => (
+              <div key={flag.key}>
+                <p className="text-sm font-medium text-foreground">{flag.label}</p>
+                <p className="text-sm text-muted-foreground">{flag.detail}</p>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                  {flag.causes.map((c, i) => (
+                    <li key={i} className="text-foreground">
+                      {c.cause} <span className="text-muted-foreground">— {c.fix}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Sentiment trend</p>
