@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
 
-export const metadata: Metadata = { title: 'The Full Crucible Assessment' }
+export const metadata: Metadata = { title: 'The Full noexperienceneeded.ai Assessment' }
 
 export default function CrucibleFullPage() {
   return (
@@ -20,7 +20,7 @@ export default function CrucibleFullPage() {
           A real work sample you can send to employers.
         </h1>
         <p className="mt-4 text-muted-foreground">
-          The full Crucible assessment is a 75-minute evaluation on a real codebase, with a report you can share
+          The full noexperienceneeded.ai assessment is a 75-minute evaluation on a real codebase, with a report you can share
           directly with employers — the interview, before the interview. It&apos;s not open yet. Leave your email
           and we&apos;ll tell you the moment it is.
         </p>

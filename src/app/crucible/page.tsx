@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { CrucibleLandingTracker } from '@/components/crucible/CrucibleLandingTracker'
 
 export const metadata: Metadata = {
-  title: 'Crucible — Prove you\'re hireable',
+  title: 'noexperienceneeded.ai — Prove you\'re hireable',
   description:
     'An AI wrote real code. It looks done. It isn\'t. You\'re not taking a test — the AI is. You\'re the judge. Free, 15 minutes, use any AI you want.',
 }
@@ -51,8 +51,11 @@ export default async function CruciblePage({
       <CrucibleLandingTracker src={src ?? 'landing'} />
       {/* ── Header ── */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <span className="font-[family-name:var(--font-unbounded)] text-lg font-bold tracking-tight text-[#F5F3EE]">
-          CRUCIBLE
+        <span className="font-[family-name:var(--font-jetbrains-mono)] text-lg font-bold tracking-tight">
+          <span className="text-[#C8FF1A] [text-shadow:0_0_10px_rgba(200,255,26,0.55)]">no</span>
+          <span className="font-normal text-[#F5F3EE]/40">experience</span>
+          <span className="text-[#FF2E9A] [text-shadow:0_0_10px_rgba(255,46,154,0.55)]">needed</span>
+          <span className="text-[#2EE6FF]">.ai</span>
         </span>
         <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#F5F3EE]/50">by NextChapter</span>
       </header>
@@ -212,11 +215,11 @@ export default async function CruciblePage({
               How scoring works
             </summary>
             <div className="mt-4 space-y-2 text-sm text-[#F5F3EE]/70">
-              <p>You flag lines, pick a real reason for each flag, and call ship or block.</p>
-              <p>There&apos;s one real defect worth blocking on, and one cosmetic distraction that isn&apos;t.</p>
+              <p>Three short rounds: judge a real AI mistake, write a prompt that would fix a real page, and read a real dataset to make a real call.</p>
+              <p>Each one has a real answer worth catching, and one cosmetic distraction that isn&apos;t worth blocking over.</p>
               <p>
-                Blocking a release over trivia costs points — calibration is part of judgment. Disclosing which
-                AI you used, and how, earns points too.
+                Chasing the distraction over the real issue costs points — calibration is part of judgment.
+                Disclosing which AI you used, and how, earns points too.
               </p>
             </div>
           </details>

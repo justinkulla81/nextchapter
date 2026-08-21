@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
 
-export const metadata: Metadata = { title: 'The Crucible Lesson' }
+export const metadata: Metadata = { title: 'The noexperienceneeded.ai Lesson' }
 
 export default function CrucibleLessonPage() {
   return (

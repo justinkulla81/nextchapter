@@ -26,13 +26,13 @@ export default function WaitlistThanksPage() {
       <div className="mx-auto max-w-sm space-y-2 rounded-xl border border-border bg-off-white p-5">
         <p className="font-semibold text-navy">In the meantime — prove what a resume can&apos;t.</p>
         <p className="text-sm text-muted-foreground">
-          Take the Crucible challenge — 15 minutes, use any AI you want, get a scored work sample.
+          Take the noexperienceneeded.ai challenge — 15 minutes, use any AI you want, get a scored work sample.
         </p>
         <Link
           href="/crucible/test?src=nc_newgrad"
           className="mt-2 inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand/90"
         >
-          Take the Crucible challenge
+          Take the challenge
         </Link>
       </div>
 

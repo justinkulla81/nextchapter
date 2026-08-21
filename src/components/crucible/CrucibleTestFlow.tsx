@@ -514,7 +514,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
               <span className="text-muted-foreground">Retry with a new challenge in 24h</span>
             )}
             <Link href="/crucible" className="text-muted-foreground underline underline-offset-4">
-              Back to Crucible
+              Back to noexperienceneeded.ai
             </Link>
           </div>
         </div>

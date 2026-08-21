@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo'
 import { CrucibleTestFlow } from '@/components/crucible/CrucibleTestFlow'
 import type { CrucibleSource } from '@prisma/client'
 
-export const metadata: Metadata = { title: 'Crucible Challenge' }
+export const metadata: Metadata = { title: 'noexperienceneeded.ai Challenge' }
 
 function resolveSource(src: string | undefined): CrucibleSource {
   if (src === 'nc_newgrad') return 'NC_NEWGRAD'
@@ -27,7 +27,7 @@ export default async function CrucibleTestPage({
           <Link href="/crucible">
             <Logo className="text-xl" />
           </Link>
-          <span className="text-xs font-medium text-muted-foreground">Crucible</span>
+          <span className="text-xs font-medium text-muted-foreground">noexperienceneeded.ai</span>
         </div>
       </header>
       <CrucibleTestFlow source={source} skipEmail={source !== 'LANDING'} skipResume={source !== 'LANDING'} />

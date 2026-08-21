@@ -223,7 +223,7 @@ export default async function SkillsAssessmentsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-medium text-foreground">Crucible: AI Work-Sample Challenge</CardTitle>
+          <CardTitle className="text-base font-medium text-foreground">noexperienceneeded.ai: AI Work-Sample Challenge</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
