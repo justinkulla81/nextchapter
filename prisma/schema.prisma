@@ -558,7 +558,8 @@ model CandidateProfile {
   // time, both before any identifying info existed.
   adminNewCandidateEmailSentAt DateTime?
 
-  loginEvents CandidateLoginEvent[]
+  loginEvents         CandidateLoginEvent[]
+  homepageVisitEvents HomepageVisitEvent[]
 
   // Privacy & Visibility
   privacyTier            PrivacyTier @default(LOCKED)
@@ -865,22 +866,22 @@ model CandidateProfile {
   negotiationComfort Int?
 
   // Part 4: Goals
-  remotePreference    String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
-  targetRoleType      String?
-  targetIndustries    String[]
-  targetFunction      String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
-  targetCompanySize   String?
-  targetCompanyStage  String?
-  targetCompMin       Int?
-  compFlexible        Boolean  @default(false)
-  willingToStartLower Boolean  @default(false)
-  startLowerRationale String?
-  openToRelocation    Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
-  relocationNotes     String?
-  travelWillingness   Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Stored now; not yet wired into job-matching filters, matching the other flexibility fields' current unused-for-filtering state.
+  remotePreference     String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
+  targetRoleType       String?
+  targetIndustries     String[]
+  targetFunction       String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
+  targetCompanySize    String?
+  targetCompanyStage   String?
+  targetCompMin        Int?
+  compFlexible         Boolean  @default(false)
+  willingToStartLower  Boolean  @default(false)
+  startLowerRationale  String?
+  openToRelocation     Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
+  relocationNotes      String?
+  travelWillingness    Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Stored now; not yet wired into job-matching filters, matching the other flexibility fields' current unused-for-filtering state.
   aiDisplacementReason String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Stored now, not yet wired into search-strategy guidance — see AI_DISPLACEMENT_OPTIONS's comment.
-  equityImportant     Boolean  @default(false)
-  dealBreakers        String?
+  equityImportant      Boolean  @default(false)
+  dealBreakers         String?
 
   // Personal Context: Blockers + Motivations (Prompt 47 rework, consolidated
   // onto Search Strategy as its own required "Blockers and Motivations"
@@ -1332,9 +1333,9 @@ model CandidateProfile {
   workHistory                    WorkHistoryEntry[]
   educationHistory               EducationEntry[]
   references                     Reference[]
-  referencedAsRefereeBy          Reference[]              @relation("RefereeCandidate")
-  crucibleSessions                CrucibleSession[]
-  linkedFromContacts             SupportNetworkContact[]  @relation("SupportNetworkContactLinkedCandidate")
+  referencedAsRefereeBy          Reference[]                      @relation("RefereeCandidate")
+  crucibleSessions               CrucibleSession[]
+  linkedFromContacts             SupportNetworkContact[]          @relation("SupportNetworkContactLinkedCandidate")
   identityMatches                CandidateIdentityMatch[]
   referenceQuotes                ReferenceQuote[]
   competencyScores               CompetencyScore[]
@@ -1628,8 +1629,16 @@ model HomepageVisitEvent {
   userAgent String?
   createdAt DateTime               @default(now())
 
+  // Set only when the beacon request carried a real (non-anonymous) Supabase
+  // session — most homepage visitors are logged out, so this is null far
+  // more often than not. Never used to look up/create a profile, only to
+  // attach an existing one, so this never grows CandidateProfile rows.
+  candidateId String?
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+
   @@index([ip, createdAt])
   @@index([createdAt])
+  @@index([candidateId])
 }
 
 // Prompt: Portfolio — a candidate can hold several distinct narratives (e.g.
@@ -1839,9 +1848,9 @@ model Reference {
   refereeCandidate     CandidateProfile? @relation("RefereeCandidate", fields: [refereeCandidateId], references: [id], onDelete: SetNull)
   relationshipType     ReferenceType
   yearsWorkedTogether  Int?
-  verifiedRelationship Boolean         @default(false)
-  status               ReferenceStatus @default(REQUESTED)
-  requestedAt          DateTime        @default(now())
+  verifiedRelationship Boolean           @default(false)
+  status               ReferenceStatus   @default(REQUESTED)
+  requestedAt          DateTime          @default(now())
   completedAt          DateTime?
   declinedAt           DateTime? // set when the referee self-declines via /ref/[token] — distinct from an admin/candidate-set DECLINED status
   declineReason        String? // optional, referee-supplied — shown to the candidate
@@ -2168,9 +2177,9 @@ enum CourseActivityStatus {
 // exists to drive the card's own status pill, including the ENROLLED state
 // LearningBadge has no equivalent for.
 model CandidateCourseActivity {
-  id          String               @id @default(cuid())
+  id          String           @id @default(cuid())
   candidateId String
-  candidate   CandidateProfile     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   courseTitle String
   provider    String?
@@ -3479,9 +3488,9 @@ model MarketResponseLog {
 // Adzuna's free tier is 1,000 calls/month for the whole app, so this is a
 // hard requirement, not an optimization. 48h TTL enforced in application code.
 model MarketConditionsSnapshot {
-  id        String @id @default(cuid())
-  roleQuery String // normalized lowercase query, e.g. "senior product manager"
-  location  String // normalized "city, state" | state | "us"
+  id               String   @id @default(cuid())
+  roleQuery        String // normalized lowercase query, e.g. "senior product manager"
+  location         String // normalized "city, state" | state | "us"
   // Normalized lowercase target-industry term this row's ideal-count query
   // was scoped to; "" (default) means no industry known — a generic,
   // industry-unscoped row, same as every row before this field existed.
@@ -3790,9 +3799,9 @@ model CandidateIdentityMatch {
   matchedEmail   String?
   matchedCompany String?
 
-  status       CandidateIdentityMatchStatus @default(PENDING)
-  reviewedBy   String?
-  reviewedAt   DateTime?
+  status     CandidateIdentityMatchStatus @default(PENDING)
+  reviewedBy String?
+  reviewedAt DateTime?
 
   createdAt DateTime @default(now())
 
@@ -4002,38 +4011,38 @@ model SupportNetworkContact {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  name                    String
-  company                 String?
-  title                   String?
+  name                      String
+  company                   String?
+  title                     String?
   // Primary email — always the first entry of `emails` below (or null if
   // that list is empty). Kept as its own column, unmodified in shape, so
   // every existing consumer (Message buttons, gmailComposeHref call sites,
   // admin outreach pages, CSV export, ...) keeps working untouched; `emails`
   // is purely additive on top of it.
-  email                   String?
+  email                     String?
   // Up to 3 emails for this contact (soft cap enforced in application code,
   // not the DB). Lets a re-imported/re-added contact with a different email
   // than the one on file get merged into the existing row instead of
   // creating a duplicate (see doImportConnectionsCsv in
   // src/app/dashboard/network/actions.ts) — the new address is appended
   // here rather than silently dropped or overwriting `email`.
-  emails                  String[]                   @default([])
-  phone                   String?
-  linkedinUrl             String?
+  emails                    String[]                   @default([])
+  phone                     String?
+  linkedinUrl               String?
   // Candidate-flagged "this person matters most" — independent of
   // relationshipTags, which capture *what* they are (recruiter, hiring
   // manager, ...), not whether the candidate has decided to prioritize them.
-  isPriority              Boolean                    @default(false)
+  isPriority                Boolean                    @default(false)
   // Set the first time this contact earns CONTACT_PRIORITIZED points (see
   // toggleContactPriority) — a durable per-contact "already paid" flag so
   // star/unstar/restar can't farm points, independent of isPriority's
   // current on/off state. Candidate-wide count of non-null rows here (capped
   // at 5) is the lifetime progress shown in the Action Plan box.
-  priorityPointsAwardedAt DateTime?
-  category                ContactCategory?
-  warmth                  ContactWarmth              @default(WARM)
-  source                  ContactSource              @default(MANUAL)
-  createdAt               DateTime                   @default(now())
+  priorityPointsAwardedAt   DateTime?
+  category                  ContactCategory?
+  warmth                    ContactWarmth              @default(WARM)
+  source                    ContactSource              @default(MANUAL)
+  createdAt                 DateTime                   @default(now())
   // Whether this contact still works at `company` — no reliable signal
   // exists to infer this (a LinkedIn export only ever captures a contact's
   // company as of export time, with no way to tell if it's since gone
@@ -4047,14 +4056,14 @@ model SupportNetworkContact {
   linkedCandidateId         String?
   linkedCandidate           CandidateProfile?          @relation("SupportNetworkContactLinkedCandidate", fields: [linkedCandidateId], references: [id], onDelete: SetNull)
   // Multi-select "who is this person" tags — see RelationshipTag's comment.
-  relationshipTags        RelationshipTag[]          @default([])
+  relationshipTags          RelationshipTag[]          @default([])
   // Set when the candidate marks SAME_SCHOOL and names the school.
-  schoolName              String?
+  schoolName                String?
   // Best-effort guesses from a non-consumer email domain (see
   // matchRecruiterRoleMention-adjacent logic in sync-google-calendar.ts) —
   // shown as a hint, never overwrites the candidate-confirmed `company`.
-  inferredCompany         String?
-  inferredSchool          String?
+  inferredCompany           String?
+  inferredSchool            String?
   // Lower-trimmed "name|company" dedup key, computed at write time by
   // normalizeContactKey() in src/lib/network/csv-import.ts. Stops
   // re-uploading the same LinkedIn export from creating duplicate rows
@@ -4062,36 +4071,36 @@ model SupportNetworkContact {
   // identifies genuinely-new contacts for the weekly NETWORKING_LIST Sprint
   // credit. Nullable so pre-migration rows are unaffected — Postgres treats
   // each NULL as distinct in a unique index, so legacy rows never collide.
-  normalizedKey           String?
+  normalizedKey             String?
   // Soft-delete — set instead of a real delete so a later CSV re-import can
   // tell "this person was never imported" apart from "the candidate removed
   // this person on purpose" and skip resurrecting them. Filtered out of the
   // main directory list; surfaced on its own Removed Contacts page with a
   // restore action that just clears this field.
-  removedAt               DateTime?
+  removedAt                 DateTime?
   // The actual LinkedIn connection date ("Connected On" in their export) —
   // distinct from createdAt, which is when this row was imported into
   // NextChapter and could be months/years after the real connection date.
   // Only ever populated from a LinkedIn CSV upload; left null for
   // manually-added contacts rather than guessed at.
-  connectedAt             DateTime?
+  connectedAt               DateTime?
   // NextChapter admin's own outreach tracking for recruiters/coaches/hiring
   // managers surfaced through candidates' networks — a business-development
   // lead list, entirely separate from the candidate's own relationship to
   // this person. Defaults NOT_REVIEWED for every contact, not just tagged
   // ones, so the admin list's "reviewed" count means something.
-  adminOutreachStatus     ContactAdminOutreachStatus @default(NOT_REVIEWED)
-  adminNotes              String?
+  adminOutreachStatus       ContactAdminOutreachStatus @default(NOT_REVIEWED)
+  adminNotes                String?
   // The candidate's own free-text notes about this person — distinct from
   // adminNotes above, which is NextChapter's internal business-development
   // tracking and never candidate-visible.
-  notes                   String?
+  notes                     String?
   // Free-text tags a candidate adds themselves, alongside the closed
   // RelationshipTag set above (e.g. "mentor," "old boss," "met at a
   // conference") — RelationshipTag stays a fixed enum so admin tooling and
   // scoring logic keep a stable set of values to key off of; this is purely
   // for the candidate's own organization.
-  customTags              String[]                   @default([])
+  customTags                String[]                   @default([])
 
   outreachLogs   OutreachLog[]
   // Jobs this contact has been manually flagged as able to help with
@@ -7603,22 +7612,22 @@ enum CrucibleBranch {
 }
 
 model CrucibleSession {
-  id          String            @id @default(cuid())
+  id          String               @id @default(cuid())
   candidateId String?
-  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+  candidate   CandidateProfile?    @relation(fields: [candidateId], references: [id], onDelete: SetNull)
   // Captured upfront (right after the landing CTA, before the challenge)
   // for LANDING-sourced sessions — never required for NC-sourced sessions,
   // which already have a real candidate email on file.
   email       String?
-  source      CrucibleSource    @default(LANDING)
+  source      CrucibleSource       @default(LANDING)
   jobIntent   CrucibleJobIntent?
   variant     CrucibleVariant?
   state       CrucibleSessionState @default(STARTED)
 
   // [{ line: number, severity: 'critical'|'minor'|'cosmetic', note: string }]
-  flags      Json?
-  verdict    CrucibleVerdict?
-  worstThing String?          @db.Text
+  flags          Json?
+  verdict        CrucibleVerdict?
+  worstThing     String?          @db.Text
   // { tools: string[], bestMove: string }
   aiTools        Json?
   resumeFilePath String? // crucible-resumes bucket, leads/<uuid>.<ext> — same "service-role upload, never scored" pattern as ResumeSubmissionLead
@@ -7650,12 +7659,12 @@ enum CrucibleInterestKind {
 // "Reserve my full assessment" / "Start the lesson" — both routes are Part A
 // stubs (interest capture only, no real product behind them yet).
 model CrucibleInterest {
-  id        String              @id @default(cuid())
+  id        String               @id @default(cuid())
   sessionId String
-  session   CrucibleSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session   CrucibleSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   kind      CrucibleInterestKind
   email     String
-  createdAt DateTime            @default(now())
+  createdAt DateTime             @default(now())
 
   @@index([kind])
   @@index([email])

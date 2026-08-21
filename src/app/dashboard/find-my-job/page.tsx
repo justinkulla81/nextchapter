@@ -7,7 +7,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { getWatchlistView } from '@/lib/company-tracker/watchlist'
-import { FIT_BUCKET_LABEL, isWeakFit } from '@/lib/jobs/fit-bucket-types'
+import { FIT_BUCKET_LABEL, FIT_BUCKET_SORT_RANK, isWeakFit } from '@/lib/jobs/fit-bucket-types'
 import { fitScoreToLabel, type FitScoreLabel } from '@/lib/jobs/fit-score-label'
 import { cn } from '@/lib/utils'
 import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistForm'
@@ -331,27 +331,45 @@ async function JobRecommendationsSection({
           <div className="divide-y divide-border rounded-md border border-border">
             <ShowMoreList pageSize={5}>
               {[
-                ...visibleBoardPostings.map((posting) => (
-                  <DiscoverJobCard
-                    key={posting.id}
-                    posting={posting}
-                    fitBucket={computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))}
-                    idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
-                  />
-                )),
-                ...visibleSurfacedJobs.map((job) => {
-                  const worksHere = worksHereFor(job.companyName)
-                  return (
-                    <NextSurfacedJobCard
-                      key={job.id}
-                      job={job}
-                      fitBucket={computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))}
-                      idealMatch={computeSurfacedJobIsIdealMatch(profile, job, companySizeBandFor(job.companyName))}
-                      worksHereContacts={worksHere.contacts}
-                      worksHereTotalCount={worksHere.totalCount}
-                    />
-                  )
-                }),
+                // Step Up / On Target surface before a real downgrade — see
+                // FIT_BUCKET_SORT_RANK. Sort is stable, so within the same
+                // bucket the original recency order (board postings first,
+                // then surfaced jobs, newest of each first) is preserved.
+                ...[
+                  ...visibleBoardPostings.map((posting) => {
+                    const fitBucket = computeBoardListingFitBucket(profile, posting, companySizeBandFor(posting.companyName))
+                    return {
+                      rank: FIT_BUCKET_SORT_RANK[fitBucket],
+                      node: (
+                        <DiscoverJobCard
+                          key={posting.id}
+                          posting={posting}
+                          fitBucket={fitBucket}
+                          idealMatch={computeBoardListingIsIdealMatch(profile, posting, companySizeBandFor(posting.companyName))}
+                        />
+                      ),
+                    }
+                  }),
+                  ...visibleSurfacedJobs.map((job) => {
+                    const fitBucket = computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))
+                    const worksHere = worksHereFor(job.companyName)
+                    return {
+                      rank: FIT_BUCKET_SORT_RANK[fitBucket],
+                      node: (
+                        <NextSurfacedJobCard
+                          key={job.id}
+                          job={job}
+                          fitBucket={fitBucket}
+                          idealMatch={computeSurfacedJobIsIdealMatch(profile, job, companySizeBandFor(job.companyName))}
+                          worksHereContacts={worksHere.contacts}
+                          worksHereTotalCount={worksHere.totalCount}
+                        />
+                      ),
+                    }
+                  }),
+                ]
+                  .sort((a, b) => a.rank - b.rank)
+                  .map((entry) => entry.node),
                 // Locked A-List-only postings paginate right after the real,
                 // unlocked ones in this same list — once you've paged past
                 // what's actually visible to you, the remaining pages are

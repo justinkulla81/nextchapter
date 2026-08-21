@@ -38,6 +38,20 @@ export function isWeakFit(bucket: FitBucket): boolean {
   return bucket === 'stretch' || bucket === 'below_level' || bucket === 'overqualified'
 }
 
+// Recommendation-list display order: aim-higher (Step Up) and same-level
+// matches (On Target/Lateral) surface before a real downgrade — a candidate
+// should see what they could reach for before what they're overqualified
+// for, not just whatever was surfaced most recently. Lateral outranks a
+// downgrade but not a same-level-or-better match, so it only fills a slot
+// once the stronger buckets are exhausted. Lower number sorts first.
+export const FIT_BUCKET_SORT_RANK: Record<FitBucket, number> = {
+  stretch: 0,
+  strong: 1,
+  good: 2,
+  below_level: 3,
+  overqualified: 4,
+}
+
 // Listings live on the board for up to 30 days (see THIRTY_DAYS_MS in
 // ats-job-board-feed.ts / job-board-submission.ts) — "new" is a much
 // tighter window than that, just long enough to flag a listing a candidate

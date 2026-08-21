@@ -1,9 +1,12 @@
+import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { classifyUserAgent } from '@/lib/http/user-agent'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
+import { formatAdminDateTime } from '@/lib/admin/format-date'
+import { candidateDisplayName } from '@/lib/messaging/threads'
 
 export const maxDuration = 30
 
@@ -16,6 +19,7 @@ interface Row {
   referrer: string | null
   userAgent: string | null
   location: string | null
+  candidate: { id: string; firstName: string | null; lastName: string | null } | null
 }
 
 // Anonymous public-homepage traffic only — never candidate/coach/recruiter/
@@ -36,6 +40,7 @@ export default async function AdminVisitorsPage({
       orderBy: { createdAt: 'desc' },
       skip: params.skip,
       take: params.take,
+      include: { candidate: { select: { id: true, firstName: true, lastName: true } } },
     }),
     prisma.homepageVisitEvent.count(),
   ])
@@ -57,12 +62,13 @@ export default async function AdminVisitorsPage({
     referrer: e.referrer,
     userAgent: e.userAgent,
     location: e.ip ? (locationByIp.get(e.ip) ?? null) : null,
+    candidate: e.candidate,
   }))
 
   const result = paginatedResult(rows, total, params)
 
   const columns: AdminColumn<Row>[] = [
-    { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => r.createdAt.toLocaleString() },
+    { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => formatAdminDateTime(r.createdAt) },
     { header: 'IP', render: (r) => r.ip ?? 'unknown' },
     { header: 'Location', render: (r) => r.location ?? '—' },
     { header: 'Event', render: (r) => (r.eventType === 'PAGE_VIEW' ? 'Homepage view' : 'Link click') },
@@ -74,6 +80,13 @@ export default async function AdminVisitorsPage({
     {
       header: 'Visitor',
       render: (r) => {
+        if (r.candidate) {
+          return (
+            <Link href={`/support/admin/candidates/${r.candidate.id}`} className="text-primary underline underline-offset-4">
+              {candidateDisplayName(r.candidate)}
+            </Link>
+          )
+        }
         const cls = classifyUserAgent(r.userAgent)
         return cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'
       },
