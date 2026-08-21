@@ -3,12 +3,52 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
+import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { classifyUserAgent } from '@/lib/http/user-agent'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { candidateDisplayName } from '@/lib/messaging/threads'
 
 export const maxDuration = 30
+
+const CHART_WINDOW_DAYS = 30
+const ET_TIME_ZONE = 'America/New_York'
+
+// en-CA formats as YYYY-MM-DD — a clean, sortable, ET-anchored day key with
+// no manual date-string parsing, matching the ET convention already
+// established for this page's Time column (see format-date.ts).
+function etDateKey(date: Date): string {
+  return date.toLocaleDateString('en-CA', { timeZone: ET_TIME_ZONE })
+}
+
+// Module-level helper, not called inline inside the component body —
+// Date.now() is an impure call the react-hooks/purity rule flags wherever a
+// component function reads it directly (see interim-work/page.tsx's
+// twoDaysAgo for the same pattern).
+function now(): Date {
+  return new Date()
+}
+
+// One row per calendar day in the window, oldest first, zero-filled for
+// days with no human traffic — a chart with silent gaps reads as "we have
+// no data for that day," not "zero visitors that day."
+function buildHumanVisitorsPerDay(events: { createdAt: Date; userAgent: string | null }[]): { dateKey: string; count: number }[] {
+  const counts = new Map<string, number>()
+  for (const e of events) {
+    if (classifyUserAgent(e.userAgent) !== 'human') continue
+    const key = etDateKey(e.createdAt)
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+
+  const days: { dateKey: string; count: number }[] = []
+  const today = now()
+  for (let i = CHART_WINDOW_DAYS - 1; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
+    const key = etDateKey(d)
+    days.push({ dateKey: key, count: counts.get(key) ?? 0 })
+  }
+  return days
+}
 
 interface Row {
   id: string
@@ -35,7 +75,9 @@ export default async function AdminVisitorsPage({
   const rawParams = await searchParams
   const params = parseListParams(rawParams, [], 50)
 
-  const [events, total] = await Promise.all([
+  const chartWindowStart = new Date(now().getTime() - CHART_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+
+  const [events, total, chartEvents] = await Promise.all([
     prisma.homepageVisitEvent.findMany({
       orderBy: { createdAt: 'desc' },
       skip: params.skip,
@@ -43,7 +85,13 @@ export default async function AdminVisitorsPage({
       include: { candidate: { select: { id: true, firstName: true, lastName: true } } },
     }),
     prisma.homepageVisitEvent.count(),
+    prisma.homepageVisitEvent.findMany({
+      where: { eventType: 'PAGE_VIEW', createdAt: { gte: chartWindowStart } },
+      select: { createdAt: true, userAgent: true },
+    }),
   ])
+
+  const visitorsPerDay = buildHumanVisitorsPerDay(chartEvents)
 
   // One lookup per unique IP on this page, not per row — same convention as
   // the daily digest email (send-homepage-visitor-digest.ts) — comfortably
@@ -100,6 +148,12 @@ export default async function AdminVisitorsPage({
         <p className="mt-1 text-muted-foreground">
           {total} homepage visit events. A daily digest email also summarizes yesterday&apos;s traffic by IP.
         </p>
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Human visitors per day</h2>
+        <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, homepage views only, bots excluded.</p>
+        <VisitorsPerDayChart days={visitorsPerDay} />
       </div>
 
       <AdminDataTable
