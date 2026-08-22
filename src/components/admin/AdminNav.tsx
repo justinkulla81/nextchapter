@@ -87,6 +87,14 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
+      title: 'NEN',
+      links: [
+        { href: '/support/admin/nen-sessions', label: 'Sessions' },
+        { href: '/support/admin/nen-employers', label: 'Employers' },
+        { href: '/support/admin/nen-contests', label: 'Contests' },
+      ],
+    },
+    {
       title: 'Companies',
       links: [{ href: '/support/admin/companies', label: 'Companies' }],
     },

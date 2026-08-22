@@ -7818,6 +7818,14 @@ model CrucibleEmployerProfile {
   functionInterest      CrucibleFunctionInterest?
   onboardingCompletedAt DateTime?
 
+  // Admin record-keeping only (src/app/support/admin/(portal)/nen-employers)
+  // — same posture as RecruiterFirm.status: a visible flag for admin/ops,
+  // not an access-control gate. Suspending an employer here does NOT block
+  // their login; adding real enforcement is a separate, deliberate change
+  // to getCrucibleEmployerDashboardData() plus the auth middleware.
+  suspendedAt DateTime?
+  suspendedBy String? // admin's email, for audit purposes
+
   contests    CrucibleContest[]
   resumeViews CrucibleEmployerResumeView[]
 
