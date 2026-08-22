@@ -4,7 +4,7 @@
 // components without dragging `server-only` code along.
 //
 // Points are NOT the grade (§13) — nothing in this directory ever reads or
-// writes MarketRealityComponentScore/computeDossierCompetencies, and nothing
+// writes MarketRealityComponentScore/computeProbabilityGrade, and nothing
 // in the grade path reads anything from here. Two architecturally separate
 // code paths, on purpose.
 

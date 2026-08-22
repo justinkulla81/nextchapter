@@ -18,23 +18,48 @@ import { scoreToGrade, type Grade } from '@/lib/scoring/grade'
 import { buildMarketRealityHeadline, type MarketRealityHeadline } from '@/lib/scoring/market-reality/narrative'
 import { DIMENSION_LABEL, REVIEWER_DETECTION_FOLLOWUP, type DimensionKey, type Finding, type ReviewerDetectionType } from '@/lib/scoring/resume-analysis/types'
 import { getActiveReviewerDetections } from '@/lib/scoring/market-reality/reviewer-detections'
+import { getGapReframingContent, type GapReframingContent } from '@/lib/reports/career-pivoter-redirect'
+import { NETWORKING_WEIGHT } from '@/lib/scoring/market-reality/attempts'
 
 // ── Section 1: "Where you stand" ────────────────────────────────────────
+//
+// `grade` below is `probabilityGrade` (see scoring/market-reality/
+// probability.ts) — the one candidate-facing Market Reality Grade. The old
+// composite grade (`startingBand`) still renders, but only as the
+// "starting point before your real attempts count" context, never as a
+// second headline.
 
 export interface WhereYouStand {
   grade: Grade
+  startingBand: Grade | null
   headline: MarketRealityHeadline
   decomposition: { label: string; grade: Grade; control: 'High' | 'None'; note: string }[]
+  perAttemptProbability: number | null
+  rollingAttempts: number | null
+  rollingWindowWeeks: number
+  gapReframing: GapReframingContent | null
 }
 
 export async function getWhereYouStand(candidateId: string): Promise<WhereYouStand | null> {
-  const row = await prisma.marketRealityComponentScore.findUnique({ where: { candidateId } })
+  const [row, candidate] = await Promise.all([
+    prisma.marketRealityComponentScore.findUnique({ where: { candidateId } }),
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: { isPivoting: true, primaryFunction: true, targetRoleType: true },
+    }),
+  ])
   // Passes the already-fetched row through so buildMarketRealityHeadline
   // doesn't re-query the same MarketRealityComponentScore row again.
   const headline = row ? await buildMarketRealityHeadline(candidateId, row) : null
   if (!row || !headline || row.grade === null) return null
 
-  const grade = row.grade as Grade
+  // probabilityGrade should already be populated by computeProbabilityGrade
+  // (called at report-generation time and by the weekly cron) — fall back
+  // to the starting band only for the narrow window before that's ever run
+  // for a brand-new row, so this section never renders nothing.
+  const grade = (row.probabilityGrade as Grade | null) ?? (row.grade as Grade)
+  const startingBand = row.grade as Grade | null
+  const gapReframing = candidate ? getGapReframingContent(grade, candidate) : null
   const decomposition: WhereYouStand['decomposition'] = []
 
   // Experience and Resume are shown as separate tiles (not blended into one
@@ -66,12 +91,56 @@ export async function getWhereYouStand(candidateId: string): Promise<WhereYouSta
       note: 'Level, function, and geography — scarcity rises with seniority.',
     })
   }
-  // No network/effort tile here by design — this grade is a day-one
-  // artifact (record + market), not a measure of platform activity. Network
-  // strength lives in the Dossier instead (see getMoveTheNeedle below,
-  // rendered on the Portfolio page).
+  // Network/effort no longer skip this section entirely — real attempts
+  // (applications + networking) are exactly what the probability grade
+  // above now moves on, computed in scoring/market-reality/attempts.ts.
+  // They're not a fourth decomposition tile here (that would misleadingly
+  // imply they're graded/scored the same way Experience/Resume/Market are)
+  // — they show as rollingAttempts/perAttemptProbability instead, rendered
+  // via getMarketRealityRubric below.
 
-  return { grade, headline, decomposition }
+  return {
+    grade,
+    startingBand,
+    headline,
+    decomposition,
+    perAttemptProbability: row.perAttemptProbability,
+    rollingAttempts: row.rollingAttempts,
+    rollingWindowWeeks: row.rollingWindowWeeks,
+    gapReframing,
+  }
+}
+
+// ── Section 2: the plain-language rubric — "how many attempts does this typically take" ──
+//
+// Template-driven, zero LLM calls, over the exact numbers already persisted
+// on MarketRealityComponentScore by computeProbabilityGrade — the numbers
+// here can never drift from the grade they explain (same reasoning as
+// narrative.ts's headline). Every number is explicitly labeled an estimate.
+
+export interface MarketRealityRubric {
+  perAttemptProbability: number
+  applicationsPerInterview: number
+  conversationsPerInterview: number
+  rollingWindowWeeks: number
+}
+
+export async function getMarketRealityRubric(candidateId: string): Promise<MarketRealityRubric | null> {
+  const row = await prisma.marketRealityComponentScore.findUnique({
+    where: { candidateId },
+    select: { perAttemptProbability: true, rollingWindowWeeks: true },
+  })
+  if (!row || row.perAttemptProbability === null || row.perAttemptProbability <= 0) return null
+
+  const applicationsPerInterview = Math.round(1 / row.perAttemptProbability)
+  const conversationsPerInterview = Math.max(1, Math.round(applicationsPerInterview / NETWORKING_WEIGHT))
+
+  return {
+    perAttemptProbability: row.perAttemptProbability,
+    applicationsPerInterview,
+    conversationsPerInterview,
+    rollingWindowWeeks: row.rollingWindowWeeks,
+  }
 }
 
 // ── Section 3: "What to fix on your resume" ─────────────────────────────

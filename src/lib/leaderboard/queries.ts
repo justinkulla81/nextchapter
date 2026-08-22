@@ -13,7 +13,7 @@ import { LEADERBOARD_PUBLIC_SIZE, LEADERBOARD_BOARDS, type LeaderboardEntry } fr
 // counters, no append-only ledger table of our own. This is a deliberate
 // reuse of this codebase's existing "compute live from source rows, never
 // store a mutable running total" convention (see computeWeeklyBadges,
-// computeMilestoneBadges, computeDossierCompetencies) — it's what makes the
+// computeMilestoneBadges, computeProbabilityGrade) — it's what makes the
 // spec's "any action reversed, removed, or moderated retroactively
 // decrements points" anti-gaming rule (§16) true BY CONSTRUCTION: a
 // cancelled application, a deleted reaction, or a post that gets moderated

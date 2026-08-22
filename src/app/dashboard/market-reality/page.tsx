@@ -31,9 +31,11 @@ import {
   getResumeFixes,
   getRecruiterReadItems,
   getAtsMatrix,
+  getMarketRealityRubric,
 } from '@/lib/reports/market-reality-sections'
 import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { ReviewerExplanationForm } from '@/components/dashboard/ReviewerExplanationForm'
+import { EstimateTag } from '@/components/ui/estimate-tag'
 
 export const metadata: Metadata = { title: 'Market Reality Report' }
 
@@ -220,12 +222,13 @@ export default async function MarketRealityReportPage() {
   // Spec §3), read live rather than frozen into the report row so a
   // resolved reviewer question or a freshly-recomputed component score is
   // never stale (see market-reality-sections.ts's own header comment).
-  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness] = await Promise.all([
+  const [whereYouStand, resumeFixes, recruiterReadItems, atsMatrix, dossierCompleteness, rubric] = await Promise.all([
     getWhereYouStand(profile.id),
     getResumeFixes(profile.id, report?.resumeRewrites ?? null),
     getRecruiterReadItems(profile.id),
     getAtsMatrix(profile.id),
     computeDossierCompleteness(profile.id),
+    getMarketRealityRubric(profile.id),
   ])
 
   // Personalization checklist — the same profile-confirmation fields
@@ -381,15 +384,16 @@ export default async function MarketRealityReportPage() {
             </div>
           )}
 
-          {/* SECTION 1 — "Where you stand" (Report Structure Spec §3.1). The
-              composite grade + which of the three inputs is driving it, per
-              spec §2.2's display rule. Reads live from
-              MarketRealityComponentScore, not frozen into the report row —
+          {/* SECTION 1 — "Where you stand" (Report Structure Spec §3.1).
+              `whereYouStand.grade` is the probability grade (Market Reality
+              Redesign Part 1, scoring/market-reality/probability.ts) — the
+              one candidate-facing value, computed at report-generation time
+              and refreshed weekly by the calibration cron. Reads live from
+              MarketRealityComponentScore, never frozen into the report row —
               see market-reality-sections.ts. The old six-category "Your
-              Grades" breakdown (dossierGradeAtGeneration) is still computed
-              and stored on every report for its other ~20 live consumers,
-              just no longer shown here — this section supersedes it as the
-              candidate-facing standing. */}
+              Grades" breakdown (MarketRealityReport.dossierGradeAtGeneration)
+              is dead code — never populated by anything in this codebase —
+              this section is the only candidate-facing standing. */}
           <div className="mt-10 border-t border-border pt-8">
             <SectionHeading>Where you stand</SectionHeading>
             {!whereYouStand ? (
@@ -404,18 +408,33 @@ export default async function MarketRealityReportPage() {
                   <span className="ml-2 align-middle text-base font-medium text-muted-foreground">
                     {GRADE_LABEL[whereYouStand.grade]}
                   </span>
+                  <EstimateTag />
                 </p>
                 <p className="mt-2 max-w-2xl text-sm text-foreground">
                   {whereYouStand.headline.strongestLine} {whereYouStand.headline.constraintLine}
                 </p>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  This grade is <strong className="font-semibold text-foreground">only ever scored on real signal</strong> —
-                  categories like references and networking count toward it once you&apos;ve actually
-                  done that work in NextChapter, not before. Anything below an A right now is a
-                  snapshot, not a ceiling: a B is a genuinely good start with real gaps still open,
-                  and each category you complete fills in more of your full Executive Dossier.
+                  This is a real, ongoing <strong className="font-semibold text-foreground">estimate of your per-attempt odds
+                  of landing an interview</strong> — it moves as you actually apply and network, and it
+                  recalibrates weekly against what really happens in your search. Blockers and
+                  motivations you&apos;ve shared with your coach never factor into it.
                 </p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                {whereYouStand.gapReframing && (
+                  <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4">
+                    <p className="text-sm font-semibold text-foreground">{whereYouStand.gapReframing.headline}</p>
+                    <div className="mt-2 space-y-2">
+                      {whereYouStand.gapReframing.body.map((paragraph, i) => (
+                        <p key={i} className="text-sm text-muted-foreground">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="mt-6 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Your starting point
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   {whereYouStand.decomposition.map((d) => (
                     <div key={d.label} className="rounded-lg border border-border p-3 text-sm">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -428,6 +447,21 @@ export default async function MarketRealityReportPage() {
                     </div>
                   ))}
                 </div>
+                {rubric && (
+                  <div className="mt-4 rounded-lg border border-border p-4">
+                    <p className="text-sm font-medium text-foreground">
+                      Candidates at your starting point typically need about{' '}
+                      <strong className="font-semibold">{rubric.applicationsPerInterview} applications</strong> or{' '}
+                      <strong className="font-semibold">{rubric.conversationsPerInterview} real conversations</strong> to
+                      generate one interview.
+                      <EstimateTag />
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      A rolling estimate over your last {rubric.rollingWindowWeeks} weeks, not a fixed rule — it
+                      updates as your own results come in.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

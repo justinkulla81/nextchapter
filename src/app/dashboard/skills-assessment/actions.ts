@@ -52,6 +52,20 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
   // Not writing them (rather than writing null) preserves any value a
   // candidate already gave before this form stopped asking, since the
   // scoring formulas that read them still fall back to it.
+  //
+  // Market Reality Redesign Part 2, item 6b: the Dossier's Self-Awareness
+  // section (getOrDraftSelfAwareness, dossier-sections.ts) drafts its
+  // content directly from growthAreas/growthAreasElaboration — the ONLY
+  // real input it has, despite its unlock gate being keyed off the separate
+  // Personality Profile assessment. So the section that actually "refines"
+  // here is this one: a real edit to growth areas invalidates the stale
+  // approved text and draft, prompting a fresh review, rather than leaving
+  // it frozen after first approval forever.
+  const growthAreasChanged =
+    growthAreas.length !== profile.growthAreas.length ||
+    growthAreas.some((area) => !profile.growthAreas.includes(area)) ||
+    growthAreasElaboration !== profile.growthAreasElaboration
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
@@ -61,6 +75,11 @@ export async function updateSkillsAssessment(_prevState: FormState, formData: Fo
       functionSkillConfidence: functionSkillConfidence ? Number(functionSkillConfidence) : null,
       aiFlexibilityLevel: aiFlexibilityLevel ? Number(aiFlexibilityLevel) : null,
       managementSkillConfidence: isPeopleManager && managementSkillConfidence ? Number(managementSkillConfidence) : null,
+      ...(growthAreasChanged && {
+        selfAwarenessDraft: null,
+        selfAwarenessText: null,
+        selfAwarenessSetAt: null,
+      }),
     },
   })
 

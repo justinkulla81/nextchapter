@@ -35,7 +35,7 @@ import {
   detectManagementGoalConflict,
 } from '@/lib/constants/onboarding'
 import { computeMarketRealityComponents } from '@/lib/scoring/market-reality/compute'
-import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { buildMarketRealityHeadline } from '@/lib/scoring/market-reality/narrative'
 import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 
@@ -286,12 +286,16 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     (async () => {
       try {
         await computeMarketRealityComponents(candidateId)
-        const compositeGrade = await computeMarketRealityCompositeGrade(candidateId)
+        // computeProbabilityGrade calls computeMarketRealityCompositeGrade
+        // internally (the starting-band input) — call it once here, not
+        // twice, so this stays the one designated recompute moment rather
+        // than two separate writes of the same starting-band value.
+        const probabilityResult = await computeProbabilityGrade(candidateId)
         const newGradeHeadline = await buildMarketRealityHeadline(candidateId)
-        return { compositeGrade, newGradeHeadline }
+        return { probabilityResult, newGradeHeadline }
       } catch (error) {
-        console.error('Failed to refresh Market Reality Grade composite for report generation:', error)
-        return { compositeGrade: null, newGradeHeadline: null }
+        console.error('Failed to refresh Market Reality Grade for report generation:', error)
+        return { probabilityResult: null, newGradeHeadline: null }
       }
     })(),
     // Up to 3 real, verbatim-quoted weak bullets from the latest
@@ -320,7 +324,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     industrySpecificResult.count > 0
       ? industrySpecificResult.count
       : null
-  const { compositeGrade, newGradeHeadline } = gradeRefresh
+  const { probabilityResult, newGradeHeadline } = gradeRefresh
   const weakBulletQuotes: string[] = latestResumeAnalysisFindings
     ? Object.values(latestResumeAnalysisFindings.dimensionFindings as unknown as Record<DimensionKey, Finding[]>)
         .flat()
@@ -576,7 +580,7 @@ New data added since the previous report (credit these specifically, by name, on
     },
   })
 
-  if (compositeGrade) {
-    captureServerEvent(candidateId, 'grade_assigned', { grade: compositeGrade.grade })
+  if (probabilityResult) {
+    captureServerEvent(candidateId, 'grade_assigned', { grade: probabilityResult.probabilityGrade })
   }
 }

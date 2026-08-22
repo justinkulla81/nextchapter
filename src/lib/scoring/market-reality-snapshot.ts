@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reasons'
 import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 
@@ -17,8 +17,8 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
 
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
 
-  const [composite, latestAiProject, visibilityCalibration] = await Promise.all([
-    computeMarketRealityCompositeGrade(candidateId),
+  const [probability, latestAiProject, visibilityCalibration] = await Promise.all([
+    computeProbabilityGrade(candidateId),
     prisma.learningBadge.findFirst({
       where: { candidateId, badgeType: 'ai_project', judgmentCall: { not: null } },
       orderBy: { completedAt: 'desc' },
@@ -27,7 +27,7 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
   ])
   // No resume/experience data yet to grade — nothing honest to snapshot
   // this week; the cron will pick this candidate back up once they have one.
-  if (!composite) return
+  if (!probability) return
 
   const namedReasons: NamedReason[] = computeNamedReasons([], latestAiProject?.judgmentCall ?? null, {
     jobHoppingFlag: candidate.jobHoppingFlag,
@@ -36,11 +36,15 @@ export async function generateMarketRealitySnapshot(candidateId: string, weekSta
     gapDuration: candidate.gapDuration,
   })
 
+  // Stores the probability grade (probability.ts) — the one candidate-facing
+  // value — not the starting-band composite grade, so countAGradeWeeks
+  // (dossier-sections.ts) and anything else reading this snapshot's `grade`
+  // column reflects real attempts/calibration, not just resume quality.
   await prisma.marketRealitySnapshot.create({
     data: {
       candidateId,
       weekStartDate,
-      grade: composite.grade,
+      grade: probability.probabilityGrade,
       dimensions: [],
       namedReasons: namedReasons as unknown as object,
     },

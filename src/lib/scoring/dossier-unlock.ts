@@ -175,11 +175,50 @@ export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
 const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
 const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
 
+// Market Reality Redesign Part 2 — the alternate path to a full unlock:
+// achieving a real Market Reality B-or-better, OR consistently hitting
+// weekly Sprint targets over a meaningful stretch. Reads
+// MarketRealityComponentScore.probabilityGrade directly (the single source
+// of truth from scoring/market-reality/probability.ts) — never
+// recomputes it. 6 consecutive weeks (an estimate) is deliberately longer
+// than DOSSIER_SPRINT_STREAK_TARGET's 4 weeks above, since this is a full-
+// unlock bypass, not one component of the aspirational checklist.
+const ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS = 6
+
+export interface AlternateUnlockPath {
+  met: boolean
+  gradeMet: boolean
+  streakMet: boolean
+  reason: string
+}
+
+export async function hasAlternateUnlockPath(candidateId: string): Promise<AlternateUnlockPath> {
+  const [component, streak] = await Promise.all([
+    prisma.marketRealityComponentScore.findUnique({ where: { candidateId }, select: { probabilityGrade: true } }),
+    computeCurrentSprintStreak(candidateId, ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS),
+  ])
+
+  const gradeMet = component?.probabilityGrade === 'A' || component?.probabilityGrade === 'B'
+  const streakMet = streak >= ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS
+
+  return {
+    met: gradeMet || streakMet,
+    gradeMet,
+    streakMet,
+    reason: gradeMet
+      ? 'Unlocked — your Market Reality Grade is a B or better.'
+      : streakMet
+        ? `Unlocked — a ${streak}-week Weekly Search Sprint streak.`
+        : 'not yet met',
+  }
+}
+
 export interface DossierUnlockStatus {
   unlocked: boolean
   referencesMet: boolean
   evidenceMet: boolean // at least one of: Operating Profile, Personality Profile, Skills Assessment
   effortMet: boolean // outreach AND applications both at/above target
+  alternatePath: AlternateUnlockPath
   completedReferenceCount: number
   outreachCount: number
   applicationCount: number
@@ -187,7 +226,7 @@ export interface DossierUnlockStatus {
 }
 
 export async function isDossierUnlocked(candidateId: string): Promise<DossierUnlockStatus> {
-  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount] =
+  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount, alternatePath] =
     await Promise.all([
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
       prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
@@ -195,12 +234,13 @@ export async function isDossierUnlocked(candidateId: string): Promise<DossierUnl
       prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true } }),
       prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches computeDossierCompleteness's convention
       prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window
+      hasAlternateUnlockPath(candidateId),
     ])
 
   const referencesMet = completedReferenceCount >= DOSSIER_UNLOCK_REFERENCE_TARGET
   const evidenceMet = Boolean(hasOperatingProfile) || Boolean(hasPersonalityProfile) || profile.skillsAssessmentCompletedAt !== null
   const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
-  const unlocked = referencesMet && evidenceMet && effortMet
+  const unlocked = (referencesMet && evidenceMet && effortMet) || alternatePath.met
 
   const missing: string[] = []
   if (!referencesMet) {
@@ -216,10 +256,22 @@ export async function isDossierUnlocked(candidateId: string): Promise<DossierUnl
   }
 
   const reason = unlocked
-    ? 'Unlocked — you have real references, evidence, and effort on file.'
-    : `Need: ${missing.join(', ')}.`
+    ? alternatePath.met && !(referencesMet && evidenceMet && effortMet)
+      ? alternatePath.reason
+      : 'Unlocked — you have real references, evidence, and effort on file.'
+    : `Need: ${missing.join(', ')}. (Or: ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week Sprint streak, or a Market Reality B or better.)`
 
-  return { unlocked, referencesMet, evidenceMet, effortMet, completedReferenceCount, outreachCount, applicationCount, reason }
+  return {
+    unlocked,
+    referencesMet,
+    evidenceMet,
+    effortMet,
+    alternatePath,
+    completedReferenceCount,
+    outreachCount,
+    applicationCount,
+    reason,
+  }
 }
 
 export type DossierLadderTier = 'LOCKED' | 'PREVIEW' | 'COMPLETE' | 'RECRUITER_INTROS' | 'UNPOSTED_ROLES'

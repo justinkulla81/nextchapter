@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useState } from 'react'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { APPLICATION_CHANNEL_LABELS } from '@/lib/jobs/conversion-diagnostic'
+import type { MarkAppliedState } from '@/app/dashboard/find-my-job/actions'
 
 export function MarkAppliedForm({
   jobPostingId,
@@ -12,13 +13,15 @@ export function MarkAppliedForm({
   isAtCurrentEmployer = false,
 }: {
   jobPostingId: string
-  markApplied: (jobPostingId: string, formData: FormData) => Promise<void>
+  markApplied: (jobPostingId: string, prevState: MarkAppliedState, formData: FormData) => Promise<MarkAppliedState>
   // §4.8: "Warn before applying to their current employer or a known
   // subsidiary." Computed server-side (find-my-job/page.tsx) against the
   // candidate's own WorkHistoryEntry, only ever true while confidential.
   isAtCurrentEmployer?: boolean
 }) {
   const [confirmed, setConfirmed] = useState(false)
+  const boundMarkApplied = markApplied.bind(null, jobPostingId)
+  const [state, formAction] = useActionState(boundMarkApplied, undefined)
 
   if (isAtCurrentEmployer && !confirmed) {
     return (
@@ -35,28 +38,31 @@ export function MarkAppliedForm({
   }
 
   return (
-    <form action={markApplied.bind(null, jobPostingId)} className="flex items-center gap-2">
-      <Select name="channel" defaultValue="COLD_APPLICATION">
-        <SelectTrigger size="sm" aria-label="How did you apply?">
-          <SelectValue placeholder="How did you apply?">
-            {(value: string | null) =>
-              value
-                ? APPLICATION_CHANNEL_LABELS[value as keyof typeof APPLICATION_CHANNEL_LABELS]
-                : 'How did you apply?'
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {Object.entries(APPLICATION_CHANNEL_LABELS).map(([value, label]) => (
-            <SelectItem key={value} value={value}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <SubmitButton variant="outline" size="sm">
-        Applied
-      </SubmitButton>
-    </form>
+    <div className="space-y-1.5">
+      <form action={formAction} className="flex items-center gap-2">
+        <Select name="channel" defaultValue="COLD_APPLICATION">
+          <SelectTrigger size="sm" aria-label="How did you apply?">
+            <SelectValue placeholder="How did you apply?">
+              {(value: string | null) =>
+                value
+                  ? APPLICATION_CHANNEL_LABELS[value as keyof typeof APPLICATION_CHANNEL_LABELS]
+                  : 'How did you apply?'
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(APPLICATION_CHANNEL_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <SubmitButton variant="outline" size="sm">
+          Applied
+        </SubmitButton>
+      </form>
+      {state?.weakFit && state.message && <p className="max-w-xs text-xs text-muted-foreground">{state.message}</p>}
+    </div>
   )
 }

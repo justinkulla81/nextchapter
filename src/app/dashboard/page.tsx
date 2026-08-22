@@ -11,7 +11,7 @@ import { generateMarketRealityReport } from '@/lib/reports/market-reality-report
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
 import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
-import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
+import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
@@ -92,7 +92,7 @@ async function resolveLatestReport(
 }
 
 // getUnviewedSessionImpact makes a live, uncached Anthropic call (unlike
-// computeDossierCompetencies's market/company-size lookups, this one has no
+// computeProbabilityGrade's market/company-size lookups, this one has no
 // self-cache — it's a genuine "show this exact summary once" read, gated on
 // marking the session viewed in the same call) whenever a candidate has an
 // unviewed coach session from the last 7 days. Isolated in its own Suspense
@@ -155,7 +155,11 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase.auth.getUser(),
     computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
-    computeMarketRealityCompositeGrade(profile.id),
+    // The one candidate-facing Market Reality Grade — computeProbabilityGrade
+    // is the single orchestrator (scoring/market-reality/probability.ts);
+    // never call computeMarketRealityCompositeGrade directly here, that
+    // would be a second, parallel computation of the starting-band input.
+    computeProbabilityGrade(profile.id),
     getTodaysMood(profile.id),
     getCheckInSummary(profile.id),
     getCurrentWeekSprint(profile.id),
@@ -270,7 +274,7 @@ export default async function DashboardPage() {
         <DashboardTopStrip
           candidateId={profile.id}
           weeklyProgress={weeklyProgress}
-          marketRealityGrade={marketRealityGrade?.grade ?? null}
+          marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
           searchExecutionAvailable={searchExecutionAvailable}
           currentStreak={checkInSummary.streak}
           weekNumber={weekNumber}
@@ -327,7 +331,7 @@ export default async function DashboardPage() {
           searchStrategyChecklist={searchStrategyChecklist}
           completedReferencesCount={completedReferencesCount}
           weekStartDate={weekStartDate}
-          marketRealityGrade={marketRealityGrade?.grade ?? null}
+          marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
         />
 
         {/* Build Your Dossier — the real §7.2 dossier-completeness checklist
@@ -374,14 +378,14 @@ export default async function DashboardPage() {
             (same list the Market Reality Report itself shows), not a
             separate invented list. Only shown when there's real room to
             improve (not already an A) and real fixes to show. */}
-        {marketRealityGrade?.grade &&
-          marketRealityGrade.grade !== 'A' &&
+        {marketRealityGrade?.probabilityGrade &&
+          marketRealityGrade.probabilityGrade !== 'A' &&
           resumeFixes &&
           resumeFixes.items.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Improve Your Market Reality ({marketRealityGrade.grade} → {NEXT_BETTER_GRADE[marketRealityGrade.grade]})
+                  Improve Your Market Reality ({marketRealityGrade.probabilityGrade} → {NEXT_BETTER_GRADE[marketRealityGrade.probabilityGrade]})
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">

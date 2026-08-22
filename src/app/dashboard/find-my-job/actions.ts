@@ -16,6 +16,7 @@ import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isPoorFitApplication } from '@/lib/scoring/market-reality/attempts'
 import {
   applyInterviewLandedRewrite,
   applyOfferReceivedRewrite,
@@ -267,18 +268,24 @@ export async function submitJobPostingText(jobPostingId: string, formData: FormD
   revalidatePath('/dashboard/find-my-job')
 }
 
-export async function markApplied(jobPostingId: string, formData: FormData) {
+export type MarkAppliedState = { weakFit: boolean; message?: string } | undefined
+
+export async function markApplied(
+  jobPostingId: string,
+  _prevState: MarkAppliedState,
+  formData: FormData
+): Promise<MarkAppliedState> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return
+  if (!user) return undefined
 
   const profile = await getOrCreateCandidateProfile(user.id)
   const jobPosting = await prisma.jobPosting.findFirst({
     where: { id: jobPostingId, candidateId: profile.id },
   })
-  if (!jobPosting || jobPosting.appliedAt) return
+  if (!jobPosting || jobPosting.appliedAt) return undefined
 
   const channel = formData.get('channel') as ApplicationChannel | null
 
@@ -301,6 +308,21 @@ export async function markApplied(jobPostingId: string, formData: FormData) {
   })
 
   revalidatePath('/dashboard/find-my-job')
+
+  // Market Reality Redesign Part 1, item 4: a posting Job Fit already
+  // scored as a poor fit doesn't count toward this week's real attempts
+  // (scoring/market-reality/attempts.ts) — surface that in the moment
+  // rather than leaving the candidate to discover it later on the Market
+  // Reality Report with no idea why their grade didn't move.
+  if (isPoorFitApplication(jobPosting.fitScore)) {
+    return {
+      weakFit: true,
+      message:
+        "This one's a stretch fit — it won't count toward your attempts this week. A few well-targeted applications or real conversations move your grade more than volume alone.",
+    }
+  }
+
+  return { weakFit: false }
 }
 
 export async function generateCoverLetterAction(jobPostingId: string) {

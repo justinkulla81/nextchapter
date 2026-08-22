@@ -1393,6 +1393,7 @@ model CandidateProfile {
   sundayNightReports             SundayNightReport[]
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
+  marketRealityCalibrationChecks MarketRealityCalibrationCheck[]
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
   supportNetworkContacts         SupportNetworkContact[]
@@ -2945,7 +2946,49 @@ model MarketRealityComponentScore {
   marketComputedAt     DateTime?
   effortComputedAt     DateTime?
 
+  // ── Probability engine (Market Reality Redesign Part 1) ──
+  // `grade`/`compositeScore` above stay exactly as-is and become the
+  // STARTING BAND input to the probability model below — never deleted,
+  // never shown to a candidate directly as "the grade" anymore.
+  // `probabilityGrade` is the one value every surface reads going forward;
+  // nothing else may recompute or duplicate it (src/lib/scoring/market-
+  // reality/probability.ts is the only writer).
+  startingBand          String? // 'A'-'F' — same value as `grade`, re-read here for narrative clarity once `grade` stops being "the" grade
+  perAttemptProbability Float? // current per-attempt interview-probability estimate, band-midpoint seeded, adjusted by calibration.ts
+  rollingAttempts       Int? // weighted attempts (applications + 4x networking) in the current rolling window
+  rollingWindowWeeks    Int      @default(10) // estimate, 8-12 week band — stored so it's inspectable/tunable without a redeploy
+  cumulativeProbability Float? // 1-(1-p)^N over rollingAttempts — "how likely you've been pulled at least once"
+  probabilityGrade      String? // "A"-"F" — THE candidate-facing Market Reality Grade
+  probabilityComputedAt DateTime?
+
   updatedAt DateTime @updatedAt
+}
+
+// Weekly calibration-check log (Market Reality Redesign Part 3) — append-
+// only, one row per (candidate, week), so "has this gap held for 3
+// consecutive weeks" is a real historical query, not a guess. Read-mostly;
+// only computeProbabilityGrade's calibration.ts module writes
+// MarketRealityComponentScore.perAttemptProbability/probabilityGrade based
+// on what accumulates here — this table itself is never a second score.
+model MarketRealityCalibrationCheck {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime
+
+  weightedAttempts Int // this week's rolling-window weighted attempts at check time
+  observedRate     Float? // real interviews / weighted attempts — null if below the minimum-sample gate
+  expectedRate     Float // BAND_MIDPOINT of the candidate's band at check time
+
+  gapDirection          String? // 'UNDER' | 'OVER' | 'ON_TRACK' — null if not sample-gated
+  aggregateCorroborated Boolean @default(false) // whether the cross-candidate market-difficulty proxy showed a shared shortfall this week
+  adjustmentApplied     Boolean @default(false) // whether this week's check moved perAttemptProbability at all (within-band nudge or a full cross)
+  bandCrossed           Boolean @default(false) // whether this week specifically crossed a full letter-band boundary
+
+  createdAt DateTime @default(now())
+
+  @@unique([candidateId, weekStartDate])
+  @@index([candidateId, weekStartDate])
 }
 
 // Weekly time series of posting volume for a candidate's stated target
