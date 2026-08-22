@@ -23,9 +23,20 @@ const FOCUS_SECTIONS: { key: keyof WeeklyFocus; label: string; color: string }[]
 export async function WeeklyFocusCard({
   candidateId,
   locked,
+  weeklyPoints,
+  weeklyPointsTarget,
 }: {
   candidateId: string
   locked: boolean
+  // Same live numbers already shown in Your Stats / the Weekly Search
+  // Sprint card (computeWeeklyProgress, computed once per page load) —
+  // passed in rather than recomputed so this can never disagree with them.
+  // Victoria's own cached text below deliberately never states these
+  // numbers itself (see weekly-focus.ts's prompt) — a cached LLM sentence
+  // citing a point count would go stale mid-week and visibly contradict
+  // the live count shown right next to it.
+  weeklyPoints: number
+  weeklyPointsTarget: number
 }) {
   // Skip the (self-cached but still real) LLM draft entirely while locked —
   // there's nothing to show, and no reason to spend the call before the
@@ -64,21 +75,23 @@ export async function WeeklyFocusCard({
               <CardTitle className="text-sm font-medium text-foreground">
                 Victoria&apos;s Advice for Your Weekly Search Strategy
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Victoria&apos;s strategic read for this week</p>
+              <p className="text-xs text-muted-foreground">
+                Victoria&apos;s strategic read for this week · {weeklyPoints} of {weeklyPointsTarget} Sprint points so
+                far
+              </p>
             </div>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="px-5 pb-5">
-          <ul className="space-y-2.5">
-            {FOCUS_SECTIONS.map((section) => (
-              <li key={section.key} className="flex flex-wrap gap-x-1.5 text-sm">
-                <span className={`shrink-0 font-semibold ${section.color}`}>{section.label}:</span>
-                <span className="text-foreground">
-                  {focus[section.key].text} {focus[section.key].recommendation}
-                </span>
-              </li>
-            ))}
-          </ul>
+        <AccordionContent className="space-y-4 px-5 pb-5">
+          {FOCUS_SECTIONS.map((section) => (
+            <div key={section.key}>
+              <p className={`text-xs font-semibold tracking-wide uppercase ${section.color}`}>{section.label}</p>
+              <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-foreground">
+                <li>{focus[section.key].text}</li>
+                <li>{focus[section.key].recommendation}</li>
+              </ul>
+            </div>
+          ))}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

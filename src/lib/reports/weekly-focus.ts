@@ -123,7 +123,7 @@ Considering a pivot to a different function/industry: ${candidate.isPivoting ? '
 Open to fractional/interim consulting while searching: ${candidate.interimConsultingInterest ? 'yes' : 'no'}
 Application volume goal (per week): ${candidate.applicationVolumeGoal ?? 'not specified'} (baseline is 15/week)
 
-This week's Search Sprint: ${pointsAchieved} of ${pointsTarget} points earned so far.
+This week's Search Sprint pace (internal signal — informs your judgment only; the exact numbers are shown live elsewhere on the dashboard and will be stale by the time this is read later in the week, so never quote them): ${pointsAchieved} of ${pointsTarget} points earned so far${pointsAchieved >= pointsTarget ? ' (already at or past target)' : ` (${pointsTarget - pointsAchieved} points short of target)`}.
 Actions committed to this week that are NOT yet done: ${incompleteActions.length > 0 ? incompleteActions.join('; ') : 'everything committed to is done'}
 
 Real outcomes this week:
@@ -157,7 +157,7 @@ Each of the four keys has two parts:
 - maintain.text/recommendation: what's genuinely working and should keep going as-is — citing a real strength, a category that moved up, or a real outcome count that's on pace.
 - startNew.text/recommendation: one concrete new thing worth starting — grounded in a real gap or an unused lever from the data below (e.g. calendar meetings at zero, follow-ups piling up, application volume below goal).
 
-Never state a numeric score, never use the words "level rank," "calibrated," or "tier." Be specific — cite the real number or fact, never generic career-advice filler.
+Never state a numeric score, never use the words "level rank," "calibrated," or "tier." Be specific — cite the real number or fact, never generic career-advice filler. Exception: never state the specific Sprint points-earned number or points-remaining number in any section's text — that number changes throughout the week and this response is cached, so a quoted number here would go stale and visibly disagree with the live count shown elsewhere on the same page. Describe Sprint pace qualitatively instead (e.g. "you're already past this week's target" or "you're behind pace this week") — never a specific point count.
 
 Candidate data:
 ${summary}`

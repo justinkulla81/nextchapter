@@ -308,7 +308,12 @@ export default async function DashboardPage() {
             it stays locked (orange lock, non-expandable) until the Get
             Started gate clears. */}
         <Suspense fallback={<WeeklyFocusSkeleton />}>
-          <WeeklyFocusCard candidateId={profile.id} locked={!bothConnectedUnlocked} />
+          <WeeklyFocusCard
+            candidateId={profile.id}
+            locked={!bothConnectedUnlocked}
+            weeklyPoints={weeklyProgress.weeklyPoints}
+            weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
+          />
         </Suspense>
 
         <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
