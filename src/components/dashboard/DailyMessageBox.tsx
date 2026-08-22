@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, type ReactNode } from 'react'
+import Link from 'next/link'
 import { X } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { dismissDailyMessageBox, markWelcomeVideoWatched } from '@/app/dashboard/actions'
@@ -8,6 +9,28 @@ import type { PageContentView, PageKey } from '@/lib/dashboard/page-content'
 import { VideoEmbed } from '@/components/dashboard/VideoEmbed'
 
 const WELCOME_VIDEO_URL = 'https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/victoria-how-it-works.mp4'
+
+// Admin-authored bullets are plain strings, but a bullet can embed a real
+// dashboard link with markdown-style `[label](/dashboard/...)` syntax —
+// this is the only formatting bullets support, kept minimal on purpose.
+function renderBulletText(bullet: string): ReactNode[] {
+  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g
+  const parts: ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  let key = 0
+  while ((match = linkPattern.exec(bullet))) {
+    if (match.index > lastIndex) parts.push(bullet.slice(lastIndex, match.index))
+    parts.push(
+      <Link key={key++} href={match[2]} className="font-medium text-brand underline underline-offset-2 hover:no-underline">
+        {match[1]}
+      </Link>,
+    )
+    lastIndex = linkPattern.lastIndex
+  }
+  if (lastIndex < bullet.length) parts.push(bullet.slice(lastIndex))
+  return parts
+}
 
 // Server-backed message rotation, scoped per page: a pinned message shows
 // first for every candidate until dismissed, then whichever active,
@@ -68,7 +91,7 @@ export function DailyMessageBox({
             {content.bullets.length > 0 && (
               <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
                 {content.bullets.map((bullet, i) => (
-                  <li key={i}>{bullet}</li>
+                  <li key={i}>{renderBulletText(bullet)}</li>
                 ))}
               </ul>
             )}
