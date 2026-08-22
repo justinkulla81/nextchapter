@@ -5,6 +5,8 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getProfileChecklistItems, type ProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { Button } from '@/components/ui/button'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { prisma } from '@/lib/prisma'
+import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'My Profile' }
@@ -104,6 +106,42 @@ export default async function ProfileHubPage() {
     return { ...section, totalPoints, earnedPoints, allDone, completedAt }
   })
 
+  // "Fully set up" shouldn't just mean the two SECTIONS checklists are
+  // done — a candidate who got real Resume Analysis feedback and never
+  // acted on it (no re-upload since) isn't actually done, even if the
+  // green bar above reads 100%. Real signal, not a guess: the latest
+  // analysis's own findings, same JSON shape market-reality-report.ts
+  // already reads for the same purpose.
+  const latestResume = profile.resumes[0]
+  const latestAnalysis = await prisma.resumeAnalysis.findFirst({
+    where: { candidateId: profile.id },
+    orderBy: { createdAt: 'desc' },
+    select: { createdAt: true, dimensionFindings: true },
+  })
+  const hasResumeFindings = latestAnalysis
+    ? Object.values(latestAnalysis.dimensionFindings as unknown as Record<DimensionKey, Finding[]>).flat().length > 0
+    : false
+  const hasUnaddressedResumeFeedback =
+    hasResumeFindings && !!latestAnalysis && (!latestResume || latestResume.uploadedAt <= latestAnalysis.createdAt)
+
+  const fullySetUpMessage = percentComplete === 100 && (
+    <div className="space-y-2 rounded-lg border border-brand/30 bg-brand/5 p-4">
+      <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Daily Message</p>
+      <p className="text-sm font-semibold text-navy">You&apos;re fully set up — nice work.</p>
+      <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
+        <li>Update anything that has changed since you last looked.</li>
+        {hasUnaddressedResumeFeedback && (
+          <li>
+            <Link href="/dashboard/resume" className="font-medium text-primary underline underline-offset-4">
+              Update your resume
+            </Link>{' '}
+            — you have Resume Analysis feedback you haven&apos;t acted on yet.
+          </li>
+        )}
+      </ul>
+    </div>
+  )
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div className="space-y-2">
@@ -113,13 +151,13 @@ export default async function ProfileHubPage() {
         </p>
         {totalItems > 0 && (
           <div className="space-y-1.5">
-            <p className="text-sm text-foreground">
-              {percentComplete === 100
-                ? "You're fully set up — nice work."
-                : `Your profile is ${percentComplete}% complete — you're in good shape. ${
-                    firstIncompleteSection ? `One thing would make it stronger: ${firstIncompleteSection.title.toLowerCase()}.` : ''
-                  }`}
-            </p>
+            {percentComplete < 100 && (
+              <p className="text-sm text-foreground">
+                {`Your profile is ${percentComplete}% complete — you're in good shape. ${
+                  firstIncompleteSection ? `One thing would make it stronger: ${firstIncompleteSection.title.toLowerCase()}.` : ''
+                }`}
+              </p>
+            )}
             <div
               role="progressbar"
               aria-valuenow={percentComplete}
@@ -135,7 +173,7 @@ export default async function ProfileHubPage() {
             </div>
           </div>
         )}
-        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
+        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} dailyMessageOverride={fullySetUpMessage || undefined} />
       </div>
 
       <div className="space-y-3">

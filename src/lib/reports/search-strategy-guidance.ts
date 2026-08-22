@@ -65,14 +65,9 @@ export async function getSearchStrategyActivitySignals(candidateId: string): Pro
 }
 
 export interface SearchStrategyGuidance {
-  pros: string
-  cons: string
-  suggestedChanges: string
-}
-
-export interface SearchStrategyAction {
-  label: string
-  href: string
+  pros: string[]
+  cons: string[]
+  suggestedChanges: string[]
 }
 
 // Search Strategy Guidance — Victoria's read on a candidate's search
@@ -183,12 +178,12 @@ REAL activity in the last 7-30 days (ground truth — not self-reported, weigh t
 
   const prompt = `You are Victoria, an executive coach, giving a candidate your honest read on their search strategy, based only on the facts below — do not invent facts not given. Write in second person, coaching tone, never generic career-advice filler.
 
-Return strict JSON with this exact shape, no markdown, no extra keys:
-{"pros": "...", "cons": "...", "suggestedChanges": "..."}
+Return strict JSON with this exact shape, no markdown, no extra keys. Each field is an array of short, standalone bullet points (not a paragraph) — each bullet should read as one complete, specific thought on its own, not a sentence fragment that depends on the bullet before or after it:
+{"pros": ["...", "..."], "cons": ["...", "..."], "suggestedChanges": ["...", "..."]}
 
-- pros: 1-2 sentences on what's genuinely working or well-calibrated about their strategy (e.g. a realistic target given their level, good comp flexibility, a sensible application volume goal — or, if their REAL activity matches or beats their stated goal, that's real and worth naming specifically, e.g. "you're actually averaging above your own 15/week goal"). Be specific, not generic praise, and prefer real activity over stated intentions when both point the same direction.
-- cons: 1-2 sentences on the real risk or mismatch in their current strategy. Weigh these, in rough priority order: (a) a gap between REAL activity and their own stated goal/blocker — e.g. their goal is 15/week but they've actually submitted far fewer in the last 7 days, or they named networking discomfort as a blocker and have logged zero outreach in 30 days (name this plainly: stating a comfort level isn't the same as never acting on it, and it's fine to say so); (b) if their real experience reads more senior than their raw title (or vice versa) given the size of company it was earned at, say what that implies; (c) if their stated target company size or level looks like a mismatch for their real experience, raise it constructively as something worth reconsidering; (d) if the resume hasn't been touched in a long time relative to how long they've been searching, that's worth naming too — a stale resume against a live search is itself a mismatch.
-- suggestedChanges: 1-2 sentences of concrete, specific changes to make and why — the single most useful adjustment given everything above, prioritizing whichever real-vs-stated gap from "cons" is most actionable this week. If the real gap is networking (stated discomfort + near-zero real outreach), the single most useful change is often a very small, concrete first action (e.g. "one message to one person this week"), not a strategy overhaul. If they've been searching for a while and their trajectory shows a real gap, and they're open to fractional/interim consulting, seriously consider whether the single most useful change is adding that interim/fractional work to their resume and story — it fills the title/experience gap with something concrete rather than a blank stretch. If the resume is stale relative to the search, say to update it before anything else — advice grounded in a resume the reader is about to see stale/outdated undercuts everything else.
+- pros: 1-3 bullets on what's genuinely working or well-calibrated about their strategy (e.g. a realistic target given their level, good comp flexibility, a sensible application volume goal — or, if their REAL activity matches or beats their stated goal, that's real and worth naming specifically, e.g. "You're actually averaging above your own 15/week goal"). Be specific, not generic praise, and prefer real activity over stated intentions when both point the same direction.
+- cons: 1-3 bullets on the real risk or mismatch in their current strategy. Weigh these, in rough priority order: (a) a gap between REAL activity and their own stated goal/blocker — e.g. their goal is 15/week but they've actually submitted far fewer in the last 7 days, or they named networking discomfort as a blocker and have logged zero outreach in 30 days (name this plainly: stating a comfort level isn't the same as never acting on it, and it's fine to say so); (b) if their real experience reads more senior than their raw title (or vice versa) given the size of company it was earned at, say what that implies; (c) if their stated target company size or level looks like a mismatch for their real experience, raise it constructively as something worth reconsidering; (d) if the resume hasn't been touched in a long time relative to how long they've been searching, that's worth naming too — a stale resume against a live search is itself a mismatch. One bullet per distinct issue — do not merge two of these into one bullet.
+- suggestedChanges: 1-2 bullets of concrete, specific changes to make and why — the single most useful adjustment given everything above, prioritizing whichever real-vs-stated gap from "cons" is most actionable this week. If the real gap is networking (stated discomfort + near-zero real outreach), the single most useful change is often a very small, concrete first action (e.g. "One message to one person this week"), not a strategy overhaul. If they've been searching for a while and their trajectory shows a real gap, and they're open to fractional/interim consulting, seriously consider whether the single most useful change is adding that interim/fractional work to their resume and story — it fills the title/experience gap with something concrete rather than a blank stretch. If the resume is stale relative to the search, say to update it before anything else — advice grounded in a resume the reader is about to see stale/outdated undercuts everything else.
 
 Calibrate your tone to the coaching push and pace they said works for them (tough love vs. gentle, baby steps vs. big leaps) — never mention that you're doing this, just write in that register. If a blocker they named (e.g. financial pressure, networking discomfort, not knowing what's next) plausibly explains a gap between their stated strategy and their real activity, it's fine to name that gap directly and matter-of-factly, in the tone they asked for — never softened into vague euphemism, but never clinical or diagnostic either.
 
@@ -214,7 +209,9 @@ ${summary}`
     const match = text.match(/\{[\s\S]*\}/)
     if (!match) return null
     const parsed = JSON.parse(match[0]) as Partial<SearchStrategyGuidance>
-    if (!parsed.pros || !parsed.cons || !parsed.suggestedChanges) return null
+    if (!isNonEmptyStringArray(parsed.pros) || !isNonEmptyStringArray(parsed.cons) || !isNonEmptyStringArray(parsed.suggestedChanges)) {
+      return null
+    }
 
     const guidance: SearchStrategyGuidance = {
       pros: parsed.pros,
@@ -241,14 +238,19 @@ ${summary}`
   }
 }
 
-// Cached rows written before this structured rewrite hold a plain paragraph,
-// not JSON — treat those (and any other unparseable value) as no cache, so
-// they regenerate once into the new shape rather than rendering garbage.
+function isNonEmptyStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.length > 0 && value.every((v) => typeof v === 'string')
+}
+
+// Cached rows written before this structured rewrite hold a plain paragraph
+// (or, briefly, a single string per field) rather than an array — treat
+// those (and any other unparseable/wrong-shaped value) as no cache, so they
+// regenerate once into the new bullet shape rather than rendering garbage.
 function parseCachedGuidance(raw: string | null): SearchStrategyGuidance | null {
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw) as Partial<SearchStrategyGuidance>
-    if (parsed.pros && parsed.cons && parsed.suggestedChanges) {
+    if (isNonEmptyStringArray(parsed.pros) && isNonEmptyStringArray(parsed.cons) && isNonEmptyStringArray(parsed.suggestedChanges)) {
       return { pros: parsed.pros, cons: parsed.cons, suggestedChanges: parsed.suggestedChanges }
     }
     return null
@@ -257,63 +259,3 @@ function parseCachedGuidance(raw: string | null): SearchStrategyGuidance | null 
   }
 }
 
-// Deterministic, app-generated next steps — never LLM-authored, so every
-// link is guaranteed to resolve. Grounded in the SAME real activity signals
-// (SearchStrategyActivitySignals) the guidance text above is built from —
-// not just stated preferences — so "Specific actions to take" actually
-// tracks what the guidance just said, instead of two independently-derived
-// reads of the same candidate.
-export function getSearchStrategyActions(
-  candidate: {
-    applicationVolumeGoal: number | null
-    isPivoting: boolean
-    interimConsultingInterest: boolean
-    blockers: string[]
-  },
-  activity: SearchStrategyActivitySignals
-): SearchStrategyAction[] {
-  const actions: SearchStrategyAction[] = []
-  const weeklyGoal = candidate.applicationVolumeGoal ?? 15
-
-  // Real activity this week beats the stated goal, not the other way
-  // around — a candidate who set a low goal but is actually applying a lot
-  // shouldn't see "apply more" as their top action.
-  if (activity.applicationsLast7Days < weeklyGoal) {
-    actions.push({ label: 'Apply to more jobs this week', href: '/dashboard/find-my-job#apply-new-jobs' })
-  } else {
-    actions.push({ label: 'Apply to new jobs', href: '/dashboard/find-my-job#apply-new-jobs' })
-  }
-
-  // Resume staleness is worth surfacing before anything else search-facing
-  // — advice grounded in an out-of-date resume undercuts the rest.
-  if (activity.daysSinceResumeUpload === null || activity.daysSinceResumeUpload > 60) {
-    actions.push({ label: 'Update your resume', href: '/dashboard/resume' })
-  }
-
-  // The exact "stated a networking blocker but isn't actually networking"
-  // gap the guidance text now names directly — the action list should
-  // offer the smallest real next step for it, not a generic link.
-  if (candidate.blockers.includes('networking_discomfort') && activity.outreachLast30Days === 0) {
-    actions.push({ label: 'Send your first outreach message', href: '/dashboard/network#scripts' })
-  }
-
-  if (candidate.isPivoting) {
-    actions.push({ label: 'Review roles in your target function', href: '/dashboard/find-my-job#job-recommendations' })
-  } else {
-    actions.push({ label: 'Review your job recommendations', href: '/dashboard/find-my-job#job-recommendations' })
-  }
-
-  if (candidate.interimConsultingInterest) {
-    actions.push({ label: 'Browse interim & fractional work', href: '/dashboard/interim-work' })
-  }
-
-  actions.push({ label: 'Track companies you want to work for', href: '/dashboard/find-my-job#company-tracker' })
-
-  if (!candidate.interimConsultingInterest) {
-    actions.push({ label: 'Sharpen your narrative for interviews', href: '/dashboard/interview-prep' })
-  }
-
-  // Cap at 5 — the point is "what to do next," not an exhaustive checklist;
-  // earlier-pushed items (real-activity-driven) always win the cut.
-  return actions.slice(0, 5)
-}

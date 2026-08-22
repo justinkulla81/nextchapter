@@ -4,11 +4,7 @@ import { Suspense } from 'react'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isSearchGoalsComplete } from '@/lib/search-strategy'
-import {
-  getOrDraftSearchStrategyGuidance,
-  getSearchStrategyActions,
-  getSearchStrategyActivitySignals,
-} from '@/lib/reports/search-strategy-guidance'
+import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -56,18 +52,11 @@ async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: str
       targetCompanyStage: true,
       remotePreference: true,
       highestLevelReached: true,
-      applicationVolumeGoal: true,
-      isPivoting: true,
-      interimConsultingInterest: true,
-      blockers: true,
     },
   })
   if (!isSearchGoalsComplete(candidate)) return null
 
-  const [guidance, activitySignals] = await Promise.all([
-    getOrDraftSearchStrategyGuidance(candidateId),
-    getSearchStrategyActivitySignals(candidateId),
-  ])
+  const guidance = await getOrDraftSearchStrategyGuidance(candidateId)
   if (!guidance) return null
 
   return (
@@ -79,29 +68,27 @@ async function SearchStrategyGuidanceSection({ candidateId }: { candidateId: str
       <div className="mt-4 space-y-3 text-sm">
         <div className="rounded-lg border border-border bg-white p-4">
           <p className="text-xs font-semibold tracking-wide text-success uppercase">What&apos;s working</p>
-          <p className="mt-1 text-foreground">{guidance.pros}</p>
+          <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
+            {guidance.pros.map((point, i) => (
+              <li key={i}>{point}</li>
+            ))}
+          </ul>
         </div>
         <div className="rounded-lg border border-border bg-white p-4">
           <p className="text-xs font-semibold tracking-wide text-warning uppercase">What to watch</p>
-          <p className="mt-1 text-foreground">{guidance.cons}</p>
+          <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
+            {guidance.cons.map((point, i) => (
+              <li key={i}>{point}</li>
+            ))}
+          </ul>
         </div>
         <div className="rounded-lg border border-border bg-white p-4">
           <p className="text-xs font-semibold tracking-wide text-brand uppercase">What I&apos;d change</p>
-          <p className="mt-1 text-foreground">{guidance.suggestedChanges}</p>
-        </div>
-      </div>
-      <div className="mt-4">
-        <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
-        <div className="mt-1.5 flex flex-col gap-2">
-          {getSearchStrategyActions(candidate, activitySignals).map((action) => (
-            <Link
-              key={action.href}
-              href={action.href}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground transition-colors hover:border-brand/40 hover:text-brand"
-            >
-              {action.label} →
-            </Link>
-          ))}
+          <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
+            {guidance.suggestedChanges.map((point, i) => (
+              <li key={i}>{point}</li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

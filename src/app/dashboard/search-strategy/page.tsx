@@ -13,11 +13,7 @@ import {
   isSearchStrategySoFarComplete,
   isBenefitsComplete,
 } from '@/lib/search-strategy'
-import {
-  getOrDraftSearchStrategyGuidance,
-  getSearchStrategyActions,
-  getSearchStrategyActivitySignals,
-} from '@/lib/reports/search-strategy-guidance'
+import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
 import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
@@ -56,10 +52,7 @@ async function SearchStrategyGuidanceCard({
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
-  const [strategyGuidance, activitySignals] = await Promise.all([
-    goalsComplete ? getOrDraftSearchStrategyGuidance(profile.id) : Promise.resolve(null),
-    getSearchStrategyActivitySignals(profile.id),
-  ])
+  const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
 
   const missingSections = [
     !targetRoleComplete && 'Your Target Role & Company',
@@ -81,15 +74,27 @@ async function SearchStrategyGuidanceCard({
             <div className="space-y-3 text-sm">
               <div className="rounded-lg border border-border bg-white p-4">
                 <p className="text-xs font-semibold tracking-wide text-success uppercase">What&apos;s working</p>
-                <p className="mt-1 text-foreground">{strategyGuidance.pros}</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
+                  {strategyGuidance.pros.map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
               </div>
               <div className="rounded-lg border border-border bg-white p-4">
                 <p className="text-xs font-semibold tracking-wide text-warning uppercase">What to watch</p>
-                <p className="mt-1 text-foreground">{strategyGuidance.cons}</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
+                  {strategyGuidance.cons.map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
               </div>
               <div className="rounded-lg border border-border bg-white p-4">
                 <p className="text-xs font-semibold tracking-wide text-brand uppercase">What I&apos;d change</p>
-                <p className="mt-1 text-foreground">{strategyGuidance.suggestedChanges}</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
+                  {strategyGuidance.suggestedChanges.map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
               </div>
             </div>
             {checklist.incomplete.length > 0 && (
@@ -111,20 +116,6 @@ async function SearchStrategyGuidanceCard({
                 </ul>
               </div>
             )}
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Specific actions to take:</p>
-              <div className="mt-1.5 flex flex-col gap-2">
-                {getSearchStrategyActions(profile, activitySignals).map((action) => (
-                  <Link
-                    key={action.href}
-                    href={action.href}
-                    className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground transition-colors hover:border-brand/40 hover:text-brand"
-                  >
-                    {action.label} →
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
         ) : missingSections.length > 0 ? (
           <p className="text-sm text-muted-foreground">

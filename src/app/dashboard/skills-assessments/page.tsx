@@ -133,15 +133,17 @@ export default async function SkillsAssessmentsPage() {
       href: '/dashboard/references',
       ctaLabel: completedReferenceCount > 0 ? 'Manage references' : 'Request references',
     },
-    // Skills Assessment always first — it unlocks the most downstream
-    // personalization (Learning, Job/Skills Recommendations, Market
-    // Reality Report) of anything on this page, so it stays pinned to the
-    // top regardless of completion status. Everything else falls back to
-    // not-completed-first — that's the one thing actually asking for
-    // attention on this page.
+    // Not-completed-first is the one thing actually asking for attention
+    // on this page — that holds even for Skills Assessment (it unlocks the
+    // most downstream personalization, so it's pinned ahead of the other
+    // not-yet-done items while it's still outstanding), but the pin stops
+    // applying once it's done: a completed item never sits above an
+    // incomplete one just because it used to be the priority.
   ].sort((a, b) => {
-    if ('priority' in a && a.priority) return -1
-    if ('priority' in b && b.priority) return 1
+    const aPinned = 'priority' in a && a.priority && !a.completedAt
+    const bPinned = 'priority' in b && b.priority && !b.completedAt
+    if (aPinned && !bPinned) return -1
+    if (bPinned && !aPinned) return 1
     return Number(!!a.completedAt) - Number(!!b.completedAt)
   })
 
