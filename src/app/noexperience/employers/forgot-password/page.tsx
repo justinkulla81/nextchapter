@@ -19,9 +19,9 @@ export default function CrucibleEmployerForgotPasswordPage() {
     >
       <Suspense fallback={null}>
         <ForgotPasswordForm
-          loginHref="/crucible/employers/login"
-          postResetHref="/crucible/employers"
-          signupHref="/crucible/employers/signup"
+          loginHref="/noexperience/employers/login"
+          postResetHref="/noexperience/employers"
+          signupHref="/noexperience/employers/signup"
         />
       </Suspense>
     </PortalAuthCard>

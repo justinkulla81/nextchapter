@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
-import { completeCrucibleEmployerSignupFromSession } from '@/app/crucible/employers/signup/actions'
+import { completeCrucibleEmployerSignupFromSession } from '@/app/noexperience/employers/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 import { completeHiringManagerSignupFromSession } from '@/app/hiring/signup/actions'
@@ -136,7 +136,7 @@ export function CallbackHandler() {
         return
       }
       setStatus('redirecting')
-      router.replace('/crucible/employers/onboarding')
+      router.replace('/noexperience/employers/onboarding')
       return
     }
     if (nextIsEmployerSeat) {

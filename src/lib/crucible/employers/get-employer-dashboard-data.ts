@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import type { CrucibleEmployerProfile } from '@prisma/client'
 
-// Layout-level gate for every /crucible/employers/(app) route — same shape
+// Layout-level gate for every /noexperience/employers/(app) route — same shape
 // as getTalentDashboardData (src/lib/talent/get-talent-dashboard-data.ts):
 // no session -> this portal's own login (never /auth/login, so NEN never
 // funnels into the main site); no profile -> signup; profile not yet
@@ -16,11 +16,11 @@ export async function getCrucibleEmployerDashboardData(): Promise<CrucibleEmploy
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/crucible/employers/login')
+  if (!user) redirect('/noexperience/employers/login')
 
   const profile = await prisma.crucibleEmployerProfile.findUnique({ where: { userId: user.id } })
-  if (!profile) redirect('/crucible/employers/signup')
-  if (!profile.onboardingCompletedAt) redirect('/crucible/employers/onboarding')
+  if (!profile) redirect('/noexperience/employers/signup')
+  if (!profile.onboardingCompletedAt) redirect('/noexperience/employers/onboarding')
 
   return profile
 }

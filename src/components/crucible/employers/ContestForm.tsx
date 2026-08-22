@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { createCrucibleContest } from '@/app/crucible/employers/(app)/contests/actions'
+import { createCrucibleContest } from '@/app/noexperience/employers/(app)/contests/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'

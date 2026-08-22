@@ -15,10 +15,10 @@ export async function completeCrucibleEmployerOnboarding(formData: FormData): Pr
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/crucible/employers/login')
+  if (!user) redirect('/noexperience/employers/login')
 
   const profile = await prisma.crucibleEmployerProfile.findUnique({ where: { userId: user.id } })
-  if (!profile) redirect('/crucible/employers/signup')
+  if (!profile) redirect('/noexperience/employers/signup')
 
   await prisma.crucibleEmployerProfile.update({
     where: { id: profile.id },
@@ -31,5 +31,5 @@ export async function completeCrucibleEmployerOnboarding(formData: FormData): Pr
   })
   captureServerEvent(user.id, 'employer_function_interest_selected', { functionInterest })
 
-  redirect('/crucible/employers/candidates')
+  redirect('/noexperience/employers/candidates')
 }

@@ -14,7 +14,7 @@ import {
   submitCrucibleResume,
   logCrucibleInterest,
   type CrucibleResultSummary,
-} from '@/app/crucible/actions'
+} from '@/app/noexperience/actions'
 import { getQaContent, CRUCIBLE_PROMPT_TASK, CRUCIBLE_DATASET_TASK, CRUCIBLE_RESULTS_TASK, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
 import { CrucibleDesignMockup } from '@/components/crucible/CrucibleDesignMockup'
 import type { CrucibleTierKey, CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
@@ -678,7 +678,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
               // real wait (e.g. a reminder email) has actually elapsed.
               <span className="text-muted-foreground">Retry with a new challenge in 24h</span>
             )}
-            <Link href="/crucible" className="text-muted-foreground underline underline-offset-4">
+            <Link href="/noexperience" className="text-muted-foreground underline underline-offset-4">
               Back to noexperienceneeded.ai
             </Link>
           </div>

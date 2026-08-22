@@ -70,7 +70,7 @@ export async function createCrucibleContest(
     targetFunction,
   })
 
-  redirect(`/crucible/employers/contests/${contest.id}`)
+  redirect(`/noexperience/employers/contests/${contest.id}`)
 }
 
 async function requireOwnedContest(contestId: string, employerId: string) {
@@ -95,7 +95,7 @@ export async function publishCrucibleContest(contestId: string): Promise<void> {
     notifiedCount: sent,
   })
 
-  revalidatePath(`/crucible/employers/contests/${contest.id}`)
+  revalidatePath(`/noexperience/employers/contests/${contest.id}`)
 }
 
 export async function closeCrucibleContest(contestId: string): Promise<void> {
@@ -108,7 +108,7 @@ export async function closeCrucibleContest(contestId: string): Promise<void> {
     data: { state: 'CLOSED', closedAt: new Date() },
   })
 
-  revalidatePath(`/crucible/employers/contests/${contest.id}`)
+  revalidatePath(`/noexperience/employers/contests/${contest.id}`)
 }
 
 export async function toggleCrucibleContestEntryShortlist(entryId: string): Promise<void> {
@@ -131,5 +131,5 @@ export async function toggleCrucibleContestEntryShortlist(entryId: string): Prom
     shortlisted,
   })
 
-  revalidatePath(`/crucible/employers/contests/${entry.contestId}`)
+  revalidatePath(`/noexperience/employers/contests/${entry.contestId}`)
 }

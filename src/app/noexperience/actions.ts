@@ -22,7 +22,7 @@ import type { CrucibleSource } from '@prisma/client'
 // NextChapter candidates, and this data is low-stakes (an in-progress
 // teaser attempt), so a bearer-token-style session id is the right amount
 // of weight. Real account creation only happens later, if someone actually
-// converts via /crucible/full or the main site.
+// converts via /noexperience/full or the main site.
 const SESSION_COOKIE = 'crucible_session'
 
 // A neutral, non-punitive fallback for the two AI-graded activities — used
@@ -339,9 +339,9 @@ export async function logCrucibleInterest(sessionId: string, kind: 'FULL' | 'LES
   captureServerEvent(session.candidateId ?? session.id, 'crucible_interest', { kind })
 }
 
-// /crucible/full and /crucible/lesson are also reachable directly (e.g. the
+// /noexperience/full and /noexperience/lesson are also reachable directly (e.g. the
 // NC Skills/Assessment section's "Take the lesson" button per build spec
-// §2, which never routes through /crucible/test first) — this covers
+// §2, which never routes through /noexperience/test first) — this covers
 // interest capture with no prior CrucibleSession on file, using whatever
 // session cookie already exists if there is one, or creating a minimal
 // session on the spot otherwise. CrucibleInterest always has a real session

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { completeCrucibleEmployerSignupFromSession } from '@/app/crucible/employers/signup/actions'
+import { completeCrucibleEmployerSignupFromSession } from '@/app/noexperience/employers/signup/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -62,7 +62,7 @@ export function EmployerSignupForm() {
       setError(result.error)
       return
     }
-    router.replace('/crucible/employers/onboarding')
+    router.replace('/noexperience/employers/onboarding')
   }
 
   if (sent) {

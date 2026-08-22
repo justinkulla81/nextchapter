@@ -1,11 +1,11 @@
 import { cn } from '@/lib/utils'
 
 // The noexperienceneeded.ai wordmark — deliberately its own brand, not the
-// NextChapter logo (see CrucibleLayout's font-scoping comment: /crucible
+// NextChapter logo (see CrucibleLayout's font-scoping comment: /noexperience
 // runs its own visual system). `dark` matches the landing page's near-black
 // background; the plain variant is tuned for the white headers used on
-// /crucible/test, /full, and /lesson — same hues, contrast-checked against
-// white instead of relying on the dark variant's text-shadow glow.
+// /noexperience/test, /full, and /lesson — same hues, contrast-checked
+// against white instead of relying on the dark variant's text-shadow glow.
 export function CrucibleWordmark({ className, dark = false }: { className?: string; dark?: boolean }) {
   return (
     <span className={cn('font-[family-name:var(--font-jetbrains-mono)] font-bold tracking-tight', className)}>

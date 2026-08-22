@@ -10,5 +10,5 @@ import { createClient } from '@/lib/supabase/server'
 export async function signOutCrucibleEmployer() {
   const supabase = await createClient()
   await supabase.auth.signOut()
-  redirect('/crucible')
+  redirect('/noexperience')
 }

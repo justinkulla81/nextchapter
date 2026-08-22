@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { logCrucibleInterestStandalone } from '@/app/crucible/actions'
+import { logCrucibleInterestStandalone } from '@/app/noexperience/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'

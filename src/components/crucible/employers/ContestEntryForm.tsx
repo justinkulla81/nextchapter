@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { submitCrucibleContestEntry } from '@/app/crucible/employers/contests/entry/[token]/actions'
+import { submitCrucibleContestEntry } from '@/app/noexperience/employers/contests/entry/[token]/actions'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 

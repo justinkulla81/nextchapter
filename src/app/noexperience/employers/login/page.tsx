@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CrucibleEmployerLoginPage() {
-  await redirectIfAuthenticated('/crucible/employers')
+  await redirectIfAuthenticated('/noexperience/employers')
 
   return (
     <PortalAuthCard
@@ -22,9 +22,9 @@ export default async function CrucibleEmployerLoginPage() {
     >
       <Suspense>
         <LoginForm
-          defaultNext="/crucible/employers"
-          forgotPasswordHref="/crucible/employers/forgot-password"
-          signupHref="/crucible/employers/signup"
+          defaultNext="/noexperience/employers"
+          forgotPasswordHref="/noexperience/employers/forgot-password"
+          signupHref="/noexperience/employers/signup"
           showGoogle={false}
         />
       </Suspense>

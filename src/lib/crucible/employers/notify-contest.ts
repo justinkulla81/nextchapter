@@ -40,7 +40,7 @@ export async function notifyEligibleCandidatesForContest(
         email,
         contest.employer.companyName,
         contest.title,
-        `${appUrl}/crucible/employers/contests/entry/${entry.token}`
+        `${appUrl}/noexperience/employers/contests/entry/${entry.token}`
       )
       if (result.sent) {
         sent++

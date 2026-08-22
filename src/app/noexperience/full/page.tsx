@@ -3,29 +3,29 @@ import Link from 'next/link'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 
-export const metadata: Metadata = { title: { absolute: 'The noexperienceneeded.ai Lesson' } }
+export const metadata: Metadata = { title: { absolute: 'The Full noexperienceneeded.ai Assessment' } }
 
-export default function CrucibleLessonPage() {
+export default function CrucibleFullPage() {
   return (
     <div className="flex flex-1 flex-col bg-off-white">
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link href="/crucible">
+          <Link href="/noexperience">
             <CrucibleWordmark className="text-xl" />
           </Link>
         </div>
       </header>
       <div className="mx-auto max-w-xl px-6 py-16 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-          How to turn a non-traditional background into the thing they hire.
+          A real work sample you can send to employers.
         </h1>
         <p className="mt-4 text-muted-foreground">
-          A short, practical lesson on the exact judgment this challenge measures — how to catch what an AI
-          misses, and how to show that skill to an employer. Not open yet. Leave your email and we&apos;ll tell
-          you the moment it is.
+          The full noexperienceneeded.ai assessment is a 75-minute evaluation on a real codebase, with a report you can share
+          directly with employers — the interview, before the interview. It&apos;s not open yet. Leave your email
+          and we&apos;ll tell you the moment it is.
         </p>
         <div className="mt-8">
-          <CrucibleInterestForm kind="LESSON" />
+          <CrucibleInterestForm kind="FULL" />
         </div>
       </div>
     </div>

@@ -109,7 +109,7 @@ export default async function CrucibleEmployerCandidatesPage({
           page: result.page,
           totalPages: result.totalPages,
           total: result.total,
-          basePath: '/crucible/employers/candidates',
+          basePath: '/noexperience/employers/candidates',
           baseParams: functionFilter ? { function: functionFilter } : {},
         }}
       />

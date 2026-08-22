@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { getCrucibleCandidateResumeSignedUrl } from '@/app/crucible/employers/(app)/candidates/actions'
+import { getCrucibleCandidateResumeSignedUrl } from '@/app/noexperience/employers/(app)/candidates/actions'
 import { cn } from '@/lib/utils'
 
 export function CandidateResumeDownloadButton({

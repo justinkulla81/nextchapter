@@ -1,4 +1,4 @@
-import { toggleCrucibleContestEntryShortlist } from '@/app/crucible/employers/(app)/contests/actions'
+import { toggleCrucibleContestEntryShortlist } from '@/app/noexperience/employers/(app)/contests/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
 export function ShortlistToggleButton({ entryId, shortlisted }: { entryId: string; shortlisted: boolean }) {

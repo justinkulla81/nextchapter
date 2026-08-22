@@ -32,11 +32,11 @@ export default async function CrucibleEmployerOnboardingPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/crucible/employers/login')
+  if (!user) redirect('/noexperience/employers/login')
 
   const profile = await prisma.crucibleEmployerProfile.findUnique({ where: { userId: user.id } })
-  if (!profile) redirect('/crucible/employers/signup')
-  if (profile.onboardingCompletedAt) redirect('/crucible/employers/candidates')
+  if (!profile) redirect('/noexperience/employers/signup')
+  if (profile.onboardingCompletedAt) redirect('/noexperience/employers/candidates')
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">

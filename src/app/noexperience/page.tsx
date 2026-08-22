@@ -104,7 +104,7 @@ export default async function CruciblePage({
         </div>
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
-            href={`/crucible/test${src ? `?src=${encodeURIComponent(src)}` : ''}`}
+            href={`/noexperience/test${src ? `?src=${encodeURIComponent(src)}` : ''}`}
             className="rounded-full bg-[#C8FF1A] px-8 py-4 text-base font-bold text-[#0D0A14] transition-transform hover:scale-105"
           >
             Prove you&apos;re hireable

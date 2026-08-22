@@ -17,8 +17,8 @@ function SignOutButton() {
 }
 
 const LINKS = [
-  { href: '/crucible/employers/candidates', label: 'Candidates' },
-  { href: '/crucible/employers/contests', label: 'Contests' },
+  { href: '/noexperience/employers/candidates', label: 'Candidates' },
+  { href: '/noexperience/employers/contests', label: 'Contests' },
 ]
 
 // Only two destinations in v1 — a plain top bar rather than /talent's
@@ -31,7 +31,7 @@ export function CrucibleEmployerNav() {
   return (
     <header className="border-b border-border bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <Link href="/crucible/employers/candidates">
+        <Link href="/noexperience/employers/candidates">
           <CrucibleWordmark className="text-lg" />
         </Link>
         <nav className="flex items-center gap-6">

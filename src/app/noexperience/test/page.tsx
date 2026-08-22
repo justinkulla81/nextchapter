@@ -24,7 +24,7 @@ export default async function CrucibleTestPage({
     <div className="flex flex-1 flex-col bg-off-white">
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link href="/crucible">
+          <Link href="/noexperience">
             <CrucibleWordmark className="text-xl" />
           </Link>
         </div>

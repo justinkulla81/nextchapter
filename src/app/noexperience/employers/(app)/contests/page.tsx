@@ -29,7 +29,7 @@ export default async function CrucibleContestsPage() {
             Post a real business problem for a shot at a tailored, paid hire.
           </p>
         </div>
-        <Link href="/crucible/employers/contests/new" className={buttonVariants({ variant: 'default' })}>
+        <Link href="/noexperience/employers/contests/new" className={buttonVariants({ variant: 'default' })}>
           New contest
         </Link>
       </div>
@@ -43,7 +43,7 @@ export default async function CrucibleContestsPage() {
           {contests.map((contest) => (
             <li key={contest.id}>
               <Link
-                href={`/crucible/employers/contests/${contest.id}`}
+                href={`/noexperience/employers/contests/${contest.id}`}
                 className="block rounded-lg border border-border p-4 hover:bg-muted/50"
               >
                 <div className="flex items-center justify-between gap-4">
