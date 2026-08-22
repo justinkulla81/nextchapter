@@ -32,6 +32,7 @@ const ROLE_LABEL: Record<RoleGrantRole, string> = {
   employer_finance: 'Employer',
   nc_admin: 'Admin',
   nen_employer: 'NEN Employer',
+  eqoveriq_contributor: 'EQoverIQ Contributor',
 }
 
 // Only roles with a real, distinct portal today are offered as a switch

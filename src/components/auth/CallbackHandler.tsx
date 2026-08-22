@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
 import { completeCrucibleEmployerSignupFromSession } from '@/app/noexperience/employers/signup/actions'
+import { completeEqOverIqContributorSignupFromSession } from '@/app/eqoveriq/contributors/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
 import { completeHiringManagerSignupFromSession } from '@/app/hiring/signup/actions'
@@ -39,6 +40,8 @@ export function CallbackHandler() {
   const nextIsHiring = searchParams.get('next') === 'hiring' || pendingRole === 'hiring'
   const nextIsCrucibleEmployer =
     searchParams.get('next') === 'crucible-employer' || pendingRole === 'crucible-employer'
+  const nextIsEqOverIqContributor =
+    searchParams.get('next') === 'eqoveriq-contributor' || pendingRole === 'eqoveriq-contributor'
   const nextIsEmployerSeat = searchParams.get('next') === 'employer-seat'
   const seatToken = searchParams.get('seatToken')
   const nextIsCoachInvite = searchParams.get('next') === 'coach-invite'
@@ -137,6 +140,17 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/noexperience/employers/onboarding')
+      return
+    }
+    if (nextIsEqOverIqContributor) {
+      const result = await completeEqOverIqContributorSignupFromSession()
+      if (result.error) {
+        console.error('completeEqOverIqContributorSignupFromSession error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace('/eqoveriq/contributors/onboarding')
       return
     }
     if (nextIsEmployerSeat) {

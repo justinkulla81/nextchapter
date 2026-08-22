@@ -33,6 +33,7 @@ import {
   HelpCircle,
   Award,
   Gift,
+  Sparkles,
   LineChart,
   Lock,
   Landmark,
@@ -92,7 +93,8 @@ function buildSections(
   newBackchannelCount: number,
   hasEmailConnection: boolean,
   linkedInConnected: boolean,
-  skillsAssessmentCompleted: boolean
+  skillsAssessmentCompleted: boolean,
+  isEarlyCareer: boolean | null
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -169,6 +171,16 @@ function buildSections(
       title: 'Working and Learning',
       links: [
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+        // Only ever shown once we positively know the candidate is NOT
+        // entry-level (ResumeAnalysis.seniorityBand !== 'EARLY') —
+        // isEarlyCareer === null (no resume analysis yet) fails closed,
+        // same direction as "never offer this to a new grad" requires.
+        // EQoverIQ's own audience is explicitly senior/experienced-
+        // professional-only; Interim Work right below stays unconditionally
+        // visible to everyone regardless of this check.
+        ...(isEarlyCareer === false
+          ? [{ href: '/eqoveriq', label: 'EQoverIQ — Fractional AI Work', icon: Sparkles }]
+          : []),
         { href: '/dashboard/interim-work', label: 'Find Interim Work', icon: Repeat, ...gmailLock },
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
@@ -219,6 +231,7 @@ function NavContent({
   hasEmailConnection,
   linkedInConnected,
   skillsAssessmentCompleted,
+  isEarlyCareer,
   collapsedSections,
   onToggleSection,
 }: {
@@ -231,6 +244,7 @@ function NavContent({
   hasEmailConnection: boolean
   linkedInConnected: boolean
   skillsAssessmentCompleted: boolean
+  isEarlyCareer: boolean | null
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -242,7 +256,8 @@ function NavContent({
     newBackchannelCount,
     hasEmailConnection,
     linkedInConnected,
-    skillsAssessmentCompleted
+    skillsAssessmentCompleted,
+    isEarlyCareer
   )
 
   return (
@@ -373,6 +388,7 @@ export function DashboardNav({
   hasEmailConnection = false,
   linkedInConnected = false,
   skillsAssessmentCompleted = false,
+  isEarlyCareer = null,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -381,6 +397,7 @@ export function DashboardNav({
   hasEmailConnection?: boolean
   linkedInConnected?: boolean
   skillsAssessmentCompleted?: boolean
+  isEarlyCareer?: boolean | null
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -424,6 +441,7 @@ export function DashboardNav({
           hasEmailConnection={hasEmailConnection}
           linkedInConnected={linkedInConnected}
           skillsAssessmentCompleted={skillsAssessmentCompleted}
+          isEarlyCareer={isEarlyCareer}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -507,6 +525,7 @@ export function DashboardNav({
               hasEmailConnection={hasEmailConnection}
               linkedInConnected={linkedInConnected}
               skillsAssessmentCompleted={skillsAssessmentCompleted}
+              isEarlyCareer={isEarlyCareer}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

@@ -107,3 +107,26 @@ export const getOrCreateCrucibleEmployerProfile = cache(async (userId: string, c
     throw error
   }
 })
+
+// EQoverIQ's own contributor profile — same upsert + P2002-catch +
+// grantRoleIfMissing shape as getOrCreateCrucibleEmployerProfile, targeting
+// the eqoveriq_contributor role. Role grant happens unconditionally at
+// account creation (it controls which portal a signed-in user lands in);
+// the actual application-review status lives on the row itself and gates
+// content within the portal, not access to it.
+export const getOrCreateEqOverIqContributorProfile = cache(async (userId: string, fullName = '') => {
+  try {
+    const profile = await prisma.eqOverIqContributorProfile.upsert({
+      where: { userId },
+      update: {},
+      create: { userId, fullName },
+    })
+    await grantRoleIfMissing(userId, 'eqoveriq_contributor')
+    return profile
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return prisma.eqOverIqContributorProfile.findUniqueOrThrow({ where: { userId } })
+    }
+    throw error
+  }
+})

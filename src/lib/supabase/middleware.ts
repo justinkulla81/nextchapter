@@ -68,7 +68,9 @@ export async function updateSession(request: NextRequest) {
   // /noexperience/employers/contests/entry is a public, no-account entry link
   // (see CrucibleContestEntry.token) — a candidate with no NextChapter
   // account must be able to open and submit it.
-  const protectedPaths = ['/dashboard', '/talent', '/noexperience/employers']
+  // /eqoveriq/contributors is EQoverIQ's own portal — same "must land on
+  // its own login, not the main site's" reasoning as NEN's employer portal.
+  const protectedPaths = ['/dashboard', '/talent', '/noexperience/employers', '/eqoveriq/contributors']
   const publicExceptions = [
     '/talent/signup',
     '/talent/seats/accept',
@@ -78,6 +80,9 @@ export async function updateSession(request: NextRequest) {
     '/noexperience/employers/login',
     '/noexperience/employers/forgot-password',
     '/noexperience/employers/contests/entry',
+    '/eqoveriq/contributors/signup',
+    '/eqoveriq/contributors/login',
+    '/eqoveriq/contributors/forgot-password',
   ]
   const isProtected =
     protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
@@ -85,9 +90,10 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
-    const portalLoginPath = Object.entries({ '/noexperience/employers': '/noexperience/employers/login' }).find(
-      ([prefix]) => request.nextUrl.pathname.startsWith(prefix)
-    )?.[1]
+    const portalLoginPath = Object.entries({
+      '/noexperience/employers': '/noexperience/employers/login',
+      '/eqoveriq/contributors': '/eqoveriq/contributors/login',
+    }).find(([prefix]) => request.nextUrl.pathname.startsWith(prefix))?.[1]
     redirectUrl.pathname = portalLoginPath ?? '/auth/login'
     redirectUrl.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)

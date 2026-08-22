@@ -6345,6 +6345,7 @@ enum RoleGrantRole {
   employer_finance
   nc_admin
   nen_employer
+  eqoveriq_contributor
 }
 
 // The audit ledger for "who holds what role, granted by whom, when, and
@@ -7919,4 +7920,49 @@ model CrucibleEmployerResumeView {
 
   @@unique([employerId, sessionId])
   @@index([employerId, viewedAt])
+}
+
+// ── EQoverIQ (launchyournextchapter.com/eqoveriq) ────────────────────────
+// A fractional-AI-work contributor marketplace, styled and branded as its
+// own standalone product (Mercor/Micro1-style), not the NextChapter
+// candidate pipeline — a candidate applies as a contributor via a separate
+// account, gets manually vetted by admin, and (v1, contributor-only) real
+// opportunities are matched/distributed manually until there's enough
+// contributor supply to justify a company-posting side. Never offered to
+// NextChapter candidates whose resume reads as entry-level (see
+// DashboardNav's isEarlyCareer gate) — those candidates see Interim Work
+// instead.
+enum EqOverIqApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model EqOverIqContributorProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique // Supabase auth id — one contributor per account, no seats/team
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fullName String? // collected at signup (account basics) — same split as CrucibleEmployerProfile.contactName vs its onboarding fields
+
+  // Application fields, collected at onboarding (signup=account,
+  // onboarding=profile, same split as the NEN employer flow).
+  background          String?   @db.Text
+  experienceSummary   String?   @db.Text // AI/fractional-work experience specifically, distinct from general background
+  portfolioLinks      String[] // one URL per line, textarea-parsed — no dynamic-row UI in v1
+  interestAreas       String[] // "MODEL_EVALUATION" | "RED_TEAMING" | "DATA_LABELING" | "PROMPT_ENGINEERING" | "RLHF" | "FINE_TUNING" | "GENERALIST" — plain strings, same convention as CrucibleEmployerProfile.companySize, since these categories are still evolving
+  whyFractionalAiWork String?   @db.Text
+  submittedAt         DateTime? // set once the application (onboarding) is completed — the portal gate checks THIS, not `status`, so a pending applicant still reaches the portal shell instead of being blocked
+
+  // Admin review workflow — CrucibleEmployerProfile has no analog for this
+  // at all, since NEN employers are self-serve and never go through
+  // approval; a contributor's whole point is manual vetting before being a
+  // real match candidate.
+  status      EqOverIqApplicationStatus @default(PENDING)
+  reviewedAt  DateTime?
+  reviewedBy  String? // admin's email, for audit purposes
+  reviewNotes String?                   @db.Text // internal only, never shown to the contributor
+
+  @@index([status])
 }

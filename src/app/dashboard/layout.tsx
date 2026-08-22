@@ -46,6 +46,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     peerUnreadCount,
     backchannelMatches,
     gmailConnected,
+    latestSeniorityBand,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
@@ -55,12 +56,16 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     getPeerUnreadCount(profileId),
     getBackchannelMatchesForBadge(profileId),
     isGmailConnected(profileId),
+    getLatestSeniorityBand(profileId),
   ])
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
   // see community/page.tsx's MessagesTab.
   const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
   const newBackchannelCount = backchannelMatches.filter((m) => m.isNew).length
+  // Fails closed (null -> hidden) when there's no resume analysis yet, same
+  // direction as EQoverIQ's own "never offer this to a new grad" nav gate.
+  const isEarlyCareer = latestSeniorityBand ? latestSeniorityBand === 'EARLY' : null
 
   // Re-fetches the same cached profile (see getDashboardData's cache() wrap)
   // for the fields buildPortfolioAssetChecklist needs — cheap, request-memoized.
@@ -88,6 +93,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       hasEmailConnection={gmailConnected}
       linkedInConnected={isLinkedInConnected(profile)}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
+      isEarlyCareer={isEarlyCareer}
     />
   )
 }
@@ -103,6 +109,20 @@ async function getSupportNetworkUnreadCountForBadge(profileId: string) {
 async function getBackchannelMatchesForBadge(profileId: string) {
   const profile = await getDashboardData()
   return getBackchannelMatches(profileId, profile.networkBackchannelLastViewedAt)
+}
+// The EQoverIQ nav gate's real signal — resume-derived, not self-reported,
+// so it's the strongest always-populated signal for whether a candidate
+// reads as entry-level. Re-derives this one-line lookup inline rather than
+// importing a shared helper, matching this codebase's own convention for a
+// query this small (see segmentation.ts/dossier-unlock.ts/community/groups.ts,
+// each of which does the same rather than factoring out a helper module).
+async function getLatestSeniorityBand(profileId: string): Promise<string | null> {
+  const analysis = await prisma.resumeAnalysis.findFirst({
+    where: { candidateId: profileId },
+    orderBy: { createdAt: 'desc' },
+    select: { seniorityBand: true },
+  })
+  return analysis?.seniorityBand ?? null
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

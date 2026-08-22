@@ -33,4 +33,5 @@ export async function redirectIfNotCandidate(userId: string, email: string | nul
   if (roles.includes('coach')) redirect('/support/coach')
   if (roles.includes('hiring_manager')) redirect('/hiring/dashboard')
   if (roles.includes('nen_employer')) redirect('/noexperience/employers')
+  if (roles.includes('eqoveriq_contributor')) redirect('/eqoveriq/contributors')
 }

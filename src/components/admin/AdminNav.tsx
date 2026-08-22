@@ -95,6 +95,13 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
+      title: 'EQoverIQ',
+      links: [
+        { href: '/support/admin/eqoveriq-applications', label: 'Applications', badge: badgeFor('eqoveriqApplications') },
+        { href: '/support/admin/eqoveriq-contributors', label: 'Contributors' },
+      ],
+    },
+    {
       title: 'Companies',
       links: [{ href: '/support/admin/companies', label: 'Companies' }],
     },

@@ -26,6 +26,8 @@ const PORTAL_LOGIN_PATH: Partial<Record<RoleGrantRole, string>> = {
   // NEN's own employer portal — a separate profile/table from
   // employer_admin (which is /talent's), see CrucibleEmployerProfile.
   nen_employer: '/noexperience/employers/login',
+  // EQoverIQ's own contributor portal — same standalone-product pattern.
+  eqoveriq_contributor: '/eqoveriq/contributors/login',
 }
 
 // Re-auth on switch, not a same-session navigation — Partners Master Build
