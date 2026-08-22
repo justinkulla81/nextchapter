@@ -1,4 +1,5 @@
 import { getReconnectStatus } from '@/lib/google/reconnect-status'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import { Button } from '@/components/ui/button'
 
 // Prominent, reusable reminder for a Gmail/Calendar connection that expired
@@ -7,12 +8,16 @@ import { Button } from '@/components/ui/button'
 // Networking) so it isn't only discoverable by scrolling into the Network
 // page's own connection-detail cards. `variant="link"` is a lighter-weight
 // version for surfaces (like the Sprint card) that just need a pointer, not
-// a full callout.
+// a full callout. `returnTo` is this component's own page path — passed
+// through to the OAuth start route so the callback lands back here instead
+// of always on /dashboard/network regardless of where it was clicked from.
 export async function ReconnectBanner({
   candidateId,
+  returnTo,
   variant = 'banner',
 }: {
   candidateId: string
+  returnTo: string
   variant?: 'banner' | 'link'
 }) {
   const { needsGmailReconnect, needsCalendarReconnect } = await getReconnectStatus(candidateId)
@@ -31,13 +36,13 @@ export async function ReconnectBanner({
         </span>
         {' — '}
         {needsGmailReconnect && (
-          <a href="/api/auth/gmail/start" className="text-primary underline underline-offset-4">
+          <a href={withOAuthReturnTo('/api/auth/gmail/start', returnTo)} className="text-primary underline underline-offset-4">
             reconnect Gmail
           </a>
         )}
         {needsGmailReconnect && needsCalendarReconnect && ' · '}
         {needsCalendarReconnect && (
-          <a href="/api/auth/calendar/start" className="text-primary underline underline-offset-4">
+          <a href={withOAuthReturnTo('/api/auth/calendar/start', returnTo)} className="text-primary underline underline-offset-4">
             reconnect Calendar
           </a>
         )}
@@ -55,12 +60,12 @@ export async function ReconnectBanner({
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {needsGmailReconnect && (
-          <Button nativeButton={false} render={<a href="/api/auth/gmail/start" />} size="sm">
+          <Button nativeButton={false} render={<a href={withOAuthReturnTo('/api/auth/gmail/start', returnTo)} />} size="sm">
             Reconnect Gmail
           </Button>
         )}
         {needsCalendarReconnect && (
-          <Button nativeButton={false} render={<a href="/api/auth/calendar/start" />} size="sm">
+          <Button nativeButton={false} render={<a href={withOAuthReturnTo('/api/auth/calendar/start', returnTo)} />} size="sm">
             Reconnect Calendar
           </Button>
         )}

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 
 // One-time Gmail + Calendar connect callout — surfaced inline on the pages
 // where the payoff is obvious (Network with My Contacts, Find Full-Time Jobs)
@@ -15,9 +16,11 @@ import { prisma } from '@/lib/prisma'
 export async function GoogleConnectPrompt({
   candidateId,
   email,
+  returnTo,
 }: {
   candidateId: string
   email: string | null
+  returnTo: string
 }) {
   if (!email) return null
 
@@ -36,7 +39,7 @@ export async function GoogleConnectPrompt({
           Connect {missing} too — <span className="text-muted-foreground">+10 pts, one time</span>
         </p>
         <a
-          href={startPath}
+          href={withOAuthReturnTo(startPath, returnTo)}
           className="inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-brand px-3 text-sm font-medium text-white hover:bg-brand/90"
         >
           Connect {missing}
@@ -58,7 +61,7 @@ export async function GoogleConnectPrompt({
         interview invites, and calls get picked up automatically instead of you logging each one by hand.
       </p>
       <a
-        href="/api/auth/google-connect/start"
+        href={withOAuthReturnTo('/api/auth/google-connect/start', returnTo)}
         className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand/90"
       >
         Connect Gmail &amp; Calendar

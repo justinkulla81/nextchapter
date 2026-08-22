@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 
 // Replaces the normal admin-authored Daily Message rotation (via
 // PageHeaderBoxes' dailyMessageOverride) for as long as the candidate hasn't
@@ -40,7 +41,7 @@ export function PreConnectDailyMessage({
           </li>
           <li>
             <Link
-              href={connectGmailCalendarHref(hasEmailConnection, hasCalendarConnection)}
+              href={withOAuthReturnTo(connectGmailCalendarHref(hasEmailConnection, hasCalendarConnection), '/dashboard')}
               className="font-medium text-primary underline underline-offset-4"
             >
               Connect Gmail and Calendar

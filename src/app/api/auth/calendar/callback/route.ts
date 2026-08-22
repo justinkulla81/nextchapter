@@ -7,37 +7,43 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { consumeOAuthReturnState } from '@/lib/google/oauth-return-path'
 
 // Backgrounded first-sync (below) can still take a while on a heavy real
 // calendar, so this gets real headroom rather than the platform default.
 export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
+  // See gmail/callback/route.ts's identical comment — resolved once so
+  // every redirect below returns to wherever the candidate started, and
+  // doubles as the real CSRF check on Google's `state` param.
+  const returnTo = await consumeOAuthReturnState(request.nextUrl.searchParams.get('state'), '/dashboard/network')
+
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user?.email) {
-    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_logged_in', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?calendarError=not_logged_in`, request.url))
   }
   // Second layer of the hard gate — checked again here, not just at /start,
   // since this route is independently reachable.
   if (!(await isCalendarTrackingTester(user.email))) {
-    return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_a_tester', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?calendarError=not_a_tester`, request.url))
   }
 
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
   if (error || !code) {
-    return NextResponse.redirect(new URL('/dashboard/network?calendarError=denied', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?calendarError=denied`, request.url))
   }
 
   try {
     const tokens = await exchangeCodeForTokens(code)
     if (!tokens.refresh_token) {
       return NextResponse.redirect(
-        new URL('/dashboard/network?calendarError=no_refresh_token', request.url)
+        new URL(`${returnTo}?calendarError=no_refresh_token`, request.url)
       )
     }
 
@@ -116,9 +122,9 @@ export async function GET(request: NextRequest) {
       captureServerEvent(profile.id, 'calendar_reconnected')
     }
 
-    return NextResponse.redirect(new URL('/dashboard/network?calendarConnected=1', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?calendarConnected=1`, request.url))
   } catch (err) {
     console.error('Calendar OAuth callback failed:', err)
-    return NextResponse.redirect(new URL('/dashboard/network?calendarError=exchange_failed', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?calendarError=exchange_failed`, request.url))
   }
 }

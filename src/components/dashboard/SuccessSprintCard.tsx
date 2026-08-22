@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Trophy, User, Users, BookOpen, Sparkles, Zap, Lock, Rocket } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getMyActionScorePersonalBest } from '@/lib/leaderboard/actions'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import {
   ACTION_TYPE_LINK,
   estimateActionEffort,
@@ -297,11 +298,16 @@ function ActionGroup({ title, children }: { title: string; children: ReactNode }
 // Where the real "one Google sign-in grants both scopes" combined route vs.
 // the single-service routes live — mirrors GoogleConnectPrompt's own
 // startPath logic so a Sprint row and the Network page's connect prompt
-// never disagree about which route to send someone to.
+// never disagree about which route to send someone to. This card only ever
+// renders on /dashboard, so the OAuth return path is hardcoded rather than
+// threaded through as a prop.
 function connectHref(hasEmailConnection: boolean, hasCalendarConnection: boolean): string {
-  if (!hasEmailConnection && !hasCalendarConnection) return '/api/auth/google-connect/start'
-  if (!hasCalendarConnection) return '/api/auth/calendar/start'
-  return '/api/auth/gmail/start'
+  const startPath = !hasEmailConnection && !hasCalendarConnection
+    ? '/api/auth/google-connect/start'
+    : !hasCalendarConnection
+      ? '/api/auth/calendar/start'
+      : '/api/auth/gmail/start'
+  return withOAuthReturnTo(startPath, '/dashboard')
 }
 
 // Read-only summary row — marking an action done/started happens on the

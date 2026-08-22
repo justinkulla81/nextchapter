@@ -50,7 +50,7 @@ export function HardGateBlockingScreen({
         one-time and take a couple minutes.
       </p>
       <div className="space-y-4 text-left">
-        <GoogleConnectPrompt candidateId={candidateId} email={email} />
+        <GoogleConnectPrompt candidateId={candidateId} email={email} returnTo="/dashboard" />
         <div className="rounded-lg border border-border bg-white p-4">
           <p className="mb-2 text-sm font-medium text-foreground">Import LinkedIn connections</p>
           <CsvImportForm />

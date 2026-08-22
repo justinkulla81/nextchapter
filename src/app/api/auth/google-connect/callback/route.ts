@@ -14,6 +14,7 @@ import { getCurrentWeekSprint, logCatalogAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
+import { consumeOAuthReturnState } from '@/lib/google/oauth-return-path'
 
 // One token exchange grants both the Gmail and Calendar scopes (requested
 // together in buildCombinedGoogleAuthUrl), so this upserts both connection
@@ -25,28 +26,33 @@ import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
 export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
+  // See gmail/callback/route.ts's identical comment — resolved once so
+  // every redirect below returns to wherever the candidate started, and
+  // doubles as the real CSRF check on Google's `state` param.
+  const returnTo = await consumeOAuthReturnState(request.nextUrl.searchParams.get('state'), '/dashboard/network')
+
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user?.email) {
-    return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_logged_in', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?gmailError=not_logged_in`, request.url))
   }
   if (!(await isGmailTrackingTester(user.email))) {
-    return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_a_tester', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?gmailError=not_a_tester`, request.url))
   }
 
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
   if (error || !code) {
-    return NextResponse.redirect(new URL('/dashboard/network?gmailError=denied', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?gmailError=denied`, request.url))
   }
 
   try {
     const tokens = await exchangeCodeForTokens(code, getCombinedRedirectUri())
     if (!tokens.refresh_token) {
-      return NextResponse.redirect(new URL('/dashboard/network?gmailError=no_refresh_token', request.url))
+      return NextResponse.redirect(new URL(`${returnTo}?gmailError=no_refresh_token`, request.url))
     }
 
     const profile = await getOrCreateCandidateProfile(user.id)
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
     const connectedEmail = await fetchGoogleAccountEmail(tokens.access_token)
     if (profile.confidentialSearchMode && connectedEmail && looksLikeCorporateDomain(connectedEmail)) {
       captureServerEvent(profile.id, 'google_connect_blocked_corporate_domain')
-      return NextResponse.redirect(new URL('/dashboard/network?gmailError=corporate_domain_blocked', request.url))
+      return NextResponse.redirect(new URL(`${returnTo}?gmailError=corporate_domain_blocked`, request.url))
     }
 
     const [existingEmail, existingCalendar] = await Promise.all([
@@ -154,9 +160,9 @@ export async function GET(request: NextRequest) {
     }
     captureServerEvent(profile.id, existingEmail && existingCalendar ? 'google_reconnected' : 'google_connected')
 
-    return NextResponse.redirect(new URL('/dashboard/network?gmailConnected=1&calendarConnected=1', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?gmailConnected=1&calendarConnected=1`, request.url))
   } catch (err) {
     console.error('Combined Google OAuth callback failed:', err)
-    return NextResponse.redirect(new URL('/dashboard/network?gmailError=exchange_failed', request.url))
+    return NextResponse.redirect(new URL(`${returnTo}?gmailError=exchange_failed`, request.url))
   }
 }

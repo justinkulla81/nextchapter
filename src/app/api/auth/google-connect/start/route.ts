@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildCombinedGoogleAuthUrl,
   isGmailTrackingTester,
   notifyAdminGmailAccessNeeded,
 } from '@/lib/email-tracking/gmail-oauth'
+import { storeOAuthReturnState } from '@/lib/google/oauth-return-path'
 
 // Combined Gmail + Calendar Connect — same hard gate as the individual
 // /api/auth/gmail/start and /api/auth/calendar/start routes (both features
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard/network?gmailError=not_a_tester', request.url))
   }
 
-  const state = crypto.randomBytes(16).toString('hex')
+  const state = await storeOAuthReturnState(request.nextUrl.searchParams.get('returnTo'), '/dashboard/network')
   try {
     const url = buildCombinedGoogleAuthUrl(state)
     return NextResponse.redirect(url)

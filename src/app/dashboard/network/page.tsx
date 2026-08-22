@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react'
 import type { EmailActivityType, OutreachChannel } from '@prisma/client'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { syncGoogleCalendarConnection } from '@/lib/calendar-tracking/sync-google-calendar'
 import { extractEmailAddress } from '@/lib/email-tracking/email-address'
@@ -338,7 +339,7 @@ async function AutomaticTrackingSection({
               <CardContent className="space-y-3">
                 <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                   Your Gmail connection expired (this happens periodically while this feature is in testing).{' '}
-                  <a href="/api/auth/gmail/start" className="underline">
+                  <a href={withOAuthReturnTo('/api/auth/gmail/start', '/dashboard/network')} className="underline">
                     Reconnect
                   </a>
                   .
@@ -401,7 +402,7 @@ async function AutomaticTrackingSection({
               <CardContent className="space-y-3">
                 <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                   Your calendar connection expired (this happens periodically while this feature is in testing).{' '}
-                  <a href="/api/auth/calendar/start" className="underline">
+                  <a href={withOAuthReturnTo('/api/auth/calendar/start', '/dashboard/network')} className="underline">
                     Reconnect
                   </a>
                   .
@@ -555,7 +556,7 @@ export default async function NetworkPage({
       </Link>
 
       <MarkBackchannelViewedOnMount />
-      <ReconnectBanner candidateId={profile.id} />
+      <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/network" />
 
       <PriorityContactsCard contacts={priorityContacts} />
 
@@ -593,7 +594,7 @@ export default async function NetworkPage({
           next to the connect prompt itself, where it's actually reachable. */}
       {params.gmailError === 'corporate_domain_blocked' && <ErrorBanner code={params.gmailError} kind="gmail" />}
 
-      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
+      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/network" />
 
       <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
 

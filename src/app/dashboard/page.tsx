@@ -311,7 +311,7 @@ export default async function DashboardPage() {
           <WeeklyFocusCard candidateId={profile.id} locked={!bothConnectedUnlocked} />
         </Suspense>
 
-        <ReconnectBanner candidateId={profile.id} variant="link" />
+        <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
 
         <DashboardNetworkCard
           followUps={needsFollowUp}

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { buildCandidateCalendarAuthUrl, isCalendarTrackingTester } from '@/lib/calendar-tracking/google-calendar-oauth'
 import { notifyAdminGmailAccessNeeded } from '@/lib/email-tracking/gmail-oauth'
+import { storeOAuthReturnState } from '@/lib/google/oauth-return-path'
 
 // Prompt 79 — hard gate: no candidate outside the internal testing
 // allow-list can even reach Google's consent screen. Same convention as
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard/network?calendarError=not_a_tester', request.url))
   }
 
-  const state = crypto.randomBytes(16).toString('hex')
+  const state = await storeOAuthReturnState(request.nextUrl.searchParams.get('returnTo'), '/dashboard/network')
   try {
     const url = buildCandidateCalendarAuthUrl(state)
     return NextResponse.redirect(url)

@@ -663,8 +663,8 @@ async function FindMyJobBody({
   return (
     <>
       {emailConnection && <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />}
-      <ReconnectBanner candidateId={profile.id} />
-      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} />
+      <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/find-my-job" />
+      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/find-my-job" />
 
       {emailConnection && !emailConnection.needsReconnectAt && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
