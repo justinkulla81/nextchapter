@@ -38,7 +38,6 @@ import {
   Lock,
   Landmark,
   School,
-  CreditCard,
   type LucideIcon,
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -118,7 +117,6 @@ function buildSections(
         { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
         { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
         { href: '/dashboard/membership', label: 'Membership', icon: Award },
-        { href: '/dashboard/plans', label: 'Plans', icon: CreditCard },
       ],
     },
     {

@@ -93,10 +93,10 @@ const PLAN_DEFAULTS: SeedPlan[] = [
     planKey: 'dtc_coaching_plus',
     name: 'Direct-to-consumer — Coaching Plus',
     category: 'DIRECT_TO_CONSUMER',
-    priceCents: 29900,
+    priceCents: 39900,
     billingPeriod: 'MONTHLY',
     termMonths: null,
-    features: ['2 sessions/month', 'Resume review included', 'Priority support'],
+    features: ['1 coaching session/month', 'Resume review included', 'Priority support'],
   },
   {
     planKey: 'dtc_coaching_premium',
@@ -106,6 +106,20 @@ const PLAN_DEFAULTS: SeedPlan[] = [
     billingPeriod: 'MONTHLY',
     termMonths: null,
     features: ['4 sessions/month', 'Mock interviews with recorded feedback', 'Negotiation support at offer stage', 'Named coach'],
+  },
+  {
+    planKey: 'dtc_executive',
+    name: 'Direct-to-consumer — Executive',
+    category: 'DIRECT_TO_CONSUMER',
+    priceCents: 199900,
+    billingPeriod: 'MONTHLY',
+    termMonths: null,
+    features: [
+      'Everything in Coaching Premium',
+      'Named personal executive recruiter',
+      'Weekly strategy sessions',
+      'Direct introductions to hiring managers in your network',
+    ],
   },
   {
     planKey: 'membership_alumni',

@@ -24,12 +24,13 @@ const jsonLd = {
 // getCurrentPlan(), never hardcoded — see the plan-catalog.ts comment
 // flagging this exact page as the intended caller.
 export default async function PricingPage() {
-  const [free, resume, coachingPlus, coachingPremium, membershipMonthly, membershipAnnual, core, plus, premium] =
+  const [free, resume, coachingPlus, coachingPremium, executive, membershipMonthly, membershipAnnual, core, plus, premium] =
     await Promise.all([
       getCurrentPlan('dtc_free'),
       getCurrentPlan('dtc_resume'),
       getCurrentPlan('dtc_coaching_plus'),
       getCurrentPlan('dtc_coaching_premium'),
+      getCurrentPlan('dtc_executive'),
       getCurrentPlan('membership_monthly'),
       getCurrentPlan('membership_annual'),
       getCurrentPlan('outplacement_core'),
@@ -65,12 +66,13 @@ export default async function PricingPage() {
         <section className="mt-14">
           <h2 className="text-xl font-bold tracking-tight text-navy">For candidates</h2>
           <p className="mt-1 text-sm text-muted-foreground">NextChapter is free for candidates, always.</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-4">
+          <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {[
               { plan: free, name: 'Free', description: 'Market Reality Report, Resume Studio, job matching, community, company pages.' },
               { plan: resume, name: 'Resume', description: 'Everything free, plus one human resume review, unlimited versions, per-job tailoring, full ATS matrix.' },
-              { plan: coachingPlus, name: 'Coaching Plus', description: '2 sessions/month, resume review included, priority support.' },
+              { plan: coachingPlus, name: 'Coaching Plus', description: '1 session/month, resume review included, priority support.' },
               { plan: coachingPremium, name: 'Coaching Premium', description: '4 sessions/month, mock interviews with recorded feedback, negotiation support, named coach.' },
+              { plan: executive, name: 'Executive', description: 'Everything in Coaching Premium, plus a named personal executive recruiter and weekly strategy sessions.' },
             ].map((tier) => (
               <div key={tier.name} className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
                 <p className="font-semibold text-navy">{tier.name}</p>
@@ -96,10 +98,10 @@ export default async function PricingPage() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
               <p className="font-semibold text-navy">Alumni</p>
-              <p className="mt-1 text-2xl font-bold text-foreground">Free, permanent</p>
+              <p className="mt-1 text-2xl font-bold text-foreground">Lifetime free</p>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Dossier stays live, remain an insider, give references, refer others, quarterly market
-                pulse.
+                pulse. You may also qualify for a $500 offer bonus.
               </p>
             </div>
             <div className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">

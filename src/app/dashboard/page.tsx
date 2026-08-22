@@ -350,9 +350,13 @@ export default async function DashboardPage() {
         {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Build Your Dossier</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Earn Your Candidate+ Account</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Candidate+ is earned, not purchased — complete the steps below and you unlock your Executive
+                Dossier, the Executive Recruiter Network, and Exclusive Jobs, free on any plan.
+              </p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground tabular-nums">
                   {dossierCompleteness.metCount} of {dossierCompleteness.totalCount}

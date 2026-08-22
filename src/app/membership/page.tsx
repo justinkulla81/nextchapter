@@ -99,9 +99,10 @@ export default async function MembershipPage() {
         </div>
 
         <div className="mx-auto mt-12 max-w-md text-center">
-          <p className="font-semibold text-navy">Free for alumni, permanent.</p>
+          <p className="font-semibold text-navy">Alumni status is lifetime free.</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Membership adds the market check, benefits network, and board listings for{' '}
+            Landed candidates also qualify for a $500 offer bonus. Membership adds the market check,
+            benefits network, and board listings for{' '}
             {monthly ? formatUsd(monthly.priceCents) : '—'}/mo
             {annual && <> or {formatUsd(annual.priceCents)}/yr</>}. Free for 12 months to anyone placed
             through a Premium outplacement seat.
