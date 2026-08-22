@@ -3,6 +3,7 @@ import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { prisma } from '@/lib/prisma'
 import {
   getSearchStage,
   isSearchGoalsComplete,
@@ -42,6 +43,21 @@ export const metadata: Metadata = { title: 'My Search Strategy' }
 // (see hasAnsweredOnce in SearchStrategyPage below) — before that, drafting
 // happens silently via SearchStrategyGuidanceTrigger instead, with no
 // Victoria-branded card on screen yet.
+interface TrendBreakdownEntry {
+  label: string
+  count: number
+}
+
+interface RejectionTrendsData {
+  eligible: boolean
+  minRequired: number
+  totalRejections: number
+  companySizeBreakdown: TrendBreakdownEntry[] | null
+  industryBreakdown: TrendBreakdownEntry[] | null
+  functionBreakdown: TrendBreakdownEntry[] | null
+  levelFitBreakdown: TrendBreakdownEntry[] | null
+}
+
 async function SearchStrategyGuidanceCard({
   profile,
   checklist,
@@ -53,6 +69,20 @@ async function SearchStrategyGuidanceCard({
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
   const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
+
+  // Independent of Search Goals completion — a candidate can have logged
+  // rejections before finishing their profile. Read-only from the same
+  // report-generation-time computation as the Market Reality page's
+  // Rejection Patterns section (computeRejectionTrends), never a second
+  // live computation.
+  const latestReportForRejections = await prisma.marketRealityReport.findFirst({
+    where: { candidateId: profile.id },
+    orderBy: { generatedAt: 'desc' },
+    select: { jobSearchPattern: true },
+  })
+  const rejectionTrends =
+    (latestReportForRejections?.jobSearchPattern as unknown as { rejectionTrends: RejectionTrendsData | null } | null)
+      ?.rejectionTrends ?? null
 
   const missingSections = [
     !targetRoleComplete && 'Your Target Role & Company',
@@ -126,6 +156,29 @@ async function SearchStrategyGuidanceCard({
             I&apos;m updating your guidance based on your latest answers — check back in a moment.
           </p>
         )}
+        {rejectionTrends?.eligible &&
+          (() => {
+            const groups = [
+              { label: 'Company size', breakdown: rejectionTrends.companySizeBreakdown },
+              { label: 'Industry', breakdown: rejectionTrends.industryBreakdown },
+              { label: 'Function', breakdown: rejectionTrends.functionBreakdown },
+              { label: 'Level fit', breakdown: rejectionTrends.levelFitBreakdown },
+            ].filter((g) => g.breakdown && g.breakdown.length > 0)
+            if (groups.length === 0) return null
+            return (
+              <div className="mt-4 rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-semibold tracking-wide text-foreground uppercase">Rejection patterns</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-sm text-foreground">
+                  {groups.map((group) => (
+                    <li key={group.label}>
+                      <span className="font-medium">{group.label}:</span>{' '}
+                      {group.breakdown!.map((b) => `${b.label} (${b.count})`).join(', ')}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })()}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -135,11 +135,22 @@ const VOLUME_ASSESSMENT_LABEL: Record<VolumeAssessment, string> = {
   too_many: 'Very high volume',
 }
 
+interface RejectionTrendsData {
+  eligible: boolean
+  minRequired: number
+  totalRejections: number
+  companySizeBreakdown: TrendBreakdownEntry[] | null
+  industryBreakdown: TrendBreakdownEntry[] | null
+  functionBreakdown: TrendBreakdownEntry[] | null
+  levelFitBreakdown: TrendBreakdownEntry[] | null
+}
+
 interface JobSearchPatternData {
   summary: string | null
   signalCount: number
   minRequired: number
   applicationTrends: ApplicationTrendsData | null
+  rejectionTrends: RejectionTrendsData | null
 }
 
 interface ExecutiveSummary {
@@ -784,6 +795,52 @@ export default async function MarketRealityReportPage() {
                       </p>
                     )}
                   </div>
+                )
+              })()}
+            </div>
+          )}
+
+          {/* Rejection Patterns — what type of company, industry, function,
+              or level shows up most among declined applications. Same
+              "don't guess until there's real signal" gate as Application
+              Trends, computed once at report-generation time
+              (computeRejectionTrends), never live on this page render. */}
+          {(report.jobSearchPattern as unknown as JobSearchPatternData | null)?.rejectionTrends && (
+            <div className="mt-10 border-t border-border pt-8">
+              <SectionHeading>Rejection Patterns</SectionHeading>
+              {(() => {
+                const trends = (report.jobSearchPattern as unknown as JobSearchPatternData).rejectionTrends!
+                if (!trends.eligible) {
+                  return (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Not enough rejections logged yet to spot a pattern — once you&apos;ve logged{' '}
+                      {trends.minRequired} or more, this will show whether a company size, industry,
+                      function, or level keeps showing up among the roles that said no.
+                    </p>
+                  )
+                }
+                const groups: { label: string; breakdown: TrendBreakdownEntry[] | null }[] = [
+                  { label: 'Company size', breakdown: trends.companySizeBreakdown },
+                  { label: 'Industry', breakdown: trends.industryBreakdown },
+                  { label: 'Function', breakdown: trends.functionBreakdown },
+                  { label: 'Level fit', breakdown: trends.levelFitBreakdown },
+                ].filter((g) => g.breakdown && g.breakdown.length > 0)
+                if (groups.length === 0) {
+                  return (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Not enough company/title detail on your logged rejections yet to spot a pattern.
+                    </p>
+                  )
+                }
+                return (
+                  <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-foreground">
+                    {groups.map((group) => (
+                      <li key={group.label}>
+                        <span className="font-medium">{group.label}:</span>{' '}
+                        {group.breakdown!.map((b) => `${b.label} (${b.count})`).join(', ')}
+                      </li>
+                    ))}
+                  </ul>
                 )
               })()}
             </div>

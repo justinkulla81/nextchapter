@@ -20,6 +20,7 @@ import { getMarketConditions } from '@/lib/market'
 import { searchAdzunaJobs } from '@/lib/market/adzuna'
 import { generateJobPattern, MIN_SIGNALS_FOR_PATTERN } from '@/lib/network/job-discovery'
 import { computeApplicationTrends } from '@/lib/network/application-trends'
+import { computeRejectionTrends } from '@/lib/network/rejection-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -249,6 +250,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     latestAiProject,
     jobPattern,
     applicationTrends,
+    rejectionTrends,
     priorReport,
     marketRealitySnapshots,
     gradeRefresh,
@@ -271,6 +273,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     }),
     generateJobPattern(candidateId),
     computeApplicationTrends(candidateId),
+    computeRejectionTrends(candidateId),
     // The most recent EXISTING report — relative to the new one about to
     // be generated below, this is "last time." Null on a candidate's
     // first-ever report, handled explicitly in the Executive Summary
@@ -567,6 +570,7 @@ New data added since the previous report (credit these specifically, by name, on
         signalCount: jobPattern.signalCount,
         minRequired: MIN_SIGNALS_FOR_PATTERN,
         applicationTrends,
+        rejectionTrends,
       } as unknown as Prisma.InputJsonValue,
       executiveSummary: data.executiveSummary as unknown as Prisma.InputJsonValue,
       // Self-check (spec §6 rule 7): only persist rewrites whose "before"
