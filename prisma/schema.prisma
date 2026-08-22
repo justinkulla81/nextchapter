@@ -3029,6 +3029,11 @@ model MilestoneBadge {
 
   badgeKey String // "CLEANED_UP" | "CONNECTED" | "ASKED" | "BACKED" | "KNOWN" | "CONSISTENT" | "DOCUMENTED"
   earnedAt DateTime @default(now())
+  // null = the badge-earned email/popup hasn't been shown yet. Set the
+  // moment either fires — see computeMilestoneBadges and
+  // getPendingBadgeNotices/acknowledgeBadgeNotices, same shape as
+  // CommunityMembership.notifiedAt above.
+  notifiedAt DateTime?
 
   @@unique([candidateId, badgeKey])
   @@index([candidateId])
@@ -3446,6 +3451,11 @@ model WeeklyBadgeEarned {
   weekStartDate DateTime
   badgeKey      String // WeeklyBadgeKey, kept as String so this table doesn't churn on badge additions
   earnedAt      DateTime         @default(now())
+  // null = the badge-earned email/popup hasn't been shown yet. Set the
+  // moment either fires — see computeWeeklyBadges and
+  // getPendingBadgeNotices/acknowledgeBadgeNotices, same shape as
+  // CommunityMembership.notifiedAt above.
+  notifiedAt    DateTime?
 
   @@unique([candidateId, weekStartDate, badgeKey])
   @@index([weekStartDate])

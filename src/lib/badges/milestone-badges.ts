@@ -7,6 +7,7 @@ import { isDossierComplete } from '@/lib/reports/dossier-sections'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
 import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { LEADERBOARD_BADGE_LABEL, LEADERBOARD_BADGE_KEYS, type LeaderboardBadgeKey } from '@/lib/leaderboard/badges'
+import { persistMilestoneBadgesAndNotify } from '@/lib/badges/badge-notifications'
 
 // Milestone badges (Prompt 51) — earned once, permanent, never reset.
 // Computed live from existing data, same "don't persist a duplicate"
@@ -308,6 +309,22 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     TOP3_VISIBILITY: (leaderboardBadgeCountByKey.get('TOP3_VISIBILITY') ?? 0) > 0,
     TOP3_CONTRIBUTION: (leaderboardBadgeCountByKey.get('TOP3_CONTRIBUTION') ?? 0) > 0,
     TOP3_LIFETIME_ACTION_SCORE: (leaderboardBadgeCountByKey.get('TOP3_LIFETIME_ACTION_SCORE') ?? 0) > 0,
+  }
+
+  // Leaderboard TOP3_* keys are excluded here — they're already persisted
+  // (and notified) via WeeklyBadgeEarned by computeAndRecordLeaderboardBadges;
+  // persisting them a second time into MilestoneBadge would double-send the
+  // earned email. Every other key here is one-time/permanent and has never
+  // been persisted before this — see persistMilestoneBadgesAndNotify's own
+  // diff-before-upsert for why the pre-launch backfill mattered.
+  const earnedNonLeaderboardKeys = (Object.keys(earned) as MilestoneBadgeKey[]).filter(
+    (key) => earned[key] && !LEADERBOARD_BADGE_KEYS.includes(key as LeaderboardBadgeKey)
+  )
+  if (earnedNonLeaderboardKeys.length > 0) {
+    await persistMilestoneBadgesAndNotify(
+      candidateId,
+      earnedNonLeaderboardKeys.map((badgeKey) => ({ badgeKey, label: MILESTONE_BADGE_LABEL[badgeKey] }))
+    )
   }
 
   return (Object.keys(MILESTONE_BADGE_LABEL) as MilestoneBadgeKey[]).map((key) => ({

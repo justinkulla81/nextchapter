@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
 import { maybeCreateMilestonePost } from '@/lib/community/milestone-posts'
+import { persistWeeklyBadgesAndNotify } from '@/lib/badges/badge-notifications'
 
 // Weekly badges (Prompt 51) — reset every week, re-earned fresh each week.
 // Deliberately NOT persisted: every one of these is a simple derived fact
@@ -111,20 +112,16 @@ export async function computeWeeklyBadges(candidateId: string): Promise<WeeklyBa
 
   const earnedKeys = (Object.keys(earned) as WeeklyBadgeKey[]).filter((key) => earned[key])
   if (earnedKeys.length > 0) {
-    // Fire-and-forget persistence for admin's historical archive — this is
-    // the only place any weekly badge (including WEEKLY_SPRINT_TARGET_HIT,
-    // which IS the Weekly Sprint Target record) gets written down. Upsert is
-    // idempotent, so re-computing the same week repeatedly is harmless.
-    await Promise.all(
-      earnedKeys.map((badgeKey) =>
-        prisma.weeklyBadgeEarned
-          .upsert({
-            where: { candidateId_weekStartDate_badgeKey: { candidateId, weekStartDate, badgeKey } },
-            update: {},
-            create: { candidateId, weekStartDate, badgeKey },
-          })
-          .catch((error) => console.error('Failed to persist weekly badge:', error))
-      )
+    // Persistence is the only place any weekly badge (including
+    // WEEKLY_SPRINT_TARGET_HIT, which IS the Weekly Sprint Target record)
+    // gets written down. Upsert is idempotent, so re-computing the same
+    // week repeatedly is harmless — persistWeeklyBadgesAndNotify diffs
+    // against what's already there first and only emails/pops up for
+    // whatever's genuinely new this call.
+    await persistWeeklyBadgesAndNotify(
+      candidateId,
+      weekStartDate,
+      earnedKeys.map((badgeKey) => ({ badgeKey, label: WEEKLY_BADGE_LABEL[badgeKey] }))
     )
   }
 

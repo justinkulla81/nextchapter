@@ -27,6 +27,7 @@ import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
+import { acknowledgeBadgeNotices as acknowledgeBadgeNoticesInDb } from '@/lib/badges/badge-notifications'
 import {
   dismissPageBox,
   minimizeActionPlanBox as minimizeActionPlanBoxForCandidate,
@@ -175,6 +176,17 @@ export async function dismissDailyMessageBox(pageKey: PageKey) {
   await dismissPageBox(profile.id, pageKey, 'DAILY_MESSAGE')
   captureServerEvent(profile.id, 'page_daily_message_dismissed', { pageKey })
   revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
+}
+
+// Dismisses the BadgeEarnedDialog popup — see getPendingBadgeNotices/
+// acknowledgeBadgeNoticesInDb (badge-notifications.ts). Scoped to this
+// candidate's own id server-side (never trusts which candidateId the
+// client thinks it is), same defensive pattern as every other action here.
+export async function acknowledgeBadgeNotices(ids: { weeklyIds: string[]; milestoneIds: string[] }) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await acknowledgeBadgeNoticesInDb(profile.id, ids)
 }
 
 // "How NextChapter works with Victoria" welcome video on the dashboard's

@@ -4,6 +4,7 @@ import type { LeaderboardBoard } from '@prisma/client'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import { LEADERBOARD_BOARDS, LEADERBOARD_BOARD_LABEL } from '@/lib/leaderboard/boards'
 import { computeBoard } from '@/lib/leaderboard/queries'
+import { persistWeeklyBadgesAndNotify } from '@/lib/badges/badge-notifications'
 
 // §17 — "Top three on any weekly board earns a permanent, dated badge."
 // Follows the exact same live-compute-then-idempotent-upsert pattern as
@@ -55,16 +56,13 @@ export async function computeAndRecordLeaderboardBadges(candidateId: string): Pr
 
   if (earnedThisWeek.length === 0) return
 
-  await Promise.all(
-    earnedThisWeek.map((board) =>
-      prisma.weeklyBadgeEarned
-        .upsert({
-          where: { candidateId_weekStartDate_badgeKey: { candidateId, weekStartDate, badgeKey: BOARD_TO_BADGE_KEY[board] } },
-          update: {},
-          create: { candidateId, weekStartDate, badgeKey: BOARD_TO_BADGE_KEY[board] },
-        })
-        .catch((error) => console.error('Failed to persist leaderboard badge:', error))
-    )
+  await persistWeeklyBadgesAndNotify(
+    candidateId,
+    weekStartDate,
+    earnedThisWeek.map((board) => ({
+      badgeKey: BOARD_TO_BADGE_KEY[board],
+      label: LEADERBOARD_BADGE_LABEL[BOARD_TO_BADGE_KEY[board]],
+    }))
   )
 }
 

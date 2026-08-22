@@ -5,10 +5,13 @@ import { GRADE_TEXT_COLOR } from '@/lib/scoring/grade'
 import type { WeeklyProgress } from '@/lib/weekly/weekly-engines'
 import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { computeWeeklyBadges } from '@/lib/badges/weekly-badges'
-import { computeMilestoneBadges } from '@/lib/badges/milestone-badges'
+import { computeWeeklyBadges, WEEKLY_BADGE_LABEL, WEEKLY_BADGE_DESCRIPTION, type WeeklyBadgeKey } from '@/lib/badges/weekly-badges'
+import { computeMilestoneBadges, MILESTONE_BADGE_LABEL, MILESTONE_BADGE_DESCRIPTION, type MilestoneBadgeKey } from '@/lib/badges/milestone-badges'
+import { LEADERBOARD_BADGE_LABEL, type LeaderboardBadgeKey } from '@/lib/leaderboard/badges'
+import { getPendingBadgeNotices } from '@/lib/badges/badge-notifications'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewedOnMount'
+import { BadgeEarnedDialog, type BadgeNotice } from '@/components/dashboard/BadgeEarnedDialog'
 
 // The grade color tokens (text-success/text-brand/text-warning/text-error)
 // double as StatTile accent keys — stripping the "text-" prefix reuses the
@@ -55,6 +58,32 @@ export async function DashboardTopStrip({
     computeWeeklyBadges(candidateId),
     computeMilestoneBadges(candidateId),
   ])
+  // Read AFTER the computes above so a badge that just got persisted this
+  // very render (see persistWeeklyBadgesAndNotify/persistMilestoneBadgesAndNotify)
+  // shows up in the popup immediately, not one page load later.
+  const pendingBadgeNotices = await getPendingBadgeNotices(candidateId)
+  const badgeNotices: BadgeNotice[] = [
+    // WeeklyBadgeEarned also holds the leaderboard TOP3_* rows (see
+    // computeAndRecordLeaderboardBadges) — WEEKLY_BADGE_LABEL alone doesn't
+    // cover those, so fall back to LEADERBOARD_BADGE_LABEL.
+    ...pendingBadgeNotices.weekly.map((n) => ({
+      id: n.id,
+      source: 'weekly' as const,
+      badgeKey: n.badgeKey,
+      label:
+        WEEKLY_BADGE_LABEL[n.badgeKey as WeeklyBadgeKey] ??
+        LEADERBOARD_BADGE_LABEL[n.badgeKey as LeaderboardBadgeKey] ??
+        n.badgeKey,
+      description: WEEKLY_BADGE_DESCRIPTION[n.badgeKey as WeeklyBadgeKey] ?? '',
+    })),
+    ...pendingBadgeNotices.milestone.map((n) => ({
+      id: n.id,
+      source: 'milestone' as const,
+      badgeKey: n.badgeKey,
+      label: MILESTONE_BADGE_LABEL[n.badgeKey as MilestoneBadgeKey] ?? n.badgeKey,
+      description: MILESTONE_BADGE_DESCRIPTION[n.badgeKey as MilestoneBadgeKey] ?? '',
+    })),
+  ]
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
   const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
   // First-ever dashboard visit shows the full board (all 32 slots, most
@@ -66,6 +95,7 @@ export async function DashboardTopStrip({
 
   return (
     <Card>
+      <BadgeEarnedDialog notices={badgeNotices} />
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">Your Stats</CardTitle>
       </CardHeader>
