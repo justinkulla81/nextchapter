@@ -230,10 +230,10 @@ export default async function SkillsAssessmentsPage() {
             Produces a shareable work sample for your Evidence file. Or start with the lesson.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button nativeButton={false} render={<Link href="/crucible/test?src=nc_assessment" />} size="sm">
+            <Button nativeButton={false} render={<Link href="/noexperience/test?src=nc_assessment" />} size="sm">
               Take the challenge
             </Button>
-            <Button nativeButton={false} render={<Link href="/crucible/lesson?src=nc_assessment" />} size="sm" variant="outline">
+            <Button nativeButton={false} render={<Link href="/noexperience/lesson?src=nc_assessment" />} size="sm" variant="outline">
               Take the lesson
             </Button>
           </div>

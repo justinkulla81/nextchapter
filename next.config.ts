@@ -29,11 +29,24 @@ const nextConfig: NextConfig = {
   // (the dashboard/hireability-report route moved to dashboard/market-reality).
   // Keeps old bookmarks/emails/external links working; internal links were
   // all updated to point at the new path directly rather than relying on this.
+  //
+  // Same pattern for the Crucible -> NEN rename (/crucible -> /noexperience):
+  // :path* covers every sub-path uniformly, including the tokenized
+  // /crucible/employers/contests/entry/[token] links already sitting in
+  // candidates' inboxes from real contest-invite emails sent before this
+  // rename — those keep working forever without any data migration. Every
+  // internal link/redirect was updated to point at /noexperience directly;
+  // this redirect exists only for already-external references.
   async redirects() {
     return [
       {
         source: '/dashboard/hireability-report',
         destination: '/dashboard/market-reality',
+        permanent: true,
+      },
+      {
+        source: '/crucible/:path*',
+        destination: '/noexperience/:path*',
         permanent: true,
       },
     ];

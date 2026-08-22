@@ -7593,7 +7593,7 @@ model BenefitsNetworkCompletion {
   @@index([candidateId])
 }
 
-// ── Crucible (launchyournextchapter.com/crucible) ───────────────────────
+// ── Crucible (launchyournextchapter.com/noexperience) ───────────────────
 // Standalone landing page + teaser AI-judgment challenge, Part A of a
 // separate future two-part product — see the Crucible Part A build spec.
 // Works for both anonymous visitors (no NextChapter account — tracked via
@@ -7604,8 +7604,8 @@ model BenefitsNetworkCompletion {
 // auth.users + CandidateProfile row for every throwaway teaser visitor,
 // most of whom will never become NextChapter candidates. Real account
 // creation only ever happens later, if/when someone converts via
-// /crucible/full or the main site — never as a side effect of just taking
-// the teaser.
+// /noexperience/full or the main site — never as a side effect of just
+// taking the teaser.
 
 enum CrucibleSource {
   LANDING

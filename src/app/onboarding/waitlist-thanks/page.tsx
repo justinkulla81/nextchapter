@@ -29,7 +29,7 @@ export default function WaitlistThanksPage() {
           Take the noexperienceneeded.ai challenge — 15 minutes, use any AI you want, get a scored work sample.
         </p>
         <Link
-          href="/crucible/test?src=nc_newgrad"
+          href="/noexperience/test?src=nc_newgrad"
           className="mt-2 inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand/90"
         >
           Take the challenge

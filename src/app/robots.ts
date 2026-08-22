@@ -10,13 +10,16 @@ const siteUrl = 'https://launchyournextchapter.com'
 // with redirect" report traced to Googlebot crawling /talent/login — see
 // src/lib/supabase/middleware.ts's publicExceptions comment for the root
 // cause; this list is defense-in-depth so none of these portals are ever
-// attempted by a crawler in the first place.
+// attempted by a crawler in the first place. `/noexperience/employers` is
+// the same class of authenticated portal (NEN's employer side) — added
+// proactively rather than waiting for the same GSC report to happen twice.
 const disallow = [
   '/dashboard',
   '/onboarding',
   '/talent',
   '/support/coach',
   '/support/admin',
+  '/noexperience/employers',
   '/api',
   '/ref/',
   '/auth/callback',
