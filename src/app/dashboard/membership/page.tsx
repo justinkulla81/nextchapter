@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { hasRoleGrant } from '@/lib/auth/role-grants'
 import { getMembershipSubscription } from '@/lib/membership/subscription'
 import { getCurrentPlan } from '@/lib/admin/plan-catalog'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { prisma } from '@/lib/prisma'
 import { setPriorityCoachBookingPreference } from './actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -59,6 +60,7 @@ const TIER_COPY: Record<
     name: 'Coaching Plus',
     audience: 'For candidates who want a coach in their corner once a month while they run their own search.',
     features: ['1 coaching session/month', 'Resume review included', 'Priority support'],
+    recommended: true,
   },
   dtc_coaching_premium: {
     name: 'Coaching Premium',
@@ -70,7 +72,6 @@ const TIER_COPY: Record<
       'Negotiation support at offer stage',
       'Named coach',
     ],
-    recommended: true,
   },
   dtc_executive: {
     name: 'Executive',
@@ -90,14 +91,17 @@ const TIER_ORDER = ['dtc_free', 'dtc_resume', 'dtc_coaching_plus', 'dtc_coaching
 export default async function MembershipPage() {
   const [profile, { data: { user } }] = await Promise.all([getDashboardData(), createClient().then((s) => s.auth.getUser())])
 
-  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, ...dtcPlans] = await Promise.all([
-    hasRoleGrant(profile.userId, 'alum'),
-    getMembershipSubscription(profile.id),
-    getCurrentPlan('membership_monthly'),
-    getCurrentPlan('membership_annual'),
-    prisma.membershipMarketCheck.findFirst({ where: { candidateId: profile.id }, orderBy: { checkedAt: 'desc' } }),
-    ...TIER_ORDER.map((key) => getCurrentPlan(key)),
-  ])
+  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, dossierCompleteness, ...dtcPlans] =
+    await Promise.all([
+      hasRoleGrant(profile.userId, 'alum'),
+      getMembershipSubscription(profile.id),
+      getCurrentPlan('membership_monthly'),
+      getCurrentPlan('membership_annual'),
+      prisma.membershipMarketCheck.findFirst({ where: { candidateId: profile.id }, orderBy: { checkedAt: 'desc' } }),
+      computeDossierCompleteness(profile.id),
+      ...TIER_ORDER.map((key) => getCurrentPlan(key)),
+    ])
+  const dossierActionsRemaining = dossierCompleteness.totalCount - dossierCompleteness.metCount
 
   const plans = TIER_ORDER.map((key, i) => ({ key, plan: dtcPlans[i] }))
 
@@ -120,15 +124,22 @@ export default async function MembershipPage() {
         <h1 className="mt-1 font-heading text-2xl font-semibold text-foreground">
           Choose how much support you want in your search
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          NextChapter&apos;s core dashboard — your Market Reality Report, Resume Studio, job matching, and
-          community — is free, always. These are the add-ons candidates ask for most.
+        <p className="mt-2 text-sm text-foreground">
+          <span className="font-semibold">
+            {dossierActionsRemaining} of {dossierCompleteness.totalCount}
+          </span>{' '}
+          actions left to unlock Candidate+ —{' '}
+          <Link href="/dashboard/portfolio" className="text-primary underline underline-offset-4">
+            see what&apos;s left
+          </Link>
         </p>
+        <p className="mt-1 text-sm text-muted-foreground">Alumni status is lifetime free once you land.</p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {plans.map(({ key, plan }) => {
           const copy = TIER_COPY[key]
+          const isCurrentPlan = key === 'dtc_free'
           return (
             <Card
               key={key}
@@ -143,7 +154,14 @@ export default async function MembershipPage() {
                 </span>
               )}
               <CardHeader>
-                <CardTitle className={cn(copy.recommended && 'text-brand')}>{copy.name}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className={cn(copy.recommended && 'text-brand')}>{copy.name}</CardTitle>
+                  {isCurrentPlan && (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground uppercase">
+                      Your current plan
+                    </span>
+                  )}
+                </div>
                 <p className="text-2xl font-bold text-navy">
                   {plan
                     ? plan.priceCents === 0
@@ -152,7 +170,17 @@ export default async function MembershipPage() {
                     : '—'}
                 </p>
               </CardHeader>
-              <CardContent className="flex flex-1 flex-col justify-between gap-4">
+              <CardContent className="flex flex-1 flex-col gap-4">
+                {isCurrentPlan ? (
+                  <p className="text-xs text-muted-foreground">Already included — nothing to join.</p>
+                ) : (
+                  <MembershipTierWaitlistForm
+                    tier={key}
+                    source="membership_plans_page"
+                    knownContact={knownContact}
+                    ctaLabel="Join the waitlist"
+                  />
+                )}
                 <div className="space-y-3">
                   <p className="text-xs leading-relaxed text-muted-foreground">{copy.audience}</p>
                   <ul className="space-y-1.5">
@@ -163,25 +191,7 @@ export default async function MembershipPage() {
                       </li>
                     ))}
                   </ul>
-                  <p className="border-t border-dashed border-border pt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="font-medium text-foreground">+ Earn Candidate+:</span> complete your{' '}
-                    <Link href="/dashboard/portfolio" className="text-primary underline underline-offset-4">
-                      Executive Dossier
-                    </Link>{' '}
-                    on any plan, free or paid, and this tier also unlocks Exclusive Jobs and the Executive
-                    Recruiter Network.
-                  </p>
                 </div>
-                {key === 'dtc_free' ? (
-                  <p className="text-xs text-muted-foreground">Already included — nothing to join.</p>
-                ) : (
-                  <MembershipTierWaitlistForm
-                    tier={key}
-                    source="membership_plans_page"
-                    knownContact={knownContact}
-                    ctaLabel={copy.recommended ? 'Join the Premium waitlist' : 'Join the waitlist'}
-                  />
-                )}
               </CardContent>
             </Card>
           )
