@@ -16,6 +16,7 @@ export function SignupForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [existingAccount, setExistingAccount] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +38,17 @@ export function SignupForm() {
       return
     }
 
+    // Supabase's signUp() returns a fake-success shape (no error, no
+    // session) for an email that already has a confirmed account, rather
+    // than erroring — the one real signal is an empty `identities` array.
+    // Without this check we'd tell someone to check an email Supabase never
+    // actually sends.
+    if (data.user && data.user.identities?.length === 0) {
+      setLoading(false)
+      setExistingAccount(true)
+      return
+    }
+
     // With email confirmation disabled at the Supabase project level, signUp
     // returns an active session immediately — go straight into onboarding
     // rather than making a lead wait on a confirmation email before they can
@@ -51,6 +63,24 @@ export function SignupForm() {
 
     setLoading(false)
     setSent(true)
+  }
+
+  if (existingAccount) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <p className="text-sm text-foreground">
+          Looks like you already have an account with this email — log in instead of starting a
+          new one.
+        </p>
+        <button
+          type="button"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+          onClick={() => router.push(`/auth/login?email=${encodeURIComponent(email)}`)}
+        >
+          Log in
+        </button>
+      </div>
+    )
   }
 
   if (sent) {

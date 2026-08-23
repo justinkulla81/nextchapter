@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { completeCoachSignup } from '@/app/support/coach/signup/actions'
 import { Button } from '@/components/ui/button'
@@ -33,6 +34,7 @@ export function CoachSignupForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [existingAccount, setExistingAccount] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -53,6 +55,17 @@ export function CoachSignupForm() {
     if (signUpError) {
       setLoading(false)
       setError(signUpError.message)
+      return
+    }
+
+    // Supabase's signUp() returns a fake-success shape (no error, no
+    // session) for an email that already has a confirmed account, rather
+    // than erroring — the one real signal is an empty `identities` array.
+    // Without this check we'd tell someone to check an email Supabase never
+    // actually sends.
+    if (data.user && data.user.identities?.length === 0) {
+      setLoading(false)
+      setExistingAccount(true)
       return
     }
 
@@ -77,6 +90,23 @@ export function CoachSignupForm() {
       setError(result.error)
     }
     // On success, completeCoachSignup redirects — leave loading true.
+  }
+
+  if (existingAccount) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <p className="text-sm text-foreground">
+          Looks like you already have an account with this email — log in instead of starting a
+          new one.
+        </p>
+        <Link
+          href={`/support/coach/login?email=${encodeURIComponent(email)}`}
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Log in
+        </Link>
+      </div>
+    )
   }
 
   if (sent) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +13,7 @@ export function AcceptSeatForm({ seatToken, invitedEmail }: { seatToken: string;
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [existingAccount, setExistingAccount] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,6 +35,17 @@ export function AcceptSeatForm({ seatToken, invitedEmail }: { seatToken: string;
       return
     }
 
+    // Supabase's signUp() returns a fake-success shape (no error, no
+    // session) when invitedEmail already has a confirmed account elsewhere
+    // on the platform, rather than erroring — the one real signal is an
+    // empty `identities` array. Without this check we'd tell someone to
+    // check an email Supabase never actually sends.
+    if (data.user && data.user.identities?.length === 0) {
+      setLoading(false)
+      setExistingAccount(true)
+      return
+    }
+
     // Email confirmation is required at the project level, so signUp
     // doesn't return an active session — the confirmation link lands on
     // CallbackHandler, which finishes accepting the seat itself (see
@@ -42,6 +55,23 @@ export function AcceptSeatForm({ seatToken, invitedEmail }: { seatToken: string;
       setSent(true)
       return
     }
+  }
+
+  if (existingAccount) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <p className="text-sm text-foreground">
+          {invitedEmail} already has an account — log in with it and this invite will carry over.
+          If it doesn&apos;t, reach out to whoever invited you.
+        </p>
+        <Link
+          href={`/talent/login?email=${encodeURIComponent(invitedEmail)}`}
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Log in
+        </Link>
+      </div>
+    )
   }
 
   if (sent) {
