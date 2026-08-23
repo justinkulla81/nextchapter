@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import {
   startCrucibleSession,
@@ -56,6 +57,7 @@ function TierBadge({ tier }: { tier: CrucibleTierKey }) {
 
 export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResume: initialSkipResume }: { source: CrucibleSource; skipEmail: boolean; skipResume: boolean }) {
   const posthog = usePostHog()
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [step, setStep] = useState<Step>('fork')
   const [error, setError] = useState<string | null>(null)
@@ -240,10 +242,17 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
     })
   }
 
+  // Both destinations are real, standalone waitlist pages (see
+  // logCrucibleInterestStandalone's comment — reachable directly too, e.g.
+  // from NC's Skills/Assessment section) — this just also logs interest
+  // against the session already on file before sending them there, so the
+  // click does something visible instead of silently recording a row and
+  // leaving the candidate on the same results screen.
   function submitInterest(kind: 'FULL' | 'LESSON') {
     if (!sessionId || !email.trim()) return
     startTransition(async () => {
       await logCrucibleInterest(sessionId, kind, email.trim())
+      router.push(kind === 'FULL' ? '/noexperience/full' : '/noexperience/lesson')
     })
   }
 
