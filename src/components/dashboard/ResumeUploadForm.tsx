@@ -19,7 +19,17 @@ export interface ResumeUploadNarrativeOption {
   label: string
 }
 
-export function ResumeUploadForm({ narratives = [] }: { narratives?: ResumeUploadNarrativeOption[] }) {
+export function ResumeUploadForm({
+  narratives = [],
+  showNarrativePicker = true,
+}: {
+  narratives?: ResumeUploadNarrativeOption[]
+  // Off during onboarding (see /onboarding/resume) — a brand-new candidate
+  // can't have a narrative yet at that step, so offering "align to a
+  // narrative" (including "+ New narrative") there is a dead-end option,
+  // not a real choice.
+  showNarrativePicker?: boolean
+}) {
   const [state, formAction, pending] = useActionState(uploadResume, undefined)
   const [hasFile, setHasFile] = useState(false)
   const [narrativeChoice, setNarrativeChoice] = useState<string>(NONE_VALUE)
@@ -64,45 +74,49 @@ export function ResumeUploadForm({ narratives = [] }: { narratives?: ResumeUploa
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="narrativeChoice">Align to a narrative (optional)</Label>
-        <p className="text-xs text-muted-foreground">
-          Pick one of your narratives and the analysis will ground its suggestions in that story —
-          e.g. flagging spots where the resume&apos;s framing doesn&apos;t match it.
-        </p>
-        <Select
-          name="narrativeChoiceDisplay"
-          value={narrativeChoice}
-          onValueChange={(value) => {
-            const next = value ?? NONE_VALUE
-            setNarrativeChoice(next)
-            setCreatingNarrative(next === NEW_NARRATIVE_VALUE)
-          }}
-        >
-          <SelectTrigger id="narrativeChoice" disabled={pending}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NONE_VALUE}>None</SelectItem>
-            {narratives.map((n) => (
-              <SelectItem key={n.id} value={n.id}>
-                {n.label}
-              </SelectItem>
-            ))}
-            <SelectItem value={NEW_NARRATIVE_VALUE}>+ New narrative</SelectItem>
-          </SelectContent>
-        </Select>
-        <input type="hidden" name="narrativeId" value={selectedNarrativeId} />
-      </div>
+      {showNarrativePicker && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="narrativeChoice">Align to a narrative (optional)</Label>
+            <p className="text-xs text-muted-foreground">
+              Pick one of your narratives and the analysis will ground its suggestions in that story —
+              e.g. flagging spots where the resume&apos;s framing doesn&apos;t match it.
+            </p>
+            <Select
+              name="narrativeChoiceDisplay"
+              value={narrativeChoice}
+              onValueChange={(value) => {
+                const next = value ?? NONE_VALUE
+                setNarrativeChoice(next)
+                setCreatingNarrative(next === NEW_NARRATIVE_VALUE)
+              }}
+            >
+              <SelectTrigger id="narrativeChoice" disabled={pending}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_VALUE}>None</SelectItem>
+                {narratives.map((n) => (
+                  <SelectItem key={n.id} value={n.id}>
+                    {n.label}
+                  </SelectItem>
+                ))}
+                <SelectItem value={NEW_NARRATIVE_VALUE}>+ New narrative</SelectItem>
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="narrativeId" value={selectedNarrativeId} />
+          </div>
 
-      {creatingNarrative && (
-        <NewNarrativeForm
-          defaultOpen
-          onCreated={(id) => {
-            setCreatingNarrative(false)
-            setNarrativeChoice(id ?? NONE_VALUE)
-          }}
-        />
+          {creatingNarrative && (
+            <NewNarrativeForm
+              defaultOpen
+              onCreated={(id) => {
+                setCreatingNarrative(false)
+                setNarrativeChoice(id ?? NONE_VALUE)
+              }}
+            />
+          )}
+        </>
       )}
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

@@ -129,7 +129,7 @@ export default async function OnboardingResumePage() {
         action plan, you&apos;ll be able to retake it — so don&apos;t overthink your answers here.
       </p>
 
-      <ResumeUploadForm />
+      <ResumeUploadForm showNarrativePicker={false} />
     </div>
   )
 }
