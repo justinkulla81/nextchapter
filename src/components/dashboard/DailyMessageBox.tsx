@@ -51,10 +51,14 @@ export function DailyMessageBox({
   showWelcomeVideo?: boolean
 }) {
   const [dismissed, setDismissed] = useState(false)
-  const [videoWatched, setVideoWatched] = useState(false)
   const [, startTransition] = useTransition()
 
-  const showVideo = showWelcomeVideo && !videoWatched
+  // showWelcomeVideo comes from the server (PageHeaderBoxes) computed once
+  // per page load from welcomeVideoWatchedAt — pressing play only persists
+  // that flag for NEXT time; it must not also hide the video mid-playback
+  // in this render, or pressing play would yank the video out from under
+  // whoever just started watching it.
+  const showVideo = showWelcomeVideo
   if ((!content && !showVideo) || dismissed) return null
 
   function dismiss() {
@@ -65,7 +69,6 @@ export function DailyMessageBox({
   }
 
   function onVideoPlay() {
-    setVideoWatched(true)
     startTransition(() => {
       markWelcomeVideoWatched()
     })
