@@ -13,7 +13,6 @@ import { generateHardQuestions, shouldRouteHardQuestionsToCoach } from '@/lib/na
 import { isLinkedInPostingConfigured, publishLinkedInPost } from '@/lib/linkedin/oauth'
 import { canParticipateInCommunity } from '@/lib/community/access'
 import { createModeratedCommunityPost } from '@/lib/community/create-post'
-import { gradeLinkedInProfile, REGRADE_COOLDOWN_DAYS } from '@/lib/linkedin/grade-profile'
 
 async function getAuthedProfile() {
   const supabase = await createClient()
@@ -72,42 +71,6 @@ export async function submitThoughtLeadershipUnlock(
     }
   }
 
-  revalidatePath('/dashboard/marketing-plan')
-}
-
-export type LinkedInGradeFormState = { error?: string } | undefined
-
-// No public LinkedIn scraping API exists, so this grades whatever profile
-// text the candidate pastes in themselves rather than fetching anything
-// live — see LinkedInProfileGraderForm. Each submission is a real Claude
-// call (gradeLinkedInProfile), so re-grading is cooldown-limited off
-// analyzedAt rather than freely re-callable like generateIdeasAction above.
-export async function submitLinkedInProfileGrade(
-  _prevState: LinkedInGradeFormState,
-  formData: FormData
-): Promise<LinkedInGradeFormState> {
-  const profile = await getAuthedProfile()
-  if (!profile) return { error: 'You need to be logged in to do this.' }
-
-  const pastedText = (formData.get('pastedText') as string | null)?.trim()
-  if (!pastedText || pastedText.length < 50) {
-    return { error: 'Paste your LinkedIn profile text (headline, About, and experience) — at least a few sentences.' }
-  }
-
-  const existing = await prisma.linkedInProfileGrade.findUnique({
-    where: { candidateId: profile.id },
-    select: { analyzedAt: true },
-  })
-  if (existing?.analyzedAt) {
-    const daysSince = (Date.now() - existing.analyzedAt.getTime()) / 86400000
-    if (daysSince < REGRADE_COOLDOWN_DAYS) {
-      const daysLeft = Math.ceil(REGRADE_COOLDOWN_DAYS - daysSince)
-      return { error: `You can re-grade your profile again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.` }
-    }
-  }
-
-  await gradeLinkedInProfile(profile.id, pastedText)
-  captureServerEvent(profile.id, 'linkedin_profile_graded')
   revalidatePath('/dashboard/marketing-plan')
 }
 
