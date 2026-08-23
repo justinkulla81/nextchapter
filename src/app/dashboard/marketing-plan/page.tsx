@@ -10,6 +10,7 @@ import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialMo
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { LinkedInConnectCard } from '@/components/dashboard/marketing-plan/LinkedInConnectCard'
 import { LinkedInComposer } from '@/components/dashboard/marketing-plan/LinkedInComposer'
+import { LinkedInProfileGraderForm } from '@/components/dashboard/marketing-plan/LinkedInProfileGraderForm'
 import { CoreNarrativeBootstrap } from '@/components/dashboard/marketing-plan/CoreNarrativeBootstrap'
 import { NarrativeManager, type NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { CuratedVideoCard } from '@/components/dashboard/CuratedVideoCard'
@@ -106,7 +107,7 @@ export default async function MarketingPlanPage({
   const otherVenues = profile.contentVenues.filter((v) => v !== 'LINKEDIN')
 
   const linkedinConfigured = isLinkedInPostingConfigured()
-  const [narrativeRows, linkedinConnection, routeHardQuestionsToCoach, linkedInTips, likedKeys, followUps] =
+  const [narrativeRows, linkedinConnection, routeHardQuestionsToCoach, linkedInTips, likedKeys, followUps, linkedInProfileGrade] =
     await Promise.all([
       prisma.candidateNarrative.findMany({
         where: { candidateId: profile.id },
@@ -119,6 +120,7 @@ export default async function MarketingPlanPage({
       getLinkedInTipsVideos(profile.id),
       getCandidateContentLikeKeys(profile.id),
       getUnifiedFollowUps(profile.id, 5),
+      prisma.linkedInProfileGrade.findUnique({ where: { candidateId: profile.id } }),
     ])
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
     id: n.id,
@@ -196,6 +198,7 @@ export default async function MarketingPlanPage({
           activityCount={linkedInActivityCount}
           directPostCount={directPostCount}
         />
+        <LinkedInProfileGraderForm existing={linkedInProfileGrade} />
       </div>
 
       {/* Narrative — Core Narrative and every Tailored Narrative as one

@@ -1371,6 +1371,7 @@ model CandidateProfile {
   whatINeedResponse              WhatINeedResponse?
   resumeWalkthroughSession       ResumeWalkthroughSession?
   resumes                        Resume[]
+  linkedInProfileGrade           LinkedInProfileGrade?
   jobPostings                    JobPosting[]
   communityPosts                 CommunityPost[]
   expressedInterests             CommunityPostInterest[]
@@ -2682,6 +2683,34 @@ model Resume {
   messages Message[]
 
   @@index([candidateId, uploadedAt])
+}
+
+// LinkedIn Profile Grader — no public LinkedIn scraping API exists, so the
+// candidate pastes their own profile text (headline, About, experience
+// bullets) and it's graded the same way Resume.atsScore/resultsScore/
+// experienceScore are: three independent 0-100 dimensions with {issue,
+// action} feedback pairs (see src/lib/linkedin/grade-profile.ts). One row
+// per candidate (not versioned like Resume) — re-grading overwrites the
+// prior result. analyzedAt also gates the re-grade cooldown in the Server
+// Action, same field doing double duty as Resume's does.
+model LinkedInProfileGrade {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  pastedText String @db.Text
+
+  headlineScore      Int? // 0-100
+  headlineFeedback   Json[]    @default([]) // { issue: string, action: string }
+  aboutScore         Int? // 0-100
+  aboutFeedback      Json[]    @default([]) // { issue: string, action: string }
+  experienceScore    Int? // 0-100 — same "quantified impact vs. vague duties" standard as Resume.resultsScore
+  experienceFeedback Json[]    @default([]) // { issue: string, action: string }
+  analysisError      String?
+  analyzedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ── MARKET REALITY GRADE 2.0 ───────────────────────────────────────────────
