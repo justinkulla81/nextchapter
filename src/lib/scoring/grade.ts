@@ -49,6 +49,31 @@ export const GRADE_BAND_DESCRIPTION: Record<Grade, string> = {
   F: 'Critical gap — a major weakness or missing piece here is the single highest-leverage thing to fix first.',
 }
 
+// What a recruiter looking at this candidate's material would conclude —
+// framed from the recruiter's side, not the candidate's own search-speed
+// framing GRADE_BAND_DESCRIPTION above gives. Used for Victoria's opening
+// line on the onboarding score-reveal screen (/onboarding/score).
+export const GRADE_RECRUITER_IMPRESSION: Record<Grade, string> = {
+  A: 'recruiters will see far more strengths than weaknesses.',
+  B: 'recruiters will see mostly strengths, with only a few things to sharpen.',
+  C: 'recruiters will find real strengths and real weaknesses — a genuinely mixed picture.',
+  D: 'recruiters will find more weaknesses than strengths.',
+  F: "recruiters will find weaknesses serious enough to end most conversations before they start.",
+}
+
+// Directional estimates, not a calibrated statistic — same "first pass,
+// not fit to real usage data" caveat as scoreToGrade's own bands above.
+// Shown under the grade legend so the letter grade translates into a real,
+// concrete sense of the volume of effort each band typically takes to
+// land one interview.
+export const GRADE_INTERVIEW_ODDS: Record<Grade, string> = {
+  A: 'Typically ~5-10 applications, or 3-5 personalized outreach messages, per interview.',
+  B: 'Typically ~15-20 applications, or 5-8 personalized outreach messages, per interview.',
+  C: 'Typically ~30-40 applications, or 8-12 personalized outreach messages, per interview.',
+  D: 'Typically ~60-80 applications, or 15-20 personalized outreach messages, per interview.',
+  F: 'Typically 100+ applications, or 25+ personalized outreach messages, per interview.',
+}
+
 // Shared color tokens for every grade display in the product — previously
 // duplicated across DualGradeReveal, GradeSystemExplainer, DashboardTopStrip,
 // and the market-reality page. One source of truth now.
