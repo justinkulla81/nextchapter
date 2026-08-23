@@ -622,14 +622,15 @@ export function SuccessSprintCard({
     if (actionType === 'REFERENCE_ADDED') return completedReferencesCount < 5
     if (actionType === 'JOB_APPLICATION_SUBMITTED') return true
     if (actionType === 'INTERIM_PROFILE_CREATED') return true
-    if (actionType === 'LEARNING_MODULE') return true
-    if (actionType === 'LEARNING_CERTIFICATE_STARTED') return true
+    // LEARNING_MODULE/LEARNING_CERTIFICATE_STARTED/LEARNING_NEW_TOOL_STARTED/
+    // THOUGHT_LEADERSHIP_SHARE deliberately excluded per direct instruction —
+    // starting something new isn't as urgent as the outreach/application/
+    // reference actions above; LEARNING_CERTIFICATE/LEARNING_NEW_TOOL (the
+    // continuation of something already started) stay priority below.
     if (actionType === 'LEARNING_CERTIFICATE') return true
-    if (actionType === 'LEARNING_NEW_TOOL_STARTED') return true
     if (actionType === 'LEARNING_NEW_TOOL') return true
     if (actionType === 'LEARNING_SESSION_ATTENDED') return true
     if (actionType === 'LINKEDIN_POST_IDEA') return true
-    if (actionType === 'THOUGHT_LEADERSHIP_SHARE') return true
     if (actionType === 'RESUME_UPDATE') return marketRealityGrade !== null && marketRealityGrade !== 'A'
     return false
   }
@@ -754,7 +755,17 @@ export function SuccessSprintCard({
   // every section. Deliberately not removed from its own category below: a
   // candidate browsing Connecting should still see "Send a personalized
   // outreach message" there even though it's also called out up top.
-  const priorityRows = sortForDisplay(consolidatedOpenRows.filter((r) => r.priority && !isAchieved(r)))
+  // Fixed #1/#2/#3 order within Priority per direct instruction — chained
+  // onto sortForDisplay's stable sort, so anything not in this map keeps
+  // whatever relative order sortForDisplay already gave it.
+  const FIXED_PRIORITY_RANK: Partial<Record<string, number>> = {
+    RESUME_UPDATE: 0,
+    JOB_APPLICATION_SUBMITTED: 1,
+    OUTREACH_MESSAGE: 2,
+  }
+  const priorityRows = sortForDisplay(consolidatedOpenRows.filter((r) => r.priority && !isAchieved(r))).sort(
+    (a, b) => (FIXED_PRIORITY_RANK[a.actionType ?? ''] ?? 99) - (FIXED_PRIORITY_RANK[b.actionType ?? ''] ?? 99)
+  )
 
   const groups = groupByNavCategory(consolidatedOpenRows)
 

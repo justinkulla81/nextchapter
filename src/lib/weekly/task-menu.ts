@@ -11,7 +11,7 @@ export interface CanonicalTask extends SuggestedActionLike {
 
 export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   // Outreach
-  { text: 'Send networking notes', actionType: 'OUTREACH_MESSAGE' },
+  { text: 'Get Networking', actionType: 'OUTREACH_MESSAGE' },
   { text: 'Have a coffee chat or call', actionType: 'OUTREACH_CALL' },
   { text: 'Follow up on a previous outreach', actionType: 'FOLLOW_UP_NOTE_SENT' },
   { text: 'Add new contacts to your networking list', actionType: 'NETWORKING_LIST' },
@@ -37,7 +37,7 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   { text: 'Start learning a new tool', actionType: 'LEARNING_NEW_TOOL_STARTED' },
 
   // Resume / Assets
-  { text: 'Update your resume', actionType: 'RESUME_UPDATE' },
+  { text: 'Fix your Resume Issues', actionType: 'RESUME_UPDATE' },
   { text: 'Optimize your LinkedIn profile', actionType: 'LINKEDIN_SETUP' },
 
   // Interview Prep
@@ -52,7 +52,7 @@ export const CANONICAL_TASK_MENU: CanonicalTask[] = [
   // profile-checklist.ts's "dead" comment on the same type — so it could
   // never actually be completed. Replaced with the three real, verified
   // job-search actions below.)
-  { text: 'Apply to a new job', actionType: 'JOB_APPLICATION_SUBMITTED' },
+  { text: 'Apply to Full-Time Jobs', actionType: 'JOB_APPLICATION_SUBMITTED' },
   { text: 'React to a job recommendation', actionType: 'JOB_INTERESTED_REACTION' },
   { text: 'Add a company to your tracker', actionType: 'WATCHLIST_ADD' },
   { text: 'Explore an interim job', actionType: 'INTERIM_PROFILE_CREATED' },
