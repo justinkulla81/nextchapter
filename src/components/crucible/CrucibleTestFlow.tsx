@@ -53,6 +53,19 @@ const AI_TOOL_OPTIONS = ['ChatGPT', 'Claude', 'Gemini', 'Grok', 'Copilot', 'Othe
 
 const TIER_LABEL: Record<CrucibleTierKey, string> = { EASY: 'Warm-up', MEDIUM: 'Standard', HARD: 'Hard mode' }
 
+// A visual bar alongside the existing "Activity N of 4" text label — the
+// text alone doesn't answer "how much is left" at a glance the way a
+// filled/unfilled bar does.
+function ActivityProgress({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="mt-1.5 flex gap-1" role="progressbar" aria-valuenow={current} aria-valuemin={1} aria-valuemax={total}>
+      {Array.from({ length: total }, (_, i) => (
+        <div key={i} className={cn('h-1 flex-1 rounded-full', i < current ? 'bg-brand' : 'bg-border')} />
+      ))}
+    </div>
+  )
+}
+
 function TierBadge({ tier }: { tier: CrucibleTierKey }) {
   if (tier === 'EASY') return null
   return (
@@ -357,7 +370,8 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
               Activity 1 of 4 — Judge the output
               <TierBadge tier={qaTier} />
             </p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground">{qaContent.scenarioTitle}</h1>
+            <ActivityProgress current={1} total={4} />
+            <h1 className="mt-3 text-xl font-semibold text-foreground">{qaContent.scenarioTitle}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{qaContent.brief}</p>
           </div>
 
@@ -425,7 +439,8 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
               Activity 2 of 4 — Write a prompt
               <TierBadge tier={promptTier} />
             </p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground">{promptContent.pageTitle}</h1>
+            <ActivityProgress current={2} total={4} />
+            <h1 className="mt-3 text-xl font-semibold text-foreground">{promptContent.pageTitle}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{promptContent.instructions}</p>
           </div>
 
@@ -470,7 +485,8 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
               Activity 3 of 4 — Analyze a dataset
               <TierBadge tier={datasetTier} />
             </p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground">Make the call</h1>
+            <ActivityProgress current={3} total={4} />
+            <h1 className="mt-3 text-xl font-semibold text-foreground">Make the call</h1>
             <p className="mt-2 text-sm text-muted-foreground">{datasetContent.businessContext}</p>
           </div>
 
@@ -517,7 +533,8 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 4 of 4 — Read the results</p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground">Trust the result?</h1>
+            <ActivityProgress current={4} total={4} />
+            <h1 className="mt-3 text-xl font-semibold text-foreground">Trust the result?</h1>
             <p className="mt-2 text-sm text-muted-foreground">{resultsContent.businessContext}</p>
           </div>
 
