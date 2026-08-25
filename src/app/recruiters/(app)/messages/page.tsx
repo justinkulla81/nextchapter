@@ -6,7 +6,7 @@ import { getRecruiterThreads } from '@/lib/messaging/threads'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 
 export default async function RecruiterMessagesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

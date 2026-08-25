@@ -12,7 +12,7 @@ const STATUS_LABEL = {
 } as const
 
 export default async function RecruiterCandidatesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

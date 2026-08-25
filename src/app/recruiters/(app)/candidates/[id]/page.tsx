@@ -16,7 +16,7 @@ const STATUS_LABEL = {
 
 export default async function SourcedCandidateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

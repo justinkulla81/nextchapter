@@ -14,7 +14,7 @@ import { createConsentedIntroductionIfMissing } from '@/lib/recruiter/introducti
 export type AddSourcedCandidateState = { error?: string; added?: boolean } | undefined
 
 async function requireRecruiter() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -109,7 +109,7 @@ export async function inviteSourcedCandidate(sourcedCandidateId: string): Promis
 // no special treatment beyond that recorded relationship — full onboarding,
 // general searchable pool, same as any organic signup.
 export async function finishAcceptingRecruiterSource(inviteToken: string): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

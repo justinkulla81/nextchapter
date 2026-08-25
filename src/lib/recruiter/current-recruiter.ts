@@ -9,7 +9,7 @@ import type { Recruiter } from '@prisma/client'
 // (distinct from the private requireRecruiter() in candidates/actions.ts,
 // which returns null instead of redirecting since it's called from actions).
 export async function getCurrentRecruiter(): Promise<Recruiter> {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

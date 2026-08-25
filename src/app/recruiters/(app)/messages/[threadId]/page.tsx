@@ -16,7 +16,7 @@ function candidateDisplayName(candidate: { firstName: string | null; lastName: s
 
 export default async function RecruiterThreadPage({ params }: { params: Promise<{ threadId: string }> }) {
   const { threadId } = await params
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

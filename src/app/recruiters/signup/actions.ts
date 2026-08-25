@@ -41,7 +41,7 @@ export async function completeRecruiterSignup(
     return { error: 'Please fill in your name.' }
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -59,7 +59,7 @@ export async function completeRecruiterSignup(
 // email is clicked and a session is established — mirrors
 // completeEmployerSignupFromSession (see src/app/talent/signup/actions.ts).
 export async function completeRecruiterSignupFromSession(): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -11,7 +11,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { isCandidateConsentedForRecruiter, recordIntroductionEvent } from '@/lib/recruiter/introductions'
 
 async function requireRecruiter() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

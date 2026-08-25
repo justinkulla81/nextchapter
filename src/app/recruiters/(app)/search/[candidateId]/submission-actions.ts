@@ -15,7 +15,7 @@ import type { RecruiterFeeArrangementType, RecruiterSubmissionStage } from '@pri
 export type SubmissionActionState = { error?: string } | undefined
 
 async function requireRecruiter() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

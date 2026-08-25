@@ -35,7 +35,7 @@ export default async function RecruiterSearchPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -7,7 +7,7 @@ import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture, uploadMyFirmLogo, removeMyFirmLogo } from './actions'
 
 export default async function RecruiterSettingsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -7,7 +7,7 @@ import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { getSourcedCandidateResumeSignedUrl } from '../actions'
 
 export default async function CandidateBookPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

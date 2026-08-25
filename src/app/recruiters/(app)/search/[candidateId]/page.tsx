@@ -30,7 +30,7 @@ export default async function RecruiterCandidateBriefPage({
 }) {
   const { candidateId } = await params
 
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()

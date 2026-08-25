@@ -8,7 +8,7 @@ import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 
 async function requireRecruiter() {
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -30,7 +30,7 @@ export async function updateRecruiterSettings(
     return { error: 'Please fill in your name.' }
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient('recruiter')
   const {
     data: { user },
   } = await supabase.auth.getUser()
