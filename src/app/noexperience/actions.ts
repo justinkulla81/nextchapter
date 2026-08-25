@@ -54,7 +54,17 @@ async function getAuthedCandidate(): Promise<{ candidateId: string; email: strin
   return { candidateId: profile.id, email: user.email ?? profile.email ?? null }
 }
 
-export type CrucibleStartResult = { sessionId: string; variant: CrucibleVariantKey; skipEmail: boolean; skipResume: boolean }
+export type CrucibleStartResult = {
+  sessionId: string
+  variant: CrucibleVariantKey
+  skipEmail: boolean
+  skipResume: boolean
+  // Only set when skipEmail is true (an authenticated candidate) — the
+  // client never shows/collects an email in that case, so without this the
+  // Reserve/Start-lesson buttons at the results screen have no email to
+  // submit and silently no-op forever (submitInterest requires one).
+  email: string | null
+}
 
 export async function startCrucibleSession(source: CrucibleSource, jobIntent: CrucibleJobIntentKey): Promise<CrucibleStartResult> {
   const variant = JOB_INTENT_TO_VARIANT[jobIntent]
@@ -78,7 +88,7 @@ export async function startCrucibleSession(source: CrucibleSource, jobIntent: Cr
 
   captureServerEvent(authed?.candidateId ?? session.id, 'crucible_test_start', { src: source, variant, jobIntent })
 
-  return { sessionId: session.id, variant, skipEmail: !!authed, skipResume: !!authed }
+  return { sessionId: session.id, variant, skipEmail: !!authed, skipResume: !!authed, email: authed?.email ?? null }
 }
 
 async function requireSession(sessionId: string) {

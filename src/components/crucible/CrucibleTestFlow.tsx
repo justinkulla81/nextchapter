@@ -104,6 +104,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         setVariant(started.variant)
         setSkipEmail(started.skipEmail)
         setSkipResume(started.skipResume)
+        if (started.email) setEmail(started.email)
         setJobIntent(intent)
         posthog?.capture('crucible_fork_pick', { intent, variant: started.variant })
         setStep(started.skipEmail ? 'intro' : 'email')
