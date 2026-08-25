@@ -113,7 +113,11 @@ export default function ForOrganizationsPage() {
                 <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
               </summary>
               <div className="absolute right-0 z-10 mt-2 w-48 rounded-md border border-border bg-white py-1 shadow-md">
-                <Link href="/talent/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
+                {/* Each entry routes to the SAME login the matching tile
+                    below links to — e.g. "Employers" here must land on the
+                    same portal as the "Employers" card, not a different,
+                    unrelated one. */}
+                <Link href="/employer/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
                   Employers
                 </Link>
                 <Link href="/recruiters/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
@@ -121,6 +125,9 @@ export default function ForOrganizationsPage() {
                 </Link>
                 <Link href="/support/coach/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
                   Coaches
+                </Link>
+                <Link href="/hiring/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
+                  Hiring Managers
                 </Link>
               </div>
             </details>

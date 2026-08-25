@@ -14,6 +14,8 @@ import type { AudienceTab } from '@/components/audience/audience-data'
 // component with synthetic data, etc.) rather than baking it into the pure
 // data file.
 export function OrganizationPageTemplate({ tab, artifact }: { tab: AudienceTab; artifact?: ReactNode }) {
+  const loginHref = tab.loginHref ?? tab.directSignupHref?.replace('/signup', '/login')
+
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border bg-white">
@@ -25,9 +27,9 @@ export function OrganizationPageTemplate({ tab, artifact }: { tab: AudienceTab; 
             <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
               For candidates
             </Link>
-            {tab.directSignupHref && (
+            {loginHref && (
               <Link
-                href={tab.directSignupHref.replace('/signup', '/login')}
+                href={loginHref}
                 className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-brand hover:text-brand"
               >
                 Log in

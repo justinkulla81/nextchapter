@@ -27,6 +27,12 @@ export interface AudienceTab {
   // making everyone wait on the waitlist for access that already works.
   directSignupHref?: string
   directSignupLabel?: string
+  // Optional explicit login destination for audiences with a real portal
+  // but no self-serve signup (e.g. outplacement, which is sales-led) —
+  // without this, the header's "Log in" link only appears when
+  // directSignupHref is set, which silently hides it for anyone who
+  // already has an account.
+  loginHref?: string
   contrastLabel: string
   contrastBody: string
   formHeading: string
@@ -165,6 +171,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     id: 'outplacement',
     audience: 'Outplacement',
     eyebrow: 'For Outplacement & HR',
+    loginHref: '/employer/login',
     headline: 'Offboarding that actually relaunches careers — not a login to a stale course library.',
     subhead:
       'Give departing employees a personalized action plan, an honest assessment of where they stand, and direct matching to hiring employers. Protect your brand by treating people like people on the way out.',
