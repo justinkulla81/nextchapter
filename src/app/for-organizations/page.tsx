@@ -27,7 +27,11 @@ const ORG_CARDS: {
   accent: string
 }[] = [
   {
-    href: '/employers',
+    // Points at Talent (post a role, hire our candidates directly) — not
+    // /employers/outplacement, a different product (help departing
+    // employees relaunch). This teaser has always described Talent's
+    // pitch, so the two were mismatched until this fix.
+    href: '/talent',
     title: 'Employers',
     teaser: 'Hire for how people actually work, at one flat price.',
     icon: Building2,
@@ -117,8 +121,11 @@ export default function ForOrganizationsPage() {
                     below links to — e.g. "Employers" here must land on the
                     same portal as the "Employers" card, not a different,
                     unrelated one. */}
-                <Link href="/employer/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
+                <Link href="/talent/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
                   Employers
+                </Link>
+                <Link href="/employer/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
+                  Outplacement &amp; HR
                 </Link>
                 <Link href="/recruiters/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
                   Recruiters &amp; Agencies
@@ -196,17 +203,17 @@ export default function ForOrganizationsPage() {
         <div className="mx-auto max-w-2xl px-6">
           <h2 className="text-2xl font-bold tracking-tight">Not sure which one fits?</h2>
           <p className="mt-2 text-light-blue">
-            Start with Employers — most of what applies there (pricing, compliance, reporting) carries over
-            to the other organization types.
+            Start with Outplacement &amp; HR — most of what applies there (pricing, compliance, reporting)
+            carries over to the other organization types.
           </p>
           <Button
             nativeButton={false}
             size="lg"
             variant="success"
             className="mt-6 h-12 px-8"
-            render={<Link href="/employers" />}
+            render={<Link href="/outplacement" />}
           >
-            See Employers →
+            See Outplacement &amp; HR →
           </Button>
         </div>
       </section>

@@ -20,7 +20,7 @@ export default async function TeamSeatsPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user || employer.userId !== user.id) {
-    redirect('/talent')
+    redirect('/talent/dashboard')
   }
 
   const [seats, authUsers] = await Promise.all([

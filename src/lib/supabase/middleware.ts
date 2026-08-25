@@ -1,6 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { PORTAL_COOKIE_NAMES, portalForPath } from '@/lib/supabase/portal'
+import { PORTAL_COOKIE_NAMES, portalForPath, PORTAL_APP_SUBROUTES } from '@/lib/supabase/portal'
+
+// Plain `pathname.startsWith(prefix)` treats '/employer' as a match for
+// '/employers' too — a real production bug this fixed: the public
+// /employers marketing page was matching the protected /employer
+// (outplacement portal) prefix purely because "employers" starts with
+// "employer" as a string, redirecting every anonymous visitor straight to
+// /employer/login instead of ever showing the page. Require a path
+// boundary (exact match or the next character is '/') so a prefix can
+// never accidentally swallow an unrelated sibling route.
+function pathStartsWith(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
 
 export async function updateSession(request: NextRequest) {
   // Forward the pathname as a REQUEST header (not a response header) so
@@ -85,12 +97,17 @@ export async function updateSession(request: NextRequest) {
   // getCurrentX()/requireAdmin() check, which stays in place as a backstop.
   const protectedPaths = [
     '/dashboard',
-    '/talent',
+    // /talent and /hiring are PUBLIC marketing pages now — only their real
+    // app subroutes (one level deeper, see PORTAL_APP_SUBROUTES) are
+    // protected. Listing the bare portal path here would prefix-match the
+    // marketing page too and redirect every anonymous visitor straight to
+    // login before they ever see it (the exact bug this fixed for /hiring).
+    ...PORTAL_APP_SUBROUTES.talent!,
+    ...PORTAL_APP_SUBROUTES.hiring!,
     '/noexperience/employers',
     '/eqoveriq/contributors',
     '/recruiters',
     '/support/coach',
-    '/hiring',
     '/employer',
     '/support/admin',
   ]
@@ -124,21 +141,21 @@ export async function updateSession(request: NextRequest) {
     '/support/admin/forgot-password',
   ]
   const isProtected =
-    protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
-    !publicExceptions.some((path) => request.nextUrl.pathname.startsWith(path))
+    protectedPaths.some((path) => pathStartsWith(request.nextUrl.pathname, path)) &&
+    !publicExceptions.some((path) => pathStartsWith(request.nextUrl.pathname, path))
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
     const portalLoginPath = Object.entries({
       '/noexperience/employers': '/noexperience/employers/login',
       '/eqoveriq/contributors': '/eqoveriq/contributors/login',
-      '/talent': '/talent/login',
+      ...Object.fromEntries(PORTAL_APP_SUBROUTES.talent!.map((p) => [p, '/talent/login'])),
       '/recruiters': '/recruiters/login',
       '/support/coach': '/support/coach/login',
-      '/hiring': '/hiring/login',
+      ...Object.fromEntries(PORTAL_APP_SUBROUTES.hiring!.map((p) => [p, '/hiring/login'])),
       '/employer': '/employer/login',
       '/support/admin': '/support/admin/login',
-    }).find(([prefix]) => request.nextUrl.pathname.startsWith(prefix))?.[1]
+    }).find(([prefix]) => pathStartsWith(request.nextUrl.pathname, prefix))?.[1]
     redirectUrl.pathname = portalLoginPath ?? '/auth/login'
     redirectUrl.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)

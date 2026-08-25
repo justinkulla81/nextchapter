@@ -80,7 +80,7 @@ export default function OutplacementAccountAfterContractArticlePage() {
             stay collected, and their account doesn&apos;t lapse when the employer&apos;s contract term ends.
             The employer&apos;s own reporting access to that cohort does end per the contract, consistent with
             the trust boundary we describe on{' '}
-            <Link href="/employers" className="text-primary underline underline-offset-4">
+            <Link href="/outplacement" className="text-primary underline underline-offset-4">
               /employers
             </Link>
             : an employer never sees an individual&apos;s activity, grade, or whether they used the product,

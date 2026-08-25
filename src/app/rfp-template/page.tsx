@@ -43,7 +43,7 @@ export default function RfpTemplatePage() {
             <Logo className="text-2xl" />
           </Link>
           <nav className="flex items-center gap-1.5 text-sm">
-            <Link href="/employers" className="font-medium text-brand hover:text-navy">
+            <Link href="/outplacement" className="font-medium text-brand hover:text-navy">
               For Employers
             </Link>
           </nav>
@@ -114,7 +114,7 @@ export default function RfpTemplatePage() {
             See how we&apos;d answer these questions
           </Link>
           {' · '}
-          <Link href="/employers" className="underline underline-offset-4">
+          <Link href="/outplacement" className="underline underline-offset-4">
             NextChapter for employers
           </Link>
         </div>

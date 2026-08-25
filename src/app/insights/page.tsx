@@ -50,7 +50,7 @@ export default function InsightsIndexPage() {
             <Logo className="text-2xl" />
           </Link>
           <nav className="flex items-center gap-1.5 text-sm">
-            <Link href="/employers" className="font-medium text-brand hover:text-navy">
+            <Link href="/outplacement" className="font-medium text-brand hover:text-navy">
               For Employers
             </Link>
             <ChevronRight className="size-4 text-muted-foreground" />

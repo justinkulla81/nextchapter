@@ -33,6 +33,39 @@ export const PORTAL_PATH_PREFIXES: [string, PortalKey][] = [
   ['/eqoveriq/contributors', 'eqoveriq'],
 ]
 
+// Boundary-aware — plain startsWith would treat '/employer' as a match for
+// the unrelated '/employers' marketing page too (a real bug this fixed:
+// see middleware.ts's pathStartsWith comment for the production incident).
+function pathStartsWith(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
+
 export function portalForPath(pathname: string): PortalKey | undefined {
-  return PORTAL_PATH_PREFIXES.find(([prefix]) => pathname.startsWith(prefix))?.[1]
+  return PORTAL_PATH_PREFIXES.find(([prefix]) => pathStartsWith(pathname, prefix))?.[1]
+}
+
+// Portals whose bare `/<portal>` path is now a PUBLIC marketing page, not
+// the app itself — the real app lives one level deeper (a route-group
+// move, same as the earlier Hiring Manager split). Any list that means
+// "the private app pages for this portal" — middleware's protectedPaths,
+// robots.ts's disallow list, GoogleAnalytics's exclusion list — must
+// enumerate these specific subroutes, never the bare portal path, or a
+// prefix match silently swallows the public marketing page too. This is
+// the single source of truth for that list so the three copies can't
+// drift apart the way they already had for /hiring (visiting it
+// anonymously redirected straight to /hiring/login instead of showing the
+// marketing page, until this was extracted to fix that).
+export const PORTAL_APP_SUBROUTES: Partial<Record<PortalKey, string[]>> = {
+  hiring: ['/hiring/dashboard', '/hiring/reqs', '/hiring/candidates'],
+  talent: [
+    '/talent/dashboard',
+    '/talent/roles',
+    '/talent/candidates',
+    '/talent/messages',
+    '/talent/saved',
+    '/talent/analytics',
+    '/talent/job-board',
+    '/talent/team',
+    '/talent/settings',
+  ],
 }

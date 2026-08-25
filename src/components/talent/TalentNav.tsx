@@ -33,6 +33,11 @@ interface NavLink {
 
 function buildLinks(messagesUnreadCount: number): NavLink[] {
   return [
+    // Now that /talent (bare) is a public marketing page and the real home
+    // moved to /talent/dashboard, nothing else in this list points back to
+    // it — without an explicit link, there was no way back to the overview
+    // (candidate matches, active role count) once you navigated away.
+    { href: '/talent/dashboard', label: 'Dashboard' },
     { href: '/talent/roles/new', label: 'Post a Role', primary: true },
     { href: '/talent/roles', label: 'My Roles' },
     { href: '/talent/candidates', label: 'Candidate Inbox' },

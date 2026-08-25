@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 // partner portals themselves use (§B5), so the color already means the
 // same thing by the time someone reaches that portal.
 const AUDIENCE_CARDS = [
-  { label: 'Employers', href: '/employers', accent: 'bg-accent-employer', blurb: 'Outplacement that produces proof, not a portal.' },
+  { label: 'Employers', href: '/outplacement', accent: 'bg-accent-employer', blurb: 'Outplacement that produces proof, not a portal.' },
   { label: 'Coaches', href: '/coaches', accent: 'bg-accent-coach', blurb: 'Stop rebuilding context before every session.' },
   { label: 'Recruiters', href: '/recruiters', accent: 'bg-accent-recruiter', blurb: 'Candidates who arrive with references already done.' },
   { label: 'Hiring managers', href: '/hiring', accent: 'bg-accent-hiring', blurb: 'Interview better, not longer.' },

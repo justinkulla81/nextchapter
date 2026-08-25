@@ -12,7 +12,7 @@ export default function TalentForgotPasswordPage() {
       description="Enter your email and we'll send you a link to reset your password."
     >
       <Suspense fallback={null}>
-        <ForgotPasswordForm loginHref="/talent/login" postResetHref="/talent" signupHref="/talent/signup" />
+        <ForgotPasswordForm loginHref="/talent/login" postResetHref="/talent/dashboard" signupHref="/talent/signup" />
       </Suspense>
     </PortalAuthCard>
   )

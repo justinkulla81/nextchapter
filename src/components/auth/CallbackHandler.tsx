@@ -190,7 +190,7 @@ export function CallbackHandler() {
         return
       }
       setStatus('redirecting')
-      router.replace('/talent')
+      router.replace('/talent/dashboard')
       return
     }
     if (nextIsCoachInvite) {

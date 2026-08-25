@@ -108,7 +108,7 @@ export default function OutplacementReportingArticlePage() {
             ← All insights
           </Link>
           {' · '}
-          <Link href="/employers" className="underline underline-offset-4">
+          <Link href="/outplacement" className="underline underline-offset-4">
             NextChapter for employers
           </Link>
         </div>

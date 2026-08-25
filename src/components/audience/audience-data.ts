@@ -43,9 +43,14 @@ export interface AudienceTab {
 
 export const AUDIENCE_TABS: AudienceTab[] = [
   {
-    id: 'employers',
-    audience: 'Employer',
-    eyebrow: 'For Employers',
+    // Renamed from 'employers' — that label already belongs to the
+    // outplacement pitch at /employers (a different product: helping a
+    // company's departing employees relaunch, not helping a company hire).
+    // This tab is the Talent portal (post a role, hire NextChapter
+    // candidates directly) — see /hire/page.tsx.
+    id: 'talent',
+    audience: 'Talent',
+    eyebrow: 'For Hiring Teams',
     headline: 'Hire for how people actually work — verified, not self-declared.',
     subhead:
       'Every candidate on NextChapter completes a structured How They Work Best assessment and gathers verified references before you ever see their profile — so you\'re evaluating demonstrated fit and work ethic, not a résumé\'s best guess at itself.',
@@ -89,8 +94,8 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     contrastLabel: 'What you see vs. what you don\'t:',
     contrastBody:
       "you get verified references, demonstrated work ethic, real work samples, and a How They Work Best profile — the same caliber of signal an executive recruiter would hand you. You never see a candidate's private Grade, their goals, or their compensation expectations. That's theirs, not a filter for you to game.",
-    formHeading: 'Join the employer waitlist',
-    formSubtext: "Be first to post roles and search verified profiles when we open to your region.",
+    formHeading: 'Questions before you sign up?',
+    formSubtext: "Tell us about your team and we'll follow up.",
     fields: [
       { name: 'fullName', label: 'Full name', type: 'text', required: true },
       { name: 'workEmail', label: 'Work email', type: 'email', required: true },
@@ -104,7 +109,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       },
       { name: 'rolesHiring', label: "Roles you're hiring for", type: 'text', required: false },
     ],
-    successMessage: "You're on the list. We'll email you the moment employer access opens in your area.",
+    successMessage: "Thanks — we'll follow up. Or use the link above to post a role right now.",
   },
   {
     id: 'recruiters',

@@ -31,7 +31,7 @@ export default function ComparisonIndexPage() {
             <Logo className="text-2xl" />
           </Link>
           <nav className="flex items-center gap-1.5 text-sm">
-            <Link href="/employers" className="shrink-0 font-medium text-brand hover:text-navy">
+            <Link href="/outplacement" className="shrink-0 font-medium text-brand hover:text-navy">
               For Employers
             </Link>
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
@@ -70,7 +70,7 @@ export default function ComparisonIndexPage() {
             Outplacement RFP template &amp; vendor scorecard
           </Link>
           {' · '}
-          <Link href="/employers" className="underline underline-offset-4">
+          <Link href="/outplacement" className="underline underline-offset-4">
             NextChapter for employers
           </Link>
         </div>

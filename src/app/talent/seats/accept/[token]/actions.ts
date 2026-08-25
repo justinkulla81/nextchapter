@@ -46,5 +46,5 @@ export async function acceptSeatInviteAction(
 ): Promise<AcceptSeatState> {
   const result = await linkAcceptedSeat(seatToken)
   if (result.error) return result
-  redirect('/talent')
+  redirect('/talent/dashboard')
 }

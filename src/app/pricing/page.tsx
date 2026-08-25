@@ -158,7 +158,7 @@ export default async function PricingPage() {
             .
           </p>
           <p className="mt-4 text-sm">
-            <Link href="/employers" className="text-primary underline underline-offset-4">
+            <Link href="/outplacement" className="text-primary underline underline-offset-4">
               See the full tier comparison and a sample compliance pack →
             </Link>
           </p>

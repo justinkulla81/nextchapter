@@ -19,7 +19,7 @@ export async function sendMarketDigestEmployerEmail(
   if (!email) return { sent: false as const }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const portalUrl = `${appUrl}/talent`
+  const portalUrl = `${appUrl}/talent/dashboard`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/employer/${employer.id}`
 
   const resend = new Resend(process.env.RESEND_API_KEY)
