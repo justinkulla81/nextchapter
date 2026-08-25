@@ -3,8 +3,8 @@ import { emailStyles } from '@/lib/email/email-styles'
 interface Week1KickoffEmailProps {
   firstName: string | null
   victoriaName: 'Victoria' | 'Vicki' | 'Vic'
-  artifactLabels: string[]
-  topActions: string[]
+  onboardingComplete: boolean
+  actionItems: string[]
   appUrl: string
   unsubscribeUrl: string
 }
@@ -48,8 +48,8 @@ const footer: React.CSSProperties = {
 export default function Week1KickoffEmail({
   firstName,
   victoriaName,
-  artifactLabels,
-  topActions,
+  onboardingComplete,
+  actionItems,
   appUrl,
   unsubscribeUrl,
 }: Week1KickoffEmailProps) {
@@ -61,26 +61,21 @@ export default function Week1KickoffEmail({
         I&apos;ll check in with you, help build your plan, and always give it to you straight — but
         I&apos;m completely in your corner. Let&apos;s get started.
       </p>
-      {topActions.length > 0 && (
-        <>
-          <p>Your action plan is ready. Here&apos;s where I&apos;d start:</p>
-          <ul style={list}>
-            {topActions.map((action) => (
-              <li key={action}>{action}</li>
-            ))}
-          </ul>
-        </>
-      )}
       <p>
-        Your first week isn&apos;t about hitting a points target — it&apos;s about producing 5 real
-        things you&apos;ll use for the rest of your search:
+        {onboardingComplete
+          ? "Your first week isn't about hitting a points target — it's about making real progress on these:"
+          : "Before anything else, let's get your account fully set up — everything I recommend after this gets a lot more useful once these are done:"}
       </p>
       <ul style={list}>
-        {artifactLabels.map((label) => (
-          <li key={label}>{label}</li>
+        {actionItems.map((item) => (
+          <li key={item}>{item}</li>
         ))}
       </ul>
-      <p>Do these five, and you&apos;ll walk into next week with real material to work from.</p>
+      <p>
+        {onboardingComplete
+          ? "Do these, and you'll walk into next week with real material to work from."
+          : "Once these are done, I'll have real, personalized next steps ready for you."}
+      </p>
 
       <a href={`${appUrl}/dashboard`} style={button}>
         See my first-week checklist
