@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
+import type { PortalKey } from '@/lib/supabase/portal'
 import { markPasswordSet } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +29,11 @@ interface SecureAccountFormProps {
   // member accepting via nextIsOutplacementOrgInvite), which must never
   // land in candidate onboarding.
   nextPath?: string
+  // Same portal-scoped session as everywhere else (see
+  // src/lib/supabase/portal.ts) — must match whatever CallbackHandler used
+  // to establish the session this form's token-consume/updateUser calls
+  // continue, or they'd read/write the wrong cookie.
+  portal?: PortalKey
 }
 
 // Shown right after the anonymous-to-registered email confirmation link is
@@ -35,7 +41,7 @@ interface SecureAccountFormProps {
 // address, never a password, so without this step the account would have no
 // durable way to log back in. Offers either path: set a password directly,
 // or link Google to the already-authenticated session.
-export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding' }: SecureAccountFormProps) {
+export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding', portal }: SecureAccountFormProps) {
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -58,7 +64,7 @@ export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding'
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
+    const supabase = createClient(portal)
     const verifyError = await consumeToken(supabase)
     if (verifyError) {
       setLoading(false)
@@ -84,7 +90,7 @@ export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding'
     setGoogleLoading(true)
     setError(null)
 
-    const supabase = createClient()
+    const supabase = createClient(portal)
     const verifyError = await consumeToken(supabase)
     if (verifyError) {
       setGoogleLoading(false)

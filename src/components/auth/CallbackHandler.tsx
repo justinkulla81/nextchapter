@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
+import type { PortalKey } from '@/lib/supabase/portal'
 import { Button } from '@/components/ui/button'
 import { SecureAccountForm } from './SecureAccountForm'
 import { completeEmployerSignupFromSession } from '@/app/talent/signup/actions'
@@ -49,6 +50,30 @@ export function CallbackHandler() {
   const nextIsOutplacementSeat = searchParams.get('next') === 'outplacement-seat'
   const nextIsOutplacementOrgInvite = searchParams.get('next') === 'outplacement-org-invite'
   const inviteToken = searchParams.get('inviteToken')
+  // Every non-candidate portal now has its own session cookie (see
+  // src/lib/supabase/portal.ts) — this is the single shared handler for
+  // every portal's signup-confirmation link, so it must establish the
+  // session under the RIGHT cookie or the just-created account looks
+  // successful here but hits a login loop on its first real dashboard
+  // visit. nextIsCoachInvite/nextIsRecruiterSource/nextIsOutplacementSeat
+  // are deliberately excluded — those three create a CANDIDATE account
+  // (coachId/sourcingRecruiterId/candidateId set on a CandidateProfile),
+  // not a portal-side account, so they stay on the default cookie.
+  const portal: PortalKey | undefined = nextIsEmployer || nextIsEmployerSeat
+    ? 'talent'
+    : nextIsRecruiter
+      ? 'recruiter'
+      : nextIsCoach
+        ? 'coach'
+        : nextIsHiring
+          ? 'hiring'
+          : nextIsCrucibleEmployer
+            ? 'nen'
+            : nextIsEqOverIqContributor
+              ? 'eqoveriq'
+              : nextIsOutplacementOrgInvite
+                ? 'employer'
+                : undefined
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -251,7 +276,7 @@ export function CallbackHandler() {
   // identical pattern in ResetPasswordForm, built for the same failure mode.
   async function confirmToken() {
     if (!tokenHash || !otpType) return
-    const supabase = createClient()
+    const supabase = createClient(portal)
     const { error } = await supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash })
     if (error) {
       console.error('CallbackHandler verifyOtp error:', error)
@@ -266,7 +291,7 @@ export function CallbackHandler() {
     let cancelled = false
 
     async function run() {
-      const supabase = createClient()
+      const supabase = createClient(portal)
       const code = searchParams.get('code')
 
       // Two delivery mechanisms depending on flow/project config: a `?code=`
@@ -342,7 +367,9 @@ export function CallbackHandler() {
   }
 
   if (status === 'secure-account') {
-    return <SecureAccountForm tokenHash={tokenHash} otpType={otpType} nextPath={postSecureAccountPath} />
+    return (
+      <SecureAccountForm tokenHash={tokenHash} otpType={otpType} nextPath={postSecureAccountPath} portal={portal} />
+    )
   }
 
   return <p className="text-sm text-muted-foreground">Redirecting…</p>

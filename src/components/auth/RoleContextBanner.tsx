@@ -100,7 +100,7 @@ export async function RoleContextBanner({
       </p>
       <div className="flex flex-wrap items-center gap-2">
         {switchTargets.map((role) => (
-          <form key={role} action={switchRole.bind(null, role)}>
+          <form key={role} action={switchRole.bind(null, role, currentRole)}>
             <SwitchRoleSubmitButton label={ROLE_LABEL[role] ?? role} />
           </form>
         ))}

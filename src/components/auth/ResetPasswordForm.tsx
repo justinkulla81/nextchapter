@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { portalForPath } from '@/lib/supabase/portal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +16,13 @@ export function ResetPasswordForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const tokenHash = searchParams.get('token_hash')
+  // `next` is already a portal-prefixed path (e.g. /recruiters/dashboard —
+  // see requestPasswordReset), so it doubles as the portal signal here: no
+  // separate query param needed. Every non-candidate portal has its own
+  // session cookie (src/lib/supabase/portal.ts) — resetting a password
+  // under the wrong one would look successful here but strand the person
+  // in a login loop on their portal's next real visit.
+  const portal = portalForPath(searchParams.get('next') ?? '')
   const [status, setStatus] = useState<'waiting' | 'ready' | 'error'>(
     tokenHash ? 'ready' : 'waiting'
   )
@@ -45,7 +53,7 @@ export function ResetPasswordForm() {
     if (status !== 'waiting') return
 
     async function run() {
-      const supabase = createClient()
+      const supabase = createClient(portal)
       const code = searchParams.get('code')
 
       let sessionError: { message: string } | null = null
@@ -71,14 +79,14 @@ export function ResetPasswordForm() {
     }
 
     run()
-  }, [status, searchParams])
+  }, [status, searchParams, portal])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
+    const supabase = createClient(portal)
     const verifyError = await consumeToken(supabase)
     if (verifyError) {
       setLoading(false)
