@@ -36,7 +36,7 @@ function formatGeo(city: string | null, state: string | null, country: string): 
 export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]> {
   const [candidates, authUsers] = await Promise.all([
     prisma.candidateProfile.findMany({
-      where: { marketRealityReports: { some: {} } },
+      where: { marketRealityReports: { some: {} }, isSampleData: false },
       select: {
         id: true,
         userId: true,

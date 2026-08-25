@@ -117,6 +117,7 @@ async function seedOne(p: SeedProfile, existingUid: string | undefined): Promise
     industryContext: p.industry,
     targetRoleType: p.title,
     targetIndustries: [p.industry],
+    isSampleData: true,
   }
 
   await prisma.candidateProfile.upsert({

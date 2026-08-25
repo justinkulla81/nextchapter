@@ -10,6 +10,7 @@ export async function runMidweekCheckin(introCopy: string | null, eligiblePrivac
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       registrationCompletedAt: { not: null },
+      isSampleData: false,
       dailyEmailOptedOut: false,
       ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
     },

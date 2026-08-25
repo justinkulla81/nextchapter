@@ -12,6 +12,7 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       registrationCompletedAt: { not: null },
+      isSampleData: false,
       marketDigestOptedOut: false,
       ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
     },

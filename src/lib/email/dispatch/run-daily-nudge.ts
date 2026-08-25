@@ -10,6 +10,7 @@ export async function runDailyNudge(introCopy: string | null, eligiblePrivacyTie
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       registrationCompletedAt: { not: null },
+      isSampleData: false,
       dailyEmailOptedOut: false,
       ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
     },

@@ -92,6 +92,7 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
       recruiterDatabaseOptIn: true,
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
       assessmentComplete: true,
+      isSampleData: false,
       id: { notIn: resolved.map((r) => r.candidateId) },
     },
     select: CANDIDATE_SELECT,

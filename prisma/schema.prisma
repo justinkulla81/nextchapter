@@ -543,6 +543,14 @@ model CandidateProfile {
   // src/lib/admin/system-account-filter.ts.
   isSystemAccount Boolean @default(false)
 
+  // Marks test/demo candidates created directly by an admin or a seed
+  // script (see scripts/seed/seed_profiles.ts) rather than through a real
+  // signup — same convention as EmployerProfile/RoleProfile/Coach/
+  // Recruiter's own isSampleData fields. These exist for data/testing
+  // purposes only and must never receive a real candidate email or be
+  // surfaced to a real recruiter/employer as an actual match.
+  isSampleData Boolean @default(false)
+
   // Captured once, at the very first CandidateProfile row creation
   // (including anonymous pre-registration profiles) — a simple bot signal
   // for admin: many accounts sharing one IP in a short window is suspicious

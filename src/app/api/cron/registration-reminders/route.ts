@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
       assessmentComplete: true,
       assessmentCompletedAt: { not: null },
       registrationCompletedAt: null,
+      isSampleData: false,
       reminderEmailsOptedOut: false,
       email: { not: null },
       reminderEmailCount: { lt: REMINDER_SCHEDULE_DAYS.length },

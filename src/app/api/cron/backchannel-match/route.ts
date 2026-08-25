@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   // particular send calls out — backchannelEmailSentAt is filtered in code
   // below to find which one to actually notify about.
   const eligible = await prisma.candidateProfile.findMany({
-    where: { registrationCompletedAt: { not: null }, weeklyReportOptedOut: false },
+    where: { registrationCompletedAt: { not: null }, isSampleData: false, weeklyReportOptedOut: false },
     select: {
       id: true,
       userId: true,

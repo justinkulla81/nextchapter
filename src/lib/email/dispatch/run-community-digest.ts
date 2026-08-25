@@ -15,6 +15,7 @@ export async function runCommunityDigest(introCopy: string | null, eligiblePriva
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       registrationCompletedAt: { not: null },
+      isSampleData: false,
       weeklyReportOptedOut: false,
       ...(eligiblePrivacyTiers.length > 0 ? { privacyTier: { in: eligiblePrivacyTiers } } : {}),
     },

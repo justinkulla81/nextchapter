@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
   const eligible = await prisma.candidateProfile.findMany({
     where: {
       registrationCompletedAt: { not: null },
+      isSampleData: false,
       dailyEmailOptedOut: false,
       notificationTier: { not: 'MINIMAL' },
       OR: [{ lastDailyEmailSentAt: null }, { lastDailyEmailSentAt: { lt: startOfTodayUTC } }],

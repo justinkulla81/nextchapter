@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const weekStartDate = getMondayOfWeek(new Date())
 
   const eligible = await prisma.candidateProfile.findMany({
-    where: { registrationCompletedAt: { not: null } },
+    where: { registrationCompletedAt: { not: null }, isSampleData: false },
     select: { id: true, userId: true, firstName: true },
   })
 
