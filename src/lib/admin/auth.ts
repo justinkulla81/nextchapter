@@ -21,7 +21,7 @@ export function isAdminEmail(email?: string | null): boolean {
 // logged-in Supabase user's email. No roles table yet; this is the whole
 // admin surface today, so a full RBAC system would be premature.
 export async function requireAdmin() {
-  const supabase = await createClient()
+  const supabase = await createClient('admin')
   const {
     data: { user },
   } = await supabase.auth.getUser()
