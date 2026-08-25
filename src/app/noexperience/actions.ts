@@ -12,6 +12,9 @@ import { gradeCrucibleDatasetTask, gradeCruciblePromptTask, gradeCrucibleResults
 import { checkCrucibleAiRateLimit } from '@/lib/crucible/rate-limit'
 import { JOB_INTENT_TO_VARIANT, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
 import { CRUCIBLE_TIER_ORDER, type CrucibleTierKey, type CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
+import { extractResumeText } from '@/lib/resume/extract-text'
+import { deriveNameFromResumeText } from '@/lib/crucible/leaderboard-name'
+import { anonymize } from '@/lib/community/identity'
 import type { CrucibleSource } from '@prisma/client'
 
 // Session identity is the row's own id, held in a plain (non-httpOnly-only
@@ -315,6 +318,22 @@ export async function submitCrucibleResume(sessionId: string, file: File | null,
   // NOT NULL AND resumeShareConsent=true).
   const resumeShareConsent = !!filePath && shareConsent
 
+  // Auto-entry leaderboard display name — derived from the resume itself
+  // (zero-cost heuristic, no LLM call — see deriveNameFromResumeText) when
+  // one was uploaded, so the candidate is never asked in this branch.
+  // Extraction failing/finding nothing name-shaped still counts as
+  // "decided" (anonymous) for this session — the explicit name prompt is
+  // reserved for candidates who skipped uploading a resume at all (see
+  // setCrucibleLeaderboardName below).
+  let leaderboardDisplayName: string | null = null
+  if (file && filePath) {
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    const fileType = ext === 'docx' ? 'docx' : 'pdf'
+    const { text } = await extractResumeText(file, fileType)
+    const name = text ? deriveNameFromResumeText(text) : null
+    leaderboardDisplayName = name ? anonymize(name.firstName, name.lastName) : null
+  }
+
   await prisma.crucibleSession.update({
     where: { id: session.id },
     data: {
@@ -322,12 +341,31 @@ export async function submitCrucibleResume(sessionId: string, file: File | null,
       resumeFileName: fileName,
       resumeShareConsent,
       resumeShareConsentAt: resumeShareConsent ? new Date() : null,
+      ...(filePath ? { leaderboardDisplayName, leaderboardNameDecidedAt: new Date() } : {}),
       state: 'SCORED',
       completedAt: new Date(),
     },
   })
 
   captureServerEvent(session.candidateId ?? session.id, 'crucible_resume', { uploaded: !!filePath, shareConsent: resumeShareConsent })
+}
+
+// Leaderboard display name for a candidate who skipped uploading a resume
+// (see submitCrucibleResume above for the resume-derived path). A blank
+// name is a real, explicit choice to stay anonymous, not "not answered
+// yet" — leaderboardNameDecidedAt is what actually distinguishes the two,
+// since a null display name alone can't.
+export async function setCrucibleLeaderboardName(sessionId: string, rawName: string): Promise<void> {
+  const session = await requireSession(sessionId)
+  const trimmed = rawName.trim()
+  const words = trimmed.split(/\s+/).filter(Boolean)
+  const leaderboardDisplayName = words.length > 0 ? anonymize(words[0], words.length > 1 ? words[words.length - 1] : null) : null
+
+  await prisma.crucibleSession.update({
+    where: { id: session.id },
+    data: { leaderboardDisplayName, leaderboardNameDecidedAt: new Date() },
+  })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_leaderboard_name_set', { anonymous: !leaderboardDisplayName })
 }
 
 export async function logCrucibleInterest(sessionId: string, kind: 'FULL' | 'LESSON', email: string): Promise<void> {

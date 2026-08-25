@@ -13,6 +13,7 @@ import {
   submitCrucibleResultsTask,
   submitCrucibleAiTools,
   submitCrucibleResume,
+  setCrucibleLeaderboardName,
   logCrucibleInterest,
   type CrucibleResultSummary,
 } from '@/app/noexperience/actions'
@@ -26,7 +27,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import type { CrucibleSource } from '@prisma/client'
 
-type Step = 'fork' | 'email' | 'intro' | 'qa' | 'prompt' | 'dataset' | 'results-task' | 'tools' | 'resume' | 'results'
+type Step =
+  | 'fork'
+  | 'email'
+  | 'intro'
+  | 'qa'
+  | 'prompt'
+  | 'dataset'
+  | 'results-task'
+  | 'tools'
+  | 'resume'
+  | 'leaderboard-name'
+  | 'results'
 
 const JOB_INTENT_OPTIONS: { value: CrucibleJobIntentKey; label: string }[] = [
   { value: 'TECH', label: 'Tech / Software' },
@@ -81,6 +93,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   const [bestMove, setBestMove] = useState('')
   const [resumeShareConsent, setResumeShareConsent] = useState(false)
   const [result, setResult] = useState<CrucibleResultSummary | null>(null)
+  const [jobIntent, setJobIntent] = useState<CrucibleJobIntentKey | null>(null)
 
   function pickJobIntent(intent: CrucibleJobIntentKey) {
     setError(null)
@@ -91,6 +104,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         setVariant(started.variant)
         setSkipEmail(started.skipEmail)
         setSkipResume(started.skipResume)
+        setJobIntent(intent)
         posthog?.capture('crucible_fork_pick', { intent, variant: started.variant })
         setStep(started.skipEmail ? 'intro' : 'email')
       } catch {
@@ -232,11 +246,32 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   function submitResume(file: File | null, shareConsent: boolean) {
     if (!sessionId) return
     setError(null)
+    // No file means no resume to derive a leaderboard name from — ask
+    // directly instead (see the 'leaderboard-name' step) rather than
+    // submitting straight to results. A real file always finishes here;
+    // submitCrucibleResume derives the name itself in that case.
+    if (!file) {
+      setStep('leaderboard-name')
+      return
+    }
     startTransition(async () => {
       try {
         await submitCrucibleResume(sessionId, file, shareConsent)
       } catch {
         // Resume upload failing must never block seeing results.
+      }
+      setStep('results')
+    })
+  }
+
+  function submitLeaderboardName(name: string) {
+    if (!sessionId) return
+    setError(null)
+    startTransition(async () => {
+      try {
+        await Promise.all([submitCrucibleResume(sessionId, null, false), setCrucibleLeaderboardName(sessionId, name)])
+      } catch {
+        // Neither call failing should block seeing results.
       }
       setStep('results')
     })
@@ -599,6 +634,34 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         </div>
       )}
 
+      {step === 'leaderboard-name' && (
+        <div className="space-y-4 text-center">
+          <h1 className="text-xl font-semibold text-foreground">One more optional thing.</h1>
+          <p className="mx-auto max-w-md text-sm text-muted-foreground">
+            You&apos;re automatically on the leaderboard for your track — want your name shown, or stay
+            anonymous? Either way, your score counts.
+          </p>
+          <form
+            className="mx-auto max-w-sm space-y-3 text-left"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const input = e.currentTarget.elements.namedItem('leaderboardName') as HTMLInputElement
+              submitLeaderboardName(input.value)
+            }}
+          >
+            <Input name="leaderboardName" type="text" placeholder="Your name (optional)" maxLength={80} />
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1" disabled={isPending}>
+                Show my results
+              </Button>
+            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              Leave it blank to stay anonymous — you&apos;ll still show up on the leaderboard by rank.
+            </p>
+          </form>
+        </div>
+      )}
+
       {step === 'results' && result && qaContent && (
         <div className="space-y-6">
           <div className="text-center">
@@ -687,6 +750,12 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
               // real wait (e.g. a reminder email) has actually elapsed.
               <span className="text-muted-foreground">Retry with a new challenge in 24h</span>
             )}
+            <Link
+              href={jobIntent ? `/noexperience/leaderboard?track=${jobIntent}` : '/noexperience/leaderboard'}
+              className="text-primary underline underline-offset-4"
+            >
+              See the leaderboard
+            </Link>
             <Link href="/noexperience" className="text-muted-foreground underline underline-offset-4">
               Back to noexperienceneeded.ai
             </Link>

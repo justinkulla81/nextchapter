@@ -7755,6 +7755,21 @@ model CrucibleSession {
   resumeShareConsent   Boolean   @default(false)
   resumeShareConsentAt DateTime?
 
+  // Auto-entry leaderboard (per direct instruction — no opt-in, unlike the
+  // main app's CandidateProfile.leaderboardOptIn). If a resume was
+  // uploaded, this is derived from it ("First L.", same anonymize() shape
+  // the main app's leaderboard already uses — see
+  // src/lib/community/identity.ts) via a zero-cost heuristic on the
+  // extracted text (no new LLM call), not asked. If no resume was
+  // uploaded, the candidate is asked once on the resume step; leaving it
+  // blank stays anonymous. null forever = anonymous, by choice or because
+  // name extraction found nothing usable — leaderboardNameDecidedAt is
+  // what actually gates whether the prompt still needs to show, since a
+  // null display name alone can't distinguish "not decided yet" from
+  // "decided to stay anonymous."
+  leaderboardDisplayName   String?
+  leaderboardNameDecidedAt DateTime?
+
   score  Int?
   band   String?
   branch CrucibleBranch?
@@ -7774,6 +7789,9 @@ model CrucibleSession {
   @@index([source])
   @@index([candidateId])
   @@index([branch, resumeShareConsent])
+  // Leaderboard ranking query: WHERE jobIntent = ? AND completedAt IS NOT
+  // NULL ORDER BY score DESC — see src/lib/crucible/leaderboard.ts.
+  @@index([jobIntent, score])
 }
 
 enum CrucibleInterestKind {

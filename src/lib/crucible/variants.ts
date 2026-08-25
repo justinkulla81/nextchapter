@@ -20,6 +20,19 @@ export const JOB_INTENT_TO_VARIANT: Record<CrucibleJobIntentKey, CrucibleVariant
   UNSURE: 'BUSINESS',
 }
 
+// Candidate-facing labels for the 6 job-intent tracks — matches
+// CrucibleTestFlow.tsx's own JOB_INTENT_OPTIONS copy exactly. Exported here
+// (rather than only living as that component's local const) so the public
+// leaderboard, which needs the same labels, doesn't duplicate the strings.
+export const CRUCIBLE_JOB_INTENT_LABEL: Record<CrucibleJobIntentKey, string> = {
+  TECH: 'Tech / Software',
+  MARKETING: 'Marketing / Content',
+  DATA: 'Data / Analytics',
+  DESIGN: 'Design / Creative',
+  BUSINESS: 'Business / Ops',
+  UNSURE: 'Not sure yet',
+}
+
 // The three DESIGN scenarios are judged by looking at a rendered mockup
 // (CrucibleDesignMockup.tsx), not reading text — the one activity in
 // Crucible where the defect is purely visual. `lines` stays an empty array
