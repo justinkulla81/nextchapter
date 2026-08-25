@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { PORTAL_COOKIE_NAMES, portalForPath } from '@/lib/supabase/portal'
 
 export async function updateSession(request: NextRequest) {
   // Forward the pathname as a REQUEST header (not a response header) so
@@ -17,10 +18,18 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Each non-candidate portal gets its own session cookie (see
+  // src/lib/supabase/portal.ts) — refreshing the RIGHT one per request
+  // matters, not just cosmetic: this is the only place any portal's access
+  // token gets silently refreshed, so a portal whose cookie never gets
+  // refreshed here would hard-expire on its Supabase access-token TTL with
+  // no recovery path.
+  const portal = portalForPath(request.nextUrl.pathname)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: portal ? { name: PORTAL_COOKIE_NAMES[portal] } : undefined,
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -70,7 +79,21 @@ export async function updateSession(request: NextRequest) {
   // account must be able to open and submit it.
   // /eqoveriq/contributors is EQoverIQ's own portal — same "must land on
   // its own login, not the main site's" reasoning as NEN's employer portal.
-  const protectedPaths = ['/dashboard', '/talent', '/noexperience/employers', '/eqoveriq/contributors']
+  // Recruiter/coach/hiring/employer/admin are gated here too, now that each
+  // has its own real, refreshable session (see portalForPath above) — this
+  // is on top of, not instead of, each portal's own page-level
+  // getCurrentX()/requireAdmin() check, which stays in place as a backstop.
+  const protectedPaths = [
+    '/dashboard',
+    '/talent',
+    '/noexperience/employers',
+    '/eqoveriq/contributors',
+    '/recruiters',
+    '/support/coach',
+    '/hiring',
+    '/employer',
+    '/support/admin',
+  ]
   const publicExceptions = [
     '/talent/signup',
     '/talent/seats/accept',
@@ -83,6 +106,22 @@ export async function updateSession(request: NextRequest) {
     '/eqoveriq/contributors/signup',
     '/eqoveriq/contributors/login',
     '/eqoveriq/contributors/forgot-password',
+    '/recruiters/signup',
+    '/recruiters/login',
+    '/recruiters/forgot-password',
+    '/support/coach/signup',
+    '/support/coach/login',
+    '/support/coach/forgot-password',
+    '/hiring/signup',
+    '/hiring/login',
+    '/hiring/forgot-password',
+    '/employer/login',
+    '/employer/signup',
+    '/employer/forgot-password',
+    '/employer/seats/accept',
+    '/employer/invite/accept',
+    '/support/admin/login',
+    '/support/admin/forgot-password',
   ]
   const isProtected =
     protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
@@ -93,6 +132,12 @@ export async function updateSession(request: NextRequest) {
     const portalLoginPath = Object.entries({
       '/noexperience/employers': '/noexperience/employers/login',
       '/eqoveriq/contributors': '/eqoveriq/contributors/login',
+      '/talent': '/talent/login',
+      '/recruiters': '/recruiters/login',
+      '/support/coach': '/support/coach/login',
+      '/hiring': '/hiring/login',
+      '/employer': '/employer/login',
+      '/support/admin': '/support/admin/login',
     }).find(([prefix]) => request.nextUrl.pathname.startsWith(prefix))?.[1]
     redirectUrl.pathname = portalLoginPath ?? '/auth/login'
     redirectUrl.searchParams.set('next', request.nextUrl.pathname)

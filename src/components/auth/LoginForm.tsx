@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import type { PortalKey } from '@/lib/supabase/portal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,11 +15,17 @@ export function LoginForm({
   forgotPasswordHref = '/auth/forgot-password',
   signupHref = '/onboarding/desire',
   showGoogle = true,
+  portal,
 }: {
   defaultNext?: string
   forgotPasswordHref?: string
   signupHref?: string | null
   showGoogle?: boolean
+  // Omitted for the candidate portal (keeps the default/unscoped session
+  // cookie) — every other portal passes its own key so its session never
+  // shares auth state with any other portal in the same browser. See
+  // src/lib/supabase/portal.ts.
+  portal?: PortalKey
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -34,7 +41,7 @@ export function LoginForm({
     setError(null)
     setResent(false)
 
-    const supabase = createClient()
+    const supabase = createClient(portal)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
@@ -57,7 +64,7 @@ export function LoginForm({
   }
 
   async function handleResend() {
-    const supabase = createClient()
+    const supabase = createClient(portal)
     const { error } = await supabase.auth.resend({ type: 'signup', email })
     if (error) {
       setError(error.message)
