@@ -5,6 +5,7 @@ import { computeMatchScore, priorityMultiplier } from '@/lib/matching/compute-ma
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
+import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
@@ -137,10 +138,16 @@ function titleSimilarityBonus(targetRoleType: string | null, postingTitle: strin
   if (title === target) return 20
   if (title.includes(target) || target.includes(title)) return 16
   const targetWords = target.split(/\s+/).filter((w) => w.length > 2)
-  if (targetWords.length === 0) return 0
   const titleWords = new Set(title.split(/\s+/).filter((w) => w.length > 2))
-  const overlap = targetWords.filter((w) => titleWords.has(w)).length
-  return Math.round((overlap / targetWords.length) * 16)
+  const wordOverlapBonus =
+    targetWords.length === 0 ? 0 : Math.round((targetWords.filter((w) => titleWords.has(w)).length / targetWords.length) * 16)
+  // Title text alone misses functionally-related roles that share no
+  // words — "Corporate Development VP" and "Investment Partner" are both
+  // M&A-adjacent but share no substring. A shared role-family keyword is a
+  // weaker signal than literal title overlap, so it only matters when word
+  // overlap didn't already beat it.
+  const familyBonus = titlesShareRoleFamily(target, title) ? 12 : 0
+  return Math.max(wordOverlapBonus, familyBonus)
 }
 
 // A candidate with a substantial keyword set (6+, pulled from their resume)

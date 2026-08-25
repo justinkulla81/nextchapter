@@ -5,6 +5,7 @@ import { computeMatchScore, type MatchResult } from '@/lib/matching/compute-matc
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
+import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 
 type ActiveRole = Pick<
   RoleProfile,
@@ -46,7 +47,11 @@ function candidateWantsRole(
   const targetRoleType = candidate.targetRoleType?.toLowerCase()
   if (!targetRoleType) return false
   const roleTitle = role.roleTitle.toLowerCase()
-  return roleTitle.includes(targetRoleType) || targetRoleType.includes(roleTitle)
+  if (roleTitle.includes(targetRoleType) || targetRoleType.includes(roleTitle)) return true
+  // Title text alone misses functionally-related roles that share no words
+  // (e.g. "Corporate Development VP" wanting "Investment Partner" openings)
+  // — see role-family-keywords.ts.
+  return titlesShareRoleFamily(targetRoleType, roleTitle)
 }
 
 export interface MatchedCandidate {
