@@ -52,6 +52,22 @@ async function refreshMarketConditions(
     lookupBlsTrend(input.primaryFunction, input.city, input.state),
   ])
 
+  // A failed refetch (rate-limited, timed out, etc.) must never clobber a
+  // perfectly good previously-cached count with null — real production bug:
+  // batching ~15 candidates' background refreshes in the same cron run blew
+  // through Adzuna's rate limit, and the resulting 429s were silently
+  // overwriting good cached counts with null/error on every affected
+  // candidate. On the `update` path, only touch the fields whose fetch
+  // actually succeeded this time; a failure leaves the existing cached
+  // value in place (still served as stale-while-revalidate) instead of
+  // degrading a working number into "no data."
+  const adzunaFields =
+    adzunaResult.status === 'success' ? { adzunaCount: adzunaResult.count, adzunaError: adzunaResult.error } : {}
+  const idealFields =
+    idealResult.status === 'success'
+      ? { adzunaIdealCount: idealResult.count, adzunaIdealError: idealResult.error }
+      : {}
+
   await prisma.marketConditionsSnapshot.upsert({
     where: { roleQuery_location_industry: { roleQuery, location, industry } },
     create: {
@@ -68,10 +84,8 @@ async function refreshMarketConditions(
       blsError: blsResult.error,
     },
     update: {
-      adzunaCount: adzunaResult.count,
-      adzunaError: adzunaResult.error,
-      adzunaIdealCount: idealResult.count,
-      adzunaIdealError: idealResult.error,
+      ...adzunaFields,
+      ...idealFields,
       blsSocCode: blsResult.socCode,
       blsAreaCode: blsResult.areaCode,
       blsYoyChangePct: blsResult.yoyChangePct,

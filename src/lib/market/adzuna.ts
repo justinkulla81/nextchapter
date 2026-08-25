@@ -86,7 +86,15 @@ export async function searchAdzunaJobs(
   const params = new URLSearchParams({
     app_id: appId,
     app_key: appKey,
-    what,
+    // Adzuna's `title_only` is a direct substitute for `what`, not an
+    // add-on flag — it restricts the match to the job title field instead
+    // of full-text (title + description). Plain `what` was a real
+    // production bug: a single generic word like "Partner" full-text
+    // -matched tens of thousands of unrelated postings that merely mention
+    // "our partners," "domestic partner benefits," etc. in the body,
+    // wildly inflating "roles matching your target title" in the weekly
+    // market digest email.
+    title_only: what,
     results_per_page: '1',
   })
   if (extraAndTerm) params.set('what_and', extraAndTerm)
