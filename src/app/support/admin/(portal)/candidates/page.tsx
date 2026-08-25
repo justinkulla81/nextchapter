@@ -30,6 +30,7 @@ interface Row {
   grade: string | null
   optedIn: boolean
   signupIp: string | null
+  signedUpAt: Date
 }
 
 export default async function AdminCandidatesPage({
@@ -73,6 +74,7 @@ export default async function AdminCandidatesPage({
         highestLevelReached: true,
         recruiterDatabaseOptIn: true,
         signupIp: true,
+        createdAt: true,
         // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
         // MarketRealityReport — a report only generates on specific triggers.
         marketRealitySnapshots: {
@@ -99,6 +101,7 @@ export default async function AdminCandidatesPage({
       grade,
       optedIn: c.recruiterDatabaseOptIn,
       signupIp: c.signupIp,
+      signedUpAt: c.createdAt,
     }
   })
 
@@ -121,6 +124,7 @@ export default async function AdminCandidatesPage({
     { header: 'Grade', render: (r) => r.grade ?? 'Not graded' },
     { header: 'Recruiter opt-in', render: (r) => (r.optedIn ? 'Yes' : 'No') },
     { header: 'Signup IP', render: (r) => r.signupIp ?? '—' },
+    { header: 'Date signed up', render: (r) => r.signedUpAt.toLocaleDateString() },
   ]
 
   return (
