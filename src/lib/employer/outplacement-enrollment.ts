@@ -242,7 +242,7 @@ export async function enrollBulkCsv(
 // what's next (SecureAccountForm, since this is the candidate's very first
 // authentication).
 export async function finishAcceptingOutplacementSeat(inviteToken: string): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('employer')
   const {
     data: { user },
   } = await supabase.auth.getUser()

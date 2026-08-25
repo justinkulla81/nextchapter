@@ -95,7 +95,7 @@ export async function inviteOrgUser(
 // role elsewhere in the product) — the OutplacementOrgUser row itself is
 // what actually authorizes portal access; RoleGrant is presentation only.
 export async function finishAcceptingOutplacementOrgInvite(inviteToken: string): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('employer')
   const {
     data: { user },
   } = await supabase.auth.getUser()

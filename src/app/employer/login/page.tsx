@@ -5,7 +5,7 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { redirectIfAuthenticated } from '@/lib/auth/redirect-if-authenticated'
 
 export default async function EmployerLoginPage() {
-  await redirectIfAuthenticated('/employer')
+  await redirectIfAuthenticated('/employer', 'employer')
 
   return (
     <PortalAuthCard
@@ -20,6 +20,7 @@ export default async function EmployerLoginPage() {
           forgotPasswordHref="/employer/forgot-password"
           signupHref={null}
           showGoogle={false}
+          portal="employer"
         />
       </Suspense>
     </PortalAuthCard>

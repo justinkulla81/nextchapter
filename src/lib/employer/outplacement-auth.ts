@@ -26,7 +26,7 @@ export interface CurrentOutplacementOrgUser {
 // rather than returning null since every caller is a page/layout that has
 // nowhere useful to go without a resolved org user.
 export async function getCurrentOutplacementOrgUser(): Promise<CurrentOutplacementOrgUser> {
-  const supabase = await createClient()
+  const supabase = await createClient('employer')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -74,7 +74,7 @@ export async function requireOutplacementRole(
 export async function requireOutplacementRoleForAction(
   allowed: OutplacementRole[]
 ): Promise<CurrentOutplacementOrgUser | null> {
-  const supabase = await createClient()
+  const supabase = await createClient('employer')
   const {
     data: { user },
   } = await supabase.auth.getUser()
