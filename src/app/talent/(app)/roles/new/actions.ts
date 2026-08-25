@@ -10,7 +10,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 export type RoleFormState = { error?: string } | undefined
 
 export async function createRole(_prevState: RoleFormState, formData: FormData): Promise<RoleFormState> {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -51,7 +51,7 @@ export async function createRole(_prevState: RoleFormState, formData: FormData):
 }
 
 export async function extractRoleFromJDAction(text: string): Promise<ExtractedRoleFields | null> {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

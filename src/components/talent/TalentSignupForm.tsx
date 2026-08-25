@@ -34,7 +34,7 @@ export function TalentSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('employer')
-    const supabase = createClient()
+    const supabase = createClient('talent')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

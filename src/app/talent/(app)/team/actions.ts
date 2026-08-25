@@ -13,7 +13,7 @@ export type SeatInviteState = { error?: string } | undefined
 // invited member can't turn around and invite further members without the
 // owner's knowledge.
 async function requireOwner() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

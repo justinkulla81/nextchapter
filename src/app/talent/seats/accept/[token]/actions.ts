@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 async function linkAcceptedSeat(seatToken: string): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

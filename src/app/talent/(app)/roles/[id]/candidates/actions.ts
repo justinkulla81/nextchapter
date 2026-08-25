@@ -27,7 +27,7 @@ function isFurtherAlong(current: string, next: string): boolean {
 }
 
 async function getEmployer() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

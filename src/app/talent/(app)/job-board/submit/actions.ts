@@ -14,7 +14,7 @@ export async function submitEmployerJobBoardPosting(
   _prevState: JobBoardSubmitState,
   formData: FormData
 ): Promise<JobBoardSubmitState> {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

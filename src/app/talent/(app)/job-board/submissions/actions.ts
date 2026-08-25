@@ -7,7 +7,7 @@ import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { reconfirmJobBoardPosting } from '@/lib/jobs/job-board-submission'
 
 export async function reconfirmMyJobBoardPosting(postingId: string) {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

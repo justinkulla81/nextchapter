@@ -29,7 +29,7 @@ export default async function AcceptSeatInvitePage({ params }: { params: Promise
     )
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

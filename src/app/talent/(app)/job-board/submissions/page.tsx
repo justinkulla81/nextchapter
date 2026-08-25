@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { reconfirmMyJobBoardPosting } from './actions'
 
 export default async function TalentJobBoardSubmissionsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

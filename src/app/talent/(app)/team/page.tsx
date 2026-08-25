@@ -15,7 +15,7 @@ export default async function TeamSeatsPage() {
   // getTalentDashboardData, which returns the same EmployerProfile row
   // either way) gets redirected rather than shown a page they can't act on,
   // since inviteSeat/revokeSeat both re-check ownership anyway.
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

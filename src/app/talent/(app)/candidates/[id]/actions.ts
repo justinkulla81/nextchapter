@@ -10,7 +10,7 @@ import { getOrCreateThread } from '@/lib/messaging/threads'
 import type { OutcomeWindow } from '@/lib/talent/outcome-ratings'
 
 async function getEmployer() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -7,7 +7,7 @@ import { sendMessage, markThreadRead } from '@/lib/messaging/threads'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 async function requireEmployer() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

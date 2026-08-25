@@ -20,7 +20,7 @@ export function AcceptSeatForm({ seatToken, invitedEmail }: { seatToken: string;
     setError(null)
     setLoading(true)
 
-    const supabase = createClient()
+    const supabase = createClient('talent')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: invitedEmail,
       password,

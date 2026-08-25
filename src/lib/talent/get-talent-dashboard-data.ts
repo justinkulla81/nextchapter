@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { resolveEmployerForUserId } from './get-employer-for-user'
 
 export async function getTalentDashboardData() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

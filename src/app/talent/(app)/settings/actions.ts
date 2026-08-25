@@ -8,7 +8,7 @@ import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 
 export async function updateCompanyInfo(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -31,7 +31,7 @@ export async function updateCompanyInfo(formData: FormData) {
 }
 
 async function requireEmployer() {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()

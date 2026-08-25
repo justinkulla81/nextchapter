@@ -39,7 +39,7 @@ export async function completeEmployerSignup(
     return { error: 'Please acknowledge the No-Ghosting Commitment to continue.' }
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -58,7 +58,7 @@ export async function completeEmployerSignup(
 // form itself never got a session to call completeEmployerSignup with, so
 // the contact/company name it collected rides along in user_metadata instead.
 export async function completeEmployerSignupFromSession(): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('talent')
   const {
     data: { user },
   } = await supabase.auth.getUser()
