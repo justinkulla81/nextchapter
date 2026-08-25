@@ -139,8 +139,11 @@ const REJECTION_HIGH_CONFIDENCE = [
   /we will not be (proceeding|continuing) with your application/i,
   // Same VAST Data/Comeet email's closing line — a standard polite-rejection
   // sign-off distinct enough from ordinary correspondence that it's safe as
-  // its own high-confidence signal, not just a fallback.
-  /we wish you (well|the best) in your (search|job search) for/i,
+  // its own high-confidence signal, not just a fallback. Loosened from an
+  // earlier "...in your (search|job search) for" shape after a second real
+  // miss (Arcesium): "we wish you the best with your job search." — no
+  // trailing "for", and "with" instead of "in".
+  /we wish you (well|the best) (in|with) your (job )?search/i,
   // "Position cancelled/withdrawn" rejections — the employer never picked
   // someone else, they stopped hiring for the role entirely. Distinct
   // phrasing from the "went with another candidate" patterns above, but
@@ -149,6 +152,10 @@ const REJECTION_HIGH_CONFIDENCE = [
   // decided not to fill this position due to business needs."
   /(have )?decided not to (fill|move forward with) (this|the) (position|role)/i,
   /this position (has been|is no longer being) (filled|pursued|closed)/i,
+  // Real production miss (Arcesium): "we are unable to offer you a
+  // position for the Vice President, Corporate Strategy role." — a direct
+  // rejection that doesn't use "decided"/"chosen"/"not selected" at all.
+  /unable to offer you a position/i,
 ]
 // "Unfortunately" alone used to be in this list — dropped because it's a
 // single common English word that matches any unrelated marketing or
@@ -156,7 +163,13 @@ const REJECTION_HIGH_CONFIDENCE = [
 // candidates" added alongside the existing "other applicants" as a
 // defense-in-depth low-confidence fallback for the same "went with someone
 // else" phrasing the high-confidence pattern above targets more precisely.
-const REJECTION_LOW_CONFIDENCE = [/other applicants/i, /other candidates/i, /keep your resume on file/i]
+const REJECTION_LOW_CONFIDENCE = [
+  /other applicants/i,
+  /other candidates/i,
+  // "on file" and "in our files" both show up in real rejections (Arcesium
+  // used the latter) — same meaning, different wording.
+  /keep your resume (on file|in our files)/i,
+]
 
 export function matchRejection(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
