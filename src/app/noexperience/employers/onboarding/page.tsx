@@ -28,7 +28,7 @@ const FUNCTION_INTEREST_OPTIONS = [
 ] as const
 
 export default async function CrucibleEmployerOnboardingPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('nen')
   const {
     data: { user },
   } = await supabase.auth.getUser()

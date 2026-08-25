@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 // exactly the brand-bleed this portal is built to avoid. This lands on
 // NEN's own landing page instead.
 export async function signOutCrucibleEmployer() {
-  const supabase = await createClient()
+  const supabase = await createClient('nen')
   await supabase.auth.signOut()
   redirect('/noexperience')
 }

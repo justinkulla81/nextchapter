@@ -11,7 +11,7 @@ export async function completeCrucibleEmployerOnboarding(formData: FormData): Pr
   const companySize = (formData.get('companySize') as string | null) || null
   const functionInterest = formData.get('functionInterest') as CrucibleFunctionInterest
 
-  const supabase = await createClient()
+  const supabase = await createClient('nen')
   const {
     data: { user },
   } = await supabase.auth.getUser()

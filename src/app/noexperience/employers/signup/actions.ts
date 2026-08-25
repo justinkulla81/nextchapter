@@ -11,7 +11,7 @@ import { prisma } from '@/lib/prisma'
 // contact/company name it collected rides along in user_metadata instead.
 // Mirrors completeEmployerSignupFromSession (src/app/talent/signup/actions.ts).
 export async function completeCrucibleEmployerSignupFromSession(): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('nen')
   const {
     data: { user },
   } = await supabase.auth.getUser()

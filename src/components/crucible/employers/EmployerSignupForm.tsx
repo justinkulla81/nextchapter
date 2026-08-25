@@ -32,7 +32,7 @@ export function EmployerSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('crucible-employer')
-    const supabase = createClient()
+    const supabase = createClient('nen')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

@@ -11,7 +11,7 @@ import type { CrucibleEmployerProfile } from '@prisma/client'
 // onboarded -> onboarding. v1 is single-owner-per-company (no seat
 // resolution fallback, unlike /talent's resolveEmployerForUserId).
 export async function getCrucibleEmployerDashboardData(): Promise<CrucibleEmployerProfile> {
-  const supabase = await createClient()
+  const supabase = await createClient('nen')
   const {
     data: { user },
   } = await supabase.auth.getUser()
