@@ -1,14 +1,16 @@
 import { emailStyles } from '@/lib/email/email-styles'
 
-interface RoleMarketLine {
+interface CandidateMatchLine {
+  displayName: string
   roleTitle: string
-  adzunaCount: number | null
+  matchLabel: string
+  locked: boolean
 }
 
 interface MarketDigestEmployerEmailProps {
   contactName: string | null
   companyName: string
-  roleLines: RoleMarketLine[]
+  matchLines: CandidateMatchLine[]
   nuggetTitle: string | null
   nuggetUrl: string | null
   nuggetSummary: string | null
@@ -50,7 +52,7 @@ const footer: React.CSSProperties = {
 export default function MarketDigestEmployerEmail({
   contactName,
   companyName,
-  roleLines,
+  matchLines,
   nuggetTitle,
   nuggetUrl,
   nuggetSummary,
@@ -61,16 +63,17 @@ export default function MarketDigestEmployerEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {contactName || `the ${companyName} team`},</p>
-      <p>Here&apos;s this week&apos;s market read for the roles you&apos;re hiring.</p>
-      {roleLines.length > 0 && (
-        <ul>
-          {roleLines.map((r) => (
-            <li key={r.roleTitle}>
-              {r.roleTitle}
-              {r.adzunaCount !== null && ` — ${r.adzunaCount.toLocaleString()} comparable open roles`}
-            </li>
-          ))}
-        </ul>
+      {matchLines.length > 0 && (
+        <>
+          <p>Here&apos;s who&apos;s a match for what you&apos;re hiring this week.</p>
+          <ul>
+            {matchLines.map((m, i) => (
+              <li key={`${m.roleTitle}-${i}`}>
+                {m.locked ? m.displayName : <strong>{m.displayName}</strong>} — {m.matchLabel} for {m.roleTitle}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       {nuggetTitle && nuggetUrl && (
         <p>
@@ -79,7 +82,7 @@ export default function MarketDigestEmployerEmail({
         </p>
       )}
       <a href={portalUrl} style={button}>
-        Go to your roles →
+        See your matches →
       </a>
       <p style={footer}>
         <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>

@@ -5,7 +5,7 @@ import MarketDigestEmployerEmail from '@/emails/market-digest-employer'
 
 export async function sendMarketDigestEmployerEmail(
   employer: { id: string; userId: string; companyName: string; contactName: string | null },
-  roleLines: { roleTitle: string; adzunaCount: number | null }[],
+  matchLines: { displayName: string; roleTitle: string; matchLabel: string; locked: boolean }[],
   nugget: { title: string | null; url: string; summary: string | null } | null
 ) {
   if (!process.env.RESEND_API_KEY) {
@@ -19,7 +19,7 @@ export async function sendMarketDigestEmployerEmail(
   if (!email) return { sent: false as const }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const portalUrl = `${appUrl}/talent/roles`
+  const portalUrl = `${appUrl}/talent`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/employer/${employer.id}`
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -31,7 +31,7 @@ export async function sendMarketDigestEmployerEmail(
     react: MarketDigestEmployerEmail({
       contactName: employer.contactName,
       companyName: employer.companyName,
-      roleLines,
+      matchLines,
       nuggetTitle: nugget?.title ?? null,
       nuggetUrl: nugget?.url ?? null,
       nuggetSummary: nugget?.summary ?? null,

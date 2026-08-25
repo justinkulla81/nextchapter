@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getMarketConditions } from '@/lib/market'
+import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discovery'
+import { candidateDisplayName } from '@/lib/talent/candidate-identity'
 import { sendMarketDigestEmployerEmail } from '@/lib/email/send-market-digest-employer'
 import { recordDigestSend, getDigestNugget } from '@/lib/admin/digest-composer'
 
-const MAX_ROLE_LINES = 3
+const MAX_MATCH_LINES = 3
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -14,16 +15,7 @@ export async function GET(request: NextRequest) {
 
   const employers = await prisma.employerProfile.findMany({
     where: { isSampleData: false, marketDigestOptedOut: false },
-    select: {
-      id: true,
-      userId: true,
-      companyName: true,
-      contactName: true,
-      roleProfiles: {
-        where: { isActive: true },
-        select: { roleTitle: true, primaryFunction: true, locationRequirement: true },
-      },
-    },
+    select: { id: true, userId: true, companyName: true, contactName: true },
   })
 
   const nugget = await getDigestNugget('MARKET_BRIEF')
@@ -31,28 +23,21 @@ export async function GET(request: NextRequest) {
   let sentCount = 0
   for (const employer of employers) {
     try {
-      const uniqueRoles = new Map<string, { roleTitle: string; primaryFunction: string | null; locationRequirement: string | null }>()
-      for (const role of employer.roleProfiles) {
-        const key = `${role.roleTitle}|${role.locationRequirement ?? ''}`
-        if (!uniqueRoles.has(key)) uniqueRoles.set(key, role)
-      }
+      // Same "candidates looking for your roles" match used on the Talent
+      // dashboard home — real people who opted in and match what this
+      // employer is hiring for, not an external job-market count that says
+      // nothing about who's actually available to them.
+      const matches = await getCandidatesLookingForYourRoles(employer.id, MAX_MATCH_LINES)
+      const matchLines = matches.map((m) => ({
+        displayName: candidateDisplayName(m.candidate, m.locked),
+        roleTitle: m.roleTitle,
+        matchLabel: m.match.label,
+        locked: m.locked,
+      }))
 
-      const roleEntries = Array.from(uniqueRoles.values()).slice(0, MAX_ROLE_LINES)
-      const roleLines = await Promise.all(
-        roleEntries.map(async (r) => {
-          const mc = await getMarketConditions({
-            roleType: r.roleTitle,
-            primaryFunction: r.primaryFunction,
-            city: null,
-            state: r.locationRequirement,
-          })
-          return { roleTitle: r.roleTitle, adzunaCount: mc.adzunaCount }
-        })
-      )
+      if (matchLines.length === 0 && !nugget) continue
 
-      if (roleLines.length === 0 && !nugget) continue
-
-      const result = await sendMarketDigestEmployerEmail(employer, roleLines, nugget)
+      const result = await sendMarketDigestEmployerEmail(employer, matchLines, nugget)
       if (result.sent) sentCount += 1
     } catch (error) {
       console.error('Employer market digest failed for employer', employer.id, error)

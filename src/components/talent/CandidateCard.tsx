@@ -6,22 +6,7 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import type { MatchResult } from '@/lib/matching/compute-match-score'
 import { expressInterest, saveCandidate } from '@/app/talent/(app)/roles/[id]/candidates/actions'
-
-function displayIdentity(
-  candidate: Pick<CandidateProfile, 'privacyTier' | 'firstName' | 'lastName' | 'highestLevelReached' | 'primaryFunction'>,
-  // Locked (Dossier not unlocked) candidates stay anonymized regardless of
-  // their own privacyTier choice — the teaser is the same for everyone
-  // until real evidence/effort is on file, not something a PUBLIC-tier
-  // candidate can opt out of by their privacy setting alone.
-  locked: boolean
-): string {
-  if (!locked && candidate.privacyTier === 'PUBLIC' && candidate.firstName) {
-    return `${candidate.firstName} ${candidate.lastName?.charAt(0) ?? ''}.`.trim()
-  }
-  const level = candidate.highestLevelReached ?? 'Experienced'
-  const fn = candidate.primaryFunction ?? 'professional'
-  return `${level} ${fn} professional`
-}
+import { candidateDisplayName } from '@/lib/talent/candidate-identity'
 
 export function CandidateCard({
   candidate,
@@ -61,7 +46,7 @@ export function CandidateCard({
     <div className={locked ? 'space-y-2 rounded-lg border border-dashed border-border p-4' : 'space-y-2 rounded-lg border border-border p-4'}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-medium text-foreground">{displayIdentity(candidate, locked)}</p>
+          <p className="font-medium text-foreground">{candidateDisplayName(candidate, locked)}</p>
           <p className="text-sm text-muted-foreground">
             {[candidate.primaryFunction, candidate.highestLevelReached, candidate.currentCity]
               .filter(Boolean)
