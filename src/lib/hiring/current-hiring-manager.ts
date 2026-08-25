@@ -8,7 +8,7 @@ import type { HiringManager } from '@prisma/client'
 // pattern as getCurrentRecruiter (src/lib/recruiter/current-recruiter.ts)
 // and getCurrentOutplacementOrgUser.
 export async function getCurrentHiringManager(): Promise<HiringManager> {
-  const supabase = await createClient()
+  const supabase = await createClient('hiring')
   const {
     data: { user },
   } = await supabase.auth.getUser()

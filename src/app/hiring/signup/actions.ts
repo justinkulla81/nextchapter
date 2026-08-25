@@ -30,7 +30,7 @@ export async function completeHiringManagerSignup(
   if (!fullName) return { error: 'Please fill in your name.' }
   if (!companyName) return { error: 'Please fill in your company name.' }
 
-  const supabase = await createClient()
+  const supabase = await createClient('hiring')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -48,7 +48,7 @@ export async function completeHiringManagerSignup(
 // confirmation email is clicked and a session is established — mirrors
 // completeRecruiterSignupFromSession.
 export async function completeHiringManagerSignupFromSession(): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('hiring')
   const {
     data: { user },
   } = await supabase.auth.getUser()
