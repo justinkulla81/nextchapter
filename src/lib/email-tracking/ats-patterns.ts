@@ -121,13 +121,26 @@ const REJECTION_HIGH_CONFIDENCE = [
   // APPLICATION_CONFIRMATION matcher instead, since its opening "Thank you
   // for your interest in..." boilerplate matched that category's phrasing
   // first.
-  /we('ve| have)? decided to (move forward|proceed) with (other|another) candidates?/i,
+  // Deliberately NOT anchored to a literal "we" immediately before
+  // "decided" — a real production miss (VAST Data via Comeet): "The hiring
+  // team had a chance to review your experience and qualifications but
+  // decided to move forward with other candidates..." uses "but decided,"
+  // not "we decided." The subject reviewing/deciding is almost always some
+  // paraphrase of "we"/"the team"/"the hiring manager" in this exact
+  // phrase shape regardless of what precedes "decided," so matching on
+  // "decided to move forward/proceed with other/another candidate(s)"
+  // alone (no subject requirement) is safe and catches both.
+  /decided to (move forward|proceed) with (other|another) candidates?/i,
   /we regret to inform you/i,
   /will not be moving forward with your (application|candidacy)/i,
   /we('| ha)ve chosen to pursue other candidates/i,
   /after (careful|further) (consideration|review)[,]? we (have )?decided not to/i,
   /not selected for (this|the) (role|position)/i,
   /we will not be (proceeding|continuing) with your application/i,
+  // Same VAST Data/Comeet email's closing line — a standard polite-rejection
+  // sign-off distinct enough from ordinary correspondence that it's safe as
+  // its own high-confidence signal, not just a fallback.
+  /we wish you (well|the best) in your (search|job search) for/i,
   // "Position cancelled/withdrawn" rejections — the employer never picked
   // someone else, they stopped hiring for the role entirely. Distinct
   // phrasing from the "went with another candidate" patterns above, but
