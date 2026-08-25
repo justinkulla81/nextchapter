@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default async function EqOverIqContributorLoginPage() {
-  await redirectIfAuthenticated('/eqoveriq/contributors')
+  await redirectIfAuthenticated('/eqoveriq/contributors', 'eqoveriq')
 
   return (
     <PortalAuthCard icon={Sparkles} portalLabel="EQoverIQ for Contributors" title="Log in" description="Welcome back.">
@@ -21,6 +21,7 @@ export default async function EqOverIqContributorLoginPage() {
           forgotPasswordHref="/eqoveriq/contributors/forgot-password"
           signupHref="/eqoveriq/contributors/signup"
           showGoogle={false}
+          portal="eqoveriq"
         />
       </Suspense>
     </PortalAuthCard>

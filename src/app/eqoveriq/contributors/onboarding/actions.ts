@@ -29,7 +29,7 @@ export async function submitEqOverIqApplication(
     return { error: 'Select at least one area you’re interested in.' }
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient('eqoveriq')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -31,7 +31,7 @@ export function ContributorSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('eqoveriq-contributor')
-    const supabase = createClient()
+    const supabase = createClient('eqoveriq')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

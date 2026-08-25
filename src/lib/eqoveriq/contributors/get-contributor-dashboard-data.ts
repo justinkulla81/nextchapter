@@ -13,7 +13,7 @@ import type { EqOverIqContributorProfile } from '@prisma/client'
 // portal shell (to see their status), it's only an unsubmitted application
 // that's blocked from entering at all.
 export async function getEqOverIqContributorDashboardData(): Promise<EqOverIqContributorProfile> {
-  const supabase = await createClient()
+  const supabase = await createClient('eqoveriq')
   const {
     data: { user },
   } = await supabase.auth.getUser()

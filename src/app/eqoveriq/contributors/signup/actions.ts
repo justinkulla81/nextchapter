@@ -11,7 +11,7 @@ import { prisma } from '@/lib/prisma'
 // name it collected rides along in user_metadata instead. Mirrors
 // completeCrucibleEmployerSignupFromSession exactly.
 export async function completeEqOverIqContributorSignupFromSession(): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('eqoveriq')
   const {
     data: { user },
   } = await supabase.auth.getUser()

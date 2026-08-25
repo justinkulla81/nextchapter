@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function EqOverIqContributorOnboardingPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('eqoveriq')
   const {
     data: { user },
   } = await supabase.auth.getUser()
