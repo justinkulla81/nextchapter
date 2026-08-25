@@ -11,7 +11,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 export type CoachClientInviteState = { error?: string; sent?: boolean } | undefined
 
 async function requireCoach() {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -105,7 +105,7 @@ export async function resendCoachClientInvite(inviteId: string): Promise<ResendS
 // next (hands off to SecureAccountForm so they set a real password before
 // landing in onboarding).
 export async function finishAcceptingCoachInvite(inviteToken: string): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -16,7 +16,7 @@ function candidateDisplayName(candidate: { firstName: string | null; lastName: s
 
 export default async function CoachThreadPage({ params }: { params: Promise<{ threadId: string }> }) {
   const { threadId } = await params
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()

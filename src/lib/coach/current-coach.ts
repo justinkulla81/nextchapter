@@ -9,7 +9,7 @@ import type { Coach } from '@prisma/client'
 // every session-based coach page already inlined individually; factored out
 // so the new (app) layout and each page can both call it without drifting.
 export async function getCurrentCoach(): Promise<Coach> {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()

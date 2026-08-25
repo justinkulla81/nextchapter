@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 // + Coaching Onboarding Form), so "URLs that make sense" doesn't require
 // forking that already-built UI into a second, session-derived copy.
 export default async function CoachSettingsEntryPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()

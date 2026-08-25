@@ -6,7 +6,7 @@ import { getCoachThreads } from '@/lib/messaging/threads'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 
 export default async function CoachMessagesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()

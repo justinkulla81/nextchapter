@@ -13,7 +13,7 @@ const STATUS_LABEL = {
 } as const
 
 export default async function InviteClientByEmailPage() {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()

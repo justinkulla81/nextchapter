@@ -42,7 +42,7 @@ export function CoachSignupForm() {
     setLoading(true)
 
     setPendingSignupRoleCookie('coach')
-    const supabase = createClient()
+    const supabase = createClient('coach')
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,

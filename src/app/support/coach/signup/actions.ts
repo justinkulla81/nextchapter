@@ -44,7 +44,7 @@ export async function completeCoachSignup(
     return { error: 'Please fill in your name and coaching focus.' }
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -62,7 +62,7 @@ export async function completeCoachSignup(
 // email is clicked and a session is established — mirrors
 // completeEmployerSignupFromSession (see src/app/talent/signup/actions.ts).
 export async function completeCoachSignupFromSession(): Promise<{ error?: string }> {
-  const supabase = await createClient()
+  const supabase = await createClient('coach')
   const {
     data: { user },
   } = await supabase.auth.getUser()
