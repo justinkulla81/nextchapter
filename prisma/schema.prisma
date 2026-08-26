@@ -699,11 +699,11 @@ model CandidateProfile {
 
   // Resume Book — separate consent from recruiterDatabaseOptIn above (Resume
   // Book is scoped to resume + fit-matching only, not full profile access).
-  // Defaults false at the schema level so existing candidates aren't
-  // silently opted in; the resume-upload form itself renders the checkbox
-  // pre-checked for anyone who hasn't set a preference yet, matching the
-  // "checked automatically" product decision.
-  resumeBookOptIn Boolean @default(false)
+  // Defaults true — the resume-upload form's checkbox is pre-checked and
+  // every candidate already in the system was backfilled to true when this
+  // shipped. A candidate who wants out unchecks it there or flips it off on
+  // the Privacy page at any time.
+  resumeBookOptIn Boolean @default(true)
 
   // §4.3: LinkedIn posting through NextChapter's own integration is
   // disabled by default while Confidential Search Mode is on — this is the

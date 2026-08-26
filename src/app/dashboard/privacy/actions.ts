@@ -218,6 +218,26 @@ export async function setRecruiterDatabaseOptIn(optIn: boolean): Promise<void> {
   revalidatePath('/dashboard/find-my-job')
 }
 
+export async function setResumeBookOptIn(optIn: boolean): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { resumeBookOptIn: optIn },
+  })
+
+  captureServerEvent(profile.id, optIn ? 'resume_book_opt_in' : 'resume_book_opt_out', { source: 'privacy_page' })
+
+  revalidatePath('/dashboard/privacy')
+  revalidatePath('/dashboard/find-my-job')
+}
+
 export type DeactivateAccountFormState = { error?: string } | undefined
 
 // Deliberately NOT a delete — see deactivatedAt's own schema comment. Every

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updateResumeBookOptIn } from '@/app/dashboard/find-my-job/actions'
+import { setResumeBookOptIn } from '@/app/dashboard/privacy/actions'
 import {
   Select,
   SelectContent,
@@ -26,7 +26,7 @@ export function ResumeBookOptInForm({ optedIn }: { optedIn: boolean }) {
     const optedInNext = next === 'yes'
     setValue(optedInNext ? 'yes' : 'no')
     startTransition(async () => {
-      await updateResumeBookOptIn(optedInNext)
+      await setResumeBookOptIn(optedInNext)
     })
   }
 

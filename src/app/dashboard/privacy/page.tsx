@@ -8,6 +8,7 @@ import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelecto
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
+import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { CurrentJobStatusSelector } from '@/components/dashboard/CurrentJobStatusSelector'
@@ -74,6 +75,17 @@ export default async function PrivacyPage() {
           dossierReason={dossierStatus.reason}
           confidentialSearchMode={profile.confidentialSearchMode}
         />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold">Resume Book</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            On by default — checked automatically the first time you upload a resume. Independent of
+            your Dossier unlock status above; turn it off any time.
+          </p>
+        </div>
+        <ResumeBookOptIn optedIn={profile.resumeBookOptIn} />
       </div>
 
       <div className="space-y-3 border-t border-border pt-8">

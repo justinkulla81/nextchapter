@@ -5,6 +5,7 @@ import { uploadResume } from '@/app/dashboard/resume/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NewNarrativeForm } from '@/components/dashboard/portfolio/NarrativeManager'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
@@ -22,6 +23,7 @@ export interface ResumeUploadNarrativeOption {
 export function ResumeUploadForm({
   narratives = [],
   showNarrativePicker = true,
+  resumeBookOptIn = true,
 }: {
   narratives?: ResumeUploadNarrativeOption[]
   // Off during onboarding (see /onboarding/resume) — a brand-new candidate
@@ -29,6 +31,10 @@ export function ResumeUploadForm({
   // narrative" (including "+ New narrative") there is a dead-end option,
   // not a real choice.
   showNarrativePicker?: boolean
+  // Current CandidateProfile.resumeBookOptIn — defaults true since a
+  // brand-new onboarding visitor has no profile yet to read this from, and
+  // true is also the schema default every new profile gets anyway.
+  resumeBookOptIn?: boolean
 }) {
   const [state, formAction, pending] = useActionState(uploadResume, undefined)
   const [hasFile, setHasFile] = useState(false)
@@ -118,6 +124,19 @@ export function ResumeUploadForm({
           )}
         </>
       )}
+
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="includeInResumeBook"
+          name="includeInResumeBook"
+          value="on"
+          defaultChecked={resumeBookOptIn}
+        />
+        <Label htmlFor="includeInResumeBook" className="font-normal">
+          Include my resume in the Resume Book, so recruiters and hiring managers can find it.
+          You can change this any time in Privacy Settings.
+        </Label>
+      </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

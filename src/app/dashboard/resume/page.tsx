@@ -102,7 +102,7 @@ export default async function ResumePage({
 
       <ResumeVersionsList versions={versions} />
 
-      <ResumeUploadForm narratives={narratives} />
+      <ResumeUploadForm narratives={narratives} resumeBookOptIn={profile.resumeBookOptIn} />
 
       {latest && (
         <Card>

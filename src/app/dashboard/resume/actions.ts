@@ -56,6 +56,17 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   const coachId = cookieStore.get('nc_coach')?.value
   const profile = await getOrCreateCandidateProfile(user.id, { coachId })
 
+  const includeInResumeBook = formData.get('includeInResumeBook') === 'on'
+  if (includeInResumeBook !== profile.resumeBookOptIn) {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { resumeBookOptIn: includeInResumeBook },
+    })
+    captureServerEvent(profile.id, includeInResumeBook ? 'resume_book_opt_in' : 'resume_book_opt_out', {
+      source: 'resume_upload',
+    })
+  }
+
   const admin = createAdminClient()
   const path = `${profile.id}/${crypto.randomUUID()}.${ext}`
 
