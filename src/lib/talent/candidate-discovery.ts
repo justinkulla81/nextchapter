@@ -48,8 +48,10 @@ const CANDIDATE_SELECT = {
 // 4 Goals) rather than primaryFunction (resume-derived history), which
 // compute-match-score.ts already covers on its own. Bidirectional substring
 // match on title, same convention as matchesCertification/industry matching
-// elsewhere in the codebase.
-function candidateWantsRole(
+// elsewhere in the codebase. Exported for reuse by
+// src/lib/matching/candidate-role-matches.ts, the reverse-direction
+// (candidate → roles) matcher.
+export function candidateWantsRole(
   candidate: Pick<CandidateProfile, 'targetFunction' | 'targetRoleType'>,
   role: Pick<RoleProfile, 'primaryFunction' | 'roleTitle'>
 ): boolean {
