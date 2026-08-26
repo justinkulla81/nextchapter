@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import type { CandidateProfile, GapDurationBucket } from '@prisma/client'
+import type { CandidateProfile, GapDurationBucket, NetworkComfortLevel } from '@prisma/client'
 import { updateLocationAndSearchStatus } from '@/app/onboarding/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,13 @@ const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDuratio
   ([value, label]) => ({ value, label })
 )
 
+const NETWORK_COMFORT_OPTIONS: { value: NetworkComfortLevel; label: string }[] = [
+  { value: 'VERY_COMFORTABLE', label: 'Very comfortable' },
+  { value: 'SOMEWHAT_COMFORTABLE', label: 'Somewhat comfortable' },
+  { value: 'NOT_VERY_COMFORTABLE', label: 'Not very comfortable' },
+  { value: 'RATHER_NOT', label: "I'd rather not" },
+]
+
 export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updateLocationAndSearchStatus, undefined)
   const [remotePreference, setRemotePreference] = useState<string | null>(profile.remotePreference)
@@ -23,6 +30,9 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const [justStartedSearch, setJustStartedSearch] = useState(profile.justStartedSearch)
   const [gapDuration, setGapDuration] = useState<GapDurationBucket | null>(profile.gapDuration)
   const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
+  const [networkComfortLevel, setNetworkComfortLevel] = useState<NetworkComfortLevel | null>(
+    profile.networkComfortLevel
+  )
 
   return (
     <form
@@ -148,6 +158,22 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
           </div>
         </div>
       )}
+
+      <div className="border-t border-border pt-5">
+        <h2 className="text-sm font-semibold text-foreground">One more thing</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          How comfortable do you feel letting your network know you&apos;re looking for a role?
+        </p>
+      </div>
+
+      <ChoiceButtons
+        name="networkComfortLevel"
+        options={NETWORK_COMFORT_OPTIONS}
+        value={networkComfortLevel}
+        onChange={setNetworkComfortLevel}
+        columns={2}
+        responsive
+      />
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

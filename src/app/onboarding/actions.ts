@@ -185,21 +185,27 @@ function deriveJobsAppliedBucket(count: number): '0-20' | '20-100' | '100+' {
   return '100+'
 }
 
-// Screen 2 of 4 — where they're searching from and willing to go. Same
-// reuse-existing-field logic as updateResumeConfirm above.
 // Screen 2 of 3 — combines what were originally two separate screens
 // (location, then a follow-up "where are you in your search" screen) into
 // one page: both are short, thematically adjacent ("where you're searching
 // from and how far along you are"), and splitting them cost an extra click
 // with no benefit. Both onboardingLocationConfirmedAt and
 // onboardingSearchStatusConfirmedAt are set together so onboarding/page.tsx's
-// redirect chain and comfort/page.tsx's own guard keep working unchanged.
+// redirect chain keeps working unchanged.
 //
 // Applications/interviews are asked here as exact numbers (not buckets) and
 // written straight into jobsAppliedBucket (derived) / interviewsReceivedCount
 // — the same fields the dashboard Search Strategy page's "Your Search
 // Strategy So Far" card used to ask again. That duplicate ask was removed
 // from OptionalQuestionsForm; this is now the only place these get asked.
+//
+// Also folds in the network-comfort question (previously its own
+// /onboarding/comfort screen) so the sequence between here and the score
+// reveal is just this page then the contract screen, not three. The
+// standalone /onboarding/comfort route and updateComfort action stay in
+// place as a fallback for anyone already sitting between the old
+// location-confirmed and comfort-confirmed states when this shipped — see
+// comfort/page.tsx.
 export async function updateLocationAndSearchStatus(
   _prevState: FormState,
   formData: FormData
@@ -220,6 +226,7 @@ export async function updateLocationAndSearchStatus(
   const interviewsCountRaw = formData.get('interviewsCount')
   const jobsAppliedCount = justStartedSearch ? 0 : jobsAppliedCountRaw ? Number(jobsAppliedCountRaw) : null
   const interviewsCount = justStartedSearch ? 0 : interviewsCountRaw ? Number(interviewsCountRaw) : null
+  const networkComfortLevel = formData.get('networkComfortLevel') as string | null
 
   if (!remotePreference) {
     return { error: 'Please tell us your work-location preference before continuing.' }
@@ -229,6 +236,9 @@ export async function updateLocationAndSearchStatus(
   }
   if (!justStartedSearch && (jobsAppliedCount === null || interviewsCount === null)) {
     return { error: 'Please answer both search-status questions, or check "I just started" above.' }
+  }
+  if (!networkComfortLevel || !NETWORK_COMFORT_LEVELS.includes(networkComfortLevel as NetworkComfortLevel)) {
+    return { error: 'Please choose the option that best describes you.' }
   }
 
   const now = new Date()
@@ -248,11 +258,14 @@ export async function updateLocationAndSearchStatus(
       jobsAppliedBucket: deriveJobsAppliedBucket(jobsAppliedCount as number),
       interviewsReceivedCount: interviewsCount,
       onboardingSearchStatusConfirmedAt: now,
+      networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
+      networkComfortBonusAt: now,
+      onboardingComfortConfirmedAt: now,
     },
   })
 
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/comfort')
+  redirect('/onboarding/contract')
 }
 
 // Screen 4 of 4 — the last question before the contract screen. Writes

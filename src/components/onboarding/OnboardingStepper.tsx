@@ -9,18 +9,17 @@ const STEPS = [
   { href: '/onboarding/resume', label: 'Resume' },
   { href: '/onboarding/confirm', label: 'Confirm' },
   { href: '/onboarding/location', label: 'Location' },
-  { href: '/onboarding/comfort', label: 'Comfort Check' },
 ]
 
 export function OnboardingStepper({ completion }: { completion: boolean[] }) {
   const pathname = usePathname()
 
   // The shared onboarding layout renders this on every /onboarding/** page,
-  // but these 5 steps are only the pre-account assessment — contract,
-  // create-account, score, working-style, and the coach forms all happen
-  // after that's already done. Showing progress dots on a page that isn't
-  // part of that sequence at all just reads as stale/wrong, so render
-  // nothing outside the actual 5 step routes.
+  // but these 4 steps are only the pre-account assessment — comfort (now
+  // folded into Location), contract, create-account, score, working-style,
+  // and the coach forms all happen after that's already done. Showing
+  // progress dots on a page that isn't part of that sequence at all just
+  // reads as stale/wrong, so render nothing outside the actual 4 step routes.
   if (!STEPS.some((step) => step.href === pathname)) return null
 
   return (
@@ -32,9 +31,9 @@ export function OnboardingStepper({ completion }: { completion: boolean[] }) {
         // answer" affordance only for Your Path and Resume — those two
         // pages no longer auto-redirect away once answered (see
         // onboarding/desire/page.tsx), so the link reliably lands on the
-        // editable form, pre-filled with the current answer. Confirm,
-        // Location, and Comfort Check all auto-redirect forward once their
-        // *ConfirmedAt field is set (see e.g. onboarding/location/page.tsx),
+        // editable form, pre-filled with the current answer. Confirm and
+        // Location both auto-redirect forward once their *ConfirmedAt field
+        // is set (see e.g. onboarding/location/page.tsx),
         // so making those clickable would just bounce the candidate right
         // back to their current step — render them as plain checkmarks
         // instead. An incomplete future step stays non-interactive either

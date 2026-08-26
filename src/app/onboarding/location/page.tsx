@@ -9,7 +9,7 @@ export default async function LocationPage() {
     redirect('/onboarding/confirm')
   }
   if (profile.onboardingLocationConfirmedAt) {
-    redirect('/onboarding/comfort')
+    redirect('/onboarding/contract')
   }
 
   return (

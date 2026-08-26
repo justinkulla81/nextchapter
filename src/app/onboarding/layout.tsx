@@ -50,7 +50,6 @@ export default async function OnboardingLayout({ children }: { children: React.R
             profile?.resumeStepComplete ?? false,
             !!profile?.onboardingResumeConfirmedAt,
             !!profile?.onboardingLocationConfirmedAt,
-            !!profile?.onboardingComfortConfirmedAt,
           ]}
         />
       </header>
