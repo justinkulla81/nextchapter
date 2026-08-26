@@ -662,16 +662,18 @@ async function FindMyJobBody({
 
   return (
     <>
-      {emailConnection && <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />}
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/find-my-job" />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/find-my-job" />
 
       {emailConnection && !emailConnection.needsReconnectAt && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-          <p>
-            Job stats from email
-            {emailConnection.lastSyncAt && <> · last checked {emailConnection.lastSyncAt.toLocaleString()}</>}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p>
+              Job stats from email
+              {emailConnection.lastSyncAt && <> · last checked {emailConnection.lastSyncAt.toLocaleString()}</>}
+            </p>
+            <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />
+          </div>
           <EmailActivitySyncButton />
         </div>
       )}
