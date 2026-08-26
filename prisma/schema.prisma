@@ -2628,8 +2628,19 @@ model CandidateInteraction {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  status        CandidateInterestStatus @default(VIEWED)
-  employerNotes String?
+  status               CandidateInterestStatus @default(VIEWED)
+  employerNotes        String?
+  // Set when the CANDIDATE clicked "Express interest" on a matched role
+  // (see MatchedRoleList/expressInterestInRole) rather than the employer
+  // finding them first — status above stays employer-owned semantics
+  // (VIEWED/SAVED/INTEREST_EXPRESSED etc. all describe what the employer
+  // did), so this is a separate flag rather than overloading status with a
+  // second, conflicting meaning. roleId gets set/updated to whichever role
+  // the candidate expressed interest in, same as any other update to this
+  // row — the @@unique([employerId, candidateId]) below means one row per
+  // employer-candidate pair regardless of role, matching how employer-side
+  // interactions already work.
+  initiatedByCandidate Boolean                 @default(false)
 
   // Match data (computed at time of interaction)
   genericMatchScore  Int? // 0-100 overall

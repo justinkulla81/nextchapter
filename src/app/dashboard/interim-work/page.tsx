@@ -21,6 +21,10 @@ import { prisma } from '@/lib/prisma'
 import { signupCountToTier } from '@/lib/interim-work/signup-count-tier'
 import { computeMarketplaceSignupMix } from '@/lib/interim-work/marketplace-signup-mix'
 import { isActiveMember } from '@/lib/membership/subscription'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { getMatchedRolesForCandidate } from '@/lib/matching/candidate-role-matches'
+import { MatchedRoleList } from '@/components/dashboard/MatchedRoleList'
+import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 
 export const metadata: Metadata = { title: 'Interim Work' }
 
@@ -51,7 +55,7 @@ export default async function InterimWorkPage() {
   const boardReady = isBoardReady(profile)
   const showLegalCaution = hasLegalRestrictionFlag()
 
-  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs] =
+  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs, dossierStatus] =
     await Promise.all([
       getInterimLaunchPlan(profile),
       getActiveListings(marketplaceCategories),
@@ -83,8 +87,12 @@ export default async function InterimWorkPage() {
         select: { partnerName: true },
         distinct: ['partnerName'],
       }),
+      isDossierUnlocked(profile.id),
     ])
   const interimSignupMix = computeMarketplaceSignupMix(interimSignups.map((s) => s.listing.category))
+  const matchedBoardRoles = dossierStatus.unlocked
+    ? await getMatchedRolesForCandidate(profile.id, ['BOARD_PAID', 'BOARD_UNPAID', 'CONSULTING_PAID', 'CONSULTING_UNPAID'])
+    : []
 
   const clickedPartnerNames = new Set(oldClickThroughs.map((c) => c.partnerName))
   const clickedNotRegistered = [...marketplaceListings, ...expertNetworkListings, ...allBoardListings].filter(
@@ -354,6 +362,31 @@ export default async function InterimWorkPage() {
                 )}
                 <InterimListingGrid listings={boardListings} signedUpIds={signedUpIds} />
               </>
+            )}
+          </section>
+
+          {/* Board Advisory Work — real, internally-posted board/consulting
+              opportunities matched to this candidate, separate from the
+              Membership-gated external directory above. Gated on Dossier
+              unlock, not Membership. */}
+          <section id="board-advisory-work" className="scroll-mt-4 space-y-3 border-b border-border pb-10">
+            <div>
+              <h2 className="text-lg font-semibold">Board Advisory Work</h2>
+              <p className="text-sm text-muted-foreground">
+                Board and consulting opportunities — paid and unpaid — matched to your background.
+              </p>
+            </div>
+            {!dossierStatus.unlocked ? (
+              <LockedFeatureNotice
+                title="Board Advisory Work"
+                requirement="Unlock your Dossier to see board and consulting opportunities matched to your background."
+                status={dossierStatus.reason}
+              />
+            ) : (
+              <MatchedRoleList
+                roles={matchedBoardRoles}
+                emptyMessage="No board or consulting opportunities match your background yet — check back soon."
+              />
             )}
           </section>
 
