@@ -371,7 +371,7 @@ export default async function PortfolioPage() {
           <CardContent className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               {completedReferenceCount > 0
-                ? `${completedReferenceCount} / 5 completed`
+                ? `${completedReferenceCount} / 3 completed`
                 : "Someone else's word for it — none received yet."}
             </p>
             <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/references" />}>

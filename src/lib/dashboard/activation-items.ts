@@ -86,7 +86,7 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
     },
     {
       key: 'references',
-      label: 'Send five reference requests',
+      label: 'Send three reference requests',
       estimatedMinutes: 5,
       complete: sentReferenceCount >= DOSSIER_REFERENCE_TARGET,
       href: '/dashboard/references',

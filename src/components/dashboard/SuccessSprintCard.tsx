@@ -434,12 +434,12 @@ function ActionRow({
               'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
               locked
                 ? 'bg-muted text-muted-foreground'
-                : completedReferencesCount >= 5
+                : completedReferencesCount >= 3
                   ? 'bg-success/10 text-success'
                   : 'bg-destructive/10 text-destructive'
             )}
           >
-            {completedReferencesCount} / 5
+            {completedReferencesCount} / 3
           </span>
         ) : recurring && targetCount ? (
           <span
@@ -613,13 +613,13 @@ export function SuccessSprintCard({
   // INTERIM_PROFILE_CREATED, not the conditional-on-a-count shape
   // REFERENCE_ADDED uses — this component has no learning/posting count
   // passed in the way completedReferencesCount is, and DOSSIER_REFERENCE_TARGET
-  // (5) has no equivalent target for either area, so there's no real
-  // threshold to condition on.
+  // has no equivalent target for either area, so there's no real threshold
+  // to condition on.
   function isPriorityActionType(actionType: string | undefined): boolean {
     if (!actionType) return false
     if (!hasEmailConnection) return false
     if (actionType === 'OUTREACH_MESSAGE') return true
-    if (actionType === 'REFERENCE_ADDED') return completedReferencesCount < 5
+    if (actionType === 'REFERENCE_ADDED') return completedReferencesCount < 3
     if (actionType === 'JOB_APPLICATION_SUBMITTED') return true
     if (actionType === 'INTERIM_PROFILE_CREATED') return true
     // LEARNING_MODULE/LEARNING_CERTIFICATE_STARTED/LEARNING_NEW_TOOL_STARTED/

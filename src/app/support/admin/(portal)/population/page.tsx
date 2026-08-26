@@ -214,7 +214,7 @@ function FunnelSection({ weekStartDate, allRow }: { weekStartDate: Date; allRow:
   return (
     <SectionCard title="Funnel" csvHref={`/api/admin/population/export?section=funnel&segmentType=all&week=${weekStartDate.toISOString()}`}>
       <p className="text-sm text-muted-foreground">
-        Resume uploaded → registered → activation complete → first reference requested → 5 references returned → both
+        Resume uploaded → registered → activation complete → first reference requested → 3 references returned → both
         assessments → Dossier complete. The largest drop-off is the next thing to fix.
       </p>
       {hasOverConversion && (

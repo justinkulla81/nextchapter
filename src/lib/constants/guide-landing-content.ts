@@ -94,7 +94,7 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
     ],
     outline: [
       'Exporting your own contacts and work samples before you lose access',
-      'Securing 5 references while the relationship is warm',
+      'Securing 3 references while the relationship is warm',
       'What you can and cannot legally take with you',
       'Non-compete, IP assignment, and severance terms to read before signing',
       'How to leave in a way that protects your reputation for years, not months',

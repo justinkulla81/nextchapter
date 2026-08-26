@@ -19,7 +19,7 @@ export function SubmissionPacketMockup() {
             Dossier-complete
           </span>
           <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
-            3 of 5 references available for hiring-manager calls
+            3 of 3 references available for hiring-manager calls
           </span>
         </div>
         <p className="text-sm leading-relaxed text-muted-foreground">

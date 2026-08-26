@@ -9,7 +9,7 @@ export interface ReferenceVerification {
   // "March 2026" — the most recent completion date, for the document's
   // "Verified · N references · Month Year" mark.
   verifiedMonthYear: string | null
-  // Recruiter portal §A6.3 — "3 of 5 references available for hiring
+  // Recruiter portal §A6.3 — "3 of 3 references available for hiring
   // manager calls." Counts only an explicit YES; "Maybe, ask me first" is
   // real signal too but isn't "available" without an extra step, so it's
   // deliberately not folded into this numerator (see

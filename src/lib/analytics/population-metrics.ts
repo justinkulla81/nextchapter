@@ -564,7 +564,7 @@ const FUNNEL_STEP_LABELS: Record<FunnelStepKey, string> = {
   registered: 'Registered',
   activation_complete: 'Activation complete',
   first_reference_requested: 'First reference requested',
-  five_references_returned: '5 references returned',
+  five_references_returned: '3 references returned',
   both_assessments: 'Both assessments complete',
   dossier_complete: 'Dossier complete',
 }

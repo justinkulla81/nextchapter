@@ -125,11 +125,11 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       items: [
         {
           lead: 'References normally get collected at offer stage.',
-          body: 'Ours are done before you ever meet the candidate — five structured references, scored consistently, sitting in the Dossier from day one.',
+          body: 'Ours are done before you ever meet the candidate — three structured references, scored consistently, sitting in the Dossier from day one.',
         },
         {
           lead: 'Some are already willing to take a hiring-manager call.',
-          body: 'At reference completion we ask directly. Surfaced in the Dossier as "3 of 5 references available for hiring manager calls" — a real timeline advantage, not a promise.',
+          body: 'At reference completion we ask directly. Surfaced in the Dossier as "3 of 3 references available for hiring manager calls" — a real timeline advantage, not a promise.',
         },
         {
           lead: 'Consented candidates only.',

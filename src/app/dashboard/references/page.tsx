@@ -20,10 +20,11 @@ import { ReferenceFollowUpLink } from '@/components/references/ReferenceFollowUp
 export const metadata: Metadata = { title: 'My References' }
 
 // Real testimony is one of the strongest signals a hiring manager sees —
-// 3-5 solid references reads as a strong pattern, not a one-off, so that's
+// 3 solid references reads as a strong pattern, not a one-off, so that's
 // the lifetime target shown next to "Add a reference" in the Action Plan
-// box (see SprintActionCompletion's lifetimeProgress prop).
-const REFERENCE_TARGET_COUNT = 5
+// box (see SprintActionCompletion's lifetimeProgress prop). Matches
+// DOSSIER_UNLOCK_REFERENCE_TARGET in dossier-unlock.ts, the actual gate.
+const REFERENCE_TARGET_COUNT = 3
 
 const STATUS_STYLES: Record<ReferenceStatus, string> = {
   REQUESTED: 'bg-muted text-muted-foreground',

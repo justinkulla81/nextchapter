@@ -46,7 +46,7 @@ const THREE_BEATS = [
   },
   {
     title: "Build what your resume can't say.",
-    body: 'Five references, structured and scored. Two validated assessments. One Executive Dossier you keep forever.',
+    body: 'Three references, structured and scored. Two validated assessments. One Executive Dossier you keep forever.',
     href: '/dossier',
     cta: 'See a sample Dossier →',
   },

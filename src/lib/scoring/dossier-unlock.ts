@@ -21,7 +21,7 @@ import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 // Senior/Executive weighting split; that's intentional, not a copy-paste
 // of the same grouping, since these are different axes (comp math vs.
 // realistic outreach volume).
-export const DOSSIER_REFERENCE_TARGET = 5
+export const DOSSIER_REFERENCE_TARGET = 3
 const OUTREACH_TARGET_BY_BAND: Record<SeniorityBand, number> = { EARLY: 15, MID: 15, SENIOR: 15, EXECUTIVE: 20 }
 const APPLICATION_TARGET_BY_BAND: Record<SeniorityBand, number> = { EARLY: 5, MID: 5, SENIOR: 5, EXECUTIVE: 2 }
 const DOSSIER_SPRINT_STREAK_TARGET = 4 // §7.2 item 7, "the grit test" — same cap as computeCurrentSprintStreak's default
