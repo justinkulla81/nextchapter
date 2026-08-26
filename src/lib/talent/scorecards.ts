@@ -1,11 +1,15 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { ScorecardRecommendation, Prisma } from '@prisma/client'
-import type { CompetencyScores, ScorecardComparisonRow } from '@/lib/hiring/scorecard-constants'
+import type { CompetencyScores, ScorecardComparisonRow } from '@/lib/talent/scorecard-constants'
 
-export { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL } from '@/lib/hiring/scorecard-constants'
-export type { CompetencyScoreEntry, CompetencyScores, ScorecardComparisonRow } from '@/lib/hiring/scorecard-constants'
+export { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL } from '@/lib/talent/scorecard-constants'
+export type { CompetencyScoreEntry, CompetencyScores, ScorecardComparisonRow } from '@/lib/talent/scorecard-constants'
 
+// Ported from src/lib/hiring/scorecards.ts as part of the /hiring -> /talent
+// consolidation — Scorecard is keyed on submissionId/panelistId, not the
+// retired HiringReq/HiringManager entities, so this moved verbatim.
+//
 // §A8 — "each panelist submits a scorecard scored against their assigned
 // competency (and can see/fill others if relevant)." scores can cover any
 // subset of the five keys — a panelist isn't required to fill all five,

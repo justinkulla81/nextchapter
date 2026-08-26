@@ -1,7 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
-import { autoDetectConflict } from '@/lib/hiring/conflict-check'
 
 // Architectural note (Phase 7, §A8): rather than a parallel
 // hiring-manager-submission model, a hiring manager's "candidates submitted
@@ -58,7 +57,11 @@ export async function autoLinkSubmissionToReq(submissionId: string): Promise<voi
 
   await prisma.recruiterCandidateSubmission.update({ where: { id: submissionId }, data: { reqId: match.id } })
 
-  // First moment this hiring manager and this candidate are actually
-  // paired — run the conflict-of-interest auto-detection now, per §A8/§E3.5.
-  await autoDetectConflict(match.hiringManagerId, submission.candidateId)
+  // This used to also run conflict-of-interest auto-detection
+  // (autoDetectConflict) the first moment a hiring manager and candidate
+  // were paired, per §A8/§E3.5. That primitive was ported to Talent and
+  // re-keyed to EmployerProfile.id as part of the /hiring -> /talent
+  // consolidation (see src/lib/talent/conflict-check.ts) — a HiringManager
+  // id is no longer a valid key for it, so the call was removed here rather
+  // than left to write a mismatched id into HiringConflictFlag.employerId.
 }

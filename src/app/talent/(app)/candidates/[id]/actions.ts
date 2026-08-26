@@ -8,6 +8,10 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { getOrCreateThread } from '@/lib/messaging/threads'
 import type { OutcomeWindow } from '@/lib/talent/outcome-ratings'
+import { assertSubmissionVisibleToEmployer } from '@/lib/talent/submission-match'
+import { generateInterviewGuide } from '@/lib/talent/generate-interview-guide'
+import { createPanel, type PanelistInput } from '@/lib/talent/panels'
+import type { PanelSetupActionState } from '@/components/talent/PanelSetupForm'
 
 async function getEmployer() {
   const supabase = await createClient('talent')
@@ -74,4 +78,53 @@ export async function startMessagingCandidate(candidateId: string) {
 
   const thread = await getOrCreateThread(candidateId, 'EMPLOYER', employer.id)
   redirect(`/talent/messages/${thread.id}`)
+}
+
+// Interview panel / scorecard setup — ported from the retired Hiring
+// Manager portal (src/lib/talent/panels.ts, generate-interview-guide.ts)
+// as part of the /hiring -> /talent consolidation. Every action below
+// re-derives and re-checks eligibility itself (defense in depth, same
+// convention the old portal's requireVisible used) — never trusts that the
+// page that rendered the form already checked.
+async function requireVisibleSubmission(candidateId: string, submissionId: string) {
+  const employer = await getEmployer()
+  if (!employer) return null
+  const submission = await assertSubmissionVisibleToEmployer(employer.id, submissionId)
+  if (!submission || submission.candidateId !== candidateId) return null
+  return { employer, submission }
+}
+
+export async function generateInterviewGuideAction(candidateId: string, submissionId: string): Promise<void> {
+  const ctx = await requireVisibleSubmission(candidateId, submissionId)
+  if (!ctx) return
+
+  await generateInterviewGuide(submissionId)
+  captureServerEvent(ctx.employer.id, 'talent_interview_guide_generated', { employerId: ctx.employer.id, submissionId })
+  revalidatePath(`/talent/candidates/${candidateId}`)
+}
+
+export async function createPanelAction(
+  candidateId: string,
+  submissionId: string,
+  _prevState: PanelSetupActionState,
+  formData: FormData
+): Promise<PanelSetupActionState> {
+  const ctx = await requireVisibleSubmission(candidateId, submissionId)
+  if (!ctx) return { error: 'Candidate not found.' }
+
+  const names = formData.getAll('panelistName') as string[]
+  const emails = formData.getAll('panelistEmail') as string[]
+  const panelists: PanelistInput[] = names.map((name, i) => ({ name, email: emails[i] ?? '' }))
+
+  const result = await createPanel(submissionId, ctx.employer.id, panelists)
+  if (result.error) return { error: result.error }
+
+  captureServerEvent(ctx.employer.id, 'talent_interview_panel_created', {
+    employerId: ctx.employer.id,
+    submissionId,
+    panelId: result.panelId,
+    panelistCount: panelists.length,
+  })
+  revalidatePath(`/talent/candidates/${candidateId}`)
+  return {}
 }

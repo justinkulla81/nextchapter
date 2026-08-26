@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { getBlockedCandidateIdsForEmployer } from '@/lib/talent/conflict-check'
 
 const STATUS_LABEL: Record<string, string> = {
   VIEWED: 'Viewed',
@@ -15,23 +16,31 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function CandidateInboxPage() {
   const employer = await getTalentDashboardData()
 
-  const interactions = await prisma.candidateInteraction.findMany({
-    where: { employerId: employer.id },
-    include: {
-      candidate: {
-        select: {
-          id: true,
-          privacyTier: true,
-          firstName: true,
-          lastName: true,
-          highestLevelReached: true,
-          primaryFunction: true,
+  const [interactionsRaw, blockedCandidateIds] = await Promise.all([
+    prisma.candidateInteraction.findMany({
+      where: { employerId: employer.id },
+      include: {
+        candidate: {
+          select: {
+            id: true,
+            privacyTier: true,
+            firstName: true,
+            lastName: true,
+            highestLevelReached: true,
+            primaryFunction: true,
+          },
         },
+        role: { select: { roleTitle: true } },
       },
-      role: { select: { roleTitle: true } },
-    },
-    orderBy: { updatedAt: 'desc' },
-  })
+      orderBy: { updatedAt: 'desc' },
+    }),
+    // Exclude any candidate this employer has an active conflict-of-
+    // interest flag against — see src/lib/talent/conflict-check.ts, ported
+    // from the retired Hiring Manager portal's §A8/§E3.5 conflict rule as
+    // part of the /hiring -> /talent consolidation.
+    getBlockedCandidateIdsForEmployer(employer.id),
+  ])
+  const interactions = interactionsRaw.filter((i) => !blockedCandidateIds.has(i.candidateId))
 
   return (
     <div className="space-y-6">

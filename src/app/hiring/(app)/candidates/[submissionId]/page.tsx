@@ -4,17 +4,18 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentHiringManager } from '@/lib/hiring/current-hiring-manager'
 import { getVisibleSubmissionForHiringManager } from '@/lib/hiring/visibility'
 import { buildHiringDossierView } from '@/lib/hiring/dossier-view'
-import { getReferenceQuestions } from '@/lib/hiring/reference-questions'
-import { getPanel } from '@/lib/hiring/panels'
-import { getScorecardComparison } from '@/lib/hiring/scorecards'
+import { getReferenceQuestions } from '@/lib/talent/reference-questions'
+import { getPanel } from '@/lib/talent/panels'
+import { getScorecardComparison } from '@/lib/talent/scorecards'
 import { CATEGORY_LABEL, type CategoryKey } from '@/lib/scoring/grade'
 import { getPostHireFeedback } from '@/lib/hiring/post-hire-feedback'
 import { STAGE_LABEL } from '@/lib/recruiter/submission-stages'
 import { GenerateGuideButton } from '@/components/hiring/GenerateGuideButton'
-import { PanelSetupForm, PanelAssignments } from '@/components/hiring/PanelSetupForm'
-import { ScorecardComparisonTable } from '@/components/hiring/ScorecardComparisonTable'
+import { PanelSetupForm, PanelAssignments } from '@/components/talent/PanelSetupForm'
+import { ScorecardComparisonTable } from '@/components/talent/ScorecardComparisonTable'
 import { PostHireFeedbackForm } from '@/components/hiring/PostHireFeedbackForm'
 import { ConflictDeclareForm } from '@/components/hiring/ConflictDeclareForm'
+import { createPanelAction } from './actions'
 
 export default async function HiringCandidateDetailPage({ params }: { params: Promise<{ submissionId: string }> }) {
   const { submissionId } = await params
@@ -117,7 +118,7 @@ export default async function HiringCandidateDetailPage({ params }: { params: Pr
       <section className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">Interview panel</h2>
         {!panel ? (
-          <PanelSetupForm submissionId={submissionId} />
+          <PanelSetupForm action={createPanelAction.bind(null, submissionId)} />
         ) : (
           <PanelAssignments panelists={panel.panelists} siteOrigin={siteOrigin} />
         )}

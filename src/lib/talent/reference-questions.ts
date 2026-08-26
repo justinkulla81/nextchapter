@@ -1,6 +1,10 @@
 import 'server-only'
-import { getCompetencyGaps, competenciesNeedingEvidence } from '@/lib/hiring/competency-gaps'
+import { getCompetencyGaps, competenciesNeedingEvidence } from '@/lib/talent/competency-gaps'
 
+// Ported from src/lib/hiring/reference-questions.ts as part of the /hiring
+// -> /talent consolidation — scoped to a candidateId, nothing
+// hiring-manager-specific, so this moved verbatim.
+//
 // §A8 — "reference questions worth asking, given what's already known" —
 // deliberately distinct from generate-interview-guide.ts's item 2
 // (questions for the CANDIDATE). Built rule-based rather than

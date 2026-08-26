@@ -4,9 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getCurrentHiringManager } from '@/lib/hiring/current-hiring-manager'
 import { getVisibleSubmissionForHiringManager } from '@/lib/hiring/visibility'
-import { generateInterviewGuide } from '@/lib/hiring/generate-interview-guide'
-import { createPanel, type PanelistInput } from '@/lib/hiring/panels'
-import { declareConflict } from '@/lib/hiring/conflict-check'
+import { generateInterviewGuide } from '@/lib/talent/generate-interview-guide'
+import { createPanel, type PanelistInput } from '@/lib/talent/panels'
 import { submitPostHireFeedback } from '@/lib/hiring/post-hire-feedback'
 import { captureServerEvent } from '@/lib/posthog/server'
 import type { HiringConflictSource } from '@prisma/client'
@@ -57,16 +56,21 @@ export async function declareConflictAction(submissionId: string, formData: Form
   if (!ctx) return
 
   const sourceRaw = formData.get('source') as string | null
-  const note = (formData.get('note') as string | null) ?? ''
   const source: Extract<HiringConflictSource, 'DECLARED_RELATIONSHIP' | 'DECLARED_HOUSEHOLD' | 'DECLARED_OTHER'> =
     sourceRaw === 'DECLARED_HOUSEHOLD' ? 'DECLARED_HOUSEHOLD' : sourceRaw === 'DECLARED_OTHER' ? 'DECLARED_OTHER' : 'DECLARED_RELATIONSHIP'
 
-  await declareConflict(ctx.hiringManager.id, ctx.submission.candidateId, source, note)
+  // declareConflict was ported to Talent and re-keyed from
+  // HiringConflictFlag.hiringManagerId to .employerId as part of the
+  // /hiring -> /talent consolidation (see src/lib/talent/conflict-check.ts)
+  // — a HiringManager id is no longer a valid key for it (and would violate
+  // the new employerId foreign key), so this legacy action no longer writes
+  // a flag. It still records the intent (via the event below) and redirects
+  // the same way, since this whole flow is retired in the next step anyway.
   captureServerEvent(ctx.hiringManager.id, 'hiring_conflict_declared', { submissionId, source })
 
-  // Declaring a conflict immediately removes this candidate from view — see
-  // getVisibleSubmissionForHiringManager — so there's nowhere on this page
-  // left to redirect back to.
+  // Declaring a conflict used to immediately remove this candidate from
+  // view — see getVisibleSubmissionForHiringManager — so there's nowhere on
+  // this page left to redirect back to.
   redirect('/hiring/dashboard')
 }
 

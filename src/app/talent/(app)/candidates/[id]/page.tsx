@@ -1,12 +1,26 @@
+import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { generateEvidenceBrief } from '@/lib/reports/evidence-brief'
 import { getDueOutcomeWindow, OUTCOME_WINDOW_LABEL } from '@/lib/talent/outcome-ratings'
+import { CATEGORY_LABEL, type CategoryKey } from '@/lib/scoring/grade'
+import { getEligibleSubmissionForEmployerCandidate } from '@/lib/talent/submission-match'
+import { getReferenceQuestions } from '@/lib/talent/reference-questions'
+import { getPanel } from '@/lib/talent/panels'
+import { getScorecardComparison } from '@/lib/talent/scorecards'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EvidenceTypeBadge } from '@/components/dashboard/EvidenceTypeBadge'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { markCandidateHired, submitOutcomeRating, startMessagingCandidate } from './actions'
+import { PanelSetupForm, PanelAssignments } from '@/components/talent/PanelSetupForm'
+import { ScorecardComparisonTable } from '@/components/talent/ScorecardComparisonTable'
+import {
+  markCandidateHired,
+  submitOutcomeRating,
+  startMessagingCandidate,
+  generateInterviewGuideAction,
+  createPanelAction,
+} from './actions'
 
 export default async function CandidateEvidenceBriefPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,6 +35,34 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
   if (!brief) notFound()
 
   const dueWindow = getDueOutcomeWindow(interaction)
+
+  // Interview panel / scorecard setup — only offered when a recruiter has
+  // actually submitted this candidate for a role at this employer's
+  // company (see src/lib/talent/submission-match.ts). Most Candidate Inbox
+  // entries never came through a recruiter submission, so this section is
+  // absent for those, same as it was effectively unreachable for most
+  // candidates under the retired Hiring Manager portal.
+  const submission = await getEligibleSubmissionForEmployerCandidate(employer.id, id)
+  let guide: Awaited<ReturnType<typeof prisma.interviewGuide.findUnique>> = null
+  let panel: Awaited<ReturnType<typeof getPanel>> = null
+  let scorecardRows: Awaited<ReturnType<typeof getScorecardComparison>> = []
+  let referenceQuestions: Awaited<ReturnType<typeof getReferenceQuestions>> = []
+  let siteOrigin = ''
+  if (submission) {
+    const [guideResult, panelResult, scorecardResult, referenceQuestionsResult, headersList] = await Promise.all([
+      prisma.interviewGuide.findUnique({ where: { submissionId: submission.id } }),
+      getPanel(submission.id),
+      getScorecardComparison(submission.id),
+      getReferenceQuestions(id),
+      headers(),
+    ])
+    guide = guideResult
+    panel = panelResult
+    scorecardRows = scorecardResult
+    referenceQuestions = referenceQuestionsResult
+    siteOrigin = `${headersList.get('x-forwarded-proto') ?? 'https'}://${headersList.get('host') ?? ''}`
+  }
+  const candidateQuestions = (guide?.candidateQuestions as { competency: string | null; question: string; rationale: string }[] | null) ?? []
 
   return (
     <div className="space-y-6">
@@ -194,6 +236,76 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
           )}
         </CardContent>
       </Card>
+
+      {/* Interview panel / scorecard setup — ported from the retired Hiring
+          Manager portal (§A8) as part of the /hiring -> /talent
+          consolidation. Only shown when a recruiter submission ties this
+          candidate to this employer's company — see
+          getEligibleSubmissionForEmployerCandidate. */}
+      {submission && (
+        <>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Interview guide</CardTitle>
+              <form action={generateInterviewGuideAction.bind(null, id, submission.id)}>
+                <SubmitButton size="sm" variant={guide?.generatedAt ? 'outline' : 'default'} pendingLabel="Generating…">
+                  {guide?.generatedAt ? 'Regenerate guide' : 'Generate interview guide'}
+                </SubmitButton>
+              </form>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {guide?.generationError && !guide.generatedAt && <p className="text-sm text-destructive">{guide.generationError}</p>}
+              {candidateQuestions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No guide generated yet.</p>
+              ) : (
+                candidateQuestions.map((q, i) => (
+                  <div key={i} className="rounded-lg border border-border p-3">
+                    <p className="text-sm font-medium text-foreground">{q.question}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {q.competency ? (CATEGORY_LABEL[q.competency as CategoryKey] ?? q.competency) : 'Narrative gap'} — {q.rationale}
+                    </p>
+                  </div>
+                ))
+              )}
+              {referenceQuestions.length > 0 && (
+                <div className="space-y-2 border-t border-border pt-3">
+                  <p className="text-sm font-medium text-foreground">Questions worth asking references</p>
+                  {referenceQuestions.map((q, i) => (
+                    <div key={i} className="rounded-lg border border-border p-3">
+                      <p className="text-sm font-medium text-foreground">{q.question}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{q.rationale}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Interview panel</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!panel ? (
+                <PanelSetupForm action={createPanelAction.bind(null, id, submission.id)} />
+              ) : (
+                <PanelAssignments panelists={panel.panelists} siteOrigin={siteOrigin} />
+              )}
+            </CardContent>
+          </Card>
+
+          {panel && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Scorecard comparison</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScorecardComparisonTable rows={scorecardRows} />
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
     </div>
   )
 }

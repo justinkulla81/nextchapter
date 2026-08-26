@@ -4,6 +4,10 @@ import { computeNamedReasons, type NamedReason } from '@/lib/scoring/named-reaso
 import { computeCategoryGrades, GRADE_RELATIONS_INCLUDE, type CandidateWithGradeRelations } from '@/lib/scoring/dossier-competencies'
 import { prisma } from '@/lib/prisma'
 
+// Ported from src/lib/hiring/competency-gaps.ts as part of the /hiring ->
+// /talent consolidation — scoped to a candidateId, nothing hiring-manager-
+// specific, so this moved verbatim.
+//
 // Shared gap-detection primitive for both the LLM interview-guide generator
 // (generate-interview-guide.ts) and the rule-based reference-question
 // derivation (reference-questions.ts) — one definition of "what's a gap"
@@ -11,9 +15,9 @@ import { prisma } from '@/lib/prisma'
 // CompetencyGap never carries the underlying numeric score or letter grade,
 // only whether reference/assessment evidence exists — §A8/§E4.1's "never
 // Market Reality Grade, component grades, detections, or badges" rule
-// applies to every hiring-manager-facing surface this feeds, so the
-// boundary is enforced right here at the source rather than trusted to
-// every caller downstream.
+// applies to every employer-facing surface this feeds, so the boundary is
+// enforced right here at the source rather than trusted to every caller
+// downstream.
 export interface CompetencyGap {
   competency: CompetencyKey
   label: string

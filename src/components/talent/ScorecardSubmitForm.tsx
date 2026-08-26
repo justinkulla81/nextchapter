@@ -5,8 +5,8 @@ import type { HiringCompetencyKey } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL } from '@/lib/hiring/scorecard-constants'
-import { submitScorecardAction, type ScorecardFormState } from '@/app/hiring/scorecard/[token]/actions'
+import { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL } from '@/lib/talent/scorecard-constants'
+import { submitScorecardAction, type ScorecardFormState } from '@/app/scorecard/[token]/actions'
 
 const RECOMMENDATIONS: { value: string; label: string }[] = [
   { value: 'STRONG_YES', label: 'Strong yes' },
@@ -15,6 +15,10 @@ const RECOMMENDATIONS: { value: string; label: string }[] = [
   { value: 'STRONG_NO', label: 'Strong no' },
 ]
 
+// Ported from src/components/hiring/ScorecardSubmitForm.tsx (and relocated
+// alongside its route, src/app/scorecard/[token]) as part of the /hiring ->
+// /talent consolidation.
+//
 // Per-competency 1-5 scores render as button rows, same deliberate
 // exception to design-principles.md's "5+ options -> dropdown" rule as
 // PostHireFeedbackForm — a rating scale isn't an option list, and

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CopyButton } from '@/components/ui/copy-button'
-import { COMPETENCY_KEY_LABEL } from '@/lib/hiring/scorecard-constants'
-import { createPanelAction, type CandidateActionState } from '@/app/hiring/(app)/candidates/[submissionId]/actions'
+import { COMPETENCY_KEY_LABEL } from '@/lib/talent/scorecard-constants'
 
 const COMPETENCY_ROUND_ROBIN: HiringCompetencyKey[] = ['LEADERSHIP', 'SKILLS_EXECUTION', 'COMMUNICATION', 'ADAPTABILITY', 'OWNERSHIP']
 
@@ -18,20 +17,31 @@ interface ExistingPanelist {
   scorecardToken: string
 }
 
+export type PanelSetupActionState = { error?: string } | undefined
+
+// Ported from src/components/hiring/PanelSetupForm.tsx as part of the
+// /hiring -> /talent consolidation. Decoupled from a specific server
+// action's import path (the retired hiring-portal version hard-imported
+// createPanelAction from its own route) so this one component can back
+// both the Talent candidate-detail entry point and the legacy /hiring
+// candidate page for as long as that page still exists — the caller binds
+// and passes whichever createPanelAction is right for its own portal/auth
+// context.
+//
 // §A8 — "panel coordination assigning each interviewer a different
 // competency." Five fixed rows matching the five competencies, one input
-// pair each — createPanel (src/lib/hiring/panels.ts) assigns competencies
+// pair each — createPanel (src/lib/talent/panels.ts) assigns competencies
 // by array order, so the labels here just make that assignment visible
 // rather than a mystery.
-export function PanelSetupForm({ submissionId }: { submissionId: string }) {
-  const action = createPanelAction.bind(null, submissionId)
-  const [state, formAction, pending] = useActionState<CandidateActionState, FormData>(action, undefined)
+export function PanelSetupForm({
+  action,
+}: {
+  action: (prevState: PanelSetupActionState, formData: FormData) => Promise<PanelSetupActionState>
+}) {
+  const [state, formAction, pending] = useActionState<PanelSetupActionState, FormData>(action, undefined)
 
   return (
-    <form
-      action={formAction}
-      className={pending ? 'cursor-progress space-y-3 [&_*]:cursor-progress' : 'space-y-3'}
-    >
+    <form action={formAction} className={pending ? 'cursor-progress space-y-3 [&_*]:cursor-progress' : 'space-y-3'}>
       {COMPETENCY_ROUND_ROBIN.map((key, i) => (
         <div key={key} className="grid gap-2 sm:grid-cols-[10rem_1fr_1fr]">
           <p className="self-center text-sm font-medium text-muted-foreground">{COMPETENCY_KEY_LABEL[key]}</p>
@@ -70,7 +80,8 @@ export function PanelAssignments({ panelists, siteOrigin }: { panelists: Existin
               {p.email} · {p.assignedCompetency ? COMPETENCY_KEY_LABEL[p.assignedCompetency] : 'No competency assigned'}
             </p>
           </div>
-          <CopyButton text={`${siteOrigin}/hiring/scorecard/${p.scorecardToken}`} />
+          {/* Portal-neutral public scorecard link — see src/app/scorecard/[token]/page.tsx. */}
+          <CopyButton text={`${siteOrigin}/scorecard/${p.scorecardToken}`} />
         </div>
       ))}
     </div>

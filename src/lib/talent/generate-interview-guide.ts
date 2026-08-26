@@ -4,10 +4,16 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import type { Prisma } from '@prisma/client'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
-import { getCompetencyGaps, competenciesNeedingEvidence } from '@/lib/hiring/competency-gaps'
+import { getCompetencyGaps, competenciesNeedingEvidence } from '@/lib/talent/competency-gaps'
 import { buildHiringDossierView } from '@/lib/hiring/dossier-view'
-import { getReferenceQuestions } from '@/lib/hiring/reference-questions'
+import { getReferenceQuestions } from '@/lib/talent/reference-questions'
 
+// Ported from src/lib/hiring/generate-interview-guide.ts as part of the
+// /hiring -> /talent consolidation — scoped to a submissionId/candidateId,
+// nothing hiring-manager-specific, so this moved verbatim (still reusing
+// buildHiringDossierView from src/lib/hiring/dossier-view.ts, which stays in
+// place until the /hiring schema-drop step).
+//
 // §A8 — "generated interview guide from Dossier gaps." Same house pattern
 // as src/lib/jobs/generate-interview-prep.ts (the candidate-side interview
 // prep — the closest existing precedent, same generation task from the
@@ -26,7 +32,7 @@ const interviewGuideSchema = z.object({
     .max(10),
 })
 
-const PROMPT_PREFIX = `A hiring manager's panel is about to interview a candidate who was submitted to their req. Generate real, specific interview questions targeting what this candidate's Dossier does NOT already have strong evidence for — a competency with thin or no reference corroboration, or a named narrative gap. Do not write generic interview-advice questions ("tell me about yourself," "what's your greatest weakness") — every question must be something this panel can't already answer from the material below, grounded in this candidate's actual background.
+const PROMPT_PREFIX = `A hiring panel is about to interview a candidate who was submitted to an open role. Generate real, specific interview questions targeting what this candidate's Dossier does NOT already have strong evidence for — a competency with thin or no reference corroboration, or a named narrative gap. Do not write generic interview-advice questions ("tell me about yourself," "what's your greatest weakness") — every question must be something this panel can't already answer from the material below, grounded in this candidate's actual background.
 
 For each question, name which of the five competencies it targets (leadership, skillsExecution, communication, adaptability, ownership) — or null if it targets a narrative gap that isn't one of the five. Give a one-sentence rationale explaining why this is worth asking THIS candidate.
 

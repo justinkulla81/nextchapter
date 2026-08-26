@@ -6,6 +6,7 @@ import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
+import { getBlockedCandidateIdsForEmployer } from '@/lib/talent/conflict-check'
 
 type ActiveRole = Pick<
   RoleProfile,
@@ -106,10 +107,19 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
   const employerCompanySizeBand = mapEmployerCompanySizeStringToBand(employer?.companySize ?? null)
 
   // Already resolved for this employer — no point resurfacing them here.
-  const resolved = await prisma.candidateInteraction.findMany({
-    where: { employerId, status: { in: ['HIRED', 'PASSED'] } },
-    select: { candidateId: true },
-  })
+  // Also exclude any candidate this employer has an active (uncleared)
+  // conflict-of-interest flag against — HiringConflictFlag, ported from the
+  // retired Hiring Manager portal's §A8/§E3.5 conflict rule (see
+  // src/lib/talent/conflict-check.ts) and re-keyed to EmployerProfile as
+  // part of the /hiring -> /talent consolidation. This is genuinely new
+  // enforcement for Talent — no equivalent filter existed here before.
+  const [resolved, blockedCandidateIds] = await Promise.all([
+    prisma.candidateInteraction.findMany({
+      where: { employerId, status: { in: ['HIRED', 'PASSED'] } },
+      select: { candidateId: true },
+    }),
+    getBlockedCandidateIdsForEmployer(employerId),
+  ])
 
   const candidatesRaw = await prisma.candidateProfile.findMany({
     where: {
@@ -117,7 +127,7 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
       assessmentComplete: true,
       isSampleData: false,
-      id: { notIn: resolved.map((r) => r.candidateId) },
+      id: { notIn: [...resolved.map((r) => r.candidateId), ...blockedCandidateIds] },
     },
     select: CANDIDATE_SELECT,
     take: 300,

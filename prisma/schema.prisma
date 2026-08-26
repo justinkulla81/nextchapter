@@ -2481,6 +2481,7 @@ model EmployerProfile {
   jobBoardSubmissions   ExclusiveJobPosting[]
   seats                 EmployerSeat[]
   messageThreads        MessageThread[]
+  conflictFlags         HiringConflictFlag[]
 
   @@index([subscriptionTier, subscriptionStatus])
 }
@@ -7164,7 +7165,6 @@ model HiringManager {
   isSampleData Boolean  @default(false)
 
   reqs              HiringReq[]
-  conflictFlags     HiringConflictFlag[]
   postHireFeedbacks PostHireFeedback[]
 }
 
@@ -7206,20 +7206,26 @@ enum HiringConflictSource {
 }
 
 // §A8's conflict rule + §E3.5/§E4.4's enforcement requirement -- "a real
-// enforcement point that hides the candidate from that specific hiring
-// manager's view when flagged (not just an admin dashboard note)." A row
-// existing with clearedAt = null is the ENTIRE enforcement mechanism: every
-// hiring-manager-facing query in src/lib/hiring/visibility.ts filters out
-// any candidate with an uncleared flag for that hiring manager. clearedAt
-// lets a false-positive auto-flag be retracted without losing the audit
-// trail (row stays, just no longer blocks) -- deleting it outright would
-// erase the "why was this ever hidden" history.
+// enforcement point that hides the candidate from that specific employer's
+// view when flagged (not just an admin dashboard note)." A row existing with
+// clearedAt = null is the ENTIRE enforcement mechanism: every
+// employer-facing candidate query (see src/lib/talent/candidate-discovery.ts
+// and src/app/talent/(app)/candidates/page.tsx) filters out any candidate
+// with an uncleared flag for that employer. clearedAt lets a false-positive
+// auto-flag be retracted without losing the audit trail (row stays, just no
+// longer blocks) -- deleting it outright would erase the "why was this ever
+// hidden" history.
+//
+// Re-keyed from HiringManager.id to EmployerProfile.id as part of the
+// /hiring -> /talent consolidation (the retired Hiring Manager portal had
+// zero real rows here, confirmed before the rename) -- see
+// src/lib/talent/conflict-check.ts.
 model HiringConflictFlag {
-  id              String           @id @default(cuid())
-  hiringManagerId String
-  hiringManager   HiringManager    @relation(fields: [hiringManagerId], references: [id], onDelete: Cascade)
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  employerId  String
+  employer    EmployerProfile  @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   source     HiringConflictSource
   note       String?              @db.Text // free-text context for a DECLARED_* flag
@@ -7227,7 +7233,7 @@ model HiringConflictFlag {
   clearedAt  DateTime?
   clearedBy  String?
 
-  @@unique([hiringManagerId, candidateId])
+  @@unique([employerId, candidateId])
   @@index([candidateId])
 }
 
@@ -7268,8 +7274,13 @@ model InterviewPanel {
   submissionId String                       @unique
   submission   RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
-  createdByHiringManagerId String
-  createdAt                DateTime @default(now())
+  // Bare, unenforced string (no FK) -- ported from the retired Hiring
+  // Manager portal's createdByHiringManagerId to the EmployerProfile-id
+  // naming convention every other Talent-side FK uses (e.g.
+  // RoleProfile.employerId), as part of the /hiring -> /talent
+  // consolidation. See src/lib/talent/panels.ts.
+  createdByEmployerId String
+  createdAt           DateTime @default(now())
 
   panelists InterviewPanelist[]
 }

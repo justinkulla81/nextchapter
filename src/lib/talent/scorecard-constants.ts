@@ -5,6 +5,11 @@ import type { HiringCompetencyKey, ScorecardRecommendation } from '@prisma/clien
 // import these without pulling scorecards.ts's 'server-only' + Prisma-
 // touching functions into the browser bundle. Same pattern as
 // src/lib/recruiter/submission-stages.ts.
+//
+// Ported from src/lib/hiring/scorecard-constants.ts as part of the
+// /hiring -> /talent consolidation — the underlying HiringCompetencyKey/
+// Scorecard models are keyed on submissionId, not the retired
+// HiringManager/HiringReq entities, so this content moved verbatim.
 export const COMPETENCY_KEYS: HiringCompetencyKey[] = ['LEADERSHIP', 'SKILLS_EXECUTION', 'COMMUNICATION', 'ADAPTABILITY', 'OWNERSHIP']
 
 export const COMPETENCY_KEY_LABEL: Record<HiringCompetencyKey, string> = {

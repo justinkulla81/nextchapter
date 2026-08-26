@@ -1,4 +1,4 @@
-import { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL, type ScorecardComparisonRow } from '@/lib/hiring/scorecard-constants'
+import { COMPETENCY_KEYS, COMPETENCY_KEY_LABEL, type ScorecardComparisonRow } from '@/lib/talent/scorecard-constants'
 
 const RECOMMENDATION_LABEL: Record<string, string> = {
   STRONG_YES: 'Strong yes',
@@ -7,6 +7,10 @@ const RECOMMENDATION_LABEL: Record<string, string> = {
   STRONG_NO: 'Strong no',
 }
 
+// Ported from src/components/hiring/ScorecardComparisonTable.tsx as part of
+// the /hiring -> /talent consolidation — purely presentational, no server
+// action coupling, so this moved verbatim aside from the import path.
+//
 // §A8 — "side-by-side comparison view showing all panelists' scores on
 // shared evidence for a candidate."
 export function ScorecardComparisonTable({ rows }: { rows: ScorecardComparisonRow[] }) {

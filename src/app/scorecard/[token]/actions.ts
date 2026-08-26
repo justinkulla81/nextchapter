@@ -2,11 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import type { ScorecardRecommendation } from '@prisma/client'
-import { submitScorecard, COMPETENCY_KEYS, type CompetencyScores } from '@/lib/hiring/scorecards'
+import { submitScorecard, COMPETENCY_KEYS, type CompetencyScores } from '@/lib/talent/scorecards'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export type ScorecardFormState = { error?: string; success?: boolean } | undefined
 
+// Relocated from src/app/hiring/scorecard/[token]/actions.ts to this
+// portal-neutral route as part of the /hiring -> /talent consolidation —
+// mirrors src/app/ref/[token]'s existing public-token-route convention.
 export async function submitScorecardAction(
   token: string,
   _prevState: ScorecardFormState,
@@ -31,6 +34,6 @@ export async function submitScorecardAction(
   if (result.error) return { error: result.error }
 
   captureServerEvent(token, 'hiring_scorecard_submitted', { competenciesScored: Object.keys(scores).length })
-  revalidatePath(`/hiring/scorecard/${token}`)
+  revalidatePath(`/scorecard/${token}`)
   return { success: true }
 }
