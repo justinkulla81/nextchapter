@@ -169,6 +169,7 @@ function buildSections(
       title: 'Working and Learning',
       links: [
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
+        { href: '/dashboard/full-time-work', label: 'Employer-Matched Roles', icon: Briefcase },
         // Only ever shown once we positively know the candidate is NOT
         // entry-level (ResumeAnalysis.seniorityBand !== 'EARLY') —
         // isEarlyCareer === null (no resume analysis yet) fails closed,
