@@ -6,12 +6,11 @@
 // src/lib/auth/switch-role.ts's own comment for the spec this implements
 // ("Partners Master Build Script §A1.2.1" — separate sessions, explicit
 // re-auth, persistent context banner).
-export type PortalKey = 'recruiter' | 'coach' | 'hiring' | 'talent' | 'employer' | 'nen' | 'eqoveriq' | 'admin'
+export type PortalKey = 'recruiter' | 'coach' | 'talent' | 'employer' | 'nen' | 'eqoveriq' | 'admin'
 
 export const PORTAL_COOKIE_NAMES: Record<PortalKey, string> = {
   recruiter: 'sb-recruiter-auth-token',
   coach: 'sb-coach-auth-token',
-  hiring: 'sb-hiring-auth-token',
   talent: 'sb-talent-auth-token',
   employer: 'sb-employer-auth-token', // outplacement-buyer portal, distinct from Talent
   nen: 'sb-nen-employer-auth-token',
@@ -26,7 +25,6 @@ export const PORTAL_PATH_PREFIXES: [string, PortalKey][] = [
   ['/support/coach', 'coach'],
   ['/support/admin', 'admin'],
   ['/recruiters', 'recruiter'],
-  ['/hiring', 'hiring'],
   ['/talent', 'talent'],
   ['/employer', 'employer'],
   ['/noexperience/employers', 'nen'],
@@ -56,7 +54,6 @@ export function portalForPath(pathname: string): PortalKey | undefined {
 // anonymously redirected straight to /hiring/login instead of showing the
 // marketing page, until this was extracted to fix that).
 export const PORTAL_APP_SUBROUTES: Partial<Record<PortalKey, string[]>> = {
-  hiring: ['/hiring/dashboard', '/hiring/reqs', '/hiring/candidates'],
   talent: [
     '/talent/dashboard',
     '/talent/roles',

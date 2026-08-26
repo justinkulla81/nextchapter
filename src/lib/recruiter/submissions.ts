@@ -3,8 +3,6 @@ import { prisma } from '@/lib/prisma'
 import type { RecruiterSubmissionStage, RecruiterFeeArrangementType } from '@prisma/client'
 import { isCandidateConsentedForRecruiter } from '@/lib/recruiter/introductions'
 import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
-import { autoLinkSubmissionToReq } from '@/lib/hiring/req-matching'
-import { schedulePostHireFeedback } from '@/lib/hiring/post-hire-feedback'
 import { activateAlumStatus } from '@/lib/membership/activate-alum'
 
 // Recruiter portal §A6.2 — "feedback loop (reviewed / screened / submitted /
@@ -62,13 +60,6 @@ export async function advanceSubmissionStage(
     data: { submissionId, stage: toStage, actor: `recruiter:${recruiterId}`, note: note?.trim() || null },
   })
 
-  // Phase 7, §A8 — a hiring manager only sees a submission once it reaches
-  // SUBMITTED, so that's the earliest point it's worth trying to link to
-  // one of their open reqs. See req-matching.ts's header comment for why
-  // this runs here instead of a Recruiter-portal UI change.
-  if (toStage === 'SUBMITTED') {
-    await autoLinkSubmissionToReq(submissionId)
-  }
   return {}
 }
 
@@ -149,13 +140,6 @@ export async function recordPlacement(
       data: { submissionId, stage: 'PLACED', actor: `recruiter:${recruiterId}` },
     }),
   ])
-
-  // Phase 7, §A8 — "90-day post-hire feedback." Only meaningful when this
-  // submission came through the hiring-manager pipeline (reqId set); a
-  // placement with no linked req has no hiring manager to ask.
-  if (submission.reqId) {
-    await schedulePostHireFeedback(submissionId, submission.reqId, input.startDate ?? placement.placedAt)
-  }
 
   // Phase 8, §A2.4 — a recruiter-attested placement is one of the two
   // human-verified "this candidate really got hired" signals in the

@@ -72,9 +72,9 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
-      title: 'Hiring Managers',
+      title: 'Employers',
       links: [
-        { href: '/support/admin/employers', label: 'Hiring Managers' },
+        { href: '/support/admin/employers', label: 'Employers' },
         { href: '/support/admin/exclusive-jobs', label: 'Job Board', badge: badgeFor('jobBoard') },
       ],
     },

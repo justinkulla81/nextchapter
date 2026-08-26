@@ -14,7 +14,7 @@
 const COOKIE_NAME = 'nc_pending_signup_role'
 const MAX_AGE_SECONDS = 60 * 60 // matches how long a confirmation link stays clickable
 
-export type PendingSignupRole = 'recruiter' | 'employer' | 'coach' | 'hiring' | 'crucible-employer' | 'eqoveriq-contributor'
+export type PendingSignupRole = 'recruiter' | 'employer' | 'coach' | 'crucible-employer' | 'eqoveriq-contributor'
 
 export function setPendingSignupRoleCookie(role: PendingSignupRole) {
   document.cookie = `${COOKIE_NAME}=${role}; path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax`
@@ -26,7 +26,6 @@ export function readPendingSignupRoleCookie(): PendingSignupRole | null {
   return value === 'recruiter' ||
     value === 'employer' ||
     value === 'coach' ||
-    value === 'hiring' ||
     value === 'crucible-employer' ||
     value === 'eqoveriq-contributor'
     ? value

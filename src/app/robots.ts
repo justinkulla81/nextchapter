@@ -14,14 +14,13 @@ const siteUrl = 'https://launchyournextchapter.com'
 // attempted by a crawler in the first place. `/noexperience/employers` is
 // the same class of authenticated portal (NEN's employer side) — added
 // proactively rather than waiting for the same GSC report to happen twice.
-// `/talent` and `/hiring` are now PUBLIC marketing pages (see
-// PORTAL_APP_SUBROUTES) — only their real app subroutes belong here, not
-// the bare portal path, or the actual marketing page gets deindexed too.
+// `/talent` is now a PUBLIC marketing page (see PORTAL_APP_SUBROUTES) —
+// only its real app subroutes belong here, not the bare portal path, or
+// the actual marketing page gets deindexed too.
 const disallow = [
   '/dashboard',
   '/onboarding',
   ...PORTAL_APP_SUBROUTES.talent!,
-  ...PORTAL_APP_SUBROUTES.hiring!,
   '/support/coach',
   '/support/admin',
   '/noexperience/employers',

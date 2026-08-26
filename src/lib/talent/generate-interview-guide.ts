@@ -5,14 +5,14 @@ import type { Prisma } from '@prisma/client'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { getCompetencyGaps, competenciesNeedingEvidence } from '@/lib/talent/competency-gaps'
-import { buildHiringDossierView } from '@/lib/hiring/dossier-view'
+import { buildHiringDossierView } from '@/lib/talent/dossier-view'
 import { getReferenceQuestions } from '@/lib/talent/reference-questions'
 
 // Ported from src/lib/hiring/generate-interview-guide.ts as part of the
 // /hiring -> /talent consolidation — scoped to a submissionId/candidateId,
-// nothing hiring-manager-specific, so this moved verbatim (still reusing
-// buildHiringDossierView from src/lib/hiring/dossier-view.ts, which stays in
-// place until the /hiring schema-drop step).
+// nothing hiring-manager-specific, so this moved verbatim (also reusing
+// buildHiringDossierView, since relocated to src/lib/talent/dossier-view.ts
+// alongside it once /hiring itself was deleted).
 //
 // §A8 — "generated interview guide from Dossier gaps." Same house pattern
 // as src/lib/jobs/generate-interview-prep.ts (the candidate-side interview

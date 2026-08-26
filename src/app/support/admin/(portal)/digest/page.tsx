@@ -11,7 +11,7 @@ const AUDIENCE_LABEL: Record<string, string> = {
   candidate: 'Candidates',
   coach: 'Coaches',
   recruiter: 'Recruiters',
-  employer: 'Hiring managers',
+  employer: 'Employers',
 }
 
 export default async function AdminDigestPage({

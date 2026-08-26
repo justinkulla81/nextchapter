@@ -377,44 +377,4 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     ],
     successMessage: "Thanks — we'll follow up. Or just use the link above to get started right now.",
   },
-  {
-    id: 'hiring',
-    audience: 'Hiring Manager',
-    eyebrow: 'For Hiring Managers',
-    headline: 'Interview better, not longer.',
-    subhead:
-      'Every candidate arrives with evidence already gathered — so your panel can probe what nobody has answered yet.',
-    points: [
-      {
-        lead: 'A generated interview guide, built from what the Dossier doesn\'t cover.',
-        body: 'Not generic questions — the specific gaps nobody has answered yet for this candidate.',
-      },
-      {
-        lead: 'Panel coordination.',
-        body: 'Each interviewer gets a different competency assigned, so four people don\'t ask the same question.',
-      },
-      {
-        lead: 'Structured scorecards, comparable across interviewers.',
-        body: 'Tied to the same five competencies the Dossier scores — an actual comparison, not four unrelated impressions.',
-      },
-      {
-        lead: 'Reference questions worth asking, given what\'s already known.',
-        body: 'Skip the ones the Dossier already answered — go straight to what matters.',
-      },
-    ],
-    directSignupHref: '/hiring/signup',
-    directSignupLabel: 'Request access — no waitlist',
-    contrastLabel: 'The conflict rule:',
-    contrastBody:
-      "you can't see candidates for your own reqs when a conflict is flagged — same current employer, a declared relationship, or the same household.",
-    formHeading: 'Questions before you sign up?',
-    formSubtext: "Tell us about your team and we'll follow up.",
-    fields: [
-      { name: 'fullName', label: 'Full name', type: 'text', required: true },
-      { name: 'workEmail', label: 'Work email', type: 'email', required: true },
-      { name: 'companyName', label: 'Company', type: 'text', required: true },
-      { name: 'referredBy', label: 'Who referred you? (optional)', type: 'text', required: false },
-    ],
-    successMessage: "Thanks — we'll follow up. Or use the link above to request access right now.",
-  },
 ]

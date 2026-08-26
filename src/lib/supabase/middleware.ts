@@ -91,19 +91,18 @@ export async function updateSession(request: NextRequest) {
   // account must be able to open and submit it.
   // /eqoveriq/contributors is EQoverIQ's own portal — same "must land on
   // its own login, not the main site's" reasoning as NEN's employer portal.
-  // Recruiter/coach/hiring/employer/admin are gated here too, now that each
+  // Recruiter/coach/talent/employer/admin are gated here too, now that each
   // has its own real, refreshable session (see portalForPath above) — this
   // is on top of, not instead of, each portal's own page-level
   // getCurrentX()/requireAdmin() check, which stays in place as a backstop.
   const protectedPaths = [
     '/dashboard',
-    // /talent and /hiring are PUBLIC marketing pages now — only their real
+    // /talent is a PUBLIC marketing page now — only its real
     // app subroutes (one level deeper, see PORTAL_APP_SUBROUTES) are
     // protected. Listing the bare portal path here would prefix-match the
     // marketing page too and redirect every anonymous visitor straight to
     // login before they ever see it (the exact bug this fixed for /hiring).
     ...PORTAL_APP_SUBROUTES.talent!,
-    ...PORTAL_APP_SUBROUTES.hiring!,
     '/noexperience/employers',
     '/eqoveriq/contributors',
     '/recruiters',
@@ -129,9 +128,6 @@ export async function updateSession(request: NextRequest) {
     '/support/coach/signup',
     '/support/coach/login',
     '/support/coach/forgot-password',
-    '/hiring/signup',
-    '/hiring/login',
-    '/hiring/forgot-password',
     '/employer/login',
     '/employer/signup',
     '/employer/forgot-password',
@@ -152,7 +148,6 @@ export async function updateSession(request: NextRequest) {
       ...Object.fromEntries(PORTAL_APP_SUBROUTES.talent!.map((p) => [p, '/talent/login'])),
       '/recruiters': '/recruiters/login',
       '/support/coach': '/support/coach/login',
-      ...Object.fromEntries(PORTAL_APP_SUBROUTES.hiring!.map((p) => [p, '/hiring/login'])),
       '/employer': '/employer/login',
       '/support/admin': '/support/admin/login',
     }).find(([prefix]) => pathStartsWith(request.nextUrl.pathname, prefix))?.[1]

@@ -18,7 +18,6 @@ const ROLE_TO_PORTAL: Partial<Record<RoleGrantRole, PortalKey>> = {
   employer_viewer: 'employer',
   employer_legal: 'employer',
   employer_finance: 'employer',
-  hiring_manager: 'hiring',
   nen_employer: 'nen',
   eqoveriq_contributor: 'eqoveriq',
 }
@@ -29,8 +28,7 @@ const ROLE_TO_PORTAL: Partial<Record<RoleGrantRole, PortalKey>> = {
 // employer_admin/employer_viewer/employer_legal/employer_finance added in
 // Phase 5 (§A7's employer portal) — all four land on the same
 // /employer/login, which resolves the actual role/org server-side via
-// getCurrentOutplacementOrgUser. hiring_manager added in Phase 7 (§A8's
-// hiring-manager portal).
+// getCurrentOutplacementOrgUser.
 const PORTAL_LOGIN_PATH: Partial<Record<RoleGrantRole, string>> = {
   candidate: '/auth/login',
   coach: '/support/coach/login',
@@ -40,8 +38,6 @@ const PORTAL_LOGIN_PATH: Partial<Record<RoleGrantRole, string>> = {
   employer_viewer: '/employer/login',
   employer_legal: '/employer/login',
   employer_finance: '/employer/login',
-  // Phase 7, §A8's hiring-manager portal.
-  hiring_manager: '/hiring/login',
   // NEN's own employer portal — a separate profile/table from
   // employer_admin (which is /talent's), see CrucibleEmployerProfile.
   nen_employer: '/noexperience/employers/login',

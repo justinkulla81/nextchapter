@@ -113,8 +113,8 @@ export default function DossierPage() {
             For recruiters
           </Link>
           {' · '}
-          <Link href="/hiring" className="underline underline-offset-4">
-            For hiring managers
+          <Link href="/talent" className="underline underline-offset-4">
+            For hiring teams
           </Link>
         </div>
       </main>

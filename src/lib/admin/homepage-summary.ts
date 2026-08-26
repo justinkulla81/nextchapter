@@ -25,7 +25,7 @@ export interface AdminHighLevelStats {
   registeredCandidates: number
   totalCoaches: number
   totalRecruiters: number
-  totalHiringManagers: number
+  totalEmployers: number
   liveJobBoardListings: number
   thisWeekSprintTargetCount: number
 }
@@ -70,7 +70,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     registeredCandidates,
     totalCoaches,
     totalRecruiters,
-    totalHiringManagers,
+    totalEmployers,
     liveJobBoardListings,
     sprintTargetCount,
   ] = await Promise.all([
@@ -88,7 +88,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { not: null } } }),
     prisma.coach.count(),
     prisma.recruiter.count(),
-    prisma.employerProfile.count(),
+    prisma.employerProfile.count(), // Talent portal employers
     prisma.exclusiveJobPosting.count({ where: { status: 'approved', archivedAt: null } }),
     thisWeekSprintTargetCount(),
   ])
@@ -113,7 +113,7 @@ export async function getAdminHomepageSummary(): Promise<AdminHomepageSummary> {
       registeredCandidates,
       totalCoaches,
       totalRecruiters,
-      totalHiringManagers,
+      totalEmployers,
       liveJobBoardListings,
       thisWeekSprintTargetCount: sprintTargetCount,
     },

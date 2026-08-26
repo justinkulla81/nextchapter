@@ -109,12 +109,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
-      url: `${siteUrl}/hiring`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
       url: `${siteUrl}/membership`,
       lastModified: new Date(),
       changeFrequency: 'monthly',

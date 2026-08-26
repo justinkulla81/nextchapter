@@ -86,14 +86,14 @@ export default async function AdminEmployersPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hiring Managers</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Employers</h1>
         <p className="mt-1 text-muted-foreground">{total} employer accounts.</p>
       </div>
       <AdminDataTable
         columns={columns}
         rows={result.rows}
         rowKey={(r) => r.id}
-        emptyMessage="No hiring managers yet."
+        emptyMessage="No employers yet."
         pagination={{
           page: result.page,
           totalPages: result.totalPages,

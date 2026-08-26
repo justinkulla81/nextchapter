@@ -88,7 +88,7 @@ export default async function AdminHomePage() {
           <StatCard label="This week's Sprint Targets hit" value={stats.thisWeekSprintTargetCount} />
           <StatCard label="Coaches" value={stats.totalCoaches} />
           <StatCard label="Recruiters" value={stats.totalRecruiters} />
-          <StatCard label="Hiring managers" value={stats.totalHiringManagers} />
+          <StatCard label="Employers" value={stats.totalEmployers} />
           <StatCard label="Live Job Board listings" value={stats.liveJobBoardListings} />
         </div>
       </section>

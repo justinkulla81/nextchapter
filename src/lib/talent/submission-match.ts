@@ -8,10 +8,10 @@ import { isCandidateBlockedForEmployer } from '@/lib/talent/conflict-check'
 // has no direct FK to EmployerProfile — a submission only carries a
 // free-text companyName (set by the recruiter). The retired Hiring Manager
 // portal solved the equivalent problem via autoLinkSubmissionToReq's
-// company-name matching (see src/lib/hiring/req-matching.ts); this is the
-// same approach, ported for Talent so the Candidate Inbox can offer
-// interview-panel/scorecard setup for a submission that plausibly belongs
-// to this employer, without adding a new required FK this phase.
+// company-name matching; this is the same approach, ported for Talent so
+// the Candidate Inbox can offer interview-panel/scorecard setup for a
+// submission that plausibly belongs to this employer, without adding a new
+// required FK this phase.
 const VISIBLE_SUBMISSION_STAGES: RecruiterSubmissionStage[] = ['SUBMITTED', 'INTERVIEWED', 'PLACED', 'PASSED']
 
 // Returns the most-recently-updated submission for this candidate whose

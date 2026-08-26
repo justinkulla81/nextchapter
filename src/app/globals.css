@@ -15,11 +15,9 @@
      saturation, all pass >=4.5:1 contrast against navy chrome (verified).
      Applied ONLY as a left-nav accent rule + the wordmark qualifier area
      (see PartnerWordmark/PartnerTopBar) — never in buttons, charts, or
-     data viz, which stay on the shared palette above. Hiring has no portal
-     yet (Phase 5/7) — token reserved, unused today. */
+     data viz, which stay on the shared palette above. */
   --color-accent-coach: #c9a877;
   --color-accent-recruiter: #8ba3c7;
-  --color-accent-hiring: #4f9c94;
   --color-accent-employer: #a385a8;
   --color-accent-admin: #9aa3ad;
   --color-brand: #1d4e89;

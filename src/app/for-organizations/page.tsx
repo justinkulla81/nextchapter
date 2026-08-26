@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, UserCheck, ChevronDown, ArrowRight, type LucideIcon } from 'lucide-react'
+import { Building2, Users, Briefcase, Landmark, GraduationCap, HeartHandshake, ChevronDown, ArrowRight, type LucideIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -72,13 +72,6 @@ const ORG_CARDS: {
     icon: HeartHandshake,
     accent: 'text-brand bg-brand/10',
   },
-  {
-    href: '/hiring',
-    title: 'Hiring Managers',
-    teaser: 'Interview better, not longer.',
-    icon: UserCheck,
-    accent: 'text-accent-hiring bg-accent-hiring/10',
-  },
 ]
 
 const WHY_PARTNER = [
@@ -132,9 +125,6 @@ export default function ForOrganizationsPage() {
                 </Link>
                 <Link href="/support/coach/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
                   Coaches
-                </Link>
-                <Link href="/hiring/login" className="block px-3 py-2 text-sm text-foreground hover:bg-off-white">
-                  Hiring Managers
                 </Link>
               </div>
             </details>

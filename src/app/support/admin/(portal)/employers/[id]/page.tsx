@@ -28,7 +28,7 @@ export default async function AdminEmployerDetailPage({ params }: { params: Prom
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <Link href="/support/admin/employers" className="text-sm text-muted-foreground underline underline-offset-4">
-        ← Back to hiring managers
+        ← Back to employers
       </Link>
 
       <div>

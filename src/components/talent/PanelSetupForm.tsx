@@ -20,13 +20,12 @@ interface ExistingPanelist {
 export type PanelSetupActionState = { error?: string } | undefined
 
 // Ported from src/components/hiring/PanelSetupForm.tsx as part of the
-// /hiring -> /talent consolidation. Decoupled from a specific server
-// action's import path (the retired hiring-portal version hard-imported
-// createPanelAction from its own route) so this one component can back
-// both the Talent candidate-detail entry point and the legacy /hiring
-// candidate page for as long as that page still exists — the caller binds
-// and passes whichever createPanelAction is right for its own portal/auth
-// context.
+// /hiring -> /talent consolidation (the now-deleted /hiring portal has
+// since been removed entirely). Decoupled from a specific server action's
+// import path — the retired hiring-portal version hard-imported
+// createPanelAction from its own route — so this component just takes
+// whichever createPanelAction is right for its caller's own portal/auth
+// context as a prop instead.
 //
 // §A8 — "panel coordination assigning each interviewer a different
 // competency." Five fixed rows matching the five competencies, one input

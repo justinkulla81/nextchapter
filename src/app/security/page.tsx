@@ -97,7 +97,7 @@ export default function SecurityPage() {
 
         <Section title="Login is separated by portal">
           <p>
-            Logging into an employer, recruiter, coach, or hiring-manager portal does not log you into the
+            Logging into an employer, recruiter, or coach portal does not log you into the
             candidate product, even when the same person holds both roles. Someone who is both an HR buyer
             and quietly job-searching on the candidate side gets fully separated sessions.
           </p>

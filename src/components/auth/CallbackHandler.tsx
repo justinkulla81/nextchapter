@@ -12,7 +12,6 @@ import { completeCrucibleEmployerSignupFromSession } from '@/app/noexperience/em
 import { completeEqOverIqContributorSignupFromSession } from '@/app/eqoveriq/contributors/signup/actions'
 import { completeRecruiterSignupFromSession } from '@/app/recruiters/signup/actions'
 import { completeCoachSignupFromSession } from '@/app/support/coach/signup/actions'
-import { completeHiringManagerSignupFromSession } from '@/app/hiring/signup/actions'
 import { finishAcceptingEmployerSeat } from '@/app/talent/seats/accept/[token]/actions'
 import { finishAcceptingCoachInvite } from '@/app/support/coach/(app)/invite-client/actions'
 import { finishAcceptingRecruiterSource } from '@/app/recruiters/(app)/candidates/actions'
@@ -38,7 +37,6 @@ export function CallbackHandler() {
   const nextIsEmployer = searchParams.get('next') === 'employer' || pendingRole === 'employer'
   const nextIsRecruiter = searchParams.get('next') === 'recruiter' || pendingRole === 'recruiter'
   const nextIsCoach = searchParams.get('next') === 'coach' || pendingRole === 'coach'
-  const nextIsHiring = searchParams.get('next') === 'hiring' || pendingRole === 'hiring'
   const nextIsCrucibleEmployer =
     searchParams.get('next') === 'crucible-employer' || pendingRole === 'crucible-employer'
   const nextIsEqOverIqContributor =
@@ -65,15 +63,13 @@ export function CallbackHandler() {
       ? 'recruiter'
       : nextIsCoach
         ? 'coach'
-        : nextIsHiring
-          ? 'hiring'
-          : nextIsCrucibleEmployer
-            ? 'nen'
-            : nextIsEqOverIqContributor
-              ? 'eqoveriq'
-              : nextIsOutplacementOrgInvite
-                ? 'employer'
-                : undefined
+        : nextIsCrucibleEmployer
+          ? 'nen'
+          : nextIsEqOverIqContributor
+            ? 'eqoveriq'
+            : nextIsOutplacementOrgInvite
+              ? 'employer'
+              : undefined
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token
@@ -143,17 +139,6 @@ export function CallbackHandler() {
       }
       setStatus('redirecting')
       router.replace('/support/coach')
-      return
-    }
-    if (nextIsHiring) {
-      const result = await completeHiringManagerSignupFromSession()
-      if (result.error) {
-        console.error('completeHiringManagerSignupFromSession error:', result.error)
-        setStatus('error')
-        return
-      }
-      setStatus('redirecting')
-      router.replace('/hiring/dashboard')
       return
     }
     if (nextIsCrucibleEmployer) {

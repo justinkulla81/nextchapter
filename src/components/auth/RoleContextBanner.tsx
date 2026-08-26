@@ -19,13 +19,17 @@ import type { RoleGrantRole } from '@prisma/client'
 // viewports). `className` lets each layout pass the same offset its own
 // <main> uses, so this banner's content never sits under fixed chrome.
 
-const ROLE_LABEL: Record<RoleGrantRole, string> = {
+// Partial, not a full Record, so a RoleGrantRole with no real UI label left
+// (e.g. a retired portal's role value that still exists in the enum until
+// its schema-drop step) can simply have no entry here — every read site
+// already falls back to the raw role string (`?? currentRole` / `?? role`
+// below).
+const ROLE_LABEL: Partial<Record<RoleGrantRole, string>> = {
   candidate: 'Candidate',
   alum: 'Alum',
   member: 'Member',
   coach: 'Coach',
   recruiter: 'Recruiter',
-  hiring_manager: 'Hiring Manager',
   employer_admin: 'Employer',
   employer_viewer: 'Employer',
   employer_legal: 'Employer',
@@ -40,8 +44,7 @@ const ROLE_LABEL: Record<RoleGrantRole, string> = {
 // "you also hold this role" context in a future pass, but there's nowhere
 // for "Switch to →" to send them yet (see PORTAL_LOGIN_PATH in
 // src/lib/auth/switch-role.ts). employer_* added in Phase 5, now that
-// /employer is a real portal. hiring_manager added in Phase 7, now that
-// /hiring is a real portal.
+// /employer is a real portal.
 const SWITCHABLE_ROLES: RoleGrantRole[] = [
   'candidate',
   'coach',
@@ -51,7 +54,6 @@ const SWITCHABLE_ROLES: RoleGrantRole[] = [
   'employer_viewer',
   'employer_legal',
   'employer_finance',
-  'hiring_manager',
 ]
 
 export async function RoleContextBanner({
