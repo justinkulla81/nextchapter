@@ -144,6 +144,16 @@ export function isNetworkingWillingnessComplete(candidate: {
   return !!(candidate.networkComfortLevel && candidate.networkingOutreachTargetPerWeek !== null)
 }
 
+// "Board Advisory Work" willingness question — a single yes/no, answerable
+// here or re-asked at the top of Interim Work (see
+// setBoardAdvisoryWillingness). Deliberately not folded into
+// isSearchStrategyWizardComplete or isSearchStrategyGateComplete — this is
+// optional/best-effort, not a required gate or a SEARCH_STRATEGY_COMPLETE
+// bonus input.
+export function isBoardAdvisoryWillingnessComplete(candidate: { boardAdvisoryWillingness: boolean | null }): boolean {
+  return candidate.boardAdvisoryWillingness !== null
+}
+
 // "Negotiation & Interview Comfort" section — re-surfaces interviewComfort
 // (already asked in Interview Prep's Comfort Check) alongside the new
 // negotiationComfort question, in one place, so a low score on either can

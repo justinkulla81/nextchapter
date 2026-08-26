@@ -13,6 +13,7 @@ import {
   isNegotiationInterviewComfortComplete,
   isSearchStrategySoFarComplete,
   isBenefitsComplete,
+  isBoardAdvisoryWillingnessComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
@@ -23,6 +24,7 @@ import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingPlanWillingnessForm } from '@/components/dashboard/MarketingPlanWillingnessForm'
+import { BoardAdvisoryWillingnessForm } from '@/components/dashboard/BoardAdvisoryWillingnessForm'
 import { NetworkingWillingnessForm } from '@/components/dashboard/NetworkingWillingnessForm'
 import { NegotiationInterviewComfortForm } from '@/components/dashboard/NegotiationInterviewComfortForm'
 import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
@@ -226,6 +228,7 @@ export default async function SearchStrategyPage() {
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const marketingPlanWillingnessComplete = isMarketingPlanWillingnessComplete(profile)
+  const boardAdvisoryWillingnessComplete = isBoardAdvisoryWillingnessComplete(profile)
   const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
   const negotiationInterviewComfortComplete = isNegotiationInterviewComfortComplete(profile)
   const optionalQuestionsAnswered = isSearchStrategySoFarComplete(profile)
@@ -293,6 +296,22 @@ export default async function SearchStrategyPage() {
     },
     { key: 'negotiation-interview', label: 'Negotiation & Interview Comfort', complete: negotiationInterviewComfortComplete },
     { key: 'benefits', label: 'Compensation & Benefits', complete: benefitsAnswered },
+    {
+      key: 'board-advisory-willingness',
+      label: 'Board Advisory Work',
+      complete: boardAdvisoryWillingnessComplete,
+      unlock: {
+        introText: 'Answering Board Advisory Work just unlocked:',
+        items: [
+          {
+            href: '/dashboard/interim-work#board-advisory-work',
+            icon: 'users',
+            label: 'Board Advisory Work',
+            description: 'Board and consulting opportunities matched to your background.',
+          },
+        ],
+      },
+    },
   ]
 
   const wizardStepContent = [
@@ -467,6 +486,27 @@ export default async function SearchStrategyPage() {
         ) : (
           <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
         )}
+      </CardContent>
+    </Card>,
+
+    <Card key="board-advisory-willingness">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Board Advisory Work</CardTitle>
+          {boardAdvisoryWillingnessComplete && (
+            <span className="text-success" aria-hidden>
+              ✓
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {boardAdvisoryWillingnessComplete
+            ? 'Update this any time — it unlocks Board Advisory Work, matched to your background.'
+            : 'Are you willing to take unpaid board positions to fill in resume gaps, keep skills current, and build new experience?'}
+        </p>
+        <BoardAdvisoryWillingnessForm initial={profile.boardAdvisoryWillingness} />
       </CardContent>
     </Card>,
   ]

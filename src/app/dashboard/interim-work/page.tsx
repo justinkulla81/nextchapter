@@ -14,7 +14,7 @@ import { hasLegalRestrictionFlag } from '@/lib/interim-work/expert-network-cauti
 import { getActiveListings, getSignedUpListingIds } from '@/lib/interim-work/listings'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { InterimListingCategory } from '@prisma/client'
-import { setBoardDiversityListingsOptIn, markInterimMarketplaceSignup } from './actions'
+import { setBoardDiversityListingsOptIn, markInterimMarketplaceSignup, answerBoardAdvisoryWillingness } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { prisma } from '@/lib/prisma'
@@ -105,6 +105,31 @@ export default async function InterimWorkPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Interim Work</h1>
         <PageHeaderBoxes pageKey="interim-work" candidateId={profile.id} />
       </div>
+
+      {/* Second chance at the Board Advisory Work willingness question —
+          shown only until answered yes here or on Search Strategy (a "no"
+          on Search Strategy shouldn't be the final word, since someone
+          browsing Interim Work has already shown some interest). */}
+      {profile.boardAdvisoryWillingness !== true && (
+        <div className="rounded-lg border border-border bg-off-white p-4">
+          <p className="text-sm font-medium text-foreground">
+            Are you willing to take unpaid board positions to fill in resume gaps, keep skills current,
+            and build new experience?
+          </p>
+          <div className="mt-3 flex gap-2">
+            <form action={answerBoardAdvisoryWillingness.bind(null, true)}>
+              <SubmitButton size="sm" pendingLabel="Saving…">
+                Yes
+              </SubmitButton>
+            </form>
+            <form action={answerBoardAdvisoryWillingness.bind(null, false)}>
+              <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
+                No
+              </SubmitButton>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Section 1 — Set Up Your Own Consultancy — collapsed by default (a
           full phase-by-phase tracker plus three sub-forms is a lot to land

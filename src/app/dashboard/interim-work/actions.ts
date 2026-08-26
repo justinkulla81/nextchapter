@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { markInterimMarketplaceSignupCore } from '@/lib/interim-work/mark-signup'
+import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
 
 export type FormState = { error?: string } | undefined
 
@@ -105,6 +106,21 @@ export async function setBoardDiversityListingsOptIn(optIn: boolean): Promise<vo
   })
 
   captureServerEvent(profile.id, 'board_diversity_listings_opt_in_set', { optIn })
+
+  revalidatePath('/dashboard/interim-work')
+}
+
+// Re-ask at the top of Interim Work for anyone who hasn't said yes on
+// Search Strategy — same underlying write, see setBoardAdvisoryWillingness.
+export async function answerBoardAdvisoryWillingness(willing: boolean): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await setBoardAdvisoryWillingness(profile.id, willing)
 
   revalidatePath('/dashboard/interim-work')
 }

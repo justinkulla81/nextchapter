@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
+import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
 import type {
   ContentVenue,
   GapDurationBucket,
@@ -228,6 +229,31 @@ export async function updateMarketingPlanWillingness(
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/marketing-plan')
   revalidatePath('/dashboard/linkedin')
+}
+
+// Optional, best-effort — not part of maybeAwardSearchStrategyCompleteBonus.
+// Same underlying write as the Interim Work re-ask (see
+// setBoardAdvisoryWillingness); this is just the Search Strategy entry point.
+export async function updateBoardAdvisoryWillingness(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'You need to be logged in to do this.' }
+  }
+
+  const answer = formData.get('answer') as string | null
+  if (answer !== 'yes' && answer !== 'no') {
+    return { error: 'Please answer yes or no before continuing.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+  await setBoardAdvisoryWillingness(profile.id, answer === 'yes')
+
+  revalidatePath('/dashboard/search-strategy')
+  revalidatePath('/dashboard/interim-work')
 }
 
 // Consolidates the network comfort gate that used to block My Network
