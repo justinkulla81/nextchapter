@@ -53,6 +53,7 @@ export interface CrucibleScoreBreakdown {
   promptPoints: number | null
   datasetPoints: number | null
   resultsPoints: number | null
+  fluencyPoints: number | null
 }
 
 // Highest tier actually reached per activity — the qualitative "how far did

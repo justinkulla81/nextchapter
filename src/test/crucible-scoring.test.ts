@@ -164,68 +164,69 @@ describe('aiGradeTierPassed', () => {
 describe('combineCrucibleScores', () => {
   it('perfect QA + perfect AI-graded activities + driver bonus clamps at 100', () => {
     const perfectQa = scoreQaSubmission('CODE', 'MEDIUM', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'BLOCK' }))
-    const result = combineCrucibleScores(perfectQa, 100, 100, 100, VALID_AI_TOOLS, ALL_MEDIUM)
+    const result = combineCrucibleScores(perfectQa, 100, 100, 100, 100, VALID_AI_TOOLS, ALL_MEDIUM)
     expect(result.score).toBe(100)
     expect(result.band).toBe('Blocked it cold')
     expect(result.branch).toBe('PASS')
   })
 
-  it('worst case across all four activities, no bonus, scores 0', () => {
+  it('worst case across all five activities, no bonus, scores 0', () => {
     const worstQa = scoreQaSubmission('CODE', 'MEDIUM', qa({}))
     // rawPoints=5 here (herring-calibrated only) is the true floor for a
     // SHIP verdict — combineCrucibleScores itself still clamps to 0 as a
     // defensive floor, exercised directly by feeding it a synthetic
     // zero-raw-points breakdown.
     const zeroQa = { ...worstQa, rawPoints: 0, defectPoints: 0, verdictPoints: 0, herringPoints: 0 }
-    const result = combineCrucibleScores(zeroQa, 0, 0, 0, null, { qa: 'EASY', prompt: 'EASY', dataset: 'EASY' })
+    const result = combineCrucibleScores(zeroQa, 0, 0, 0, 0, null, { qa: 'EASY', prompt: 'EASY', dataset: 'EASY' })
     expect(result.score).toBe(0)
     expect(result.band).toBe('The glitch shipped')
     expect(result.branch).toBe('GROWTH')
   })
 
-  it('weights QA 40%, and the three AI-graded activities 20% each, then adds the flat driver bonus', () => {
+  it('weights QA 35%, fluency 20%, and prompt/dataset/results 15% each, then adds the flat driver bonus', () => {
     // rawPoints=65 (defect 60 + verdict 0 + herring-calibrated 5) → 65/90 =
-    // 72.222...% → *0.4 = 28.888... ; prompt/dataset/results all 0*0.2=0 →
-    // 28.888... rounds to 29.
+    // 72.222...% → *0.35 = 25.2777... ; prompt/dataset/results/fluency all
+    // 0*weight=0 → 25.2777... rounds to 25.
     const qaResult = scoreQaSubmission('CODE', 'MEDIUM', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'SHIP' }))
-    const result = combineCrucibleScores(qaResult, 0, 0, 0, null, ALL_MEDIUM)
-    expect(result.score).toBe(29)
+    const result = combineCrucibleScores(qaResult, 0, 0, 0, 0, null, ALL_MEDIUM)
+    expect(result.score).toBe(25)
     expect(result.branch).toBe('GROWTH')
   })
 
   it('breakdown reports the rounded weighted contribution of each AI-graded activity', () => {
     const qaResult = scoreQaSubmission('CODE', 'MEDIUM', qa({}))
-    const result = combineCrucibleScores(qaResult, 83, 67, 50, null, ALL_MEDIUM)
-    expect(result.breakdown.promptPoints).toBe(Math.round(83 * 0.2))
-    expect(result.breakdown.datasetPoints).toBe(Math.round(67 * 0.2))
-    expect(result.breakdown.resultsPoints).toBe(Math.round(50 * 0.2))
+    const result = combineCrucibleScores(qaResult, 83, 67, 50, 90, null, ALL_MEDIUM)
+    expect(result.breakdown.promptPoints).toBe(Math.round(83 * 0.15))
+    expect(result.breakdown.datasetPoints).toBe(Math.round(67 * 0.15))
+    expect(result.breakdown.resultsPoints).toBe(Math.round(50 * 0.15))
+    expect(result.breakdown.fluencyPoints).toBe(Math.round(90 * 0.2))
   })
 
   it('driver bonus requires both a tool AND a non-empty description of how', () => {
     const qaResult = scoreQaSubmission('CODE', 'MEDIUM', qa({}))
-    const withEmptyMove = combineCrucibleScores(qaResult, 0, 0, 0, { tools: ['Claude'], bestMove: '' }, ALL_MEDIUM)
+    const withEmptyMove = combineCrucibleScores(qaResult, 0, 0, 0, 0, { tools: ['Claude'], bestMove: '' }, ALL_MEDIUM)
     expect(withEmptyMove.breakdown.driverBonusEarned).toBe(false)
-    const withNoTools = combineCrucibleScores(qaResult, 0, 0, 0, { tools: [], bestMove: 'traced it' }, ALL_MEDIUM)
+    const withNoTools = combineCrucibleScores(qaResult, 0, 0, 0, 0, { tools: [], bestMove: 'traced it' }, ALL_MEDIUM)
     expect(withNoTools.breakdown.driverBonusEarned).toBe(false)
   })
 
   it('reports the tiers reached verbatim, independent of the numeric score', () => {
     const qaResult = scoreQaSubmission('CODE', 'HARD', qa({ selectedOptionIds: ['qa_hard_idempotency'], verdict: 'BLOCK' }))
     const tiersReached: CrucibleTiersReached = { qa: 'HARD', prompt: 'EASY', dataset: 'MEDIUM' }
-    const result = combineCrucibleScores(qaResult, 40, 60, 55, null, tiersReached)
+    const result = combineCrucibleScores(qaResult, 40, 60, 55, 45, null, tiersReached)
     expect(result.tiersReached).toEqual(tiersReached)
   })
 
   it('is a pure function — identical inputs always produce an identical result (§11 determinism guarantee)', () => {
     const qaResult = scoreQaSubmission('CODE', 'MEDIUM', qa({ selectedOptionIds: ['code_never_saved'], verdict: 'BLOCK' }))
-    const a = combineCrucibleScores(qaResult, 75, 60, 80, VALID_AI_TOOLS, ALL_MEDIUM)
-    const b = combineCrucibleScores(qaResult, 75, 60, 80, VALID_AI_TOOLS, ALL_MEDIUM)
+    const a = combineCrucibleScores(qaResult, 75, 60, 80, 65, VALID_AI_TOOLS, ALL_MEDIUM)
+    const b = combineCrucibleScores(qaResult, 75, 60, 80, 65, VALID_AI_TOOLS, ALL_MEDIUM)
     expect(a).toEqual(b)
   })
 
   it('stamps the current scoring/content version on every result', () => {
     const qaResult = scoreQaSubmission('CODE', 'MEDIUM', qa({}))
-    const result = combineCrucibleScores(qaResult, 0, 0, 0, null, ALL_MEDIUM)
+    const result = combineCrucibleScores(qaResult, 0, 0, 0, 0, null, ALL_MEDIUM)
     expect(result.scoringVersion).toBe(SCORING_VERSION)
     expect(result.contentVersion).toBe(CONTENT_VERSION)
   })

@@ -2,7 +2,7 @@ import 'server-only'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import { getAnthropicClient } from '@/lib/anthropic'
-import { CRUCIBLE_DATASET_TASK, CRUCIBLE_PROMPT_TASK, CRUCIBLE_RESULTS_TASK } from './variants'
+import { CRUCIBLE_DATASET_TASK, CRUCIBLE_FLUENCY_TASK, CRUCIBLE_PROMPT_TASK, CRUCIBLE_RESULTS_TASK } from './variants'
 import type { CrucibleAiGradeResult, CrucibleTierKey } from './scoring-types'
 
 // Real per-attempt LLM cost — every call here is rate-limited upstream (see
@@ -67,6 +67,49 @@ export function gradeCruciblePromptTask(tier: CrucibleTierKey, submission: strin
 export function gradeCrucibleDatasetTask(tier: CrucibleTierKey, submission: string): Promise<CrucibleAiGradeResult> {
   const content = CRUCIBLE_DATASET_TASK[tier]
   return gradeSubmission('dataset-analysis', `${content.businessContext}\n\n${content.instructions}`, content.gradingRubric, submission)
+}
+
+// The only generation (not grading) call in this file — sends the fixed
+// scenario conversation (original question + the deliberately generic
+// canned response) plus the candidate's own follow-up as a real multi-turn
+// conversation, and returns whatever the model actually says next. This is
+// what makes the fluency activity an honest test: the candidate's follow-up
+// is judged by its REAL effect on a live model, not by how it reads on its
+// own. A transient failure returns null — the caller must not silently
+// grade an empty response as if the AI produced nothing meaningful.
+export async function generateCrucibleFluencyResponse(followUpPrompt: string): Promise<string | null> {
+  try {
+    const client = getAnthropicClient()
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-5',
+      max_tokens: 600,
+      thinking: { type: 'disabled' },
+      messages: [
+        { role: 'user', content: CRUCIBLE_FLUENCY_TASK.originalQuestion },
+        { role: 'assistant', content: CRUCIBLE_FLUENCY_TASK.genericResponse },
+        { role: 'user', content: followUpPrompt },
+      ],
+    })
+    const message = await stream.finalMessage()
+    const text = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('')
+      .trim()
+    return text || null
+  } catch (error) {
+    console.error('Crucible fluency generation failed:', error)
+    return null
+  }
+}
+
+export function gradeCrucibleFluencyTask(generatedResponse: string): Promise<CrucibleAiGradeResult> {
+  return gradeSubmission(
+    'ai-fluency',
+    `${CRUCIBLE_FLUENCY_TASK.businessContext}\n\nOriginal question: ${CRUCIBLE_FLUENCY_TASK.originalQuestion}\n\nGeneric first response: ${CRUCIBLE_FLUENCY_TASK.genericResponse}`,
+    CRUCIBLE_FLUENCY_TASK.gradingRubric,
+    generatedResponse
+  )
 }
 
 export function gradeCrucibleResultsTask(submission: string): Promise<CrucibleAiGradeResult> {

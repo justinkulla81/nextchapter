@@ -8,10 +8,17 @@ import { getClientIp } from '@/lib/http/client-ip'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { aiGradeTierPassed, combineCrucibleScores, qaTierPassed, scoreQaSubmission } from '@/lib/crucible/scoring'
-import { gradeCrucibleDatasetTask, gradeCruciblePromptTask, gradeCrucibleResultsTask } from '@/lib/crucible/ai-grading'
+import {
+  gradeCrucibleDatasetTask,
+  gradeCruciblePromptTask,
+  gradeCrucibleResultsTask,
+  gradeCrucibleFluencyTask,
+  generateCrucibleFluencyResponse,
+} from '@/lib/crucible/ai-grading'
 import { checkCrucibleAiRateLimit } from '@/lib/crucible/rate-limit'
 import { JOB_INTENT_TO_VARIANT, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
 import { CRUCIBLE_TIER_ORDER, type CrucibleTierKey, type CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
+import type { CrucibleAiGradeResult } from '@/lib/crucible/scoring-types'
 import { extractResumeText } from '@/lib/resume/extract-text'
 import { deriveNameFromResumeText } from '@/lib/crucible/leaderboard-name'
 import { anonymize } from '@/lib/community/identity'
@@ -220,11 +227,44 @@ export async function submitCrucibleResultsTask(sessionId: string, analysisText:
       resultsSubmission: analysisText,
       resultsScore: grade.score,
       resultsFeedback: grade.feedback,
-      state: 'TOOLS',
+      state: 'FLUENCY_TASK',
       aiGradeCallCount: allowed ? { increment: 1 } : undefined,
     },
   })
   captureServerEvent(session.candidateId ?? session.id, 'crucible_results_task', { score: grade.score, rateLimited: !allowed })
+}
+
+// AI-fluency activity — the one activity in this flow that actually sends
+// the candidate's own text to a live LLM and grades the REAL resulting
+// response, rather than grading their text in isolation (see
+// generateCrucibleFluencyResponse's comment in ai-grading.ts). Two real LLM
+// calls per attempt (generate, then grade), so this checks the rate limit
+// and increments aiGradeCallCount twice — a candidate rate-limited out gets
+// a neutral fallback for both rather than a half-completed attempt.
+export async function submitCrucibleFluencyTask(sessionId: string, followUpPrompt: string): Promise<CrucibleAiGradeResult & { generatedResponse: string | null }> {
+  const session = await requireSession(sessionId)
+  const allowed = await checkCrucibleAiRateLimit(session.ip)
+  const generatedResponse = allowed ? await generateCrucibleFluencyResponse(followUpPrompt) : null
+  const grade = generatedResponse ? await gradeCrucibleFluencyTask(generatedResponse) : AI_GRADE_UNAVAILABLE
+
+  await prisma.crucibleSession.update({
+    where: { id: session.id },
+    data: {
+      fluencySubmission: followUpPrompt,
+      fluencyResponse: generatedResponse,
+      fluencyScore: grade.score,
+      fluencyFeedback: grade.feedback,
+      state: 'TOOLS',
+      aiGradeCallCount: allowed ? { increment: generatedResponse ? 2 : 1 } : undefined,
+    },
+  })
+  captureServerEvent(session.candidateId ?? session.id, 'crucible_fluency_task', {
+    score: grade.score,
+    rateLimited: !allowed,
+    generationFailed: allowed && !generatedResponse,
+  })
+
+  return { ...grade, generatedResponse }
 }
 
 export type CrucibleResultSummary = {
@@ -236,6 +276,8 @@ export type CrucibleResultSummary = {
   promptFeedback: string
   datasetFeedback: string
   resultsFeedback: string
+  fluencyFeedback: string
+  fluencyResponse: string | null
   tiersReached: { qa: CrucibleTierKey; prompt: CrucibleTierKey; dataset: CrucibleTierKey }
 }
 
@@ -260,6 +302,7 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     session.promptScore ?? 0,
     session.datasetScore ?? 0,
     session.resultsScore ?? 0,
+    session.fluencyScore ?? 0,
     aiTools,
     tiersReached
   )
@@ -288,6 +331,7 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     prompt_points: result.breakdown.promptPoints,
     dataset_points: result.breakdown.datasetPoints,
     results_points: result.breakdown.resultsPoints,
+    fluency_points: result.breakdown.fluencyPoints,
     driver_bonus: result.breakdown.driverBonusEarned,
     qa_tier: tiersReached.qa,
     prompt_tier: tiersReached.prompt,
@@ -303,6 +347,8 @@ export async function submitCrucibleAiTools(sessionId: string, tools: string[], 
     promptFeedback: session.promptFeedback ?? '',
     datasetFeedback: session.datasetFeedback ?? '',
     resultsFeedback: session.resultsFeedback ?? '',
+    fluencyFeedback: session.fluencyFeedback ?? '',
+    fluencyResponse: session.fluencyResponse,
     tiersReached,
   }
 }

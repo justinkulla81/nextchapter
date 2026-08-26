@@ -1474,3 +1474,32 @@ export const CRUCIBLE_RESULTS_TASK: CrucibleDatasetTaskContent = {
   gradingRubric:
     "A strong analysis notices the 4 waitlist cities weren't randomly assigned — they were chosen because their Ops leads volunteered — and that those same 4 cities already had a much higher historical resale/scalping rate (41% vs. 18%) BEFORE the test even started. That pre-existing difference means the 34% revenue lift is confounded: cities with more scalping activity naturally have more demand-after-sellout regardless of a waitlist feature, so some or all of the observed lift may be explained by which cities were picked, not by the feature itself. A strong recommendation doesn't say \"ship it everywhere\" based on this result alone — it calls for a properly randomized follow-up test across a representative mix of cities, or at minimum a phased rollout that compares each city to its OWN historical baseline rather than to other cities. A weak analysis takes the 34% lift at face value and recommends immediate company-wide rollout without asking why those 4 cities were chosen or noticing the resale-rate gap.",
 }
+
+// ── AI-fluency activity (universal, single scenario, live round-trip) ──
+// Every other activity grades TEXT the candidate wrote, in isolation — this
+// one is the exception: the candidate's follow-up prompt is actually sent
+// to a live LLM (see ai-grading.ts's gradeCrucibleFluencyTask) as a
+// continuation of the conversation below, and the REAL resulting response
+// is what gets graded — an honest test of whether their prompting
+// technique (defining a role, naming what's wrong, demanding real
+// alternatives) actually produced a better answer, not just whether their
+// prompt reads well on paper.
+export interface CrucibleFluencyTaskContent {
+  businessContext: string
+  originalQuestion: string
+  genericResponse: string
+  instructions: string
+  gradingRubric: string
+}
+
+export const CRUCIBLE_FLUENCY_TASK: CrucibleFluencyTaskContent = {
+  businessContext:
+    "Stubs' marketing lead asked an AI assistant for ideas to fill slow Tuesday-night shows — attendance drops almost 40% on weeknights compared to weekends, and the venue still pays full staff and overhead either way. Here's the conversation so far.",
+  originalQuestion: 'We need ideas to boost ticket sales for slow Tuesday night shows. What should we try?',
+  genericResponse:
+    "Here are some ideas to boost your Tuesday night ticket sales:\n\n1. Offer a discount or promotion for Tuesday shows.\n2. Promote Tuesday shows more heavily on social media.\n3. Partner with local businesses for cross-promotion.\n4. Send an email campaign highlighting Tuesday availability.\n5. Consider adding special perks like a meet-and-greet to make Tuesday more appealing.\n\nThese strategies should help increase awareness and incentivize more people to attend on slower nights.",
+  instructions:
+    "That response is the kind of generic listicle you'd get for literally any business on any slow night — nothing here is specific to Stubs, to live events, or to why Tuesdays specifically are the problem. Write ONE follow-up message to send back that would get a genuinely sharper, more specific answer. You can assign the AI a role, name exactly what's wrong with the answer above, demand real alternatives instead of a repackaged list, or combine techniques — whatever you think actually works. Your follow-up will be sent for a real response, and that response is what gets scored, not this message.",
+  gradingRubric:
+    "This grades the REAL response the candidate's follow-up produced, not the follow-up text itself. A strong outcome is a response that's clearly different in kind from the generic original — specific to live events/Stubs (e.g. actual pricing mechanics like dynamic or day-of pricing, bundling with a slower-moving show, targeting a specific local audience segment, addressing WHY Tuesday specifically underperforms rather than just \"promote it more\"), shows evidence the AI adopted a real point of view or role if one was assigned, and doesn't just restate the same five generic tactics in different words. A weak outcome is a response that's still a generic, interchangeable listicle — same shape as the original, just reworded or padded — which means the candidate's follow-up didn't actually change anything meaningful about what the AI produced.",
+}

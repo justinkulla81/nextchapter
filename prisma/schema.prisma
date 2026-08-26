@@ -7666,6 +7666,7 @@ enum CrucibleSessionState {
   PROMPT_TASK
   DATASET_TASK
   RESULTS_TASK
+  FLUENCY_TASK
   TOOLS
   RESUME
   SCORED
@@ -7744,11 +7745,28 @@ model CrucibleSession {
   resultsScore      Int?
   resultsFeedback   String? @db.Text
 
+  // AI-fluency activity — candidate is shown a real, deliberately generic
+  // first-pass AI answer and writes ONE follow-up prompt meant to get a
+  // meaningfully better response (via a persona, a named critique of what's
+  // wrong, or an explicit demand for genuinely different ideas — the
+  // techniques a real recruiter would probe for). Unlike prompt-authoring/
+  // dataset-analysis, which grade the candidate's TEXT in isolation, this
+  // activity actually sends their follow-up to a live LLM and grades the
+  // REAL resulting response — an honest test of whether their technique
+  // worked, not just whether it reads well. Two real LLM calls per attempt
+  // (generate + grade), both counted in aiGradeCallCount below.
+  fluencySubmission String? @db.Text
+  fluencyResponse   String? @db.Text
+  fluencyScore      Int?
+  fluencyFeedback   String? @db.Text
+
   // Real count of AI-grading calls made from this session (prompt + dataset
-  // + results combined), incremented once per call regardless of tier or
-  // pass/fail — the rate limiter (rate-limit.ts) sums this across a whole
-  // IP's recent sessions rather than counting sessions themselves, since one
-  // session clearing all 3 tiers of an activity now makes 3 real calls, not 1.
+  // + results + fluency combined — fluency counts 2 per attempt, one
+  // generation call and one grading call), incremented once per call
+  // regardless of tier or pass/fail — the rate limiter (rate-limit.ts) sums
+  // this across a whole IP's recent sessions rather than counting sessions
+  // themselves, since one session clearing all 3 tiers of an activity now
+  // makes 3 real calls, not 1.
   aiGradeCallCount Int @default(0)
 
   // { tools: string[], bestMove: string }

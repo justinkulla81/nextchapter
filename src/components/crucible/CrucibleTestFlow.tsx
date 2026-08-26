@@ -11,13 +11,22 @@ import {
   submitCruciblePromptTask,
   submitCrucibleDatasetTask,
   submitCrucibleResultsTask,
+  submitCrucibleFluencyTask,
   submitCrucibleAiTools,
   submitCrucibleResume,
   setCrucibleLeaderboardName,
   logCrucibleInterest,
   type CrucibleResultSummary,
 } from '@/app/noexperience/actions'
-import { getQaContent, CRUCIBLE_PROMPT_TASK, CRUCIBLE_DATASET_TASK, CRUCIBLE_RESULTS_TASK, type CrucibleJobIntentKey, type CrucibleVariantKey } from '@/lib/crucible/variants'
+import {
+  getQaContent,
+  CRUCIBLE_PROMPT_TASK,
+  CRUCIBLE_DATASET_TASK,
+  CRUCIBLE_RESULTS_TASK,
+  CRUCIBLE_FLUENCY_TASK,
+  type CrucibleJobIntentKey,
+  type CrucibleVariantKey,
+} from '@/lib/crucible/variants'
 import { CrucibleDesignMockup } from '@/components/crucible/CrucibleDesignMockup'
 import type { CrucibleTierKey, CrucibleVerdictValue } from '@/lib/crucible/scoring-types'
 import { Button } from '@/components/ui/button'
@@ -35,6 +44,7 @@ type Step =
   | 'prompt'
   | 'dataset'
   | 'results-task'
+  | 'fluency'
   | 'tools'
   | 'resume'
   | 'leaderboard-name'
@@ -102,6 +112,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
   const [datasetTier, setDatasetTier] = useState<CrucibleTierKey>('EASY')
   const [analysisText, setAnalysisText] = useState('')
   const [resultsText, setResultsText] = useState('')
+  const [fluencyPromptText, setFluencyPromptText] = useState('')
   const [aiTools, setAiTools] = useState<string[]>([])
   const [bestMove, setBestMove] = useState('')
   const [resumeShareConsent, setResumeShareConsent] = useState(false)
@@ -232,9 +243,26 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
       try {
         await submitCrucibleResultsTask(sessionId, resultsText.trim())
         posthog?.capture('crucible_results_task_submitted')
-        setStep('tools')
+        setStep('fluency')
       } catch {
         setError('Something went wrong submitting your call.')
+      }
+    })
+  }
+
+  function submitFluencyTask() {
+    if (!sessionId || !fluencyPromptText.trim()) {
+      setError('Write your follow-up before continuing.')
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      try {
+        const { generatedResponse } = await submitCrucibleFluencyTask(sessionId, fluencyPromptText.trim())
+        posthog?.capture('crucible_fluency_task_submitted', { generationFailed: !generatedResponse })
+        setStep('tools')
+      } catch {
+        setError('Something went wrong submitting your follow-up.')
       }
     })
   }
@@ -355,7 +383,7 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-5 text-center">
           <h1 className="text-2xl font-semibold text-foreground">Here&apos;s the situation.</h1>
           <p className="mx-auto max-w-xl text-muted-foreground">
-            {`Four short activities, ~15 minutes total: judge a real AI mistake, write a prompt that would fix a real page, read a real dataset, and call whether a test result actually holds up. Do well on one, and we'll give you a harder version. Use any AI you want — ChatGPT, Claude, Gemini, all of them. We're measuring your judgment, not your typing.`}
+            {`Five short activities, ~18 minutes total: judge a real AI mistake, write a prompt that would fix a real page, read a real dataset, call whether a test result actually holds up, and push a bland AI answer into a genuinely better one — for real, we'll actually send it. Do well on one, and we'll give you a harder version. Use any AI you want — ChatGPT, Claude, Gemini, all of them. We're measuring your judgment, not your typing.`}
           </p>
           <Button size="lg" onClick={() => setStep('qa')}>
             Start
@@ -367,10 +395,10 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-              Activity 1 of 4 — Judge the output
+              Activity 1 of 5 — Judge the output
               <TierBadge tier={qaTier} />
             </p>
-            <ActivityProgress current={1} total={4} />
+            <ActivityProgress current={1} total={5} />
             <h1 className="mt-3 text-xl font-semibold text-foreground">{qaContent.scenarioTitle}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{qaContent.brief}</p>
           </div>
@@ -436,10 +464,10 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-              Activity 2 of 4 — Write a prompt
+              Activity 2 of 5 — Write a prompt
               <TierBadge tier={promptTier} />
             </p>
-            <ActivityProgress current={2} total={4} />
+            <ActivityProgress current={2} total={5} />
             <h1 className="mt-3 text-xl font-semibold text-foreground">{promptContent.pageTitle}</h1>
             <p className="mt-2 text-sm text-muted-foreground">{promptContent.instructions}</p>
           </div>
@@ -482,10 +510,10 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-              Activity 3 of 4 — Analyze a dataset
+              Activity 3 of 5 — Analyze a dataset
               <TierBadge tier={datasetTier} />
             </p>
-            <ActivityProgress current={3} total={4} />
+            <ActivityProgress current={3} total={5} />
             <h1 className="mt-3 text-xl font-semibold text-foreground">Make the call</h1>
             <p className="mt-2 text-sm text-muted-foreground">{datasetContent.businessContext}</p>
           </div>
@@ -532,8 +560,8 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
       {step === 'results-task' && (
         <div className="space-y-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 4 of 4 — Read the results</p>
-            <ActivityProgress current={4} total={4} />
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 4 of 5 — Read the results</p>
+            <ActivityProgress current={4} total={5} />
             <h1 className="mt-3 text-xl font-semibold text-foreground">Trust the result?</h1>
             <p className="mt-2 text-sm text-muted-foreground">{resultsContent.businessContext}</p>
           </div>
@@ -573,6 +601,40 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
 
           <Button size="lg" className="w-full" disabled={isPending} onClick={submitResultsTask}>
             Continue
+          </Button>
+        </div>
+      )}
+
+      {step === 'fluency' && (
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand">Activity 5 of 5 — Get a better answer</p>
+            <ActivityProgress current={5} total={5} />
+            <h1 className="mt-3 text-xl font-semibold text-foreground">Push it further</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{CRUCIBLE_FLUENCY_TASK.businessContext}</p>
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-border bg-off-white p-4">
+            <div className="ml-auto max-w-[85%] rounded-lg rounded-tr-none bg-brand px-3 py-2 text-sm text-white">
+              {CRUCIBLE_FLUENCY_TASK.originalQuestion}
+            </div>
+            <div className="mr-auto max-w-[85%] rounded-lg rounded-tl-none border border-border bg-white px-3 py-2 text-sm whitespace-pre-line text-foreground">
+              {CRUCIBLE_FLUENCY_TASK.genericResponse}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fluency-task">{CRUCIBLE_FLUENCY_TASK.instructions}</Label>
+            <Textarea
+              id="fluency-task"
+              value={fluencyPromptText}
+              onChange={(e) => setFluencyPromptText(e.target.value)}
+              rows={4}
+            />
+          </div>
+
+          <Button size="lg" className="w-full" disabled={isPending} onClick={submitFluencyTask}>
+            {isPending ? 'Getting a real response…' : 'Send follow-up'}
           </Button>
         </div>
       )}
@@ -720,6 +782,20 @@ export function CrucibleTestFlow({ source, skipEmail: initialSkipEmail, skipResu
             <div className="border-t border-border pt-4">
               <p className="text-sm font-semibold text-foreground">Activity 4 — Your call</p>
               <p className="mt-1 text-sm text-muted-foreground">{result.resultsFeedback}</p>
+            </div>
+            <div className="border-t border-border pt-4">
+              <p className="text-sm font-semibold text-foreground">Activity 5 — Get a better answer</p>
+              <p className="mt-1 text-sm text-muted-foreground">{result.fluencyFeedback}</p>
+              {result.fluencyResponse && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-medium text-primary underline underline-offset-4">
+                    See the real response your follow-up got
+                  </summary>
+                  <p className="mt-2 rounded-lg border border-border bg-off-white p-3 text-xs whitespace-pre-line text-muted-foreground">
+                    {result.fluencyResponse}
+                  </p>
+                </details>
+              )}
             </div>
           </div>
 

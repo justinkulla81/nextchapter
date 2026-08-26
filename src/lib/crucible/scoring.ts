@@ -21,13 +21,17 @@ import type {
 // change, so every historical score stays recomputable and auditable
 // against the exact rules that produced it (see spec §11). v4: added a
 // fourth activity, Read the Results — re-split the 60% previously shared
-// between prompt/dataset three ways instead of two. v5 (content only,
-// scoring logic unchanged): every job-intent function now gets genuinely
-// distinct QA content at every tier — DESIGN and BUSINESS variants added,
-// DATA relabeled "Operations & Data Analysts," and the EASY/HARD tiers
-// (previously one shared CODE-flavored scenario for every discipline) are
-// now real per-variant content too.
-export const SCORING_VERSION = 'v4'
+// between prompt/dataset three ways instead of two. v5: added a fifth
+// activity, AI Fluency — the live round-trip prompting exercise (see
+// ai-grading.ts's generateCrucibleFluencyResponse) — re-split weights
+// again to give it real weight rather than diluting it to a token amount.
+// CONTENT_VERSION v5 (content only, scoring logic unchanged): every
+// job-intent function now gets genuinely distinct QA content at every
+// tier — DESIGN and BUSINESS variants added, DATA relabeled "Operations &
+// Data Analysts," and the EASY/HARD tiers (previously one shared
+// CODE-flavored scenario for every discipline) are now real per-variant
+// content too.
+export const SCORING_VERSION = 'v5'
 export const CONTENT_VERSION = 'v5'
 
 const POINTS = {
@@ -62,10 +66,12 @@ export function aiGradeTierPassed(score: number): boolean {
 const QA_MAX_RAW = POINTS.defectExact + POINTS.verdictCorrect + POINTS.herringCalibrated
 
 // QA carries the most weight — it's the only activity with a deterministic,
-// unambiguous right answer. The three AI-graded activities split the
-// remaining 60% evenly since AI grading has some inherent noise regardless
-// of which one it is.
-const WEIGHTS = { qa: 0.4, prompt: 0.2, dataset: 0.2, results: 0.2 } as const
+// unambiguous right answer. Fluency is the most direct evidence of real AI
+// know-how (it grades a live model's actual output, not just text written
+// in isolation), so it gets more weight than the other three AI-graded
+// activities, which still split what's left evenly since AI grading has
+// some inherent noise regardless of which one it is.
+const WEIGHTS = { qa: 0.35, prompt: 0.15, dataset: 0.15, results: 0.15, fluency: 0.2 } as const
 
 export interface CrucibleQaScoreResult {
   defectDetection: CrucibleScoreBreakdown['defectDetection']
@@ -136,15 +142,16 @@ function scoreDriverBonus(aiTools: CrucibleAiTools | null): { earned: boolean; p
   return { earned, points: earned ? POINTS.driverBonus : 0 }
 }
 
-// Called once all four activities (QA, prompt, dataset, results) plus the
-// AI-tools disclosure are in — promptScore/datasetScore/resultsScore are
-// the AI grader's 0-100 outputs (see ai-grading.ts), already resolved by
-// the time this runs.
+// Called once all five activities (QA, prompt, dataset, results, fluency)
+// plus the AI-tools disclosure are in — promptScore/datasetScore/
+// resultsScore/fluencyScore are the AI grader's 0-100 outputs (see
+// ai-grading.ts), already resolved by the time this runs.
 export function combineCrucibleScores(
   qa: CrucibleQaScoreResult,
   promptScore: number,
   datasetScore: number,
   resultsScore: number,
+  fluencyScore: number,
   aiTools: CrucibleAiTools | null,
   tiersReached: CrucibleTiersReached
 ): CrucibleScoreResult {
@@ -152,7 +159,11 @@ export function combineCrucibleScores(
   const { earned: driverBonusEarned, points: driverBonusPoints } = scoreDriverBonus(aiTools)
 
   const weighted =
-    qaPercent * WEIGHTS.qa + promptScore * WEIGHTS.prompt + datasetScore * WEIGHTS.dataset + resultsScore * WEIGHTS.results
+    qaPercent * WEIGHTS.qa +
+    promptScore * WEIGHTS.prompt +
+    datasetScore * WEIGHTS.dataset +
+    resultsScore * WEIGHTS.results +
+    fluencyScore * WEIGHTS.fluency
   const score = Math.max(0, Math.min(100, Math.round(weighted + driverBonusPoints)))
   const band = CRUCIBLE_BAND_LABEL(score)
   const branch = score >= 75 ? 'PASS' : 'GROWTH'
@@ -168,6 +179,7 @@ export function combineCrucibleScores(
     promptPoints: Math.round(promptScore * WEIGHTS.prompt),
     datasetPoints: Math.round(datasetScore * WEIGHTS.dataset),
     resultsPoints: Math.round(resultsScore * WEIGHTS.results),
+    fluencyPoints: Math.round(fluencyScore * WEIGHTS.fluency),
   }
 
   return { score, band, branch, breakdown, tiersReached, scoringVersion: SCORING_VERSION, contentVersion: CONTENT_VERSION }
