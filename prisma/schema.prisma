@@ -6410,7 +6410,6 @@ enum RoleGrantRole {
   member
   coach
   recruiter
-  hiring_manager
   employer_admin
   employer_viewer
   employer_legal
@@ -6998,20 +6997,6 @@ model RecruiterCandidateSubmission {
   roleTitle   String
   companyName String
 
-  // Phase 7, Partners Master Build Script §A8 -- the hiring-manager portal.
-  // Nullable and set automatically (see autoLinkSubmissionToReq in
-  // src/lib/hiring/req-matching.ts, called from advanceSubmissionStage when
-  // a submission reaches SUBMITTED) by matching companyName/roleTitle above
-  // against the hiring manager's own open HiringReq -- deliberately NOT a
-  // field the recruiter sets directly, so nothing in the Recruiter portal's
-  // UI needs to change for this phase. A hiring manager's visibility into
-  // this submission (see src/lib/hiring/visibility.ts) is gated on reqId
-  // being set AND stage being SUBMITTED or later -- "candidates submitted
-  // to their req," never a browsable pool, same discipline as
-  // isCandidateConsentedForRecruiter.
-  reqId String?
-  req   HiringReq? @relation(fields: [reqId], references: [id], onDelete: SetNull)
-
   stage          RecruiterSubmissionStage @default(REVIEWED)
   // Only meaningful when stage = PASSED -- "passed with reason" per §A6.2.
   passedReason   String?                  @db.Text
@@ -7027,17 +7012,18 @@ model RecruiterCandidateSubmission {
   events    RecruiterCandidateSubmissionEvent[]
   placement RecruiterPlacement?
 
-  // Phase 7 -- one interview guide, one panel, and (once placed) one
-  // post-hire feedback request per submission; many scorecards (one per
-  // panelist) per submission. See the Hiring Manager Portal section below.
-  interviewGuide   InterviewGuide?
-  interviewPanel   InterviewPanel?
-  scorecards       Scorecard[]
-  postHireFeedback PostHireFeedback?
+  // One interview guide, one panel, and many scorecards (one per panelist)
+  // per submission -- ported from the retired Hiring Manager portal into
+  // Talent (see src/lib/talent/panels.ts, scorecards.ts,
+  // generate-interview-guide.ts). Post-hire feedback was retired along with
+  // the rest of the hiring-manager pipeline -- it was seeded only from a
+  // submission having a reqId, which no longer exists.
+  interviewGuide InterviewGuide?
+  interviewPanel InterviewPanel?
+  scorecards     Scorecard[]
 
   @@index([recruiterId, stage])
   @@index([candidateId])
-  @@index([reqId, stage])
 }
 
 // Append-only history of stage changes, same ledger pattern as
@@ -7131,74 +7117,17 @@ model PlanCatalogEntry {
 }
 
 // ============================================================================
-// Hiring manager portal -- Partners Master Build Script §A8, Phase 7.
-//
-// A hiring manager sees ONLY candidates submitted to their own req(s), never
-// a browsable pool -- same discipline as the Recruiter portal's
-// consented-candidates-only rule. Rather than a parallel submission model,
-// this reuses RecruiterCandidateSubmission (see reqId above): "candidates
-// submitted to their req" is the SUBMITTED-and-later stage of the exact same
-// REVIEWED -> SCREENED -> SUBMITTED -> INTERVIEWED -> PLACED/PASSED pipeline
-// Phase 6 already built. See src/lib/hiring/visibility.ts for the query that
-// enforces both the stage floor and the conflict-of-interest exclusion below.
+// Hiring manager portal -- retired. Was Partners Master Build Script §A8,
+// Phase 7 (HiringManager + HiringReq, a hiring manager seeing only
+// candidates submitted to their own req). Confirmed zero real usage before
+// removal; consolidated into Talent -- see src/lib/talent/conflict-check.ts,
+// panels.ts, scorecards.ts, generate-interview-guide.ts,
+// reference-questions.ts, competency-gaps.ts.
 // ============================================================================
-
-model HiringManager {
-  id        String @id @default(cuid())
-  fullName  String
-  workEmail String @unique
-
-  // The hiring manager's OWN current employer -- i.e. the company doing the
-  // hiring. This is the primitive src/lib/hiring/conflict-check.ts compares
-  // against a candidate's current employer (via getCurrentEmployerName /
-  // orgNamesMatch, the same fuzzy-match helper already used for the
-  // candidate-side "don't apply to your own employer" warning) to
-  // auto-detect the §A8 "same current employer" conflict.
-  companyName String
-
-  // Real Supabase-auth login -- nullable only for the brief window between
-  // a fresh signUp() and email confirmation finishing the row (see
-  // completeHiringManagerSignupFromSession), same pattern as Recruiter.userId.
-  userId String? @unique
-
-  createdAt    DateTime @default(now())
-  isSampleData Boolean  @default(false)
-
-  reqs              HiringReq[]
-  postHireFeedbacks PostHireFeedback[]
-}
-
-enum HiringReqStatus {
-  OPEN
-  FILLED
-  CLOSED
-}
-
-// One open role a hiring manager is hiring for. Deliberately minimal for
-// this phase (spec §A8 doesn't ask for a full req/ATS-style entity) -- just
-// enough for autoLinkSubmissionToReq (src/lib/hiring/req-matching.ts) to
-// match a recruiter's free-text roleTitle/companyName on
-// RecruiterCandidateSubmission against an open req by company, and for a
-// hiring manager to scope "my candidates" to "my reqs."
-model HiringReq {
-  id              String        @id @default(cuid())
-  hiringManagerId String
-  hiringManager   HiringManager @relation(fields: [hiringManagerId], references: [id], onDelete: Cascade)
-
-  title  String
-  status HiringReqStatus @default(OPEN)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  submissions RecruiterCandidateSubmission[]
-
-  @@index([hiringManagerId, status])
-}
 
 enum HiringConflictSource {
   // Auto-detected: candidate's current employer (WorkHistoryEntry.isCurrent)
-  // matches HiringManager.companyName via orgNamesMatch.
+  // matches EmployerProfile.companyName via orgNamesMatch.
   AUTO_SAME_EMPLOYER
   DECLARED_RELATIONSHIP
   DECLARED_HOUSEHOLD
@@ -7352,34 +7281,6 @@ model Scorecard {
   updatedAt   DateTime  @updatedAt
 
   @@index([submissionId])
-}
-
-// §A8 "90-day post-hire feedback" -- seeded automatically once a submission
-// reaches PLACED (see the hook in recordPlacement, src/lib/recruiter/
-// submissions.ts) when that submission has a reqId, i.e. came through the
-// hiring-manager pipeline. dueAt = placement start date (or placedAt if no
-// start date was recorded) + 90 days. This IS the seed of real outcome data
-// per §E2.2 -- nothing consumes it yet, but it's stored for real rather than
-// stubbed.
-model PostHireFeedback {
-  id              String                       @id @default(cuid())
-  submissionId    String                       @unique
-  submission      RecruiterCandidateSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  hiringManagerId String
-  hiringManager   HiringManager                @relation(fields: [hiringManagerId], references: [id], onDelete: Cascade)
-
-  dueAt       DateTime
-  requestedAt DateTime?
-  submittedAt DateTime?
-
-  howIsItGoingRating Int? // 1-5
-  wouldHireAgain     Boolean?
-  notes              String?  @db.Text
-
-  createdAt DateTime @default(now())
-
-  @@index([hiringManagerId])
-  @@index([dueAt])
 }
 
 // ============================================================================
