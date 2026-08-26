@@ -925,6 +925,14 @@ model CandidateProfile {
   // to follow up on applications you've submitted?" Paired with
   // applicationVolumeGoal above under the same gate section.
   willingToFollowUpOnApplications Boolean?
+  // Board Advisory Work willingness — "are you willing to take unpaid board
+  // positions to fill in resume gaps, keep skills current, and build new
+  // experience?" Asked once on Search Strategy; re-asked at the top of
+  // Interim Work for anyone who hasn't said yes yet (see
+  // setBoardAdvisoryWillingness) — a yes from either entry point unlocks the
+  // Board Advisory Work section, so this is one field, not two. Optional/
+  // best-effort — deliberately NOT part of isSearchStrategyGateComplete.
+  boardAdvisoryWillingness        Boolean?
   isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
@@ -2502,6 +2510,31 @@ enum EmployerSeatRole {
   MEMBER
 }
 
+// Distinguishes the kind of opportunity a RoleProfile represents — every
+// existing row is FULL_TIME (the only kind before this field existed).
+// Deliberately kept as one model with a type discriminator rather than a
+// separate model per type, so matching (computeMatchScore,
+// getCandidatesLookingForYourRoles), candidate review (CandidateInteraction,
+// CandidateCard), and posting (RoleForm/createRole) all keep working against
+// the shape they already know.
+enum RoleProfileType {
+  FULL_TIME
+  BOARD_PAID
+  BOARD_UNPAID
+  CONSULTING_PAID
+  CONSULTING_UNPAID
+}
+
+// Makes "comp optional" and "comp to be discussed based on experience" real,
+// distinct states instead of overloading a null compMin/compMax (which
+// already means "unspecified" for ordinary full-time roles) with a second,
+// ambiguous meaning.
+enum CompArrangement {
+  FIXED_RANGE
+  OPEN_TO_DISCUSS
+  UNPAID
+}
+
 model RoleProfile {
   id           String          @id @default(cuid())
   employerId   String
@@ -2510,6 +2543,14 @@ model RoleProfile {
   updatedAt    DateTime        @updatedAt
   isActive     Boolean         @default(true)
   isSampleData Boolean         @default(false)
+
+  type            RoleProfileType @default(FULL_TIME)
+  // Optional free-text description of the opportunity — RoleProfile never
+  // had one before (success30/90/180Days served as a description-equivalent
+  // for full-time roles), but board/consulting postings need a plain
+  // description since they don't fit that 30/60/90 framing.
+  description     String?         @db.Text
+  compArrangement CompArrangement @default(FIXED_RANGE)
 
   roleTitle           String
   roleLevel           String?
@@ -2551,6 +2592,7 @@ model RoleProfile {
   candidateInteractions CandidateInteraction[]
 
   @@index([employerId, isActive])
+  @@index([employerId, isActive, type])
 }
 
 model SavedSearch {
@@ -2964,7 +3006,7 @@ model MarketRealityComponentScore {
   startingBand          String? // 'A'-'F' — same value as `grade`, re-read here for narrative clarity once `grade` stops being "the" grade
   perAttemptProbability Float? // current per-attempt interview-probability estimate, band-midpoint seeded, adjusted by calibration.ts
   rollingAttempts       Int? // weighted attempts (applications + 4x networking) in the current rolling window
-  rollingWindowWeeks    Int      @default(10) // estimate, 8-12 week band — stored so it's inspectable/tunable without a redeploy
+  rollingWindowWeeks    Int       @default(10) // estimate, 8-12 week band — stored so it's inspectable/tunable without a redeploy
   cumulativeProbability Float? // 1-(1-p)^N over rollingAttempts — "how likely you've been pulled at least once"
   probabilityGrade      String? // "A"-"F" — THE candidate-facing Market Reality Grade
   probabilityComputedAt DateTime?
@@ -3035,8 +3077,8 @@ model MilestoneBadge {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  badgeKey String // "CLEANED_UP" | "CONNECTED" | "ASKED" | "BACKED" | "KNOWN" | "CONSISTENT" | "DOCUMENTED"
-  earnedAt DateTime @default(now())
+  badgeKey   String // "CLEANED_UP" | "CONNECTED" | "ASKED" | "BACKED" | "KNOWN" | "CONSISTENT" | "DOCUMENTED"
+  earnedAt   DateTime  @default(now())
   // null = the badge-earned email/popup hasn't been shown yet. Set the
   // moment either fires — see computeMilestoneBadges and
   // getPendingBadgeNotices/acknowledgeBadgeNotices, same shape as
@@ -7902,8 +7944,8 @@ model CrucibleContest {
   employerId String
   employer   CrucibleEmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
 
-  title           String
-  businessProblem String  @db.Text
+  title             String
+  businessProblem   String  @db.Text
   referenceFilePath String? // crucible-contest-files bucket, public-URL posture (employer knowingly shares it with candidates)
   referenceFileName String?
 
