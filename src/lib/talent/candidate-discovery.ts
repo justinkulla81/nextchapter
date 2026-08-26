@@ -9,7 +9,17 @@ import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 
 type ActiveRole = Pick<
   RoleProfile,
-  'id' | 'roleTitle' | 'primaryFunction' | 'roleLevel' | 'locationRequirement' | 'remotePolicy' | 'compMin' | 'compMax'
+  | 'id'
+  | 'roleTitle'
+  | 'primaryFunction'
+  | 'roleLevel'
+  | 'locationRequirement'
+  | 'remotePolicy'
+  | 'compMin'
+  | 'compMax'
+  | 'type'
+  | 'description'
+  | 'compArrangement'
 >
 
 const CANDIDATE_SELECT = {
@@ -75,7 +85,19 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
     prisma.employerProfile.findUnique({ where: { id: employerId }, select: { companySize: true } }),
     prisma.roleProfile.findMany({
       where: { employerId, isActive: true },
-      select: { id: true, roleTitle: true, primaryFunction: true, roleLevel: true, locationRequirement: true, remotePolicy: true, compMin: true, compMax: true },
+      select: {
+        id: true,
+        roleTitle: true,
+        primaryFunction: true,
+        roleLevel: true,
+        locationRequirement: true,
+        remotePolicy: true,
+        compMin: true,
+        compMax: true,
+        type: true,
+        description: true,
+        compArrangement: true,
+      },
     }),
   ])
   if (roles.length === 0) return []

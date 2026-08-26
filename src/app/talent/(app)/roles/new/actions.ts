@@ -6,6 +6,10 @@ import { prisma } from '@/lib/prisma'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { extractRoleFromJD, type ExtractedRoleFields } from '@/lib/roles/extract-role-from-jd'
 import { captureServerEvent } from '@/lib/posthog/server'
+import type { CompArrangement, RoleProfileType } from '@prisma/client'
+
+const ROLE_PROFILE_TYPES: RoleProfileType[] = ['FULL_TIME', 'BOARD_PAID', 'BOARD_UNPAID', 'CONSULTING_PAID', 'CONSULTING_UNPAID']
+const UNPAID_TYPES = new Set<RoleProfileType>(['BOARD_UNPAID', 'CONSULTING_UNPAID'])
 
 export type RoleFormState = { error?: string } | undefined
 
@@ -22,19 +26,37 @@ export async function createRole(_prevState: RoleFormState, formData: FormData):
   const roleTitle = (formData.get('roleTitle') as string | null)?.trim()
   if (!roleTitle) return { error: 'Please enter a role title.' }
 
+  const typeRaw = formData.get('type') as string | null
+  const type: RoleProfileType = ROLE_PROFILE_TYPES.includes(typeRaw as RoleProfileType)
+    ? (typeRaw as RoleProfileType)
+    : 'FULL_TIME'
+  const description = (formData.get('description') as string | null)?.trim() || null
   const primaryFunction = (formData.get('primaryFunction') as string | null) || null
   const roleLevel = (formData.get('roleLevel') as string | null) || null
   const locationRequirement = (formData.get('locationRequirement') as string | null)?.trim() || null
   const remotePolicy = (formData.get('remotePolicy') as string | null) || null
+
+  // Server-side normalization, not trusted from the client form state — an
+  // unpaid type or a "discuss later" arrangement never gets a numeric comp
+  // range, regardless of what hidden fields happened to be submitted.
+  const compArrangementRaw = formData.get('compArrangement') as string | null
+  const compArrangement: CompArrangement = UNPAID_TYPES.has(type)
+    ? 'UNPAID'
+    : compArrangementRaw === 'OPEN_TO_DISCUSS'
+      ? 'OPEN_TO_DISCUSS'
+      : 'FIXED_RANGE'
   const compMinRaw = formData.get('compMin') as string | null
   const compMaxRaw = formData.get('compMax') as string | null
-  const compMin = compMinRaw ? Number(compMinRaw) : null
-  const compMax = compMaxRaw ? Number(compMaxRaw) : null
+  const compMin = compArrangement === 'FIXED_RANGE' && compMinRaw ? Number(compMinRaw) : null
+  const compMax = compArrangement === 'FIXED_RANGE' && compMaxRaw ? Number(compMaxRaw) : null
   const viaJdExtraction = formData.get('viaJdExtraction') === 'on'
 
   const role = await prisma.roleProfile.create({
     data: {
       employerId: employer.id,
+      type,
+      description,
+      compArrangement,
       roleTitle,
       primaryFunction,
       roleLevel,
@@ -45,7 +67,7 @@ export async function createRole(_prevState: RoleFormState, formData: FormData):
     },
   })
 
-  captureServerEvent(employer.id, 'role_posted', { roleId: role.id, employerId: employer.id, viaJdExtraction })
+  captureServerEvent(employer.id, 'role_posted', { roleId: role.id, employerId: employer.id, viaJdExtraction, type })
 
   redirect(`/talent/roles/${role.id}`)
 }
