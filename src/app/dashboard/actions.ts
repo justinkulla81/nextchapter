@@ -38,6 +38,7 @@ import { clampMulti } from '@/lib/forms/clamp-multi'
 import { MOTIVATIONS_MAX } from '@/lib/constants/onboarding'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import type { PassiveToActiveTrigger } from '@/lib/dashboard/passive-to-active-prompt'
+import type { StalledSearchTier } from '@/lib/dashboard/stalled-search-prompt'
 
 export async function signOut() {
   const supabase = await createClient()
@@ -277,6 +278,53 @@ export async function respondToPassiveToActivePrompt(
   captureServerEvent(profile.id, event, { trigger })
 
   revalidatePath('/dashboard')
+}
+
+// "Stalled despite hitting goals" nudge — same shown/respond split as the
+// Passive-to-Active prompt above, for the same reason: evaluateStalledSearchPrompt
+// (src/lib/dashboard/stalled-search-prompt.ts) is read-only, so the 14-day
+// throttle only advances once StalledSearchPromptCard actually renders.
+export async function recordStalledSearchPromptShown(tier: StalledSearchTier, weeksStreak: number) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { stalledSearchPromptLastShownAt: new Date() },
+  })
+  captureServerEvent(profile.id, 'stalled_search_prompt_shown', { tier, weeksStreak })
+}
+
+export async function respondToStalledSearchPrompt(
+  choice: 'ACKNOWLEDGED' | 'DONT_ASK_AGAIN',
+  tier: StalledSearchTier
+) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  if (choice === 'DONT_ASK_AGAIN') {
+    await prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: { stalledSearchPromptDontAskAgain: true },
+    })
+  }
+
+  captureServerEvent(
+    profile.id,
+    choice === 'ACKNOWLEDGED' ? 'stalled_search_prompt_acknowledged' : 'stalled_search_prompt_dont_ask_again',
+    { tier }
+  )
+
+  revalidatePath('/dashboard')
+}
+
+export type StalledSearchSuggestion = 'FIT_CHECK' | 'ALTERNATIVE_TARGET' | 'INTERIM_WORK' | 'COACH' | 'EXECUTIVE_PLAN'
+
+export async function recordStalledSearchSuggestionClicked(suggestion: StalledSearchSuggestion, tier: StalledSearchTier) {
+  const profile = await getAuthedProfile()
+  if (!profile) return
+
+  captureServerEvent(profile.id, 'stalled_search_suggestion_clicked', { suggestion, tier })
 }
 
 // The "How motivated are you today?" card's X — dismissal only lasts through

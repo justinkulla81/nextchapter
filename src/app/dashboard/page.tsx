@@ -16,6 +16,8 @@ import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { getTodaysMood, getCheckInSummary, startOfUTCDay, getSentimentAlert } from '@/lib/daily/mood'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
+import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
+import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
 import {
   getCurrentWeekSprint,
   getSuggestedActions,
@@ -147,6 +149,7 @@ export default async function DashboardPage() {
     needsFollowUp,
     priorityContacts,
     passiveToActivePrompt,
+    stalledSearchPrompt,
     dossierCompleteness,
     dossierStatus,
     resumeFixes,
@@ -182,6 +185,9 @@ export default async function DashboardPage() {
     // §10-12 — read-only trigger check; PassiveToActivePromptCard records
     // "shown" itself once it actually renders (see that component).
     evaluatePassiveToActivePrompt(profile.id),
+    // Same read-only, records-on-render contract, for the "hitting your
+    // goals but no interviews" nudge — see stalled-search-prompt.ts.
+    evaluateStalledSearchPrompt(profile.id),
     // Build Your Dossier summary (condensed here, full checklist + "what
     // moves the needle" lives on /dashboard/portfolio — this card links
     // through rather than duplicating it) and the Executive Dossier
@@ -422,6 +428,8 @@ export default async function DashboardPage() {
       </div>
 
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
+
+      {stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
 
       {(showGotHiredCTA || needsCoachingForm) && (
         <div className="space-y-4">

@@ -639,6 +639,14 @@ model CandidateProfile {
   passiveToActivePromptLastShownAt  DateTime?
   passiveToActivePromptDontAskAgain Boolean   @default(false)
 
+  // Same timestamp+boolean throttle shape as passiveToActivePrompt* above,
+  // for the "hitting your weekly goals but no interviews" nudge (see
+  // src/lib/dashboard/stalled-search-prompt.ts) — a shorter 14-day cooldown
+  // there, since this is feedback on an ongoing situation rather than a
+  // one-off life event.
+  stalledSearchPromptLastShownAt  DateTime?
+  stalledSearchPromptDontAskAgain Boolean   @default(false)
+
   // Baseline snapshot for the "persona changed from Worried to Laid off"
   // trigger (§11). Set whenever confidentialSearchMode transitions to true
   // (onboarding default in updateSituation, or the settings toggle in
