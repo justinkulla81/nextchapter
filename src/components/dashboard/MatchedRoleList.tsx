@@ -1,15 +1,7 @@
 import type { MatchedRole } from '@/lib/matching/candidate-role-matches'
 import { expressInterestInRole } from '@/lib/matching/express-interest-in-role'
+import { formatRoleComp } from '@/lib/matching/format-comp'
 import { SubmitButton } from '@/components/ui/submit-button'
-
-function formatComp(role: Pick<MatchedRole, 'compArrangement' | 'compMin' | 'compMax'>): string {
-  if (role.compArrangement === 'UNPAID') return 'Unpaid'
-  if (role.compArrangement === 'OPEN_TO_DISCUSS') return 'Open to discuss'
-  if (role.compMin && role.compMax) return `$${role.compMin.toLocaleString()} – $${role.compMax.toLocaleString()}`
-  if (role.compMin) return `From $${role.compMin.toLocaleString()}`
-  if (role.compMax) return `Up to $${role.compMax.toLocaleString()}`
-  return 'Not specified'
-}
 
 const TYPE_LABEL: Record<string, string> = {
   FULL_TIME: 'Full-time',
@@ -36,7 +28,7 @@ export function MatchedRoleList({ roles, emptyMessage }: { roles: MatchedRole[];
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-              {formatComp(role)}
+              {formatRoleComp(role)}
             </span>
           </div>
           {role.description && <p className="mt-2 text-sm text-muted-foreground">{role.description}</p>}

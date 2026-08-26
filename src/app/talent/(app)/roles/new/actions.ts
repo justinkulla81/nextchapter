@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { extractRoleFromJD, type ExtractedRoleFields } from '@/lib/roles/extract-role-from-jd'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { triggerRoleMatchNotifications } from '@/lib/roles/notify-strong-fit-candidates'
 import type { CompArrangement, RoleProfileType } from '@prisma/client'
 
 const ROLE_PROFILE_TYPES: RoleProfileType[] = ['FULL_TIME', 'BOARD_PAID', 'BOARD_UNPAID', 'CONSULTING_PAID', 'CONSULTING_UNPAID']
@@ -68,6 +69,19 @@ export async function createRole(_prevState: RoleFormState, formData: FormData):
   })
 
   captureServerEvent(employer.id, 'role_posted', { roleId: role.id, employerId: employer.id, viaJdExtraction, type })
+
+  // Awaited, not fire-and-forget — a serverless function can be frozen
+  // right after redirect() sends its response, which would silently kill
+  // in-flight email sends. Promise.allSettled inside already parallelizes
+  // every candidate's send, so the added latency here is bounded by one
+  // Resend round-trip, not one per candidate. A notification failure must
+  // never block the redirect itself, though — the role is already created
+  // and real either way.
+  try {
+    await triggerRoleMatchNotifications(role.id)
+  } catch (error) {
+    console.error('Failed to trigger role match notifications:', error)
+  }
 
   redirect(`/talent/roles/${role.id}`)
 }
