@@ -8,6 +8,7 @@
 // attached, since it's what triggers Victoria's supportive reframe.
 
 import { extractDomain, extractEmailAddress } from './email-address'
+import { matchRecruiterRoleMention } from '@/lib/text/recruiter-role'
 
 export interface PatternMatch {
   matched: boolean
@@ -558,13 +559,29 @@ const KNOWN_RECRUITING_FIRM_DOMAINS = new Set([
   'truesearch.com',
 ])
 
+// A boutique/independent recruiter's SECOND-OR-LATER message (a follow-up
+// asking to schedule a call, after an initial intro) very rarely repeats
+// any of the first-touch phrasing above ("I'm a recruiter at," "came across
+// your profile") and almost never comes from a domain on the curated list
+// below — there's no realistic way to keep that list current against the
+// long tail of independent search firms. But it does usually still carry
+// the sender's own job title somewhere (a signature line like "Principal
+// Recruitment Consultant") — the same domain-agnostic signal
+// matchRecruiterRoleMention already uses for the separate isRecruiterContact
+// tag in sync-gmail.ts. Reusing it here is what actually closes the gap:
+// confirmed against a real production email (a follow-up asking "When are
+// you free for a quick call today or tomorrow?" from a domain outside the
+// list and phrasing outside RECRUITER_OUTREACH_HIGH_CONFIDENCE) that
+// classified NEEDS_REVIEW despite already being tagged isRecruiterContact —
+// the two signals disagreed with each other for no good reason.
 export function matchRecruiterOutreach(subject: string, bodyPreview: string, fromAddress: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
   const domain = extractDomain(fromAddress)
   if (
     testAny(text, RECRUITER_OUTREACH_HIGH_CONFIDENCE) ||
     testAny(fromAddress, RECRUITER_SENDER_DOMAIN_HINTS) ||
-    (domain && KNOWN_RECRUITING_FIRM_DOMAINS.has(domain))
+    (domain && KNOWN_RECRUITING_FIRM_DOMAINS.has(domain)) ||
+    matchRecruiterRoleMention(text)
   ) {
     return { matched: true, confidence: 'high' }
   }
