@@ -4039,6 +4039,11 @@ model TrackedEmailActivity {
   connectionId        String
   connection          EmailConnection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   externalMessageId   String // Gmail message id — dedupe key alongside connectionId
+  // Gmail thread id — every message in a back-and-forth (a recruiter's
+  // follow-up, a scheduling exchange) shares one, so a candidate's dashboard
+  // lists can collapse to one row per real conversation instead of one per
+  // message. Null on rows synced before this field existed.
+  threadId            String?
   direction           EmailDirection
   activityType        EmailActivityType
   confidence          String // 'high' | 'low' — low lands in NEEDS_REVIEW regardless of a guessed type
@@ -4054,6 +4059,7 @@ model TrackedEmailActivity {
 
   @@unique([connectionId, externalMessageId])
   @@index([candidateId, activityType])
+  @@index([candidateId, threadId])
 }
 
 // Prompt 79 — Calendar Connect. Same testing-mode posture as EmailConnection

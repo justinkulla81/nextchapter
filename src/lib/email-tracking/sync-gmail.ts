@@ -122,6 +122,7 @@ interface GmailPart {
 }
 interface GmailMessage {
   id: string
+  threadId?: string
   payload?: { headers?: GmailHeader[] } & GmailPart
 }
 
@@ -308,6 +309,7 @@ async function processMessage(
   if (insufficientScope) return 'insufficient_scope'
   if (!message) return 'skipped'
 
+  const threadId = message.threadId ?? null
   const subject = getHeader(message.payload?.headers, 'Subject')
   const from = getHeader(message.payload?.headers, 'From')
   const to = getHeader(message.payload?.headers, 'To')
@@ -389,6 +391,7 @@ async function processMessage(
       candidateId: connection.candidateId,
       connectionId: connection.id,
       externalMessageId: messageId,
+      threadId,
       direction,
       activityType: classification.activityType,
       confidence: classification.confidence,
