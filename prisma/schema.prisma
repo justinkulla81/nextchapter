@@ -695,6 +695,13 @@ model CandidateProfile {
   // not opt-in, and isn't sufficient consent for a matching/ranking surface.
   recruiterDatabaseOptIn       Boolean   @default(false)
   recruiterDatabaseRequestedAt DateTime?
+  // Set on every explicit toggle (either direction), from either surface
+  // (find-my-job's card or the Privacy page's button) — distinct from
+  // recruiterDatabaseRequestedAt above, which is opt-in-only and cleared on
+  // opt-out. Lets find-my-job's card collapse to a compact settled-state
+  // summary once the candidate has actually made a choice, instead of
+  // showing the full form forever — see setRecruiterDatabaseOptIn.
+  recruiterVisibilityConfirmedAt DateTime?
   // Set when the "new great candidate" blast has been sent to recruiters for
   // this candidate (auto or admin-triggered) — the admin Recruiter Database
   // page's "requested" bucket. Distinct from recruiterDatabaseRequestedAt
@@ -712,6 +719,12 @@ model CandidateProfile {
   // shipped. A candidate who wants out unchecks it there or flips it off on
   // the Privacy page at any time.
   resumeBookOptIn Boolean @default(true)
+  // Set on every explicit toggle, from either surface (the upload form's
+  // checkbox or the Privacy page's button) — the silent default above never
+  // sets this on its own. Lets find-my-job's card collapse to a compact
+  // settled-state summary once the candidate has actually made a choice —
+  // see setResumeBookOptIn and uploadResume.
+  resumeBookOptInConfirmedAt DateTime?
 
   // §4.3: LinkedIn posting through NextChapter's own integration is
   // disabled by default while Confidential Search Mode is on — this is the

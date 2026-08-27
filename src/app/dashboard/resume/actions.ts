@@ -56,12 +56,17 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   const coachId = cookieStore.get('nc_coach')?.value
   const profile = await getOrCreateCandidateProfile(user.id, { coachId })
 
+  // Always recorded, even when the checkbox's value matches what was
+  // already stored (the common case, since it renders pre-checked to match
+  // the true default) — seeing and submitting the disclosure is itself the
+  // "answered" signal find-my-job's card checks for, not just a changed
+  // value. See resumeBookOptInConfirmedAt's schema comment.
   const includeInResumeBook = formData.get('includeInResumeBook') === 'on'
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { resumeBookOptIn: includeInResumeBook, resumeBookOptInConfirmedAt: new Date() },
+  })
   if (includeInResumeBook !== profile.resumeBookOptIn) {
-    await prisma.candidateProfile.update({
-      where: { id: profile.id },
-      data: { resumeBookOptIn: includeInResumeBook },
-    })
     captureServerEvent(profile.id, includeInResumeBook ? 'resume_book_opt_in' : 'resume_book_opt_out', {
       source: 'resume_upload',
     })

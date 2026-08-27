@@ -209,6 +209,7 @@ export async function setRecruiterDatabaseOptIn(optIn: boolean): Promise<void> {
     data: {
       recruiterDatabaseOptIn: optIn,
       recruiterDatabaseRequestedAt: optIn ? new Date() : null,
+      recruiterVisibilityConfirmedAt: new Date(),
     },
   })
 
@@ -229,7 +230,7 @@ export async function setResumeBookOptIn(optIn: boolean): Promise<void> {
 
   await prisma.candidateProfile.update({
     where: { id: profile.id },
-    data: { resumeBookOptIn: optIn },
+    data: { resumeBookOptIn: optIn, resumeBookOptInConfirmedAt: new Date() },
   })
 
   captureServerEvent(profile.id, optIn ? 'resume_book_opt_in' : 'resume_book_opt_out', { source: 'privacy_page' })

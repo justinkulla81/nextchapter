@@ -713,44 +713,48 @@ async function FindMyJobBody({
         </div>
 
         <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          <div className="p-4">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
-                <FileText className="size-3.5" aria-hidden />
-              </span>
-              <p className="text-sm font-semibold text-foreground">Resume Book</p>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Recruiters and hiring managers browsing by role can find your resume here.
-            </p>
-            <div className="mt-3">
-              <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
-            </div>
-          </div>
-
-          <div className="p-4">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-light-blue/10 text-light-blue">
-                <Users className="size-3.5" aria-hidden />
-              </span>
-              <p className="text-sm font-semibold text-foreground">Executive Recruiters</p>
-            </div>
-            {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
+          {!profile.resumeBookOptInConfirmedAt && (
+            <div className="p-4">
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+                  <FileText className="size-3.5" aria-hidden />
+                </span>
+                <p className="text-sm font-semibold text-foreground">Resume Book</p>
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Your Dossier is unlocked — recruiters can already find you.
+                Recruiters and hiring managers browsing by role can find your resume here.
               </p>
-            ) : (
-              <>
+              <div className="mt-3">
+                <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
+              </div>
+            </div>
+          )}
+
+          {!profile.recruiterVisibilityConfirmedAt && (
+            <div className="p-4">
+              <div className="flex items-center gap-2.5">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-light-blue/10 text-light-blue">
+                  <Users className="size-3.5" aria-hidden />
+                </span>
+                <p className="text-sm font-semibold text-foreground">Executive Recruiters</p>
+              </div>
+              {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Recruiters can find and reach out to you directly once your Dossier unlocks — opt in any time so
-                  you&apos;re ready.
+                  Your Dossier is unlocked — recruiters can already find you.
                 </p>
-                <div className="mt-3">
-                  <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
-                </div>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Recruiters can find and reach out to you directly once your Dossier unlocks — opt in any time so
+                    you&apos;re ready.
+                  </p>
+                  <div className="mt-3">
+                    <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="p-4">
             <div className="flex items-center gap-2.5">
@@ -1428,6 +1432,20 @@ async function FindMyJobBody({
           Go to Interview Prep →
         </Link>
       </div>
+
+      {(profile.resumeBookOptInConfirmedAt || profile.recruiterVisibilityConfirmedAt) && (
+        <div className="space-y-1.5 border-t border-border pt-6 text-xs text-muted-foreground">
+          {profile.resumeBookOptInConfirmedAt && (
+            <p>Resume Book: {profile.resumeBookOptIn ? 'included' : 'not included'}</p>
+          )}
+          {profile.recruiterVisibilityConfirmedAt && (
+            <p>Executive Recruiters: {profile.recruiterDatabaseOptIn ? 'opted in' : 'not opted in'}</p>
+          )}
+          <Link href="/dashboard/privacy" className="inline-block underline underline-offset-4">
+            Manage in Privacy Settings →
+          </Link>
+        </div>
+      )}
 
       <GuideCallout pageSlot="find-my-job" currentJobStatus={profile.currentJobStatus} />
     </>
