@@ -157,6 +157,18 @@ const REJECTION_HIGH_CONFIDENCE = [
   // position for the Vice President, Corporate Strategy role." — a direct
   // rejection that doesn't use "decided"/"chosen"/"not selected" at all.
   /unable to offer you a position/i,
+  // Real production miss (Franklin Templeton, via Workday): "Thank you for
+  // applying to the Portfolio Manager, Private Markets role. At this time,
+  // due to business reasons, we are no longer recruiting for this
+  // position." Opens with the exact "thank you for applying" boilerplate
+  // APPLICATION_CONFIRMATION_HIGH_CONFIDENCE matches, and its own rejection
+  // phrasing ("no longer recruiting for this position") didn't match the
+  // similarly-worded pattern directly above it ("no longer being
+  // filled/pursued/closed") — different verb, different clause order. Since
+  // matchRejection is checked before matchApplicationConfirmation, adding
+  // this here is enough to win the priority race without touching
+  // classify-email.ts itself.
+  /no longer (recruiting|hiring) for (this|the) (position|role)/i,
 ]
 // "Unfortunately" alone used to be in this list — dropped because it's a
 // single common English word that matches any unrelated marketing or
