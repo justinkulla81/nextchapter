@@ -35,7 +35,7 @@ const SOURCE_LABEL: Record<string, string> = {
 
 const AUDIENCE_TIER_LABEL: Record<string, string> = {
   ALL_CANDIDATES: 'All candidates',
-  A_LIST_ONLY: 'A-List only',
+  A_LIST_ONLY: 'Candidate+ only',
 }
 
 const DISTRIBUTION_LABEL: Record<string, string> = {

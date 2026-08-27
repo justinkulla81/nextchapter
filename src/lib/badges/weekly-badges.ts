@@ -11,12 +11,13 @@ import { persistWeeklyBadgesAndNotify } from '@/lib/badges/badge-notifications'
 // LearningBadge, EncouragementNote, JobPosting), same "compute live, don't
 // store a duplicate" approach already used for src/lib/community/badges.ts.
 //
-// NAMING RULE: "A-List" means the real, multi-week Current Market Reality A
-// tier (job board unlock, Executive Dossier, Offer Bonus, recruiter
-// visibility — see find-my-job/page.tsx, portfolio/page.tsx). It must never
-// be used for WEEKLY_SPRINT_TARGET_HIT, which is a much easier weekly bar
-// (just this week's points target) — conflating the two overpromises real
-// benefits a candidate who merely had a good week hasn't actually unlocked.
+// NAMING RULE: "Candidate+" means the real Dossier-unlock tier (job board
+// unlock, Executive Dossier, Offer Bonus, recruiter visibility — see
+// isDossierUnlocked in scoring/dossier-unlock.ts, find-my-job/page.tsx,
+// portfolio/page.tsx). It must never be used for WEEKLY_SPRINT_TARGET_HIT,
+// which is a much easier weekly bar (just this week's points target) —
+// conflating the two overpromises real benefits a candidate who merely had
+// a good week hasn't actually unlocked.
 export type WeeklyBadgeKey =
   | 'WEEKLY_SPRINT_TARGET_HIT'
   | 'TEAM_PLAYER'

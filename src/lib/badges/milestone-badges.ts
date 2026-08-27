@@ -14,9 +14,9 @@ import { persistMilestoneBadgesAndNotify } from '@/lib/badges/badge-notification
 // approach as weekly-badges.ts. GAP_CLOSER is the one badge in this system
 // that can be earned more than once — see `count` on MilestoneBadgeStatus.
 //
-// NAMING RULE: none of these may use "A-List" — that name is reserved for
-// the real, multi-week Current Market Reality A tier, never the weekly
-// WEEKLY_SPRINT_TARGET_HIT badge (see weekly-badges.ts).
+// NAMING RULE: none of these may use "Candidate+" — that name is reserved
+// for the real Dossier-unlock tier, never the weekly WEEKLY_SPRINT_TARGET_HIT
+// badge (see weekly-badges.ts).
 // CLEANED_UP / ASKED / KNOWN / BACKED / CONSISTENT / DOCUMENTED are the six
 // Master Build Script §7.8 badges. CONNECTED (LinkedIn or Gmail linked) is
 // deliberately NOT one of them — §7.8: "does NOT qualify for Community...

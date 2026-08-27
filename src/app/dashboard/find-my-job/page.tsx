@@ -25,7 +25,7 @@ import { NextSurfacedJobCard } from '@/components/dashboard/NextSurfacedJobCard'
 import { InterestedJobsList } from '@/components/dashboard/InterestedJobsList'
 import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { DiscoverJobCard, LockedDiscoverJobCard } from '@/components/dashboard/DiscoverJobCard'
-import { UnlockAListCallout } from '@/components/dashboard/UnlockAListCallout'
+import { UnlockCandidatePlusCallout } from '@/components/dashboard/UnlockCandidatePlusCallout'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
@@ -56,6 +56,7 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { applicationCountToTier } from '@/lib/network/application-count-tier'
 import { MIN_APPLICATIONS_FOR_TRENDS, type ApplicationTrendsResult } from '@/lib/network/application-trends'
 import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
+import { dedupeByThread } from '@/lib/email-tracking/dedupe-by-thread'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
@@ -221,13 +222,13 @@ function JobRecommendationsSkeleton() {
 // Tracking, Application Tracker, Company Tracker) never blocks on them.
 async function JobRecommendationsSection({
   profile,
-  isAList,
+  isCandidatePlus,
   dossierReason,
   boardPostings,
   contacts,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
-  isAList: boolean
+  isCandidatePlus: boolean
   dossierReason: string
   boardPostings: Awaited<ReturnType<typeof prisma.exclusiveJobPosting.findMany>>
   contacts: {
@@ -284,10 +285,10 @@ async function JobRecommendationsSection({
   // the same unlock count as the locked job-board postings below so there's
   // one combined "unlocks with your Dossier" number for the whole Discover
   // list.
-  const visibleSurfacedJobs = isAList ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
-  const lockedSurfacedCount = isAList ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
-  const openBoardPostings = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isAList)
-  const lockedBoardPostings = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isAList)
+  const visibleSurfacedJobs = isCandidatePlus ? surfacedJobs : surfacedJobs.slice(0, SURFACED_JOB_FREE_PREVIEW)
+  const lockedSurfacedCount = isCandidatePlus ? 0 : Math.max(0, totalUnreactedCount - visibleSurfacedJobs.length)
+  const openBoardPostings = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isCandidatePlus)
+  const lockedBoardPostings = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isCandidatePlus)
 
   // computeBoardListingFitBucket/computeSurfacedJobFitBucket are synchronous
   // (called inline in the JSX below), but resolveCompanySizeBand isn't —
@@ -370,7 +371,7 @@ async function JobRecommendationsSection({
                 ]
                   .sort((a, b) => a.rank - b.rank)
                   .map((entry) => entry.node),
-                // Locked A-List-only postings paginate right after the real,
+                // Locked Candidate+-only postings paginate right after the real,
                 // unlocked ones in this same list — once you've paged past
                 // what's actually visible to you, the remaining pages are
                 // just the locked rows, not a separately boxed callout.
@@ -380,7 +381,7 @@ async function JobRecommendationsSection({
           </div>
 
           {(lockedBoardPostings.length > 0 || lockedSurfacedCount > 0) && (
-            <UnlockAListCallout
+            <UnlockCandidatePlusCallout
               reason={dossierReason}
               lockedCount={lockedBoardPostings.length + lockedSurfacedCount + boardPostings.length}
             />
@@ -504,17 +505,17 @@ async function FindMyJobBody({
     (latestReport?.jobSearchPattern as unknown as { applicationTrends: ApplicationTrendsResult | null } | null)
       ?.applicationTrends ?? null
 
-  const isAList = dossierStatus.unlocked
+  const isCandidatePlus = dossierStatus.unlocked
   // Scoped to just the companies already-applied-to postings mention — the
   // separate, larger set of companies from board/surfaced listings is
   // resolved independently inside JobRecommendationsSection so that slower
   // lookup never blocks this page's main render.
   const appliedCompanyNames = [...new Set(jobPostings.map((j) => j.companyName).filter((n): n is string => !!n))]
-  // Needs isAList to decide which A_LIST_ONLY postings this candidate can
+  // Needs isCandidatePlus to decide which A_LIST_ONLY postings this candidate can
   // actually open — can't join the barrier above since dossierStatus isn't
   // known until it resolves. Independent of appliedCompanyBands, so run together.
   const [watchlistView, appliedCompanyBands] = await Promise.all([
-    getWatchlistView(profile.id, isAList),
+    getWatchlistView(profile.id, isCandidatePlus),
     Promise.all(appliedCompanyNames.map((name) => resolveCompanySizeBand(name))),
   ])
   const companySizeBandByName = new Map(
@@ -617,7 +618,15 @@ async function FindMyJobBody({
           }),
         ])
       : [[], [], [], []]
-  const jobEmailCounts = jobEmailActivities.reduce<Record<string, number>>((acc, a) => {
+  // A recruiter's follow-up or a scheduling back-and-forth otherwise counts
+  // as a separate "contact"/"interview invite" per message in the thread —
+  // collapse to one row per real conversation before building any stat tile
+  // or count from these two. resumesSharedItems and calendar events are
+  // left alone: each outbound resume-share is a genuinely separate action,
+  // and calendar events don't share a Gmail threadId to collapse on anyway.
+  const dedupedJobEmailActivities = dedupeByThread(jobEmailActivities)
+  const dedupedEmailRecruiterContactItems = dedupeByThread(emailRecruiterContactItems)
+  const jobEmailCounts = dedupedJobEmailActivities.reduce<Record<string, number>>((acc, a) => {
     acc[a.activityType] = (acc[a.activityType] ?? 0) + 1
     return acc
   }, {})
@@ -631,10 +640,10 @@ async function FindMyJobBody({
   // inbound outreach or the candidate's own outbound reply/cold outreach to
   // one) plus calendar events whose title/description mentions a recruiter
   // role — not just the INBOUND-only RECRUITER_OUTREACH email category.
-  jobEmailCounts.RECRUITER_OUTREACH = emailRecruiterContactItems.length + calendarRecruiterContactItems.length
+  jobEmailCounts.RECRUITER_OUTREACH = dedupedEmailRecruiterContactItems.length + calendarRecruiterContactItems.length
   const jobStatTileItems: Record<string, StatTileItem[]> = {
     RECRUITER_OUTREACH: [
-      ...emailRecruiterContactItems.map(jobEmailItem),
+      ...dedupedEmailRecruiterContactItems.map(jobEmailItem),
       ...calendarRecruiterContactItems.map((e) => ({
         id: e.id,
         kind: 'calendar' as const,
@@ -642,9 +651,9 @@ async function FindMyJobBody({
         date: e.startTime,
       })),
     ],
-    INTERVIEW_INVITE: jobEmailActivities.filter((a) => a.activityType === 'INTERVIEW_INVITE').map(jobEmailItem),
-    REJECTION: jobEmailActivities.filter((a) => a.activityType === 'REJECTION').map(jobEmailItem),
-    OFFER: jobEmailActivities.filter((a) => a.activityType === 'OFFER').map(jobEmailItem),
+    INTERVIEW_INVITE: dedupedJobEmailActivities.filter((a) => a.activityType === 'INTERVIEW_INVITE').map(jobEmailItem),
+    REJECTION: dedupedJobEmailActivities.filter((a) => a.activityType === 'REJECTION').map(jobEmailItem),
+    OFFER: dedupedJobEmailActivities.filter((a) => a.activityType === 'OFFER').map(jobEmailItem),
   }
   const JOB_EMAIL_LABEL: Record<string, string> = {
     RECRUITER_OUTREACH: 'Recruiter contact',
@@ -726,7 +735,7 @@ async function FindMyJobBody({
               </span>
               <p className="text-sm font-semibold text-foreground">Executive Recruiters</p>
             </div>
-            {isAList && profile.recruiterDatabaseOptIn ? (
+            {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
               <p className="mt-1 text-xs text-muted-foreground">
                 Your Dossier is unlocked — recruiters can already find you.
               </p>
@@ -777,7 +786,7 @@ async function FindMyJobBody({
               <Suspense fallback={<JobRecommendationsSkeleton />}>
                 <JobRecommendationsSection
                   profile={profile}
-                  isAList={isAList}
+                  isCandidatePlus={isCandidatePlus}
                   dossierReason={dossierStatus.reason}
                   boardPostings={boardPostings}
                   contacts={contacts}

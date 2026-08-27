@@ -6,9 +6,9 @@ import { CATEGORY_MINIMUM_ENFORCED_FROM_WEEK, WEEKLY_ENGINE_LABEL } from '@/lib/
 import type { Grade, WeeklyEngine } from '@/lib/scoring/grade'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 
-// What's blocking an A, in the same terms as UnlockAListCallout on the
-// dashboard — kept in sync deliberately, since this is the email version of
-// that same message rather than a separate one invented for here.
+// What's blocking an A, in the same terms as UnlockCandidatePlusCallout on
+// the dashboard — kept in sync deliberately, since this is the email version
+// of that same message rather than a separate one invented for here.
 function buildGapSummary(
   grade: Grade,
   weeklySprintsCount: number,

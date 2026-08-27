@@ -6,7 +6,7 @@ import { isWeakFit, type FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 
 export interface CoachJobsSnapshot {
-  isAList: boolean
+  isCandidatePlus: boolean
   openPostings: (ExclusiveJobPosting & { fitBucket: FitBucket })[]
   lockedCount: number
   surfacedJobs: (SurfacedJob & { fitBucket: FitBucket })[]
@@ -39,9 +39,9 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
     }),
   ])
 
-  const isAList = dossierStatus.unlocked
-  const eligible = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isAList)
-  const lockedCount = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isAList).length
+  const isCandidatePlus = dossierStatus.unlocked
+  const eligible = boardPostings.filter((p) => p.audienceTier === 'ALL_CANDIDATES' || isCandidatePlus)
+  const lockedCount = boardPostings.filter((p) => p.audienceTier === 'A_LIST_ONLY' && !isCandidatePlus).length
 
   const openPostings = eligible
     .map((p) => ({ ...p, fitBucket: computeBoardListingFitBucket(candidate, p) }))
@@ -52,5 +52,5 @@ export async function getCoachJobsSnapshot(candidateId: string): Promise<CoachJo
     fitBucket: computeSurfacedJobFitBucket(candidate, job),
   }))
 
-  return { isAList, openPostings, lockedCount, surfacedJobs }
+  return { isCandidatePlus, openPostings, lockedCount, surfacedJobs }
 }

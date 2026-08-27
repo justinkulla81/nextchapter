@@ -42,13 +42,14 @@ function IdealMatchBadge() {
   return <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Ideal match</span>
 }
 
-// A-List-only listing a non-A candidate can't see yet — shown masked
-// rather than omitted, so the board itself is a visible reason to reach an
-// A instead of a wall these candidates never even know exists. Real title
-// and location are shown (never the company name, which is the actual A-
-// List-only reveal) — a flush row in the same list as the unlocked cards
-// above it, styled like Application Tracker rows rather than a separately
-// boxed/tinted callout, so the list reads as one continuous list.
+// Candidate+-only listing a candidate without it can't see yet — shown
+// masked rather than omitted, so the board itself is a visible reason to
+// unlock Candidate+ instead of a wall these candidates never even know
+// exists. Real title and location are shown (never the company name, which
+// is the actual Candidate+-only reveal) — a flush row in the same list as
+// the unlocked cards above it, styled like Application Tracker rows rather
+// than a separately boxed/tinted callout, so the list reads as one
+// continuous list.
 export function LockedDiscoverJobCard({ posting }: { posting: Pick<ExclusiveJobPosting, 'title' | 'location'> }) {
   return (
     <div className="flex items-start gap-2 px-4 py-3">

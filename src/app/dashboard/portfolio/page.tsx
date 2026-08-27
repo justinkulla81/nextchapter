@@ -72,7 +72,7 @@ export default async function PortfolioPage() {
   const latestResume = profile.resumes[0]
   const coverLettersCount = profile.jobPostings.filter((j) => !!j.coverLetter).length
   const hasCoachDossierAccess = profile.coachId !== null && profile.coachDossierConsentedAt !== null
-  const isAList = dossierStatus.unlocked
+  const isCandidatePlus = dossierStatus.unlocked
   const completedReferenceCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // Same categories the "My Portfolio" nav badge counts (see
@@ -152,7 +152,7 @@ export default async function PortfolioPage() {
           </CardContent>
         </Card>
 
-        {isAList ? (
+        {isCandidatePlus ? (
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">Executive Dossier</CardTitle>

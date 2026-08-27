@@ -327,7 +327,7 @@ export interface CalibrationMessage {
 // externally caused and says so plainly; an individual-level move never
 // blames a market shift that isn't actually happening. Upward calibration
 // (either case) gets the same warm, matter-of-fact tone as other genuinely
-// good news in the product (e.g. an A-List crossing).
+// good news in the product (e.g. unlocking Candidate+).
 export function getCalibrationMessage(
   check: Pick<CalibrationCheckResult, 'bandCrossed' | 'aggregateCorroborated'>,
   direction: 'UNDER' | 'OVER',

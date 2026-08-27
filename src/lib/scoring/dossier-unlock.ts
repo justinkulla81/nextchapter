@@ -169,7 +169,7 @@ export async function computeDossierCompleteness(candidateId: string): Promise<D
 // aspirational, all-7-requirements checklist shown on the Portfolio page.
 // "Unlocked" is the actual bar for every feature gate that used to check
 // the old six-category letter grade (bounty claims, Exclusive Jobs,
-// A-List postings, recruiter visibility, etc.) — real evidence and real
+// Candidate+ postings, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
 export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
 const DOSSIER_UNLOCK_OUTREACH_TARGET = 5

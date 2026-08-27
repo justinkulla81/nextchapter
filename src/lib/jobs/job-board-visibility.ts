@@ -3,9 +3,13 @@
 // admin has its own ExclusiveJobPostingForm) so the three pickers read
 // identically everywhere a posting gets created.
 
+// 'A_LIST_ONLY' is the persisted value (ExclusiveJobPosting.audienceTier) —
+// left as-is rather than renamed, since it's never shown to a user and
+// renaming a value already written to real rows is a migration, not a copy
+// fix. Only the display label needs to say "Candidate+" now.
 export const AUDIENCE_TIER_OPTIONS = [
   { value: 'ALL_CANDIDATES' as const, label: 'All candidates' },
-  { value: 'A_LIST_ONLY' as const, label: 'A-List only' },
+  { value: 'A_LIST_ONLY' as const, label: 'Candidate+ only' },
 ]
 
 export const DISTRIBUTION_OPTIONS = [

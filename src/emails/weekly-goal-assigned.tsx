@@ -83,7 +83,7 @@ const footer: React.CSSProperties = {
 }
 
 const A_GRADE_BENEFITS = [
-  'Exclusive, A-List-only job postings on the NC Job Board',
+  'Exclusive, Candidate+-only job postings on the NC Job Board',
   'Eligible to submit an Offer Bonus claim if you land a role',
   'Your Executive Dossier becomes shareable with recruiters and hiring managers',
   "You're surfaced to recruiters browsing the candidate database",

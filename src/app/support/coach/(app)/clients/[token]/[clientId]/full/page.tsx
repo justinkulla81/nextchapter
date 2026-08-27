@@ -243,8 +243,8 @@ export default async function FullClientViewPage({
                     )}
                     {jobsSnapshot.lockedCount > 0 && (
                       <p className="text-xs text-muted-foreground">
-                        +{jobsSnapshot.lockedCount} A-List-exclusive listing{jobsSnapshot.lockedCount === 1 ? '' : 's'} locked
-                        until {view.candidateName} reaches an A.
+                        +{jobsSnapshot.lockedCount} Candidate+-exclusive listing{jobsSnapshot.lockedCount === 1 ? '' : 's'} locked
+                        until {view.candidateName} unlocks Candidate+.
                       </p>
                     )}
                   </div>

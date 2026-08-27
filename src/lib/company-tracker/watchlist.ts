@@ -15,9 +15,9 @@ export interface WatchlistPosting {
 // One row per watched company, consolidated for the single-list Company
 // Tracker UI — company name, total count "in our system" (visible to this
 // candidate), and the actual postings to expand into on click. A_LIST_ONLY
-// postings a non-A-List candidate can't open are counted in lockedCount but
-// their details are never included in visiblePostings, since this shape is
-// sent straight to the client component.
+// postings a non-Candidate+ candidate can't open are counted in lockedCount
+// but their details are never included in visiblePostings, since this shape
+// is sent straight to the client component.
 export interface WatchlistEntryView {
   id: string
   companyName: string
@@ -60,8 +60,8 @@ async function getActivePostings(): Promise<(WatchlistPosting & { audienceTier: 
 // and the one actually shown on the Jobs page's combined recommendations
 // list. Without this, a company could show up there from a SurfacedJob
 // match while the watchlist still says "0 jobs" for it, since the board
-// query above only ever sees ExclusiveJobPosting rows. Not A-List gated —
-// SurfacedJob has no audienceTier concept, these are just genuinely
+// query above only ever sees ExclusiveJobPosting rows. Not Candidate+ gated
+// — SurfacedJob has no audienceTier concept, these are just genuinely
 // matched to this specific candidate.
 async function getSurfacedJobPostings(candidateId: string): Promise<WatchlistPosting[]> {
   const jobs = await prisma.surfacedJob.findMany({
@@ -79,10 +79,10 @@ async function getSurfacedJobPostings(candidateId: string): Promise<WatchlistPos
 }
 
 // Shared match/new-count computation, reused by getWatchlistView (which
-// additionally applies A-List gating to decide what's visible) and
+// additionally applies Candidate+ gating to decide what's visible) and
 // getWatchlistAlertContent (which only cares whether *anything* new landed,
 // not whether this candidate can open it yet — see that function for why
-// A-List status doesn't matter there).
+// Candidate+ status doesn't matter there).
 async function matchWatchlistEntries(candidateId: string) {
   const [entries, boardPostings, surfacedPostings] = await Promise.all([
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } }),
@@ -99,14 +99,14 @@ async function matchWatchlistEntries(candidateId: string) {
   })
 }
 
-export async function getWatchlistView(candidateId: string, isAList: boolean): Promise<WatchlistEntryView[]> {
+export async function getWatchlistView(candidateId: string, isCandidatePlus: boolean): Promise<WatchlistEntryView[]> {
   const matches = await matchWatchlistEntries(candidateId)
 
   return matches.map(({ entry, boardMatches, surfacedMatches, newPostingCount }) => {
     // A_LIST_ONLY postings are real "in our system" jobs, just not ones
     // this candidate can open yet — counted, never detailed, unless the
-    // candidate is actually A-List.
-    const visibleBoard = boardMatches.filter((p) => isAList || p.audienceTier !== 'A_LIST_ONLY')
+    // candidate is actually Candidate+.
+    const visibleBoard = boardMatches.filter((p) => isCandidatePlus || p.audienceTier !== 'A_LIST_ONLY')
     const visible = [...visibleBoard, ...surfacedMatches]
     return {
       id: entry.id,
@@ -128,10 +128,11 @@ export async function getWatchlistView(candidateId: string, isAList: boolean): P
 // Computed "Daily Message" for the dashboard/find-my-job header — takes
 // priority over the admin-authored rotation for that candidate for the day
 // (see getPageBoxContent's dynamicOverride param). Deliberately skips the
-// A-List visibility gate getWatchlistView applies: this is just "heads up,
-// something landed," not the postings themselves, so it's fine to mention a
-// company by name even for a locked posting a non-A-List candidate can't
-// open yet — the Company Tracker section on find-my-job explains the lock.
+// Candidate+ visibility gate getWatchlistView applies: this is just "heads
+// up, something landed," not the postings themselves, so it's fine to
+// mention a company by name even for a locked posting a non-Candidate+
+// candidate can't open yet — the Company Tracker section on find-my-job
+// explains the lock.
 export async function getWatchlistAlertContent(candidateId: string): Promise<PageContentView | null> {
   const matches = await matchWatchlistEntries(candidateId)
   const withNew = matches.filter((m) => m.newPostingCount > 0)
