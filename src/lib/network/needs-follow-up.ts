@@ -23,7 +23,7 @@ const OUTBOUND_LOOKBACK_DAYS = 7
 // here fixes both: real contact-name matches start working, and anything
 // still unmatched falls back to a clean parsed name instead of raw header
 // soup.
-function parseAddress(raw: string): { name: string | null; email: string } {
+export function parseAddress(raw: string): { name: string | null; email: string } {
   const match = raw.match(/^"?([^"<]*)"?\s*<([^>]+)>\s*$/)
   if (match) {
     const name = match[1].trim().replace(/^['"]|['"]$/g, '')

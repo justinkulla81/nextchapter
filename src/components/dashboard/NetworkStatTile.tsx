@@ -5,7 +5,10 @@ import { StatTile } from '@/components/dashboard/StatTile'
 
 export interface StatTileItem {
   id: string
-  kind: 'email' | 'calendar'
+  // 'manual' — a self-logged OutreachLog entry, not a machine guess (see
+  // resolveSelfLoggedOutreach) — has no dismiss action below, since there's
+  // no auto-detected classification on it to be "wrong."
+  kind: 'email' | 'calendar' | 'manual'
   label: string
   date: Date
 }
@@ -29,16 +32,18 @@ export function NetworkStatTile({ label, items }: { label: string; items: StatTi
                   {item.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </p>
               </div>
-              <form action={(item.kind === 'email' ? dismissEmailActivity : dismissCalendarEvent).bind(null, item.id)}>
-                <SubmitButton
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 shrink-0 px-2 text-xs text-muted-foreground"
-                  title="Not right? Remove this from your stats"
-                >
-                  ✕
-                </SubmitButton>
-              </form>
+              {item.kind !== 'manual' && (
+                <form action={(item.kind === 'email' ? dismissEmailActivity : dismissCalendarEvent).bind(null, item.id)}>
+                  <SubmitButton
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 shrink-0 px-2 text-xs text-muted-foreground"
+                    title="Not right? Remove this from your stats"
+                  >
+                    ✕
+                  </SubmitButton>
+                </form>
+              )}
             </li>
           ))}
         </ul>

@@ -25,7 +25,12 @@ import { getMatchedAlumniGroups } from '@/lib/network/alumni-groups'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
-import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
+import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
+import {
+  resolveSelfLoggedOutreach,
+  type SelfLoggedOutreach,
+  type TouchpointContact,
+} from '@/lib/network/unified-touchpoints'
 import { NeedsFollowUpCard } from '@/components/dashboard/NeedsFollowUpCard'
 import { PriorityContactsCard } from '@/components/dashboard/PriorityContactsCard'
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
@@ -87,26 +92,6 @@ const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
   MEETING: 'Meeting',
 }
 
-// Modest by design — a plain count-by-channel line, not a full trends
-// breakdown like ApplicationTrendsContent on the Find a Job page.
-function OutreachBreakdownContent({ logs }: { logs: { channel: OutreachChannel }[] }) {
-  const counts = logs.reduce<Partial<Record<OutreachChannel, number>>>((acc, log) => {
-    acc[log.channel] = (acc[log.channel] ?? 0) + 1
-    return acc
-  }, {})
-  const entries = (Object.entries(counts) as [OutreachChannel, number][]).sort((a, b) => b[1] - a[1])
-
-  return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-      {entries.map(([channel, count]) => (
-        <span key={channel} className="text-foreground">
-          {OUTREACH_CHANNEL_LABEL[channel]} <span className="text-muted-foreground">({count})</span>
-        </span>
-      ))}
-    </div>
-  )
-}
-
 // A contact counts as job-relevant two ways: manually flagged as able to
 // help with a specific application (helpfulForJobs — the "Who can help"
 // section on the Jobs page), or their company on file matches a job the
@@ -161,7 +146,8 @@ function AutomaticTrackingSkeleton() {
 // boundaries so they can sit apart — share one execution of this instead of
 // each triggering its own live Gmail/Calendar sync.
 const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData(
-  profile: Awaited<ReturnType<typeof getDashboardData>>
+  profile: Awaited<ReturnType<typeof getDashboardData>>,
+  outreachLogs: SelfLoggedOutreach[]
 ) {
   const [emailConnection, calendarConnection, jobRelevantContactEmails] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null } }),
@@ -254,6 +240,46 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
       jobRelevantContactEmails.has(extractEmailAddress(a.fromAddress ?? '').toLowerCase())
   )
 
+  // The real, mutually-exclusive auto-detected categories — "Job-related
+  // follow-ups" below is deliberately excluded from this set: it's a
+  // job-relevance OVERLAY on the same NETWORKING_EMAIL_TYPES rows already
+  // counted in the categories above, not an independent bucket, so
+  // including it here would double-count anything both networking-shaped
+  // and job-relevant.
+  const autoDetectedTouchpointIds = new Set([
+    ...followUpOrThankYouItems.map((a) => a.id),
+    ...introRequestItems.map((a) => a.id),
+    ...networkingOutreachItems.map((a) => a.id),
+    ...resumesSharedItems.map((a) => a.id),
+    ...networkingCallItems.map((e) => e.id),
+  ])
+
+  // Same rows, reduced to just what resolveSelfLoggedOutreach needs to
+  // match a self-logged entry against — fromAddress parsed the same way
+  // needs-follow-up.ts already does (it stores the counterpart's address
+  // for both directions, by sync-gmail.ts convention).
+  const touchpointContacts: TouchpointContact[] = [
+    ...[...followUpOrThankYouItems, ...introRequestItems, ...networkingOutreachItems, ...resumesSharedItems].flatMap(
+      (a) => {
+        const { email } = parseAddress(a.fromAddress ?? '')
+        return email ? [{ email, date: a.detectedAt }] : []
+      }
+    ),
+    ...networkingCallItems.flatMap((e) => (e.counterpartEmail ? [{ email: e.counterpartEmail, date: e.startTime }] : [])),
+  ]
+
+  const { unmatched: unmatchedSelfLoggedOutreach } = resolveSelfLoggedOutreach(outreachLogs, touchpointContacts)
+  const totalOutreachCount = autoDetectedTouchpointIds.size + unmatchedSelfLoggedOutreach.length
+
+  const manualItem = (log: (typeof unmatchedSelfLoggedOutreach)[number]): StatTileItem => ({
+    id: log.id,
+    kind: 'manual',
+    label: log.contactName
+      ? `${OUTREACH_CHANNEL_LABEL[log.channel]} — ${log.contactName}`
+      : OUTREACH_CHANNEL_LABEL[log.channel],
+    date: log.loggedAt,
+  })
+
   const networkingStatTiles = [
     { label: 'Follow-up / thank-you notes', items: followUpOrThankYouItems.map(emailItem) },
     { label: 'Job-related follow-ups', items: jobFollowUpItems.map(emailItem) },
@@ -261,10 +287,12 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
     { label: 'Networking outreach messages', items: networkingOutreachItems.map(emailItem) },
     { label: 'Resumes shared', items: resumesSharedItems.map(emailItem) },
     { label: 'Catch-up / Coffees / Meetings', items: networkingCallItems.map(calendarItem) },
+    { label: 'Logged directly (not otherwise detected)', items: unmatchedSelfLoggedOutreach.map(manualItem) },
   ]
 
   return {
     networkingStatTiles,
+    totalOutreachCount,
     emailConnection,
     calendarConnection,
     reconciliation,
@@ -274,19 +302,58 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
   }
 })
 
-async function NetworkingStatsCard({ profile }: { profile: Awaited<ReturnType<typeof getDashboardData>> }) {
-  const { networkingStatTiles } = await loadAutomaticTrackingData(profile)
+async function NetworkingStatsCard({
+  profile,
+  outreachLogs,
+  outreachMix,
+}: {
+  profile: Awaited<ReturnType<typeof getDashboardData>>
+  outreachLogs: SelfLoggedOutreach[]
+  outreachMix: ReturnType<typeof computeOutreachRelationshipMix>
+}) {
+  const { networkingStatTiles, totalOutreachCount } = await loadAutomaticTrackingData(profile, outreachLogs)
+  const loggedDirectlyCount = networkingStatTiles.find((t) => t.label.startsWith('Logged directly'))?.items.length ?? 0
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Networking Stats</CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {networkingStatTiles.map((tile) => (
-          <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
-        ))}
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      {/* One real total instead of two separate, never-reconciled numbers —
+          the auto-detected tiles below sum to this minus loggedDirectlyCount,
+          which is its own tile in the same grid, so every piece of this
+          number is visibly accounted for underneath it. */}
+      <TierSummaryCard
+        title="Total Outreach"
+        count={totalOutreachCount}
+        unitLabel="touchpoint"
+        tier={outreachCountToTier(totalOutreachCount)}
+        buildingAt={3}
+        highAt={5}
+        unlockedContent={
+          <p className="text-sm text-muted-foreground">
+            {totalOutreachCount - loggedDirectlyCount} auto-detected from Gmail/Calendar ·{' '}
+            {loggedDirectlyCount} logged directly
+          </p>
+        }
+        mixTitle="A well-rounded outreach mix"
+        mixItems={[
+          { label: 'A hiring connection (recruiter or hiring manager)', done: outreachMix.hasHiringConnection },
+          {
+            label: 'Someone who knows your work (former colleague, professional contact, classmate)',
+            done: outreachMix.hasProfessionalContact,
+          },
+          { label: 'Personal support (coach, friend, or someone helping you)', done: outreachMix.hasPersonalSupport },
+        ]}
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Networking Stats</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {networkingStatTiles.map((tile) => (
+            <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -300,13 +367,19 @@ async function NetworkingStatsCard({ profile }: { profile: Awaited<ReturnType<ty
 // page), so there's no redundant "before you connect" card down here.
 async function AutomaticTrackingSection({
   profile,
+  outreachLogs,
   params,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
+  outreachLogs: SelfLoggedOutreach[]
   params: NetworkSearchParams
 }) {
+  // Passing the SAME outreachLogs array reference NetworkingStatsCard uses
+  // is what lets loadAutomaticTrackingData's cache() actually hit here
+  // instead of re-running (and re-triggering a live Gmail/Calendar sync) a
+  // second time in this same render — see that function's own comment.
   const { emailConnection, calendarConnection, reconciliation, networkingEmailCount, calendarNetworkingCount, interviewCount } =
-    await loadAutomaticTrackingData(profile)
+    await loadAutomaticTrackingData(profile, outreachLogs)
 
   if (!emailConnection && !calendarConnection) return null
 
@@ -480,13 +553,21 @@ export default async function NetworkPage({
     }),
     getBackchannelMatches(profile.id, profile.networkBackchannelLastViewedAt),
     getNeedsFollowUpList(profile.id),
-    // Powers the Outreach Log progressive-unlock card below — every manually
-    // logged outreach for this candidate, plus the relationship tag(s) of
-    // whichever contact it was logged against (null when logged without a
-    // specific contact), which feeds the "well-rounded mix" checklist.
+    // Powers the Total Outreach headline card below — every manually logged
+    // outreach for this candidate, the relationship tag(s) of whichever
+    // contact it was logged against (feeds the "well-rounded mix"
+    // checklist), and enough contact-email + timestamp detail for
+    // resolveSelfLoggedOutreach to tell which of these are already
+    // represented in Networking Stats' auto-detected tiles vs. genuinely
+    // additional (a phone call, a LinkedIn message, no Gmail connected).
     prisma.outreachLog.findMany({
       where: { candidateId: profile.id },
-      select: { channel: true, contact: { select: { relationshipTags: true } } },
+      select: {
+        id: true,
+        loggedAt: true,
+        channel: true,
+        contact: { select: { name: true, email: true, emails: true, relationshipTags: true } },
+      },
     }),
     getMatchedAlumniGroups(profile.id),
   ])
@@ -545,7 +626,7 @@ export default async function NetworkPage({
       </div>
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <NetworkingStatsCard profile={profile} />
+        <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} outreachMix={outreachMix} />
       </Suspense>
 
       <Link
@@ -561,27 +642,6 @@ export default async function NetworkPage({
       <PriorityContactsCard contacts={priorityContacts} />
 
       <NeedsFollowUpCard items={needsFollowUp} />
-
-      {outreachLogs.length > 0 && (
-        <TierSummaryCard
-          title="Outreach Log"
-          count={outreachLogs.length}
-          unitLabel="touchpoint"
-          tier={outreachCountToTier(outreachLogs.length)}
-          buildingAt={3}
-          highAt={5}
-          unlockedContent={<OutreachBreakdownContent logs={outreachLogs} />}
-          mixTitle="A well-rounded outreach mix"
-          mixItems={[
-            { label: 'A hiring connection (recruiter or hiring manager)', done: outreachMix.hasHiringConnection },
-            {
-              label: 'Someone who knows your work (former colleague, professional contact, classmate)',
-              done: outreachMix.hasProfessionalContact,
-            },
-            { label: 'Personal support (coach, friend, or someone helping you)', done: outreachMix.hasPersonalSupport },
-          ]}
-        />
-      )}
 
       <BackchannelMatchesCard matches={backchannelMatches} />
 
@@ -599,7 +659,7 @@ export default async function NetworkPage({
       <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <AutomaticTrackingSection profile={profile} params={params} />
+        <AutomaticTrackingSection profile={profile} outreachLogs={outreachLogs} params={params} />
       </Suspense>
     </div>
   )
