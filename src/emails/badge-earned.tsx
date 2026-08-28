@@ -57,13 +57,34 @@ export default function BadgeEarnedEmail({ firstName, badgeLabels, statsUrl, uns
         real work you logged just earned {badgeLabels.length === 1 ? 'this' : 'these'}:
       </p>
       <div style={badgeBox}>
-        <ul style={{ margin: 0, paddingLeft: '18px' }}>
-          {badgeLabels.map((label) => (
-            <li key={label} style={{ fontWeight: 600 }}>
-              {label}
-            </li>
-          ))}
-        </ul>
+        {badgeLabels.map((label, i) => (
+          <div
+            key={label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginTop: i === 0 ? 0 : '10px',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '9999px',
+                backgroundColor: '#d9ecdf',
+                fontSize: '16px',
+                flexShrink: 0,
+              }}
+            >
+              🏅
+            </span>
+            <span style={{ fontWeight: 600 }}>{label}</span>
+          </div>
+        ))}
       </div>
       <a href={statsUrl} style={button}>
         See your badges →
