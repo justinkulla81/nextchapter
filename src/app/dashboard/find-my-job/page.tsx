@@ -61,6 +61,9 @@ import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { getMatchedRolesForCandidate } from '@/lib/matching/candidate-role-matches'
+import { MatchedRoleList } from '@/components/dashboard/MatchedRoleList'
+import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import {
@@ -506,6 +509,7 @@ async function FindMyJobBody({
       ?.applicationTrends ?? null
 
   const isCandidatePlus = dossierStatus.unlocked
+  const matchedFullTimeRoles = isCandidatePlus ? await getMatchedRolesForCandidate(profile.id, ['FULL_TIME']) : []
   // Scoped to just the companies already-applied-to postings mention — the
   // separate, larger set of companies from board/surfaced listings is
   // resolved independently inside JobRecommendationsSection so that slower
@@ -799,6 +803,27 @@ async function FindMyJobBody({
             </div>
           </div>
         </div>
+      </div>
+
+      <div id="employer-matched-roles" className="scroll-mt-4 space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Employer-Matched Roles</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Full-time roles posted directly by employers on NextChapter, matched to your background.
+          </p>
+        </div>
+        {!isCandidatePlus ? (
+          <LockedFeatureNotice
+            title="Employer-Matched Roles"
+            requirement="Unlock your Dossier to see employer-posted full-time roles matched to your background."
+            status={dossierStatus.reason}
+          />
+        ) : (
+          <MatchedRoleList
+            roles={matchedFullTimeRoles}
+            emptyMessage="No full-time roles match your background yet — check back soon."
+          />
+        )}
       </div>
 
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">

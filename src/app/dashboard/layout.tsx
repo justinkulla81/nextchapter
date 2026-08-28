@@ -9,7 +9,7 @@ import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
-import { getBackchannelMatches } from '@/lib/network/backchannel'
+import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
 import { getHardGateStatus, isGmailConnected, isGateExemptPath } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
@@ -44,7 +44,8 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     supportNetworkUnreadCount,
     candidateMessagesUnreadCount,
     peerUnreadCount,
-    backchannelMatches,
+    needsFollowUpList,
+    activeContactsCount,
     gmailConnected,
     latestSeniorityBand,
   ] = await Promise.all([
@@ -54,7 +55,8 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     getSupportNetworkUnreadCountForBadge(profileId),
     getCandidateUnreadCount(profileId),
     getPeerUnreadCount(profileId),
-    getBackchannelMatchesForBadge(profileId),
+    getNeedsFollowUpList(profileId),
+    prisma.supportNetworkContact.count({ where: { candidateId: profileId, removedAt: null } }),
     isGmailConnected(profileId),
     getLatestSeniorityBand(profileId),
   ])
@@ -62,7 +64,10 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
   // see community/page.tsx's MessagesTab.
   const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
-  const newBackchannelCount = backchannelMatches.filter((m) => m.isNew).length
+  // Same list network/page.tsx's NeedsFollowUpCard renders — its header
+  // shows this exact count so the badge and the page always agree on what
+  // it means, instead of a bare number with no visible referent.
+  const needsFollowUpCount = needsFollowUpList.length
   // Fails closed (null -> hidden) when there's no resume analysis yet, same
   // direction as EQoverIQ's own "never offer this to a new grad" nav gate.
   const isEarlyCareer = latestSeniorityBand ? latestSeniorityBand === 'EARLY' : null
@@ -89,7 +94,8 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       portfolioAssetCount={portfolioAssetCount}
       supportNetworkUnreadCount={supportNetworkUnreadCount}
       messagesUnreadCount={messagesUnreadCount}
-      newBackchannelCount={newBackchannelCount}
+      needsFollowUpCount={needsFollowUpCount}
+      activeContactsCount={activeContactsCount}
       hasEmailConnection={gmailConnected}
       linkedInConnected={isLinkedInConnected(profile)}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
@@ -98,17 +104,13 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   )
 }
 
-// getSupportNetworkUnreadCount/getBackchannelMatches need profile fields
-// beyond just the id (communityLastViewedAt / networkBackchannelLastViewedAt)
-// — small wrappers so the Promise.all above can read the (cached) profile
-// without threading two extra params through DashboardNavWithBadges' props.
+// getSupportNetworkUnreadCount needs a profile field beyond just the id
+// (communityLastViewedAt) — a small wrapper so the Promise.all above can
+// read the (cached) profile without threading an extra param through
+// DashboardNavWithBadges' props.
 async function getSupportNetworkUnreadCountForBadge(profileId: string) {
   const profile = await getDashboardData()
   return getSupportNetworkUnreadCount(profileId, profile.communityLastViewedAt)
-}
-async function getBackchannelMatchesForBadge(profileId: string) {
-  const profile = await getDashboardData()
-  return getBackchannelMatches(profileId, profile.networkBackchannelLastViewedAt)
 }
 // The EQoverIQ nav gate's real signal — resume-derived, not self-reported,
 // so it's the strongest always-populated signal for whether a candidate
@@ -165,7 +167,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
             portfolioAssetCount={0}
             supportNetworkUnreadCount={0}
             messagesUnreadCount={0}
-            newBackchannelCount={0}
+            needsFollowUpCount={0}
+            activeContactsCount={0}
           />
         }
       >

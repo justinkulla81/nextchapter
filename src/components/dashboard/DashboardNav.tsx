@@ -89,7 +89,8 @@ function buildSections(
   portfolioAssetCount: number,
   supportNetworkUnreadCount: number,
   messagesUnreadCount: number,
-  newBackchannelCount: number,
+  needsFollowUpCount: number,
+  activeContactsCount: number,
   hasEmailConnection: boolean,
   linkedInConnected: boolean,
   skillsAssessmentCompleted: boolean,
@@ -127,11 +128,12 @@ function buildSections(
           href: '/dashboard/network',
           label: 'Network with Contacts',
           icon: Users,
-          // A real "you know someone at a company you applied to" count is
-          // a specific, live reason to visit right now — kept as a badge
-          // since it's genuinely differentiated, unlike the old static
+          // Same count NeedsFollowUpCard's own header shows on the Network
+          // page (see needs-follow-up.ts) — people who've met with or heard
+          // from the candidate with no thank-you/follow-up sent yet. A
+          // specific, live reason to visit right now, unlike the old static
           // "Priority" label every item here used to carry.
-          badge: newBackchannelCount > 0 ? String(newBackchannelCount) : undefined,
+          badge: needsFollowUpCount > 0 ? String(needsFollowUpCount) : undefined,
           ...gmailLock,
         },
         { href: '/dashboard/references', label: 'My References', icon: Star },
@@ -169,7 +171,6 @@ function buildSections(
       title: 'Working and Learning',
       links: [
         { href: '/dashboard/find-my-job', label: 'Find a Full-time Job', icon: Briefcase, ...gmailLock },
-        { href: '/dashboard/full-time-work', label: 'Employer-Matched Roles', icon: Briefcase },
         // Only ever shown once we positively know the candidate is NOT
         // entry-level (ResumeAnalysis.seniorityBand !== 'EARLY') —
         // isEarlyCareer === null (no resume analysis yet) fails closed,
@@ -189,7 +190,6 @@ function buildSections(
     {
       title: 'Data',
       links: [
-        { href: '/dashboard/network/contacts', label: 'Contacts', icon: Contact, ...gmailLock },
         { href: '/dashboard/companies', label: 'Companies', icon: Landmark },
         { href: '/dashboard/universities', label: 'Universities', icon: School },
         {
@@ -197,6 +197,13 @@ function buildSections(
           label: 'My Portfolio',
           icon: FolderOpen,
           badge: portfolioAssetCount > 0 ? String(portfolioAssetCount) : undefined,
+        },
+        {
+          href: '/dashboard/network/contacts',
+          label: 'My Contacts',
+          icon: Contact,
+          badge: activeContactsCount > 0 ? String(activeContactsCount) : undefined,
+          ...gmailLock,
         },
         { href: '/dashboard/stats', label: 'My Stats', icon: BarChart3 },
         {
@@ -226,7 +233,8 @@ function NavContent({
   portfolioAssetCount,
   supportNetworkUnreadCount,
   messagesUnreadCount,
-  newBackchannelCount,
+  needsFollowUpCount,
+  activeContactsCount,
   hasEmailConnection,
   linkedInConnected,
   skillsAssessmentCompleted,
@@ -239,7 +247,8 @@ function NavContent({
   portfolioAssetCount: number
   supportNetworkUnreadCount: number
   messagesUnreadCount: number
-  newBackchannelCount: number
+  needsFollowUpCount: number
+  activeContactsCount: number
   hasEmailConnection: boolean
   linkedInConnected: boolean
   skillsAssessmentCompleted: boolean
@@ -252,7 +261,8 @@ function NavContent({
     portfolioAssetCount,
     supportNetworkUnreadCount,
     messagesUnreadCount,
-    newBackchannelCount,
+    needsFollowUpCount,
+    activeContactsCount,
     hasEmailConnection,
     linkedInConnected,
     skillsAssessmentCompleted,
@@ -383,7 +393,8 @@ export function DashboardNav({
   portfolioAssetCount = 0,
   supportNetworkUnreadCount = 0,
   messagesUnreadCount = 0,
-  newBackchannelCount = 0,
+  needsFollowUpCount = 0,
+  activeContactsCount = 0,
   hasEmailConnection = false,
   linkedInConnected = false,
   skillsAssessmentCompleted = false,
@@ -392,7 +403,8 @@ export function DashboardNav({
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
   messagesUnreadCount?: number
-  newBackchannelCount?: number
+  needsFollowUpCount?: number
+  activeContactsCount?: number
   hasEmailConnection?: boolean
   linkedInConnected?: boolean
   skillsAssessmentCompleted?: boolean
@@ -436,7 +448,8 @@ export function DashboardNav({
           portfolioAssetCount={portfolioAssetCount}
           supportNetworkUnreadCount={supportNetworkUnreadCount}
           messagesUnreadCount={messagesUnreadCount}
-          newBackchannelCount={newBackchannelCount}
+          needsFollowUpCount={needsFollowUpCount}
+          activeContactsCount={activeContactsCount}
           hasEmailConnection={hasEmailConnection}
           linkedInConnected={linkedInConnected}
           skillsAssessmentCompleted={skillsAssessmentCompleted}
@@ -520,7 +533,8 @@ export function DashboardNav({
               portfolioAssetCount={portfolioAssetCount}
               supportNetworkUnreadCount={supportNetworkUnreadCount}
               messagesUnreadCount={messagesUnreadCount}
-              newBackchannelCount={newBackchannelCount}
+              needsFollowUpCount={needsFollowUpCount}
+              activeContactsCount={activeContactsCount}
               hasEmailConnection={hasEmailConnection}
               linkedInConnected={linkedInConnected}
               skillsAssessmentCompleted={skillsAssessmentCompleted}

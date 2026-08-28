@@ -61,7 +61,9 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
             <Bell className="size-3.5" aria-hidden />
           </span>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Needs a follow-up</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Needs a follow-up ({visibleItems.length})
+          </CardTitle>
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">
           People you&apos;ve met with or heard from who haven&apos;t gotten a thank-you or follow-up

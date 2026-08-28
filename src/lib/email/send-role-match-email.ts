@@ -33,7 +33,9 @@ export async function sendRoleMatchEmail(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const destinationPath =
-    role.type === 'FULL_TIME' ? '/dashboard/full-time-work' : '/dashboard/interim-work#board-advisory-work'
+    role.type === 'FULL_TIME'
+      ? '/dashboard/find-my-job#employer-matched-roles'
+      : '/dashboard/interim-work#board-advisory-work'
   const unlockUrl = `${appUrl}/dossier`
 
   try {
