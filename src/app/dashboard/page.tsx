@@ -271,6 +271,7 @@ export default async function DashboardPage() {
               firstName={profile.firstName ?? 'there'}
               hasEmailConnection={!!emailConnection}
               hasCalendarConnection={!!calendarConnection}
+              linkedInConnected={linkedInConnected}
             />
           ) : undefined
         }

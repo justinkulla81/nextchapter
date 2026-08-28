@@ -139,6 +139,13 @@ export default async function ScorePage() {
       </div>
 
       <GradeReveal grade={grade} />
+
+      {/* Repeats the top CTA — the grade legend above makes this a long
+          scroll, and a candidate who reads all the way through shouldn't
+          have to scroll back up to act on it. */}
+      <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
+        Create your account to get your full report and action plan
+      </Button>
     </div>
   )
 }

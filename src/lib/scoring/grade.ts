@@ -64,14 +64,14 @@ export const GRADE_RECRUITER_IMPRESSION: Record<Grade, string> = {
 // Directional estimates, not a calibrated statistic — same "first pass,
 // not fit to real usage data" caveat as scoreToGrade's own bands above.
 // Shown under the grade legend so the letter grade translates into a real,
-// concrete sense of the volume of effort each band typically takes to
-// land one interview.
+// concrete weekly target: both applications AND personalized outreach,
+// together, not either one alone.
 export const GRADE_INTERVIEW_ODDS: Record<Grade, string> = {
-  A: 'Typically ~5-10 applications, or 3-5 personalized outreach messages, per interview.',
-  B: 'Typically ~15-20 applications, or 5-8 personalized outreach messages, per interview.',
-  C: 'Typically ~30-40 applications, or 8-12 personalized outreach messages, per interview.',
-  D: 'Typically ~60-80 applications, or 15-20 personalized outreach messages, per interview.',
-  F: 'Typically 100+ applications, or 25+ personalized outreach messages, per interview.',
+  A: 'Typically ~5-10 applications and 3-5 personalized outreach messages, per week, to land an interview.',
+  B: 'Typically ~15-20 applications and 5-8 personalized outreach messages, per week, to land an interview.',
+  C: 'Typically ~30-40 applications and 8-12 personalized outreach messages, per week, to land an interview.',
+  D: 'Typically ~60-80 applications and 15-20 personalized outreach messages, per week, to land an interview.',
+  F: 'Typically 100+ applications and 25+ personalized outreach messages, per week, to land an interview.',
 }
 
 // Shared color tokens for every grade display in the product — previously

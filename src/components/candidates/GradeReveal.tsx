@@ -21,7 +21,7 @@ function GradeLegend() {
             <span className={cn('w-4 shrink-0 font-bold', GRADE_TEXT_COLOR[g])}>{g}</span>
             <div>
               <p className="text-muted-foreground">{GRADE_BAND_DESCRIPTION[g]}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground italic">{GRADE_INTERVIEW_ODDS[g]}</p>
+              <p className="mt-0.5 text-sm font-medium text-foreground">{GRADE_INTERVIEW_ODDS[g]}</p>
             </div>
           </div>
         ))}
