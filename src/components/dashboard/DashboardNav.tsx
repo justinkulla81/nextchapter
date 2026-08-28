@@ -94,7 +94,8 @@ function buildSections(
   hasEmailConnection: boolean,
   linkedInConnected: boolean,
   skillsAssessmentCompleted: boolean,
-  isEarlyCareer: boolean | null
+  isEarlyCareer: boolean | null,
+  isActiveMember: boolean
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
@@ -105,6 +106,14 @@ function buildSections(
   const skillsLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = skillsAssessmentCompleted
     ? {}
     : { muted: true, disabled: true, lockReason: 'Unlocks once you complete the Skills Assessment' }
+  // Real isActiveMember() gate (src/lib/membership/subscription.ts) — the
+  // same one that already gates Board & Advisory roles on Interim Work.
+  // Deliberately NOT gated on anything /dashboard/premium-related — that's
+  // a separate, not-yet-live waitlist product with no real access control
+  // of its own today.
+  const membershipLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = isActiveMember
+    ? {}
+    : { muted: true, disabled: true, lockReason: 'Unlocks once you activate your NextChapter Membership' }
 
   return [
     {
@@ -157,13 +166,16 @@ function buildSections(
         // coaching, the coaching-commission revenue stream). Executive
         // Coach, Executive Recruiter, and Market Intelligence now all route
         // to the same /dashboard/premium waitlist page — one bundled
-        // account tier instead of three separate asks.
-        { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium' },
+        // account tier instead of three separate asks. Executive Coach/
+        // Executive Recruiter are additionally gated on real Membership
+        // (Market Intelligence isn't — out of scope for that gate).
+        { href: '/dashboard/premium', label: 'Executive Coach', icon: GraduationCap, badge: 'Premium', ...membershipLock },
         {
           href: '/dashboard/premium',
           label: 'Executive Recruiter',
           icon: Building2,
           badge: 'Premium',
+          ...membershipLock,
         },
       ],
     },
@@ -239,6 +251,7 @@ function NavContent({
   linkedInConnected,
   skillsAssessmentCompleted,
   isEarlyCareer,
+  isActiveMember,
   collapsedSections,
   onToggleSection,
 }: {
@@ -253,6 +266,7 @@ function NavContent({
   linkedInConnected: boolean
   skillsAssessmentCompleted: boolean
   isEarlyCareer: boolean | null
+  isActiveMember: boolean
   collapsedSections: Set<string>
   onToggleSection: (title: string) => void
 }) {
@@ -266,7 +280,8 @@ function NavContent({
     hasEmailConnection,
     linkedInConnected,
     skillsAssessmentCompleted,
-    isEarlyCareer
+    isEarlyCareer,
+    isActiveMember
   )
 
   return (
@@ -399,6 +414,7 @@ export function DashboardNav({
   linkedInConnected = false,
   skillsAssessmentCompleted = false,
   isEarlyCareer = null,
+  isActiveMember = false,
 }: {
   portfolioAssetCount?: number
   supportNetworkUnreadCount?: number
@@ -409,6 +425,7 @@ export function DashboardNav({
   linkedInConnected?: boolean
   skillsAssessmentCompleted?: boolean
   isEarlyCareer?: boolean | null
+  isActiveMember?: boolean
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -454,6 +471,7 @@ export function DashboardNav({
           linkedInConnected={linkedInConnected}
           skillsAssessmentCompleted={skillsAssessmentCompleted}
           isEarlyCareer={isEarlyCareer}
+          isActiveMember={isActiveMember}
           collapsedSections={collapsedSections}
           onToggleSection={toggleSection}
         />
@@ -539,6 +557,7 @@ export function DashboardNav({
               linkedInConnected={linkedInConnected}
               skillsAssessmentCompleted={skillsAssessmentCompleted}
               isEarlyCareer={isEarlyCareer}
+              isActiveMember={isActiveMember}
               collapsedSections={collapsedSections}
               onToggleSection={toggleSection}
             />

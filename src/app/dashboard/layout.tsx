@@ -13,6 +13,7 @@ import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
 import { getHardGateStatus, isGmailConnected, isGateExemptPath } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
+import { isActiveMember } from '@/lib/membership/subscription'
 import { HardGateBlockingScreen } from '@/components/dashboard/HardGateBlockingScreen'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
@@ -48,6 +49,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     activeContactsCount,
     gmailConnected,
     latestSeniorityBand,
+    activeMember,
   ] = await Promise.all([
     prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
     prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
@@ -59,6 +61,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     prisma.supportNetworkContact.count({ where: { candidateId: profileId, removedAt: null } }),
     isGmailConnected(profileId),
     getLatestSeniorityBand(profileId),
+    isActiveMember(profileId),
   ])
   // Sidebar's single "Messages" badge covers all 4 relationship tabs
   // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
@@ -100,6 +103,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       linkedInConnected={isLinkedInConnected(profile)}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
       isEarlyCareer={isEarlyCareer}
+      isActiveMember={activeMember}
     />
   )
 }
