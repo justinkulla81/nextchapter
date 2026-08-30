@@ -33,7 +33,7 @@ export async function sendBadgeEarnedEmail(
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
     to: email,
-    subject: badgeLabels.length === 1 ? `You just earned "${badgeLabels[0]}"` : 'You just earned new badges',
+    subject: badgeLabels.length === 1 ? `You just earned the "${badgeLabels[0]}" badge` : 'You just earned new badges',
     react: BadgeEarnedEmail({
       firstName: candidate.firstName,
       badgeLabels,

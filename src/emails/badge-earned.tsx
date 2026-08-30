@@ -47,7 +47,8 @@ const footer: React.CSSProperties = {
 }
 
 export default function BadgeEarnedEmail({ firstName, badgeLabels, statsUrl, unsubscribeUrl }: BadgeEarnedEmailProps) {
-  const headline = badgeLabels.length === 1 ? `You just earned "${badgeLabels[0]}."` : 'You just earned new badges.'
+  const headline =
+    badgeLabels.length === 1 ? `You just earned the "${badgeLabels[0]}" badge.` : 'You just earned new badges.'
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
