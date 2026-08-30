@@ -44,6 +44,14 @@ export type MilestoneBadgeKey =
   | 'CONTRIBUTOR'
   | LeaderboardBadgeKey
 
+// Only badges with a real destination get one — most milestones (streaks,
+// leaderboard placements) have no single page they're "about," so this
+// stays a rare, deliberate exception rather than every badge tile
+// becoming a link.
+export const MILESTONE_BADGE_HREF: Partial<Record<MilestoneBadgeKey, string>> = {
+  MARKET_REALITY_COMPLETE: '/dashboard/market-reality',
+}
+
 export const MILESTONE_BADGE_LABEL: Record<MilestoneBadgeKey, string> = {
   MARKET_REALITY_COMPLETE: 'Market Reality Assessment',
   SEVEN_DAY_STREAK: '7-Day Streak',
@@ -119,6 +127,7 @@ export interface MilestoneBadgeStatus {
   description: string
   earned: boolean
   count?: number // only meaningful for GAP_CLOSER
+  href?: string // see MILESTONE_BADGE_HREF — only set for badges with a real destination
 }
 
 function detectComeback(checkInDates: Date[]): boolean {
@@ -334,5 +343,6 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
     earned: earned[key],
     ...(key === 'GAP_CLOSER' ? { count: gapCloserCount } : {}),
     ...(LEADERBOARD_BADGE_KEYS.includes(key as LeaderboardBadgeKey) ? { count: leaderboardBadgeCountByKey.get(key) ?? 0 } : {}),
+    ...(MILESTONE_BADGE_HREF[key] ? { href: MILESTONE_BADGE_HREF[key] } : {}),
   }))
 }

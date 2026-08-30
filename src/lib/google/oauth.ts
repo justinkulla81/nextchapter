@@ -1,5 +1,14 @@
 import 'server-only'
 
+// Reuses the same CANDIDATE_GOOGLE_OAUTH_CLIENT_ID/SECRET every other admin-
+// facing Google integration in this codebase does (see webinars/admin-
+// calendar-oauth.ts) — this used to look for its own separate
+// GOOGLE_CLIENT_ID/SECRET, which was never actually configured as a real
+// credential anywhere, so "Connect Gmail" here always failed with
+// googleError=not_configured. If the redirect URI below
+// (/api/google/oauth/callback) isn't already an authorized redirect URI on
+// that shared OAuth client in Google Cloud Console, add it there — that's
+// the one piece this fix can't verify from code alone.
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // Read-only, minimum scope needed — this connects a company-owned inbox
@@ -13,8 +22,8 @@ function getRedirectUri(): string {
 }
 
 export function buildGoogleAuthUrl(state: string): string {
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  if (!clientId) throw new Error('GOOGLE_CLIENT_ID is not set.')
+  const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
+  if (!clientId) throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID is not set.')
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -41,10 +50,10 @@ interface GoogleTokenResponse {
 }
 
 function requireCredentials(): { clientId: string; clientSecret: string } {
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+  const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
+  const clientSecret = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_SECRET
   if (!clientId || !clientSecret) {
-    throw new Error('GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET are not configured.')
+    throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID/SECRET are not configured.')
   }
   return { clientId, clientSecret }
 }

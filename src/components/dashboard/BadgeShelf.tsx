@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { WeeklyBadgeStatus } from '@/lib/badges/weekly-badges'
 import type { MilestoneBadgeStatus } from '@/lib/badges/milestone-badges'
 import { StatusIcon } from '@/components/ui/status-icon'
@@ -26,17 +27,17 @@ function BadgeTile({
   description,
   count,
   kind,
+  href,
 }: {
   label: string
   description: string
   count?: number
   kind?: BadgeKind
+  href?: string
 }) {
-  return (
-    <div
-      className="relative flex flex-col items-center gap-1 rounded-lg border border-brand/30 bg-brand/5 p-3 text-center"
-      title={kind ? `${label} — ${description} (${KIND_LABEL[kind]})` : description}
-    >
+  const title = kind ? `${label} — ${description} (${KIND_LABEL[kind]})` : description
+  const content = (
+    <>
       {kind && (
         <span className="absolute top-1 right-1 text-[10px] leading-none" aria-hidden>
           {KIND_GLYPH[kind]}
@@ -47,6 +48,24 @@ function BadgeTile({
         {label}
         {count && count > 1 ? ` ×${count}` : ''}
       </p>
+    </>
+  )
+  const className = cn(
+    'relative flex flex-col items-center gap-1 rounded-lg border border-brand/30 bg-brand/5 p-3 text-center',
+    href && 'hover:border-brand/60 hover:bg-brand/10'
+  )
+
+  if (href) {
+    return (
+      <Link href={href} className={className} title={`${title} — view your report`}>
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <div className={className} title={title}>
+      {content}
     </div>
   )
 }
@@ -66,7 +85,7 @@ function sortEarnedFirst<T extends { earned: boolean }>(badges: T[]): T[] {
   return [...badges].sort((a, b) => Number(b.earned) - Number(a.earned))
 }
 
-type AnyBadge = { key: string; label: string; description: string; earned: boolean; count?: number }
+type AnyBadge = { key: string; label: string; description: string; earned: boolean; count?: number; href?: string }
 
 function Shelf<T extends AnyBadge>({
   title,
@@ -94,7 +113,7 @@ function Shelf<T extends AnyBadge>({
       {earned.length > 0 && (
         <div className={cn('mt-2 grid gap-2', gridCols)}>
           {earned.map((b) => (
-            <BadgeTile key={b.key} label={b.label} description={b.description} count={b.count} kind={kind} />
+            <BadgeTile key={b.key} label={b.label} description={b.description} count={b.count} kind={kind} href={b.href} />
           ))}
         </div>
       )}
