@@ -50,6 +50,7 @@ import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
+import { ReportReadyDailyMessage } from '@/components/dashboard/ReportReadyDailyMessage'
 import { getHardGateStatus } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
@@ -248,6 +249,13 @@ export default async function DashboardPage() {
   const linkedInConnected = isLinkedInConnected(profile)
   const bothConnectedUnlocked = !!emailConnection && !!calendarConnection && linkedInConnected
 
+  // Takes priority over PreConnectDailyMessage below — a candidate who just
+  // earned the Market Reality Assessment badge (their first-ever badge, in
+  // practice) hasn't seen the Badges shelf yet, so badgesLastSeenCount is
+  // still null. That self-clears the moment they view it (see
+  // MarkBadgesViewedOnMount), so this only ever shows once.
+  const showReportReadyMessage = profile.marketRealityReports.length > 0 && profile.badgesLastSeenCount === null
+
   return (
     <div className="space-y-8">
       {user && !user.email_confirmed_at && user.email && (
@@ -266,7 +274,9 @@ export default async function DashboardPage() {
         pageKey="dashboard"
         candidateId={profile.id}
         dailyMessageOverride={
-          !bothConnectedUnlocked ? (
+          showReportReadyMessage ? (
+            <ReportReadyDailyMessage firstName={profile.firstName ?? 'there'} />
+          ) : !bothConnectedUnlocked ? (
             <PreConnectDailyMessage
               firstName={profile.firstName ?? 'there'}
               hasEmailConnection={!!emailConnection}
