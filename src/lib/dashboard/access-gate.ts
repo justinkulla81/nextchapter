@@ -25,9 +25,12 @@ export async function isGmailConnected(candidateId: string): Promise<boolean> {
   return !!connection
 }
 
-// The dashboard-wide hard gate: Search Strategy required first, then Gmail
-// + LinkedIn ("activation") to unlock the rest of the dashboard as a Search
-// Plan. Only ever applies to candidates created after this shipped — see
+// The dashboard-wide hard gate: Gmail + LinkedIn ("activation") required
+// first, then Search Strategy, to unlock the rest of the dashboard as a
+// Search Plan. Activation comes first so Search Strategy — which asks
+// what's gotten in the way, comp expectations, etc. — happens once we
+// already have a real, connected account, not as a cold first question.
+// Only ever applies to candidates created after this shipped — see
 // subjectToHardGate's own comment in schema.prisma. Existing candidates get
 // 'exempt' unconditionally and are never newly locked out.
 export function getHardGateStatus(profile: {
@@ -48,8 +51,8 @@ export function getHardGateStatus(profile: {
   linkedInConnection?: { disconnectedAt: Date | null } | null
 }, gmailConnected: boolean): HardGateStatus {
   if (!profile.subjectToHardGate) return 'exempt'
-  if (!isSearchStrategyGateComplete(profile)) return 'search_strategy_required'
   if (!gmailConnected || !isLinkedInConnected(profile)) return 'activation_required'
+  if (!isSearchStrategyGateComplete(profile)) return 'search_strategy_required'
   return 'unlocked'
 }
 

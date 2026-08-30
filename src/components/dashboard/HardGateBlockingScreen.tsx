@@ -24,12 +24,12 @@ export function HardGateBlockingScreen({
       <div className="mx-auto max-w-lg space-y-4 rounded-lg border border-dashed border-light-gray bg-off-white p-6 text-center">
         <div className="flex items-center justify-center gap-2">
           <Lock className="size-5 text-orange" />
-          <p className="text-sm font-semibold text-orange">Search Strategy required</p>
+          <p className="text-sm font-semibold text-orange">Last step — Search Strategy</p>
         </div>
         <p className="text-sm text-muted-foreground">
-          Before you can use the rest of the dashboard, we need your Search Strategy — target
-          role, industries, company preferences, and what tends to get in the way for you. It
-          takes about 5 minutes and everything after this is personalized to it.
+          Now that Gmail and LinkedIn are connected, we need your Search Strategy — target role,
+          industries, company preferences, and what tends to get in the way for you. It takes
+          about 5 minutes and everything after this is personalized to it.
         </p>
         <Link href="/dashboard/search-strategy" className={buttonVariants({ variant: 'default' })}>
           Complete Search Strategy
@@ -42,12 +42,13 @@ export function HardGateBlockingScreen({
     <div className="mx-auto max-w-lg space-y-6 rounded-lg border border-dashed border-light-gray bg-off-white p-6 text-center">
       <div className="flex items-center justify-center gap-2">
         <Lock className="size-5 text-orange" />
-        <p className="text-sm font-semibold text-orange">Almost there — activate your Search Plan</p>
+        <p className="text-sm font-semibold text-orange">Activate your Search Plan</p>
       </div>
       <p className="text-sm text-muted-foreground">
-        One last step: connect Gmail so we can track your outreach and interviews automatically,
-        and import your LinkedIn connections so we can build your networking list. Both are
-        one-time and take a couple minutes.
+        Before anything else: connect Gmail so we can track your outreach and interviews
+        automatically, and import your LinkedIn connections so we can build your networking list.
+        Both are one-time and take a couple minutes — then we&apos;ll walk through your Search
+        Strategy.
       </p>
       <div className="space-y-4 text-left">
         <GoogleConnectPrompt candidateId={candidateId} email={email} returnTo="/dashboard" />
