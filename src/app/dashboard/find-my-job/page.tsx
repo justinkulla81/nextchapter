@@ -317,6 +317,25 @@ async function JobRecommendationsSection({
     return !isWeakFit(computeBoardListingFitBucket(profile, p, companySizeBandFor(p.companyName)))
   })
 
+  // Locked (Candidate+-only) postings used to render in raw createdAt-desc
+  // order with no fit awareness at all — for a candidate without Candidate+
+  // unlocked, this is the vast majority of the board (thousands of rows),
+  // so "newest first" meant paging past screens of completely unrelated
+  // roles (a Staff Software Engineer posting shown to a Finance/M&A
+  // candidate) before anything relevant ever appeared. computeBoardListingFitBucket
+  // already exists and is used above for the unlocked list — this reuses it
+  // here too, sorting locked postings the same way (FIT_BUCKET_SORT_RANK)
+  // so a genuinely good match is what a candidate sees first, with an
+  // honest fit badge, even before they've unlocked enough to click through.
+  // Deliberately no companySizeBand lookup here (that's an async, per-company
+  // resolveCompanySizeBand call, cheap for the small unlocked set above but
+  // not worth paying for thousands of locked rows) — computeBoardListingFitBucket
+  // treats a missing band as neutral, so function/level/title matching (the
+  // actual complaint) still works fully without it.
+  const rankedLockedBoardPostings = lockedBoardPostings
+    .map((posting) => ({ posting, fitBucket: computeBoardListingFitBucket(profile, posting) }))
+    .sort((a, b) => FIT_BUCKET_SORT_RANK[a.fitBucket] - FIT_BUCKET_SORT_RANK[b.fitBucket])
+
   return (
     <div className="space-y-4">
       {visibleBoardPostings.length === 0 && lockedBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
@@ -378,7 +397,9 @@ async function JobRecommendationsSection({
                 // unlocked ones in this same list — once you've paged past
                 // what's actually visible to you, the remaining pages are
                 // just the locked rows, not a separately boxed callout.
-                ...lockedBoardPostings.map((posting) => <LockedDiscoverJobCard key={posting.id} posting={posting} />),
+                ...rankedLockedBoardPostings.map(({ posting, fitBucket }) => (
+                  <LockedDiscoverJobCard key={posting.id} posting={posting} fitBucket={fitBucket} />
+                )),
               ]}
             </ShowMoreList>
           </div>

@@ -50,12 +50,24 @@ function IdealMatchBadge() {
 // the unlocked cards above it, styled like Application Tracker rows rather
 // than a separately boxed/tinted callout, so the list reads as one
 // continuous list.
-export function LockedDiscoverJobCard({ posting }: { posting: Pick<ExclusiveJobPosting, 'title' | 'location'> }) {
+export function LockedDiscoverJobCard({
+  posting,
+  fitBucket,
+}: {
+  posting: Pick<ExclusiveJobPosting, 'title' | 'location'>
+  // Optional — omitted for the (now rare) locked posting a fit bucket
+  // couldn't be computed for. Same FitBadge as the unlocked cards, so
+  // "why does this one deserve unlocking" reads the same way in both states.
+  fitBucket?: FitBucket
+}) {
   return (
     <div className="flex items-start gap-2 px-4 py-3">
       <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-foreground">{posting.title}</p>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <p className="truncate text-sm font-medium text-foreground">{posting.title}</p>
+          {fitBucket && <FitBadge bucket={fitBucket} />}
+        </div>
         {posting.location && <p className="truncate text-sm text-muted-foreground">{posting.location}</p>}
       </div>
     </div>
