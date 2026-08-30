@@ -21,8 +21,8 @@ export type { ProfileChecklistActionType } from '@/lib/weekly/profile-checklist-
 // excludes: GMAIL_CONNECTED/CALENDAR_CONNECTED (OAuth flows with their own
 // connect/reconnect UI on Network/Jobs pages), INTERIM_PROFILE_CREATED
 // (marketplace signup, not profile info), PARTNER_CLICK_THROUGH/
-// WATCHLIST_* (click-tracking, repeatable), VISIBILITY_COMFORT_CHECKIN/
-// MOOD_CHECKIN (weekly-reset bonuses, not lifetime one-time), and
+// WATCHLIST_* (click-tracking, repeatable), MOOD_CHECKIN (a weekly-reset
+// bonus, not lifetime one-time), and
 // JOB_BOARD_USAGE_CONFIRMED (dead — no reachable UI sets it anymore).
 
 export interface ProfileChecklistItem {

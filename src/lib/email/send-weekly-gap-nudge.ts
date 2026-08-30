@@ -8,7 +8,6 @@ export async function sendWeeklyGapNudgeEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   weeklyPoints: number,
   weeklyPointsTarget: number,
-  visibilityCheckedIn: boolean,
   introCopy?: string | null
 ) {
   if (!process.env.RESEND_API_KEY) {
@@ -42,7 +41,6 @@ export async function sendWeeklyGapNudgeEmail(
       weeklyPointsTarget,
       dashboardUrl,
       unsubscribeUrl,
-      visibilityCheckedIn,
     }),
   })
 

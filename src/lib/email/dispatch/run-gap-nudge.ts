@@ -58,14 +58,7 @@ export async function runGapNudge(introCopy: string | null, eligiblePrivacyTiers
 
       if (weeklyPoints >= weeklyPointsTarget) continue // already at or above target
 
-      const visibilityCheckedIn = sprint.visibilityComfort !== null
-      const result = await sendWeeklyGapNudgeEmail(
-        candidate,
-        weeklyPoints,
-        weeklyPointsTarget,
-        visibilityCheckedIn,
-        introCopy
-      )
+      const result = await sendWeeklyGapNudgeEmail(candidate, weeklyPoints, weeklyPointsTarget, introCopy)
       if (result.sent) sentCount += 1
     } catch (error) {
       console.error('Gap Nudge failed for candidate', candidate.id, error)

@@ -7,10 +7,6 @@ interface WeeklyGapNudgeEmailProps {
   weeklyPointsTarget: number
   dashboardUrl: string
   unsubscribeUrl: string
-  // True when this week's visibility-comfort check-in (VisibilityComfortCard
-  // on the dashboard) hasn't been answered yet — a real, concrete gap worth
-  // calling out by name rather than folding into the generic points nudge.
-  visibilityCheckedIn: boolean
 }
 
 const container: React.CSSProperties = {
@@ -52,7 +48,6 @@ export default function WeeklyGapNudgeEmail({
   weeklyPointsTarget,
   dashboardUrl,
   unsubscribeUrl,
-  visibilityCheckedIn,
 }: WeeklyGapNudgeEmailProps) {
   const pointsToGo = Math.max(0, weeklyPointsTarget - weeklyPoints)
 
@@ -71,13 +66,6 @@ export default function WeeklyGapNudgeEmail({
         Available&quot; list on your dashboard has quick options beyond what you committed to,
         and anything you complete there counts too.
       </p>
-      {!visibilityCheckedIn && (
-        <p>
-          One concrete gap: you haven&apos;t done this week&apos;s visibility check-in yet. Being
-          more visible in your search — LinkedIn&apos;s &quot;Open to Work,&quot; a public post —
-          is real signal recruiters actually notice, and it&apos;s a quick 5 points.
-        </p>
-      )}
       <a href={dashboardUrl} style={button}>
         See what&apos;s fastest to close the gap →
       </a>

@@ -16,5 +16,4 @@ export const CANONICAL_ACTION_LABEL: Partial<Record<string, string>> = {
   // Recurring weekly check-ins with their own dedicated completion call
   // sites (dashboard/actions.ts) rather than a task-menu/checklist entry.
   MOOD_CHECKIN: "Check in on how you're feeling",
-  VISIBILITY_COMFORT_CHECKIN: "Answer this week's visibility comfort check-in",
 }

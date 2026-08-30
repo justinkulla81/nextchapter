@@ -17,8 +17,6 @@ import {
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
-import { getCurrentWeekSprint } from '@/lib/weekly/sprint'
-import { VisibilityComfortCard } from '@/components/dashboard/VisibilityComfortCard'
 import { SearchStrategyWizard, type WizardStep } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
@@ -247,7 +245,6 @@ export default async function SearchStrategyPage() {
   const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
 
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
-  const currentSprint = await getCurrentWeekSprint(profile.id)
 
   // 7 pages, one at a time, like the Market Reality Assessment wizard — no
   // per-page points anymore (see maybeAwardSearchStrategyCompleteBonus);
@@ -553,16 +550,6 @@ export default async function SearchStrategyPage() {
         )}
         <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
       </div>
-
-      {/* Moved here from the main dashboard — this is a weekly re-check of
-          the same underlying comfort value the onboarding "Search Strategy
-          Willingness" questions ask once (see PUBLIC_DISCLOSURE_COMFORT_OPTIONS),
-          so it belongs alongside them rather than on the dashboard. Kept as
-          a real recurring check-in (not deleted) since it feeds the
-          sentiment trend Coaching Notes and visibility calibration read —
-          the one-time onboarding answer alone can't show whether comfort is
-          changing week to week. */}
-      <VisibilityComfortCard initialComfort={currentSprint?.visibilityComfort ?? null} />
 
       <div className="space-y-4">
         {hasAnsweredOnce ? (

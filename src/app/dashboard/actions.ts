@@ -8,7 +8,6 @@ import type {
   EeocGenderIdentity,
   EeocRaceEthnicity,
   EeocYesNoDecline,
-  PublicDisclosureComfort,
   HighestEducationLevel,
   CoachingStylePreference,
   ChangePacePreference,
@@ -113,9 +112,8 @@ export async function checkInMood(mood: Mood) {
 
   await recordMoodCheckIn(profile.id, mood)
 
-  // Small recurring bonus, same one-award-per-week shape as
-  // VISIBILITY_COMFORT_CHECKIN — autoCompleteEngagementAction no-ops if
-  // this week's check-in already earned it.
+  // Small recurring bonus, once per week — autoCompleteEngagementAction
+  // no-ops if this week's check-in already earned it.
   const sprint = await getCurrentWeekSprint(profile.id)
   if (sprint) {
     const effort = estimateActionEffort({ actionType: 'MOOD_CHECKIN' })
@@ -128,39 +126,6 @@ export async function checkInMood(mood: Mood) {
   }
 
   captureServerEvent(profile.id, 'mood_checked_in', { mood })
-  revalidatePath('/dashboard')
-}
-
-// This week's answer to "how comfortable do you feel being publicly visible
-// in your search this week?" — a coaching/sentiment signal only (see
-// getVisibilityComfortTrend), never a direct grade input, so this is a
-// standalone one-field write rather than routed through commitWeeklySprint.
-// Silently no-ops if no current-week sprint exists yet, same accepted gap
-// as autoCompleteEngagementAction/ENGAGE_POST_UPDATE.
-export async function checkInVisibilityComfort(comfort: PublicDisclosureComfort) {
-  const profile = await getAuthedProfile()
-  if (!profile) return
-
-  const sprint = await getCurrentWeekSprint(profile.id)
-  if (!sprint) return
-
-  await prisma.weeklySprint.update({
-    where: { id: sprint.id },
-    data: { visibilityComfort: comfort },
-  })
-
-  // One-time-per-week points bonus — autoCompleteEngagementAction no-ops if
-  // this actionType is already completed in the current sprint's
-  // committedActions, so answering again later this week never double-awards.
-  const effort = estimateActionEffort({ actionType: 'VISIBILITY_COMFORT_CHECKIN' })
-  await autoCompleteEngagementAction(profile.id, {
-    actionType: 'VISIBILITY_COMFORT_CHECKIN',
-    text: "Answer this week's visibility comfort check-in",
-    points: effort.points,
-    estimatedMinutes: effort.minutes,
-  })
-
-  captureServerEvent(profile.id, 'visibility_comfort_checked_in', { comfort })
   revalidatePath('/dashboard')
 }
 

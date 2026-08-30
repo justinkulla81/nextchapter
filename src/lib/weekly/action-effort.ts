@@ -231,15 +231,8 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // one-time confirms, and the unlock gate for INTERVIEW_BEHAVIORAL_PRACTICE.
   COMFORT_CHECK_CONFIRM: { minutes: 3, points: 5 },
 
-  // Weekly (not lifetime) re-check of visibility comfort, prompted by
-  // VisibilityComfortCard on the dashboard — same small confirm-bonus
-  // weight as PRIVACY_CONFIRMED above, awarded once per week since it's
-  // injected into that week's committedActions, which resets every week.
-  VISIBILITY_COMFORT_CHECKIN: { minutes: 5, points: 5 },
-
-  // Daily mood check-in — small recurring bonus, same weekly-reset shape as
-  // VISIBILITY_COMFORT_CHECKIN above (awarded once per week, the first time
-  // that week's check-in happens, via autoCompleteEngagementAction).
+  // Daily mood check-in — small recurring bonus, awarded once per week, the
+  // first time that week's check-in happens, via autoCompleteEngagementAction.
   MOOD_CHECKIN: { minutes: 2, points: 3 },
 
   // One-time unlock-gate bonuses — every gate that unlocks a whole section
