@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discovery'
 import { candidateDisplayName } from '@/lib/talent/candidate-identity'
 import { sendMarketDigestEmployerEmail } from '@/lib/email/send-market-digest-employer'
-import { recordDigestSend, getDigestNugget } from '@/lib/admin/digest-composer'
+import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
 
 const MAX_MATCH_LINES = 3
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     select: { id: true, userId: true, companyName: true, contactName: true },
   })
 
-  const nugget = await getDigestNugget('MARKET_BRIEF')
+  const nugget = (await getDigestNuggets('EMPLOYER', 1))[0] ?? null
 
   let sentCount = 0
   for (const employer of employers) {
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
 
   if (sentCount > 0) {
     await recordDigestSend('employer', sentCount, nugget ? [nugget.id] : [])
+    if (nugget) await markItemsSent([nugget.id], 'EMPLOYER')
   }
 
   return NextResponse.json({ checked: employers.length, sent: sentCount })

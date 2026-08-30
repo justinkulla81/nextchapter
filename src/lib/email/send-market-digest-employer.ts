@@ -2,11 +2,12 @@ import 'server-only'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketDigestEmployerEmail from '@/emails/market-digest-employer'
+import { digestClickUrl } from '@/lib/email/digest-click-url'
 
 export async function sendMarketDigestEmployerEmail(
   employer: { id: string; userId: string; companyName: string; contactName: string | null },
   matchLines: { displayName: string; roleTitle: string; matchLabel: string; locked: boolean }[],
-  nugget: { title: string | null; url: string; summary: string | null } | null
+  nugget: { id: string; title: string | null; url: string; summary: string | null } | null
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping employer market digest email.')
@@ -33,7 +34,7 @@ export async function sendMarketDigestEmployerEmail(
       companyName: employer.companyName,
       matchLines,
       nuggetTitle: nugget?.title ?? null,
-      nuggetUrl: nugget?.url ?? null,
+      nuggetUrl: nugget ? digestClickUrl('employer', employer.id, nugget.id) : null,
       nuggetSummary: nugget?.summary ?? null,
       portalUrl,
       unsubscribeUrl,

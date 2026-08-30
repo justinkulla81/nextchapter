@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { addResearchItem } from '@/app/support/admin/(portal)/research/actions'
+import { addResearchItem } from '@/app/support/admin/(portal)/digest/actions'
 
 export function AddResearchItemForm() {
   const [state, formAction] = useActionState(addResearchItem, undefined)

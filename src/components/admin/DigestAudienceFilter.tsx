@@ -9,7 +9,7 @@ const DIGEST_AUDIENCE_OPTIONS = [
   { value: 'employer', label: 'Employers' },
 ]
 
-// A second filter control on the same /support/admin/research page as the
+// A second filter control on the same /support/admin/digest page as the
 // Market Pulse table's own AdminFilterBar — can't reuse that component
 // here, since its search box hardcodes name="q" and submitting a second
 // form with the same field would blank out whatever the candidate had
@@ -31,7 +31,7 @@ export function DigestAudienceFilter({
   const formRef = useRef<HTMLFormElement>(null)
 
   return (
-    <form ref={formRef} method="get" action="/support/admin/research" className="flex items-center gap-3">
+    <form ref={formRef} method="get" action="/support/admin/digest" className="flex items-center gap-3">
       <input type="hidden" name="q" value={q} />
       <input type="hidden" name="bucket" value={bucket} />
       <input type="hidden" name="status" value={status} />
@@ -51,7 +51,7 @@ export function DigestAudienceFilter({
       </select>
       {digestAudience && (
         <a
-          href={`/support/admin/research?${new URLSearchParams({ q, bucket, status, credibility }).toString()}`}
+          href={`/support/admin/digest?${new URLSearchParams({ q, bucket, status, credibility }).toString()}`}
           className="text-sm text-muted-foreground underline underline-offset-4"
         >
           Clear

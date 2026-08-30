@@ -5,7 +5,7 @@ import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCandidateEmail } from '@/lib/email/send-market-digest-candidate'
-import { recordDigestSend, getDigestNugget } from '@/lib/admin/digest-composer'
+import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
 
 // Tuesday — "Market Update."
 export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyTiers: PrivacyTier[]) {
@@ -29,8 +29,8 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
     },
   })
 
-  // One shared persona nugget for this run, same as the old cron.
-  const nugget = await getDigestNugget('PERSONA_RESEARCH')
+  // One shared nugget for this run, same as the old cron.
+  const nugget = (await getDigestNuggets('CANDIDATE', 1))[0] ?? null
 
   let sentCount = 0
   for (const candidate of eligible) {
@@ -57,6 +57,7 @@ export async function runMarketUpdate(introCopy: string | null, eligiblePrivacyT
 
   if (sentCount > 0) {
     await recordDigestSend('candidate', sentCount, nugget ? [nugget.id] : [])
+    if (nugget) await markItemsSent([nugget.id], 'CANDIDATE')
   }
 
   return { checked: eligible.length, sent: sentCount }

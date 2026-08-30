@@ -4,11 +4,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import MarketDigestCandidateEmail from '@/emails/market-digest-candidate'
 import type { MarketConditions } from '@/lib/market/types'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { digestClickUrl } from '@/lib/email/digest-click-url'
 
 export async function sendMarketDigestCandidateEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   marketConditions: MarketConditions,
-  nugget: { title: string | null; url: string; summary: string | null } | null,
+  nugget: { id: string; title: string | null; url: string; summary: string | null } | null,
   introCopy?: string | null
 ) {
   if (!process.env.RESEND_API_KEY) {
@@ -38,7 +39,7 @@ export async function sendMarketDigestCandidateEmail(
       adzunaIdealCount: marketConditions.adzunaIdealCount,
       blsYoyChangePct: marketConditions.blsYoyChangePct,
       nuggetTitle: nugget?.title ?? null,
-      nuggetUrl: nugget?.url ?? null,
+      nuggetUrl: nugget ? digestClickUrl('candidate', candidate.id, nugget.id) : null,
       nuggetSummary: nugget?.summary ?? null,
       dashboardUrl,
       unsubscribeUrl,

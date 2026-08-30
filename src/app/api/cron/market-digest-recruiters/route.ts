@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestRecruiterEmail } from '@/lib/email/send-market-digest-recruiter'
-import { recordDigestSend, getDigestNugget } from '@/lib/admin/digest-composer'
+import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     select: { id: true, fullName: true, workEmail: true, specialty: true },
   })
 
-  const nugget = await getDigestNugget('MARKET_BRIEF')
+  const nugget = (await getDigestNuggets('RECRUITER', 1))[0] ?? null
 
   let sentCount = 0
   for (const recruiter of recruiters) {
@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
 
   if (sentCount > 0) {
     await recordDigestSend('recruiter', sentCount, nugget ? [nugget.id] : [])
+    if (nugget) await markItemsSent([nugget.id], 'RECRUITER')
   }
 
   return NextResponse.json({ checked: recruiters.length, sent: sentCount })

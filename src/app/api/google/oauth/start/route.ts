@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(url)
   } catch {
     return NextResponse.redirect(
-      new URL('/support/admin/research?googleError=not_configured', request.url)
+      new URL('/support/admin/digest?googleError=not_configured', request.url)
     )
   }
 }

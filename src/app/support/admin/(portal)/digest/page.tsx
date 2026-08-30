@@ -1,14 +1,20 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import type { ResearchLibraryItem, DigestSend } from '@prisma/client'
+import type { ResearchLibraryItem, DigestSend, DigestAudience } from '@prisma/client'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { AddResearchItemForm } from '@/components/admin/AddResearchItemForm'
 import { DigestAudienceFilter } from '@/components/admin/DigestAudienceFilter'
+import { DigestAudienceCheckboxes } from '@/components/admin/DigestAudienceCheckboxes'
 import { getActiveGoogleConnection } from '@/lib/google/connection'
-import { getQueuedDigestItems, getDigestSendHistory } from '@/lib/admin/digest-composer'
-import { markResearchItemStatus, toggleQueuedForDigest, flagProductPositioning, disconnectGoogleInbox } from './actions'
+import {
+  getQueuedDigestItems,
+  getDigestSendHistory,
+  getSentDigestItems,
+  resolveDigestRecipientName,
+} from '@/lib/admin/digest-composer'
+import { markResearchItemStatus, removeFromDigestQueue, flagProductPositioning, disconnectGoogleInbox } from './actions'
 
 export const maxDuration = 30
 
@@ -21,18 +27,26 @@ const BUCKET_LABEL: Record<string, string> = {
 }
 
 // Weekly Market Digest — merged into this page rather than living at its
-// own /support/admin/digest route: both views operate on the same
-// ResearchLibraryItem rows (queuedForDigest, toggled right in the Actions
-// column above), so splitting them across two pages just meant clicking
-// back and forth to see what queuing an item actually did. The three
-// per-audience sends (coaches/recruiters/employers) are real, live crons —
-// every Tuesday, 14:30/15:00/15:30 UTC (see vercel.json) — not the
-// "Coming soon" the old nav label implied; that label was stale.
+// own route: both views operate on the same ResearchLibraryItem rows
+// (digestAudiences, toggled right in the Actions column above), so
+// splitting them across two pages just meant clicking back and forth to
+// see what queuing an item actually did. The three per-audience sends
+// (coaches/recruiters/employers) plus the candidate Market Update are real,
+// live sends — coaches/recruiters/employers every Tuesday at
+// 14:30/15:00/15:30 UTC (see vercel.json), candidates via the daily
+// dispatch cron — not the "Coming soon" the old nav label implied.
 const DIGEST_AUDIENCE_LABEL: Record<string, string> = {
   candidate: 'Candidates',
   coach: 'Coaches',
   recruiter: 'Recruiters',
   employer: 'Employers',
+}
+
+const DIGEST_AUDIENCE_ENUM_LABEL: Record<DigestAudience, string> = {
+  CANDIDATE: 'Candidates',
+  COACH: 'Coaches',
+  RECRUITER: 'Recruiters',
+  EMPLOYER: 'Employers',
 }
 
 function formatPersonaTag(tag: string | null): string {
@@ -44,7 +58,20 @@ function formatPersonaTag(tag: string | null): string {
     .join(' ')
 }
 
-export default async function AdminResearchPage({
+function AudienceBadges({ audiences }: { audiences: DigestAudience[] }) {
+  if (audiences.length === 0) return <span className="text-muted-foreground">—</span>
+  return (
+    <div className="flex flex-wrap gap-1">
+      {audiences.map((a) => (
+        <span key={a} className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+          {DIGEST_AUDIENCE_ENUM_LABEL[a]}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+export default async function AdminDigestPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | undefined>>
@@ -57,7 +84,7 @@ export default async function AdminResearchPage({
   const digestAudienceFilter = params.digestAudience ?? ''
   const q = (params.q ?? '').toLowerCase().trim()
 
-  const [googleConnection, allItems, queuedForDigest, digestHistory] = await Promise.all([
+  const [googleConnection, allItems, queuedForDigest, digestHistory, sentItems, recentClicks] = await Promise.all([
     getActiveGoogleConnection(),
     prisma.researchLibraryItem.findMany({
       orderBy: { dateFound: 'desc' },
@@ -65,6 +92,8 @@ export default async function AdminResearchPage({
     }),
     getQueuedDigestItems(),
     getDigestSendHistory(digestAudienceFilter || undefined),
+    getSentDigestItems(),
+    prisma.digestClickEvent.findMany({ orderBy: { clickedAt: 'desc' }, take: 50 }),
   ])
 
   const contradicting = allItems.filter((i) => i.contradictsLockedDecision)
@@ -78,6 +107,24 @@ export default async function AdminResearchPage({
       (r) => r.title?.toLowerCase().includes(q) || r.url.toLowerCase().includes(q) || r.summary?.toLowerCase().includes(q)
     )
   }
+
+  // Batched once for every send's itemIds shown below, rather than a
+  // per-row lookup — history is capped at 50 sends, each with a handful of
+  // items at most, so this is one small query either way.
+  const historyItemIds = [...new Set(digestHistory.flatMap((s) => s.itemIds))]
+  const historyItems = historyItemIds.length
+    ? await prisma.researchLibraryItem.findMany({ where: { id: { in: historyItemIds } }, select: { id: true, title: true, url: true } })
+    : []
+  const historyItemById = new Map(historyItems.map((i) => [i.id, i]))
+
+  const clickItemIds = [...new Set(recentClicks.map((c) => c.itemId))]
+  const clickItems = clickItemIds.length
+    ? await prisma.researchLibraryItem.findMany({ where: { id: { in: clickItemIds } }, select: { id: true, title: true, url: true } })
+    : []
+  const clickItemById = new Map(clickItems.map((i) => [i.id, i]))
+  const recipientNames = await Promise.all(
+    recentClicks.map((c) => resolveDigestRecipientName(c.audience, c.recipientId))
+  )
 
   const columns: AdminColumn<ResearchLibraryItem>[] = [
     {
@@ -110,46 +157,45 @@ export default async function AdminResearchPage({
     },
     { header: 'Credibility', render: (r) => r.credibilityTier ?? '—' },
     { header: 'Source', render: (r) => (r.ingestionSource === 'inbox' ? 'Inbox' : 'Manual') },
-    { header: 'Status', render: (r) => r.status },
     {
-      header: 'Actions',
+      header: 'Digest audiences',
+      render: (r) => <DigestAudienceCheckboxes itemId={r.id} current={r.digestAudiences} />,
+    },
+    {
+      header: 'Triage',
       render: (r) => (
-        <div className="flex flex-wrap gap-2">
-          {r.bucket === 'MARKET_BRIEF' && (
-            <form action={toggleQueuedForDigest.bind(null, r.id, !r.queuedForDigest)}>
-              <button type="submit" className="text-sm text-primary underline underline-offset-4">
-                {r.queuedForDigest ? 'Unqueue from digest' : 'Queue for digest'}
-              </button>
-            </form>
-          )}
-          {r.bucket === 'PRODUCT_POSITIONING' && (
-            <form action={flagProductPositioning.bind(null, r.id)}>
-              <button type="submit" className="text-sm text-primary underline underline-offset-4">
-                Flag to copy owner
-              </button>
-            </form>
-          )}
-          {r.status !== 'reviewed' && (
-            <form action={markResearchItemStatus.bind(null, r.id, 'reviewed')}>
-              <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
-                Mark reviewed
-              </button>
-            </form>
-          )}
-          {r.status !== 'actioned' && (
-            <form action={markResearchItemStatus.bind(null, r.id, 'actioned')}>
-              <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
-                Mark actioned
-              </button>
-            </form>
-          )}
-          {r.status !== 'dismissed' && (
-            <form action={markResearchItemStatus.bind(null, r.id, 'dismissed')}>
-              <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
-                Dismiss
-              </button>
-            </form>
-          )}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">{r.status}</span>
+          <div className="flex flex-wrap gap-2">
+            {r.bucket === 'PRODUCT_POSITIONING' && (
+              <form action={flagProductPositioning.bind(null, r.id)}>
+                <button type="submit" className="text-sm text-primary underline underline-offset-4">
+                  Flag to copy owner
+                </button>
+              </form>
+            )}
+            {r.status !== 'reviewed' && (
+              <form action={markResearchItemStatus.bind(null, r.id, 'reviewed')}>
+                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
+                  Mark reviewed
+                </button>
+              </form>
+            )}
+            {r.status !== 'actioned' && (
+              <form action={markResearchItemStatus.bind(null, r.id, 'actioned')}>
+                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
+                  Mark actioned
+                </button>
+              </form>
+            )}
+            {r.status !== 'dismissed' && (
+              <form action={markResearchItemStatus.bind(null, r.id, 'dismissed')}>
+                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
+                  Dismiss
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       ),
     },
@@ -167,11 +213,12 @@ export default async function AdminResearchPage({
         </div>
       ),
     },
+    { header: 'Audiences', render: (r) => <AudienceBadges audiences={r.digestAudiences} /> },
     { header: 'Found', className: 'px-3 py-2 tabular-nums', render: (r) => r.dateFound.toLocaleDateString() },
     {
       header: 'Actions',
       render: (r) => (
-        <form action={toggleQueuedForDigest.bind(null, r.id, false)}>
+        <form action={removeFromDigestQueue.bind(null, r.id)}>
           <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
             Remove from queue
           </button>
@@ -184,7 +231,43 @@ export default async function AdminResearchPage({
     { header: 'Audience', render: (s) => DIGEST_AUDIENCE_LABEL[s.audience] ?? s.audience },
     { header: 'Sent', className: 'px-3 py-2 tabular-nums', render: (s) => s.sentAt.toLocaleString() },
     { header: 'Recipients', className: 'px-3 py-2 tabular-nums', render: (s) => s.recipientCount },
-    { header: 'Items included', className: 'px-3 py-2 tabular-nums', render: (s) => s.itemIds.length },
+    {
+      header: 'Articles included',
+      render: (s) =>
+        s.itemIds.length === 0 ? (
+          <span className="text-muted-foreground">—</span>
+        ) : (
+          <ul className="space-y-1">
+            {s.itemIds.map((id) => {
+              const item = historyItemById.get(id)
+              return (
+                <li key={id} className="text-sm">
+                  {item ? (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                      {item.title || item.url}
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">{id}</span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        ),
+    },
+  ]
+
+  const sentItemColumns: AdminColumn<ResearchLibraryItem>[] = [
+    {
+      header: 'Item',
+      render: (r) => (
+        <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+          {r.title || r.url}
+        </a>
+      ),
+    },
+    { header: 'Sent to', render: (r) => <AudienceBadges audiences={r.sentAudiences} /> },
+    { header: 'First sent', className: 'px-3 py-2 tabular-nums', render: (r) => r.sentAt?.toLocaleDateString() ?? '—' },
   ]
 
   return (
@@ -246,7 +329,7 @@ export default async function AdminResearchPage({
       )}
 
       <AdminFilterBar
-        basePath="/support/admin/research"
+        basePath="/support/admin/digest"
         searchValue={params.q ?? ''}
         searchPlaceholder="Search title, URL, or summary…"
         filters={[
@@ -285,21 +368,22 @@ export default async function AdminResearchPage({
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Weekly Market Digest</h2>
           <p className="mt-1 text-muted-foreground">
-            Real, scheduled sends — every Tuesday at 14:30 (Coaches), 15:00 (Recruiters), and 15:30
-            UTC (Employers) — each pulling one queued item below into that audience&apos;s digest
-            email. Nothing here is auto-published; queuing an item above is what puts it in reach
-            of the next send.
+            Real, scheduled sends — coaches, recruiters, and employers every Tuesday (14:30/15:00/15:30
+            UTC), candidates via the daily dispatch — each pulling the queued item(s) below into that
+            audience&apos;s own digest email. Nothing here is auto-published; picking an audience above
+            is what puts an article in reach of its next send. An item drops out of the queue on its
+            own the first time it&apos;s actually sent (see &quot;Sent articles&quot; below).
           </p>
         </div>
 
         <div>
-          <h3 className="text-lg font-medium text-foreground">Queued for next digest ({queuedForDigest.length})</h3>
+          <h3 className="text-lg font-medium text-foreground">Queued, not yet sent ({queuedForDigest.length})</h3>
           <div className="mt-3">
             <AdminDataTable
               columns={digestQueueColumns}
               rows={queuedForDigest}
               rowKey={(r) => r.id}
-              emptyMessage="Nothing queued yet — use “Queue for digest” on a Market Brief item above."
+              emptyMessage="Nothing queued yet — pick an audience for an item above."
             />
           </div>
         </div>
@@ -325,6 +409,52 @@ export default async function AdminResearchPage({
               rowKey={(s) => s.id}
               emptyMessage="No digests sent yet."
             />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-medium text-foreground">Sent articles, ever ({sentItems.length})</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every article that has gone out in any send, across all audiences and all time — independent
+            of the current queue above.
+          </p>
+          <div className="mt-3">
+            <AdminDataTable
+              columns={sentItemColumns}
+              rows={sentItems}
+              rowKey={(r) => r.id}
+              emptyMessage="Nothing sent yet."
+            />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-medium text-foreground">Recent clicks</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Who clicked which article, from a digest email.</p>
+          <div className="mt-3 divide-y divide-border rounded-lg border border-border">
+            {recentClicks.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">No clicks recorded yet.</p>
+            ) : (
+              recentClicks.map((click, i) => {
+                const item = clickItemById.get(click.itemId)
+                return (
+                  <div key={click.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                    <div>
+                      <span className="font-medium text-foreground">{recipientNames[i]}</span>
+                      <span className="text-muted-foreground"> ({DIGEST_AUDIENCE_ENUM_LABEL[click.audience]}) clicked </span>
+                      {item ? (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+                          {item.title || item.url}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">an unknown article</span>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">{click.clickedAt.toLocaleString()}</span>
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
       </div>

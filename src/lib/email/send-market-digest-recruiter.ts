@@ -2,11 +2,12 @@ import 'server-only'
 import { Resend } from 'resend'
 import MarketDigestRecruiterEmail from '@/emails/market-digest-recruiter'
 import type { MarketConditions } from '@/lib/market/types'
+import { digestClickUrl } from '@/lib/email/digest-click-url'
 
 export async function sendMarketDigestRecruiterEmail(
   recruiter: { id: string; fullName: string; workEmail: string; specialty: string | null },
   marketConditions: MarketConditions | null,
-  nugget: { title: string | null; url: string; summary: string | null } | null
+  nugget: { id: string; title: string | null; url: string; summary: string | null } | null
 ) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping recruiter market digest email.')
@@ -29,7 +30,7 @@ export async function sendMarketDigestRecruiterEmail(
       adzunaCount: marketConditions?.adzunaCount ?? null,
       blsYoyChangePct: marketConditions?.blsYoyChangePct ?? null,
       nuggetTitle: nugget?.title ?? null,
-      nuggetUrl: nugget?.url ?? null,
+      nuggetUrl: nugget ? digestClickUrl('recruiter', recruiter.id, nugget.id) : null,
       nuggetSummary: nugget?.summary ?? null,
       portalUrl,
       unsubscribeUrl,

@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import type { DigestAudience } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { prisma } from '@/lib/prisma'
@@ -11,17 +12,24 @@ export async function markResearchItemStatus(id: string, status: 'reviewed' | 'a
   const admin = await requireAdmin()
   await prisma.researchLibraryItem.update({ where: { id }, data: { status } })
   captureServerEvent(admin?.email ?? 'admin', 'research_item_status_updated', { itemId: id, status })
-  revalidatePath('/support/admin/research')
+  revalidatePath('/support/admin/digest')
 }
 
-// Market Brief fodder gets queued for the next Weekly Market Digest send
-// rather than sent immediately — the Digest Composer (Track B) is where an
-// admin reviews the full queue before it goes out.
-export async function toggleQueuedForDigest(id: string, queued: boolean) {
+// Replaces the whole set at once — the admin UI submits every checked
+// audience together, not one toggle per audience, since "which audiences"
+// is a single decision made per article, not N independent ones.
+export async function setDigestAudiences(id: string, audiences: DigestAudience[]) {
   const admin = await requireAdmin()
-  await prisma.researchLibraryItem.update({ where: { id }, data: { queuedForDigest: queued } })
-  captureServerEvent(admin?.email ?? 'admin', 'research_item_digest_queue_toggled', { itemId: id, queued })
-  revalidatePath('/support/admin/research')
+  await prisma.researchLibraryItem.update({ where: { id }, data: { digestAudiences: audiences } })
+  captureServerEvent(admin?.email ?? 'admin', 'research_item_digest_audiences_updated', { itemId: id, audiences })
+  revalidatePath('/support/admin/digest')
+}
+
+export async function removeFromDigestQueue(id: string) {
+  const admin = await requireAdmin()
+  await prisma.researchLibraryItem.update({ where: { id }, data: { digestAudiences: [] } })
+  captureServerEvent(admin?.email ?? 'admin', 'research_item_digest_audiences_updated', { itemId: id, audiences: [] })
+  revalidatePath('/support/admin/digest')
 }
 
 export async function flagProductPositioning(id: string) {
@@ -34,14 +42,14 @@ export async function flagProductPositioning(id: string) {
     suggestedAction: item.suggestedAction,
   })
   captureServerEvent(admin?.email ?? 'admin', 'research_item_positioning_flagged', { itemId: id })
-  revalidatePath('/support/admin/research')
+  revalidatePath('/support/admin/digest')
 }
 
 export async function disconnectGoogleInbox() {
   const admin = await requireAdmin()
   await prisma.googleInboxConnection.deleteMany({})
   captureServerEvent(admin?.email ?? 'admin', 'google_inbox_disconnected')
-  revalidatePath('/support/admin/research')
+  revalidatePath('/support/admin/digest')
 }
 
 export async function addResearchItem(
@@ -64,6 +72,6 @@ export async function addResearchItem(
     needsReview: item.needsReview,
   })
 
-  revalidatePath('/support/admin/research')
+  revalidatePath('/support/admin/digest')
   return { success: true }
 }

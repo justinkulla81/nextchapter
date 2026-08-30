@@ -5330,6 +5330,16 @@ enum ResearchBucket {
   PERSONA_RESEARCH
 }
 
+// Which digest recipient pool(s) an article is targeted at / has gone out
+// to — separate from DigestSend.audience (still a raw String there; this
+// enum backs the new per-article targeting fields below and DigestClickEvent).
+enum DigestAudience {
+  CANDIDATE
+  COACH
+  RECRUITER
+  EMPLOYER
+}
+
 // Admin-only Research Library: every external article/URL ingested (via the
 // company research@ inbox or manual paste), fetched, AI-summarized, and
 // classified. Permanent, growing — rows are never deleted, only moved
@@ -5364,9 +5374,22 @@ model ResearchLibraryItem {
   // reuses the existing persona-adjacent taxonomy rather than a new one.
   personaTag                String?
 
-  // MARKET_BRIEF items an admin has queued into the next Weekly Market
-  // Digest send (see the Digest Composer).
-  queuedForDigest Boolean @default(false)
+  // Which digest audience(s) this article is queued for — replaces the old
+  // plain queuedForDigest boolean, which had no audience dimension at all
+  // (every audience's cron pulled blind from one shared pool). Defaults to
+  // [CANDIDATE] per product decision: candidates are the default audience,
+  // others are opt-in per article. "Queued" is now just this array being
+  // non-empty; "unqueue" sets it to [].
+  digestAudiences DigestAudience[] @default([CANDIDATE])
+  // First time this item was included in ANY send — once set, it drops out
+  // of getDigestNuggets' pool automatically (closes a real gap: previously
+  // the same nugget could repeat every week forever unless an admin
+  // remembered to manually unqueue it after a send).
+  sentAt          DateTime?
+  // Every audience this item has ever actually gone out to, across all
+  // sends — distinct from digestAudiences (still-queued intent) and from
+  // any single DigestSend.itemIds (one send's own record).
+  sentAudiences   DigestAudience[] @default([])
 
   // 'new' | 'reviewed' | 'actioned' | 'dismissed'
   status    String   @default("new")
@@ -5374,7 +5397,8 @@ model ResearchLibraryItem {
 
   @@index([bucket, status])
   @@index([needsReview])
-  @@index([queuedForDigest])
+  @@index([digestAudiences])
+  @@index([sentAt])
 }
 
 // One company-owned Gmail inbox (research@...), connected via OAuth by an
@@ -5404,6 +5428,24 @@ model DigestSend {
   itemIds        String[] // ResearchLibraryItem ids included in this send, for audit
 
   @@index([audience, sentAt])
+}
+
+// One row per click on a digest email's article link — the redirect route
+// (/api/digest-click/[audience]/[recipientId]/[itemId]) logs this before
+// forwarding to the real article URL. recipientId is polymorphic (a
+// Coach/Recruiter/Employer/CandidateProfile id depending on audience), same
+// no-FK addressing DigestSend.audience+the unsubscribe route already use —
+// resolving it back to a name is a per-audience lookup, not a join.
+model DigestClickEvent {
+  id           String         @id @default(cuid())
+  digestSendId String? // best-effort link back to the send this click's link was generated from
+  audience     DigestAudience
+  recipientId  String
+  itemId       String // ResearchLibraryItem.id
+  clickedAt    DateTime       @default(now())
+
+  @@index([itemId])
+  @@index([recipientId])
 }
 
 enum ThreadPartnerType {

@@ -135,7 +135,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         // this same page now — see Market Pulse's own page.tsx comment. It
         // was never actually "Coming soon" (that nav label was stale); the
         // three per-audience sends are real, live weekly crons.
-        { href: '/support/admin/research', label: 'Market Pulse' },
+        { href: '/support/admin/digest', label: 'Market Pulse' },
         { href: '/support/admin/tracking-testers', label: 'Gmail/Calendar Testers' },
         { href: '/support/admin/network-leads', label: 'Network Leads' },
         { href: '/support/admin/visitors', label: 'Visitors' },

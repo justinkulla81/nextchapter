@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const error = request.nextUrl.searchParams.get('error')
 
   if (error || !code) {
-    return NextResponse.redirect(new URL('/support/admin/research?googleError=denied', request.url))
+    return NextResponse.redirect(new URL('/support/admin/digest?googleError=denied', request.url))
   }
 
   try {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       // app+account combination unless prompt=consent forces re-issue —
       // buildGoogleAuthUrl always sets that, so this should be rare. If it
       // happens anyway, the connection can't self-refresh later.
-      return NextResponse.redirect(new URL('/support/admin/research?googleError=no_refresh_token', request.url))
+      return NextResponse.redirect(new URL('/support/admin/digest?googleError=no_refresh_token', request.url))
     }
 
     const email = await fetchGoogleUserEmail(tokens.access_token)
@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.redirect(new URL('/support/admin/research?googleConnected=1', request.url))
+    return NextResponse.redirect(new URL('/support/admin/digest?googleConnected=1', request.url))
   } catch (err) {
     console.error('Google OAuth callback failed:', err)
-    return NextResponse.redirect(new URL('/support/admin/research?googleError=exchange_failed', request.url))
+    return NextResponse.redirect(new URL('/support/admin/digest?googleError=exchange_failed', request.url))
   }
 }

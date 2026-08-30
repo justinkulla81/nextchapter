@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { sendMarketDigestCoachEmail } from '@/lib/email/send-market-digest-coach'
-import { recordDigestSend, getDigestNugget } from '@/lib/admin/digest-composer'
+import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/digest-composer'
 
 const MAX_ROLE_LINES = 3
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  const nugget = await getDigestNugget('PERSONA_RESEARCH')
+  const nugget = (await getDigestNuggets('COACH', 1))[0] ?? null
 
   let sentCount = 0
   for (const coach of coaches) {
@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
 
   if (sentCount > 0) {
     await recordDigestSend('coach', sentCount, nugget ? [nugget.id] : [])
+    if (nugget) await markItemsSent([nugget.id], 'COACH')
   }
 
   return NextResponse.json({ checked: coaches.length, sent: sentCount })
