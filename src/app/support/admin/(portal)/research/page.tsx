@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import type { ResearchLibraryItem } from '@prisma/client'
+import type { ResearchLibraryItem, DigestSend } from '@prisma/client'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { AddResearchItemForm } from '@/components/admin/AddResearchItemForm'
+import { DigestAudienceFilter } from '@/components/admin/DigestAudienceFilter'
 import { getActiveGoogleConnection } from '@/lib/google/connection'
+import { getQueuedDigestItems, getDigestSendHistory } from '@/lib/admin/digest-composer'
 import { markResearchItemStatus, toggleQueuedForDigest, flagProductPositioning, disconnectGoogleInbox } from './actions'
 
 export const maxDuration = 30
@@ -16,6 +18,21 @@ const BUCKET_LABEL: Record<string, string> = {
   PRODUCT_POSITIONING: 'Product-positioning evidence',
   PR_MEDIA_HOOK: 'PR/media hook',
   PERSONA_RESEARCH: 'Persona-specific research',
+}
+
+// Weekly Market Digest — merged into this page rather than living at its
+// own /support/admin/digest route: both views operate on the same
+// ResearchLibraryItem rows (queuedForDigest, toggled right in the Actions
+// column above), so splitting them across two pages just meant clicking
+// back and forth to see what queuing an item actually did. The three
+// per-audience sends (coaches/recruiters/employers) are real, live crons —
+// every Tuesday, 14:30/15:00/15:30 UTC (see vercel.json) — not the
+// "Coming soon" the old nav label implied; that label was stale.
+const DIGEST_AUDIENCE_LABEL: Record<string, string> = {
+  candidate: 'Candidates',
+  coach: 'Coaches',
+  recruiter: 'Recruiters',
+  employer: 'Employers',
 }
 
 function formatPersonaTag(tag: string | null): string {
@@ -37,13 +54,18 @@ export default async function AdminResearchPage({
   const bucketFilter = params.bucket ?? ''
   const statusFilter = params.status ?? ''
   const credibilityFilter = params.credibility ?? ''
+  const digestAudienceFilter = params.digestAudience ?? ''
   const q = (params.q ?? '').toLowerCase().trim()
-  const googleConnection = await getActiveGoogleConnection()
 
-  const allItems = await prisma.researchLibraryItem.findMany({
-    orderBy: { dateFound: 'desc' },
-    take: 500,
-  })
+  const [googleConnection, allItems, queuedForDigest, digestHistory] = await Promise.all([
+    getActiveGoogleConnection(),
+    prisma.researchLibraryItem.findMany({
+      orderBy: { dateFound: 'desc' },
+      take: 500,
+    }),
+    getQueuedDigestItems(),
+    getDigestSendHistory(digestAudienceFilter || undefined),
+  ])
 
   const contradicting = allItems.filter((i) => i.contradictsLockedDecision)
 
@@ -131,6 +153,38 @@ export default async function AdminResearchPage({
         </div>
       ),
     },
+  ]
+
+  const digestQueueColumns: AdminColumn<ResearchLibraryItem>[] = [
+    {
+      header: 'Item',
+      render: (r) => (
+        <div>
+          <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+            {r.title || r.url}
+          </a>
+          {r.summary && <p className="mt-1 text-sm text-muted-foreground">{r.summary}</p>}
+        </div>
+      ),
+    },
+    { header: 'Found', className: 'px-3 py-2 tabular-nums', render: (r) => r.dateFound.toLocaleDateString() },
+    {
+      header: 'Actions',
+      render: (r) => (
+        <form action={toggleQueuedForDigest.bind(null, r.id, false)}>
+          <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
+            Remove from queue
+          </button>
+        </form>
+      ),
+    },
+  ]
+
+  const digestHistoryColumns: AdminColumn<DigestSend>[] = [
+    { header: 'Audience', render: (s) => DIGEST_AUDIENCE_LABEL[s.audience] ?? s.audience },
+    { header: 'Sent', className: 'px-3 py-2 tabular-nums', render: (s) => s.sentAt.toLocaleString() },
+    { header: 'Recipients', className: 'px-3 py-2 tabular-nums', render: (s) => s.recipientCount },
+    { header: 'Items included', className: 'px-3 py-2 tabular-nums', render: (s) => s.itemIds.length },
   ]
 
   return (
@@ -226,6 +280,54 @@ export default async function AdminResearchPage({
       />
 
       <AdminDataTable columns={columns} rows={rows} rowKey={(r) => r.id} emptyMessage="No research items match." />
+
+      <div className="space-y-6 border-t border-border pt-6">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Weekly Market Digest</h2>
+          <p className="mt-1 text-muted-foreground">
+            Real, scheduled sends — every Tuesday at 14:30 (Coaches), 15:00 (Recruiters), and 15:30
+            UTC (Employers) — each pulling one queued item below into that audience&apos;s digest
+            email. Nothing here is auto-published; queuing an item above is what puts it in reach
+            of the next send.
+          </p>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-medium text-foreground">Queued for next digest ({queuedForDigest.length})</h3>
+          <div className="mt-3">
+            <AdminDataTable
+              columns={digestQueueColumns}
+              rows={queuedForDigest}
+              rowKey={(r) => r.id}
+              emptyMessage="Nothing queued yet — use “Queue for digest” on a Market Brief item above."
+            />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-medium text-foreground">Send history</h3>
+          <div className="mt-3 space-y-3">
+            {/* Not AdminFilterBar — that component's search box hardcodes
+                name="q", which the Market Pulse table above already owns;
+                reusing it here would blank out that search on every audience
+                change. This preserves the page's other filters via hidden
+                inputs instead. */}
+            <DigestAudienceFilter
+              q={params.q ?? ''}
+              bucket={bucketFilter}
+              status={statusFilter}
+              credibility={credibilityFilter}
+              digestAudience={digestAudienceFilter}
+            />
+            <AdminDataTable
+              columns={digestHistoryColumns}
+              rows={digestHistory}
+              rowKey={(s) => s.id}
+              emptyMessage="No digests sent yet."
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
