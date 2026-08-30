@@ -53,34 +53,12 @@ export function getHardGateStatus(profile: {
   return 'unlocked'
 }
 
-// Paths that must stay reachable at every gate stage — the gate's own
-// required pages, the pages needed to satisfy it, and account-level actions
-// that must never be blocked (settings/logout/support). Prefix-matched
-// against the pathname.
-const GATE_EXEMPT_PATH_PREFIXES = [
-  '/dashboard/search-strategy',
-  '/dashboard/skills-assessment', // singular quiz route
-  '/dashboard/skills-assessments', // hub route
-  '/dashboard/network', // Gmail/Calendar connect prompt + LinkedIn CSV import both live here
-  '/dashboard/profile',
-  '/dashboard/settings',
-  '/dashboard/support',
-  // Resume upload/analysis and the guided walkthrough happen naturally
-  // before a candidate has settled on a Search Strategy, not after — and
-  // the resume itself often informs what they put in Search Strategy.
-  // Gating it behind Search Strategy completion had it backwards.
-  '/dashboard/resume',
-  // A gated candidate must be able to view their own already-generated
-  // report — it was missing from this list entirely, silently blocking a
-  // candidate from seeing their own Market Reality Report before they'd
-  // cleared the hard gate. Fixed alongside §12's Unified dashboard work
-  // (the report is also one of that section's "always unlocked" items).
-  '/dashboard/market-reality',
-]
-
-export function isGateExemptPath(pathname: string): boolean {
-  return (
-    pathname === '/dashboard' ||
-    GATE_EXEMPT_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
-  )
-}
+// Moved to gate-exempt-paths.ts (pure, no prisma import) — re-exported here
+// so existing importers of this module keep working. The actual exemption
+// DECISION now happens client-side (see HardGateGate.tsx) rather than via
+// this same function called server-side against a middleware-forwarded
+// x-pathname header, which turned out not to reliably reach this layout in
+// production — a subjectToHardGate candidate could see the gate on a page
+// that was supposed to be exempt (e.g. /dashboard/search-strategy itself),
+// with no way to ever clear it.
+export { isGateExemptPath, GATE_EXEMPT_PATH_PREFIXES } from './gate-exempt-paths'

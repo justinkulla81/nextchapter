@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { headers } from 'next/headers'
 import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
@@ -11,10 +10,10 @@ import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
-import { getHardGateStatus, isGmailConnected, isGateExemptPath } from '@/lib/dashboard/access-gate'
+import { getHardGateStatus, isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { isActiveMember } from '@/lib/membership/subscription'
-import { HardGateBlockingScreen } from '@/components/dashboard/HardGateBlockingScreen'
+import { HardGateGate } from '@/components/dashboard/HardGateGate'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 
 export const metadata: Metadata = {
@@ -137,18 +136,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Dashboard-wide hard gate (see access-gate.ts) — only ever applies to
   // candidates created after this shipped (profile.subjectToHardGate) and
   // only outside a small allowlist of routes (the gate's own required pages
-  // + account-level pages that must always stay reachable).
-  const pathname = (await headers()).get('x-pathname') ?? ''
-  let gateContent: React.ReactNode = null
-  if (profile.subjectToHardGate && !isGateExemptPath(pathname)) {
-    const gmailConnected = await isGmailConnected(profile.id)
-    const status = getHardGateStatus(profile, gmailConnected)
-    if (status === 'search_strategy_required' || status === 'activation_required') {
-      gateContent = (
-        <HardGateBlockingScreen stage={status} candidateId={profile.id} email={profile.email} />
-      )
-    }
-  }
+  // + account-level pages that must always stay reachable). The exemption
+  // check itself happens client-side in HardGateGate (usePathname(), not a
+  // middleware-forwarded header) — see that component for why. Status is
+  // still computed here since it needs a real DB read (Gmail connection).
+  const hardGateStatus = profile.subjectToHardGate
+    ? getHardGateStatus(profile, await isGmailConnected(profile.id))
+    : 'exempt'
 
   const personName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email || 'You'
 
@@ -185,7 +179,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
           the body's own --background (a light gray-blue, see globals.css)
           shows through below wherever this element's content ends. */}
       <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
-        <div className="mx-auto max-w-4xl">{gateContent ?? children}</div>
+        <div className="mx-auto max-w-4xl">
+          <HardGateGate
+            subjectToHardGate={profile.subjectToHardGate}
+            status={hardGateStatus}
+            candidateId={profile.id}
+            email={profile.email}
+          >
+            {children}
+          </HardGateGate>
+        </div>
       </main>
     </div>
   )
