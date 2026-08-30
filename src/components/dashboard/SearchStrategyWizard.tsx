@@ -1,25 +1,29 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UnlockAnnouncementDialog, type UnlockItem } from '@/components/dashboard/UnlockAnnouncementDialog'
 
-export interface WizardStep {
+// One underlying, independently-completable question set (its own save
+// action, its own "just unlocked" moment) that now lives on a shared page
+// alongside one or more siblings — see WizardPage below. Keeping these
+// tracked individually (rather than collapsing to one complete/unlock per
+// page) means e.g. Marketing Plan Willingness still unlocks My Marketing
+// Plan/LinkedIn the moment IT'S answered, even if the Networking question
+// sharing its page isn't answered yet.
+export interface WizardStepItem {
   key: string
-  label: string
   complete: boolean
-  // Shown once, the moment this step transitions from incomplete to
-  // complete — only the two steps that genuinely unlock another page
-  // (Marketing Plan Willingness, Networking Willingness) set this.
   unlock?: { introText: string; items: UnlockItem[] }
 }
 
-// Field-level anchors that used to scroll straight to a specific card
-// (search-strategy-checklist.ts, complete-profile/page.tsx,
-// action-effort.ts's ANSWER_OPTIONAL_QUESTIONS/BENEFITS_PRIORITIES_CONFIRMED
-// hrefs) — now resolved to which wizard step that anchor lives on, so those
-// same links land on the right page instead of a hidden one.
+export interface WizardPage {
+  key: string
+  label: string
+  items: WizardStepItem[]
+}
+
 const ANCHOR_TO_STEP_KEY: Record<string, string> = {
   'optional-questions': 'so-far',
   gapDuration: 'target-role',
@@ -31,139 +35,195 @@ const ANCHOR_TO_STEP_KEY: Record<string, string> = {
   'comp-benefits': 'benefits',
 }
 
-// A list of the 7 steps (same row shape as the Skills & Behavioral
-// Assessments list — label, status, one action button) instead of a
-// horizontal stepper — clicking a row opens that one step full-focus, with
+function findPageIndexForItemKey(pages: WizardPage[], itemKey: string): number {
+  return pages.findIndex((p) => p.items.some((i) => i.key === itemKey))
+}
+
+// The server always renders the list view (it has no access to localStorage
+// or window.location.hash) — restoring position has to happen in an effect,
+// never in useState's own initializer, or the client's first render
+// mismatches what was already sent down as HTML and React discards the
+// restored value. useLayoutEffect (not useEffect) so the switch happens
+// before the browser paints the list, instead of flashing it first.
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
+// A list of pages (label, status, one action button) instead of a
+// horizontal stepper — clicking a row opens that one page full-focus, with
 // its own Back/Next/Exit controls; nothing else on the page competes for
-// attention while a step is open. A hash deep-link (ANCHOR_TO_STEP_KEY)
-// still opens straight into the target step, same as before.
-export function SearchStrategyWizard({ steps, children }: { steps: WizardStep[]; children: ReactNode[] }) {
-  const [openStep, setOpenStep] = useState<number | null>(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
+// attention while a page is open. A hash deep-link (ANCHOR_TO_STEP_KEY)
+// still opens straight into the target page, and the last page visited is
+// remembered per-candidate (localStorage) so leaving and coming back lands
+// right where they left off instead of back at the list.
+export function SearchStrategyWizard({
+  pages,
+  children,
+  candidateId,
+}: {
+  pages: WizardPage[]
+  children: ReactNode[]
+  candidateId: string
+}) {
+  const storageKey = `search-strategy-open-page:${candidateId}`
+
+  const [openPage, setOpenPageState] = useState<number | null>(null)
+  const restoredRef = useRef(false)
+
+  useIsomorphicLayoutEffect(() => {
+    if (restoredRef.current) return
+    restoredRef.current = true
+    if (window.location.hash) {
       const anchorKey = ANCHOR_TO_STEP_KEY[window.location.hash.slice(1)]
-      const anchorStepIndex = anchorKey ? steps.findIndex((s) => s.key === anchorKey) : -1
-      if (anchorStepIndex !== -1) return anchorStepIndex
+      const anchorPageIndex = anchorKey ? findPageIndexForItemKey(pages, anchorKey) : -1
+      if (anchorPageIndex !== -1) {
+        setOpenPageState(anchorPageIndex)
+        return
+      }
     }
-    return null
-  })
-  const prevCompleteRef = useRef(steps.map((s) => s.complete))
+    try {
+      const savedKey = window.localStorage.getItem(storageKey)
+      const savedIndex = savedKey ? pages.findIndex((p) => p.key === savedKey) : -1
+      if (savedIndex !== -1) setOpenPageState(savedIndex)
+    } catch {
+      // Private-browsing/localStorage-disabled — just fall back to the list.
+    }
+  }, [])
+
+  const setOpenPage = (next: number | null) => {
+    setOpenPageState(next)
+    try {
+      if (next === null) window.localStorage.removeItem(storageKey)
+      else window.localStorage.setItem(storageKey, pages[next].key)
+    } catch {
+      // Nothing to do — remembering position is a nicety, not load-bearing.
+    }
+  }
+
+  const flatItems = pages.flatMap((p) => p.items)
+  const prevCompleteRef = useRef<Map<string, boolean>>(new Map(flatItems.map((i) => [i.key, i.complete])))
+  const prevPageCompleteRef = useRef<Map<string, boolean>>(
+    new Map(pages.map((p) => [p.key, p.items.every((i) => i.complete)]))
+  )
   const hashScrolledRef = useRef(false)
-  const [unlockStep, setUnlockStep] = useState<WizardStep | null>(null)
+  const [unlockItem, setUnlockItem] = useState<WizardStepItem | null>(null)
 
   useEffect(() => {
-    if (openStep === null) return
-    const prev = prevCompleteRef.current
-    const justCompleted = !prev[openStep] && steps[openStep]?.complete
-    // Reacting to the profile data a server action just revalidated in, not
-    // a render-time-derivable value.
-    if (justCompleted) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (steps[openStep]?.unlock) setUnlockStep(steps[openStep])
-      if (openStep < steps.length - 1) setOpenStep((s) => (s === null ? s : s + 1))
+    const prevComplete = prevCompleteRef.current
+    const newlyUnlocked = flatItems.find((item) => item.unlock && item.complete && prevComplete.get(item.key) === false)
+    if (newlyUnlocked) {
+      setUnlockItem(newlyUnlocked)
     }
-    prevCompleteRef.current = steps.map((s) => s.complete)
+    prevCompleteRef.current = new Map(flatItems.map((i) => [i.key, i.complete]))
+
+    if (openPage !== null) {
+      const page = pages[openPage]
+      const pageNowComplete = page.items.every((i) => i.complete)
+      const pageWasComplete = prevPageCompleteRef.current.get(page.key)
+      if (pageNowComplete && pageWasComplete === false && openPage < pages.length - 1) {
+        setOpenPage(openPage + 1)
+      }
+    }
+    prevPageCompleteRef.current = new Map(pages.map((p) => [p.key, p.items.every((i) => i.complete)]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [steps])
+  }, [pages])
 
   useEffect(() => {
     if (hashScrolledRef.current) return
     hashScrolledRef.current = true
     const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : ''
     if (!hash) return
-    // Field-level anchors inside a step's own form (targetIndustries, etc.)
-    // need a tick for that step's content to mount before the element exists.
     requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ block: 'center' }))
   }, [])
 
-  if (openStep === null) {
+  const unlockDialog = unlockItem?.unlock && (
+    <UnlockAnnouncementDialog
+      open={!!unlockItem}
+      onOpenChange={(open) => {
+        if (!open) setUnlockItem(null)
+      }}
+      introText={unlockItem.unlock.introText}
+      items={unlockItem.unlock.items}
+      analyticsKey={`search_strategy_${unlockItem.key}`}
+    />
+  )
+
+  if (openPage === null) {
     return (
       <>
         <div className="divide-y divide-border rounded-lg border border-border">
-          {steps.map((step, i) => (
-            <button
-              key={step.key}
-              type="button"
-              onClick={() => setOpenStep(i)}
-              className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-muted/50"
-            >
-              <div>
-                <p className="text-sm font-medium text-foreground">{step.label}</p>
-                <p className={cn('text-xs', step.complete ? 'font-medium text-success' : 'text-muted-foreground')}>
-                  {step.complete ? 'Complete' : 'Not completed yet'}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {/* Decorative — the whole row is the click target (this
-                    button element wraps everything), so this is a label
-                    styled like a button, not a second nested control. */}
-                <span
-                  className={cn(
-                    'rounded-md px-3 py-1.5 text-sm font-medium',
-                    step.complete ? 'border border-input text-foreground' : 'bg-primary text-primary-foreground'
-                  )}
-                >
-                  {step.complete ? 'Edit' : 'Answer'}
-                </span>
-                <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
-              </div>
-            </button>
-          ))}
+          {pages.map((page, i) => {
+            const complete = page.items.every((item) => item.complete)
+            return (
+              <button
+                key={page.key}
+                type="button"
+                onClick={() => setOpenPage(i)}
+                className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-muted/50"
+              >
+                <div>
+                  <p className="text-sm font-medium text-foreground">{page.label}</p>
+                  <p className={cn('text-xs', complete ? 'font-medium text-success' : 'text-muted-foreground')}>
+                    {complete ? 'Complete' : 'Not completed yet'}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={cn(
+                      'rounded-md px-3 py-1.5 text-sm font-medium',
+                      complete ? 'border border-input text-foreground' : 'bg-primary text-primary-foreground'
+                    )}
+                  >
+                    {complete ? 'Edit' : 'Answer'}
+                  </span>
+                  <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+                </div>
+              </button>
+            )
+          })}
         </div>
-
-        {unlockStep?.unlock && (
-          <UnlockAnnouncementDialog
-            open={!!unlockStep}
-            onOpenChange={(open) => {
-              if (!open) setUnlockStep(null)
-            }}
-            introText={unlockStep.unlock.introText}
-            items={unlockStep.unlock.items}
-            analyticsKey={`search_strategy_${unlockStep.key}`}
-          />
-        )}
+        {unlockDialog}
       </>
     )
   }
 
-  const step = steps[openStep]
+  const page = pages[openPage]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() => setOpenStep(null)}
+          onClick={() => setOpenPage(null)}
           className="text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
         >
           ← Back to list
         </button>
         <span className="text-xs text-muted-foreground">
-          {openStep + 1} of {steps.length} — {step.label}
+          {openPage + 1} of {pages.length} — {page.label}
         </span>
       </div>
 
-      {children[openStep]}
+      {children[openPage]}
 
       <div className="flex items-center justify-between border-t border-border pt-4">
         <button
           type="button"
-          onClick={() => setOpenStep((s) => (s === null ? s : Math.max(0, s - 1)))}
-          disabled={openStep === 0}
+          onClick={() => setOpenPage(Math.max(0, openPage - 1))}
+          disabled={openPage === 0}
           className="text-sm font-medium text-muted-foreground underline underline-offset-4 disabled:opacity-40 disabled:no-underline"
         >
           ← Back
         </button>
         <button
           type="button"
-          onClick={() => setOpenStep(null)}
+          onClick={() => setOpenPage(null)}
           className="text-sm font-medium text-muted-foreground underline underline-offset-4"
         >
           Exit to list
         </button>
-        {openStep < steps.length - 1 ? (
+        {openPage < pages.length - 1 ? (
           <button
             type="button"
-            onClick={() => setOpenStep((s) => (s === null ? s : Math.min(steps.length - 1, s + 1)))}
+            onClick={() => setOpenPage(Math.min(pages.length - 1, openPage + 1))}
             className="text-sm font-medium text-primary underline underline-offset-4"
           >
             Next →
@@ -171,7 +231,7 @@ export function SearchStrategyWizard({ steps, children }: { steps: WizardStep[];
         ) : (
           <button
             type="button"
-            onClick={() => setOpenStep(null)}
+            onClick={() => setOpenPage(null)}
             className="text-sm font-medium text-primary underline underline-offset-4"
           >
             Done →
@@ -179,17 +239,7 @@ export function SearchStrategyWizard({ steps, children }: { steps: WizardStep[];
         )}
       </div>
 
-      {unlockStep?.unlock && (
-        <UnlockAnnouncementDialog
-          open={!!unlockStep}
-          onOpenChange={(open) => {
-            if (!open) setUnlockStep(null)
-          }}
-          introText={unlockStep.unlock.introText}
-          items={unlockStep.unlock.items}
-          analyticsKey={`search_strategy_${unlockStep.key}`}
-        />
-      )}
+      {unlockDialog}
     </div>
   )
 }
