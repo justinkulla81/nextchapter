@@ -94,7 +94,7 @@ export const getDashboardData = cache(async () => {
       if (await claimReportGeneration(candidateId)) {
         await generateMarketRealityReport(candidateId)
       }
-      await sendMarketRealityReportEmail(candidateId)
+      await sendMarketRealityReportEmail(candidateId, { justEarnedBadge: true })
     })
   }
 

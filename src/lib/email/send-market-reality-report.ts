@@ -4,7 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketRealityReportEmail from '@/emails/market-reality-report'
 
-export async function sendMarketRealityReportEmail(candidateId: string) {
+// justEarnedBadge folds a "you also just earned the Market Reality
+// Assessment badge" line into this same email instead of sending it as a
+// separate badge-earned email seconds apart — see MILESTONE_BADGE_KEYS_WITHOUT_OWN_EMAIL
+// in badge-notifications.ts. Only get-dashboard-data.ts's justRegistered
+// call site passes true — that's the one place this email and the badge are
+// guaranteed to be earned in the very same request. The dashboard/page.tsx
+// catch-up call (resolveLatestReport, for a report whose registration-time
+// send got cut off) omits it, since by then the badge moment has passed.
+export async function sendMarketRealityReportEmail(candidateId: string, options?: { justEarnedBadge?: boolean }) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping market reality report email.')
     return { sent: false as const }
@@ -45,10 +53,13 @@ export async function sendMarketRealityReportEmail(candidateId: string) {
       from: 'NextChapter <support@launchyournextchapter.com>',
       replyTo: 'support@launchyournextchapter.com',
       to: email,
-      subject: `Your Market Reality Grade is ready, ${firstName}`,
+      subject: options?.justEarnedBadge
+        ? `You earned a badge, and your Market Reality Grade is ready, ${firstName}`
+        : `Your Market Reality Grade is ready, ${firstName}`,
       react: MarketRealityReportEmail({
         candidateName: firstName,
         reportUrl: `${appUrl}/dashboard/market-reality`,
+        justEarnedBadge: !!options?.justEarnedBadge,
       }),
     })
 

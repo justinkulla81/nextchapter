@@ -22,10 +22,23 @@ export interface PendingBadgeNotice {
   earnedAt: Date
 }
 
+// MARKET_REALITY_COMPLETE is earned exactly once, on the exact same
+// dashboard load that also generates and emails the candidate's first
+// Market Reality Report (see get-dashboard-data.ts's justRegistered block) —
+// a standalone badge email here would land in the same inbox seconds apart
+// from the report email. sendMarketRealityReportEmail folds the badge
+// acknowledgment into that report email instead (see its justEarnedBadge
+// param), so this badge never gets its own email — it still persists, still
+// shows in the in-app BadgeEarnedDialog popup, just isn't emailed twice.
+const MILESTONE_BADGE_KEYS_WITHOUT_OWN_EMAIL = new Set(['MARKET_REALITY_COMPLETE'])
+
 async function notifyNewBadges(candidateId: string, newlyEarned: { badgeKey: string; label: string }[]): Promise<void> {
   if (newlyEarned.length === 0) return
 
   captureServerEvent(candidateId, 'badge_earned', { badgeKeys: newlyEarned.map((b) => b.badgeKey) })
+
+  const emailBadges = newlyEarned.filter((b) => !MILESTONE_BADGE_KEYS_WITHOUT_OWN_EMAIL.has(b.badgeKey))
+  if (emailBadges.length === 0) return
 
   const candidate = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
@@ -33,7 +46,7 @@ async function notifyNewBadges(candidateId: string, newlyEarned: { badgeKey: str
   })
   if (!candidate) return
 
-  await sendBadgeEarnedEmail(candidate, newlyEarned.map((b) => b.label)).catch((error) =>
+  await sendBadgeEarnedEmail(candidate, emailBadges.map((b) => b.label)).catch((error) =>
     console.error('Failed to send badge-earned email:', error)
   )
 }

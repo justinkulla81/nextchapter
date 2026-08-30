@@ -3,6 +3,7 @@ import { emailStyles } from '@/lib/email/email-styles'
 interface MarketRealityReportEmailProps {
   candidateName: string
   reportUrl: string
+  justEarnedBadge?: boolean
 }
 
 const container: React.CSSProperties = {
@@ -37,11 +38,16 @@ const footer: React.CSSProperties = {
   ...emailStyles.muted,
 }
 
-export default function MarketRealityReportEmail({ candidateName, reportUrl }: MarketRealityReportEmailProps) {
+export default function MarketRealityReportEmail({
+  candidateName,
+  reportUrl,
+  justEarnedBadge,
+}: MarketRealityReportEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {candidateName},</p>
+      {justEarnedBadge && <p>Nice work — you just earned the &quot;Market Reality Assessment&quot; badge!</p>}
       <p>We have your Market Reality Grade.</p>
       <p>Find out how employers will actually read your resume — what&apos;s working, what to fix first.</p>
       <a href={reportUrl} style={button}>
