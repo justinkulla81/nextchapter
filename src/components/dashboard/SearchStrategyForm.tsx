@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { updateSearchStrategy } from '@/app/dashboard/search-strategy/actions'
+import { useAdvanceSearchStrategyPageOnSave } from '@/components/dashboard/SearchStrategyWizard'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -52,6 +53,7 @@ export function SearchStrategyForm({
   completedReferencesCount?: number
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
+  useAdvanceSearchStrategyPageOnSave(pending, !!state?.error)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
   const [isTargetFlexible, setIsTargetFlexible] = useState(profile.targetRoleType === 'Flexible')
   const [targetRoleType, setTargetRoleType] = useState(

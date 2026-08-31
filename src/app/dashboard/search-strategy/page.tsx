@@ -19,13 +19,10 @@ import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-
 import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyWizard, type WizardPage } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
-import { OptionalQuestionsForm } from '@/components/dashboard/OptionalQuestionsForm'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
-import { MarketingPlanWillingnessForm } from '@/components/dashboard/MarketingPlanWillingnessForm'
-import { BoardAdvisoryWillingnessForm } from '@/components/dashboard/BoardAdvisoryWillingnessForm'
-import { NetworkingWillingnessForm } from '@/components/dashboard/NetworkingWillingnessForm'
-import { NegotiationInterviewComfortForm } from '@/components/dashboard/NegotiationInterviewComfortForm'
-import { BenefitsPrioritiesForm } from '@/components/dashboard/BenefitsPrioritiesForm'
+import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetworkingForm'
+import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
+import { OtherSearchStrengthenersForm } from '@/components/dashboard/OtherSearchStrengthenersForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Spinner } from '@/components/ui/spinner'
@@ -388,157 +385,54 @@ export default async function SearchStrategyPage() {
       </CardContent>
     </Card>,
 
-    <div key="marketing-networking" className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Marketing Plan Willingness</CardTitle>
-            {marketingPlanWillingnessComplete && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {marketingPlanWillingnessComplete
-              ? 'Update this any time your comfort level changes — it unlocks My Marketing Plan and the LinkedIn post generator.'
-              : "What you're willing to do publicly shapes your Marketing Plan and unlocks the LinkedIn post generator — answer these once here instead of hitting two separate locked pages."}
-          </p>
-          <MarketingPlanWillingnessForm profile={profile} />
-        </CardContent>
-      </Card>
+    <Card key="marketing-networking">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="mb-4 text-sm text-muted-foreground">
+          What you&apos;re willing to do publicly, and how you feel about reaching out — shapes your
+          Marketing Plan and outreach scripts, and unlocks My Marketing Plan, LinkedIn, and My
+          Network.
+        </p>
+        <MarketingNetworkingForm profile={profile} />
+      </CardContent>
+    </Card>,
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Networking Willingness</CardTitle>
-            {networkingWillingnessComplete && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {networkingWillingnessComplete
-              ? 'Update this any time it changes — it unlocks My Network and calibrates your outreach scripts.'
-              : "What you're willing to do to reach out — and what's holding you back — shapes your outreach scripts and unlocks My Network."}
-          </p>
-          <NetworkingWillingnessForm profile={profile} />
-        </CardContent>
-      </Card>
-    </div>,
+    <Card key="negotiation-compensation">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Negotiation, Interview &amp; Compensation Readiness
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Where you&apos;re genuinely comfortable, and what matters to you beyond salary — shapes
+          the skills and videos we surface, and helps your coach and recruiter contacts steer you
+          toward offers that fit.
+        </p>
+        <NegotiationCompensationForm profile={profile} targetCompMin={profile.targetCompMin} />
+      </CardContent>
+    </Card>,
 
-    <div key="negotiation-compensation" className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Negotiation &amp; Interview Comfort
-            </CardTitle>
-            {negotiationInterviewComfortComplete && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {negotiationInterviewComfortComplete
-              ? 'Update this any time it changes — a low score shapes the skills we suggest and the career-advice videos we surface first.'
-              : "Where you're genuinely comfortable and where you're not, so the skills we suggest and the videos we surface actually target the gap."}
-          </p>
-          <NegotiationInterviewComfortForm profile={profile} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Compensation &amp; Benefits</CardTitle>
-            {benefitsAnswered && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            What matters to you beyond salary — helps your coach and recruiter contacts steer you
-            toward roles and offers that actually fit.
-          </p>
-          {benefitsAnswered ? (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-              Answered
-            </p>
-          ) : (
-            <BenefitsPrioritiesForm targetCompMin={profile.targetCompMin} />
-          )}
-        </CardContent>
-      </Card>
-    </div>,
-
-    <div key="other-ways" className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Board Advisory Work Willingness</CardTitle>
-            {boardAdvisoryWillingnessComplete && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {boardAdvisoryWillingnessComplete
-              ? 'Update this any time — it unlocks Board Advisory Work, matched to your background.'
-              : 'Are you willing to take unpaid board positions to fill in resume gaps, keep skills current, and build new experience?'}
-          </p>
-          <BoardAdvisoryWillingnessForm initial={profile.boardAdvisoryWillingness} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">A Few More Details</CardTitle>
-            {optionalQuestionsAnswered && (
-              <span className="text-success" aria-hidden>
-                ✓
-              </span>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {optionalQuestionsAnswered && (
-            <p className="text-sm text-muted-foreground">
-              Update any answer below as your search progresses — Victoria&apos;s guidance above
-              refreshes based on what you report here.
-            </p>
-          )}
-          <OptionalQuestionsForm
-            initial={{
-              networkingLevel: profile.networkingLevel,
-              learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
-              triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
-              triedExecutiveCoaching: profile.triedExecutiveCoaching,
-              connectedWithRecruiters: profile.connectedWithRecruiters,
-              recruiterConnectionCount: profile.recruiterConnectionCount,
-            }}
-          />
-        </CardContent>
-      </Card>
-    </div>,
+    <Card key="other-ways">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">Other Ways to Strengthen Your Search</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <OtherSearchStrengthenersForm
+          boardAdvisoryInitial={profile.boardAdvisoryWillingness}
+          optionalQuestionsInitial={{
+            networkingLevel: profile.networkingLevel,
+            learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
+            triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
+            triedExecutiveCoaching: profile.triedExecutiveCoaching,
+            connectedWithRecruiters: profile.connectedWithRecruiters,
+            recruiterConnectionCount: profile.recruiterConnectionCount,
+          }}
+        />
+      </CardContent>
+    </Card>,
   ]
 
   const actionPlanCard = checklist.incomplete.length > 0 && (
@@ -581,7 +475,7 @@ export default async function SearchStrategyPage() {
             right here on this page.
           </p>
         )}
-        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} />
+        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} hideDailyMessage />
       </div>
 
       <div className="space-y-4">

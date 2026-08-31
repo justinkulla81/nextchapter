@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { UnlockAnnouncementDialog, type UnlockItem } from '@/components/dashboard/UnlockAnnouncementDialog'
 
@@ -36,6 +36,31 @@ const ANCHOR_TO_STEP_KEY: Record<string, string> = {
 
 function findPageIndexForItemKey(pages: WizardPage[], itemKey: string): number {
   return pages.findIndex((p) => p.items.some((i) => i.key === itemKey))
+}
+
+// Lets each page's own form advance the wizard the moment its save
+// succeeds — see useAdvanceSearchStrategyPageOnSave below — instead of
+// requiring a separate click on the wizard's own Next button. Optional
+// (null outside a SearchStrategyWizard) since a couple of these forms
+// (e.g. PersonalContextForm) also render standalone on other pages.
+const SearchStrategyPageContext = createContext<{ advance: () => void } | null>(null)
+
+// Call from a page's form right after its useActionState — advances to the
+// next wizard page (or exits to the list, on the last page) the instant a
+// save finishes without error, whether or not this was the page's first
+// time being completed. A page with more than one form (see WizardPage)
+// only actually advances once every item on it is complete — saving just
+// one of two forms on a shared page keeps you on that page so you can
+// still fill in the other.
+export function useAdvanceSearchStrategyPageOnSave(pending: boolean, hasError: boolean) {
+  const ctx = useContext(SearchStrategyPageContext)
+  const wasPendingRef = useRef(false)
+  useEffect(() => {
+    if (wasPendingRef.current && !pending && !hasError) {
+      ctx?.advance()
+    }
+    wasPendingRef.current = pending
+  }, [pending, hasError, ctx])
 }
 
 // The server always renders the list view (it has no access to localStorage
@@ -105,6 +130,10 @@ export function SearchStrategyWizard({
   const hashScrolledRef = useRef(false)
   const [unlockItem, setUnlockItem] = useState<WizardStepItem | null>(null)
 
+  // Page navigation itself is driven by each page's own form calling
+  // advance() on a successful save (useAdvanceSearchStrategyPageOnSave) —
+  // this effect only watches for a fresh completion to announce via the
+  // unlock dialog, independent of which page is currently open.
   useEffect(() => {
     const prevComplete = prevCompleteRef.current
     const newlyUnlocked = flatItems.find((item) => item.unlock && item.complete && prevComplete.get(item.key) === false)
@@ -112,15 +141,6 @@ export function SearchStrategyWizard({
       setUnlockItem(newlyUnlocked)
     }
     prevCompleteRef.current = new Map(flatItems.map((i) => [i.key, i.complete]))
-
-    if (openPage !== null) {
-      const page = pages[openPage]
-      const pageNowComplete = page.items.every((i) => i.complete)
-      const pageWasComplete = prevPageCompleteRef.current.get(page.key)
-      if (pageNowComplete && pageWasComplete === false && openPage < pages.length - 1) {
-        setOpenPage(openPage + 1)
-      }
-    }
     prevPageCompleteRef.current = new Map(pages.map((p) => [p.key, p.items.every((i) => i.complete)]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pages])
@@ -132,6 +152,22 @@ export function SearchStrategyWizard({
     if (!hash) return
     requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ block: 'center' }))
   }, [])
+
+  // Every pagination move — Next/Back, a list row, or a form's own
+  // save-triggered advance() — should land at the top of the new page, not
+  // wherever the previous page happened to be scrolled to.
+  useEffect(() => {
+    if (openPage !== null) window.scrollTo(0, 0)
+  }, [openPage])
+
+  // A page with more than one form only advances once every item on it is
+  // complete — see useAdvanceSearchStrategyPageOnSave's own comment.
+  function advance() {
+    if (openPage === null) return
+    const pageComplete = pages[openPage].items.every((item) => item.complete)
+    if (!pageComplete) return
+    setOpenPage(openPage < pages.length - 1 ? openPage + 1 : null)
+  }
 
   const unlockDialog = unlockItem?.unlock && (
     <UnlockAnnouncementDialog
@@ -211,7 +247,7 @@ export function SearchStrategyWizard({
         </span>
       </div>
 
-      {children[openPage]}
+      <SearchStrategyPageContext.Provider value={{ advance }}>{children[openPage]}</SearchStrategyPageContext.Provider>
 
       <div className="flex items-center justify-between border-t border-border pt-4">
         <button

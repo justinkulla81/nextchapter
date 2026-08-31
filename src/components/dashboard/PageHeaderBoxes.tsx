@@ -21,6 +21,7 @@ export async function PageHeaderBoxes({
   candidateId,
   lifetimeProgress,
   dailyMessageOverride,
+  hideDailyMessage,
 }: {
   pageKey: PageKey
   candidateId: string
@@ -31,14 +32,22 @@ export async function PageHeaderBoxes({
   // rotation — avoids stacking two near-identical "personalized message"
   // cards on the same page.
   dailyMessageOverride?: ReactNode
+  // Drops the Daily Message box entirely (Action Plan still renders) — for
+  // a page like Search Strategy, which is already a long, multi-part form;
+  // an admin-authored or computed message on top of it added clutter
+  // without adding anything the page's own guidance/action-plan cards
+  // didn't already say.
+  hideDailyMessage?: boolean
 }) {
-  const watchlistAlert = WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
+  const watchlistAlert =
+    !hideDailyMessage && WATCHLIST_ALERT_PAGES.includes(pageKey) ? await getWatchlistAlertContent(candidateId) : null
   const searchStrategyAlert =
-    pageKey === 'search-strategy' ? await getSearchStrategyDailyMessageOverride(candidateId) : null
+    !hideDailyMessage && pageKey === 'search-strategy' ? await getSearchStrategyDailyMessageOverride(candidateId) : null
 
-  const dailyMessage = dailyMessageOverride
-    ? null
-    : await getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert ?? searchStrategyAlert)
+  const dailyMessage =
+    dailyMessageOverride || hideDailyMessage
+      ? null
+      : await getPageBoxContent(candidateId, pageKey, 'DAILY_MESSAGE', watchlistAlert ?? searchStrategyAlert)
 
   // "How NextChapter works with Victoria" — dashboard-only, appended below
   // whichever Daily Message content is currently rotating in rather than

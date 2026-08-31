@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { updatePersonalContext } from '@/app/dashboard/actions'
+import { useAdvanceSearchStrategyPageOnSave } from '@/components/dashboard/SearchStrategyWizard'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -38,6 +39,7 @@ const CONSISTENCY_LABELS = [
 // Dossier" header comment in dossier-sections.ts.
 export function PersonalContextForm({ profile }: { profile: CandidateProfile }) {
   const [state, formAction, pending] = useActionState(updatePersonalContext, undefined)
+  useAdvanceSearchStrategyPageOnSave(pending, !!state?.error)
   const [jobSearchDifficultyLevel, setJobSearchDifficultyLevel] = useState<number | null>(
     profile.jobSearchDifficultyLevel
   )

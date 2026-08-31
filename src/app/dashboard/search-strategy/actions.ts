@@ -9,6 +9,7 @@ import { TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
+import { answerBenefitsPriorities, answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
 import type {
   ContentVenue,
   GapDurationBucket,
@@ -370,4 +371,37 @@ export async function updateNegotiationInterviewComfort(
 
   revalidatePath('/dashboard/search-strategy')
   revalidatePath('/dashboard/interview-prep')
+}
+
+// The three combined actions below back the wizard's grouped pages — each
+// page shows two independently-meaningful question sets (their own DB
+// fields, their own completion/unlock semantics) on one screen with a
+// single Save button, per the "no separate saves on one page" fix. Rather
+// than duplicating either action's field-parsing/validation logic, these
+// just call both real actions in sequence against the same FormData (each
+// action only reads the field names it cares about) and stop at the first
+// error, so validation messages stay exactly what they were before.
+
+export async function updateMarketingAndNetworkingWillingness(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const marketing = await updateMarketingPlanWillingness(undefined, formData)
+  if (marketing?.error) return marketing
+  return updateNetworkingWillingness(undefined, formData)
+}
+
+export async function updateNegotiationAndCompensationReadiness(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const negotiation = await updateNegotiationInterviewComfort(undefined, formData)
+  if (negotiation?.error) return negotiation
+  return answerBenefitsPriorities(undefined, formData)
+}
+
+export async function updateOtherSearchStrengtheners(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const boardAdvisory = await updateBoardAdvisoryWillingness(undefined, formData)
+  if (boardAdvisory?.error) return boardAdvisory
+  return answerOptionalQuestions(undefined, formData)
 }
