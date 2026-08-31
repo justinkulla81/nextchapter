@@ -346,35 +346,15 @@ export default async function DashboardPage() {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  The fastest lever on your grade is your resume — here&apos;s what&apos;s actually costing
-                  you points
+                  The fastest lever on your grade is your resume
                   {marketRealityGrade?.probabilityGrade && marketRealityGrade.probabilityGrade !== 'A'
                     ? ` (${marketRealityGrade.probabilityGrade} → ${NEXT_BETTER_GRADE[marketRealityGrade.probabilityGrade]})`
                     : ''}
                   .
                 </p>
-                <div className="space-y-2">
-                  {resumeFixes.items.slice(0, 4).map((item, i) => (
-                    <div key={i} className="rounded-lg border border-border p-3 text-sm">
-                      <p className="font-medium text-foreground">{item.whatsWrong}</p>
-                      <p className="mt-1 text-muted-foreground">{item.fix}</p>
-                      <span className="mt-1 inline-block text-xs font-semibold text-brand tabular-nums">
-                        +{item.pointValue} pts
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  <Link href="/dashboard/resume" className="text-sm font-medium text-primary underline underline-offset-4">
-                    Update your resume →
-                  </Link>
-                  <Link
-                    href="/dashboard/market-reality"
-                    className="text-sm font-medium text-primary underline underline-offset-4"
-                  >
-                    See your full report →
-                  </Link>
-                </div>
+                <Link href="/dashboard/resume" className="text-sm font-medium text-primary underline underline-offset-4">
+                  Go fix it →
+                </Link>
               </>
             )}
           </div>
