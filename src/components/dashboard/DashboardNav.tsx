@@ -336,7 +336,7 @@ function NavContent({
               const lockTitle = link.lockReason ?? (link.badge === 'Premium' ? 'Premium feature — available soon' : undefined)
               return (
                 <div
-                  key={`${section.title ?? 'top'}-${link.href}`}
+                  key={`${section.title ?? 'top'}-${link.href}-${link.label}`}
                   aria-disabled="true"
                   title={lockTitle}
                   className="flex cursor-not-allowed items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium whitespace-nowrap text-muted-foreground/60"
@@ -360,7 +360,7 @@ function NavContent({
             const active = isActive(link.href)
             return (
               <Link
-                key={`${section.title ?? 'top'}-${link.href}`}
+                key={`${section.title ?? 'top'}-${link.href}-${link.label}`}
                 href={link.href}
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
