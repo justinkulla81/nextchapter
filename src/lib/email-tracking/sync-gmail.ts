@@ -239,6 +239,34 @@ async function listMessageIds(accessToken: string, labelId: 'INBOX' | 'SENT', af
   return ids
 }
 
+// Gmail returns 403 for several unrelated reasons — a genuinely
+// insufficient-scope token (`PERMISSION_DENIED` with no rate-limit
+// reason), but also `rateLimitExceeded`/`userRateLimitExceeded`/
+// `dailyLimitExceeded` for an ordinary per-user quota hit, most likely on
+// exactly the sync that's most likely to trip it: a brand-new
+// connection's first pass over a real inbox, fetching many messages at
+// MESSAGE_FETCH_CONCURRENCY. Real bug, not hypothetical — a fresh
+// connection was being flagged needsReconnectAt (see the scopeInsufficient
+// block below) within minutes of connecting, on a token that was never
+// actually missing any scope. Only the reasons that genuinely mean "this
+// token can't do format=full" count as insufficientScope; anything else
+// is a transient failure, same treatment as any other non-403 error.
+const RATE_LIMIT_REASONS = new Set(['rateLimitExceeded', 'userRateLimitExceeded', 'dailyLimitExceeded', 'quotaExceeded'])
+
+async function isInsufficientScopeError(response: Response): Promise<boolean> {
+  try {
+    const body = (await response.clone().json()) as { error?: { errors?: { reason?: string }[] } }
+    const reason = body.error?.errors?.[0]?.reason
+    if (reason && RATE_LIMIT_REASONS.has(reason)) return false
+  } catch {
+    // Non-JSON or unparseable body — fall through to treating this 403 as
+    // a real scope failure, the safer of the two wrong guesses (a false
+    // reconnect prompt is recoverable; silently never reconnecting a truly
+    // dead token isn't).
+  }
+  return true
+}
+
 // format=full (not metadata) so classification can read the body and check
 // for attachments — see gmail-oauth.ts for the gmail.readonly scope this
 // requires. insufficientScope distinguishes "this token predates the scope
@@ -249,7 +277,7 @@ async function getFullMessage(
 ): Promise<{ message: GmailMessage | null; insufficientScope: boolean }> {
   const url = `${GMAIL_API}/messages/${id}?format=full`
   const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (response.status === 403) return { message: null, insufficientScope: true }
+  if (response.status === 403) return { message: null, insufficientScope: await isInsufficientScopeError(response) }
   if (!response.ok) return { message: null, insufficientScope: false }
   return { message: await response.json(), insufficientScope: false }
 }
