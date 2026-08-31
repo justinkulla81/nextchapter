@@ -226,7 +226,7 @@ export default async function InterimWorkPage() {
       </details>
 
       {!profile.gigDirectoryUnlockAnswer ? (
-        <div className="space-y-3 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+        <div id="gig-directory-unlock" className="scroll-mt-4 space-y-3 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
           <div className="flex items-center gap-2">
             <Lock className="size-4 text-orange" />
             <p className="text-sm font-medium text-orange">Directory — locked</p>
@@ -363,31 +363,6 @@ export default async function InterimWorkPage() {
             )}
           </section>
 
-          {/* Board Advisory Work — real, internally-posted board/consulting
-              opportunities matched to this candidate, separate from the
-              Membership-gated external directory above. Gated on Dossier
-              unlock, not Membership. */}
-          <section id="board-advisory-work" className="scroll-mt-4 space-y-3 border-b border-border pb-10">
-            <div>
-              <h2 className="text-lg font-semibold">Board Advisory Work</h2>
-              <p className="text-sm text-muted-foreground">
-                Board and consulting opportunities — paid and unpaid — matched to your background.
-              </p>
-            </div>
-            {!dossierStatus.unlocked ? (
-              <LockedFeatureNotice
-                title="Board Advisory Work"
-                requirement="Unlock your Dossier to see board and consulting opportunities matched to your background."
-                status={dossierStatus.reason}
-              />
-            ) : (
-              <MatchedRoleList
-                roles={matchedBoardRoles}
-                emptyMessage="No board or consulting opportunities match your background yet — check back soon."
-              />
-            )}
-          </section>
-
           {/* Section 5 — Teaching & light advisory */}
           <section className="space-y-6">
             <div>
@@ -419,6 +394,35 @@ export default async function InterimWorkPage() {
           </section>
         </>
       )}
+
+      {/* Board Advisory Work — real, internally-posted board/consulting
+          opportunities matched to this candidate, separate from the
+          Membership-gated external directory above. Gated on its own Dossier
+          unlock (LockedFeatureNotice below), not on the unrelated gig-
+          directory-rate question above — it used to live inside that
+          question's gated branch, so a candidate who'd already unlocked this
+          via Search Strategy's Board Advisory Willingness question still saw
+          nothing here until they separately answered a different question. */}
+      <section id="board-advisory-work" className="scroll-mt-4 space-y-3 border-b border-border pb-10">
+        <div>
+          <h2 className="text-lg font-semibold">Board Advisory Work</h2>
+          <p className="text-sm text-muted-foreground">
+            Board and consulting opportunities — paid and unpaid — matched to your background.
+          </p>
+        </div>
+        {!dossierStatus.unlocked ? (
+          <LockedFeatureNotice
+            title="Board Advisory Work"
+            requirement="Unlock your Dossier to see board and consulting opportunities matched to your background."
+            status={dossierStatus.reason}
+          />
+        ) : (
+          <MatchedRoleList
+            roles={matchedBoardRoles}
+            emptyMessage="No board or consulting opportunities match your background yet — check back soon."
+          />
+        )}
+      </section>
     </div>
   )
 }

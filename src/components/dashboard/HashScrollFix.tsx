@@ -20,6 +20,18 @@ export function HashScrollFix() {
     const tryScroll = () => {
       const el = document.getElementById(id)
       if (!el) return false
+      // A closed <details> still satisfies getElementById for anything
+      // inside it — real bug, not hypothetical: several deep-link targets
+      // on this site sit inside a collapsed <details> (Interim Work's
+      // launch plan, the Stats page's available-actions list), so this was
+      // "scrolling" to a summary line with the promised content hidden
+      // underneath it. Force open every <details> ancestor (including the
+      // target itself, if it is one) before scrolling.
+      let node: HTMLElement | null = el
+      while (node) {
+        if (node instanceof HTMLDetailsElement && !node.open) node.open = true
+        node = node.parentElement
+      }
       el.scrollIntoView({ block: 'start' })
       return true
     }

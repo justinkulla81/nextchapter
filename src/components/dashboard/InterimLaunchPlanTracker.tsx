@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { markInterimOutreachStarted } from '@/app/dashboard/interim-work/actions'
-import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 import { InterimOfferDefinitionForm } from '@/components/dashboard/InterimOfferDefinitionForm'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
@@ -21,7 +20,7 @@ export function InterimLaunchPlanTracker({ phases }: { phases: LaunchPhase[] }) 
       </div>
       <div className="space-y-3">
         {phases.map((phase) => (
-          <div key={phase.number} id={`launch-phase-${phase.number}`} className="rounded-lg border border-border p-4">
+          <div key={phase.number} id={`launch-plan-phase-${phase.number}`} className="rounded-lg border border-border p-4">
             <div className="flex items-start gap-3">
               <span
                 className={cn(
@@ -39,7 +38,11 @@ export function InterimLaunchPlanTracker({ phases }: { phases: LaunchPhase[] }) 
                   <p className="text-sm text-muted-foreground">{phase.description}</p>
                 </div>
 
-                {phase.number === 1 && !phase.completed && <GigDirectoryUnlockForm />}
+                {/* Phase 1's own form renders once, prominently, at the top of
+                    the page (see interim-work/page.tsx's own
+                    #gig-directory-unlock block) rather than duplicated here —
+                    this row would otherwise render it a second time, hidden
+                    inside this collapsed launch-plan details element. */}
                 {phase.number === 2 && !phase.completed && <InterimOfferDefinitionForm />}
                 {phase.number === 6 && !phase.completed && (
                   <form action={markInterimOutreachStarted}>

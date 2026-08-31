@@ -685,7 +685,7 @@ export function isAutoDetectedActionType(actionType: string | undefined): boolea
 // instead of just toggling a checkbox in place.
 export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: string }>> = {
   SEARCH_STRATEGY_CHECKLIST: { href: '/dashboard/search-strategy', label: 'Search Strategy' },
-  NETWORKING_LIST: { href: '/dashboard/network/contacts#import', label: 'My Network' },
+  NETWORKING_LIST: { href: '/dashboard/network/contacts?buildList=1#import', label: 'My Network' },
   CONTACT_PRIORITIZED: { href: '/dashboard/network/contacts', label: 'Contact Book' },
   OUTREACH_MESSAGE: { href: '/dashboard/network', label: 'My Network' },
   OUTREACH_CALL: { href: '/dashboard/network', label: 'My Network' },
@@ -735,7 +735,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   PRIVACY_CONFIRMED: { href: '/dashboard/privacy', label: 'Privacy Settings' },
   JOB_BOARD_USAGE_CONFIRMED: { href: '/dashboard/find-my-job#job-recommendations', label: 'Find My Job' },
   MARKETING_PLAN_UNLOCK: { href: '/dashboard/marketing-plan', label: 'Marketing Plan' },
-  GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work#launch-phase-1', label: 'Interim Work' },
+  GIG_DIRECTORY_UNLOCK: { href: '/dashboard/interim-work#gig-directory-unlock', label: 'Interim Work' },
   LINKEDIN_UNLOCK: { href: '/dashboard/linkedin', label: 'LinkedIn' },
   WORK_SAMPLE_TYPE_CONFIRMED: { href: '/dashboard/work-samples', label: 'Work Samples' },
   NETWORK_COMFORT_CONFIRMED: { href: '/dashboard/network', label: 'Network with My Contacts' },

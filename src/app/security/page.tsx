@@ -148,7 +148,7 @@ export default function SecurityPage() {
         <Section title="Questions">
           <p>
             Enterprise procurement, security review, or DPA requests — reach us through the{' '}
-            <Link href="/employers#walkthrough" className="text-primary underline underline-offset-4">
+            <Link href="/outplacement#walkthrough" className="text-primary underline underline-offset-4">
               employer walkthrough form
             </Link>{' '}
             and mention security review in the timeline field.

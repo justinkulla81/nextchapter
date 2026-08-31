@@ -29,7 +29,7 @@ export function EmployerWaitlistForm() {
         <p>We&apos;ll reach out to schedule your walkthrough. In the meantime:</p>
         <ul className="list-inside list-disc space-y-1">
           <li>
-            <Link href="/employers#compliance-pack" className="text-primary underline underline-offset-4">
+            <Link href="/outplacement#compliance-pack" className="text-primary underline underline-offset-4">
               See a sample compliance pack →
             </Link>
           </li>

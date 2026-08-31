@@ -33,7 +33,30 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
   const [, startTransition] = useTransition()
 
   const visibleItems = items.filter((item) => !dismissedIds.has(item.sourceId))
-  if (visibleItems.length === 0) return null
+
+  // Always render this card (and its id — several sprint actions deep-link
+  // here) rather than disappearing when there's nothing flagged; a
+  // candidate clicking through from "Send a thank-you note" with zero
+  // detected follow-ups needs to land somewhere that explains that, not a
+  // silent scroll to nowhere.
+  if (visibleItems.length === 0) {
+    return (
+      <Card id="needs-follow-up" className="scroll-mt-4">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+              <Bell className="size-3.5" aria-hidden />
+            </span>
+            <CardTitle className="text-sm font-medium text-muted-foreground">You&apos;re all caught up</CardTitle>
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Nobody&apos;s waiting on a thank-you, follow-up, or check-in right now — we&apos;ll flag it
+            here the moment someone is.
+          </p>
+        </CardHeader>
+      </Card>
+    )
+  }
 
   const pageCount = Math.ceil(visibleItems.length / PAGE_SIZE)
   // Clamped rather than stored in state — dismissing the last item on the

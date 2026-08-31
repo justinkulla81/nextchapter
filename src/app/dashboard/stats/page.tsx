@@ -420,16 +420,35 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
 
               {weeklyEngineData.engines.map((e) => {
                 const actions = completedByEngine.get(e.key)
+                // Only a real link when this engine actually has an
+                // "available actions" entry below (see availableByEngine) —
+                // an engine with nothing left to do this week has no
+                // matching #available-{key} id to land on.
+                const hasAvailableSection = (availableByEngine.get(e.key)?.length ?? 0) > 0
+                const rowContent = (
+                  <>
+                    <span className="text-sm font-medium text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
+                    <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
+                  </>
+                )
                 return (
                   <div key={e.key}>
-                    <a
-                      href={`#available-${e.key}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/40"
-                      title={WEEKLY_ENGINE_EXPLANATION[e.key]}
-                    >
-                      <span className="text-sm font-medium text-foreground">{WEEKLY_ENGINE_LABEL[e.key]}</span>
-                      <span className={cn('text-sm font-semibold tabular-nums', GRADE_TEXT_COLOR[e.grade])}>{e.grade}</span>
-                    </a>
+                    {hasAvailableSection ? (
+                      <a
+                        href={`#available-${e.key}`}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/40"
+                        title={WEEKLY_ENGINE_EXPLANATION[e.key]}
+                      >
+                        {rowContent}
+                      </a>
+                    ) : (
+                      <div
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
+                        title={WEEKLY_ENGINE_EXPLANATION[e.key]}
+                      >
+                        {rowContent}
+                      </div>
+                    )}
                     {actions && actions.length > 0 ? (
                       <ul className="mt-2 space-y-1">
                         {actions.map((a, i) => {

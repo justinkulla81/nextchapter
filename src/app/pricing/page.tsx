@@ -152,7 +152,7 @@ export default async function PricingPage() {
           <p className="mt-4 text-sm text-muted-foreground">
             Running a large-scale reduction or multi-year contract? Enterprise engagements beyond our
             standard volume tiers are custom-quoted —{' '}
-            <Link href="/employers#walkthrough" className="text-primary underline underline-offset-4">
+            <Link href="/outplacement#walkthrough" className="text-primary underline underline-offset-4">
               contact us
             </Link>
             .

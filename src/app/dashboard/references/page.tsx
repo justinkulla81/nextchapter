@@ -115,16 +115,19 @@ export default async function ReferencesPage({
         />
       </div>
 
-      {profile.references.length === 0 && (
-        <EmptyState
-          icon={Users}
-          title="No references requested yet"
-          description="Use the form above to request your first one — even 1-2 real references make a real difference to your Current Market Reality."
-        />
-      )}
-
-      {allReferences.length > 0 && (
-        <div id="reference-status" className="scroll-mt-4 space-y-2">
+      {/* Always rendered with this id — REFERENCE_ADDED/REFERENCE_FOLLOW_UP
+          deep-link here, including from a candidate who has zero references
+          yet (exactly the moment "get a reference completed" is the live
+          action), so the id can't only exist once there's at least one. */}
+      <div id="reference-status" className="scroll-mt-4 space-y-2">
+        {allReferences.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No references requested yet"
+            description="Use the form above to request your first one — even 1-2 real references make a real difference to your Current Market Reality."
+          />
+        ) : (
+          <>
           <h2 className="text-sm font-medium text-muted-foreground">
             Reference Requests / Completed ({allReferences.length})
           </h2>
@@ -175,8 +178,9 @@ export default async function ReferencesPage({
               ))}
             </CardContent>
           </Card>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
