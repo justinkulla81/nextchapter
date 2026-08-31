@@ -40,7 +40,7 @@ export default async function WelcomePage() {
             <li>Complete your weekly Search Sprint and your grade moves, because you&apos;re proving you&apos;re doing the work.</li>
             <li><strong>Learning</strong>, <strong>Working</strong>, and <strong>Networking</strong> raise it the same way, over time.</li>
           </ul>
-          <p>Do the work, keep raising your grade, and here&apos;s what you get:</p>
+          <p>Do the work, improve your Market Reality, and here&apos;s what you get:</p>
           <ul className="list-disc space-y-1.5 pl-5">
             <li>The <strong>Certified Executive Dossier</strong>, handed to recruiters and hiring managers</li>
             <li><strong>Executive recruiter visibility</strong></li>
