@@ -769,10 +769,20 @@ export function SuccessSprintCard({
 
   const groups = groupByNavCategory(consolidatedOpenRows)
 
-  // The two Get Started items — not real Search Actions, no points, no
-  // category. Rendered above Priority for as long as either is still
-  // outstanding; once both are connected the whole group disappears rather
-  // than sticking around as done-and-struck-through chrome.
+  // The two connect items — not real Search Actions, no points, no
+  // category — plus whichever of Profile/Search Strategy/Resume are the
+  // real cause of bothConnectedUnlocked still being false, pulled in from
+  // consolidatedOpenRows (same row object, same real points/link/completed
+  // state Priority and Personalize would otherwise show — this is the same
+  // "surface it in more than one place" precedent priorityRows already
+  // uses below, not a second parallel completion tracker). Without this,
+  // a candidate saw Gmail/LinkedIn both checked off here while everything
+  // else stayed locked, with the actual reason (Profile/Search Strategy
+  // incomplete) visible only as a hover tooltip on each locked row.
+  // Rendered above Priority for as long as anything here is still
+  // outstanding; once bothConnectedUnlocked flips true the whole group
+  // disappears rather than sticking around as done-and-struck-through
+  // chrome.
   const getStartedRows: Row[] = [
     {
       text: 'Connect Gmail and Calendar to activate jobs features',
@@ -792,6 +802,9 @@ export function SuccessSprintCard({
       recurring: false,
       priority: false,
     },
+    ...(['PROFILE_CONFIRM', 'SEARCH_STRATEGY_CHECKLIST', 'RESUME_UPDATE'] as const)
+      .map((type) => consolidatedOpenRows.find((r) => r.actionType === type))
+      .filter((r): r is Row => !!r),
   ]
 
   return (
