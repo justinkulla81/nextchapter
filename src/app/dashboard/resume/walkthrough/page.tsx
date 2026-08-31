@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateWalkthroughSession } from '@/lib/walkthrough/session'
 import { getMechanicalBatchFindings } from '@/lib/walkthrough/mechanical-findings'
+import { getOrGenerateRewriteSuggestions } from '@/lib/walkthrough/rewrite-suggestions'
 import { findReviewerCorrectionTarget } from '@/lib/walkthrough/reviewer-correction'
 import { REVIEWER_DETECTION_CHALLENGE_COPY, DIMENSION_LABEL, type ReviewerDetectionType } from '@/lib/scoring/resume-analysis/types'
 import type { ReviewerResolutionType, WalkthroughScreen } from '@/lib/walkthrough/types'
@@ -66,17 +68,27 @@ export default async function ResumeWalkthroughPage({
 
   switch (screen.kind) {
     case 'overview': {
+      // Kick off the batched rewrite-suggestion call now, in the background,
+      // rather than waiting for the first mechanical step to need it — by
+      // the time a candidate reads the overview and clicks through, this is
+      // usually already cached. getOrGenerateRewriteSuggestions is a no-op
+      // if a cached result already exists.
+      after(() => getOrGenerateRewriteSuggestions(profile.id))
       body = <OverviewStep nextStep={step + 1} estimatedMinutes={estimatedMinutes} />
       break
     }
 
     case 'mechanical': {
-      const findings = await getMechanicalBatchFindings(profile.id)
+      const [findings, rewriteSuggestions] = await Promise.all([
+        getMechanicalBatchFindings(profile.id),
+        getOrGenerateRewriteSuggestions(profile.id),
+      ])
       const found = findings.find((f) => f.key === screen.key)
       if (found) title = DIMENSION_LABEL[found.dimension]
       body = found ? (
         <MechanicalFindingStep
           finding={found}
+          suggestedRewrite={rewriteSuggestions[found.key] ?? null}
           handledAction={session.stepAnswers.mechanicalHandled?.[screen.key] ?? null}
           nextStep={step + 1}
         />

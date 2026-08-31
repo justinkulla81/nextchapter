@@ -2844,6 +2844,19 @@ model ResumeAnalysis {
   prestigeAudit     PrestigeAudit?
   resumeIssues      ResumeIssue[]
 
+  // AI-suggested rewrite text per mechanical finding, generated in one
+  // batched call the first time a candidate opens the Resume Fixer
+  // walkthrough for this analysis (see walkthrough/rewrite-suggestions.ts)
+  // — never per-step, to keep this a single LLM call per resume rather than
+  // one per finding. Record<findingKey, suggestedText>, where findingKey
+  // matches mechanical-findings.ts's own `${DimensionKey}:${index}` format.
+  // Null until first generated; correctly invalidates on its own the moment
+  // a new resume upload produces a new ResumeAnalysis row, unlike caching
+  // this on the walkthrough session (which persists across new analyses and
+  // gets wiped by "restart," neither of which is the right invalidation
+  // boundary for a suggestion tied to one specific analysis's findings).
+  rewriteSuggestions Json?
+
   createdAt DateTime @default(now())
 
   @@index([candidateId, createdAt])

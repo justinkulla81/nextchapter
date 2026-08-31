@@ -5,15 +5,11 @@ import type { WalkthroughStepAnswers } from '@/lib/walkthrough/types'
 import { Check, Circle, X } from 'lucide-react'
 import { restartWalkthroughAction } from '@/app/dashboard/resume/walkthrough/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { buildResumeDocumentData, type ResumeDocumentData } from '@/lib/resume/export/document-data'
+import { ResumeExportForm } from '@/components/dashboard/ResumeExportForm'
 
-// §13.1's walkthrough deliberately ends here in this pass — no reformat/
-// export step. Zero document-generation infra exists in this codebase today
-// (no docx/pdfkit/@react-pdf/renderer in package.json, confirmed), and
-// reformat/export is being scoped separately as its own infra decision.
-// Rather than a fake, dead "Export" button, this is an honestly-labeled,
-// non-interactive placeholder.
 export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidateId: string; stepAnswers: WalkthroughStepAnswers }) {
-  const [mechanicalFindings, candidate, bulletEntries, reviewerQuestionRows, latestAnalysis] = await Promise.all([
+  const [mechanicalFindings, candidate, bulletEntries, reviewerQuestionRows, latestAnalysis, resumeDocument] = await Promise.all([
     getMechanicalBatchFindings(candidateId),
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
@@ -35,6 +31,12 @@ export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidat
       orderBy: { createdAt: 'desc' },
       select: { id: true },
     }),
+    // Pulls straight from CandidateProfile/WorkHistoryEntry/EducationEntry
+    // at read time (buildResumeDocumentData), so it already reflects
+    // everything this walkthrough just changed (approveTargetLineAction
+    // writes positioningStatementText, composeBulletAction writes
+    // keyAchievement) with no session-data plumbing needed.
+    buildResumeDocumentData(candidateId),
   ])
 
   const mechanicalFixed = mechanicalFindings.filter((f) => stepAnswers.mechanicalHandled?.[f.key] === 'fixed')
@@ -114,12 +116,11 @@ export async function ReviewSummaryStep({ candidateId, stepAnswers }: { candidat
         )}
       </SummarySection>
 
-      <div className="space-y-1 rounded-lg border border-dashed border-border p-4">
-        <p className="text-sm font-medium text-muted-foreground">Reformat &amp; export — coming soon</p>
-        <p className="text-xs text-muted-foreground">
-          A parse-safe template export isn&apos;t built yet. Everything above is already saved to your profile.
-        </p>
-      </div>
+      <SummarySection title="Your new resume">
+        <ResumePreview data={resumeDocument} />
+      </SummarySection>
+
+      <ResumeExportForm />
 
       <form action={restartWalkthroughAction}>
         <SubmitButton variant="outline" size="sm" pendingLabel="Starting…">
@@ -147,6 +148,56 @@ function SummarySection({ title, children }: { title: string; children: React.Re
 
 function EmptyLine({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-muted-foreground">{children}</p>
+}
+
+// Plain-text read of exactly what ResumeExportForm's download will contain
+// — the same buildResumeDocumentData source both draw from, so this can
+// never show something the actual file doesn't. A quick "does this look
+// right" check before spending a download on it, not a styled substitute
+// for one of the real templates.
+function ResumePreview({ data }: { data: ResumeDocumentData }) {
+  const contactLine = [data.contact.email, data.contact.phone, data.contact.location, data.contact.linkedinUrl]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-4 text-sm">
+      <div>
+        <p className="font-semibold text-foreground">{data.name}</p>
+        {data.targetTitle && <p className="text-muted-foreground">{data.targetTitle}</p>}
+        {contactLine && <p className="text-xs text-muted-foreground">{contactLine}</p>}
+      </div>
+
+      {data.summary && <p className="text-foreground">{data.summary}</p>}
+
+      {data.workHistory.length > 0 && (
+        <div className="space-y-3">
+          {data.workHistory.map((item, i) => (
+            <div key={i}>
+              <p className="font-medium text-foreground">
+                {item.roleTitle} · {item.companyName}
+              </p>
+              <p className="text-xs text-muted-foreground">{item.dateRangeLabel}</p>
+              {item.bullets.length > 0 && (
+                <ul className="mt-1 list-disc space-y-0.5 pl-5 text-foreground">
+                  {item.bullets.map((bullet, j) => (
+                    <li key={j}>{bullet}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.skills.length > 0 && (
+        <p>
+          <span className="font-medium text-foreground">Skills: </span>
+          <span className="text-muted-foreground">{data.skills.join(', ')}</span>
+        </p>
+      )}
+    </div>
+  )
 }
 
 function SummaryLine({ icon, text }: { icon: 'fixed' | 'dismissed' | 'open'; text: string }) {
