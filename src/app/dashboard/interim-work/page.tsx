@@ -25,6 +25,7 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { getMatchedRolesForCandidate } from '@/lib/matching/candidate-role-matches'
 import { MatchedRoleList } from '@/components/dashboard/MatchedRoleList'
 import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
+import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
 
 export const metadata: Metadata = { title: 'Interim Work' }
 
@@ -225,19 +226,16 @@ export default async function InterimWorkPage() {
       </details>
 
       {!profile.gigDirectoryUnlockAnswer ? (
-        <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
+        <div className="space-y-3 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
           <div className="flex items-center gap-2">
             <Lock className="size-4 text-orange" />
             <p className="text-sm font-medium text-orange">Directory — locked</p>
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Fractional & talent marketplaces, expert networks, board & advisory roles, and teaching
-            opportunities all unlock together — answer the one question in{' '}
-            <a href="#launch-phase-1" className="text-primary underline underline-offset-4">
-              Phase 1 of the Launch Plan above
-            </a>{' '}
-            to see them.
+            opportunities all unlock together — answer this to see them:
           </p>
+          <GigDirectoryUnlockForm />
         </div>
       ) : (
         <>

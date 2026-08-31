@@ -378,6 +378,7 @@ function ContactRowExpandable({
         </td>
         <td className="px-3 py-2 font-medium text-foreground">
           <ContactNameLink contact={contact} />
+          {contact.title && <div className="text-xs font-normal text-muted-foreground">{contact.title}</div>}
         </td>
         <td className="px-3 py-2 text-muted-foreground">
           {contact.company ?? '—'}

@@ -121,15 +121,6 @@ function buildSections(
       links: [{ href: '/dashboard', label: 'Success Dashboard (Homepage)', icon: Home }],
     },
     {
-      title: 'Personalize',
-      links: [
-        { href: '/dashboard/profile', label: 'My Profile', icon: User },
-        { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
-        { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
-        { href: '/dashboard/membership', label: 'Membership', icon: Award },
-      ],
-    },
-    {
       title: 'Connecting',
       links: [
         { href: '/dashboard/marketing-plan', label: 'My Marketing Plan', icon: Megaphone, ...linkedInLock },
@@ -197,6 +188,15 @@ function buildSections(
         { href: '/dashboard/learning', label: 'Learn New Skills', icon: BookOpen, ...skillsLock },
         { href: '/dashboard/webinars', label: 'Videos and Webinars', icon: Video, ...skillsLock },
         { href: '/dashboard/got-hired', label: 'Got An Offer 🎉', icon: PartyPopper },
+      ],
+    },
+    {
+      title: 'Personalize',
+      links: [
+        { href: '/dashboard/profile', label: 'My Profile', icon: User },
+        { href: '/dashboard/search-strategy', label: 'My Search Strategy', icon: Target },
+        { href: '/dashboard/skills-assessments', label: 'Skills & Behavioral Assessments', icon: ClipboardCheck },
+        { href: '/dashboard/membership', label: 'Membership', icon: Award },
       ],
     },
     {
