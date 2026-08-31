@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { UnlockAnnouncementDialog, type UnlockItem } from '@/components/dashboard/UnlockAnnouncementDialog'
 
@@ -147,39 +146,49 @@ export function SearchStrategyWizard({
   )
 
   if (openPage === null) {
+    const pageComplete = pages.map((p) => p.items.every((item) => item.complete))
+    const firstIncomplete = pageComplete.findIndex((complete) => !complete)
+    const allComplete = firstIncomplete === -1
+    const noneStarted = pages.every((p) => p.items.every((item) => !item.complete))
+    const continueTarget = allComplete ? 0 : firstIncomplete
+    const buttonLabel = allComplete
+      ? 'Review your Search Strategy'
+      : noneStarted
+        ? 'Start your Search Strategy'
+        : 'Continue your Search Strategy'
+
     return (
       <>
+        {/* One status row per part, purely informational — a button on each
+            row (and a per-row Answer/Edit pill) read as N separate calls to
+            action; the single button below is the only real one, and it
+            already knows where to resume. */}
         <div className="divide-y divide-border rounded-lg border border-border">
-          {pages.map((page, i) => {
-            const complete = page.items.every((item) => item.complete)
-            return (
-              <button
-                key={page.key}
-                type="button"
-                onClick={() => setOpenPage(i)}
-                className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-muted/50"
+          {pages.map((page, i) => (
+            <div key={page.key} className="flex items-center justify-between gap-3 p-4">
+              <p className="text-sm font-medium text-foreground">
+                Part {i + 1}: {page.label}
+              </p>
+              <p
+                className={cn(
+                  'shrink-0 text-xs',
+                  pageComplete[i] ? 'font-medium text-success' : 'text-muted-foreground'
+                )}
               >
-                <div>
-                  <p className="text-sm font-medium text-foreground">{page.label}</p>
-                  <p className={cn('text-xs', complete ? 'font-medium text-success' : 'text-muted-foreground')}>
-                    {complete ? 'Complete' : 'Not completed yet'}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span
-                    className={cn(
-                      'rounded-md px-3 py-1.5 text-sm font-medium',
-                      complete ? 'border border-input text-foreground' : 'bg-primary text-primary-foreground'
-                    )}
-                  >
-                    {complete ? 'Edit' : 'Answer'}
-                  </span>
-                  <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
-                </div>
-              </button>
-            )
-          })}
+                {pageComplete[i] ? 'Complete' : 'Not completed yet'}
+              </p>
+            </div>
+          ))}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setOpenPage(continueTarget)}
+          className="mt-4 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          {buttonLabel}
+        </button>
+
         {unlockDialog}
       </>
     )
