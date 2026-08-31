@@ -130,6 +130,26 @@ function companySizeMatchBonus(
 // rankCandidatesByFitCoverage) — harmless to carry on every caller.
 export type AdminFitCandidate = FitCandidate & Pick<CandidateProfile, 'id' | 'firstName' | 'lastName' | 'email'>
 
+// Common enough across totally unrelated titles ("Corporate Accounting" vs
+// "Corporate Development", "Senior Director, Business Development" vs
+// "Senior Director, Product") that a shared hit on one of these alone
+// shouldn't read as real title overlap — real bug, not hypothetical: it was
+// letting "Corporate Accounting" register as a partial match against a
+// stated target of "VP of Corporate Development" purely on the word
+// "corporate", when the two have nothing else in common.
+const GENERIC_TITLE_WORDS = new Set([
+  'corporate', 'senior', 'director', 'manager', 'executive', 'head', 'global',
+  'lead', 'chief', 'associate', 'vice', 'president', 'principal', 'partner',
+  'officer', 'specialist', 'coordinator', 'analyst',
+])
+
+function significantWords(text: string): string[] {
+  return text
+    .split(/\s+/)
+    .map((w) => w.replace(/[^a-z0-9&]/g, ''))
+    .filter((w) => w.length > 2 && !GENERIC_TITLE_WORDS.has(w))
+}
+
 function titleSimilarityBonus(targetRoleType: string | null, postingTitle: string): number {
   if (!targetRoleType || isVagueTargetRole(targetRoleType)) return 0
   const target = targetRoleType.trim().toLowerCase()
@@ -137,16 +157,27 @@ function titleSimilarityBonus(targetRoleType: string | null, postingTitle: strin
   const title = postingTitle.toLowerCase()
   if (title === target) return 20
   if (title.includes(target) || target.includes(title)) return 16
-  const targetWords = target.split(/\s+/).filter((w) => w.length > 2)
-  const titleWords = new Set(title.split(/\s+/).filter((w) => w.length > 2))
+  const targetWords = significantWords(target)
+  const titleWords = new Set(significantWords(title))
+  const sharedWordCount = targetWords.filter((w) => titleWords.has(w)).length
+  const sameFamily = titlesShareRoleFamily(target, title)
+  // A single shared word carries real signal when it's corroborated by a
+  // shared role family (role-family-keywords.ts); alone, one common word is
+  // too easy to hit by coincidence between otherwise-unrelated titles — real
+  // bug, not hypothetical: "Corporate Development" and "Business
+  // Development" share only "development" but sit in different families
+  // (M&A/Corporate-Development vs. Sales/Business-Development), and that
+  // one word was enough to register as a near-full title match.
   const wordOverlapBonus =
-    targetWords.length === 0 ? 0 : Math.round((targetWords.filter((w) => titleWords.has(w)).length / targetWords.length) * 16)
+    targetWords.length === 0 || (sharedWordCount === 1 && targetWords.length === 1 && !sameFamily)
+      ? 0
+      : Math.round((sharedWordCount / targetWords.length) * 16)
   // Title text alone misses functionally-related roles that share no
   // words — "Corporate Development VP" and "Investment Partner" are both
   // M&A-adjacent but share no substring. A shared role-family keyword is a
   // weaker signal than literal title overlap, so it only matters when word
   // overlap didn't already beat it.
-  const familyBonus = titlesShareRoleFamily(target, title) ? 12 : 0
+  const familyBonus = sameFamily ? 12 : 0
   return Math.max(wordOverlapBonus, familyBonus)
 }
 
@@ -323,10 +354,11 @@ function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLik
 
   const base = computeMatchScore(candidate, postingToRole(posting)).score
   const { bonus: keywordBonus, failsGate } = keywordMatchInfo(candidate.resumeKeywords, postingText)
+  const titleBonus = titleSimilarityBonus(candidate.targetRoleType, posting.title)
 
   let score =
     base +
-    titleSimilarityBonus(candidate.targetRoleType, posting.title) +
+    titleBonus +
     keywordBonus +
     industryMatchBonus(candidate, postingText) +
     yearsExperienceBonus(candidate.yearsExperience, postingText) +
@@ -350,9 +382,33 @@ function computeEnrichedFitScore(candidate: FitCandidate, posting: FitPostingLik
   // example titles were reading as good fits for any candidate at all.
   // Only applies when the function came from title inference (no explicit
   // targetFunction on the posting) — an explicitly untargeted listing still
-  // gets the neutral credit as intended.
+  // gets the neutral credit as intended. Also skipped when the posting's
+  // title itself strongly matches the candidate's own stated target role —
+  // a real bug otherwise: PRIMARY_FUNCTION_OPTIONS has no "Corporate
+  // Development"/M&A category, so a posting titled exactly the candidate's
+  // own target ("VP, Corporate Development") failed function inference and
+  // got capped here anyway, scoring worse than an unrelated "Corporate
+  // Accounting" posting that happened to infer a (wrong) function with
+  // false confidence.
   const hasConfidentFunction = posting.targetFunction != null || inferFunctionFromTitle(posting.title) != null
-  if (!hasConfidentFunction) score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+  const hasRealTitleSignal = titleBonus > 0
+  if (!hasConfidentFunction && !hasRealTitleSignal) score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+
+  // PRIMARY_FUNCTION_OPTIONS is a broad ~15-category taxonomy — "Finance"
+  // alone spans everyone from a staff accountant to a Corporate
+  // Development/M&A VP, so a function-category match alone doesn't mean
+  // much for a candidate who's stated a specific target role. When they
+  // have (a real, non-vague targetRoleType) and this posting's title has
+  // zero real overlap with it — no shared words, no shared role family
+  // (role-family-keywords.ts) — the only thing connecting them is that
+  // coarse category, which isn't enough to call this a real recommendation.
+  // Skipped for postings with an explicit targetFunction (distribution:
+  // TARGETED) — there a human already curated this candidate/posting pair,
+  // which the title-text heuristic shouldn't second-guess.
+  const hasSpecificTarget = !!candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType)
+  if (posting.targetFunction == null && hasSpecificTarget && titleBonus === 0) {
+    score = Math.min(score, GOOD_FIT_THRESHOLD - 1)
+  }
 
   return score
 }

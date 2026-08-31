@@ -38,16 +38,21 @@ export function isWeakFit(bucket: FitBucket): boolean {
   return bucket === 'stretch' || bucket === 'below_level' || bucket === 'overqualified'
 }
 
-// Recommendation-list display order: aim-higher (Step Up) and same-level
-// matches (On Target/Lateral) surface before a real downgrade — a candidate
-// should see what they could reach for before what they're overqualified
-// for, not just whatever was surfaced most recently. Lateral outranks a
-// downgrade but not a same-level-or-better match, so it only fills a slot
-// once the stronger buckets are exhausted. Lower number sorts first.
+// Recommendation-list display order: confidently-scored matches (On
+// Target/Lateral) lead, since those are real recommendations, not just
+// "inconclusive." Step Up comes next — a genuine aim-higher case is worth
+// seeing, just after (not before) what's actually a solid match — and a
+// real downgrade sorts last. Previously Step Up sorted first on the theory
+// that reaching higher beats a downgrade, but bucketFromScoreAndLevel also
+// returns 'stretch' whenever level data is simply missing/inconclusive —
+// not only for genuine aim-higher postings — so an under-scored, unrelated
+// posting (wrong function, wrong industry) was routinely outranking a
+// confidently strong/good match just because its level couldn't be read.
+// Lower number sorts first.
 export const FIT_BUCKET_SORT_RANK: Record<FitBucket, number> = {
-  stretch: 0,
-  strong: 1,
-  good: 2,
+  strong: 0,
+  good: 1,
+  stretch: 2,
   below_level: 3,
   overqualified: 4,
 }

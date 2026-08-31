@@ -36,11 +36,10 @@ function buildSupplementaryKeywords(candidate: { resumeKeywords: string[]; targe
   return [...candidate.resumeKeywords.slice(0, 3), ...candidate.targetIndustries.slice(0, 1)]
 }
 
-// searchAtsJobs already gates on function match before returning; JSearch
-// and Adzuna are broad-keyword text search with no such filter, so their
-// results need the same real fit check applied here — otherwise a query
-// built from a vague/short target role returns cross-function noise
-// (accounting, legal, marketing jobs for an ops candidate) straight into
+// searchAtsJobs has its own coarse function/company gate, but that alone
+// let plenty of cross-function noise through (a hardcoded, tech-skewed
+// company list substring-matched against a broad query title) — this real
+// fit check now runs on all three sources' results before they ever reach
 // SurfacedJob. Same computeSurfacedJobFitBucket used to badge the Discover
 // feed and admin candidate view — never a second, divergent fit notion.
 function filterWeakFits(candidate: CandidateProfile, jobs: AdzunaListing[]): AdzunaListing[] {
@@ -61,10 +60,13 @@ export async function surfaceNewJobs(candidateId: string, limit: number = SURFAC
   const query = buildSearchQuery(candidate)
   if (!query) return 0
 
-  let listings: AdzunaListing[] = await searchAtsJobs(query, limit, candidateId, {
-    primaryFunction: candidate.primaryFunction,
-    secondaryFunction: candidate.secondaryFunction,
-  })
+  let listings: AdzunaListing[] = filterWeakFits(
+    candidate,
+    await searchAtsJobs(query, limit, candidateId, {
+      primaryFunction: candidate.primaryFunction,
+      secondaryFunction: candidate.secondaryFunction,
+    })
+  )
 
   if (listings.length < limit) {
     const jsearchListings = await searchJSearchJobs(

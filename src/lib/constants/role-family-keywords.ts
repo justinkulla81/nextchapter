@@ -15,10 +15,14 @@
 export const ROLE_FAMILY_KEYWORDS: { family: string; keywords: string[] }[] = [
   {
     family: 'Mergers & Acquisitions / Corporate Development / Investment',
+    // Deliberately no bare 'acquisition' — real bug, not hypothetical: it
+    // matched "Talent Acquisition," "Data Acquisition," and "Customer
+    // Acquisition" (recruiting/engineering/growth roles, nothing to do with
+    // buying companies) as M&A-family titles. 'merger'/'m&a' already cover
+    // the genuine case ("Mergers & Acquisitions" contains 'merger').
     keywords: [
       'm&a',
       'merger',
-      'acquisition',
       'corporate development',
       'corp dev',
       'investment banking',
