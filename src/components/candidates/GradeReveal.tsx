@@ -30,7 +30,7 @@ function GradeLegend() {
   )
 }
 
-function GradeRing({ grade }: { grade: Grade | null }) {
+function GradeRing({ grade, calculating }: { grade: Grade | null; calculating?: boolean }) {
   const [animatedFraction, setAnimatedFraction] = useState(0)
   const targetFraction = grade === null ? 0 : 1
 
@@ -66,10 +66,17 @@ function GradeRing({ grade }: { grade: Grade | null }) {
         </svg>
         <div className="absolute flex flex-col items-center px-4 text-center">
           {grade === null ? (
-            <>
-              <span className="text-3xl font-bold text-muted-foreground">N/A</span>
-              <span className="text-xs text-muted-foreground">Starting line</span>
-            </>
+            calculating ? (
+              <>
+                <span className="size-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
+                <span className="mt-2 text-xs text-muted-foreground">Calculating…</span>
+              </>
+            ) : (
+              <>
+                <span className="text-3xl font-bold text-muted-foreground">N/A</span>
+                <span className="text-xs text-muted-foreground">Starting line</span>
+              </>
+            )
           ) : (
             <>
               <span className={cn('text-4xl font-bold', GRADE_TEXT_COLOR[grade])}>{grade}</span>
@@ -83,10 +90,10 @@ function GradeRing({ grade }: { grade: Grade | null }) {
   )
 }
 
-export function GradeReveal({ grade }: { grade: Grade | null }) {
+export function GradeReveal({ grade, calculating }: { grade: Grade | null; calculating?: boolean }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <GradeRing grade={grade} />
+      <GradeRing grade={grade} calculating={calculating} />
 
       <GradeLegend />
     </div>
