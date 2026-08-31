@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
+import { ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Grade } from '@/lib/scoring/grade'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
@@ -301,6 +302,85 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
+      {/* Resume Check — first card after Your Stats, since the resume is the
+          fastest lever on the grade and the most common reason a candidate's
+          matches/report look off. Minimized (collapsed) once a resume's been
+          analyzed and it's genuinely clean; maximized (open) whenever there's
+          real work to do or nothing's been analyzed yet. Reuses the same
+          real, point-ranked resume-fix items the Market Reality Report
+          itself shows (getResumeFixes), not a separate invented list. */}
+      <Card>
+        <details className="group" open={resumeFixes === null || resumeFixes.items.length > 0}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-6 [&::-webkit-details-marker]:hidden">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Resume Check</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                {resumeFixes === null
+                  ? "We haven't analyzed your resume yet"
+                  : resumeFixes.items.length === 0
+                    ? '✓ No known issues'
+                    : `${resumeFixes.items.length} issue${resumeFixes.items.length === 1 ? '' : 's'} found`}
+              </p>
+            </div>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              aria-hidden
+            />
+          </summary>
+          <div className="space-y-3 px-6 pb-6">
+            {resumeFixes === null ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Analysis usually finishes within a few minutes of uploading — check back shortly, or
+                  upload again if it&apos;s been a while.
+                </p>
+                <Link href="/dashboard/resume" className="text-sm font-medium text-primary underline underline-offset-4">
+                  Go to My Resume →
+                </Link>
+              </>
+            ) : resumeFixes.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nothing outstanding right now — update it any time your experience changes and we&apos;ll
+                re-check it.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  The fastest lever on your grade is your resume — here&apos;s what&apos;s actually costing
+                  you points
+                  {marketRealityGrade?.probabilityGrade && marketRealityGrade.probabilityGrade !== 'A'
+                    ? ` (${marketRealityGrade.probabilityGrade} → ${NEXT_BETTER_GRADE[marketRealityGrade.probabilityGrade]})`
+                    : ''}
+                  .
+                </p>
+                <div className="space-y-2">
+                  {resumeFixes.items.slice(0, 4).map((item, i) => (
+                    <div key={i} className="rounded-lg border border-border p-3 text-sm">
+                      <p className="font-medium text-foreground">{item.whatsWrong}</p>
+                      <p className="mt-1 text-muted-foreground">{item.fix}</p>
+                      <span className="mt-1 inline-block text-xs font-semibold text-brand tabular-nums">
+                        +{item.pointValue} pts
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <Link href="/dashboard/resume" className="text-sm font-medium text-primary underline underline-offset-4">
+                    Update your resume →
+                  </Link>
+                  <Link
+                    href="/dashboard/market-reality"
+                    className="text-sm font-medium text-primary underline underline-offset-4"
+                  >
+                    See your full report →
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </details>
+      </Card>
+
       <MembershipStatusLadder dossierUnlocked={dossierStatus.unlocked} reason={dossierStatus.reason} />
 
       <EmployerInterestSection candidateId={profile.id} />
@@ -400,42 +480,6 @@ export default async function DashboardPage() {
           </Card>
         )}
 
-        {/* Improve Your Market Reality — real, point-ranked resume fixes
-            (same list the Market Reality Report itself shows), not a
-            separate invented list. Only shown when there's real room to
-            improve (not already an A) and real fixes to show. */}
-        {marketRealityGrade?.probabilityGrade &&
-          marketRealityGrade.probabilityGrade !== 'A' &&
-          resumeFixes &&
-          resumeFixes.items.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Improve Your Market Reality ({marketRealityGrade.probabilityGrade} → {NEXT_BETTER_GRADE[marketRealityGrade.probabilityGrade]})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  The fastest lever on your grade is your resume — here&apos;s what&apos;s actually costing you
-                  points.
-                </p>
-                <div className="space-y-2">
-                  {resumeFixes.items.slice(0, 4).map((item, i) => (
-                    <div key={i} className="rounded-lg border border-border p-3 text-sm">
-                      <p className="font-medium text-foreground">{item.whatsWrong}</p>
-                      <p className="mt-1 text-muted-foreground">{item.fix}</p>
-                      <span className="mt-1 inline-block text-xs font-semibold text-brand tabular-nums">
-                        +{item.pointValue} pts
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
-                  See your full report →
-                </Link>
-              </CardContent>
-            </Card>
-          )}
       </div>
 
       {passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
