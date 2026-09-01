@@ -4,7 +4,7 @@ import MarketDigestCoachEmail from '@/emails/market-digest-coach'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 
 export async function sendMarketDigestCoachEmail(
-  coach: { id: string; fullName: string; workEmail: string },
+  coach: { id: string; fullName: string; workEmail: string; accessToken: string },
   roleLines: { roleType: string; adzunaCount: number | null }[],
   nugget: { id: string; title: string | null; url: string; summary: string | null } | null
 ) {
@@ -14,7 +14,11 @@ export async function sendMarketDigestCoachEmail(
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const portalUrl = `${appUrl}/support/coach`
+  // The coach's caseload is their list of clients (CaseloadEntry, see
+  // src/lib/coach/caseload.ts) — this digest is job-market data about
+  // those clients' target roles, not the caseload itself, so the button
+  // takes them to the real caseload page rather than claiming to be it.
+  const caseloadUrl = `${appUrl}/support/coach/caseload/${coach.accessToken}`
   const unsubscribeUrl = `${appUrl}/api/unsubscribe/audience/coach/${coach.id}`
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -22,14 +26,14 @@ export async function sendMarketDigestCoachEmail(
     from: 'NextChapter <support@launchyournextchapter.com>',
     replyTo: 'support@launchyournextchapter.com',
     to: coach.workEmail,
-    subject: 'Your caseload market update',
+    subject: 'Your weekly market update',
     react: MarketDigestCoachEmail({
       fullName: coach.fullName,
       roleLines,
       nuggetTitle: nugget?.title ?? null,
       nuggetUrl: nugget ? digestClickUrl('coach', coach.id, nugget.id) : null,
       nuggetSummary: nugget?.summary ?? null,
-      portalUrl,
+      caseloadUrl,
       unsubscribeUrl,
     }),
   })

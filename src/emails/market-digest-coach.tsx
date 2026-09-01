@@ -11,7 +11,7 @@ interface MarketDigestCoachEmailProps {
   nuggetTitle: string | null
   nuggetUrl: string | null
   nuggetSummary: string | null
-  portalUrl: string
+  caseloadUrl: string
   unsubscribeUrl: string
 }
 
@@ -52,14 +52,14 @@ export default function MarketDigestCoachEmail({
   nuggetTitle,
   nuggetUrl,
   nuggetSummary,
-  portalUrl,
+  caseloadUrl,
   unsubscribeUrl,
 }: MarketDigestCoachEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>Hi {fullName.split(' ')[0]},</p>
-      <p>Here&apos;s this week&apos;s market snapshot across your caseload&apos;s target roles.</p>
+      <p>Here&apos;s this week&apos;s market snapshot across your clients&apos; target roles.</p>
       {roleLines.length > 0 && (
         <ul>
           {roleLines.map((r) => (
@@ -76,7 +76,7 @@ export default function MarketDigestCoachEmail({
           {nuggetSummary && ` — ${nuggetSummary}`}
         </p>
       )}
-      <a href={portalUrl} style={button}>
+      <a href={caseloadUrl} style={button}>
         Go to your caseload →
       </a>
       <p style={footer}>

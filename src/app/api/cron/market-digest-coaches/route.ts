@@ -7,7 +7,7 @@ import { recordDigestSend, getDigestNuggets, markItemsSent } from '@/lib/admin/d
 const MAX_ROLE_LINES = 3
 
 // Aggregate-only — never joins in any individual client's identity or
-// score, only the deduped set of target roles across a coach's caseload.
+// score, only the deduped set of target roles across a coach's clients.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       id: true,
       fullName: true,
       workEmail: true,
+      accessToken: true,
       clients: { select: { targetRoleType: true, primaryFunction: true, currentCity: true, currentState: true } },
     },
   })
