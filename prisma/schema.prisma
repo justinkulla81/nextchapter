@@ -5142,6 +5142,13 @@ model PageBoxDismissal {
   pageKey     String
   boxType     PageBoxType
   dismissedAt DateTime         @default(now())
+  // DAILY_MESSAGE only — every PageContent.id ever dismissed for this
+  // (candidate, pageKey), permanently excluded from future selection so a
+  // pinned or rotation message says its piece once and then either steps
+  // aside for the next one in line or, once the whole pool is exhausted,
+  // stops showing at all. Always empty for ACTION_PLAN/WHY_IT_MATTERS,
+  // which don't have a "next message" concept.
+  dismissedContentIds String[] @default([])
 
   @@unique([candidateId, pageKey, boxType])
 }

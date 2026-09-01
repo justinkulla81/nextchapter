@@ -2,6 +2,7 @@
 
 import { setRecruiterDatabaseOptIn } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
 
 export function RecruiterDatabaseOptIn({
   optedIn,
@@ -48,7 +49,7 @@ export function RecruiterDatabaseOptIn({
           ) : (
             <>
               You&apos;re opted in but not currently surfaced — being matched to roles also requires an
-              unlocked Dossier. {dossierReason}
+              unlocked Dossier. {renderMarkdownLinks(dossierReason)}
             </>
           )}
         </p>

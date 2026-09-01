@@ -24,7 +24,6 @@ import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 export const DOSSIER_REFERENCE_TARGET = 3
 const OUTREACH_TARGET_BY_BAND: Record<SeniorityBand, number> = { EARLY: 15, MID: 15, SENIOR: 15, EXECUTIVE: 20 }
 const APPLICATION_TARGET_BY_BAND: Record<SeniorityBand, number> = { EARLY: 5, MID: 5, SENIOR: 5, EXECUTIVE: 2 }
-const DOSSIER_SPRINT_STREAK_TARGET = 4 // §7.2 item 7, "the grit test" — same cap as computeCurrentSprintStreak's default
 
 // §7.4 — self-report intake for outreach/applications doesn't exist yet
 // anywhere in the codebase (no numeric self-reported-history field on
@@ -59,7 +58,14 @@ export interface DossierCompleteness {
   isComplete: boolean
 }
 
-// §7.2 — all seven required for Dossier complete.
+// §7.2 — all six required for Dossier complete. A "4 consecutive Weekly
+// Search Sprints" requirement used to sit here too ("the grit test") — cut
+// per direct instruction: a hard calendar-time wait contradicts letting
+// someone who's actually doing the work accelerate to Candidate+ faster.
+// The separate alternate unlock path below (hasAlternateUnlockPath) still
+// offers a sprint-streak route for candidates who haven't hit the primary
+// reference/outreach/application targets — that one's untouched, since a
+// slower path for someone else isn't the same as a floor under everyone.
 export async function computeDossierCompleteness(candidateId: string): Promise<DossierCompleteness> {
   const band = (await getSeniorityBand(candidateId)) ?? 'MID' // unknown band defaults to the non-Executive target set — never assume the higher-target Executive band without evidence
   const outreachTarget = OUTREACH_TARGET_BY_BAND[band]
@@ -72,7 +78,6 @@ export async function computeDossierCompleteness(candidateId: string): Promise<D
     hasPersonalityProfile,
     outreachCount,
     applicationCount,
-    sprintStreak,
   ] = await Promise.all([
     prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
     prisma.candidateProfile.findUniqueOrThrow({
@@ -91,7 +96,6 @@ export async function computeDossierCompleteness(candidateId: string): Promise<D
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
     prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches network/page.tsx's existing pattern
     prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window — matches application-trends.ts's existing pattern
-    computeCurrentSprintStreak(candidateId, DOSSIER_SPRINT_STREAK_TARGET),
   ])
 
   // §7.2 item 2 — "100% personalization/profile," approximated from the
@@ -150,13 +154,6 @@ export async function computeDossierCompleteness(candidateId: string): Promise<D
       met: applicationCount >= applicationTarget,
       current: applicationCount,
       target: applicationTarget,
-    },
-    {
-      key: 'sprintStreak',
-      label: `${DOSSIER_SPRINT_STREAK_TARGET} consecutive Weekly Search Sprints`,
-      met: sprintStreak >= DOSSIER_SPRINT_STREAK_TARGET,
-      current: sprintStreak,
-      target: DOSSIER_SPRINT_STREAK_TARGET,
     },
   ]
 
@@ -245,7 +242,11 @@ export async function isDossierUnlocked(candidateId: string): Promise<DossierUnl
   const missing: string[] = []
   if (!referencesMet) {
     const remaining = DOSSIER_UNLOCK_REFERENCE_TARGET - completedReferenceCount
-    missing.push(`${remaining} more completed reference${remaining === 1 ? '' : 's'}`)
+    // [label](/dashboard/references) — every render site (LockedFeatureNotice,
+    // RecruiterDatabaseOptIn, the dashboard and Portfolio pages) renders this
+    // string through renderMarkdownLinks, so the missing piece links straight
+    // to where a candidate actually requests/tracks references.
+    missing.push(`[${remaining} more completed reference${remaining === 1 ? '' : 's'}](/dashboard/references)`)
   }
   if (!evidenceMet) missing.push('one completed assessment (Operating Profile, Personality Profile, or Skills)')
   if (!effortMet) {

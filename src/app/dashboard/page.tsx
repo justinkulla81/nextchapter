@@ -55,6 +55,7 @@ import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dos
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { getMotivationalVideos } from '@/lib/content/curated-content'
 import { getCandidateContentLikeKeys, contentLikeKey } from '@/lib/content/content-likes'
+import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -197,6 +198,18 @@ export default async function DashboardPage() {
     getCandidateContentLikeKeys(profile.id),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
+
+  // getResumeFixes (Market Reality Report's resumeRewrites) is null for any
+  // candidate whose latest report predates that field or hasn't regenerated
+  // since — a real production case where the actual latest resume still has
+  // plenty of open findings (Resume.atsFeedback/resultsFeedback/
+  // experienceFeedback, the same data /dashboard/resume's own version list
+  // reads) that getResumeFixes alone would miss entirely.
+  const latestResume = profile.resumes[0]
+  const latestResumeIssueCount = latestResume
+    ? ([latestResume.atsFeedback, latestResume.resultsFeedback, latestResume.experienceFeedback] as unknown[][])
+        .reduce((n, feedback) => n + (Array.isArray(feedback) ? feedback.length : 0), 0)
+    : 0
   // Same recency sort + inference as search-strategy/page.tsx so this
   // checklist agrees with what that page actually shows — otherwise a
   // pre-filled-but-unsaved field (e.g. Target industries guessed from work
@@ -345,7 +358,7 @@ export default async function DashboardPage() {
           completedReferencesCount={completedReferencesCount}
           weekStartDate={weekStartDate}
           marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
-          hasUnresolvedResumeIssues={resumeFixes !== null && resumeFixes.items.length > 0}
+          hasUnresolvedResumeIssues={latestResumeIssueCount > 0 || (resumeFixes !== null && resumeFixes.items.length > 0)}
         />
 
         {/* Build Your Dossier — the real §7.2 dossier-completeness checklist
@@ -372,17 +385,23 @@ export default async function DashboardPage() {
                 free on any plan.
               </p>
               <ul className="space-y-1 text-sm">
-                {dossierCompleteness.requirements.map((r) => (
-                  <li key={r.key} className="flex items-center gap-2">
-                    <span className={r.met ? 'text-success' : 'text-muted-foreground'} aria-hidden>
-                      {r.met ? '✓' : '○'}
-                    </span>
-                    <span className={r.met ? 'text-foreground' : 'text-muted-foreground'}>{r.label}</span>
-                  </li>
-                ))}
+                {[...dossierCompleteness.requirements]
+                  .sort((a, b) => Number(b.met) - Number(a.met))
+                  .map((r) => (
+                    <li key={r.key} className="flex items-center gap-2">
+                      <span className={r.met ? 'text-success' : 'text-orange'} aria-hidden>
+                        {r.met ? '✓' : '○'}
+                      </span>
+                      <span className={r.met ? 'text-muted-foreground line-through' : 'font-medium text-foreground'}>
+                        {r.label}
+                      </span>
+                    </li>
+                  ))}
               </ul>
               {!dossierStatus.unlocked && (
-                <p className="text-xs text-muted-foreground">Executive Dossier: {dossierStatus.reason}</p>
+                <p className="text-xs text-muted-foreground">
+                  Executive Dossier: {renderMarkdownLinks(dossierStatus.reason)}
+                </p>
               )}
               <Link href="/dashboard/portfolio" className="text-sm font-medium text-primary underline underline-offset-4">
                 See your full Dossier progress →

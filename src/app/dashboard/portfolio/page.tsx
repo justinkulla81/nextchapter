@@ -13,6 +13,7 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { getMoveTheNeedle } from '@/lib/reports/market-reality-sections'
 import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
 
@@ -180,7 +181,7 @@ export default async function PortfolioPage() {
             <p className="text-sm text-muted-foreground">
               What recruiters and hiring managers would see when you share your profile with them.
             </p>
-            <p className="text-sm text-muted-foreground">{dossierStatus.reason}</p>
+            <p className="text-sm text-muted-foreground">{renderMarkdownLinks(dossierStatus.reason)}</p>
           </div>
         )}
 

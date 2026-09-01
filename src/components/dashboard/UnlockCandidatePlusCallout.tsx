@@ -1,3 +1,5 @@
+import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
+
 // Sits directly under the locked Candidate+ teaser cards on the Jobs page —
 // a one-line signal of exactly what's blocking their Dossier unlock, without
 // a wall of extra explanation the candidate already sees on their dashboard.
@@ -9,7 +11,7 @@ export function UnlockCandidatePlusCallout({ reason, lockedCount }: { reason: st
   return (
     <div className="rounded-lg border border-orange/30 bg-orange/5 p-4">
       <p className="text-sm font-medium text-foreground">
-        Unlock {lockedCount} exclusive {opportunityWord} when your Dossier unlocks. {reason}
+        Unlock {lockedCount} exclusive {opportunityWord} when your Dossier unlocks. {renderMarkdownLinks(reason)}
       </p>
     </div>
   )

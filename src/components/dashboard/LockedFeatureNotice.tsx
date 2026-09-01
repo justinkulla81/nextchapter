@@ -1,4 +1,5 @@
 import { Lock } from 'lucide-react'
+import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
 
 // Shared locked-state notice for anything gated on Dossier unlock status —
 // always visible with the exact requirement and what's still missing, never
@@ -23,7 +24,7 @@ export function LockedFeatureNotice({
         <p className="text-sm font-medium text-orange">{title} — locked</p>
       </div>
       <p className="mt-1.5 text-sm text-muted-foreground">{requirement}</p>
-      <p className="mt-1.5 text-sm font-medium text-foreground">{status}</p>
+      <p className="mt-1.5 text-sm font-medium text-foreground">{renderMarkdownLinks(status)}</p>
     </div>
   )
 }
