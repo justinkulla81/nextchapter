@@ -305,6 +305,33 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
 async function NetworkingStatsCard({
   profile,
   outreachLogs,
+}: {
+  profile: Awaited<ReturnType<typeof getDashboardData>>
+  outreachLogs: SelfLoggedOutreach[]
+}) {
+  const { networkingStatTiles } = await loadAutomaticTrackingData(profile, outreachLogs)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Networking Stats</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {networkingStatTiles.map((tile) => (
+          <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Moved to the bottom of the page, alongside Automatic tracking — a passive
+// running total isn't what should greet you at the top of this page every
+// visit (per direct instruction), and it directly explains the auto-
+// detected/logged-directly split that section covers anyway.
+async function TotalOutreachCard({
+  profile,
+  outreachLogs,
   outreachMix,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
@@ -315,45 +342,33 @@ async function NetworkingStatsCard({
   const loggedDirectlyCount = networkingStatTiles.find((t) => t.label.startsWith('Logged directly'))?.items.length ?? 0
 
   return (
-    <div className="space-y-4">
-      {/* One real total instead of two separate, never-reconciled numbers —
-          the auto-detected tiles below sum to this minus loggedDirectlyCount,
-          which is its own tile in the same grid, so every piece of this
-          number is visibly accounted for underneath it. */}
-      <TierSummaryCard
-        title="Total Outreach"
-        count={totalOutreachCount}
-        unitLabel="touchpoint"
-        tier={outreachCountToTier(totalOutreachCount)}
-        buildingAt={3}
-        highAt={5}
-        unlockedContent={
-          <p className="text-sm text-muted-foreground">
-            {totalOutreachCount - loggedDirectlyCount} auto-detected from Gmail/Calendar ·{' '}
-            {loggedDirectlyCount} logged directly
-          </p>
-        }
-        mixTitle="A well-rounded outreach mix"
-        mixItems={[
-          { label: 'A hiring connection (recruiter or hiring manager)', done: outreachMix.hasHiringConnection },
-          {
-            label: 'Someone who knows your work (former colleague, professional contact, classmate)',
-            done: outreachMix.hasProfessionalContact,
-          },
-          { label: 'Personal support (coach, friend, or someone helping you)', done: outreachMix.hasPersonalSupport },
-        ]}
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>Networking Stats</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {networkingStatTiles.map((tile) => (
-            <NetworkStatTile key={tile.label} label={tile.label} items={tile.items} />
-          ))}
-        </CardContent>
-      </Card>
-    </div>
+    // One real total instead of two separate, never-reconciled numbers —
+    // the auto-detected tiles in Networking Stats sum to this minus
+    // loggedDirectlyCount, which is its own tile in that same grid, so
+    // every piece of this number is visibly accounted for elsewhere.
+    <TierSummaryCard
+      title="Total Outreach"
+      count={totalOutreachCount}
+      unitLabel="touchpoint"
+      tier={outreachCountToTier(totalOutreachCount)}
+      buildingAt={3}
+      highAt={5}
+      unlockedContent={
+        <p className="text-sm text-muted-foreground">
+          {totalOutreachCount - loggedDirectlyCount} auto-detected from Gmail/Calendar ·{' '}
+          {loggedDirectlyCount} logged directly
+        </p>
+      }
+      mixTitle="A well-rounded outreach mix"
+      mixItems={[
+        { label: 'A hiring connection (recruiter or hiring manager)', done: outreachMix.hasHiringConnection },
+        {
+          label: 'Someone who knows your work (former colleague, professional contact, classmate)',
+          done: outreachMix.hasProfessionalContact,
+        },
+        { label: 'Personal support (coach, friend, or someone helping you)', done: outreachMix.hasPersonalSupport },
+      ]}
+    />
   )
 }
 
@@ -626,7 +641,7 @@ export default async function NetworkPage({
       </div>
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} outreachMix={outreachMix} />
+        <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} />
       </Suspense>
 
       <Link
@@ -657,6 +672,10 @@ export default async function NetworkPage({
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/network" />
 
       <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
+
+      <Suspense fallback={<AutomaticTrackingSkeleton />}>
+        <TotalOutreachCard profile={profile} outreachLogs={outreachLogs} outreachMix={outreachMix} />
+      </Suspense>
 
       <Suspense fallback={<AutomaticTrackingSkeleton />}>
         <AutomaticTrackingSection profile={profile} outreachLogs={outreachLogs} params={params} />
