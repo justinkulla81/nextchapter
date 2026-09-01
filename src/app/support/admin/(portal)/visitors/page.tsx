@@ -60,6 +60,13 @@ interface Row {
   userAgent: string | null
   location: string | null
   candidate: { id: string; firstName: string | null; lastName: string | null } | null
+  // Best-effort — set when this event's own candidateId is null (a session-
+  // less, pre-signup or logged-out visit) but the IP matches exactly one
+  // real candidate's CandidateProfile.signupIp. Never set when more than one
+  // candidate shares that IP (a shared office network, a VPN) — an ambiguous
+  // match is worse than none, so it falls back to the generic Human/Bot
+  // label instead of guessing.
+  inferredCandidate: { id: string; firstName: string | null; lastName: string | null } | null
 }
 
 // Anonymous public-homepage traffic only — never candidate/coach/recruiter/
@@ -101,6 +108,33 @@ export default async function AdminVisitorsPage({
     await Promise.all(uniqueIps.map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const))
   )
 
+  // Only worth looking up for events that don't already carry a confirmed,
+  // session-based candidateId (see HomepageVisitEvent.candidateId's own
+  // comment) — a pre-signup or logged-out visit from an IP we've since seen
+  // a real candidate sign up from.
+  const unmatchedIps = Array.from(
+    new Set(events.filter((e) => !e.candidateId && e.ip).map((e) => e.ip as string))
+  )
+  const signupMatches =
+    unmatchedIps.length > 0
+      ? await prisma.candidateProfile.findMany({
+          where: { signupIp: { in: unmatchedIps } },
+          select: { id: true, firstName: true, lastName: true, signupIp: true },
+        })
+      : []
+  const candidatesByIp = new Map<string, typeof signupMatches>()
+  for (const c of signupMatches) {
+    if (!c.signupIp) continue
+    candidatesByIp.set(c.signupIp, [...(candidatesByIp.get(c.signupIp) ?? []), c])
+  }
+  // Ambiguous (more than one candidate ever signed up from this IP — a
+  // shared office network, a VPN exit node) is worse than no match at all.
+  const inferredCandidateByIp = new Map(
+    Array.from(candidatesByIp.entries())
+      .filter(([, candidates]) => candidates.length === 1)
+      .map(([ip, candidates]) => [ip, candidates[0]])
+  )
+
   const rows: Row[] = events.map((e) => ({
     id: e.id,
     createdAt: e.createdAt,
@@ -111,6 +145,7 @@ export default async function AdminVisitorsPage({
     userAgent: e.userAgent,
     location: e.ip ? (locationByIp.get(e.ip) ?? null) : null,
     candidate: e.candidate,
+    inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
   }))
 
   const result = paginatedResult(rows, total, params)
@@ -133,6 +168,19 @@ export default async function AdminVisitorsPage({
             <Link href={`/support/admin/candidates/${r.candidate.id}`} className="text-primary underline underline-offset-4">
               {candidateDisplayName(r.candidate)}
             </Link>
+          )
+        }
+        if (r.inferredCandidate) {
+          return (
+            <>
+              <Link
+                href={`/support/admin/candidates/${r.inferredCandidate.id}`}
+                className="text-primary underline underline-offset-4"
+              >
+                {candidateDisplayName(r.inferredCandidate)}
+              </Link>
+              <span className="text-muted-foreground"> (by IP)</span>
+            </>
           )
         }
         const cls = classifyUserAgent(r.userAgent)
