@@ -8,6 +8,7 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { prisma } from '@/lib/prisma'
 import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 import { cn } from '@/lib/utils'
+import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
@@ -174,6 +175,12 @@ export default async function ProfileHubPage() {
           </div>
         )}
         <PageHeaderBoxes pageKey="profile" candidateId={profile.id} dailyMessageOverride={fullySetUpMessage || undefined} />
+        <Link
+          href={`/dashboard/contacts/members/${buildMemberProfileSlug(getMemberDisplayIdentity(profile).displayName, profile.id)}`}
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          View my public profile →
+        </Link>
       </div>
 
       <div className="space-y-3">
