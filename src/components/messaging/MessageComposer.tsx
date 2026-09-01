@@ -57,6 +57,10 @@ export function MessageComposer({
       {resumeOptions && resumeOptions.length > 0 && (
         <div className="flex items-center gap-2">
           <Select
+            items={[
+              { value: NO_ATTACHMENT_VALUE, label: 'No resume attached' },
+              ...resumeOptions.map((r) => ({ value: r.id, label: `Attach: ${r.label}` })),
+            ]}
             value={attachedResumeId}
             onValueChange={(value) => setAttachedResumeId(value ?? NO_ATTACHMENT_VALUE)}
           >

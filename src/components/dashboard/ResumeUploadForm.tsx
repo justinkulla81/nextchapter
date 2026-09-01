@@ -51,6 +51,15 @@ export function ResumeUploadForm({
 
   const selectedNarrativeId = narrativeChoice === NONE_VALUE || narrativeChoice === NEW_NARRATIVE_VALUE ? '' : narrativeChoice
 
+  // Passed explicitly so <SelectValue> resolves the label synchronously —
+  // without it, Base UI's Select.Value falls back to the raw item value
+  // (e.g. "__none__") until the popup content has mounted once.
+  const narrativeSelectItems = [
+    { value: NONE_VALUE, label: 'None' },
+    ...narratives.map((n) => ({ value: n.id, label: n.label })),
+    { value: NEW_NARRATIVE_VALUE, label: '+ New narrative' },
+  ]
+
   return (
     <form
       action={formAction}
@@ -90,6 +99,7 @@ export function ResumeUploadForm({
             </p>
             <Select
               name="narrativeChoiceDisplay"
+              items={narrativeSelectItems}
               value={narrativeChoice}
               onValueChange={(value) => {
                 const next = value ?? NONE_VALUE
