@@ -17,6 +17,10 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
+function formatDateTime(date: Date): string {
+  return `${formatDate(date)} at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+}
+
 export interface PriorityContactPreview {
   contactId: string
   name: string
@@ -114,9 +118,17 @@ export function DashboardNetworkCard({
                 <p className="truncate text-[13px] font-medium text-foreground">{item.contactName}</p>
               )}
               <p className="truncate text-xs text-muted-foreground">
-                {item.kind === 'meeting' ? 'Met' : item.kind === 'interview' ? 'Interview landed' : 'Emailed you'}{' '}
-                {formatDate(item.date)}
-                {item.kind !== 'interview' && ` — ${item.subject}`}
+                {item.kind === 'interview' ? (
+                  item.scheduledTime ? (
+                    <>Interview scheduled {formatDateTime(item.scheduledTime)}</>
+                  ) : (
+                    <>Interview landed {formatDate(item.date)} — check your calendar for the scheduled time</>
+                  )
+                ) : (
+                  <>
+                    {item.kind === 'meeting' ? 'Met' : 'Emailed you'} {formatDate(item.date)} — {item.subject}
+                  </>
+                )}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">

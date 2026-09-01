@@ -53,6 +53,46 @@ export interface NeedsFollowUpItem {
   date: Date
   subject: string
   gmailHref: string
+  // Best-effort match against a connected calendar's INTERVIEW-type events
+  // (see buildInterviewItems) — set only for 'interview' items where a
+  // scheduled time was actually found, so the card can say when it really
+  // is rather than just when the candidate said they landed it.
+  scheduledTime?: Date
+}
+
+// Best-effort match: a landed interview has no real foreign key to a
+// calendar event, so this looks for an INTERVIEW-type TrackedCalendarEvent
+// whose title mentions the job's company name. Not exhaustive — an event
+// titled just "Interview" with no company name won't match — but it's the
+// only signal available without asking the candidate to link them by hand.
+function findScheduledInterviewTime(
+  posting: { companyName: string | null },
+  events: { eventType: string; title: string | null; startTime: Date }[]
+): Date | null {
+  if (!posting.companyName) return null
+  const needle = posting.companyName.toLowerCase()
+  const match = events.find((e) => e.eventType === 'INTERVIEW' && e.title?.toLowerCase().includes(needle))
+  return match?.startTime ?? null
+}
+
+function buildInterviewItems(
+  landedInterviews: { id: string; title: string | null; companyName: string | null; interviewLandedAt: Date | null }[],
+  calendarEvents: { eventType: string; title: string | null; startTime: Date }[]
+): NeedsFollowUpItem[] {
+  return landedInterviews.map((posting) => {
+    const label = [posting.title, posting.companyName].filter(Boolean).join(' at ') || 'Your interview'
+    return {
+      kind: 'interview' as const,
+      sourceId: posting.id,
+      contactName: label,
+      contactEmail: `job:${posting.id}`,
+      contactId: null,
+      date: posting.interviewLandedAt!,
+      subject: label,
+      gmailHref: '/dashboard/interview-prep',
+      scheduledTime: findScheduledInterviewTime(posting, calendarEvents) ?? undefined,
+    }
+  })
 }
 
 // Four real, verifiable "you owe someone (or yourself) something" signals,
@@ -97,18 +137,10 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     orderBy: { interviewLandedAt: 'desc' },
     select: { id: true, title: true, companyName: true, interviewLandedAt: true },
   })
-  const interviewItems: NeedsFollowUpItem[] = landedInterviews.map((posting) => ({
-    kind: 'interview' as const,
-    sourceId: posting.id,
-    contactName: [posting.title, posting.companyName].filter(Boolean).join(' at ') || 'Your interview',
-    contactEmail: `job:${posting.id}`,
-    contactId: null,
-    date: posting.interviewLandedAt!,
-    subject: [posting.title, posting.companyName].filter(Boolean).join(' at ') || 'your upcoming interview',
-    gmailHref: '/dashboard/interview-prep',
-  }))
 
-  if (!calendarConnection && !emailConnection) return interviewItems.slice(0, 10)
+  if (!calendarConnection && !emailConnection) {
+    return buildInterviewItems(landedInterviews, []).slice(0, 10)
+  }
 
   const [meetings, emailActivities, contacts] = await Promise.all([
     calendarConnection && !calendarConnection.disconnectedAt
@@ -135,6 +167,8 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
       select: { id: true, name: true, email: true },
     }),
   ])
+
+  const interviewItems = buildInterviewItems(landedInterviews, meetings)
 
   const contactNameByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.name]))
   const contactIdByEmail = new Map(contacts.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]))
