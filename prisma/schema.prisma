@@ -5539,6 +5539,12 @@ enum MessageSenderRole {
   COACH
   RECRUITER
   EMPLOYER
+  // NextChapter admin support intervening directly in a thread — never
+  // sent as if it were the coach/recruiter/employer on the other side
+  // (that would misattribute the message to them). MessageBubbles renders
+  // this distinctly (its own "NextChapter Support" label/avatar) rather
+  // than falling back to whichever partner the thread belongs to.
+  ADMIN
 }
 
 // One thread per (candidate, partner) relationship, not subject-based —

@@ -9,6 +9,21 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { buildNudgeDraft, type NudgeDraft } from '@/lib/admin/nudge-content'
 import { sendAdminNudgeEmail } from '@/lib/email/send-admin-nudge'
 import { addStakeholderNote } from '@/lib/admin/stakeholder-relationships'
+import { sendMessage } from '@/lib/messaging/threads'
+
+// Sent as MessageSenderRole.ADMIN, never as the coach/recruiter/employer's
+// own role — see that enum value's schema comment. candidateId is only
+// used for the revalidate/analytics call, not to authorize the reply (any
+// admin can reply into any thread they can already see on this page).
+export async function sendAdminThreadReply(candidateId: string, threadId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const body = (formData.get('body') as string | null)?.trim()
+  if (!body) return
+
+  await sendMessage(threadId, 'ADMIN', body)
+  captureServerEvent(candidateId, 'admin_thread_reply_sent', { threadId, sentByEmail: admin.email })
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
+}
 
 export async function addCandidateStakeholderNote(
   candidateId: string,

@@ -120,7 +120,14 @@ async function notifyNewMessage(threadId: string, senderRole: MessageSenderRole)
           ? (thread.coach?.fullName ?? 'Your coach')
           : senderRole === 'RECRUITER'
             ? (thread.recruiter?.fullName ?? 'Your recruiter')
-            : (thread.employer?.contactName ?? thread.employer?.companyName ?? 'An employer')
+            : senderRole === 'EMPLOYER'
+              ? (thread.employer?.contactName ?? thread.employer?.companyName ?? 'An employer')
+              // ADMIN — never attributed to whichever partner the thread
+              // belongs to (see MessageSenderRole.ADMIN's schema comment);
+              // without this branch it fell through to the EMPLOYER case
+              // and a candidate would be told "An employer sent you a
+              // message" for a NextChapter support reply.
+              : 'NextChapter Support'
 
     let recipientUserId: string | null
     let recipientFirstName: string | null
@@ -169,6 +176,15 @@ export async function sendMessage(
   const trimmed = body.trim()
   if (!trimmed) throw new Error('Message cannot be empty.')
 
+  // ADMIN falls into the non-CANDIDATE branch below (bumps
+  // partnerLastReadAt, notifies the candidate — see notifyNewMessage) —
+  // an admin reply is only ever surfaced/notified to the candidate side of
+  // the thread, never the coach/recruiter/employer on the other end (their
+  // partnerLastReadAt gets bumped as if they'd already seen it, and they
+  // get no email). Accepted for now since there's no real product decision
+  // yet on who an admin-support message should actually reach; a true
+  // three-party notification model is separate future work, not silently
+  // assumed here.
   const [message] = await prisma.$transaction([
     prisma.message.create({ data: { threadId, senderRole, body: trimmed, senderCandidateId } }),
     prisma.messageThread.update({

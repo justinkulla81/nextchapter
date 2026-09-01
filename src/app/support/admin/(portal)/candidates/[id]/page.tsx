@@ -27,7 +27,7 @@ import {
 } from '@/lib/admin/stakeholder-relationships'
 import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
 import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
-import { addCandidateStakeholderNote } from './actions'
+import { addCandidateStakeholderNote, sendAdminThreadReply } from './actions'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
   WEEKLY_TARGET: 'Weekly target',
@@ -649,7 +649,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                   )}
                 </CardContent>
               </Card>
-              <StakeholderCommunicationsCard threads={coachThreads} />
+              <StakeholderCommunicationsCard threads={coachThreads} replyAction={sendAdminThreadReply.bind(null, id)} />
               <StakeholderNotesCard
                 notes={coachNotes}
                 addNoteAction={addCandidateStakeholderNote.bind(null, id, 'COACH', detail.coach?.id ?? null)}
@@ -697,7 +697,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                   )}
                 </CardContent>
               </Card>
-              <StakeholderCommunicationsCard threads={recruiterThreads} />
+              <StakeholderCommunicationsCard threads={recruiterThreads} replyAction={sendAdminThreadReply.bind(null, id)} />
               <StakeholderNotesCard
                 notes={recruiterNotes}
                 addNoteAction={addCandidateStakeholderNote.bind(null, id, 'RECRUITER', null)}
@@ -747,7 +747,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                   )}
                 </CardContent>
               </Card>
-              <StakeholderCommunicationsCard threads={employerThreads} />
+              <StakeholderCommunicationsCard threads={employerThreads} replyAction={sendAdminThreadReply.bind(null, id)} />
               <StakeholderNotesCard
                 notes={employerNotes}
                 addNoteAction={addCandidateStakeholderNote.bind(null, id, 'EMPLOYER', null)}
