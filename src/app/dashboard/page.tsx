@@ -5,9 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Grade } from '@/lib/scoring/grade'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
@@ -28,7 +26,6 @@ import {
   type CommittedAction,
 } from '@/lib/weekly/sprint'
 import { DashboardTopStrip, DashboardTopStripSkeleton } from '@/components/dashboard/DashboardTopStrip'
-import { MembershipStatusLadder } from '@/components/dashboard/MembershipStatusLadder'
 import { MoodCheckInCard } from '@/components/dashboard/MoodCheckInCard'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
@@ -58,11 +55,6 @@ import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dos
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { getMotivationalVideos } from '@/lib/content/curated-content'
 import { getCandidateContentLikeKeys, contentLikeKey } from '@/lib/content/content-likes'
-
-// One step up the A>B>C>D>F ladder — A has no "better" so it maps to
-// itself, but that case is never actually rendered (the Improve Your
-// Market Reality card is gated on grade !== 'A').
-const NEXT_BETTER_GRADE: Record<Grade, Grade> = { F: 'D', D: 'C', C: 'B', B: 'A', A: 'A' }
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -302,67 +294,6 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
-      {/* Resume Check — first card after Your Stats, since the resume is the
-          fastest lever on the grade and the most common reason a candidate's
-          matches/report look off. Minimized (collapsed) once a resume's been
-          analyzed and it's genuinely clean; maximized (open) whenever there's
-          real work to do or nothing's been analyzed yet. Reuses the same
-          real, point-ranked resume-fix items the Market Reality Report
-          itself shows (getResumeFixes), not a separate invented list. */}
-      <Card>
-        <details className="group" open={resumeFixes === null || resumeFixes.items.length > 0}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-6 [&::-webkit-details-marker]:hidden">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Resume Check</p>
-              <p className="mt-1 text-sm font-semibold text-foreground">
-                {resumeFixes === null
-                  ? "We haven't analyzed your resume yet"
-                  : resumeFixes.items.length === 0
-                    ? '✓ No known issues'
-                    : `${resumeFixes.items.length} issue${resumeFixes.items.length === 1 ? '' : 's'} found`}
-              </p>
-            </div>
-            <ChevronDown
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-              aria-hidden
-            />
-          </summary>
-          <div className="space-y-3 px-6 pb-6">
-            {resumeFixes === null ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Analysis usually finishes within a few minutes of uploading — check back shortly, or
-                  upload again if it&apos;s been a while.
-                </p>
-                <Link href="/dashboard/resume" className="text-sm font-medium text-primary underline underline-offset-4">
-                  Go to My Resume →
-                </Link>
-              </>
-            ) : resumeFixes.items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Nothing outstanding right now — update it any time your experience changes and we&apos;ll
-                re-check it.
-              </p>
-            ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  The fastest lever on your grade is your resume
-                  {marketRealityGrade?.probabilityGrade && marketRealityGrade.probabilityGrade !== 'A'
-                    ? ` (${marketRealityGrade.probabilityGrade} → ${NEXT_BETTER_GRADE[marketRealityGrade.probabilityGrade]})`
-                    : ''}
-                  .
-                </p>
-                <Link href="/dashboard/resume" className="text-sm font-medium text-primary underline underline-offset-4">
-                  Go fix it →
-                </Link>
-              </>
-            )}
-          </div>
-        </details>
-      </Card>
-
-      <MembershipStatusLadder dossierUnlocked={dossierStatus.unlocked} reason={dossierStatus.reason} />
-
       <EmployerInterestSection candidateId={profile.id} />
       <PortfolioAccessRequestSection candidateId={profile.id} />
 
@@ -414,6 +345,7 @@ export default async function DashboardPage() {
           completedReferencesCount={completedReferencesCount}
           weekStartDate={weekStartDate}
           marketRealityGrade={marketRealityGrade?.probabilityGrade ?? null}
+          hasUnresolvedResumeIssues={resumeFixes !== null && resumeFixes.items.length > 0}
         />
 
         {/* Build Your Dossier — the real §7.2 dossier-completeness checklist
@@ -427,23 +359,19 @@ export default async function DashboardPage() {
         {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Earn Your Candidate+ Account</CardTitle>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Earn Your Candidate+ Account</CardTitle>
+                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+                  {dossierCompleteness.metCount} of {dossierCompleteness.totalCount} done
+                </span>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Candidate+ is earned, not purchased — complete the steps below and you unlock your Executive
-                Dossier, the Executive Recruiter Network, and Exclusive Jobs, free on any plan.
+                Complete the steps below to unlock your Executive Dossier, Recruiter Network, and Exclusive Jobs —
+                free on any plan.
               </p>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground tabular-nums">
-                  {dossierCompleteness.metCount} of {dossierCompleteness.totalCount}
-                </span>{' '}
-                steps complete — real work done over time, separate from your Market Reality Grade.
-                {dossierStatus.unlocked
-                  ? ' Your Executive Dossier is unlocked.'
-                  : ` Executive Dossier: ${dossierStatus.reason}`}
-              </p>
-              <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+              <ul className="space-y-1 text-sm">
                 {dossierCompleteness.requirements.map((r) => (
                   <li key={r.key} className="flex items-center gap-2">
                     <span className={r.met ? 'text-success' : 'text-muted-foreground'} aria-hidden>
@@ -453,6 +381,9 @@ export default async function DashboardPage() {
                   </li>
                 ))}
               </ul>
+              {!dossierStatus.unlocked && (
+                <p className="text-xs text-muted-foreground">Executive Dossier: {dossierStatus.reason}</p>
+              )}
               <Link href="/dashboard/portfolio" className="text-sm font-medium text-primary underline underline-offset-4">
                 See your full Dossier progress →
               </Link>

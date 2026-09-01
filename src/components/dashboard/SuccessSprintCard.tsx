@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
+import { type ComponentType, type ReactNode } from 'react'
 import Link from 'next/link'
-import { Trophy, User, Users, BookOpen, Sparkles, Zap, Lock, Rocket } from 'lucide-react'
+import { User, Users, BookOpen, Sparkles, Zap, Lock, Rocket } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getMyActionScorePersonalBest } from '@/lib/leaderboard/actions'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import {
   ACTION_TYPE_LINK,
@@ -477,38 +476,6 @@ function ActionRow({
   )
 }
 
-// PART FOUR §19 — "Weekly Search Sprint gets one line at week's end... No
-// ranking inside the Sprint." A self-fetching client component (rather than
-// a new prop threaded through this card's caller) so the addition stays
-// exactly what the spec asks for: one small line, not a redesign of what
-// data this card receives. Fetches once on mount; renders nothing while
-// loading or if the candidate has no personal best yet (a first-ever week
-// has nothing to compare against).
-function PersonalBestLine({ weeklyPoints }: { weeklyPoints: number }) {
-  const [best, setBest] = useState<{ bestValue: number; weekStartDate: string } | null | undefined>(undefined)
-
-  useEffect(() => {
-    let cancelled = false
-    getMyActionScorePersonalBest().then((result) => {
-      if (!cancelled) setBest(result)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  if (!best) return null
-
-  return (
-    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <Trophy className="size-3 shrink-0" aria-hidden />
-      You&apos;re at <span className="font-medium text-foreground tabular-nums">{weeklyPoints}</span> points this
-      week. Your best week yet — <span className="font-medium text-foreground tabular-nums">{best.bestValue}</span>{' '}
-      points.
-    </p>
-  )
-}
-
 export function SuccessSprintCard({
   actions,
   suggestedActions,
@@ -523,6 +490,7 @@ export function SuccessSprintCard({
   completedReferencesCount,
   weekStartDate,
   marketRealityGrade,
+  hasUnresolvedResumeIssues,
 }: {
   actions: CommittedAction[] | null
   suggestedActions: SuggestedAction[]
@@ -542,6 +510,11 @@ export function SuccessSprintCard({
   // row only when that's actually true, not unconditionally like
   // OUTREACH_MESSAGE/JOB_APPLICATION_SUBMITTED.
   marketRealityGrade: Grade | null
+  // getResumeFixes(candidateId) having real, unresolved items — a second,
+  // independent reason to prioritize RESUME_UPDATE alongside the grade
+  // check above: real known issues sitting unfixed matters even in a week
+  // the grade itself hasn't moved.
+  hasUnresolvedResumeIssues: boolean
 }) {
   // The Get Started gate — everything else in this list (barring
   // UNLOCK_EXEMPT_ACTION_TYPES) stays grayed and locked until Gmail/
@@ -631,7 +604,9 @@ export function SuccessSprintCard({
     if (actionType === 'LEARNING_NEW_TOOL') return true
     if (actionType === 'LEARNING_SESSION_ATTENDED') return true
     if (actionType === 'LINKEDIN_POST_IDEA') return true
-    if (actionType === 'RESUME_UPDATE') return marketRealityGrade !== null && marketRealityGrade !== 'A'
+    if (actionType === 'RESUME_UPDATE') {
+      return hasUnresolvedResumeIssues || (marketRealityGrade !== null && marketRealityGrade !== 'A')
+    }
     return false
   }
 
@@ -769,6 +744,17 @@ export function SuccessSprintCard({
 
   const groups = groupByNavCategory(consolidatedOpenRows)
 
+  // A few non-priority items shown even before "Show all activity" is
+  // opened — otherwise a candidate who's cleared Priority sees nothing else
+  // at all until they think to click, when there's frequently plenty more
+  // to do underneath. Excludes anything already in Priority above (no
+  // value re-teasing a row that's already fully visible) and anything
+  // already achieved this week (nothing to preview there).
+  const PREVIEW_COUNT = 3
+  const previewRows = GROUP_ORDER.flatMap((group) => sortForDisplay(groups[group]))
+    .filter((r) => !r.priority && !isAchieved(r))
+    .slice(0, PREVIEW_COUNT)
+
   // The two connect items — not real Search Actions, no points, no
   // category — plus whichever of Profile/Search Strategy/Resume are the
   // real cause of bothConnectedUnlocked still being false, pulled in from
@@ -833,7 +819,6 @@ export function SuccessSprintCard({
               </span>
             </p>
           </div>
-          <PersonalBestLine weeklyPoints={weeklyPoints} />
 
           {allRows.length > 0 ? (
             <>
@@ -859,6 +844,21 @@ export function SuccessSprintCard({
                 {priorityRows.length > 0 && (
                   <ActionGroup title="Priority">
                     {priorityRows.map((row, i) => (
+                      <ActionRow
+                        key={i}
+                        {...row}
+                        locked={isRowLocked(row, bothConnectedUnlocked)}
+                        lockReason={resolvedLockReasonText}
+                        hasEmailConnection={hasEmailConnection}
+                        hasCalendarConnection={hasCalendarConnection}
+                        completedReferencesCount={completedReferencesCount}
+                      />
+                    ))}
+                  </ActionGroup>
+                )}
+                {previewRows.length > 0 && (
+                  <ActionGroup title="More to do">
+                    {previewRows.map((row, i) => (
                       <ActionRow
                         key={i}
                         {...row}

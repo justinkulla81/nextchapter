@@ -66,7 +66,7 @@ export async function WeeklyFocusCard({
   if (!focus) return null
 
   return (
-    <Accordion defaultValue={['weekly-focus']}>
+    <Accordion>
       <AccordionItem value="weekly-focus" className="border-brand/20 bg-brand/5">
         <AccordionTrigger className="px-5 py-4 hover:text-foreground">
           <div className="flex items-center gap-3">

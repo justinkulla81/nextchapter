@@ -48,11 +48,17 @@ export function MoodCheckInCard({
   const [optimisticMood, setOptimisticMood] = useState<Mood | null>(todaysMood)
   const [isPending, startTransition] = useTransition()
   const [dismissed, setDismissed] = useState(dismissedToday)
+  // Distinguishes "just submitted this session" from "already checked in
+  // before this page load" — the response/support content below is only
+  // worth showing once, right after the action; a returning visit later
+  // the same day shouldn't keep re-showing the same reframe message.
+  const [justCheckedIn, setJustCheckedIn] = useState(false)
 
   const mood = optimisticMood ?? todaysMood
 
   function handleCheckIn(selected: Mood) {
     setOptimisticMood(selected)
+    setJustCheckedIn(true)
     startTransition(async () => {
       await checkInMood(selected)
       // checkInMood's +3 points feed the Weekly A target / grade shown
@@ -71,7 +77,10 @@ export function MoodCheckInCard({
     })
   }
 
-  if (dismissed) return null
+  // Once today's check-in was already done before this page load, the card
+  // has nothing left to ask — it disappears rather than sticking around
+  // re-showing the same response every visit.
+  if (dismissed || (todaysMood && !justCheckedIn)) return null
 
   return (
     <Card aria-busy={isPending}>
