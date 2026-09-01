@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { ThumbsUp } from 'lucide-react'
 import { deactivateCommunityPost, expressInterest, toggleCheerPostAction } from '@/app/dashboard/community/actions'
 import { COMMUNITY_POST_TYPE_LABELS } from '@/lib/constants/community'
@@ -45,6 +46,12 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
   const isAutomated = isAutomatedPostType(post.postType)
+  // Messaging goes through the same peer-thread flow the Contacts member
+  // profile's "Offer to help" button already uses (getOrCreatePeerThread,
+  // resolved lazily by the messages tab itself from ?with=) — never the
+  // system account (isAutomated) or your own post.
+  const messageHref =
+    !isOwnPost && !isAutomated ? `/dashboard/community?tab=messages&relation=peers&with=${post.candidateId}` : null
   // Title is optional on an admin story (AdminStoryForm) — in practice the
   // headline usually just gets written straight into the required
   // "Story"/description field instead, so that's the real hyperlink target
@@ -58,10 +65,27 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
     <div className="space-y-2 p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-2">
-          {posterName && <AvatarDisplay name={posterName} url={posterAvatarUrl} size={28} />}
+          {posterName &&
+            (messageHref ? (
+              <Link href={messageHref} title={`Message ${posterName}`}>
+                <AvatarDisplay name={posterName} url={posterAvatarUrl} size={28} />
+              </Link>
+            ) : (
+              <AvatarDisplay name={posterName} url={posterAvatarUrl} size={28} />
+            ))}
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              {posterName && <p className="text-sm font-medium text-foreground">{posterName}</p>}
+              {posterName &&
+                (messageHref ? (
+                  <Link
+                    href={messageHref}
+                    className="text-sm font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"
+                  >
+                    {posterName}
+                  </Link>
+                ) : (
+                  <p className="text-sm font-medium text-foreground">{posterName}</p>
+                ))}
               {post.postType !== 'UPDATE' && (
                 <p className="text-xs font-medium uppercase text-muted-foreground">
                   {COMMUNITY_POST_TYPE_LABELS[post.postType]}
