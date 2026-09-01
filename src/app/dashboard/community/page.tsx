@@ -29,7 +29,7 @@ import { PeerThreadSafetyControls } from '@/components/messaging/PeerThreadSafet
 import { sendPeerCandidateMessage } from '@/app/dashboard/community/actions'
 import { startCandidateThreadAction } from '@/app/dashboard/messages/actions'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Inbox } from 'lucide-react'
+import { Inbox, ChevronDown } from 'lucide-react'
 import type { ThreadPartnerType } from '@prisma/client'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
@@ -800,20 +800,8 @@ async function CommunityTab({
 
       <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} />
 
-      {encouragementGivingOptIn ? (
-        <SendEncouragementForm />
-      ) : (
-        <div className="rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
-          Want to send encouragement to someone here having a hard week?{' '}
-          <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
-            Opt in from Privacy settings
-          </Link>
-          .
-        </div>
-      )}
-
       <div className="overflow-hidden rounded-lg border border-border">
-        <div className="space-y-3 border-b border-border bg-brand/5 p-4">
+        <div className="space-y-3 border-b border-orange/20 bg-orange/5 p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <p className="text-sm font-semibold text-foreground">Post to the Community</p>
@@ -832,14 +820,22 @@ async function CommunityTab({
         </div>
 
         {(groups.length > 0 || communities.length > 0) && (
-          <div className="space-y-2 border-b border-border bg-off-white/60 p-3">
-            <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Filters</p>
-            <CommunityGroupStrip
-              groups={groups}
-              otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}}
-            />
-            <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
-          </div>
+          <details className="group border-b border-border bg-off-white/60">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-3 [&::-webkit-details-marker]:hidden">
+              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Filters</span>
+              <ChevronDown
+                className="size-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+                aria-hidden
+              />
+            </summary>
+            <div className="space-y-2 p-3 pt-0">
+              <CommunityGroupStrip
+                groups={groups}
+                otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}}
+              />
+              <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
+            </div>
+          </details>
         )}
 
         <div className="border-b border-border px-4 py-2">
@@ -860,6 +856,21 @@ async function CommunityTab({
           </div>
         )}
       </div>
+
+      {/* Sending encouragement is a secondary feature, not the reason
+          someone comes to Community — moved below the feed so it doesn't
+          compete with actual posts for the top of the page. */}
+      {encouragementGivingOptIn ? (
+        <SendEncouragementForm />
+      ) : (
+        <div className="rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
+          Want to send encouragement to someone here having a hard week?{' '}
+          <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
+            Opt in from Privacy settings
+          </Link>
+          .
+        </div>
+      )}
     </div>
   )
 }

@@ -915,7 +915,11 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
   linkedin: ['LINKEDIN_SETUP', 'LINKEDIN_UNLOCK'],
   'interim-work': ['INTERIM_PROFILE_CREATED', 'GIG_DIRECTORY_UNLOCK'],
   'work-samples': ['WORK_SAMPLE_TYPE_CONFIRMED'],
-  community: ['ENGAGE_COMMENT', 'ENGAGE_EVENT', 'ENGAGE_POST_UPDATE', 'ENGAGE_PEER_SUPPORT'],
+  // No entry here by direct request — the Community page dropped its
+  // Action Plan box (it read as clutter above the actual feed). The four
+  // ENGAGE_* action types still work everywhere else: the main dashboard's
+  // Weekly Sprint (Connecting category), the Stats "available actions"
+  // list, and ACTION_TYPE_LINK still routes them to /dashboard/community.
   profile: [
     'PROFILE_CONFIRM',
     'INDUSTRY_CONFIRM',

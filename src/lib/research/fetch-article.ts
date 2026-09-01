@@ -5,6 +5,11 @@ export interface FetchArticleResult {
   status: 'success' | 'fetch_failed' | 'parse_failed'
   title: string | null
   text: string | null
+  // og:image, when the page declares one — best-effort only, same spirit as
+  // title falling back to <title> above. Extracted even on a parse_failed
+  // (paywall-looking) page, since the page still legitimately served its
+  // own preview image before the wall kicked in.
+  image: string | null
   error: string | null
 }
 
@@ -44,7 +49,13 @@ export async function fetchArticle(url: string): Promise<FetchArticleResult> {
       headers: BROWSER_HEADERS,
     })
     if (!response.ok) {
-      return { status: 'fetch_failed', title: null, text: null, error: `Request failed with status ${response.status}.` }
+      return {
+        status: 'fetch_failed',
+        title: null,
+        text: null,
+        image: null,
+        error: `Request failed with status ${response.status}.`,
+      }
     }
     html = await response.text()
   } catch (error) {
@@ -52,6 +63,7 @@ export async function fetchArticle(url: string): Promise<FetchArticleResult> {
       status: 'fetch_failed',
       title: null,
       text: null,
+      image: null,
       error: error instanceof Error ? error.message : 'Failed to fetch the URL.',
     }
   }
@@ -59,11 +71,12 @@ export async function fetchArticle(url: string): Promise<FetchArticleResult> {
   try {
     const $ = cheerio.load(html)
     const title = $('meta[property="og:title"]').attr('content')?.trim() || $('title').text().trim() || null
+    const image = $('meta[property="og:image"]').attr('content')?.trim() || null
     $('script, style, noscript').remove()
     const text = $('body').text().replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LENGTH)
 
     if (!text) {
-      return { status: 'parse_failed', title, text: null, error: 'No readable text found on the page.' }
+      return { status: 'parse_failed', title, text: null, image, error: 'No readable text found on the page.' }
     }
 
     if (looksLikePaywall(text)) {
@@ -71,16 +84,18 @@ export async function fetchArticle(url: string): Promise<FetchArticleResult> {
         status: 'parse_failed',
         title,
         text: null,
+        image,
         error: 'This page looks like a paywall or sign-in screen rather than the article itself — could not fetch full content.',
       }
     }
 
-    return { status: 'success', title, text, error: null }
+    return { status: 'success', title, text, image, error: null }
   } catch (error) {
     return {
       status: 'parse_failed',
       title: null,
       text: null,
+      image: null,
       error: error instanceof Error ? error.message : 'Failed to parse the page content.',
     }
   }

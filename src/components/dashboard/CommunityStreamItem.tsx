@@ -45,6 +45,14 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions
   const isAutomated = isAutomatedPostType(post.postType)
+  // Title is optional on an admin story (AdminStoryForm) — in practice the
+  // headline usually just gets written straight into the required
+  // "Story"/description field instead, so that's the real hyperlink target
+  // when there's no separate title. Only suppress the description paragraph
+  // below when it's standing in as the headline this way; a post with a
+  // real, distinct title still shows both.
+  const headline = post.title ?? (post.externalUrl ? post.description : null)
+  const showDescriptionSeparately = !(headline && headline === post.description && !post.title)
 
   return (
     <div className="space-y-2 p-4">
@@ -60,7 +68,19 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
                 </p>
               )}
             </div>
-            {post.title && <p className="font-medium text-foreground">{post.title}</p>}
+            {headline &&
+              (post.externalUrl ? (
+                <a
+                  href={post.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+                >
+                  {headline}
+                </a>
+              ) : (
+                <p className="font-medium text-foreground">{headline}</p>
+              ))}
             {isOwnPost && post.moderationStatus === 'HELD' && (
               <p className="text-xs font-medium text-orange">Pending review — only visible to you until a moderator acts.</p>
             )}
@@ -85,22 +105,26 @@ export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStream
           )
         )}
       </div>
-      <p className="text-sm text-muted-foreground">{post.description}</p>
+      {post.imageUrl && (
+        <a
+          href={post.externalUrl ?? undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block overflow-hidden rounded-lg border border-border"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary
+              external article thumbnail, not one of this app's own assets;
+              next/image's domain allowlist would need every source site
+              added ahead of time. */}
+          <img src={post.imageUrl} alt="" className="max-h-48 w-full object-cover" />
+        </a>
+      )}
+      {showDescriptionSeparately && <p className="text-sm text-muted-foreground">{post.description}</p>}
       {post.moderationCategory === 'BAD_LEGAL_FINANCIAL_ADVICE' && (
         <p className="rounded-md bg-muted p-2 text-xs text-muted-foreground">
           This touches on legal or financial specifics — treat it as one person&apos;s experience, not
           professional advice, and check anything that matters with a qualified professional.
         </p>
-      )}
-      {post.externalUrl && (
-        <a
-          href={post.externalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm text-primary underline underline-offset-4"
-        >
-          View link
-        </a>
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">

@@ -3248,6 +3248,10 @@ model CommunityPost {
   title       String?
   description String
   externalUrl String?
+  // og:image from externalUrl, best-effort — fetched once at post-creation
+  // time (see admin-story.ts), never re-fetched. Null when there's no
+  // externalUrl, the fetch failed, or the page declared no og:image.
+  imageUrl    String?
 
   // Snapshot of the poster's location/function/industry at post time, so
   // editing a profile later doesn't rewrite history. Reuses CandidateProfile's

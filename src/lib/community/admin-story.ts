@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getSystemCandidateProfile } from '@/lib/community/system-account'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { fetchArticle } from '@/lib/research/fetch-article'
 
 export interface CreateAdminStoryInput {
   title?: string | null
@@ -20,6 +21,15 @@ export async function createAdminStoryPost(
 ): Promise<{ postId: string }> {
   const system = await getSystemCandidateProfile()
 
+  // Best-effort og:image, fetched once at creation time — same fetcher the
+  // Research Library's URL ingestion already uses. A failed/imageless fetch
+  // just means the card renders without a thumbnail, never blocks posting.
+  const image = externalUrl
+    ? await fetchArticle(externalUrl)
+        .then((result) => result.image)
+        .catch(() => null)
+    : null
+
   const post = await prisma.communityPost.create({
     data: {
       candidateId: system.id,
@@ -27,6 +37,7 @@ export async function createAdminStoryPost(
       title,
       description,
       externalUrl,
+      imageUrl: image,
       isActive: true,
       moderationStatus: 'PUBLISHED',
       moderatedAt: new Date(),
