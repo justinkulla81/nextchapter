@@ -1427,23 +1427,6 @@ async function FindMyJobBody({
         </Card>
       </div>
 
-      <div id="find-through-network" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Find Jobs Through Network</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Most roles are filled through a referral before they&apos;re ever posted — the people
-            who already know you are your fastest path to hearing about one. Adding contacts and
-            reaching out counts here, whether or not it turns into a specific job lead.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/network"
-          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-        >
-          Start Networking →
-        </Link>
-      </div>
-
       <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>

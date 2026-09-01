@@ -878,23 +878,26 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'INTERVIEW_ATTENDED',
   ],
   // Order matches the Action Plan box's own display order: Apply to a new
-  // job, React to a job recommendation, Add a company to your tracker, Find
-  // jobs through your network, Complete a mock interview — the last two
-  // link to new #find-through-network/#mock-interview sections built at the
-  // bottom of find-my-job/page.tsx specifically for this box, via
+  // job, Add a company to your tracker, Complete a mock interview — the
+  // last links to a #mock-interview section built at the bottom of
+  // find-my-job/page.tsx specifically for this box, via
   // PAGE_ACTION_TYPE_OVERRIDE below. JOB_BOARD_USAGE_CONFIRMED intentionally
   // omitted — its UI (JobBoardUsageCheckIn) was removed and never rebuilt,
   // so it has no reachable action to complete (see profile-checklist.ts's
-  // "dead" comment on the same action type). NETWORKING_LIST/GMAIL_CONNECTED/
-  // RECONNECTED also listed under `network` (their real home) — duplicated
-  // here too since building your network is real job-search work, and a
-  // candidate on this page needs their inbox connected for interview/
+  // "dead" comment on the same action type). JOB_INTERESTED_REACTION
+  // ("React to a job recommendation") dropped per direct instruction — too
+  // low-value an action to prompt for on its own. NETWORKING_LIST ("Find
+  // jobs through your network") moved to live solely under `network` below,
+  // its real home — this page used to duplicate it since building your
+  // network is real job-search work too, but per direct instruction that
+  // kind of networking action plan belongs aligned with the rest of
+  // networking on the Network with Contacts page, not duplicated here.
+  // GMAIL_CONNECTED/RECONNECTED stay listed here (also under `network`) — a
+  // candidate on this page still needs their inbox connected for interview/
   // application auto-detection to work at all.
   'find-my-job': [
     'JOB_APPLICATION_SUBMITTED',
-    'JOB_INTERESTED_REACTION',
     'WATCHLIST_ADD',
-    'NETWORKING_LIST',
     'INTERVIEW_PREP',
     'WATCHLIST_POSTING_VIEWED',
     'NEGOTIATION_ADVICE',
@@ -963,11 +966,6 @@ export const PAGE_ACTION_TYPE_OVERRIDE: Partial<
   Record<PageKey, Partial<Record<string, { text?: string; href: string; label: string }>>>
 > = {
   'find-my-job': {
-    NETWORKING_LIST: {
-      text: 'Find jobs through your network',
-      href: '/dashboard/find-my-job#find-through-network',
-      label: 'Find My Job',
-    },
     INTERVIEW_PREP: { href: '/dashboard/find-my-job#mock-interview', label: 'Find My Job' },
   },
   // The global text for REFERENCE_ADDED ("Get a reference completed", see
