@@ -53,17 +53,23 @@ export interface PageContentView {
 
 // Selection mirrors the old getNextDashboardMessage (pinned wins, then
 // sequenceOrder asc nulls-last, then createdAt asc) but is scoped per page
-// and box type, and respects a publish/expire window. DAILY_MESSAGE
-// dismissals only count for the rest of the day they were made (reappears
-// tomorrow); WHY_IT_MATTERS dismissals are permanent (that box type is no
-// longer rendered candidate-side, but the dismissal contract stays generic).
+// and box type, and respects a publish/expire window. WHY_IT_MATTERS
+// dismissals are permanent (that box type is no longer rendered
+// candidate-side, but the dismissal contract stays generic); ACTION_PLAN
+// dismissals ("minimized") only count for the rest of the day (see
+// isActionPlanMinimizedToday below). DAILY_MESSAGE dismissals are also
+// permanent, but per-message rather than per-box: dismissing one message
+// excludes just that PageContent.id from future selection (dismissedAt
+// itself is unused for this boxType) — a pinned message says its piece
+// once and then steps aside for the rotation, and once the whole pool for
+// a page is exhausted the box simply stops rendering, rather than the same
+// message reappearing every day forever.
 //
 // dynamicOverride lets a caller inject a computed, non-admin-authored
 // message (e.g. "new jobs at a company you're watching" — see
 // getWatchlistAlertContent) that takes priority over the static rotation
-// below whenever it's present. It still goes through the same dismissal
-// check as everything else, so "dismiss for today" suppresses it too and it
-// reappears tomorrow if the underlying condition still holds.
+// below whenever it's present. It still goes through the same per-message
+// dismissal check as everything else.
 export async function getPageBoxContent(
   candidateId: string,
   pageKey: PageKey,
@@ -73,18 +79,24 @@ export async function getPageBoxContent(
   const dismissal = await prisma.pageBoxDismissal.findUnique({
     where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType } },
   })
-  const isDismissed = dismissal
-    ? boxType === 'WHY_IT_MATTERS' || dismissal.dismissedAt >= startOfPacificDay()
-    : false
-  if (isDismissed) return null
 
-  if (dynamicOverride) return dynamicOverride
+  if (boxType !== 'DAILY_MESSAGE') {
+    const isDismissed = dismissal
+      ? boxType === 'WHY_IT_MATTERS' || dismissal.dismissedAt >= startOfPacificDay()
+      : false
+    if (isDismissed) return null
+  }
+
+  const dismissedContentIds = dismissal?.dismissedContentIds ?? []
+
+  if (dynamicOverride) return dismissedContentIds.includes(dynamicOverride.id) ? null : dynamicOverride
 
   const now = new Date()
   const where = {
     pageKey,
     boxType,
     isActive: true,
+    id: { notIn: dismissedContentIds },
     OR: [{ publishAt: null }, { publishAt: { lte: now } }],
     AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] }],
   }
@@ -99,7 +111,24 @@ export async function getPageBoxContent(
   })
 }
 
-export async function dismissPageBox(candidateId: string, pageKey: PageKey, boxType: PageBoxType): Promise<void> {
+// contentId is required for DAILY_MESSAGE (the message actually shown —
+// see getPageBoxContent's per-message dismissal above) and ignored for
+// every other boxType, which still key off dismissedAt alone.
+export async function dismissPageBox(
+  candidateId: string,
+  pageKey: PageKey,
+  boxType: PageBoxType,
+  contentId?: string
+): Promise<void> {
+  if (boxType === 'DAILY_MESSAGE' && contentId) {
+    await prisma.pageBoxDismissal.upsert({
+      where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType } },
+      create: { candidateId, pageKey, boxType, dismissedContentIds: [contentId] },
+      update: { dismissedAt: new Date(), dismissedContentIds: { push: contentId } },
+    })
+    return
+  }
+
   await prisma.pageBoxDismissal.upsert({
     where: { candidateId_pageKey_boxType: { candidateId, pageKey, boxType } },
     create: { candidateId, pageKey, boxType },

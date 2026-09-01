@@ -129,18 +129,21 @@ export async function checkInMood(mood: Mood) {
   revalidatePath('/dashboard')
 }
 
-// Daily Message box's X — lasts through the rest of the day, resetting at
-// 12:01am Pacific (see startOfPacificDay in page-content.ts's
-// getPageBoxContent). Action Plan minimize/maximize below shares the same
-// boundary; the mood card's dismiss further down intentionally stays on the
-// UTC boundary (startOfUTCDay in dashboard/page.tsx) — only Daily Message
-// and Action Plan were asked to move to Pacific time.
-export async function dismissDailyMessageBox(pageKey: PageKey) {
+// Daily Message box's X — permanent per message (see getPageBoxContent's
+// dismissedContentIds), so this specific message never shows again once
+// dismissed; the next visit shows whichever message in the pool hasn't been
+// dismissed yet, or nothing once the pool's exhausted. Action Plan minimize/
+// maximize below is a different contract (day-scoped, resets at 12:01am
+// Pacific — see startOfPacificDay in page-content.ts); the mood card's
+// dismiss further down intentionally stays on the UTC boundary (
+// startOfUTCDay in dashboard/page.tsx) — only Action Plan was asked to move
+// to Pacific time.
+export async function dismissDailyMessageBox(pageKey: PageKey, contentId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
 
-  await dismissPageBox(profile.id, pageKey, 'DAILY_MESSAGE')
-  captureServerEvent(profile.id, 'page_daily_message_dismissed', { pageKey })
+  await dismissPageBox(profile.id, pageKey, 'DAILY_MESSAGE', contentId)
+  captureServerEvent(profile.id, 'page_daily_message_dismissed', { pageKey, contentId })
   revalidatePath(pageKey === 'dashboard' ? '/dashboard' : `/dashboard/${pageKey}`)
 }
 

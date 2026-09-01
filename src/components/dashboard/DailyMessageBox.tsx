@@ -36,9 +36,9 @@ function renderBulletText(bullet: string): ReactNode[] {
 // first for every candidate until dismissed, then whichever active,
 // non-pinned message they haven't dismissed yet takes its place (see
 // getPageBoxContent). Dismissal is a real DB record, not localStorage, so
-// it's the same across devices and lets an admin-authored rotation work.
-// Dismissing only lasts through the rest of the day — this box reappears
-// tomorrow (see dismissDailyMessageBox).
+// it's the same across devices. Permanent and per-message — dismissing this
+// one never brings it back, and the next visit shows the next undismissed
+// message in the pool instead (see dismissDailyMessageBox).
 export function DailyMessageBox({
   pageKey,
   content,
@@ -62,9 +62,10 @@ export function DailyMessageBox({
   if ((!content && !showVideo) || dismissed) return null
 
   function dismiss() {
+    if (!content) return
     setDismissed(true)
     startTransition(() => {
-      dismissDailyMessageBox(pageKey)
+      dismissDailyMessageBox(pageKey, content.id)
     })
   }
 
