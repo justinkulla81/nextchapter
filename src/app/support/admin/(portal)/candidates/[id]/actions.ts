@@ -1,13 +1,28 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import type { AdminNudgeType } from '@prisma/client'
+import type { AdminNudgeType, CandidateStakeholderType } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { buildNudgeDraft, type NudgeDraft } from '@/lib/admin/nudge-content'
 import { sendAdminNudgeEmail } from '@/lib/email/send-admin-nudge'
+import { addStakeholderNote } from '@/lib/admin/stakeholder-relationships'
+
+export async function addCandidateStakeholderNote(
+  candidateId: string,
+  stakeholderType: CandidateStakeholderType,
+  stakeholderId: string | null,
+  formData: FormData
+) {
+  const admin = await requireAdmin()
+  const body = (formData.get('body') as string | null)?.trim()
+  if (!body) return
+
+  await addStakeholderNote(candidateId, stakeholderType, body, admin.email ?? 'admin', stakeholderId)
+  revalidatePath(`/support/admin/candidates/${candidateId}`)
+}
 
 export async function generateNudgeDraft(
   candidateId: string,

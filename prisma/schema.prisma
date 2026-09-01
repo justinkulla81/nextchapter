@@ -569,6 +569,7 @@ model CandidateProfile {
   loginEvents         CandidateLoginEvent[]
   homepageVisitEvents HomepageVisitEvent[]
   pageActivityEvents  CandidatePageActivityEvent[]
+  stakeholderNotes    CandidateStakeholderNote[]
 
   // Privacy & Visibility
   privacyTier            PrivacyTier @default(LOCKED)
@@ -1670,6 +1671,36 @@ model CandidatePageActivityEvent {
   createdAt   DateTime               @default(now())
 
   @@index([candidateId, createdAt])
+}
+
+enum CandidateStakeholderType {
+  COACH
+  RECRUITER
+  EMPLOYER
+  OUTPLACEMENT_EMPLOYER
+  ALUMNI_ORG
+}
+
+// One reusable admin-notes model for every stakeholder relationship type on
+// the admin candidate page's Relationships tab, rather than a bespoke notes
+// field per model (the pattern every other "*Notes" field in this schema
+// follows today). stakeholderId is a plain string, not a Prisma relation —
+// the target model varies by stakeholderType (Coach.id / Recruiter.id /
+// EmployerProfile.id / OutplacementEmployerOrg.id / AlumniNetworkGroup.id),
+// so no single FK could enforce it; resolved by the reading code per type.
+// Null stakeholderId means the note is general to the relationship type
+// rather than about one specific org/person (e.g. no employer assigned yet).
+model CandidateStakeholderNote {
+  id               String                   @id @default(cuid())
+  candidateId      String
+  candidate        CandidateProfile         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  stakeholderType  CandidateStakeholderType
+  stakeholderId    String?
+  authorAdminEmail String
+  body             String                   @db.Text
+  createdAt        DateTime                 @default(now())
+
+  @@index([candidateId, stakeholderType])
 }
 
 // Lightweight self-hosted visitor tracking for the public homepage —

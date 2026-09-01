@@ -17,6 +17,17 @@ import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGra
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
+import {
+  listStakeholderNotes,
+  getRecruiterRelationships,
+  getEmployerRelationships,
+  getOutplacementRelationship,
+  getAlumniOrgMatches,
+  getStakeholderThreads,
+} from '@/lib/admin/stakeholder-relationships'
+import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
+import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
+import { addCandidateStakeholderNote } from './actions'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
   WEEKLY_TARGET: 'Weekly target',
@@ -173,6 +184,34 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
 
   const { view } = detail
 
+  const [
+    coachNotes,
+    recruiterRelationships,
+    recruiterNotes,
+    recruiterThreads,
+    employerRelationships,
+    employerNotes,
+    employerThreads,
+    outplacementSeats,
+    outplacementNotes,
+    alumniMatches,
+    alumniNotes,
+    coachThreads,
+  ] = await Promise.all([
+    listStakeholderNotes(id, 'COACH'),
+    getRecruiterRelationships(id),
+    listStakeholderNotes(id, 'RECRUITER'),
+    getStakeholderThreads(id, 'RECRUITER'),
+    getEmployerRelationships(id),
+    listStakeholderNotes(id, 'EMPLOYER'),
+    getStakeholderThreads(id, 'EMPLOYER'),
+    getOutplacementRelationship(id),
+    listStakeholderNotes(id, 'OUTPLACEMENT_EMPLOYER'),
+    getAlumniOrgMatches(id),
+    listStakeholderNotes(id, 'ALUMNI_ORG'),
+    getStakeholderThreads(id, 'COACH'),
+  ])
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <Link href="/support/admin/candidates" className="text-sm text-muted-foreground underline underline-offset-4">
@@ -229,6 +268,9 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
             </TabsTrigger>
             <TabsTrigger value="activity" className="shrink-0 px-3 py-2">
               Activity
+            </TabsTrigger>
+            <TabsTrigger value="relationships" className="shrink-0 px-3 py-2">
+              Relationships
             </TabsTrigger>
             <TabsTrigger value="results" className="shrink-0 px-3 py-2">
               Results
@@ -560,6 +602,232 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
               <MotivationChart baseline={null} history={detail.moodHistory} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="relationships" className="mt-6 space-y-6">
+          <Tabs defaultValue="coach">
+            <div className="overflow-x-auto">
+              <TabsList className="h-auto min-w-full justify-start gap-1 p-1">
+                <TabsTrigger value="coach" className="shrink-0 px-3 py-2">
+                  Coach
+                </TabsTrigger>
+                <TabsTrigger value="recruiter" className="shrink-0 px-3 py-2">
+                  Recruiter
+                </TabsTrigger>
+                <TabsTrigger value="employer" className="shrink-0 px-3 py-2">
+                  Employer
+                </TabsTrigger>
+                <TabsTrigger value="outplacement" className="shrink-0 px-3 py-2">
+                  Outplacement
+                </TabsTrigger>
+                <TabsTrigger value="alumni" className="shrink-0 px-3 py-2">
+                  Alumni Org
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="coach" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Coach</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {detail.coach ? (
+                    <div className="space-y-2 text-sm">
+                      <p className="text-foreground">
+                        {detail.coach.name} —{' '}
+                        {detail.coach.hasConsent ? (
+                          <span className="text-success">Dossier consent granted</span>
+                        ) : (
+                          <span className="text-muted-foreground">Consent not yet granted</span>
+                        )}
+                      </p>
+                      <p className="text-muted-foreground">{view.sessions.length} coaching session(s) on file.</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No coach assigned.</p>
+                  )}
+                </CardContent>
+              </Card>
+              <StakeholderCommunicationsCard threads={coachThreads} />
+              <StakeholderNotesCard
+                notes={coachNotes}
+                addNoteAction={addCandidateStakeholderNote.bind(null, id, 'COACH', detail.coach?.id ?? null)}
+              />
+            </TabsContent>
+
+            <TabsContent value="recruiter" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Recruiter relationships ({recruiterRelationships.introductions.length} introduction
+                    {recruiterRelationships.introductions.length === 1 ? '' : 's'})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {recruiterRelationships.introductions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No recruiter has requested an introduction yet.</p>
+                  ) : (
+                    <ul className="space-y-2 text-sm">
+                      {recruiterRelationships.introductions.map((intro) => (
+                        <li key={intro.id} className="text-foreground">
+                          <Link
+                            href={`/support/admin/recruiters/${intro.recruiter.id}`}
+                            className="text-primary underline underline-offset-4"
+                          >
+                            {intro.recruiter.fullName}
+                          </Link>
+                          {intro.recruiter.firmName && ` (${intro.recruiter.firmName})`} — {intro.status}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {recruiterRelationships.submissions.length > 0 && (
+                    <div className="space-y-2 border-t border-border pt-4 text-sm">
+                      <p className="font-medium text-foreground">Submissions</p>
+                      <ul className="space-y-1.5">
+                        {recruiterRelationships.submissions.map((sub) => (
+                          <li key={sub.id} className="text-foreground">
+                            {sub.roleTitle} at {sub.companyName} — {sub.stage}
+                            {sub.placement && ` — placed ${formatAdminDateTime(sub.placement.placedAt)}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              <StakeholderCommunicationsCard threads={recruiterThreads} />
+              <StakeholderNotesCard
+                notes={recruiterNotes}
+                addNoteAction={addCandidateStakeholderNote.bind(null, id, 'RECRUITER', null)}
+              />
+            </TabsContent>
+
+            <TabsContent value="employer" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Employer interactions ({employerRelationships.interactions.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {employerRelationships.interactions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No employer has interacted with this candidate yet.</p>
+                  ) : (
+                    <ul className="space-y-2 text-sm">
+                      {employerRelationships.interactions.map((interaction) => (
+                        <li key={interaction.id} className="text-foreground">
+                          <Link
+                            href={`/support/admin/employers/${interaction.employer.id}`}
+                            className="text-primary underline underline-offset-4"
+                          >
+                            {interaction.employer.companyName}
+                          </Link>
+                          {interaction.role?.roleTitle && ` — ${interaction.role.roleTitle}`} — {interaction.status}
+                          {interaction.employerNotes && (
+                            <p className="mt-0.5 text-muted-foreground">Employer notes: {interaction.employerNotes}</p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {employerRelationships.conflictFlags.length > 0 && (
+                    <div className="space-y-2 border-t border-border pt-4 text-sm">
+                      <p className="font-medium text-destructive">Conflict flags</p>
+                      <ul className="space-y-1.5">
+                        {employerRelationships.conflictFlags.map((flag) => (
+                          <li key={flag.id} className="text-foreground">
+                            {flag.employer.companyName} — {flag.source}
+                            {flag.clearedAt ? ' (cleared)' : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              <StakeholderCommunicationsCard threads={employerThreads} />
+              <StakeholderNotesCard
+                notes={employerNotes}
+                addNoteAction={addCandidateStakeholderNote.bind(null, id, 'EMPLOYER', null)}
+              />
+            </TabsContent>
+
+            <TabsContent value="outplacement" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Outplacement seats ({outplacementSeats.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {outplacementSeats.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Not enrolled through an outplacement program.</p>
+                  ) : (
+                    <ul className="space-y-2 text-sm">
+                      {outplacementSeats.map((seat) => (
+                        <li key={seat.id} className="text-foreground">
+                          {seat.contract.org.name}
+                          {seat.contract.org.programBrandName && ` (${seat.contract.org.programBrandName})`} —{' '}
+                          {seat.status}
+                          {seat.contract.cohortLabel && ` — ${seat.contract.cohortLabel}`}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Communications</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">No communications channel exists for this relationship.</p>
+                </CardContent>
+              </Card>
+              <StakeholderNotesCard
+                notes={outplacementNotes}
+                addNoteAction={addCandidateStakeholderNote.bind(
+                  null,
+                  id,
+                  'OUTPLACEMENT_EMPLOYER',
+                  outplacementSeats[0]?.contract.org.id ?? null
+                )}
+              />
+            </TabsContent>
+
+            <TabsContent value="alumni" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Matched alumni orgs ({alumniMatches.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {alumniMatches.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No alumni org matches this candidate&apos;s work history or school yet.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5 text-sm text-foreground">
+                      {alumniMatches.map((group) => (
+                        <li key={group.id}>{group.name}</li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Communications</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">No communications channel exists for this relationship.</p>
+                </CardContent>
+              </Card>
+              <StakeholderNotesCard
+                notes={alumniNotes}
+                addNoteAction={addCandidateStakeholderNote.bind(null, id, 'ALUMNI_ORG', alumniMatches[0]?.id ?? null)}
+              />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="results" className="mt-6 space-y-6">
