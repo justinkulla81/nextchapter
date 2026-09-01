@@ -568,6 +568,7 @@ model CandidateProfile {
 
   loginEvents         CandidateLoginEvent[]
   homepageVisitEvents HomepageVisitEvent[]
+  pageActivityEvents  CandidatePageActivityEvent[]
 
   // Privacy & Visibility
   privacyTier            PrivacyTier @default(LOCKED)
@@ -1648,6 +1649,27 @@ model CandidateLoginEvent {
 enum HomepageVisitEventType {
   PAGE_VIEW
   LINK_CLICK
+}
+
+// The authenticated-app counterpart to HomepageVisitEvent — every
+// /dashboard/* page view and link click by a logged-in candidate, recorded
+// via a client-side beacon (DashboardActivityTracker, mounted once in
+// dashboard/layout.tsx) so it works the same way for client-side route
+// changes as full page loads. Reuses HomepageVisitEventType since the shape
+// is identical (PAGE_VIEW | LINK_CLICK). Direct instruction — a prior
+// design deliberately scoped authenticated tracking to logins only
+// (see CandidateLoginEvent's comment); this adds real page/click-level
+// visibility on top of that, not a replacement for it.
+model CandidatePageActivityEvent {
+  id          String                 @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  eventType   HomepageVisitEventType
+  path        String? // PAGE_VIEW only — the route visited
+  href        String? // LINK_CLICK only — the destination clicked
+  createdAt   DateTime               @default(now())
+
+  @@index([candidateId, createdAt])
 }
 
 // Lightweight self-hosted visitor tracking for the public homepage —

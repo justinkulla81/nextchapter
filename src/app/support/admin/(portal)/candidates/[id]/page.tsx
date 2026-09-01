@@ -92,6 +92,18 @@ async function loadLoginHistory(candidateId: string) {
   })
 }
 
+// Every /dashboard/* page view and link click, recorded by
+// DashboardActivityTracker — capped at 50 most-recent rows for a readable
+// admin view, not a full export.
+async function loadPageActivity(candidateId: string) {
+  return prisma.candidatePageActivityEvent.findMany({
+    where: { candidateId },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+    select: { id: true, eventType: true, path: true, href: true, createdAt: true },
+  })
+}
+
 async function loadJobRecommendations(candidateId: string) {
   const [candidate, pendingPostings] = await Promise.all([
     prisma.candidateProfile.findUnique({
@@ -138,13 +150,14 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   await requireAdmin()
   const { id } = await params
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, marketRealityReports] =
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, marketRealityReports] =
     await Promise.all([
       listAllAuthUsers(),
       loadJobRecommendations(id),
       loadPrivacyAndEmailTrail(id),
       loadIpAndResume(id),
       loadLoginHistory(id),
+      loadPageActivity(id),
       // Full report content, not just the gradeHistory snapshots below
       // (deliberately sourced from MarketRealitySnapshot, a lighter-weight
       // weekly record — see full-client-view.ts) — an admin needs to
@@ -353,6 +366,30 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                       <span className="text-muted-foreground">
                         {event.ip ?? 'unknown IP'}
                         {event.userAgent && ` · ${event.userAgent}`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Page activity ({pageActivity.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pageActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No page views or link clicks recorded yet.</p>
+              ) : (
+                <ul className="space-y-1 text-sm">
+                  {pageActivity.map((event) => (
+                    <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-x-3 text-foreground">
+                      <span>{formatAdminDateTime(event.createdAt)}</span>
+                      <span className="text-muted-foreground">
+                        {event.eventType === 'PAGE_VIEW' ? 'Page view' : 'Link click'}
+                        {' — '}
+                        {(event.eventType === 'PAGE_VIEW' ? event.path : event.href) ?? 'unknown'}
                       </span>
                     </li>
                   ))}

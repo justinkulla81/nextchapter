@@ -7,6 +7,7 @@ import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
+import { DashboardActivityTracker } from '@/components/dashboard/DashboardActivityTracker'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
@@ -149,6 +150,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="theme-candidate min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
+      <DashboardActivityTracker />
       <HashScrollFix />
       {/* lg:pl matches DashboardNav's fixed w-72 sidebar (see DashboardNav.tsx)
           — without it, the sidebar paints over this banner's left edge on
