@@ -169,6 +169,18 @@ const REJECTION_HIGH_CONFIDENCE = [
   // this here is enough to win the priority race without touching
   // classify-email.ts itself.
   /no longer (recruiting|hiring) for (this|the) (position|role)/i,
+  // Real production miss (Whatnot, via Ashby): "we've moved forward with
+  // another candidate for the Corporate Development Senior Deal Lead role
+  // and will be closing the position." — no "decided to," so it didn't
+  // match the "decided to move forward/proceed with other/another
+  // candidates" pattern above, and "closing the position" doesn't match
+  // "this position has been/is no longer being closed" either (future
+  // tense, different clause order). A role being closed after someone else
+  // was chosen is a rejection regardless of exactly how the closing is
+  // phrased — including a bare "Role Closed" subject line.
+  /moved forward with (another|other) candidates?/i,
+  /closing the position/i,
+  /(role|position) (has been |is |was )?closed\b/i,
 ]
 // "Unfortunately" alone used to be in this list — dropped because it's a
 // single common English word that matches any unrelated marketing or
