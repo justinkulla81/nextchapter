@@ -16,6 +16,7 @@ import { CandidateNudgeEmailPanel } from '@/components/admin/CandidateNudgeEmail
 import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGradeOverridePanel'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
+import { formatAdminDateTime } from '@/lib/admin/format-date'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
   WEEKLY_TARGET: 'Weekly target',
@@ -137,13 +138,22 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   await requireAdmin()
   const { id } = await params
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory] =
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, marketRealityReports] =
     await Promise.all([
       listAllAuthUsers(),
       loadJobRecommendations(id),
       loadPrivacyAndEmailTrail(id),
       loadIpAndResume(id),
       loadLoginHistory(id),
+      // Full report content, not just the gradeHistory snapshots below
+      // (deliberately sourced from MarketRealitySnapshot, a lighter-weight
+      // weekly record — see full-client-view.ts) — an admin needs to
+      // actually read what a report said, not only its grade.
+      prisma.marketRealityReport.findMany({
+        where: { candidateId: id },
+        orderBy: { generatedAt: 'desc' },
+        select: { id: true, generatedAt: true },
+      }),
     ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
@@ -516,6 +526,30 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="results" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Reality Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {marketRealityReports.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No reports generated yet.</p>
+              ) : (
+                <ul className="space-y-1 text-sm">
+                  {marketRealityReports.map((r) => (
+                    <li key={r.id}>
+                      <Link
+                        href={`/support/admin/candidates/${id}/market-reality/${r.id}`}
+                        className="text-primary underline underline-offset-4"
+                      >
+                        {formatAdminDateTime(r.generatedAt)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Grade history</CardTitle>
