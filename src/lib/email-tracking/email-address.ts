@@ -18,3 +18,15 @@ export function extractDisplayName(header: string): string {
   if (namePart) return namePart
   return extractEmailAddress(header).split('@')[0]
 }
+
+// Gmail (and most providers) ignore anything after "+" in the local part —
+// "justin.kulla+cc@gmail.com" and "justin.kulla@gmail.com" are the same
+// mailbox. Used to recognize when the candidate's own connected mailbox
+// emailed itself (a personal digest/planner tool sending "from" the account
+// it was granted access to, a "+tag" alias, etc.) so that mail is never
+// mistaken for a real recruiter, ATS, or hiring-manager correspondence.
+export function normalizeMailboxIdentity(header: string): string {
+  const [localPart, domain] = extractEmailAddress(header).toLowerCase().split('@')
+  if (!domain) return localPart
+  return `${localPart.split('+')[0]}@${domain}`
+}

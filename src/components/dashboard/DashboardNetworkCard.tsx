@@ -59,6 +59,10 @@ export function DashboardNetworkCard({
 
   function handleDismiss(item: NeedsFollowUpItem) {
     setDismissedIds((prev) => new Set(prev).add(item.sourceId))
+    // No persistent dismissal for a landed-interview nudge yet (it isn't a
+    // TrackedEmailActivity/TrackedCalendarEvent row) — hidden for this
+    // session only, same as a failed server dismiss below.
+    if (item.kind === 'interview') return
     startTransition(() => {
       const dismiss = item.kind === 'meeting' ? dismissCalendarEvent : dismissEmailActivity
       dismiss(item.sourceId).catch(() => {
@@ -110,23 +114,24 @@ export function DashboardNetworkCard({
                 <p className="truncate text-[13px] font-medium text-foreground">{item.contactName}</p>
               )}
               <p className="truncate text-xs text-muted-foreground">
-                {item.kind === 'meeting' ? 'Met' : 'Emailed you'} {formatDate(item.date)} — {item.subject}
+                {item.kind === 'meeting' ? 'Met' : item.kind === 'interview' ? 'Interview landed' : 'Emailed you'}{' '}
+                {formatDate(item.date)}
+                {item.kind !== 'interview' && ` — ${item.subject}`}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <a
                 href={item.gmailHref}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...(item.kind !== 'interview' && { target: '_blank', rel: 'noopener noreferrer' })}
                 className="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
               >
-                {item.kind === 'meeting' ? 'Send thank-you' : 'Reply'}
+                {item.kind === 'meeting' ? 'Send thank-you' : item.kind === 'interview' ? 'Prep for it' : 'Reply'}
               </a>
               <button
                 type="button"
                 onClick={() => handleDismiss(item)}
                 className="h-7 rounded-md px-2 text-xs font-medium text-muted-foreground hover:bg-muted"
-                title="Not a real person or conversation — remove from this list"
+                title={item.kind === 'interview' ? 'Hide for now' : 'Not a real person or conversation — remove from this list'}
               >
                 ✕
               </button>

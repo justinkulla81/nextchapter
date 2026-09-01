@@ -5,6 +5,7 @@ import {
   matchInterviewInvite,
   matchApplicationConfirmation,
   matchRecruiterOutreach,
+  matchScreeningCallRequest,
   matchThankYou,
   matchFollowUp,
   matchIntroRequest,
@@ -68,9 +69,22 @@ export function classifyInboundEmail(
   subject: string,
   bodyPreview: string,
   fromAddress: string,
-  hasListUnsubscribeHeader = false
+  hasListUnsubscribeHeader = false,
+  isSelfAddressed = false
 ): ClassificationResult {
   const companyName = guessCompanyFromDomain(fromAddress)
+
+  // The candidate's own connected mailbox emailing itself — a personal
+  // daily-planner/digest tool that sends "from" the same account it was
+  // granted access to, a "+tag" alias, etc. (see normalizeMailboxIdentity).
+  // Never a real recruiter, ATS, or hiring-manager message, and its content
+  // can otherwise trip any matcher below — real production miss: a daily
+  // "Your Day Ahead" planner digest, echoing that day's agenda back to the
+  // candidate, classified as high-confidence RECRUITER_OUTREACH because the
+  // agenda text happened to mention a recruiter call.
+  if (isSelfAddressed) {
+    return { activityType: 'NEEDS_REVIEW', confidence: 'low', companyName: null }
+  }
 
   // NextChapter's own transactional/admin mail — never a real job-search
   // signal, and its own copy ("your offer bonus," "a new A-grade candidate")
@@ -142,6 +156,16 @@ export function classifyInboundEmail(
   // List-Unsubscribe header.
   const outreach = matchRecruiterOutreach(subject, bodyPreview, fromAddress)
   if (outreach.matched && !isBulk) {
+    // A confirmed-real recruiter (not a bare role-title mention off an
+    // unknown sender — matchRecruiterOutreach already required a stronger
+    // signal than that) asking to schedule a call is a screening call —
+    // functionally the first interview step even without the word
+    // "interview" anywhere in the message. Only promoted at outreach's own
+    // high confidence, so a low-confidence outreach guess can't smuggle a
+    // generic "let me know what works for you" into the interview list.
+    if (outreach.confidence === 'high' && matchScreeningCallRequest(subject, bodyPreview)) {
+      return { activityType: 'INTERVIEW_INVITE', confidence: 'high', companyName }
+    }
     return { activityType: 'RECRUITER_OUTREACH', confidence: outreach.confidence, companyName }
   }
 

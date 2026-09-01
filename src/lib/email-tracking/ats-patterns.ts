@@ -206,20 +206,55 @@ export function matchOffer(subject: string, bodyPreview: string): PatternMatch {
   return { matched: false, confidence: 'low' }
 }
 
+// A bare "schedule a call"/"set up a time" used to sit in the HIGH_CONFIDENCE
+// list alongside "schedule an interview" — but "call" (unlike "interview" or
+// "phone screen") is generic sales/marketing CTA boilerplate ("schedule a
+// call with our team") that shows up in unrelated newsletters and cold
+// pitches. Real production miss: a business-newsletter promo and a loyalty-
+// program welcome email both classified as high-confidence interview invites
+// off this alone. Demoted to LOW_CONFIDENCE, where it still counts toward
+// NEEDS_REVIEW but never the "Interview invites" dashboard list (which
+// requires high confidence) and never overrides the bulk/promotional filter.
 const INTERVIEW_INVITE_HIGH_CONFIDENCE = [
-  /(schedule|scheduling) (a |an )?(interview|phone screen|call)/i,
+  /(schedule|scheduling) (a |an )?(interview|phone screen)/i,
   /invite you (to|for) (an |a )?(interview|phone screen|onsite|conversation)/i,
   /next steps.{0,30}interview/i,
   /(phone|video) screen (with|scheduled)/i,
+  /we'd like to (set up|schedule) (a |an )?(interview|phone screen)/i,
+]
+const INTERVIEW_INVITE_LOW_CONFIDENCE = [
+  /available (this week|for a call)/i,
+  /chat about the role/i,
+  /(schedule|scheduling) (a |an )?call/i,
   /we'd like to (set up|schedule) a (time|call)/i,
 ]
-const INTERVIEW_INVITE_LOW_CONFIDENCE = [/available (this week|for a call)/i, /chat about the role/i]
 
 export function matchInterviewInvite(subject: string, bodyPreview: string): PatternMatch {
   const text = `${subject} ${bodyPreview}`
   if (testAny(text, INTERVIEW_INVITE_HIGH_CONFIDENCE)) return { matched: true, confidence: 'high' }
   if (testAny(text, INTERVIEW_INVITE_LOW_CONFIDENCE)) return { matched: true, confidence: 'low' }
   return { matched: false, confidence: 'low' }
+}
+
+// A recruiter (already confirmed real via matchRecruiterOutreach — never
+// checked against an unknown sender) asking to schedule a first/screening
+// call is functionally the first interview step even when the message never
+// says "interview" or "phone screen" — real production miss (Michael
+// Newson, eu-recruit.com): "When are you free for a quick call today or
+// tomorrow? Happy to work around your schedule — let me know what works."
+// This phrasing alone is far too generic to trust from an unverified sender
+// (any sales pitch says the same thing), which is why it's only ever
+// checked once RECRUITER_OUTREACH has already matched — see
+// classify-email.ts.
+const SCREENING_CALL_REQUEST = [
+  /when (are|would) you (be )?(free|available)/i,
+  /happy to work around your schedule/i,
+  /let me know what works( for you)?/i,
+  /(free|available) for a (quick )?call/i,
+]
+
+export function matchScreeningCallRequest(subject: string, bodyPreview: string): boolean {
+  return testAny(`${subject} ${bodyPreview}`, SCREENING_CALL_REQUEST)
 }
 
 const APPLICATION_CONFIRMATION_HIGH_CONFIDENCE = [

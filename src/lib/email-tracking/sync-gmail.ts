@@ -4,7 +4,7 @@ import { refreshAccessToken } from './gmail-oauth'
 import { classifyInboundEmail, classifyOutboundEmail } from './classify-email'
 import { matchResumeShared, matchCourseCompletion, matchCourseEnrollment, isLikelyBulkOrPromotional } from './ats-patterns'
 import { matchRecruiterRoleMention, matchHiringManagerRoleMention, matchCoachRoleMention } from '@/lib/text/recruiter-role'
-import { extractEmailAddress, extractDisplayName, extractDomain } from './email-address'
+import { extractEmailAddress, extractDisplayName, extractDomain, normalizeMailboxIdentity } from './email-address'
 import { ATS_AND_JOB_BOARD_DOMAINS, NEXTCHAPTER_SENDING_DOMAINS } from '@/lib/text/email-domain'
 import { upsertContactFromSignal } from '@/lib/network/upsert-contact-from-signal'
 import { syncJobPostingFromEmail } from './sync-job-postings'
@@ -355,9 +355,19 @@ async function processMessage(
   // definition in syncGmailConnection for why.
   const awardPoints = !registeredAt || emailDate >= registeredAt
 
+  // The connected mailbox emailing itself — a personal daily-planner/digest
+  // tool sending "from" the same account it was granted access to, a "+tag"
+  // alias, etc. connectedEmail is only populated from the OAuth callback
+  // going forward (see EmailConnection.connectedEmail), so this is a no-op
+  // for connections that predate it rather than a false exclusion.
+  const isSelfAddressed =
+    direction === 'INBOUND' &&
+    !!connection.connectedEmail &&
+    normalizeMailboxIdentity(from) === normalizeMailboxIdentity(connection.connectedEmail)
+
   const classification =
     direction === 'INBOUND'
-      ? classifyInboundEmail(subject, bodyPreview, from, !!listUnsubscribe)
+      ? classifyInboundEmail(subject, bodyPreview, from, !!listUnsubscribe, isSelfAddressed)
       : classifyOutboundEmail(subject, bodyPreview, to)
 
   // Resume-sharing is tracked independently of the primary category — a
@@ -392,7 +402,7 @@ async function processMessage(
   // get flagged isRecruiterContact and land on the candidate's follow-up
   // list as if it were a real person.
   const isBulk = direction === 'INBOUND' && isLikelyBulkOrPromotional(subject, bodyPreview, from, !!listUnsubscribe)
-  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself || isBulk
+  const skipRoleMatching = isFromAtsOrJobBoard || isFromNextChapterItself || isBulk || isSelfAddressed
   const roleText = `${subject} ${bodyPreview}`
   const isRecruiterRoleMention = !skipRoleMatching && matchRecruiterRoleMention(roleText)
   const isHiringManagerContact = !skipRoleMatching && matchHiringManagerRoleMention(roleText)

@@ -13,6 +13,11 @@ const INBOUND_LOOKBACK_DAYS = 14
 // earns its own nudge — long enough that silence is a real signal, not just
 // someone being slow to check email.
 const OUTBOUND_LOOKBACK_DAYS = 7
+// A freshly-landed interview is worth prepping for regardless of whether
+// any email/calendar signal exists yet — same window as the inbound-email
+// lookback, since after this it reads as stale nagging rather than a timely
+// nudge.
+const INTERVIEW_LOOKBACK_DAYS = 14
 
 // trackedEmailActivity.fromAddress stores the raw RFC 5322 header value
 // (sync-gmail.ts writes `from`/`to` straight from the parsed message), which
@@ -33,29 +38,35 @@ export function parseAddress(raw: string): { name: string | null; email: string 
 }
 
 export interface NeedsFollowUpItem {
-  kind: 'meeting' | 'inbound-email' | 'unanswered-outbound'
+  kind: 'meeting' | 'inbound-email' | 'unanswered-outbound' | 'interview'
   sourceId: string
   contactName: string
+  // Synthetic (`job:${jobPostingId}`) for 'interview' items, which have no
+  // real counterpart address — this field is only ever used as a dedup key
+  // and to build gmailHref, never displayed.
   contactEmail: string
   // Set only when this signal matches a real SupportNetworkContact row (by
   // email) — links to their profile page. Null for a cold/unmatched sender
-  // (e.g. a recruiter who's emailed but was never added to the network).
+  // (e.g. a recruiter who's emailed but was never added to the network) and
+  // always null for 'interview' items.
   contactId: string | null
   date: Date
   subject: string
   gmailHref: string
 }
 
-// Three real, verifiable "you owe someone something" signals, joined
-// without a new attendee table: a tracked calendar meeting (NETWORKING_CALL/
-// INTERVIEW) whose counterpart hasn't received a detected thank-you/
-// follow-up email since; an inbound email — from a recruiter/hiring-manager/
-// coach signal OR from anyone already in the candidate's own contact list —
-// that hasn't been replied to; and an outbound email to a known contact that
-// has gone unanswered for a week (silence after reaching out is its own real
-// signal, not just someone being slow to check email). This is what a
-// starred priority contact falls into once the candidate actually reaches
-// out to them — see toggleContactPriority, which stops surfacing them as
+// Four real, verifiable "you owe someone (or yourself) something" signals,
+// joined without a new attendee table: a tracked calendar meeting
+// (NETWORKING_CALL/INTERVIEW) whose counterpart hasn't received a detected
+// thank-you/follow-up email since; an inbound email — from a recruiter/
+// hiring-manager/coach signal OR from anyone already in the candidate's own
+// contact list — that hasn't been replied to; an outbound email to a known
+// contact that has gone unanswered for a week (silence after reaching out is
+// its own real signal, not just someone being slow to check email); and a
+// job the candidate marked as having landed an interview for, not yet
+// declined or offered, still worth prepping for. This is what a starred
+// priority contact falls into once the candidate actually reaches out to
+// them — see toggleContactPriority, which stops surfacing them as
 // "priority" the moment an outreach is logged, since from then on this list
 // is where they belong instead. Deliberately read-only/informational — this
 // list never awards points itself; the points still only come from Gmail/
@@ -66,12 +77,38 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
     prisma.calendarConnection.findUnique({ where: { candidateId } }),
     prisma.emailConnection.findUnique({ where: { candidateId } }),
   ])
-  if (!calendarConnection && !emailConnection) return []
 
   const now = Date.now()
   const meetingCutoff = new Date(now - MEETING_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
   const inboundCutoff = new Date(now - INBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
   const outboundCutoff = new Date(now - OUTBOUND_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const interviewCutoff = new Date(now - INTERVIEW_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+
+  // Doesn't depend on either connection — a candidate who marked an
+  // interview should see the prep nudge even if they've never connected
+  // Gmail or Calendar.
+  const landedInterviews = await prisma.jobPosting.findMany({
+    where: {
+      candidateId,
+      interviewLandedAt: { not: null, gte: interviewCutoff },
+      declinedAt: null,
+      offerReceivedAt: null,
+    },
+    orderBy: { interviewLandedAt: 'desc' },
+    select: { id: true, title: true, companyName: true, interviewLandedAt: true },
+  })
+  const interviewItems: NeedsFollowUpItem[] = landedInterviews.map((posting) => ({
+    kind: 'interview' as const,
+    sourceId: posting.id,
+    contactName: [posting.title, posting.companyName].filter(Boolean).join(' at ') || 'Your interview',
+    contactEmail: `job:${posting.id}`,
+    contactId: null,
+    date: posting.interviewLandedAt!,
+    subject: [posting.title, posting.companyName].filter(Boolean).join(' at ') || 'your upcoming interview',
+    gmailHref: '/dashboard/interview-prep',
+  }))
+
+  if (!calendarConnection && !emailConnection) return interviewItems.slice(0, 10)
 
   const [meetings, emailActivities, contacts] = await Promise.all([
     calendarConnection && !calendarConnection.disconnectedAt
@@ -222,7 +259,7 @@ export async function getNeedsFollowUpList(candidateId: string): Promise<NeedsFo
   // should only show once, keyed to whichever signal is more recent.
   const seen = new Set<string>()
   const deduped: NeedsFollowUpItem[] = []
-  for (const item of [...meetingItems, ...inboundItems, ...unansweredOutboundItems].sort(
+  for (const item of [...interviewItems, ...meetingItems, ...inboundItems, ...unansweredOutboundItems].sort(
     (a, b) => b.date.getTime() - a.date.getTime()
   )) {
     if (seen.has(item.contactEmail)) continue
