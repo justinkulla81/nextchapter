@@ -11,6 +11,7 @@
 import type { ResumeAnalysisFacts } from './extract-facts'
 import { getFunctionFamilyDefinition } from './weights'
 import { classifyRoleFunctionFamily } from './function-family'
+import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import type { DimensionFindings, DimensionKey, DimensionScores, FunctionFamily, Finding, SeniorityBand } from './types'
 import { ATS_FLAG_KIND_TO_ISSUE_CODE, MECHANICS_ISSUE_KIND_TO_ISSUE_CODE } from '@/lib/analytics/issue-taxonomy'
 
@@ -484,6 +485,22 @@ function scoreContactability(facts: ResumeAnalysisFacts): { score: number; findi
   const present = [facts.hasEmail, facts.hasPhone, facts.hasLinkedIn, facts.hasLocation].filter(Boolean).length
   const score = (present / 4) * 100
   const findings: Finding[] = []
+  // Real, confirmed case: a candidate's resume still had an unfilled
+  // AI-drafting-tool template header ("FIRST LAST") — extraction correctly
+  // read exactly that literal text, and it silently became this
+  // candidate's real profile name (see placeholder-name.ts, now guarded
+  // against on the write side too). A resume this broken needs a hard,
+  // hard-to-miss flag, not just a quietly-blanked name field.
+  if (isPlaceholderName(facts.candidateName)) {
+    findings.push({
+      severity: 'HIGH',
+      candidateFacingCopy: `Your resume still shows "${facts.candidateName}" instead of your real name — this reads as an unfilled template, not a finished resume.`,
+      fix: 'Replace the placeholder header with your real name, phone, and email before sending this to anyone.',
+      estimatedPointGain: 20,
+      issueCode: 'placeholder_contact_info',
+    })
+    return { score: clamp(Math.min(score, 20)), findings }
+  }
   if (!facts.hasLinkedIn) {
     findings.push({
       severity: 'LOW',

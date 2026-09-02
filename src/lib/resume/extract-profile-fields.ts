@@ -12,6 +12,7 @@ import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 
 const HIGHEST_EDUCATION_LEVELS = [
   'SOME_COLLEGE', 'ASSOCIATE', 'BACHELORS', 'MASTERS', 'MBA', 'MPH',
@@ -179,18 +180,34 @@ export async function extractProfileFieldsFromResume(resumeId: string): Promise<
     // credentials shouldn't erase one already confirmed.
     const existingProfile = await prisma.candidateProfile.findUnique({
       where: { id: resume.candidateId },
-      select: { certifications: true, highestLevelReached: true },
+      select: { certifications: true, highestLevelReached: true, firstName: true, lastName: true },
     })
     const mergedCertifications = Array.from(new Set([...(existingProfile?.certifications ?? []), ...data.certifications]))
     // Never overwrite a level the candidate already confirmed by hand on
     // confirm/page.tsx — only fill it in while it's still blank.
     const highestLevelReached = existingProfile?.highestLevelReached ?? inferHighestLevelFromTitle(data.latestJobTitle)
 
+    // Real, confirmed production bug: this used to write data.firstName/
+    // lastName unconditionally, straight from the resume's own extraction —
+    // no plausibility check, and no protection against a later resume
+    // upload blanking out a name a previous one had correctly found. A
+    // candidate whose resume still had an unfilled AI-drafting-tool
+    // template header ("FIRST LAST") got exactly that literal text written
+    // into their real profile. Now: never write an obvious placeholder
+    // name at all, and never let a null/placeholder extraction from a
+    // later resume erase a real name a previous one already set — same
+    // "fill in while blank, never regress" posture already used for
+    // highestLevelReached above.
+    const extractedFirstName = isPlaceholderName(`${data.firstName ?? ''} ${data.lastName ?? ''}`) ? null : data.firstName
+    const extractedLastName = isPlaceholderName(`${data.firstName ?? ''} ${data.lastName ?? ''}`) ? null : data.lastName
+    const firstName = extractedFirstName ?? existingProfile?.firstName ?? null
+    const lastName = extractedLastName ?? existingProfile?.lastName ?? null
+
     await prisma.candidateProfile.update({
       where: { id: resume.candidateId },
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName,
+        lastName,
         email: data.email,
         phone: data.phone,
         streetAddress: data.streetAddress,

@@ -129,6 +129,7 @@ export type IssueCode =
   | 'missing_linkedin'
   | 'name_email_mismatch'
   | 'missing_location' // not yet triggered as a Finding — same as missing_phone
+  | 'placeholder_contact_info' // NEW — Market Reality Grade: candidateName reads as an unfilled template placeholder ("First Last", "Your Name", etc.), a confirmed real case
 
   // reconciliation
   | 'years_experience_mismatch'
@@ -308,6 +309,10 @@ export const ISSUE_TAXONOMY: Record<IssueCode, IssueTaxonomyEntry> = {
   missing_location: {
     code: 'missing_location', category: 'contactability', severity: 'low', dimension: 'your_resume',
     typicalPointImpact: 1, fixableIn: 'seconds', candidateFacingLabel: 'No location listed',
+  },
+  placeholder_contact_info: {
+    code: 'placeholder_contact_info', category: 'contactability', severity: 'critical', dimension: 'your_resume',
+    typicalPointImpact: 20, fixableIn: 'minutes', candidateFacingLabel: 'Resume still has unfilled template placeholder text where your name should be',
   },
 
   // reconciliation — applies to Resume only (modifiers.ts: "Prestige and
