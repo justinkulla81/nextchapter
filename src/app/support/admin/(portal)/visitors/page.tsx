@@ -30,13 +30,30 @@ function now(): Date {
 }
 
 // One row per calendar day in the window, oldest first, zero-filled for
-// days with no human traffic — a chart with silent gaps reads as "we have
-// no data for that day," not "zero visitors that day."
-function buildHumanVisitorsPerDay(events: { createdAt: Date; userAgent: string | null }[]): { dateKey: string; count: number }[] {
+// days with no traffic — a chart with silent gaps reads as "we have no data
+// for that day," not "zero that day." `countFor` decides what one event
+// contributes to a day's running count (1 for a page-view tally, or nothing
+// beyond first-occurrence bookkeeping for a unique-visitor tally, handled
+// via the `dedupeKey` below instead).
+function buildPerDaySeries(
+  events: { createdAt: Date; userAgent: string | null; ip: string | null }[],
+  options: { humanOnly: boolean; dedupeByIp: boolean }
+): { dateKey: string; count: number }[] {
+  const seenPerDay = new Map<string, Set<string>>() // dateKey -> set of IPs already counted, when deduping
   const counts = new Map<string, number>()
+
   for (const e of events) {
-    if (classifyUserAgent(e.userAgent) !== 'human') continue
+    if (options.humanOnly && classifyUserAgent(e.userAgent) !== 'human') continue
     const key = etDateKey(e.createdAt)
+
+    if (options.dedupeByIp) {
+      if (!e.ip) continue // can't dedupe an anonymous IP — excluded rather than double- or under-counted
+      const seen = seenPerDay.get(key) ?? new Set<string>()
+      if (seen.has(e.ip)) continue
+      seen.add(e.ip)
+      seenPerDay.set(key, seen)
+    }
+
     counts.set(key, (counts.get(key) ?? 0) + 1)
   }
 
@@ -94,11 +111,13 @@ export default async function AdminVisitorsPage({
     prisma.homepageVisitEvent.count(),
     prisma.homepageVisitEvent.findMany({
       where: { eventType: 'PAGE_VIEW', createdAt: { gte: chartWindowStart } },
-      select: { createdAt: true, userAgent: true },
+      select: { createdAt: true, userAgent: true, ip: true },
     }),
   ])
 
-  const visitorsPerDay = buildHumanVisitorsPerDay(chartEvents)
+  const totalPageViewsPerDay = buildPerDaySeries(chartEvents, { humanOnly: false, dedupeByIp: false })
+  const humanPageViewsPerDay = buildPerDaySeries(chartEvents, { humanOnly: true, dedupeByIp: false })
+  const uniqueVisitorsPerDay = buildPerDaySeries(chartEvents, { humanOnly: true, dedupeByIp: true })
 
   // One lookup per unique IP on this page, not per row — same convention as
   // the daily digest email (send-homepage-visitor-digest.ts) — comfortably
@@ -198,10 +217,24 @@ export default async function AdminVisitorsPage({
         </p>
       </div>
 
-      <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Human visitors per day</h2>
-        <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, homepage views only, bots excluded.</p>
-        <VisitorsPerDayChart days={visitorsPerDay} />
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Total page views per day</h2>
+          <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, homepage views, humans and bots.</p>
+          <VisitorsPerDayChart days={totalPageViewsPerDay} seriesLabel="page view" emptyMessage="No page views in this window yet." />
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Human page views per day</h2>
+          <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, homepage views only, bots excluded.</p>
+          <VisitorsPerDayChart days={humanPageViewsPerDay} seriesLabel="human page view" emptyMessage="No human page views in this window yet." />
+        </div>
+
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Unique visitors per day</h2>
+          <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, distinct IPs, bots excluded.</p>
+          <VisitorsPerDayChart days={uniqueVisitorsPerDay} seriesLabel="unique visitor" emptyMessage="No unique visitors in this window yet." />
+        </div>
       </div>
 
       <AdminDataTable
