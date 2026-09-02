@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const eventType = body?.eventType === 'LINK_CLICK' ? 'LINK_CLICK' : 'PAGE_VIEW'
     const href = typeof body?.href === 'string' ? body.href.slice(0, 500) : null
+    const path = typeof body?.path === 'string' ? body.path.slice(0, 500) : null
 
     const ip = await getClientIp()
     if (isTrustedOwnerIp(ip) || isLoopbackIp(ip)) {
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
       data: {
         ip,
         eventType,
+        path: eventType === 'PAGE_VIEW' ? path : null,
         href: eventType === 'LINK_CLICK' ? href : null,
         referrer: eventType === 'PAGE_VIEW' ? request.headers.get('referer') : null,
         userAgent: request.headers.get('user-agent'),

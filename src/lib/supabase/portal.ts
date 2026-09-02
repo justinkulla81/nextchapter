@@ -33,8 +33,9 @@ export const PORTAL_PATH_PREFIXES: [string, PortalKey][] = [
 
 // Boundary-aware — plain startsWith would treat '/employer' as a match for
 // the unrelated '/employers' marketing page too (a real bug this fixed:
-// see middleware.ts's pathStartsWith comment for the production incident).
-function pathStartsWith(pathname: string, prefix: string): boolean {
+// see middleware.ts's own former copy of this same function, before it
+// was extracted here — production incident notes live there).
+export function pathStartsWith(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`)
 }
 
@@ -66,3 +67,23 @@ export const PORTAL_APP_SUBROUTES: Partial<Record<PortalKey, string[]>> = {
     '/talent/settings',
   ],
 }
+
+// Every authenticated app page across every portal, including the
+// candidate one (/dashboard, which has no separate PortalKey since it uses
+// the default/unscoped cookie) — the single source of truth for "this is
+// app usage, not public marketing traffic." middleware.ts's own
+// auth-gate check and HomepageVisitTracker's public-page gate (it fires in
+// the root layout now, so it needs to know which paths are someone else's
+// job to track) both read this list; keep it here rather than letting a
+// second copy of either drift, the exact failure mode PORTAL_APP_SUBROUTES
+// above already exists to prevent for a narrower case.
+export const PROTECTED_APP_PATH_PREFIXES: string[] = [
+  '/dashboard',
+  ...PORTAL_APP_SUBROUTES.talent!,
+  '/noexperience/employers',
+  '/eqoveriq/contributors',
+  '/recruiters',
+  '/support/coach',
+  '/employer',
+  '/support/admin',
+]

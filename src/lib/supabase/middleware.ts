@@ -1,18 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { PORTAL_COOKIE_NAMES, portalForPath, PORTAL_APP_SUBROUTES } from '@/lib/supabase/portal'
-
-// Plain `pathname.startsWith(prefix)` treats '/employer' as a match for
-// '/employers' too — a real production bug this fixed: the public
-// /employers marketing page was matching the protected /employer
-// (outplacement portal) prefix purely because "employers" starts with
-// "employer" as a string, redirecting every anonymous visitor straight to
-// /employer/login instead of ever showing the page. Require a path
-// boundary (exact match or the next character is '/') so a prefix can
-// never accidentally swallow an unrelated sibling route.
-function pathStartsWith(pathname: string, prefix: string): boolean {
-  return pathname === prefix || pathname.startsWith(`${prefix}/`)
-}
+import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith } from '@/lib/supabase/portal'
 
 // Whether ANY Supabase session cookie is present for the relevant portal —
 // checked with startsWith (not equality) because @supabase/ssr chunks a
@@ -123,21 +111,9 @@ export async function updateSession(request: NextRequest) {
   // has its own real, refreshable session (see portalForPath above) — this
   // is on top of, not instead of, each portal's own page-level
   // getCurrentX()/requireAdmin() check, which stays in place as a backstop.
-  const protectedPaths = [
-    '/dashboard',
-    // /talent is a PUBLIC marketing page now — only its real
-    // app subroutes (one level deeper, see PORTAL_APP_SUBROUTES) are
-    // protected. Listing the bare portal path here would prefix-match the
-    // marketing page too and redirect every anonymous visitor straight to
-    // login before they ever see it (the exact bug this fixed for /hiring).
-    ...PORTAL_APP_SUBROUTES.talent!,
-    '/noexperience/employers',
-    '/eqoveriq/contributors',
-    '/recruiters',
-    '/support/coach',
-    '/employer',
-    '/support/admin',
-  ]
+  // See PROTECTED_APP_PATH_PREFIXES's own comment in portal.ts — single
+  // source of truth, also read by HomepageVisitTracker's public-page gate.
+  const protectedPaths = PROTECTED_APP_PATH_PREFIXES
   const publicExceptions = [
     '/talent/signup',
     '/talent/seats/accept',

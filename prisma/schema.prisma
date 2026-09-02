@@ -1711,10 +1711,15 @@ model CandidateStakeholderNote {
 // IPs in TRUSTED_OWNER_IPS (the site owner's own devices) are never
 // recorded at all, not just filtered from display, so they can't leak into
 // the daily digest even by accident.
+// Despite the name (kept for now — a rename would require moving 164 real
+// rows to a new table name, not worth the risk for a cosmetic fix), this
+// covers every public marketing page since HomepageVisitTracker moved into
+// the root layout, not just "/" — see that component's own comment.
 model HomepageVisitEvent {
   id        String                 @id @default(cuid())
   ip        String?
   eventType HomepageVisitEventType
+  path      String? // PAGE_VIEW only — the route visited; null on rows recorded before this field existed (homepage-only era)
   href      String? // LINK_CLICK only — the destination the visitor clicked
   referrer  String? // PAGE_VIEW only — where the visitor came from
   userAgent String?

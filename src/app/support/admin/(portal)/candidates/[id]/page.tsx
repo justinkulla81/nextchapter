@@ -17,6 +17,7 @@ import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGra
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
+import { computePageActivitySummary, formatDuration } from '@/lib/admin/page-activity-summary'
 import {
   listStakeholderNotes,
   getRecruiterRelationships,
@@ -104,15 +105,22 @@ async function loadLoginHistory(candidateId: string) {
 }
 
 // Every /dashboard/* page view and link click, recorded by
-// DashboardActivityTracker — capped at 50 most-recent rows for a readable
-// admin view, not a full export.
+// DashboardActivityTracker. Fetches up to 5000 most-recent rows (a
+// generous bound, not a real limit for any real candidate's activity) so
+// the byPage/byDay summary below reflects their real history, not just a
+// recent slice — then keeps only the 50 most recent for the raw event log
+// shown underneath the summary.
 async function loadPageActivity(candidateId: string) {
-  return prisma.candidatePageActivityEvent.findMany({
+  const events = await prisma.candidatePageActivityEvent.findMany({
     where: { candidateId },
     orderBy: { createdAt: 'desc' },
-    take: 50,
+    take: 5000,
     select: { id: true, eventType: true, path: true, href: true, createdAt: true },
   })
+  return {
+    recent: events.slice(0, 50),
+    summary: computePageActivitySummary(events),
+  }
 }
 
 async function loadJobRecommendations(candidateId: string) {
@@ -418,25 +426,82 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
 
           <Card>
             <CardHeader>
-              <CardTitle>Page activity ({pageActivity.length})</CardTitle>
+              <CardTitle>Page activity</CardTitle>
             </CardHeader>
-            <CardContent>
-              {pageActivity.length === 0 ? (
+            <CardContent className="space-y-6">
+              {pageActivity.summary.byPage.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No page views or link clicks recorded yet.</p>
               ) : (
-                <ul className="space-y-1 text-sm">
-                  {pageActivity.map((event) => (
-                    <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-x-3 text-foreground">
-                      <span>{formatAdminDateTime(event.createdAt)}</span>
-                      <span className="text-muted-foreground">
-                        {event.eventType === 'PAGE_VIEW' ? 'Page view' : 'Link click'}
-                        {' — '}
-                        {(event.eventType === 'PAGE_VIEW' ? event.path : event.href) ?? 'unknown'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <div>
+                    <h3 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                      Time by page ({pageActivity.summary.byPage.length} page{pageActivity.summary.byPage.length === 1 ? '' : 's'})
+                    </h3>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      Time estimated from the gap to the next page view — a gap over 30 minutes isn&apos;t counted (they
+                      likely stepped away), so the most recent page view of any session always shows 0.
+                    </p>
+                    <ul className="space-y-1 text-sm">
+                      {pageActivity.summary.byPage.slice(0, 15).map((p) => (
+                        <li key={p.path} className="flex flex-wrap items-baseline justify-between gap-x-3">
+                          <span className="text-foreground">{p.path}</span>
+                          <span className="text-muted-foreground">
+                            {formatDuration(p.totalMs)} · {p.visits} visit{p.visits === 1 ? '' : 's'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {pageActivity.summary.byPage.length > 15 && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        +{pageActivity.summary.byPage.length - 15} more page{pageActivity.summary.byPage.length - 15 === 1 ? '' : 's'} not shown.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                      Pages &amp; time per day
+                    </h3>
+                    <ul className="space-y-1 text-sm">
+                      {pageActivity.summary.byDay.slice(0, 30).map((d) => (
+                        <li key={d.dateKey} className="flex flex-wrap items-baseline justify-between gap-x-3">
+                          <span className="text-foreground">{d.dateKey}</span>
+                          <span className="text-muted-foreground">
+                            {d.pageViews} page{d.pageViews === 1 ? '' : 's'} · {formatDuration(d.totalMs)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {pageActivity.summary.byDay.length > 30 && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        +{pageActivity.summary.byDay.length - 30} earlier day{pageActivity.summary.byDay.length - 30 === 1 ? '' : 's'} not shown.
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
+
+              <div>
+                <h3 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                  Recent activity ({pageActivity.recent.length})
+                </h3>
+                {pageActivity.recent.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No page views or link clicks recorded yet.</p>
+                ) : (
+                  <ul className="space-y-1 text-sm">
+                    {pageActivity.recent.map((event) => (
+                      <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-x-3 text-foreground">
+                        <span>{formatAdminDateTime(event.createdAt)}</span>
+                        <span className="text-muted-foreground">
+                          {event.eventType === 'PAGE_VIEW' ? 'Page view' : 'Link click'}
+                          {' — '}
+                          {(event.eventType === 'PAGE_VIEW' ? event.path : event.href) ?? 'unknown'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </CardContent>
           </Card>
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracker";
 import "./globals.css";
 
 const inter = Inter({
@@ -73,6 +74,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${sourceSerif4.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <GoogleAnalytics />
+        <HomepageVisitTracker />
         <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>

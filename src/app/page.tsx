@@ -3,7 +3,6 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
-import { HomepageVisitTracker } from '@/components/marketing/HomepageVisitTracker'
 import { StatCallouts } from '@/components/StatCallouts'
 import { CompetencyGridVisual } from '@/components/marketing/CompetencyGridVisual'
 import { SampleMarketRealityReport } from '@/components/marketing/SampleMarketRealityReport'
@@ -77,7 +76,6 @@ export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
-      <HomepageVisitTracker />
 
       {/* 1 — Hero (§C3.1.1) */}
       <section className="relative bg-white">

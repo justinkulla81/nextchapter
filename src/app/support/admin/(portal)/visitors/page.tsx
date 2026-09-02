@@ -72,6 +72,7 @@ interface Row {
   createdAt: Date
   ip: string | null
   eventType: 'PAGE_VIEW' | 'LINK_CLICK'
+  path: string | null
   href: string | null
   referrer: string | null
   userAgent: string | null
@@ -86,10 +87,12 @@ interface Row {
   inferredCandidate: { id: string; firstName: string | null; lastName: string | null } | null
 }
 
-// Anonymous public-homepage traffic only — never candidate/coach/recruiter/
-// admin app usage (that's the separate Login History on the candidate
-// detail page). The site owner's own devices (TRUSTED_OWNER_IPS) are never
-// recorded at all, so they never show up here.
+// Anonymous public-marketing traffic (every public page, not just the
+// homepage — see HomepageVisitTracker's own comment) — never candidate/
+// coach/recruiter/admin app usage (that's the separate Login History and
+// Page activity sections on the candidate detail page). The site owner's
+// own devices (TRUSTED_OWNER_IPS) are never recorded at all, so they never
+// show up here.
 export default async function AdminVisitorsPage({
   searchParams,
 }: {
@@ -158,6 +161,7 @@ export default async function AdminVisitorsPage({
     createdAt: e.createdAt,
     ip: e.ip,
     eventType: e.eventType,
+    path: e.path,
     href: e.href,
     referrer: e.referrer,
     userAgent: e.userAgent,
@@ -172,7 +176,11 @@ export default async function AdminVisitorsPage({
     { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => formatAdminDateTime(r.createdAt) },
     { header: 'IP', render: (r) => r.ip ?? 'unknown' },
     { header: 'Location', render: (r) => r.location ?? '—' },
-    { header: 'Event', render: (r) => (r.eventType === 'PAGE_VIEW' ? 'Homepage view' : 'Link click') },
+    { header: 'Event', render: (r) => (r.eventType === 'PAGE_VIEW' ? 'Page view' : 'Link click') },
+    {
+      header: 'Page',
+      render: (r) => (r.eventType === 'PAGE_VIEW' ? (r.path ?? '/ (recorded before path tracking)') : '—'),
+    },
     {
       header: 'Detail',
       render: (r) =>
