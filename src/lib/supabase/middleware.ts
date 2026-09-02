@@ -14,6 +14,20 @@ function pathStartsWith(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`)
 }
 
+// Whether ANY Supabase session cookie is present for the relevant portal —
+// checked with startsWith (not equality) because @supabase/ssr chunks a
+// large token across suffixed cookies ('sb-admin-auth-token.0', '.1', ...)
+// when it doesn't fit in one cookie. For the default/candidate portal
+// (cookieBaseName undefined — no explicit cookieOptions.name is passed to
+// createServerClient there), fall back to Supabase's own generic naming
+// convention ('sb-<project-ref>-auth-token') rather than hardcoding the
+// project ref.
+function hasSupabaseSessionCookie(request: NextRequest, cookieBaseName?: string): boolean {
+  return request.cookies
+    .getAll()
+    .some((c) => (cookieBaseName ? c.name.startsWith(cookieBaseName) : c.name.startsWith('sb-') && c.name.includes('auth-token')))
+}
+
 export async function updateSession(request: NextRequest) {
   // Forward the pathname as a REQUEST header (not a response header) so
   // headers().get('x-pathname') in Server Component layouts (e.g.
@@ -37,31 +51,45 @@ export async function updateSession(request: NextRequest) {
   // refreshed here would hard-expire on its Supabase access-token TTL with
   // no recovery path.
   const portal = portalForPath(request.nextUrl.pathname)
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookieOptions: portal ? { name: PORTAL_COOKIE_NAMES[portal] } : undefined,
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+  const portalCookieName = portal ? PORTAL_COOKIE_NAMES[portal] : undefined
 
-  // Refreshes the session token if expired. Required so Server Components
-  // reading cookies always see a valid session.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // supabase.auth.getUser() is a real network round-trip to Supabase's auth
+  // server — a real, measured site-wide latency source (this call alone was
+  // ~1.6s of a ~1.7s page load in profiling) when it runs unconditionally on
+  // every single request, including the vast majority of traffic that's a
+  // session-less visitor on a public page with nothing to refresh at all.
+  // Skipping it when no relevant session cookie is present is safe: `user`
+  // stays exactly what it already is for a session-less visitor (there is
+  // none), so the isProtected redirect logic below is unaffected — an
+  // anonymous visitor hitting a protected path still redirects correctly,
+  // just without the wasted round trip.
+  let user = null
+  if (hasSupabaseSessionCookie(request, portalCookieName)) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookieOptions: portalCookieName ? { name: portalCookieName } : undefined,
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+            supabaseResponse = NextResponse.next({ request })
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            )
+          },
+        },
+      }
+    )
+
+    // Refreshes the session token if expired. Required so Server Components
+    // reading cookies always see a valid session.
+    const result = await supabase.auth.getUser()
+    user = result.data.user
+  }
 
   // /onboarding is intentionally NOT protected here — a first-time visitor
   // has no session at all yet (not even anonymous), and /onboarding/desire
