@@ -115,7 +115,6 @@ export default async function AdminVisitorsPage({
     }),
   ])
 
-  const totalPageViewsPerDay = buildPerDaySeries(chartEvents, { humanOnly: false, dedupeByIp: false })
   const humanPageViewsPerDay = buildPerDaySeries(chartEvents, { humanOnly: true, dedupeByIp: false })
   const uniqueVisitorsPerDay = buildPerDaySeries(chartEvents, { humanOnly: true, dedupeByIp: true })
 
@@ -217,24 +216,18 @@ export default async function AdminVisitorsPage({
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border border-border p-4">
-          <h2 className="text-sm font-medium text-foreground">Total page views per day</h2>
-          <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, homepage views, humans and bots.</p>
-          <VisitorsPerDayChart days={totalPageViewsPerDay} seriesLabel="page view" emptyMessage="No page views in this window yet." />
-        </div>
-
-        <div className="rounded-lg border border-border p-4">
-          <h2 className="text-sm font-medium text-foreground">Human page views per day</h2>
-          <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, homepage views only, bots excluded.</p>
-          <VisitorsPerDayChart days={humanPageViewsPerDay} seriesLabel="human page view" emptyMessage="No human page views in this window yet." />
-        </div>
-
-        <div className="rounded-lg border border-border p-4">
-          <h2 className="text-sm font-medium text-foreground">Unique visitors per day</h2>
-          <p className="mb-3 text-xs text-muted-foreground">Last {CHART_WINDOW_DAYS} days, distinct IPs, bots excluded.</p>
-          <VisitorsPerDayChart days={uniqueVisitorsPerDay} seriesLabel="unique visitor" emptyMessage="No unique visitors in this window yet." />
-        </div>
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Human page views &amp; unique visitors per day</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Last {CHART_WINDOW_DAYS} days, bots excluded. Unique visitors is deduped by IP.
+        </p>
+        <VisitorsPerDayChart
+          series={[
+            { label: 'Human page views', days: humanPageViewsPerDay, color: 'var(--color-brand)' },
+            { label: 'Unique visitors', days: uniqueVisitorsPerDay, color: 'var(--color-warning)' },
+          ]}
+          emptyMessage="No visitor activity in this window yet."
+        />
       </div>
 
       <AdminDataTable
