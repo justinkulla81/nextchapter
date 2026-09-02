@@ -45,6 +45,9 @@ export const actionPlanItemTypes = [
   'OUTREACH_MESSAGE',
   'LINKEDIN_SETUP',
   'LINKEDIN_POST_IDEA',
+  'GMAIL_CONNECTED',
+  'SEARCH_STRATEGY_CHECKLIST',
+  'RESUME_UPDATE',
   'INTERVIEW_PREP',
   'NEGOTIATION_ADVICE',
   'PROFILE_CONFIRM',
@@ -134,6 +137,8 @@ const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
 You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, the Market Reality Grade (A-F) — a day-one read on their resume and real work experience, capped by how many similar roles actually exist in the market. It does NOT reflect references, networking, or other ongoing platform activity — that builds a separate thing, their Dossier, over time, and is out of scope for this report. Reference the grade by name where relevant instead of a single generic "score."
 
+HARD REQUIREMENT — override Victoria's usual first-person voice for this document specifically: this report reads as a formal written assessment, not a message from Victoria speaking to the candidate. Never write in first person about yourself ("I will be honest with you," "I noticed," "I want to point out," "in my view") anywhere in strengths, weaknesses, hillToClimb, gapAnalysis, marketConditions, or the executive summary. Address the candidate directly as "you," and state findings and conclusions plainly ("Your resume shows..." / "This is a real gap..." / "The market for this target is..."), never as Victoria's own personal reaction to them.
+
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
 
 HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," build your network, or any other ongoing-effort/Dossier-building framing as one of the 7 action-plan day items — this report's action plan is scoped to job goals, resume, and personalization only. Those other actions live in the Dossier instead (see the Portfolio page), not here.
@@ -154,9 +159,12 @@ Write:
    - HARD REQUIREMENT: a "very_positive" tone still requires naming at least 2 sentences of real friction (a market condition, a resume gap, an unproven claim) — encouragement alone, with nothing honest to push against, is not a complete hill-to-climb narrative.
 4. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
    - HARD REQUIREMENT: write every item's "text" in this exact shape: a short action name (3-6 words, no reasoning in it) + " — " + one short clause on why it matters, in plain language a candidate would find compelling. Example: "Confirm your industry — recruiters match you on this first." The UI hyperlinks only the part before the dash, so the action name must stand alone as something clickable; never put the reason before the dash or omit the dash.
+   - HARD REQUIREMENT — priority order across the 7 days: foundational setup always comes before search activity, in this order, skipping whichever of the first four don't apply (see each item's own gating condition below) — (1) LinkedIn setup, (2) Gmail connect, (3) Search Strategy / target confirmation, (4) resume upload or applying resume suggestions. Only once those that apply are placed should later days move to search-activity items — networking (actionType "NETWORKING_LIST" or "OUTREACH_MESSAGE"), applying to jobs, job-fit feedback, interview prep, etc. Never place a search-activity item on an earlier day than a still-outstanding foundational item from this list.
    - After satisfying every HARD REQUIREMENT item below, fill any remaining day slots with items that make progress on "Currently open gaps" (see candidate data below) rather than generic advice — when a gap lists an existing platform resource, point the candidate at it by name instead of re-deriving generic advice unrelated to any open gap.
-   - HARD REQUIREMENT: if "Resume on file" below says "no", one of the 7 days MUST include uploading a resume, and must explain that it meaningfully improves their score and lets this report generate specific, evidence-based resume suggestions. If "Resume on file" says "yes", one of the 7 days MUST instead include applying this report's/the resume analysis's suggestions to improve it. Never do both, never do neither.
+   - HARD REQUIREMENT: if "Resume on file" below says "no", one of the 7 days MUST include uploading a resume, tagged actionType "RESUME_UPDATE", and must explain that it meaningfully improves their score and lets this report generate specific, evidence-based resume suggestions. If "Resume on file" says "yes", one of the 7 days MUST instead include applying this report's/the resume analysis's suggestions to improve it, tagged actionType "RESUME_UPDATE". Never do both, never do neither.
    - HARD REQUIREMENT: if "LinkedIn status confirmed" below says "no", one of the 7 days MUST include confirming whether they have a LinkedIn URL or don't have one yet, tagged actionType "LINKEDIN_SETUP". If "LinkedIn status confirmed" says "yes" but "LinkedIn URL on file" says "no", one of the 7 days MUST include actually creating a LinkedIn profile, tagged actionType "LINKEDIN_SETUP", explaining briefly why having one is critical to a modern job search (visibility to recruiters, network effects). If both say "yes", do NOT include this item — active LinkedIn use (posting, being active) lives in the Dossier's action list, not here.
+   - HARD REQUIREMENT: if "Gmail connected" below says "no", one of the 7 days MUST include connecting their Gmail account, tagged actionType "GMAIL_CONNECTED", explaining briefly why (it lets the platform detect real interview invites and rejections automatically instead of the candidate tracking them by hand). If "yes", do NOT include this item.
+   - HARD REQUIREMENT: if "Target role clearly stated" below says "no", one of the 7 days MUST include filling in the Search Strategy page (target function, what they're known for, deal-breakers, ranked tradeoffs), tagged actionType "SEARCH_STRATEGY_CHECKLIST" — this is the first filter every match runs on, so it belongs early, not buried among later search-activity items. If "yes", do NOT include this item.
    - If any job posting has landed an interview (see "Interview landed" below), mention it and point them to this platform's own generated interview prep for that job, tagged actionType "INTERVIEW_PREP", rather than re-deriving interview advice yourself.
    - If any job posting has an offer (see "Offer received" below), mention it and point them to this platform's own generated negotiation advice for that job, tagged actionType "NEGOTIATION_ADVICE", rather than re-deriving negotiation advice yourself.
    - HARD REQUIREMENT: if "Profile confirmed" below says "no", one of the 7 days MUST include confirming their name/contact/address details (auto-filled from their resume, may need correction), tagged actionType "PROFILE_CONFIRM". If "yes", do NOT include this item.
@@ -203,8 +211,11 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
       // at the DB level instead of pulling every log this candidate has
       // ever created just to filter it in JS.
       linkedInActivityLogs: { where: { loggedAt: { gt: thirtyDaysAgo } } },
+      emailConnection: true,
     },
   })
+
+  const gmailConnected = candidate.emailConnection !== null && candidate.emailConnection.disconnectedAt === null
 
   const latestAssessment = candidate.assessmentResponses[0]
   // See dossier-sections.ts's getHowIOperate for why this branches — a
@@ -481,6 +492,8 @@ Job-fit feedback: ${
 LinkedIn status confirmed: ${candidate.linkedInConfirmedAt ? 'yes' : 'no'}
 LinkedIn URL on file: ${candidate.linkedInUrl ? 'yes' : 'no (candidate may have explicitly said they don’t have one yet)'}
 LinkedIn posts logged in the last 30 days: ${candidate.linkedInActivityLogs.length}
+Gmail connected: ${gmailConnected ? 'yes' : 'no'}
+Target role clearly stated: ${candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType) ? 'yes' : 'no (vague or unset — see Target role above)'}
 Networking list (25 people) submitted: ${candidate.networkingListSubmittedAt ? 'yes' : 'no'}
 Asked someone for help: ${candidate.askedForHelpAt ? 'yes' : 'no'}
 Interview landed: ${

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Prisma, CurrentJobStatus, SearchIntensity } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
@@ -31,6 +32,26 @@ interface Row {
   optedIn: boolean
   signupIp: string | null
   signedUpAt: Date
+  location: string | null
+  resumeSignedUrl: string | null
+}
+
+// One signed URL per candidate's latest resume, generated in parallel —
+// same pattern as the candidate detail page's own loadIpAndResume, scaled
+// to a page of rows instead of one candidate. Only fetched for the current
+// page (25 rows), not the full 85-candidate table.
+async function loadResumeLinks(candidateIds: string[]): Promise<Map<string, string>> {
+  if (candidateIds.length === 0) return new Map()
+  const admin = createAdminClient()
+  const entries = await Promise.all(
+    candidateIds.map(async (candidateId) => {
+      const resume = await prisma.resume.findFirst({ where: { candidateId }, orderBy: { uploadedAt: 'desc' } })
+      if (!resume) return null
+      const { data } = await admin.storage.from('resumes').createSignedUrl(resume.filePath, 60 * 10)
+      return data?.signedUrl ? ([candidateId, data.signedUrl] as const) : null
+    })
+  )
+  return new Map(entries.filter((e): e is readonly [string, string] => e !== null))
 }
 
 export default async function AdminCandidatesPage({
@@ -75,6 +96,8 @@ export default async function AdminCandidatesPage({
         recruiterDatabaseOptIn: true,
         signupIp: true,
         createdAt: true,
+        currentCity: true,
+        currentState: true,
         // MarketRealitySnapshot (weekly, guaranteed cadence) rather than
         // MarketRealityReport — a report only generates on specific triggers.
         marketRealitySnapshots: {
@@ -87,6 +110,8 @@ export default async function AdminCandidatesPage({
     prisma.candidateProfile.count({ where }),
     listAllAuthUsers(),
   ])
+
+  const resumeLinksByCandidateId = await loadResumeLinks(candidates.map((c) => c.id))
 
   const rows: Row[] = candidates.map((c) => {
     const grade = c.marketRealitySnapshots[0]?.grade ?? null
@@ -101,6 +126,8 @@ export default async function AdminCandidatesPage({
       grade,
       optedIn: c.recruiterDatabaseOptIn,
       signupIp: c.signupIp,
+      location: [c.currentCity, c.currentState].filter(Boolean).join(', ') || null,
+      resumeSignedUrl: resumeLinksByCandidateId.get(c.id) ?? null,
       signedUpAt: c.createdAt,
     }
   })
@@ -117,6 +144,18 @@ export default async function AdminCandidatesPage({
       ),
     },
     { header: 'Email', render: (r) => r.email },
+    { header: 'Location', render: (r) => r.location ?? '—' },
+    {
+      header: 'Resume',
+      render: (r) =>
+        r.resumeSignedUrl ? (
+          <a href={r.resumeSignedUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
+            View
+          </a>
+        ) : (
+          '—'
+        ),
+    },
     { header: 'Status', render: (r) => r.statusLabel ?? '—' },
     { header: 'Search intensity', render: (r) => r.intensityLabel ?? '—' },
     { header: 'Function', render: (r) => r.primaryFunction ?? '—' },
