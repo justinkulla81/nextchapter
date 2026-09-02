@@ -21,6 +21,24 @@ const FAMILY_KEYWORDS: Record<FunctionFamily, RegExp> = {
   GENERAL_MANAGEMENT: /\b(general manager|president|ceo|coo|managing director|p&l)\b/i,
 }
 
+// Per-role classification — added for the functionTrackConsistency dimension
+// (dimensions.ts), which needs to know which family EACH role belongs to,
+// not just the one aggregate family detectFunctionFamily produces for the
+// whole candidate. Deliberately a separate function rather than a refactor
+// of detectFunctionFamily's own loop: that function counts, per family,
+// how many roles match THAT family's own pattern independently (so a title
+// matching two families' keywords counts toward both), while this returns
+// only the first match in FAMILY_KEYWORDS order — routing detectFunctionFamily
+// through this would silently change its existing tie-breaking behavior.
+// Returns null when a title matches no family's keywords at all — the
+// caller's job to decide what "unclassified" means for its own scoring.
+export function classifyRoleFunctionFamily(title: string): FunctionFamily | null {
+  for (const [family, pattern] of Object.entries(FAMILY_KEYWORDS) as [FunctionFamily, RegExp][]) {
+    if (pattern.test(title)) return family
+  }
+  return null
+}
+
 export function detectFunctionFamily(facts: ResumeAnalysisFacts): FunctionFamily {
   const scores = (Object.entries(FAMILY_KEYWORDS) as [FunctionFamily, RegExp][]).map(([family, pattern]) => {
     const matches = facts.roles.filter((r) => pattern.test(r.title)).length

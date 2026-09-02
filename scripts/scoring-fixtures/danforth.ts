@@ -7,7 +7,12 @@
 // Scope (quota) is deliberately smaller than Hollander's headcount-derived
 // scope so gate 1's ordering (Hollander > Danforth on Your Experience)
 // holds for a real, legitimate reason (a smaller org), not because revenue
-// metrics were penalized.
+// metrics were penalized. Widened after the Market Reality Grade
+// recalibration added two new EXPERIENCE dimensions (employmentGaps,
+// functionTrackConsistency) that dilute every other dimension's relative
+// weight, including scopeLevel — the original quota (a 1.1x-of-band-norm
+// scope, landing in the same scoring bucket as a 1.5x scope) left too thin
+// a scopeLevel gap to survive that dilution.
 
 import type { ResumeAnalysisFacts } from '@/lib/scoring/resume-analysis/extract-facts'
 
@@ -57,14 +62,14 @@ export const danforthFacts: ResumeAnalysisFacts = {
       isInternship: false,
       budgetOrPnlUsd: null,
       headcount: 150,
-      quotaUsd: 11_000_000,
+      quotaUsd: 9_000_000,
       quotaAttainmentPct: 118,
       geographyScope: 'North America and EMEA',
       reportingLine: 'reports to CRO',
       industry: 'software',
       bullets: [
         {
-          text: 'Scaled annual recurring revenue from $3M to $11M in four years, expanding into EMEA.',
+          text: 'Scaled annual recurring revenue from $3M to $9M in four years, expanding into EMEA.',
           isOutcomeNotActivity: true,
           hasBaselinePair: true,
           hasAnyNumber: true,

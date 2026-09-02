@@ -10,19 +10,23 @@
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
-// Deliberately hard grading — most candidates should land on C, with A and
-// F reserved for real extremes (see GRADE_BAND_DESCRIPTION and the "we're
-// hard graders" copy in GradeSystemExplainer). This is a first-pass curve,
-// not fit to real usage data — this product has too few real scored
-// candidates yet to calibrate against an actual distribution; revisit once
-// there's a meaningful population to check it against, and once there's
-// real data on how the new baseline+weekly-nudge formula actually moves
-// scores week to week.
+// Recalibrated for the Market Reality Grade recalibration: real data (38
+// weekly MarketRealitySnapshot rows) showed the OLD cutoffs below collapsing
+// 37/38 candidates onto exactly C — a wide, discouraging C-zone rather than
+// the intended "most candidates land here, but a genuinely strong resume
+// clears it" curve. These cutoffs deliberately re-center the distribution
+// on B while keeping A and F as real, earned outcomes — not a uniform
+// inflation of every grade. Still a curve to be checked against a growing
+// real population, not a permanently fixed constant.
+//
+// market-reality/blend.ts's GRADE_MAX_SCORE (one below each floor here) is
+// the single copy of the market-cap boundary table derived from this
+// function — update it in lockstep with any future edit here.
 export function scoreToGrade(score: number): Grade {
-  if (score >= 90) return 'A'
-  if (score >= 75) return 'B'
-  if (score >= 40) return 'C'
-  if (score >= 20) return 'D'
+  if (score >= 85) return 'A'
+  if (score >= 60) return 'B'
+  if (score >= 35) return 'C'
+  if (score >= 15) return 'D'
   return 'F'
 }
 

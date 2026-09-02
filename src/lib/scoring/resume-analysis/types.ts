@@ -36,6 +36,8 @@ export type DimensionKey =
   | 'industryCoherence'
   | 'skillCurrency'
   | 'contactability'
+  | 'employmentGaps'
+  | 'functionTrackConsistency'
 
 export const DIMENSION_ORDER: DimensionKey[] = [
   'quantification',
@@ -49,6 +51,8 @@ export const DIMENSION_ORDER: DimensionKey[] = [
   'industryCoherence',
   'skillCurrency',
   'contactability',
+  'employmentGaps',
+  'functionTrackConsistency',
 ]
 
 export const DIMENSION_LABEL: Record<DimensionKey, string> = {
@@ -63,6 +67,8 @@ export const DIMENSION_LABEL: Record<DimensionKey, string> = {
   industryCoherence: 'Industry Coherence',
   skillCurrency: 'Skill & Vocabulary Currency',
   contactability: 'Contactability',
+  employmentGaps: 'Employment Gaps',
+  functionTrackConsistency: 'Function Track Consistency',
 }
 
 // Which of the two components (Master Build Script §3.1) each dimension
@@ -81,6 +87,8 @@ export const DIMENSION_COMPONENT: Record<DimensionKey, ExperienceResumeComponent
   tenurePattern: 'EXPERIENCE',
   relevanceRecency: 'EXPERIENCE',
   industryCoherence: 'EXPERIENCE',
+  employmentGaps: 'EXPERIENCE',
+  functionTrackConsistency: 'EXPERIENCE',
   atsLegibility: 'RESUME',
   quantification: 'RESUME',
   narrativePositioning: 'RESUME',

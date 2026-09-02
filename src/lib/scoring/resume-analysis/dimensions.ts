@@ -10,8 +10,11 @@
 
 import type { ResumeAnalysisFacts } from './extract-facts'
 import { getFunctionFamilyDefinition } from './weights'
+import { classifyRoleFunctionFamily } from './function-family'
 import type { DimensionFindings, DimensionKey, DimensionScores, FunctionFamily, Finding, SeniorityBand } from './types'
 import { ATS_FLAG_KIND_TO_ISSUE_CODE, MECHANICS_ISSUE_KIND_TO_ISSUE_CODE } from '@/lib/analytics/issue-taxonomy'
+
+const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30
 
 function normalizeIndustry(value: string): string {
   return value.trim().toLowerCase()
@@ -316,6 +319,128 @@ function scoreIndustryCoherence(facts: ResumeAnalysisFacts): { score: number; fi
   return { score: clamp(score), findings: [] } // informational only — never narrated as a deficiency (spec §17: never imply a candidate's background is insufficient)
 }
 
+// ── Employment Gaps — NEW, Market Reality Grade recalibration ────────────
+// Ports the same facts.roles-based gap detection reviewer-questions.ts's
+// detectReviewerQuestions() already computes (the correct, resume-analysis-
+// native data source), but turns it into a score instead of a candidate
+// prep question. An *explained* gap (the candidate answered the resulting
+// reviewer question) still doesn't touch this score — same posture
+// modifiers.ts's reconciliation penalty already takes ("explanations never
+// touch the reconciliation penalty"): the score reflects the resume as
+// extracted, and the explain-flow is a separate, non-scoring UX.
+function excludedByEducationWindow(gapStartMs: number, gapEndMs: number, facts: ResumeAnalysisFacts): boolean {
+  return facts.education.some((edu) => {
+    if (!edu.graduationDate) return false
+    const grad = new Date(edu.graduationDate).getTime()
+    // No enrollment start date is extracted (educationSchema only has a
+    // graduation date) — approximate a typical program length so a gap
+    // spent in school isn't misread as unexplained. Same 4-year
+    // approximation used elsewhere in this codebase for the same gap.
+    const assumedStart = grad - 4 * 365 * MS_PER_MONTH
+    return gapStartMs < grad && gapEndMs > assumedStart
+  })
+}
+
+function scoreEmploymentGaps(facts: ResumeAnalysisFacts): { score: number; findings: Finding[] } {
+  const real = facts.roles
+    .filter((r) => !r.isInternship && r.startDate)
+    .sort((a, b) => new Date(a.startDate as string).getTime() - new Date(b.startDate as string).getTime())
+
+  if (real.length === 0) return { score: 70, findings: [] }
+
+  const now = Date.now()
+  let penalty = 0
+  const findings: Finding[] = []
+
+  for (let i = 1; i < real.length; i++) {
+    const prevEnd = real[i - 1].endDate ? new Date(real[i - 1].endDate as string).getTime() : null
+    const curStart = real[i].startDate ? new Date(real[i].startDate as string).getTime() : null
+    if (prevEnd === null || curStart === null) continue
+    const gapMonths = (curStart - prevEnd) / MS_PER_MONTH
+    if (gapMonths < 4) continue
+    if (excludedByEducationWindow(prevEnd, curStart, facts)) continue
+
+    const yearsAgo = (now - prevEnd) / (1000 * 60 * 60 * 24 * 365)
+    const recencyWeight = yearsAgo <= 3 ? 1 : yearsAgo <= 8 ? 0.5 : 0.2
+    penalty += gapMonths * 1.2 * recencyWeight
+
+    if (findings.length < 2) {
+      findings.push({
+        severity: 'HIGH',
+        candidateFacingCopy: `There's roughly a ${Math.round(gapMonths)}-month gap between ${real[i - 1].title} and ${real[i].title}.`,
+        fix: 'A one-line reason (caregiving, health, further study, a deliberate break) closes this for a reviewer.',
+        estimatedPointGain: 4,
+        issueCode: 'unexplained_gap',
+      })
+    }
+  }
+
+  const mostRecent = real[real.length - 1]
+  if (!mostRecent.isCurrent && mostRecent.endDate) {
+    const endTime = new Date(mostRecent.endDate).getTime()
+    const gapMonths = (now - endTime) / MS_PER_MONTH
+    if (gapMonths >= 4) {
+      penalty += gapMonths * 1.2 // always fully recent — no recency discount
+      findings.push({
+        severity: 'HIGH',
+        candidateFacingCopy: `Your most recent role, ${mostRecent.title}, ended about ${Math.round(gapMonths)} months ago with nothing following it.`,
+        fix: 'State your current status and target directly — searching, consulting, caregiving, etc.',
+        estimatedPointGain: 6,
+        issueCode: 'current_gap',
+      })
+    }
+  }
+
+  return { score: Math.max(40, Math.round(100 - penalty)), findings }
+}
+
+// ── Function Track Consistency — NEW, Market Reality Grade recalibration ─
+// Mirrors scoreIndustryCoherence's exact shape (recency-weighted plurality
+// share) but keyed on per-role function family instead of industry — a
+// candidate whose roles cluster tightly in one function reads as coherent;
+// one who bounces between unrelated functions with no recent throughline
+// reads as inconsistent. Roles the keyword classifier can't place are
+// simply excluded, never treated as a mismatch.
+function scoreFunctionTrackConsistency(facts: ResumeAnalysisFacts): { score: number; findings: Finding[] } {
+  const classified = facts.roles
+    .filter((r) => !r.isInternship)
+    .map((r) => ({ role: r, family: classifyRoleFunctionFamily(r.title) }))
+    .filter((x): x is { role: ResumeAnalysisFacts['roles'][number]; family: FunctionFamily } => x.family !== null)
+
+  if (classified.length < 2) {
+    return { score: 60, findings: [] } // not enough data to measure coherence one way or the other
+  }
+
+  const now = Date.now()
+  const weightByFamily = new Map<FunctionFamily, number>()
+  let totalWeight = 0
+  for (const { role, family } of classified) {
+    const yearsAgo = role.startDate ? (now - new Date(role.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365) : 5
+    const weight = yearsAgo <= 3 ? 1 : yearsAgo <= 8 ? 0.5 : 0.2
+    weightByFamily.set(family, (weightByFamily.get(family) ?? 0) + weight)
+    totalWeight += weight
+  }
+
+  const pluralityWeight = Math.max(...weightByFamily.values())
+  const pluralityShare = totalWeight > 0 ? pluralityWeight / totalWeight : 1
+  const distinctFamilies = weightByFamily.size
+
+  const score = distinctFamilies === 1 ? 95 : 40 + pluralityShare * 55
+
+  const findings: Finding[] = []
+  if (distinctFamilies > 1 && pluralityShare < 0.6) {
+    findings.push({
+      severity: 'MEDIUM',
+      candidateFacingCopy: 'Your roles span several different job functions without a clear recent throughline.',
+      fix: 'If this reflects a deliberate pivot, make the throughline explicit in your summary; otherwise, lead with the function you\'re targeting next.',
+      estimatedPointGain: 5,
+      issueCode: 'inconsistent_job_function',
+    })
+  }
+
+  return { score: clamp(score), findings }
+}
+
 // ── 4.8 Mechanics & Presentation — 10 ─────────────────────────────────────
 // Holistic score from extraction; itemized mechanicsIssues become findings.
 function scoreMechanicsPresentation(facts: ResumeAnalysisFacts): { score: number; findings: Finding[] } {
@@ -396,6 +521,8 @@ export function computeAllDimensions(
     industryCoherence: scoreIndustryCoherence(facts),
     skillCurrency: scoreSkillCurrency(facts),
     contactability: scoreContactability(facts),
+    employmentGaps: scoreEmploymentGaps(facts),
+    functionTrackConsistency: scoreFunctionTrackConsistency(facts),
   }
 
   const scores = Object.fromEntries(

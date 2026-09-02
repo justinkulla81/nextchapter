@@ -111,7 +111,7 @@ const LEVEL_KEYWORDS: { level: (typeof HIGHEST_LEVEL_OPTIONS)[number]; keywords:
 //
 // Rewrites the qualifier phrase instead of dropping the word, so a title
 // like "Business Partner Analyst" still infers its function normally.
-const STAFF_PARTNER_QUALIFIERS = [
+export const STAFF_PARTNER_QUALIFIERS = [
   'business',
   'hr',
   'human resources',
@@ -167,6 +167,33 @@ const PRINCIPAL_IC_QUALIFIER = /\bprincipal\s+(engineer|scientist|architect|deve
 // match above, understating what's genuinely an executive/governance-level
 // role and dragging down their whole career-seniority signal).
 const BOARD_QUALIFIER = /\bboard\s+(director|member|advisor|adviser)\b/
+
+// A bare "Partner" ("Partner", "Managing Partner", "General Partner" —
+// anything that survives neutralizeStaffPartnerPhrase's staff-qualifier
+// filtering) is genuinely ambiguous seniority: it can mean a junior
+// associate track (many law/advisory firms) or true C-suite-equivalent
+// firm-equity standing, and title text alone can't tell them apart.
+// inferLevelFromTitle's default (treat it as C-Suite) stays the right
+// answer for the many context-free callers of that function (job postings,
+// rejection-trend analysis) that have no candidate history to disambiguate
+// against — this predicate exists so the few callers that DO have real
+// context (level-rank-service.ts, resume-analysis/seniority-band.ts) can
+// recognize the ambiguous case and resolve it with years/company/prior-title
+// signal instead of trusting the bare word. False for any title carrying an
+// unambiguous senior signal (an explicit "Chief ___"/"President" phrase, or
+// a C-suite acronym) alongside "partner," since that title isn't actually
+// ambiguous.
+const BARE_PARTNER_PATTERN = /\bpartner\b/
+const UNAMBIGUOUS_CSUITE_PHRASE_PATTERN =
+  /\b(chief executive|chief operating|chief financial|chief technology|chief marketing|chief product|chief people|chief revenue|chief legal|president)\b/
+
+export function isAmbiguousPartnerTitle(title: string): boolean {
+  const lower = neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))
+  if (!BARE_PARTNER_PATTERN.test(lower)) return false
+  if (EXEC_ACRONYM_PATTERN.test(lower)) return false
+  if (UNAMBIGUOUS_CSUITE_PHRASE_PATTERN.test(lower)) return false
+  return true
+}
 
 export function inferLevelFromTitle(title: string): string {
   const lower = ` ${neutralizeStaffPartnerPhrase(stripExecutiveOfficePhrase(title.toLowerCase()))} `

@@ -15,7 +15,7 @@
 // always return zero and making those gates trivially true.
 import { describe, it, expect, vi } from 'vitest'
 import { computeAllDimensions, type DimensionContext } from '@/lib/scoring/resume-analysis/dimensions'
-import { computeReconciliation, computeExtracurricular, computeResumePrestige } from '@/lib/scoring/resume-analysis/modifiers'
+import { computeReconciliation, computeExtracurricular, computeResumePrestige, computeExperienceTrajectoryBonus } from '@/lib/scoring/resume-analysis/modifiers'
 import { detectSeniorityBand } from '@/lib/scoring/resume-analysis/seniority-band'
 import { detectFunctionFamily } from '@/lib/scoring/resume-analysis/function-family'
 import { getExperienceDimensionWeights, getResumeDimensionWeights } from '@/lib/scoring/resume-analysis/weights'
@@ -85,6 +85,7 @@ interface FullResult {
   prestigeBonus: number
   reconciliationPenalty: number
   extracurricularBonus: number
+  experienceTrajectoryBonus: number
   selfCheckPassed: boolean
   selfCheckErrors: string[]
 }
@@ -100,12 +101,16 @@ async function computeFull(facts: ResumeAnalysisFacts, targetRoleType: string | 
   const prestige = await computeResumePrestige(facts)
   const reconciliation = computeReconciliation(facts)
   const extracurricular = computeExtracurricular(facts, band)
+  const trajectory = computeExperienceTrajectoryBonus(facts)
 
   const experienceSubtotal = Object.entries(experienceWeights).reduce(
     (sum, [key, weight]) => sum + (dimensionScores[key as keyof typeof dimensionScores] * weight) / 100,
     0
   )
-  const experienceScore = Math.max(0, Math.min(100, Math.round(experienceSubtotal + extracurricular.bonus)))
+  const experienceScore = Math.max(
+    0,
+    Math.min(100, Math.round(experienceSubtotal + extracurricular.bonus + trajectory.bonus))
+  )
   const experienceBand = scoreToExperienceBand(experienceScore)
 
   const resumeSubtotal = Object.entries(resumeWeights).reduce(
@@ -120,6 +125,7 @@ async function computeFull(facts: ResumeAnalysisFacts, targetRoleType: string | 
     experienceWeights,
     resumeWeights,
     extracurricularBonus: extracurricular.bonus,
+    experienceTrajectoryBonus: trajectory.bonus,
     prestigeBonus: prestige.resumeGradeBonus,
     reconciliationPenalty: reconciliation.penalty,
     experienceScore,
@@ -142,6 +148,7 @@ async function computeFull(facts: ResumeAnalysisFacts, targetRoleType: string | 
     prestigeBonus: prestige.resumeGradeBonus,
     reconciliationPenalty: reconciliation.penalty,
     extracurricularBonus: extracurricular.bonus,
+    experienceTrajectoryBonus: trajectory.bonus,
     selfCheckPassed: selfCheck.passed,
     selfCheckErrors: selfCheck.errors,
   }

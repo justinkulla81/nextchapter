@@ -23,11 +23,12 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { scoreToGrade, type Grade } from '@/lib/scoring/grade'
+import type { Grade } from '@/lib/scoring/grade'
 import { getComponentWeights, type WeightedComponent } from './composite-weights.config'
+import { blendAndCap, type MarketRealityComponent } from './blend'
 import type { SeniorityBand } from '../resume-analysis/types'
 
-export type MarketRealityComponent = WeightedComponent | 'MARKET'
+export type { MarketRealityComponent }
 
 export interface MarketRealityComposite {
   compositeScore: number
@@ -40,21 +41,12 @@ export interface MarketRealityComposite {
   cappedByMarket: boolean
 }
 
-function clamp(n: number): number {
-  return Math.max(0, Math.min(100, Math.round(n)))
-}
-
-const GRADE_ORDER: Grade[] = ['F', 'D', 'C', 'B', 'A']
-const GRADE_MAX_SCORE: Record<Grade, number> = { F: 19, D: 39, C: 74, B: 89, A: 100 }
-
-function oneGradeAbove(grade: Grade): Grade {
-  const idx = GRADE_ORDER.indexOf(grade)
-  return GRADE_ORDER[Math.min(GRADE_ORDER.length - 1, idx + 1)]
-}
-
 // Computes and persists the composite from whatever component scores are
 // already on the row (does NOT recompute the components themselves — call
-// the Phase 2/3 compute functions first).
+// the Phase 2/3 compute functions first). The actual blend-and-market-cap
+// math lives in blend.ts, the single source of truth for the market-cap
+// boundary table (see that file's header comment for why it's a separate,
+// dependency-free module rather than living here).
 export async function computeMarketRealityCompositeGrade(candidateId: string): Promise<MarketRealityComposite | null> {
   const [row, latestResumeAnalysis] = await Promise.all([
     prisma.marketRealityComponentScore.findUnique({ where: { candidateId } }),
@@ -72,29 +64,11 @@ export async function computeMarketRealityCompositeGrade(candidateId: string): P
     RESUME: row.resumeScore,
   }
 
+  const blended = blendAndCap(allScores, weights, row.marketScore)
+  if (!blended) return null // nothing measured yet at all — never grade off zeros
+  const { compositeScore, grade, cappedByMarket } = blended
+
   const measured = (Object.keys(allScores) as WeightedComponent[]).filter((key) => allScores[key] !== null)
-  if (measured.length === 0) return null // nothing measured yet at all — never grade off zeros
-
-  const totalWeight = measured.reduce((sum, key) => sum + weights[key], 0)
-  const weightedSum = measured.reduce((sum, key) => sum + (allScores[key] as number) * weights[key], 0)
-  let compositeScore = clamp(weightedSum / totalWeight)
-
-  // Market cap (§3.5) — the composite grade may never exceed Market's own
-  // band by more than one. Cap the SCORE, not just the displayed grade, so
-  // the two can never drift apart (the exact class of bug §8's self-check
-  // requirement exists to catch).
-  let cappedByMarket = false
-  if (row.marketScore !== null) {
-    const marketGrade = scoreToGrade(row.marketScore)
-    const maxAllowedScore = GRADE_MAX_SCORE[oneGradeAbove(marketGrade)]
-    if (compositeScore > maxAllowedScore) {
-      compositeScore = maxAllowedScore
-      cappedByMarket = true
-    }
-  }
-
-  const grade = scoreToGrade(compositeScore)
-
   const strongestComponent = measured.reduce((best, key) =>
     (allScores[key] as number) > (allScores[best] as number) ? key : best
   )

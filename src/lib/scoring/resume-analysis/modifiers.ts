@@ -6,17 +6,22 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { inferLevelFromTitle, isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { SeniorityBand } from './types'
 import type { IssueCode } from '@/lib/analytics/issue-taxonomy'
 
-// ── Prestige (spec §4.13) — 0 to +6 on the Record composite, 0 to +10 on
-// First Glance. Never negative, never displayed, logged to PrestigeAudit.
-// Reuses the same admin-curated EliteInstitution/PrestigeEmployer tables as
-// the legacy six-category system's pedigree-bonus.ts, via new matching
-// logic that rescales to this spec's caps and applies recency decay (the
-// legacy bonus doesn't decay).
-const RESUME_GRADE_PRESTIGE_CAP = 6
+// ── Prestige (spec §4.13) — 0 to +10 on the Record composite (raised from 6
+// as part of the Market Reality Grade recalibration: elite-pedigree
+// candidates need real headroom to reach an A), 0 to +10 on First Glance.
+// Never negative, never displayed, logged to PrestigeAudit. Reuses the same
+// admin-curated EliteInstitution/PrestigeEmployer tables as the legacy
+// six-category system's pedigree-bonus.ts, via new matching logic that
+// rescales to this spec's caps and applies recency decay (the legacy bonus
+// doesn't decay). NOTE: self-check.ts's band-shift tolerance and cap-range
+// check are tuned to this constant — update both together if this changes
+// again.
+const RESUME_GRADE_PRESTIGE_CAP = 10
 const FIRST_GLANCE_PRESTIGE_CAP = 10
 const RAW_INSTITUTION_POINTS = 8
 const RAW_EMPLOYER_POINTS = 8
@@ -168,4 +173,82 @@ export function computeExtracurricular(facts: ResumeAnalysisFacts, band: Seniori
     raw += points * decay
   }
   return { bonus: Math.min(3, Math.round(raw)), count: facts.extracurricular.filter((e) => e.kind !== 'GENERIC_VOLUNTEER').length }
+}
+
+// ── Experience Trajectory Bonus (promotion velocity) — NEW, Market Reality
+// Grade recalibration. Not a straight import of the legacy pedigree-bonus.ts
+// computePromotionVelocity(): that function reads WorkHistoryEntry[] (a
+// separate, self-reported data model) — this re-implements the same
+// level-jumps-per-year idea directly against facts.roles, the resume-
+// analysis-native data source. Additive-only, applies to Experience (unlike
+// prestige/reconciliation, which apply to Resume) — this is the real lever
+// for rewarding a fast-climbing senior candidate with an A, since Experience
+// carries 56-80% of the composite weight depending on band, well above
+// prestige's Resume-side leverage. Distinct from (and deliberately allowed
+// to double-credit alongside) the existing scoreTrajectory dimension, which
+// measures scope-magnitude direction, not title-rank climb speed — a
+// candidate who is unambiguously strong on both is meant to be rewarded
+// twice for two different pieces of real evidence.
+const EXPERIENCE_TRAJECTORY_CAP = 8
+const LEVEL_ORDINAL: Record<string, number> = { IC: 0, Manager: 1, Director: 2, VP: 3, 'C-Suite': 4 }
+
+// Same ambiguous-bare-Partner guard level-rank-service.ts applies at its own
+// real call site — without it, a mid-career "Partner" title could register
+// as a fake jump straight to C-Suite and hand out an undeserved bonus.
+function resolveRoleLevelForTrajectory(
+  role: ResumeAnalysisFacts['roles'][number],
+  priorRoles: ResumeAnalysisFacts['roles'][number][],
+  yearsElapsedAtRole: number
+): string {
+  const inferred = inferLevelFromTitle(role.title)
+  if (inferred !== 'C-Suite' || !isAmbiguousPartnerTitle(role.title)) return inferred
+  const priorUnambiguousSenior = priorRoles.some((r) => {
+    if (isAmbiguousPartnerTitle(r.title)) return false
+    const level = inferLevelFromTitle(r.title)
+    return level === 'VP' || level === 'C-Suite'
+  })
+  if (yearsElapsedAtRole >= 15 || priorUnambiguousSenior) return 'C-Suite'
+  return 'Director'
+}
+
+export interface ExperienceTrajectoryBonus {
+  bonus: number
+  levelJumps: number
+  yearsSpanned: number
+}
+
+export function computeExperienceTrajectoryBonus(facts: ResumeAnalysisFacts): ExperienceTrajectoryBonus {
+  const sorted = facts.roles
+    .filter((r) => r.startDate && !r.isInternship)
+    .sort((a, b) => new Date(a.startDate as string).getTime() - new Date(b.startDate as string).getTime())
+
+  if (sorted.length < 2) return { bonus: 0, levelJumps: 0, yearsSpanned: 0 }
+
+  const earliestStart = new Date(sorted[0].startDate as string).getTime()
+  const yearsElapsedAt = (role: ResumeAnalysisFacts['roles'][number]) =>
+    (new Date(role.startDate as string).getTime() - earliestStart) / (1000 * 60 * 60 * 24 * 365)
+
+  let levelJumps = 0
+  let highestOrdinalSoFar = 0
+  for (const role of sorted) {
+    const priorRoles = sorted.filter((r) => new Date(r.startDate as string).getTime() < new Date(role.startDate as string).getTime())
+    const level = resolveRoleLevelForTrajectory(role, priorRoles, yearsElapsedAt(role))
+    const ordinal = LEVEL_ORDINAL[level] ?? 0
+    if (ordinal > highestOrdinalSoFar) {
+      levelJumps += ordinal - highestOrdinalSoFar
+      highestOrdinalSoFar = ordinal
+    }
+  }
+
+  const lastStart = new Date(sorted[sorted.length - 1].startDate as string).getTime()
+  const yearsSpanned = Math.max(1, (lastStart - earliestStart) / (1000 * 60 * 60 * 24 * 365))
+  const jumpsPerYear = levelJumps / yearsSpanned
+
+  // First-pass scale, not fit to real usage data (same caveat grade.ts's own
+  // cutoffs carry): a candidate climbing roughly one full level every 3
+  // years (jumpsPerYear ~0.33) lands near the cap; someone with no climb at
+  // all gets zero.
+  const bonus = Math.max(0, Math.min(EXPERIENCE_TRAJECTORY_CAP, Math.round(jumpsPerYear * 24)))
+
+  return { bonus, levelJumps, yearsSpanned }
 }

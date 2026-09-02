@@ -6,6 +6,7 @@
 
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { SeniorityBand } from './types'
+import { isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
 
 const EXECUTIVE_TITLE_PATTERN = /\b(chief|ceo|coo|cfo|cto|cmo|chro|president|evp|executive vice president|svp|senior vice president)\b/i
 const SENIOR_TITLE_PATTERN = /\b(vp|vice president|director|head of|senior director)\b/i
@@ -45,6 +46,15 @@ export function detectSeniorityBand(facts: ResumeAnalysisFacts): SeniorityBand {
   if (EXECUTIVE_TITLE_PATTERN.test(titleText)) titleScore = 3
   else if (SENIOR_TITLE_PATTERN.test(titleText)) titleScore = 2
   else if (MID_TITLE_PATTERN.test(titleText)) titleScore = 1
+  // A bare "Partner" title matches none of the three patterns above (real
+  // bug, fixed here per the Market Reality Grade recalibration): without
+  // this, a genuine 20-year Partner with no stated budget/headcount number
+  // fell all the way to titleScore=0, dragging a senior candidate down to
+  // MID band since years-of-experience alone (weighted 1x against title's
+  // 2x below) can't fully compensate. Default it to the same SENIOR-tier
+  // score SENIOR_TITLE_PATTERN gets — scope and years still modulate the
+  // final band up or down from there via the existing logic below.
+  else if (isAmbiguousPartnerTitle(titleText)) titleScore = 2
 
   let scopeScore = 0
   if (maxScope >= 500_000_000) scopeScore = 3

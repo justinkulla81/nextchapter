@@ -3157,6 +3157,15 @@ model MarketDifficultySnapshot {
   targetRoleQuery String // normalized, same convention as MarketConditionsSnapshot.roleQuery
   location        String
   postingCount    Int
+  // Industry-narrowed count (role + industry + geo) for the same
+  // candidate+week, from getMarketConditions's adzunaIdealCount — null
+  // until a candidate has both a location and a stated target industry.
+  // Added for the Market Reality Grade recalibration's industry-narrowed
+  // market-size penalty (market.ts's industryLeg) — no new unique key
+  // needed since the industry is implicit in the candidate's own
+  // targetIndustries[0] at snapshot time, same convention postingCount
+  // already uses for role/geo.
+  idealPostingCount Int?
   weekOf          DateTime // Monday of the week this snapshot represents
 
   createdAt DateTime @default(now())

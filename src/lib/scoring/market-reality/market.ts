@@ -23,6 +23,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getMarketConditions } from '@/lib/market'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
+import { buildMarketRoleQuery } from '@/lib/jobs/level-groups'
 import type { ComponentComputation } from './types'
 
 interface MarketLeg {
@@ -92,14 +93,20 @@ async function geographyLeg(candidateId: string, candidate: {
   currentCity: string | null
   currentState: string | null
 }): Promise<MarketLeg> {
+  const { roleType, levelGroup, whatExclude } = buildMarketRoleQuery(candidate.targetRoleType, candidate.primaryFunction)
   const conditions = await getMarketConditions({
-    roleType: candidate.targetRoleType,
+    roleType,
     primaryFunction: candidate.primaryFunction,
     city: candidate.currentCity,
     state: candidate.currentState,
+    levelGroup,
+    whatExclude,
   })
 
-  const targetRoleQuery = normalize(candidate.targetRoleType) || normalize(candidate.primaryFunction) || 'general'
+  const targetRoleQuery =
+    (normalize(roleType) || normalize(candidate.primaryFunction) || 'general') +
+    (levelGroup ? `__${levelGroup}` : '') +
+    (whatExclude ? '__excl' : '')
   const location = candidate.currentCity
     ? `${normalize(candidate.currentCity)}, ${normalize(candidate.currentState)}`
     : normalize(candidate.currentState) || 'us'
@@ -148,6 +155,85 @@ async function geographyLeg(candidateId: string, candidate: {
   return { score, drivers }
 }
 
+// Industry-narrowed leg — Market Reality Grade recalibration: the user
+// asked for "small size of their target industry/function" to penalize
+// specifically, and the codebase already computes exactly this number
+// (getMarketConditions's adzunaIdealCount, role+industry+geo) — it was just
+// never read into the Market score, only used in the market-digest email.
+// Only contributes when the candidate has a stated target industry; a
+// candidate with no target industry gets no leg here at all rather than a
+// fabricated neutral one.
+async function industryLeg(candidateId: string, candidate: {
+  targetRoleType: string | null
+  primaryFunction: string | null
+  currentCity: string | null
+  currentState: string | null
+  targetIndustries: string[]
+}): Promise<MarketLeg | null> {
+  const targetIndustry = candidate.targetIndustries[0]
+  if (!targetIndustry) return null
+
+  const { roleType, levelGroup, whatExclude } = buildMarketRoleQuery(candidate.targetRoleType, candidate.primaryFunction)
+  const conditions = await getMarketConditions({
+    roleType,
+    primaryFunction: candidate.primaryFunction,
+    city: candidate.currentCity,
+    state: candidate.currentState,
+    targetIndustries: candidate.targetIndustries,
+    levelGroup,
+    whatExclude,
+  })
+
+  // Must match geographyLeg's own targetRoleQuery exactly (level-group/
+  // exclude suffixes included) — this leg's history lookup below depends
+  // on it, since both legs read/write the same weekly MarketDifficultySnapshot row.
+  const targetRoleQuery =
+    (normalize(roleType) || normalize(candidate.primaryFunction) || 'general') +
+    (levelGroup ? `__${levelGroup}` : '') +
+    (whatExclude ? '__excl' : '')
+  const location = candidate.currentCity
+    ? `${normalize(candidate.currentCity)}, ${normalize(candidate.currentState)}`
+    : normalize(candidate.currentState) || 'us'
+  const weekOf = getMondayOfWeek(new Date())
+
+  if (conditions.dataAvailable && conditions.adzunaIdealCount !== null) {
+    // updateMany, never upsert — this leg has no general postingCount value
+    // to satisfy that column's NOT NULL constraint on a fresh row, so it
+    // only ever updates the row geographyLeg's own upsert already created
+    // for this candidate+week (geographyLeg runs first in
+    // computeMarketComponent below). Updates zero rows harmlessly if that
+    // hasn't happened yet this week.
+    await prisma.marketDifficultySnapshot.updateMany({
+      where: { candidateId, weekOf },
+      data: { idealPostingCount: conditions.adzunaIdealCount },
+    })
+  }
+
+  const history = await prisma.marketDifficultySnapshot.findMany({
+    where: { candidateId, targetRoleQuery, location, idealPostingCount: { not: null } },
+    orderBy: { weekOf: 'desc' },
+    take: TRAILING_WEEKS,
+  })
+
+  if (history.length === 0) {
+    return {
+      score: 50,
+      drivers: [`Not enough market data yet to estimate role scarcity within ${targetIndustry} specifically — check back in a few days.`],
+    }
+  }
+
+  const smoothedCount = Math.round(
+    history.reduce((sum, h) => sum + (h.idealPostingCount as number), 0) / history.length
+  )
+  const score = postingCountToScore(smoothedCount)
+  const roleLabel = candidate.targetRoleType || candidate.primaryFunction || 'this target'
+
+  return {
+    score,
+    drivers: [`Roughly ${smoothedCount} open roles matching "${roleLabel}" specifically within ${targetIndustry} right now.`],
+  }
+}
+
 export async function computeMarketComponent(candidateId: string): Promise<ComponentComputation> {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
@@ -159,13 +245,21 @@ export async function computeMarketComponent(candidateId: string): Promise<Compo
       workAuthorization: true,
       targetCompMin: true,
       compFlexible: true,
+      targetIndustries: true,
     },
   })
+
+  // geographyLeg runs before industryLeg — its upsert is what creates this
+  // week's MarketDifficultySnapshot row, which industryLeg's updateMany
+  // depends on already existing.
+  const geography = await geographyLeg(candidateId, candidate)
+  const industry = await industryLeg(candidateId, candidate)
 
   const legs = [
     workAuthorizationLeg(candidate.workAuthorization),
     compFloorLeg(candidate.targetCompMin, candidate.compFlexible),
-    await geographyLeg(candidateId, candidate),
+    geography,
+    ...(industry ? [industry] : []),
   ]
 
   // Take the worst leg, never blend — §3.5: the three constraints differ

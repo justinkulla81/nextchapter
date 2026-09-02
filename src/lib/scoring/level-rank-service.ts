@@ -2,7 +2,7 @@ import 'server-only'
 import type { CandidateProfile, WorkHistoryEntry } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
-import { inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { inferLevelFromTitle, isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { calibratedLevelRank, scoreToLevelRankLabel } from '@/lib/scoring/level-rank'
 
@@ -43,6 +43,28 @@ function tenureWeight(entry: WorkHistoryEntry, now: Date): number {
   return Math.min(TENURE_WEIGHT_CAP, Math.max(TENURE_WEIGHT_FLOOR, tenureMonths / 12))
 }
 
+// A bare "Partner" title is genuinely ambiguous (see isAmbiguousPartnerTitle's
+// own comment) — inferLevelFromTitle's context-free default of C-Suite is
+// wrong often enough here that it's worth resolving properly, since this is
+// the one call site with real candidate history to resolve it against.
+// Below this years-in-career bar, and with no earlier role that already
+// resolved to VP/C-Suite via an unambiguous keyword, a bare Partner title
+// reads as Director-equivalent rather than C-Suite.
+const AMBIGUOUS_PARTNER_YEARS_THRESHOLD = 15
+
+function resolveAmbiguousPartnerLevel(entry: WorkHistoryEntry, entriesSortedAsc: WorkHistoryEntry[]): string {
+  const yearsUpToRole = (entry.startDate.getTime() - entriesSortedAsc[0].startDate.getTime()) / MS_PER_YEAR
+  const priorUnambiguousSenior = entriesSortedAsc
+    .filter((e) => e.startDate.getTime() < entry.startDate.getTime())
+    .some((e) => {
+      if (isAmbiguousPartnerTitle(e.roleTitle)) return false // an earlier ambiguous Partner can't corroborate this one
+      const level = inferLevelFromTitle(e.roleTitle)
+      return level === 'VP' || level === 'C-Suite'
+    })
+  if (yearsUpToRole >= AMBIGUOUS_PARTNER_YEARS_THRESHOLD || priorUnambiguousSenior) return 'C-Suite'
+  return 'Director'
+}
+
 // Blends a candidate's work history into a single calibrated score: each
 // qualifying entry's title-derived level is adjusted by its company's
 // resolved size band, then weighted by recency (5-year half-life) and
@@ -65,15 +87,22 @@ async function computeLevelRankLive(
   }
 
   const now = new Date()
+  const entriesSortedAsc = [...entries].sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
   const mostRecentId = [...entries].sort((a, b) => b.startDate.getTime() - a.startDate.getTime())[0].id
 
   let weightedSum = 0
   let totalWeight = 0
   for (const entry of entries) {
-    const entryLevel =
-      entry.id === mostRecentId && candidate.highestLevelReached
-        ? candidate.highestLevelReached
-        : inferLevelFromTitle(entry.roleTitle)
+    let entryLevel: string
+    if (entry.id === mostRecentId && candidate.highestLevelReached) {
+      entryLevel = candidate.highestLevelReached
+    } else {
+      const inferred = inferLevelFromTitle(entry.roleTitle)
+      entryLevel =
+        inferred === 'C-Suite' && isAmbiguousPartnerTitle(entry.roleTitle)
+          ? resolveAmbiguousPartnerLevel(entry, entriesSortedAsc)
+          : inferred
+    }
     const { band } = await resolveCompanySizeBand(entry.companyName)
     const entryScore = calibratedLevelRank(entryLevel, band)
     if (entryScore === null) continue

@@ -21,6 +21,16 @@ export interface MarketConditionsInput {
   // count keep compiling unchanged — omitting this simply means no
   // ideal-count query runs (adzunaIdealCount comes back null, not zero).
   targetIndustries?: string[]
+  // Level-synonym breadth for the Adzuna query (level-groups.ts) — optional,
+  // same backward-compatible convention as targetIndustries above. Omitting
+  // this preserves every existing caller's exact current behavior; only
+  // market.ts (Market Reality Grade) passes it today.
+  levelGroup?: 'SENIOR_LEADERSHIP' | 'DIRECTOR' | 'MANAGER' | null
+  // Words to exclude from the title match — used for a bare ambiguous
+  // level word like "Partner" (level-groups.ts), to filter out staff-
+  // qualified variants a plain title-only search can't otherwise tell
+  // apart from a genuine senior title.
+  whatExclude?: string[]
 }
 
 export interface MarketConditions {

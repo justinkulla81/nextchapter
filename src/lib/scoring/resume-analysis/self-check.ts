@@ -19,6 +19,7 @@ export interface SelfCheckInput {
   experienceWeights: Record<string, number>
   resumeWeights: Record<string, number>
   extracurricularBonus: number
+  experienceTrajectoryBonus: number
   prestigeBonus: number
   reconciliationPenalty: number
   experienceScore: number
@@ -54,11 +55,16 @@ export function selfCheckResumeAnalysis(input: SelfCheckInput): SelfCheckResult 
 
   // Modifier caps — spec §3.2/§3.3/§4.12, non-negotiable. Prestige and
   // reconciliation apply to Resume only (Master Build Script §3.1/§9);
-  // extracurricular/governance applies to Experience only (§9 doesn't name
-  // a component for it — assigned here since board seats/associations are
-  // career facts, not document properties).
-  if (input.prestigeBonus < 0 || input.prestigeBonus > 6) {
-    errors.push(`Prestige bonus out of cap: ${input.prestigeBonus} (must be 0-6)`)
+  // extracurricular/governance and experience-trajectory (promotion
+  // velocity) apply to Experience only (§9 doesn't name a component for
+  // extracurricular — assigned here since board seats/associations are
+  // career facts, not document properties; trajectory bonus follows the
+  // same logic — it's about the career, not the document). Cap literals
+  // below are hand-kept in sync with modifiers.ts's
+  // RESUME_GRADE_PRESTIGE_CAP/EXPERIENCE_TRAJECTORY_CAP constants, same
+  // convention this file already uses for the other two caps.
+  if (input.prestigeBonus < 0 || input.prestigeBonus > 10) {
+    errors.push(`Prestige bonus out of cap: ${input.prestigeBonus} (must be 0-10)`)
   }
   if (input.reconciliationPenalty > 0 || input.reconciliationPenalty < -12) {
     errors.push(`Reconciliation penalty out of cap: ${input.reconciliationPenalty} (must be -12-0)`)
@@ -66,12 +72,19 @@ export function selfCheckResumeAnalysis(input: SelfCheckInput): SelfCheckResult 
   if (input.extracurricularBonus < 0 || input.extracurricularBonus > 3) {
     errors.push(`Extracurricular bonus out of cap: ${input.extracurricularBonus} (must be 0-3)`)
   }
+  if (input.experienceTrajectoryBonus < 0 || input.experienceTrajectoryBonus > 8) {
+    errors.push(`Experience trajectory bonus out of cap: ${input.experienceTrajectoryBonus} (must be 0-8)`)
+  }
 
-  // Experience composite = weighted subtotal + extracurricular bonus only.
+  // Experience composite = weighted subtotal + extracurricular bonus +
+  // experience trajectory (promotion velocity) bonus.
   const experienceSubtotal = weightedSubtotal(input.dimensionScores, input.experienceWeights)
-  const expectedExperience = Math.max(0, Math.min(100, Math.round(experienceSubtotal + input.extracurricularBonus)))
+  const expectedExperience = Math.max(
+    0,
+    Math.min(100, Math.round(experienceSubtotal + input.extracurricularBonus + input.experienceTrajectoryBonus))
+  )
   if (Math.abs(expectedExperience - input.experienceScore) > EPSILON) {
-    errors.push(`Experience score ${input.experienceScore} does not match expected ${expectedExperience} from weighted dimensions + extracurricular bonus`)
+    errors.push(`Experience score ${input.experienceScore} does not match expected ${expectedExperience} from weighted dimensions + extracurricular + trajectory bonus`)
   }
   const expectedExperienceBand = scoreToExperienceBand(input.experienceScore)
   if (expectedExperienceBand !== input.experienceBand) {
@@ -92,14 +105,28 @@ export function selfCheckResumeAnalysis(input: SelfCheckInput): SelfCheckResult 
     errors.push(`Resume band ${input.resumeBand} does not match score ${input.resumeScore} (expected ${expectedResumeBand})`)
   }
 
-  // The prestige cap can move Resume's band at most one step on its own
-  // (spec §3.2) — check by re-deriving the band with prestige zeroed.
+  // The prestige cap can move Resume's band at most two steps on its own
+  // (widened from one step when RESUME_GRADE_PRESTIGE_CAP grew from 6 to 10
+  // for the Market Reality Grade recalibration — a bare one-step tolerance
+  // at the old cap would fail closed on exactly the elite candidates the
+  // wider cap exists to reward) — check by re-deriving the band with
+  // prestige zeroed.
   const resumeWithoutPrestige = Math.max(0, Math.min(100, Math.round(resumeSubtotal + input.reconciliationPenalty)))
-  const bandOrder: ResumeBand[] = ['F', 'D', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A']
-  const bandIndex = (b: ResumeBand) => bandOrder.indexOf(b)
+  const resumeBandOrder: ResumeBand[] = ['F', 'D', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A']
+  const resumeBandIndex = (b: ResumeBand) => resumeBandOrder.indexOf(b)
   const bandWithoutPrestige = scoreToResumeBand(resumeWithoutPrestige)
-  if (Math.abs(bandIndex(expectedResumeBand) - bandIndex(bandWithoutPrestige)) > 1) {
-    errors.push(`Prestige bonus moved the Resume band by more than one step (${bandWithoutPrestige} -> ${expectedResumeBand})`)
+  if (Math.abs(resumeBandIndex(expectedResumeBand) - resumeBandIndex(bandWithoutPrestige)) > 2) {
+    errors.push(`Prestige bonus moved the Resume band by more than two steps (${bandWithoutPrestige} -> ${expectedResumeBand})`)
+  }
+
+  // Same invariant, mirrored for the new experience-trajectory (promotion
+  // velocity) bonus's effect on the Experience band.
+  const experienceWithoutTrajectory = Math.max(0, Math.min(100, Math.round(experienceSubtotal + input.extracurricularBonus)))
+  const experienceBandOrder: ExperienceBand[] = ['F', 'D', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A']
+  const experienceBandIndex = (b: ExperienceBand) => experienceBandOrder.indexOf(b)
+  const experienceBandWithoutTrajectory = scoreToExperienceBand(experienceWithoutTrajectory)
+  if (Math.abs(experienceBandIndex(expectedExperienceBand) - experienceBandIndex(experienceBandWithoutTrajectory)) > 2) {
+    errors.push(`Experience trajectory bonus moved the Experience band by more than two steps (${experienceBandWithoutTrajectory} -> ${expectedExperienceBand})`)
   }
 
   if (input.firstGlanceScore !== null && (input.firstGlanceScore < 0 || input.firstGlanceScore > 100)) {

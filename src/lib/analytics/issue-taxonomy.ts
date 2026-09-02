@@ -149,6 +149,10 @@ export type IssueCode =
   | 'stagnation'
   | 'title_inflation'
   | 'portfolio_career_read'
+  // NEW — Market Reality Grade recalibration: functionTrackConsistency (a
+  // new dimensions.ts dimension) has no existing code to reuse, unlike
+  // employmentGaps, which reuses unexplained_gap/current_gap above.
+  | 'inconsistent_job_function'
 
   // structure
   | 'buried_lede' // not yet triggered — no push-site produces this today
@@ -371,6 +375,10 @@ export const ISSUE_TAXONOMY: Record<IssueCode, IssueTaxonomyEntry> = {
   portfolio_career_read: {
     code: 'portfolio_career_read', category: 'reviewer_question', severity: 'low', dimension: 'your_experience',
     typicalPointImpact: 3, fixableIn: 'minutes', candidateFacingLabel: 'Reads as a portfolio-style career',
+  },
+  inconsistent_job_function: {
+    code: 'inconsistent_job_function', category: 'reviewer_question', severity: 'medium', dimension: 'your_experience',
+    typicalPointImpact: 5, fixableIn: 'minutes', candidateFacingLabel: 'Roles span several job functions without a clear throughline',
   },
 
   // structure

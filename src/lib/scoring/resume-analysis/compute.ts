@@ -18,7 +18,7 @@ import { detectSeniorityBand } from './seniority-band'
 import { detectFunctionFamily } from './function-family'
 import { getExperienceDimensionWeights, getResumeDimensionWeights } from './weights'
 import { computeAllDimensions } from './dimensions'
-import { computeResumePrestige, computeReconciliation, computeExtracurricular } from './modifiers'
+import { computeResumePrestige, computeReconciliation, computeExtracurricular, computeExperienceTrajectoryBonus } from './modifiers'
 import { computeFirstGlance } from './first-glance'
 import { detectReviewerQuestions } from './reviewer-questions'
 import { simulateAtsCompatibility } from './ats-matrix'
@@ -60,11 +60,15 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
   const prestige = await computeResumePrestige(facts)
   const reconciliation = computeReconciliation(facts)
   const extracurricular = computeExtracurricular(facts, band)
+  const trajectoryBonus = computeExperienceTrajectoryBonus(facts)
 
   const experienceSubtotal = Object.entries(experienceWeights).reduce((sum, [key, weight]) => {
     return sum + (dimensionScores[key as keyof typeof dimensionScores] * weight) / 100
   }, 0)
-  const experienceScore = Math.max(0, Math.min(100, Math.round(experienceSubtotal + extracurricular.bonus)))
+  const experienceScore = Math.max(
+    0,
+    Math.min(100, Math.round(experienceSubtotal + extracurricular.bonus + trajectoryBonus.bonus))
+  )
   const experienceBand = scoreToExperienceBand(experienceScore)
 
   const resumeSubtotal = Object.entries(resumeWeights).reduce((sum, [key, weight]) => {
@@ -83,6 +87,7 @@ export async function computeResumeAnalysis(resumeId: string): Promise<ComputeRe
     experienceWeights,
     resumeWeights,
     extracurricularBonus: extracurricular.bonus,
+    experienceTrajectoryBonus: trajectoryBonus.bonus,
     prestigeBonus: prestige.resumeGradeBonus,
     reconciliationPenalty: reconciliation.penalty,
     experienceScore,

@@ -74,7 +74,28 @@ export async function searchAdzunaJobs(
   // count rather than the default fuzzy/any-word match `what` alone does.
   // Used for the "ideal" (title AND industry) count; omitted for the
   // "broader" (title-only) count.
-  extraAndTerm?: string | null
+  extraAndTerm?: string | null,
+  // Level-synonym breadth (market.ts's level-groups.ts) — "must ALSO
+  // contain at least one of these" alongside `what`, same any-of semantics
+  // searchAdzunaJobListings' whatOr already documents. Fixes two real,
+  // opposite failure modes of a literal title-only search: a long specific
+  // title ("VP of Corporate Development") undercounts real postings phrased
+  // as "SVP of..."/"Head of..."; a bare ambiguous title ("Partner") used
+  // alone overcounts by matching every staff "X Partner" title. Passing the
+  // function term as `what` and the level synonyms as `whatOr` requires
+  // both, fixing both directions at once.
+  whatOr?: string[],
+  // Excludes postings whose title contains any of these words — the actual
+  // fix for a bare ambiguous level word like "Partner" (see
+  // level-groups.ts): title_only alone can't distinguish a genuine equity
+  // Partner title from a staff "X Partner" one (Business Partner, HR
+  // Partner, Customer Success Partner, etc.), and AND-ing in a broader
+  // function term instead doesn't narrow it much either — confirmed live,
+  // "Finance" AND "Partner" still returned 1200+ postings. Excluding the
+  // known staff qualifiers (infer-job-function.ts's STAFF_PARTNER_QUALIFIERS
+  // — the same list neutralizeStaffPartnerPhrase already uses) directly
+  // removes them instead.
+  whatExclude?: string[]
 ): Promise<AdzunaResult> {
   const appId = process.env.ADZUNA_APP_ID
   const appKey = process.env.ADZUNA_APP_KEY
@@ -98,6 +119,8 @@ export async function searchAdzunaJobs(
     results_per_page: '1',
   })
   if (extraAndTerm) params.set('what_and', extraAndTerm)
+  if (whatOr && whatOr.length > 0) params.set('what_or', whatOr.join(' '))
+  if (whatExclude && whatExclude.length > 0) params.set('what_exclude', whatExclude.join(' '))
   if (where) {
     params.set('where', where)
     // "How many jobs are near me" should mean a real commutable radius, not
