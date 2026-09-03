@@ -40,6 +40,23 @@ const button: React.CSSProperties = {
   fontWeight: 600,
 }
 
+const secondaryButton: React.CSSProperties = {
+  ...button,
+  display: 'block',
+  width: 'fit-content',
+  backgroundColor: 'transparent',
+  color: '#2e7d5b',
+  border: '1px solid #2e7d5b',
+}
+
+// Adding a candidate as a Gmail/Calendar tester (support/admin/tracking-testers)
+// isn't enough on its own while our OAuth app is in Testing mode — Google
+// separately requires adding their email as a test user in Cloud Console.
+// This link gets the admin there in one click from the same email that
+// first tells them a new candidate exists, instead of a second lookup.
+const GOOGLE_CONSOLE_TEST_USERS_URL =
+  'https://console.cloud.google.com/auth/overview?project=project-0ab98e91-a9ef-4edf-a28'
+
 // Fired once per candidate — the first time firstName/lastName/email are
 // all known (see maybeNotifyAdminOfNewCandidate in
 // send-admin-new-candidate-account.ts), never re-sent for the same
@@ -67,6 +84,9 @@ export default function AdminNewCandidateAccountEmail({
       <p style={{ ...emailStyles.muted, marginTop: '12px' }}>Signup IP: {signupIp ?? 'unknown'}</p>
       <a href={adminUrl} style={button}>
         View candidate →
+      </a>
+      <a href={GOOGLE_CONSOLE_TEST_USERS_URL} style={secondaryButton}>
+        Add as Google test user →
       </a>
     </div>
   )
