@@ -174,18 +174,6 @@ export default async function AdminVisitorsPage({
 
   const columns: AdminColumn<Row>[] = [
     { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => formatAdminDateTime(r.createdAt) },
-    { header: 'IP', render: (r) => r.ip ?? 'unknown' },
-    { header: 'Location', render: (r) => r.location ?? '—' },
-    { header: 'Event', render: (r) => (r.eventType === 'PAGE_VIEW' ? 'Page view' : 'Link click') },
-    {
-      header: 'Page',
-      render: (r) => (r.eventType === 'PAGE_VIEW' ? (r.path ?? '/ (recorded before path tracking)') : '—'),
-    },
-    {
-      header: 'Detail',
-      render: (r) =>
-        r.eventType === 'LINK_CLICK' ? r.href ?? '—' : r.referrer ? `from ${r.referrer}` : 'direct / no referrer',
-    },
     {
       header: 'Visitor',
       render: (r) => {
@@ -212,6 +200,17 @@ export default async function AdminVisitorsPage({
         const cls = classifyUserAgent(r.userAgent)
         return cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'
       },
+    },
+    { header: 'IP', render: (r) => r.ip ?? 'unknown' },
+    { header: 'Location', render: (r) => r.location ?? '—' },
+    {
+      header: 'Detail',
+      render: (r) =>
+        r.eventType === 'LINK_CLICK' ? r.href ?? '—' : r.referrer ? `from ${r.referrer}` : 'direct / no referrer',
+    },
+    {
+      header: 'Page',
+      render: (r) => (r.eventType === 'PAGE_VIEW' ? (r.path ?? '/ (recorded before path tracking)') : '—'),
     },
   ]
 
