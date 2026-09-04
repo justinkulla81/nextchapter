@@ -8,6 +8,7 @@
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { ReviewerDetectionType, SeniorityBand } from './types'
 import { roleTenureMonths } from './role-tenure'
+import { detectOverlappingRolePairs } from './overlap-detection'
 
 export interface ReviewerDetection {
   detectionType: ReviewerDetectionType
@@ -102,13 +103,13 @@ export function detectReviewerQuestions(facts: ResumeAnalysisFacts, band: Senior
     }
   }
 
-  // Overlapping full-time roles.
-  for (let i = 1; i < real.length; i++) {
-    const prevEnd = real[i - 1].endDate ? new Date(real[i - 1].endDate as string).getTime() : Date.now()
-    const curStart = real[i].startDate ? new Date(real[i].startDate as string).getTime() : null
-    if (curStart !== null && curStart < prevEnd - MS_PER_MONTH) {
-      detections.push({ detectionType: 'OVERLAPPING_ROLES', detectedContext: { a: real[i - 1].title, b: real[i].title } })
-    }
+  // Overlapping roles — same detector modifiers.ts's computeReconciliation
+  // uses for the Market Reality Grade's overlapping_full_time penalty, so
+  // this and that never disagree on which overlaps actually count (a board
+  // seat/advisor/non-employee-director role concurrent with a primary job
+  // is excluded — see overlap-detection.ts).
+  for (const pair of detectOverlappingRolePairs(facts.roles)) {
+    detections.push({ detectionType: 'OVERLAPPING_ROLES', detectedContext: { a: pair.earlier.title, b: pair.later.title } })
   }
 
   // Credential without granting institution.

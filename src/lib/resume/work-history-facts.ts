@@ -1,6 +1,7 @@
 import type { EngagementType, CareerTrajectory } from '@prisma/client'
 import { HIGHEST_LEVEL_OPTIONS } from '@/lib/constants/onboarding'
 import { inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { detectOverlappingRolePairs, type OverlappingRolePair } from '@/lib/scoring/resume-analysis/overlap-detection'
 
 export const GAP_THRESHOLD_MONTHS = 2
 export const SHORT_TENURE_MONTHS = 12
@@ -63,6 +64,13 @@ export interface WorkHistoryAnalysis {
   gaps: EmploymentGap[]
   shortTenureCount: number
   averageTenureMonths: number | null
+  // Same detector modifiers.ts/reviewer-questions.ts use for the Market
+  // Reality Grade and Guided Walkthrough (overlap-detection.ts) — kept
+  // here too so analyzeResume's legacy feedback can't disagree with those
+  // on which overlaps actually count as a problem. A board seat, advisor,
+  // or non-employee-director role concurrent with a primary job is already
+  // excluded before it ever reaches this array.
+  overlaps: OverlappingRolePair[]
 }
 
 function monthsBetween(start: Date, end: Date): number {
@@ -123,6 +131,17 @@ export function computeWorkHistoryFacts(
 
   const sorted = [...countable].sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
 
+  const overlaps = detectOverlappingRolePairs(
+    countable.map((entry) => ({
+      title: entry.roleTitle,
+      company: entry.companyName,
+      startDate: entry.startDate.toISOString(),
+      endDate: entry.endDate ? entry.endDate.toISOString() : null,
+      isCurrent: entry.isCurrent,
+      isInternship: false, // countable has already excluded internships above
+    }))
+  )
+
   const gaps: EmploymentGap[] = []
   for (let i = 0; i < sorted.length - 1; i++) {
     const current = sorted[i]
@@ -156,6 +175,7 @@ export function computeWorkHistoryFacts(
     gaps,
     shortTenureCount,
     averageTenureMonths,
+    overlaps,
   }
 }
 

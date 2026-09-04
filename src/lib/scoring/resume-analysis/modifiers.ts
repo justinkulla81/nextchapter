@@ -10,6 +10,7 @@ import { inferLevelFromTitle, isAmbiguousPartnerTitle } from '@/lib/jobs/infer-j
 import { resolveContextualLevel } from '@/lib/scoring/seniority/resolve-contextual-level'
 import { buildConcurrentRolesFromFacts } from './seniority-band'
 import { roleTenureMonths } from './role-tenure'
+import { detectOverlappingRolePairs } from './overlap-detection'
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { SeniorityBand } from './types'
 import type { IssueCode } from '@/lib/analytics/issue-taxonomy'
@@ -93,26 +94,19 @@ export function computeReconciliation(facts: ResumeAnalysisFacts): { penalty: nu
   const findings: ReconciliationFinding[] = []
   let penalty = 0
 
-  // Overlapping full-time roles.
-  const dated = facts.roles
-    .filter((r) => r.startDate && !r.isInternship)
-    .map((r) => ({
-      start: new Date(r.startDate as string).getTime(),
-      end: r.endDate ? new Date(r.endDate).getTime() : Date.now(),
-      title: r.title,
-    }))
-    .sort((a, b) => a.start - b.start)
-
-  for (let i = 1; i < dated.length; i++) {
-    if (dated[i].start < dated[i - 1].end - 1000 * 60 * 60 * 24 * 30) {
-      // more than ~30 days of overlap
-      findings.push({
-        candidateFacingCopy: `${dated[i - 1].title} and ${dated[i].title} overlap by more than a month.`,
-        penalty: -3,
-        issueCode: 'overlapping_full_time',
-      })
-      penalty -= 3
-    }
+  // Overlapping roles — a board seat, advisor, or non-employee director
+  // role running concurrent with a primary job is normal and excluded here
+  // (see overlap-detection.ts); this only fires when neither overlapping
+  // title reads as that kind of legitimate secondary role (e.g. two
+  // full-time-reading titles, or a Consultant engagement overlapping a
+  // full-time job).
+  for (const pair of detectOverlappingRolePairs(facts.roles)) {
+    findings.push({
+      candidateFacingCopy: `${pair.earlier.title} and ${pair.later.title} overlap by more than a month.`,
+      penalty: -3,
+      issueCode: 'overlapping_full_time',
+    })
+    penalty -= 3
   }
 
   // Credential without a granting institution.
@@ -127,6 +121,12 @@ export function computeReconciliation(facts: ResumeAnalysisFacts): { penalty: nu
   }
 
   // Stated years of experience vs. actual timeline.
+  const dated = facts.roles
+    .filter((r) => r.startDate && !r.isInternship)
+    .map((r) => ({
+      start: new Date(r.startDate as string).getTime(),
+      end: r.endDate ? new Date(r.endDate).getTime() : Date.now(),
+    }))
   if (facts.statedYearsExperience !== null && dated.length > 0) {
     const earliest = Math.min(...dated.map((d) => d.start))
     const latest = Math.max(...dated.map((d) => d.end))
