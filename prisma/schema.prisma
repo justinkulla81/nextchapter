@@ -2791,6 +2791,16 @@ model Resume {
   extractedText   String?
   extractionError String?
 
+  // Set by classifyResumeDocument() right after extraction, before the
+  // profile-field/ATS/results/experience pipeline runs on this text. null =
+  // not yet classified (every row created before this field existed, or a
+  // row whose classification call itself failed — never treated as a
+  // rejection). false blocks the onboarding resume step from completing and
+  // skips the rest of the analysis pipeline for this upload — see
+  // uploadResume() and onboarding/resume/page.tsx.
+  looksLikeResume       Boolean?
+  notAResumeReason      String?
+
   // Candidate-editable — defaults to fileName at upload time but can be
   // renamed (e.g. "Tailored for VP Product roles") to tell versions apart
   // once there are several. description is optional freeform context

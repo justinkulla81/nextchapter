@@ -51,6 +51,7 @@ async function loadPrivacyAndEmailTrail(candidateId: string) {
         notificationTier: true,
         recruiterDatabaseOptIn: true,
         resumeBookOptIn: true,
+        resumeBookOptInConfirmedAt: true,
         dailyEmailOptedOut: true,
         weeklyReportOptedOut: true,
         sprintGoalEmailsOptedOut: true,
@@ -92,7 +93,13 @@ async function loadIpAndResume(candidateId: string) {
     resumeSignedUrl = data?.signedUrl ?? null
   }
 
-  return { signupIp: profile?.signupIp ?? null, resumeFileName: resume?.fileName ?? null, resumeSignedUrl }
+  return {
+    signupIp: profile?.signupIp ?? null,
+    resumeFileName: resume?.fileName ?? null,
+    resumeSignedUrl,
+    looksLikeResume: resume?.looksLikeResume ?? null,
+    notAResumeReason: resume?.notAResumeReason ?? null,
+  }
 }
 
 async function loadLoginHistory(candidateId: string) {
@@ -255,6 +262,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
           ) : (
             <span className="text-muted-foreground">No resume uploaded</span>
           )}
+          {ipAndResume.looksLikeResume === false && (
+            <span className="text-warning">
+              Flagged: latest upload doesn&apos;t look like a resume
+              {ipAndResume.notAResumeReason ? ` — ${ipAndResume.notAResumeReason}` : ''}
+            </span>
+          )}
         </div>
       </div>
 
@@ -365,7 +378,13 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Resume Book</dt>
-                    <dd className="text-foreground">{privacyProfile.resumeBookOptIn ? 'Opted in' : 'Not opted in'}</dd>
+                    <dd className="text-foreground">
+                      {privacyProfile.resumeBookOptIn && privacyProfile.resumeBookOptInConfirmedAt
+                        ? 'Opted in'
+                        : privacyProfile.resumeBookOptIn
+                          ? 'Not opted in (default, never confirmed)'
+                          : 'Not opted in'}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Encouragement notes</dt>

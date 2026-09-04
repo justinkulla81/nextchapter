@@ -53,7 +53,10 @@ export default async function OnboardingResumePage() {
     // redoing the whole flow. Re-check here, before either exit redirects,
     // instead of just resuming — deletes this profile outright on a match,
     // same as uploadResume's own check.
-    if (profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id } })) > 0) {
+    if (
+      profile.resumeStepComplete ||
+      (await prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } })) > 0
+    ) {
       if (profile.email) {
         const existingAccount = await checkAndDeleteDuplicateProfile(profile.id, profile.email)
         if (existingAccount) {

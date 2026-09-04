@@ -1438,7 +1438,7 @@ async function FindMyJobBody({
       </div>
 
       <div id="resume-book" className="scroll-mt-4 border-t border-border pt-8">
-        {profile.resumeBookOptIn ? (
+        {profile.resumeBookOptIn && profile.resumeBookOptInConfirmedAt ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3">
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
               <FileText className="size-3.5" aria-hidden />

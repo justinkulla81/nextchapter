@@ -10,6 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { ensureUser } from '@/lib/auth/ensure-user'
 import { extractResumeText } from '@/lib/resume/extract-text'
+import { classifyResumeDocument } from '@/lib/resume/classify-resume'
 import { analyzeResume } from '@/lib/resume/analyze-resume'
 import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -57,21 +58,7 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   const coachId = cookieStore.get('nc_coach')?.value
   const profile = await getOrCreateCandidateProfile(user.id, { coachId })
 
-  // Always recorded, even when the checkbox's value matches what was
-  // already stored (the common case, since it renders pre-checked to match
-  // the true default) — seeing and submitting the disclosure is itself the
-  // "answered" signal find-my-job's card checks for, not just a changed
-  // value. See resumeBookOptInConfirmedAt's schema comment.
   const includeInResumeBook = formData.get('includeInResumeBook') === 'on'
-  await prisma.candidateProfile.update({
-    where: { id: profile.id },
-    data: { resumeBookOptIn: includeInResumeBook, resumeBookOptInConfirmedAt: new Date() },
-  })
-  if (includeInResumeBook !== profile.resumeBookOptIn) {
-    captureServerEvent(profile.id, includeInResumeBook ? 'resume_book_opt_in' : 'resume_book_opt_out', {
-      source: 'resume_upload',
-    })
-  }
 
   const admin = createAdminClient()
   const path = `${profile.id}/${crypto.randomUUID()}.${ext}`
@@ -85,6 +72,12 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   }
 
   const { text, error: extractionError } = await extractResumeText(file, fileType)
+
+  // Runs before the Resume row is created so the classification result can
+  // be written in the same insert, and so a rejected document never
+  // triggers the profile-field extraction/ATS/results/experience pipeline
+  // below on content that was never a resume to begin with.
+  const classification = await classifyResumeDocument(text)
 
   // Captured before creating the new row — the baseline to compare the
   // freshly analyzed resume against for the rewrite-action below.
@@ -114,9 +107,47 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
       fileType,
       extractedText: text,
       extractionError,
+      looksLikeResume: classification.isResume,
+      notAResumeReason: classification.reason,
       narrativeId,
     },
   })
+
+  if (!classification.isResume) {
+    // The file itself stays uploaded and this Resume row stays on record
+    // (useful for admin visibility into what was actually submitted), but
+    // none of the downstream extraction/scoring pipeline runs on it, and
+    // resumeBookOptIn is never touched — an unconfirmed default, or the
+    // candidate's last real confirmed choice, both stay exactly as they
+    // were rather than getting silently overwritten by a rejected upload.
+    revalidatePath('/dashboard/resume')
+    revalidatePath('/onboarding/resume')
+    return {
+      error:
+        classification.reason ??
+        "That doesn't look like a resume — please upload your actual resume (a PDF or Word document with your work history).",
+    }
+  }
+
+  // Always recorded, even when the checkbox's value matches what was
+  // already stored (the common case, since it renders pre-checked to match
+  // the true default) — seeing and submitting the disclosure is itself the
+  // "answered" signal find-my-job's card checks for, not just a changed
+  // value. See resumeBookOptInConfirmedAt's schema comment. Deliberately
+  // deferred until we know this upload is a real resume — writing this
+  // before validating the file left candidates "confirmed" opted into the
+  // Resume Book with no actual resume behind it whenever the upload failed
+  // or turned out not to be a resume at all (a real, confirmed production
+  // bug — see the admin candidate-detail page's Resume Book field).
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { resumeBookOptIn: includeInResumeBook, resumeBookOptInConfirmedAt: new Date() },
+  })
+  if (includeInResumeBook !== profile.resumeBookOptIn) {
+    captureServerEvent(profile.id, includeInResumeBook ? 'resume_book_opt_in' : 'resume_book_opt_out', {
+      source: 'resume_upload',
+    })
+  }
 
   // extractProfileFieldsFromResume is the only one of these whose output the
   // very next screen needs (Confirm pre-fills level/function/target role
