@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { after } from 'next/server'
 import Link from 'next/link'
-import { Globe, FileText, Users, Sparkles, ChevronDown } from 'lucide-react'
+import { FileText, Sparkles, ChevronDown, Lock } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { surfaceNewJobs } from '@/lib/network/job-discovery'
@@ -728,6 +728,34 @@ async function FindMyJobBody({
         <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
       </div>
 
+      {!profile.recruiterVisibilityConfirmedAt && (
+        <Card className="border-warning/40 bg-warning/5">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
+                <Lock className="size-3.5" aria-hidden />
+              </span>
+              <p className="text-sm font-semibold text-warning">Executive Recruiters</p>
+            </div>
+            {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Your Dossier is unlocked — recruiters can already find you.
+              </p>
+            ) : (
+              <>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Recruiters can find and reach out to you directly once your Dossier unlocks — opt in any time so
+                  you&apos;re ready.
+                </p>
+                <div className="mt-3">
+                  <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <div id="apply-new-jobs" className="scroll-mt-4 space-y-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Apply to New Jobs</h2>
@@ -737,91 +765,26 @@ async function FindMyJobBody({
           </p>
         </div>
 
-        <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          {!profile.resumeBookOptInConfirmedAt && (
-            <div className="p-4">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
-                  <FileText className="size-3.5" aria-hidden />
-                </span>
-                <p className="text-sm font-semibold text-foreground">Resume Book</p>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Recruiters and hiring managers browsing by role can find your resume here.
-              </p>
-              <div className="mt-3">
-                <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
-              </div>
-            </div>
-          )}
-
-          {!profile.recruiterVisibilityConfirmedAt && (
-            <div className="p-4">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-light-blue/10 text-light-blue">
-                  <Users className="size-3.5" aria-hidden />
-                </span>
-                <p className="text-sm font-semibold text-foreground">Executive Recruiters</p>
-              </div>
-              {isCandidatePlus && profile.recruiterDatabaseOptIn ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Your Dossier is unlocked — recruiters can already find you.
-                </p>
-              ) : (
-                <>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Recruiters can find and reach out to you directly once your Dossier unlocks — opt in any time so
-                    you&apos;re ready.
-                  </p>
-                  <div className="mt-3">
-                    <RecruiterVisibilityOptInForm optedIn={profile.recruiterDatabaseOptIn} />
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          <div className="p-4">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
-                <Globe className="size-3.5" aria-hidden />
-              </span>
-              <p className="text-sm font-semibold text-foreground">Job Boards</p>
-              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +{applicationPoints} pts
-              </span>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              A strong application to a live posting is real signal too — do this alongside networking, not instead of it.
-              Jobs you apply to here get added to your Application Tracker automatically once we see the confirmation
-              email, and count toward your weekly points.
-            </p>
-            <div className="mt-3">
-              <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
-            </div>
+        <div id="job-recommendations" className="scroll-mt-4 rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
+              <Sparkles className="size-3.5" aria-hidden />
+            </span>
+            <p className="text-sm font-semibold text-foreground">Job Recommendations For You</p>
+            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+              +{applicationPoints} pts
+            </span>
           </div>
-
-          <div id="job-recommendations" className="scroll-mt-4 p-4">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
-                <Sparkles className="size-3.5" aria-hidden />
-              </span>
-              <p className="text-sm font-semibold text-foreground">Job Recommendations For You</p>
-              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +{applicationPoints} pts
-              </span>
-            </div>
-            <div className="mt-3">
-              <Suspense fallback={<JobRecommendationsSkeleton />}>
-                <JobRecommendationsSection
-                  profile={profile}
-                  isCandidatePlus={isCandidatePlus}
-                  dossierReason={dossierStatus.reason}
-                  boardPostings={boardPostings}
-                  contacts={contacts}
-                />
-              </Suspense>
-            </div>
+          <div className="mt-3">
+            <Suspense fallback={<JobRecommendationsSkeleton />}>
+              <JobRecommendationsSection
+                profile={profile}
+                isCandidatePlus={isCandidatePlus}
+                dossierReason={dossierStatus.reason}
+                boardPostings={boardPostings}
+                contacts={contacts}
+              />
+            </Suspense>
           </div>
         </div>
       </div>
@@ -1462,14 +1425,45 @@ async function FindMyJobBody({
         </Link>
       </div>
 
-      {(profile.resumeBookOptInConfirmedAt || profile.recruiterVisibilityConfirmedAt) && (
+      <div id="job-boards" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Job Boards</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A strong application to a live posting is real signal too — do this alongside networking, not instead of
+            it. Jobs you apply to here get added to your Application Tracker automatically once we see the
+            confirmation email.
+          </p>
+        </div>
+        <JobBoardLinkList boards={[...GENERAL_JOB_BOARDS, ...industryBoards]} category="general" />
+      </div>
+
+      <div id="resume-book" className="scroll-mt-4 border-t border-border pt-8">
+        {profile.resumeBookOptIn ? (
+          <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+              <FileText className="size-3.5" aria-hidden />
+            </span>
+            <p className="text-sm text-foreground">
+              <span className="font-medium">Resume Book</span> — you&apos;re opted in, recruiters browsing by role
+              can find your resume.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">Resume Book</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Recruiters and hiring managers browsing by role can find your resume here.
+              </p>
+            </div>
+            <ResumeBookOptInForm optedIn={profile.resumeBookOptIn} />
+          </div>
+        )}
+      </div>
+
+      {profile.recruiterVisibilityConfirmedAt && (
         <div className="space-y-1.5 border-t border-border pt-6 text-xs text-muted-foreground">
-          {profile.resumeBookOptInConfirmedAt && (
-            <p>Resume Book: {profile.resumeBookOptIn ? 'included' : 'not included'}</p>
-          )}
-          {profile.recruiterVisibilityConfirmedAt && (
-            <p>Executive Recruiters: {profile.recruiterDatabaseOptIn ? 'opted in' : 'not opted in'}</p>
-          )}
+          <p>Executive Recruiters: {profile.recruiterDatabaseOptIn ? 'opted in' : 'not opted in'}</p>
           <Link href="/dashboard/privacy" className="inline-block underline underline-offset-4">
             Manage in Privacy Settings →
           </Link>

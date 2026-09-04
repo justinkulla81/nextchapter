@@ -39,6 +39,8 @@ export async function reconcileVerifiedActions<T extends ReconcilableAction>(
         triedPartTimeOrConsulting: true,
         triedExecutiveCoaching: true,
         connectedWithRecruiters: true,
+        resumeBookOptIn: true,
+        resumeBookOptInConfirmedAt: true,
       },
     }),
     needsAssessmentCount
@@ -58,6 +60,10 @@ export async function reconcileVerifiedActions<T extends ReconcilableAction>(
   ].every((f) => f !== null)
 
   const verifiedCompletedAt: Partial<Record<string, Date | null>> = {
+    // Completion here means "opted in," not just "made a choice" — a
+    // candidate who confirmed "no" still has an open action nudging them to
+    // reconsider (see find-my-job/page.tsx's Resume Book card).
+    RESUME_BOOK_UPLOAD: profile.resumeBookOptIn ? profile.resumeBookOptInConfirmedAt : null,
     PROFILE_CONFIRM: profile.profileConfirmedAt,
     INDUSTRY_CONFIRM: profile.industryConfirmedAt,
     FUNCTION_CONFIRM: profile.functionConfirmedAt,

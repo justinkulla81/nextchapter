@@ -214,6 +214,7 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   INTERVIEW_ATTENDED: { minutes: 30, points: 25 },
 
   // Onboarding confirmations — small, real setup steps.
+  RESUME_BOOK_UPLOAD: { minutes: 5, points: 5 },
   PROFILE_CONFIRM: { minutes: 5, points: 5 },
   INDUSTRY_CONFIRM: { minutes: 5, points: 5 },
   FUNCTION_CONFIRM: { minutes: 5, points: 5 },
@@ -403,6 +404,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   WORK_AUTHORIZATION: 'Personalize',
   ANSWER_OPTIONAL_QUESTIONS: 'Personalize',
   COMFORT_CHECK_CONFIRM: 'Personalize',
+  RESUME_BOOK_UPLOAD: 'Personalize',
   PRIVACY_CONFIRMED: 'Personalize',
   NETWORK_COMFORT_CONFIRMED: 'Personalize',
   NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED: 'Personalize',
@@ -615,6 +617,7 @@ export function getEarnedPoints(action: { points: number; completed: boolean; co
 // it's also needed client-side, to hide the Mark done/started button for
 // these types — action-verification.ts is server-only.
 export const VERIFIED_ACTION_TYPES = new Set<string>([
+  'RESUME_BOOK_UPLOAD',
   'PROFILE_CONFIRM',
   'INDUSTRY_CONFIRM',
   'FUNCTION_CONFIRM',
@@ -719,6 +722,7 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   // section instead of the top of a long page — see the matching `id`s on
   // each Card in src/app/dashboard/profile/personal/page.tsx (one of the
   // three sub-pages under the /dashboard/profile hub).
+  RESUME_BOOK_UPLOAD: { href: '/dashboard/find-my-job#resume-book', label: 'Find My Job' },
   PROFILE_CONFIRM: { href: '/dashboard/profile/personal#basics', label: 'Personal Information' },
   INDUSTRY_CONFIRM: { href: '/dashboard/profile/personal#industry', label: 'Personal Information' },
   FUNCTION_CONFIRM: { href: '/dashboard/profile/personal#function-experience', label: 'Personal Information' },
@@ -801,6 +805,7 @@ const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
   LEARNING_NEW_TOOL: 'staying current on the tools employers use keeps you competitive',
   RESUME_UPDATE: 'a sharper resume gets you past the first screen',
   LINKEDIN_SETUP: 'most recruiters check LinkedIn before they ever call you',
+  RESUME_BOOK_UPLOAD: 'recruiters and hiring managers browsing by role can find your resume here',
 }
 
 const DEFAULT_WHY_BY_NAV_CATEGORY: Partial<Record<NavCategory, string>> = {
@@ -903,6 +908,7 @@ export const PAGE_ACTION_TYPES: Partial<Record<PageKey, string[]>> = {
     'NEGOTIATION_ADVICE',
     'GMAIL_CONNECTED',
     'GMAIL_RECONNECTED',
+    'RESUME_BOOK_UPLOAD',
   ],
   resume: ['RESUME_UPDATE'],
   'interview-prep': ['INTERVIEW_PREP', 'INTERVIEW_BEHAVIORAL_PRACTICE', 'COMFORT_CHECK_CONFIRM'],
