@@ -130,7 +130,7 @@ export const STAFF_PARTNER_QUALIFIERS = [
   'learning',
 ]
 
-function neutralizeStaffPartnerPhrase(lower: string): string {
+export function neutralizeStaffPartnerPhrase(lower: string): string {
   const alternation = STAFF_PARTNER_QUALIFIERS.map((q) => q.replace(/ /g, '\\s+')).join('|')
   // One optional word may sit between the qualifier and "partner" — covers
   // "Customer Success Partner", "Talent Acquisition Partner", "People
@@ -158,7 +158,7 @@ const BARE_ED_ABBREVIATION = /\bed\b/
 // (not people-manager) tech-ladder title, so this excludes that qualifier
 // pattern rather than trusting the bare word everywhere.
 const BARE_PRINCIPAL = /\bprincipal\b/
-const PRINCIPAL_IC_QUALIFIER = /\bprincipal\s+(engineer|scientist|architect|developer|consultant|analyst|designer)\b/
+export const PRINCIPAL_IC_QUALIFIER = /\bprincipal\s+(engineer|scientist|architect|developer|consultant|analyst|designer)\b/
 
 // A board seat is a governance-tier role, categorically more senior than an
 // internal-org "Director" job title with the same word in it — a real gap,

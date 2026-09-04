@@ -12,6 +12,7 @@ import type { ResumeAnalysisFacts } from './extract-facts'
 import { getFunctionFamilyDefinition } from './weights'
 import { classifyRoleFunctionFamily } from './function-family'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
+import { roleTenureMonths } from './role-tenure'
 import type { DimensionFindings, DimensionKey, DimensionScores, FunctionFamily, Finding, SeniorityBand } from './types'
 import { ATS_FLAG_KIND_TO_ISSUE_CODE, MECHANICS_ISSUE_KIND_TO_ISSUE_CODE } from '@/lib/analytics/issue-taxonomy'
 
@@ -226,13 +227,6 @@ const SHORT_TENURE_MONTHS: Record<FunctionFamily, number> = {
   PEOPLE: 24,
   LEGAL: 30,
   CLINICAL: 30,
-}
-
-function roleTenureMonths(role: ResumeAnalysisFacts['roles'][number]): number | null {
-  if (!role.startDate) return null
-  const start = new Date(role.startDate).getTime()
-  const end = role.endDate ? new Date(role.endDate).getTime() : Date.now()
-  return (end - start) / (1000 * 60 * 60 * 24 * 30)
 }
 
 function scoreTenurePattern(facts: ResumeAnalysisFacts, ctx: DimensionContext): { score: number; findings: Finding[] } {

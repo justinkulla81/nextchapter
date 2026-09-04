@@ -40,8 +40,15 @@ const BAND_ORDER: CompanySizeBand[] = [
 // models before this feature's finer 8-band scale existed.
 const ANCHOR_BAND_INDEX = BAND_ORDER.indexOf('MID')
 
-// Points shifted per band-position away from the anchor.
-const BAND_STEP_POINTS = 5
+// Points shifted per band-position away from the anchor. This is a
+// first-pass magnitude increase (was 5), not a precisely fitted curve — the
+// proxy is employee-count bands, not real revenue/market-cap, so it can't
+// be tuned against actual dollar figures (no revenue data exists anywhere
+// in this schema). Tuned steeper so a title's calibrated score reflects
+// that the same title means far more at a large company than a small one
+// (e.g. a Director at a MEGA-band company should read closer to a VP at
+// the anchor band than to a Director at the anchor band).
+const BAND_STEP_POINTS = 8
 
 // The modal points-gap between adjacent titles at the anchor band (e.g.
 // Manager 40 -> Director 55 is 15) — used to convert a raw score gap back
@@ -58,10 +65,18 @@ function clamp1to100(n: number): number {
 // data available" — treated as the anchor band (zero adjustment), NEVER as
 // a penalty or a guess. This is the required fallback for an LLM failure or
 // an unrecognized company: the title-based score stands alone.
-export function calibratedLevelRank(level: string | null | undefined, companySizeBand: CompanySizeBand | null): number | null {
+// scoreNudge: additive, defaults to 0 (a no-op for every existing caller) —
+// only resolve-contextual-level.ts's finance-ladder branch ever passes a
+// non-zero value, to place Senior Associate/VP between Manager and
+// Director without inventing a new HIGHEST_LEVEL_OPTIONS value.
+export function calibratedLevelRank(
+  level: string | null | undefined,
+  companySizeBand: CompanySizeBand | null,
+  scoreNudge = 0
+): number | null {
   if (!level || !(level in LEVEL_BASE_SCORE)) return null
   const bandIndex = companySizeBand ? BAND_ORDER.indexOf(companySizeBand) : ANCHOR_BAND_INDEX
-  return clamp1to100(LEVEL_BASE_SCORE[level] + (bandIndex - ANCHOR_BAND_INDEX) * BAND_STEP_POINTS)
+  return clamp1to100(LEVEL_BASE_SCORE[level] + (bandIndex - ANCHOR_BAND_INDEX) * BAND_STEP_POINTS + scoreNudge)
 }
 
 // Converts two calibrated scores into the same "how many levels apart"

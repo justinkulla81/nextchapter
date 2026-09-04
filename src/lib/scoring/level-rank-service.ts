@@ -5,6 +5,7 @@ import { selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
 import { inferLevelFromTitle, isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { calibratedLevelRank, scoreToLevelRankLabel } from '@/lib/scoring/level-rank'
+import { resolveContextualLevel, type ConcurrentRoleCandidate } from '@/lib/scoring/seniority/resolve-contextual-level'
 
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000
 const RECENCY_HALF_LIFE_YEARS = 5
@@ -65,6 +66,40 @@ function resolveAmbiguousPartnerLevel(entry: WorkHistoryEntry, entriesSortedAsc:
   return 'Director'
 }
 
+// Roles whose date ranges overlap `entry`, drawn from the FULL pre-
+// collapse work history (not `entries`/selectDisplayedWorkHistory, which
+// has already hidden concurrent non-full-time siblings behind the primary
+// one) — resolveContextualLevel's Advisor/Consultant branch specifically
+// needs to see those hidden siblings to tell a sole advisory seat from a
+// multi-seat portfolio, or from a genuine concurrent full-time job.
+function buildConcurrentRoles(entry: WorkHistoryEntry, rawWorkHistory: WorkHistoryEntry[], now: Date): ConcurrentRoleCandidate[] {
+  const entryEnd = effectiveEnd(entry, now).getTime()
+  const entryStart = entry.startDate.getTime()
+  return rawWorkHistory
+    .filter((other) => other.id !== entry.id)
+    .filter((other) => {
+      const otherEnd = effectiveEnd(other, now).getTime()
+      return other.startDate.getTime() < entryEnd && otherEnd > entryStart
+    })
+    .map((other) => ({
+      title: other.roleTitle,
+      startDateMs: other.startDate.getTime(),
+      endDateMs: other.isCurrent ? null : (other.endDate?.getTime() ?? null),
+      isDeclaredFullTime: other.engagementType === 'FULL_TIME',
+      tenureMonths: (effectiveEnd(other, now).getTime() - other.startDate.getTime()) / (MS_PER_YEAR / 12),
+    }))
+}
+
+// See the plan's "generous reconciliation" addendum: when a candidate's
+// career shows real title/company-size inconsistency (a max individual
+// entry score far above the blended average), nudge the final score
+// partway toward that max rather than letting a handful of lower-scoring
+// entries flatten out a genuinely senior signal. 15 points = one
+// LEVEL_STEP_POINTS unit — a real full-level-equivalent gap, not ordinary
+// variation between roles.
+const RECONCILIATION_THRESHOLD = 15
+const RECONCILIATION_PULL = 0.3
+
 // Blends a candidate's work history into a single calibrated score: each
 // qualifying entry's title-derived level is adjusted by its company's
 // resolved size band, then weighted by recency (5-year half-life) and
@@ -92,9 +127,30 @@ async function computeLevelRankLive(
 
   let weightedSum = 0
   let totalWeight = 0
+  let maxEntryScore: number | null = null
   for (const entry of entries) {
-    let entryLevel: string
-    if (entry.id === mostRecentId && candidate.highestLevelReached) {
+    const tenureMonthsInRole = (effectiveEnd(entry, now).getTime() - entry.startDate.getTime()) / (MS_PER_YEAR / 12)
+    const yearsIntoCareerAtStart = (entry.startDate.getTime() - entriesSortedAsc[0].startDate.getTime()) / MS_PER_YEAR
+    const { band } = await resolveCompanySizeBand(entry.companyName)
+
+    const contextual = resolveContextualLevel({
+      title: entry.roleTitle,
+      companyName: entry.companyName,
+      freeformIndustry: entry.companyIndustry,
+      tenureMonthsInRole,
+      yearsIntoCareerAtStart,
+      companySizeBand: band,
+      concurrentRoles: buildConcurrentRoles(entry, rawWorkHistory, now),
+    })
+
+    let entryLevel: string | null
+    if (contextual) {
+      entryLevel =
+        contextual.level ??
+        (entry.id === mostRecentId && candidate.highestLevelReached
+          ? candidate.highestLevelReached
+          : inferLevelFromTitle(entry.roleTitle))
+    } else if (entry.id === mostRecentId && candidate.highestLevelReached) {
       entryLevel = candidate.highestLevelReached
     } else {
       const inferred = inferLevelFromTitle(entry.roleTitle)
@@ -103,13 +159,15 @@ async function computeLevelRankLive(
           ? resolveAmbiguousPartnerLevel(entry, entriesSortedAsc)
           : inferred
     }
-    const { band } = await resolveCompanySizeBand(entry.companyName)
-    const entryScore = calibratedLevelRank(entryLevel, band)
+
+    const entryScore = calibratedLevelRank(entryLevel, band, contextual?.scoreNudge ?? 0)
     if (entryScore === null) continue
 
-    const weight = recencyWeight(entry, now) * tenureWeight(entry, now)
+    const weight = recencyWeight(entry, now) * tenureWeight(entry, now) * (contextual?.weightMultiplier ?? 1)
+    if (weight <= 0) continue
     weightedSum += entryScore * weight
     totalWeight += weight
+    maxEntryScore = maxEntryScore === null ? entryScore : Math.max(maxEntryScore, entryScore)
   }
 
   if (totalWeight === 0) {
@@ -117,7 +175,12 @@ async function computeLevelRankLive(
     return { score, label: scoreToLevelRankLabel(score) }
   }
 
-  const score = Math.max(1, Math.min(100, Math.round(weightedSum / totalWeight)))
+  const average = weightedSum / totalWeight
+  const reconciled =
+    maxEntryScore !== null && maxEntryScore - average > RECONCILIATION_THRESHOLD
+      ? average + (maxEntryScore - average) * RECONCILIATION_PULL
+      : average
+  const score = Math.max(1, Math.min(100, Math.round(reconciled)))
   return { score, label: scoreToLevelRankLabel(score) }
 }
 

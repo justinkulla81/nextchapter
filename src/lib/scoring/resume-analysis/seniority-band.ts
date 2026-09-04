@@ -7,6 +7,57 @@
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { SeniorityBand } from './types'
 import { isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
+import { resolveContextualLevel, type ConcurrentRoleCandidate } from '@/lib/scoring/seniority/resolve-contextual-level'
+import { roleTenureMonths } from './role-tenure'
+
+// Maps resolveContextualLevel's HIGHEST_LEVEL_OPTIONS-shaped result onto
+// this file's own 0-3 titleScore scale. VP and Director both land on 2,
+// matching SENIOR_TITLE_PATTERN's existing equal weighting of the two
+// (VP|vice president|director all score 2 above) — this override doesn't
+// introduce a finer distinction the rest of the function doesn't have.
+const CANONICAL_LEVEL_TO_TITLE_SCORE: Record<string, number> = {
+  IC: 0,
+  Manager: 1,
+  Director: 2,
+  VP: 2,
+  'C-Suite': 3,
+}
+
+export function roleDateRangeMs(role: ResumeAnalysisFacts['roles'][number]): { start: number; end: number } | null {
+  if (!role.startDate) return null
+  return {
+    start: new Date(role.startDate).getTime(),
+    end: role.isCurrent || !role.endDate ? Date.now() : new Date(role.endDate).getTime(),
+  }
+}
+
+// Same purpose as level-rank-service.ts's buildConcurrentRoles, adapted to
+// ResumeAnalysisFacts's shape — no engagementType field exists here, so
+// isDeclaredFullTime is always false (an honest gap, not a guess); see this
+// module's own file header and the plan's non-goals.
+export function buildConcurrentRolesFromFacts(
+  role: ResumeAnalysisFacts['roles'][number],
+  allRoles: ResumeAnalysisFacts['roles']
+): ConcurrentRoleCandidate[] {
+  const range = roleDateRangeMs(role)
+  if (!range) return []
+  return allRoles
+    .filter((other) => other !== role)
+    .flatMap((other) => {
+      const otherRange = roleDateRangeMs(other)
+      if (!otherRange) return []
+      if (otherRange.start >= range.end || otherRange.end <= range.start) return []
+      return [
+        {
+          title: other.title,
+          startDateMs: otherRange.start,
+          endDateMs: other.isCurrent ? null : otherRange.end,
+          isDeclaredFullTime: false,
+          tenureMonths: roleTenureMonths(other),
+        },
+      ]
+    })
+}
 
 const EXECUTIVE_TITLE_PATTERN = /\b(chief|ceo|coo|cfo|cto|cmo|chro|president|evp|executive vice president|svp|senior vice president)\b/i
 const SENIOR_TITLE_PATTERN = /\b(vp|vice president|director|head of|senior director)\b/i
@@ -55,6 +106,40 @@ export function detectSeniorityBand(facts: ResumeAnalysisFacts): SeniorityBand {
   // score SENIOR_TITLE_PATTERN gets — scope and years still modulate the
   // final band up or down from there via the existing logic below.
   else if (isAmbiguousPartnerTitle(titleText)) titleScore = 2
+
+  // Industry-aware override (finance/law/investment-firm ladders) — see
+  // resolve-contextual-level.ts's file header. companySizeBand stays null
+  // here (no company-size lookup exists on this LLM-extracted-facts path
+  // without making this function async, a ripple into its synchronous test
+  // harness this plan doesn't take on); hasNoStatedScope substitutes the
+  // weaker scopeMagnitude===0 proxy for "tiny company" in the Owner/Exec
+  // branch. A `null` result (a deliberate defer, e.g. a short-tenure Owner
+  // at an unsized company) intentionally leaves titleScore exactly as the
+  // generic patterns above already set it — this divergence from
+  // level-rank-service.ts (which has a weightMultiplier lever to fall back
+  // on) is documented, not an oversight.
+  if (mostRecent) {
+    const datedStarts = facts.roles.filter((r) => r.startDate).map((r) => new Date(r.startDate as string).getTime())
+    const earliestStartMs = datedStarts.length > 0 ? Math.min(...datedStarts) : null
+    const yearsIntoCareerAtStart =
+      earliestStartMs !== null && mostRecent.startDate
+        ? Math.max(0, (new Date(mostRecent.startDate).getTime() - earliestStartMs) / (1000 * 60 * 60 * 24 * 365.25))
+        : 0
+
+    const contextual = resolveContextualLevel({
+      title: mostRecent.title,
+      companyName: mostRecent.company,
+      freeformIndustry: mostRecent.industry,
+      tenureMonthsInRole: roleTenureMonths(mostRecent),
+      yearsIntoCareerAtStart,
+      companySizeBand: null,
+      hasNoStatedScope: scopeMagnitude(mostRecent) === 0,
+      concurrentRoles: buildConcurrentRolesFromFacts(mostRecent, facts.roles),
+    })
+    if (contextual?.level && contextual.level in CANONICAL_LEVEL_TO_TITLE_SCORE) {
+      titleScore = CANONICAL_LEVEL_TO_TITLE_SCORE[contextual.level]
+    }
+  }
 
   let scopeScore = 0
   if (maxScope >= 500_000_000) scopeScore = 3

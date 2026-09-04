@@ -7,6 +7,9 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { inferLevelFromTitle, isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
+import { resolveContextualLevel } from '@/lib/scoring/seniority/resolve-contextual-level'
+import { buildConcurrentRolesFromFacts } from './seniority-band'
+import { roleTenureMonths } from './role-tenure'
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { SeniorityBand } from './types'
 import type { IssueCode } from '@/lib/analytics/issue-taxonomy'
@@ -195,11 +198,28 @@ const LEVEL_ORDINAL: Record<string, number> = { IC: 0, Manager: 1, Director: 2, 
 // Same ambiguous-bare-Partner guard level-rank-service.ts applies at its own
 // real call site — without it, a mid-career "Partner" title could register
 // as a fake jump straight to C-Suite and hand out an undeserved bonus.
+//
+// Checks resolveContextualLevel first (finance/law/investment-firm ladders
+// — see that module's file header) since this function calls
+// inferLevelFromTitle directly per role and would otherwise misread a real
+// Finance VP->Director promotion as flat or backwards, live, today.
 function resolveRoleLevelForTrajectory(
   role: ResumeAnalysisFacts['roles'][number],
+  allRoles: ResumeAnalysisFacts['roles'][number][],
   priorRoles: ResumeAnalysisFacts['roles'][number][],
   yearsElapsedAtRole: number
 ): string {
+  const contextual = resolveContextualLevel({
+    title: role.title,
+    companyName: role.company,
+    freeformIndustry: role.industry,
+    tenureMonthsInRole: roleTenureMonths(role),
+    yearsIntoCareerAtStart: yearsElapsedAtRole,
+    companySizeBand: null,
+    concurrentRoles: buildConcurrentRolesFromFacts(role, allRoles),
+  })
+  if (contextual?.level) return contextual.level
+
   const inferred = inferLevelFromTitle(role.title)
   if (inferred !== 'C-Suite' || !isAmbiguousPartnerTitle(role.title)) return inferred
   const priorUnambiguousSenior = priorRoles.some((r) => {
@@ -232,7 +252,7 @@ export function computeExperienceTrajectoryBonus(facts: ResumeAnalysisFacts): Ex
   let highestOrdinalSoFar = 0
   for (const role of sorted) {
     const priorRoles = sorted.filter((r) => new Date(r.startDate as string).getTime() < new Date(role.startDate as string).getTime())
-    const level = resolveRoleLevelForTrajectory(role, priorRoles, yearsElapsedAt(role))
+    const level = resolveRoleLevelForTrajectory(role, sorted, priorRoles, yearsElapsedAt(role))
     const ordinal = LEVEL_ORDINAL[level] ?? 0
     if (ordinal > highestOrdinalSoFar) {
       levelJumps += ordinal - highestOrdinalSoFar

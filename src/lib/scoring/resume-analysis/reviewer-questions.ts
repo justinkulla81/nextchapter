@@ -7,6 +7,7 @@
 
 import type { ResumeAnalysisFacts } from './extract-facts'
 import type { ReviewerDetectionType, SeniorityBand } from './types'
+import { roleTenureMonths } from './role-tenure'
 
 export interface ReviewerDetection {
   detectionType: ReviewerDetectionType
@@ -14,13 +15,6 @@ export interface ReviewerDetection {
 }
 
 const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30
-
-function roleTenureMonths(role: ResumeAnalysisFacts['roles'][number]): number | null {
-  if (!role.startDate) return null
-  const start = new Date(role.startDate).getTime()
-  const end = role.endDate ? new Date(role.endDate).getTime() : Date.now()
-  return (end - start) / MS_PER_MONTH
-}
 
 function scopeMagnitude(role: ResumeAnalysisFacts['roles'][number]): number {
   if (role.budgetOrPnlUsd) return role.budgetOrPnlUsd
