@@ -32,14 +32,14 @@ const STEPS: Step[] = [
     eyebrow: 'Step 2',
     title: 'Search Strategy → your Search Sprint',
     description:
-      'You tell us your target role, industries, and how you\'re approaching the search — then we turn that into a personalized weekly Search Sprint instead of showing you the same generic list everyone else gets.',
+      "You tell us your target role, industries, and how you're approaching the search, and complete a skills and personality assessment for better job matches — then we turn all of it into a personalized weekly Search Sprint instead of showing you the same generic list everyone else gets.",
   },
   {
     icon: ListChecks,
     eyebrow: 'Step 3',
     title: 'Real actions, real points',
     description:
-      'Every Search Sprint is built from specific, fixed-point Search Actions — not vague advice. A few examples:',
+      'Every Search Sprint is built from specific, fixed-point Search Actions — not vague advice. Connect Gmail and Calendar and your networking and job application CRM logs many of them automatically. A few examples:',
   },
   {
     icon: ShieldCheck,

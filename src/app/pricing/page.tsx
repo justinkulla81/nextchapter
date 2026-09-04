@@ -68,7 +68,7 @@ export default async function PricingPage() {
           <p className="mt-1 text-sm text-muted-foreground">NextChapter is free for candidates, always.</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {[
-              { plan: free, name: 'Free', description: 'Market Reality Report, Resume Studio, job matching, community, company pages.' },
+              { plan: free, name: 'Free', description: 'Market Reality Report, Resume Studio, your networking and job application CRM, a skills and personality assessment for better job matches, community, company pages.' },
               { plan: resume, name: 'Resume', description: 'Everything free, plus one human resume review, unlimited versions, per-job tailoring, full ATS matrix.' },
               { plan: coachingPlus, name: 'Coaching Plus', description: '1 session/month, resume review included, priority support.' },
               { plan: coachingPremium, name: 'Coaching Premium', description: '4 sessions/month, mock interviews with recorded feedback, negotiation support, named coach.' },

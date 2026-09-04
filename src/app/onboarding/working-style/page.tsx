@@ -24,8 +24,8 @@ export default async function WorkingStylePage() {
         <Greeting firstName={profile.firstName} />
         <h1 className="text-2xl font-semibold tracking-tight">How do you prefer working</h1>
         <p className="mt-1 text-muted-foreground">
-          No wrong answers — this helps employers understand what makes you thrive, not just what
-          you can do.
+          No wrong answers — this personality assessment helps employers understand what makes you
+          thrive, not just what you can do, and personalizes your job matches from day one.
         </p>
       </div>
       <div className="rounded-lg border border-brand/30 bg-brand/5 p-4 text-base text-foreground">

@@ -44,8 +44,9 @@ export default function DossierPage() {
           Your resume says what you did. This proves how you work.
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-          Five structured references. Two validated assessments. One document you build once and keep
-          forever — through this job search, and every one after it.
+          Five structured references. A skills and personality assessment for better job matches.
+          One document you build once and keep forever — through this job search, and every one
+          after it.
         </p>
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">

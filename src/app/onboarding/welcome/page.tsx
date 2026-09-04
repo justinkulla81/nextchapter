@@ -31,14 +31,18 @@ export default async function WelcomePage() {
           <p>
             You already know what getting hired actually takes: outreach, applications, interview
             prep, networking — done consistently, not in bursts. NextChapter turns that into a{' '}
-            <strong>Search Sprint</strong> you commit to before each week starts, and tracks your
-            progress as your <strong>Current Market Reality</strong> — how competitive you look to
-            employers right now.
+            <strong>Search Sprint</strong>{' '}
+            you commit to before each week starts, and tracks your progress as your{' '}
+            <strong>Current Market Reality</strong>{' '}
+            — how competitive you look to employers right now. Connect Gmail and Calendar and it
+            runs as your own networking and job application CRM, automatically logging outreach,
+            replies, and interviews so you never have to enter them by hand.
           </p>
           <ul className="list-disc space-y-1.5 pl-5">
             <li>Your Market Reality Assessment set your starting grade.</li>
             <li>Complete your weekly Search Sprint and your grade moves, because you&apos;re proving you&apos;re doing the work.</li>
             <li><strong>Learning</strong>, <strong>Working</strong>, and <strong>Networking</strong> raise it the same way, over time.</li>
+            <li>A <strong>skills and personality assessment</strong> personalizes your job matches and recommendations.</li>
           </ul>
           <p>Do the work, improve your Market Reality, and here&apos;s what you get:</p>
           <ul className="list-disc space-y-1.5 pl-5">

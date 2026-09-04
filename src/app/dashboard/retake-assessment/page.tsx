@@ -71,7 +71,7 @@ export default async function RetakeAssessmentPage() {
         <h1 className="text-2xl font-semibold tracking-tight">How I Work Best</h1>
         <p className="mt-2 text-muted-foreground">
           How you work can shift as your search progresses — this replaces your How I Work Best
-          profile with a fresh read. No wrong answers.
+          profile with a fresh read that keeps your job matches personalized. No wrong answers.
         </p>
         <Button
           nativeButton={false}

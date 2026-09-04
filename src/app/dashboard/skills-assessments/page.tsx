@@ -150,8 +150,9 @@ export default async function SkillsAssessmentsPage() {
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Skills & Behavioral Assessments</h1>
         <p className="text-muted-foreground">
-          These personalize your Job Recommendations, Skills Recommendations, and Market Reality
-          Report — the more current they are, the better the matches.
+          Your skills and personality assessment for better job matches — these personalize your
+          Job Recommendations, Skills Recommendations, and Market Reality Report — the more current
+          they are, the better the matches.
         </p>
         <PageHeaderBoxes pageKey="skills-assessments" candidateId={profile.id} />
       </div>

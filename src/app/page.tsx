@@ -45,7 +45,7 @@ const THREE_BEATS = [
   },
   {
     title: "Build what your resume can't say.",
-    body: 'Three references, structured and scored. Two validated assessments. One Executive Dossier you keep forever.',
+    body: 'Three references, structured and scored. A skills and personality assessment for better job matches. One Executive Dossier you keep forever.',
     href: '/dossier',
     cta: 'See a sample Dossier →',
   },
@@ -170,8 +170,9 @@ export default function Home() {
             A hiring manager scores you on 15 things. Your resume can only speak to 2 of them.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-            Five competencies, checked three ways each — by your references, by a real assessment, and by
-            what you actually do. Here&apos;s what a resume alone actually covers.
+            Five competencies, checked three ways each — by your references, by a skills and
+            personality assessment, and by what you actually do. Here&apos;s what a resume alone
+            actually covers.
           </p>
           <div className="mt-10">
             <CompetencyGridVisual />
@@ -246,8 +247,9 @@ export default function Home() {
         <div className="mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-navy">The Executive Dossier</h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Five structured references. Two validated assessments. One document, built once, that you
-            control and keep forever — through this search and every one after it.
+            Five structured references. A skills and personality assessment for better job matches.
+            One document, built once, that you control and keep forever — through this search and
+            every one after it.
           </p>
           <div className="mt-6">
             <Button nativeButton={false} size="default" variant="outline" render={<Link href="/dossier" />}>
@@ -262,9 +264,10 @@ export default function Home() {
         <div className="mx-auto max-w-2xl px-6 text-center">
           <h2 className="text-2xl font-bold tracking-tight text-navy">Free, always.</h2>
           <p className="mt-3 text-muted-foreground">
-            The Market Reality Report, Resume Studio, job matching, community, and company pages cost
-            nothing — permanently, not a trial. Someone who just lost a job doesn&apos;t need a paywall,
-            they need a plan.
+            The Market Reality Report, Resume Studio, your networking and job application CRM, a
+            skills and personality assessment for better job matches, community, and company pages
+            cost nothing — permanently, not a trial. Someone who just lost a job doesn&apos;t need a
+            paywall, they need a plan.
           </p>
         </div>
       </section>
