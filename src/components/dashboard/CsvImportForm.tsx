@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { importConnectionsCsv } from '@/app/dashboard/network/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +29,14 @@ export function CsvImportForm() {
       action={formAction}
       className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <p className="text-xs text-muted-foreground">
+        Why: this builds your networking list and surfaces warm introductions. We only read the
+        file you upload here — we never log into your LinkedIn account.{' '}
+        <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+          Learn more
+        </Link>
+        .
+      </p>
       <Input
         name="file"
         type="file"

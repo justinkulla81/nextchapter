@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailCalendarButton'
@@ -35,16 +36,26 @@ export async function GoogleConnectPrompt({
     const missing = emailConnection ? 'Calendar' : 'Gmail'
     const startPath = emailConnection ? '/api/auth/calendar/start' : '/api/auth/gmail/start'
     return (
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
-        <p className="text-sm text-foreground">
-          Connect {missing} too — <span className="text-muted-foreground">+10 pts, one time</span>
+      <div className="space-y-1.5 rounded-lg border border-border p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-foreground">
+            Connect {missing} too — <span className="text-muted-foreground">+10 pts, one time</span>
+          </p>
+          <ConnectGmailCalendarButton
+            href={withOAuthReturnTo(startPath, returnTo)}
+            label={`Connect ${missing}`}
+            analyticsKey="google_connect_prompt_partial"
+            className="inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-brand px-3 text-sm font-medium text-white hover:bg-brand/90"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Completes your networking and job application CRM. Read-only — we can never send, edit,
+          or delete anything in your mailbox.{' '}
+          <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+            Learn more
+          </Link>
+          .
         </p>
-        <ConnectGmailCalendarButton
-          href={withOAuthReturnTo(startPath, returnTo)}
-          label={`Connect ${missing}`}
-          analyticsKey="google_connect_prompt_partial"
-          className="inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-brand px-3 text-sm font-medium text-white hover:bg-brand/90"
-        />
       </div>
     )
   }
@@ -60,7 +71,11 @@ export async function GoogleConnectPrompt({
       <p className="text-sm text-muted-foreground">
         This turns on your networking and job application CRM — your outreach notes, application
         replies, interview invites, and calls get picked up automatically instead of you logging
-        each one by hand. Read-only: we can never send, edit, or delete anything in your mailbox.
+        each one by hand. Read-only: we can never send, edit, or delete anything in your mailbox.{' '}
+        <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+          Learn more
+        </Link>
+        .
       </p>
       <ConnectGmailCalendarButton
         href={withOAuthReturnTo('/api/auth/google-connect/start', returnTo)}

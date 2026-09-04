@@ -29,6 +29,10 @@ export function LinkedInConnectCard({ connected }: { connected: boolean }) {
         Connect LinkedIn to post directly from the box below — no copy-pasting. Every post counts
         as real, visible activity on your Certified Executive Dossier, not just a resume claim.
       </p>
+      <p className="text-xs text-muted-foreground">
+        We can only publish what you write and submit yourself — nothing else, and never without
+        you clicking Post.
+      </p>
       <a
         href="/api/auth/linkedin/start"
         className="inline-flex h-9 items-center justify-center rounded-md bg-[#0A66C2] px-4 text-sm font-medium text-white hover:bg-[#0A66C2]/90"

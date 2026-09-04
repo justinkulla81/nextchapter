@@ -44,7 +44,11 @@ export function PreConnectDailyMessage({
               </Link>{' '}
               — this is how we suggest people to reach out to, spot warm introductions in your
               network, and help with your networking. We only read a file you export yourself; we
-              never log into your LinkedIn account.
+              never log into your LinkedIn account.{' '}
+              <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+                Learn more
+              </Link>
+              .
             </li>
           )}
           {needsGmailOrCalendar && (
@@ -57,7 +61,11 @@ export function PreConnectDailyMessage({
               />{' '}
               — this turns on your networking and job application CRM, tracking your search
               progress automatically so you know what you&apos;re learning and applying to.
-              Read-only — we can never send, edit, or delete anything in your mailbox.
+              Read-only — we can never send, edit, or delete anything in your mailbox.{' '}
+              <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+                Learn more
+              </Link>
+              .
             </li>
           )}
         </ul>
