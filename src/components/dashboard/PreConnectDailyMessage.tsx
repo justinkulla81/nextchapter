@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
+import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailCalendarButton'
 
 // Replaces the normal admin-authored Daily Message rotation (via
 // PageHeaderBoxes' dailyMessageOverride) for as long as the candidate hasn't
@@ -36,25 +37,27 @@ export function PreConnectDailyMessage({
           {!linkedInConnected && (
             <li>
               <Link
-                href="/api/auth/linkedin/start"
+                href="/dashboard/network/contacts?buildList=1#import"
                 className="font-medium text-primary underline underline-offset-4"
               >
-                Connect LinkedIn
+                Import your LinkedIn connections
               </Link>{' '}
               — this is how we suggest people to reach out to, spot warm introductions in your
-              network, and help with your networking.
+              network, and help with your networking. We only read a file you export yourself; we
+              never log into your LinkedIn account.
             </li>
           )}
           {needsGmailOrCalendar && (
             <li>
-              <Link
+              <ConnectGmailCalendarButton
                 href={withOAuthReturnTo(connectGmailCalendarHref(hasEmailConnection, hasCalendarConnection), '/dashboard')}
+                label="Connect Gmail and Calendar"
+                analyticsKey="pre_connect_daily_message"
                 className="font-medium text-primary underline underline-offset-4"
-              >
-                Connect Gmail and Calendar
-              </Link>{' '}
-              — this is how we track your search progress automatically, build your accountability
-              plan, and know what you&apos;re learning and applying to.
+              />{' '}
+              — this turns on your networking and job application CRM, tracking your search
+              progress automatically so you know what you&apos;re learning and applying to.
+              Read-only — we can never send, edit, or delete anything in your mailbox.
             </li>
           )}
         </ul>

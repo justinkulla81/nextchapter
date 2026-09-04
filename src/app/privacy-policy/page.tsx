@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'July 13, 2026'
+const EFFECTIVE_DATE = 'September 4, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -54,18 +54,51 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">2. How We Use Your Information</h2>
+          <h2 className="text-xl font-semibold text-navy">2. Connected Accounts (Gmail, Calendar, and LinkedIn)</h2>
+          <p>
+            You can optionally connect your Gmail, Calendar, and LinkedIn to turn on your
+            networking and job application CRM — automatically tracking your outreach, application
+            replies, interview invites, calls, and networking contacts instead of you logging each
+            one by hand. These connections are optional, and every one of them can be disconnected
+            at any time from Dashboard → Settings.
+          </p>
+          <ul className="list-disc space-y-2 pl-6">
+            <li>
+              <strong>Gmail and Calendar are read-only.</strong>{' '}
+              We request only the
+              &quot;gmail.readonly&quot; and &quot;calendar.events.readonly&quot; scopes from
+              Google, plus your basic identity (name and email address) to confirm which account is
+              connected. NextChapter can never send, reply to, edit, delete, or otherwise modify
+              anything in your Gmail or Calendar. Within that read-only access, we look only for
+              signals of outreach, application replies, interview invites, and calls related to
+              your job search — we do not read, store, or analyze the content of unrelated personal
+              emails or calendar events.
+            </li>
+            <li>
+              <strong>LinkedIn connections are imported by you, not accessed by us.</strong>{' '}
+              To build your networking list, you export your own connections file from LinkedIn and
+              upload it to NextChapter — we never log into your LinkedIn account or access it
+              directly. If you separately choose to connect LinkedIn to publish posts through
+              NextChapter, that connection only allows us to publish content you write and submit
+              yourself — it does not grant access to read your LinkedIn messages, connections, or
+              activity.
+            </li>
+          </ul>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold text-navy">3. How We Use Your Information</h2>
           <ul className="list-disc space-y-2 pl-6">
             <li>To generate your Current Market Reality, personalized action plan, resume feedback, and job-fit analysis.</li>
             <li>To operate features you use directly, such as reference requests, work samples, and the Community Board.</li>
-            <li>To show your profile to employers on the Service, strictly according to the privacy setting you choose (see Section 4).</li>
+            <li>To show your profile to employers on the Service, strictly according to the privacy setting you choose (see Section 5).</li>
             <li>To send you service emails — your report, reference requests, and reminders about finishing your account (you can opt out of reminder emails at any time via the unsubscribe link).</li>
             <li>To maintain, secure, and improve the Service.</li>
           </ul>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">3. How We Use AI to Process Your Information</h2>
+          <h2 className="text-xl font-semibold text-navy">4. How We Use AI to Process Your Information</h2>
           <p>
             We use Claude, an AI model provided by Anthropic, to analyze your resume, generate
             your Current Market Reality narratives, action plan, and job-fit
@@ -77,10 +110,11 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">4. How We Share Your Information</h2>
+          <h2 className="text-xl font-semibold text-navy">5. How We Share Your Information</h2>
           <p>
-            <strong>We do not sell your personal data.</strong> We do not share it with data
-            brokers or advertisers. We share information only in these circumstances:
+            <strong>We do not sell your personal data.</strong>{' '}
+            We do not share it with data brokers or advertisers. We share information only in
+            these circumstances:
           </p>
           <ul className="list-disc space-y-2 pl-6">
             <li>
@@ -111,7 +145,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">5. Your Choices &amp; Rights</h2>
+          <h2 className="text-xl font-semibold text-navy">6. Your Choices &amp; Rights</h2>
           <ul className="list-disc space-y-2 pl-6">
             <li>Change your visibility setting at any time from Dashboard → Privacy.</li>
             <li>Update or correct your profile information at any time.</li>
@@ -128,12 +162,12 @@ export default function PrivacyPolicyPage() {
             If you are located in a jurisdiction that grants additional rights over your personal
             data (such as the right to access, correct, or restrict processing of your data), you
             can exercise those rights using the controls above, or by contacting us at the address
-            in Section 10.
+            in Section 13.
           </p>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">6. Data Retention</h2>
+          <h2 className="text-xl font-semibold text-navy">7. Data Retention</h2>
           <p>
             We retain your information for as long as your account is active. When you delete your
             account, your profile and associated data are deleted immediately from our production
@@ -143,7 +177,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">7. Data Security</h2>
+          <h2 className="text-xl font-semibold text-navy">8. Data Security</h2>
           <p>
             We use industry-standard technical and organizational measures to protect your
             information, including encryption in transit and access controls on our production
@@ -153,7 +187,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">8. Children&apos;s Privacy</h2>
+          <h2 className="text-xl font-semibold text-navy">9. Children&apos;s Privacy</h2>
           <p>
             The Service is intended for individuals who are at least 18 years old and legally
             eligible to work. We do not knowingly collect information from anyone under 18. If you
@@ -162,7 +196,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">9. No Guarantee of Employment Outcomes</h2>
+          <h2 className="text-xl font-semibold text-navy">10. No Guarantee of Employment Outcomes</h2>
           <p>
             Your Current Market Reality, action plan, and any AI-generated feedback are provided for
             informational and self-improvement purposes only. NextChapter is not an employment
@@ -172,7 +206,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">10. $500 Hired Bounty Program Terms</h2>
+          <h2 className="text-xl font-semibold text-navy">11. $500 Hired Bounty Program Terms</h2>
           <p>
             Candidates who report landing a job through NextChapter may be eligible for a one-time
             $500 bounty. Eligibility requires submitting real role details and a genuine offer
@@ -191,7 +225,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">11. Changes to This Policy</h2>
+          <h2 className="text-xl font-semibold text-navy">12. Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy from time to time. If we make material changes,
             we&apos;ll update the effective date above and, where appropriate, notify you directly.
@@ -199,7 +233,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-navy">12. Contact Us</h2>
+          <h2 className="text-xl font-semibold text-navy">13. Contact Us</h2>
           <p>
             Questions about this Policy or your data? Email{' '}
             <a href="mailto:hello@launchyournextchapter.com" className="text-primary underline underline-offset-4">

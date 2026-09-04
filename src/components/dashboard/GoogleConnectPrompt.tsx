@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
+import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailCalendarButton'
 
 // One-time Gmail + Calendar connect callout — surfaced inline on the pages
 // where the payoff is obvious (Network with My Contacts, Find Full-Time Jobs)
@@ -38,12 +39,12 @@ export async function GoogleConnectPrompt({
         <p className="text-sm text-foreground">
           Connect {missing} too — <span className="text-muted-foreground">+10 pts, one time</span>
         </p>
-        <a
+        <ConnectGmailCalendarButton
           href={withOAuthReturnTo(startPath, returnTo)}
+          label={`Connect ${missing}`}
+          analyticsKey="google_connect_prompt_partial"
           className="inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-brand px-3 text-sm font-medium text-white hover:bg-brand/90"
-        >
-          Connect {missing}
-        </a>
+        />
       </div>
     )
   }
@@ -57,15 +58,16 @@ export async function GoogleConnectPrompt({
         </span>
       </div>
       <p className="text-sm text-muted-foreground">
-        One click, one Google sign-in for both — after that, your outreach notes, application replies,
-        interview invites, and calls get picked up automatically instead of you logging each one by hand.
+        This turns on your networking and job application CRM — your outreach notes, application
+        replies, interview invites, and calls get picked up automatically instead of you logging
+        each one by hand. Read-only: we can never send, edit, or delete anything in your mailbox.
       </p>
-      <a
+      <ConnectGmailCalendarButton
         href={withOAuthReturnTo('/api/auth/google-connect/start', returnTo)}
+        label="Connect Gmail & Calendar"
+        analyticsKey="google_connect_prompt_full"
         className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand/90"
-      >
-        Connect Gmail &amp; Calendar
-      </a>
+      />
     </div>
   )
 }
