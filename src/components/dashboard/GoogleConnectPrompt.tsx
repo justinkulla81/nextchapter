@@ -49,8 +49,8 @@ export async function GoogleConnectPrompt({
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Completes your networking and job application CRM. Read-only — we can never send, edit,
-          or delete anything in your mailbox.{' '}
+          Completes automatic tracking of your outreach cadence and application activity. Read-only
+          — we can never send, edit, or delete anything in your mailbox.{' '}
           <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
             Learn more
           </Link>
@@ -69,9 +69,10 @@ export async function GoogleConnectPrompt({
         </span>
       </div>
       <p className="text-sm text-muted-foreground">
-        This turns on your networking and job application CRM — your outreach notes, application
-        replies, interview invites, and calls get picked up automatically instead of you logging
-        each one by hand. Read-only: we can never send, edit, or delete anything in your mailbox.{' '}
+        We can automatically track your outreach and application cadence, flag when something
+        looks like a fit issue, keep you aligned with your Search Strategy, and count real
+        achievements toward your Certified Executive Dossier — no manual logging. Read-only: we
+        can never send, edit, or delete anything in your mailbox.{' '}
         <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
           Learn more
         </Link>

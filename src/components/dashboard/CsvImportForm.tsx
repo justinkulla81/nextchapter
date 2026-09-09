@@ -30,8 +30,9 @@ export function CsvImportForm() {
       className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <p className="text-xs text-muted-foreground">
-        Why: this builds your networking list and surfaces warm introductions. We only read the
-        file you upload here — we never log into your LinkedIn account.{' '}
+        We can analyze your network to surface warm introductions and the right people to reach
+        out to for your target roles. We only read the file you upload here — we never log into
+        your LinkedIn account.{' '}
         <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
           Learn more
         </Link>

@@ -33,46 +33,53 @@ export function PreConnectDailyMessage({
       <CardContent className="space-y-2">
         <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Daily Message</p>
         <p className="text-sm font-semibold text-navy">Welcome, {firstName}!</p>
-        <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
+        <div className="space-y-3 text-sm text-foreground">
           {!linkedInConnected && (
-            <li>
-              <Link
-                href="/dashboard/network/contacts?buildList=1#import"
-                className="font-medium text-primary underline underline-offset-4"
-              >
-                Import your LinkedIn connections
-              </Link>{' '}
-              — this is how we suggest people to reach out to, spot warm introductions in your
-              network, and help with your networking. We only read a file you export yourself; we
-              never log into your LinkedIn account.{' '}
-              <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
-                Learn more
-              </Link>
-              .
-            </li>
+            <div>
+              <p>
+                We can analyze your network to surface warm introductions and the right people to
+                reach out to for your target roles — once you import your LinkedIn connections.
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                <Link
+                  href="/dashboard/network/contacts?buildList=1#import"
+                  className="font-medium text-primary underline underline-offset-4"
+                >
+                  Import your LinkedIn connections
+                </Link>{' '}
+                — we only read a file you export yourself; we never log into your LinkedIn
+                account.{' '}
+                <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+                  Learn more
+                </Link>
+                .
+              </p>
+            </div>
           )}
           {needsGmailOrCalendar && (
-            <li>
-              <ConnectGmailCalendarButton
-                href={withOAuthReturnTo(connectGmailCalendarHref(hasEmailConnection, hasCalendarConnection), '/dashboard')}
-                label="Connect Gmail and Calendar"
-                analyticsKey="pre_connect_daily_message"
-                className="font-medium text-primary underline underline-offset-4"
-              />{' '}
-              — this turns on your networking and job application CRM, tracking your search
-              progress automatically so you know what you&apos;re learning and applying to.
-              Read-only — we can never send, edit, or delete anything in your mailbox.{' '}
-              <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
-                Learn more
-              </Link>
-              .
-            </li>
+            <div>
+              <p>
+                We can automatically track your outreach and application cadence, flag when
+                something looks like a fit issue, keep you aligned with your Search Strategy, and
+                count real achievements toward your Certified Executive Dossier — once you connect
+                Gmail and Calendar. No manual logging.
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                <ConnectGmailCalendarButton
+                  href={withOAuthReturnTo(connectGmailCalendarHref(hasEmailConnection, hasCalendarConnection), '/dashboard')}
+                  label="Connect Gmail and Calendar"
+                  analyticsKey="pre_connect_daily_message"
+                  className="font-medium text-primary underline underline-offset-4"
+                />{' '}
+                — read-only, we can never send, edit, or delete anything in your mailbox.{' '}
+                <Link href="/privacy-policy" target="_blank" className="underline underline-offset-4">
+                  Learn more
+                </Link>
+                .
+              </p>
+            </div>
           )}
-        </ul>
-        <p className="text-sm font-semibold text-foreground">
-          It works like magic — once connected, the rest of NextChapter keeps itself updated for
-          you.
-        </p>
+        </div>
       </CardContent>
     </Card>
   )

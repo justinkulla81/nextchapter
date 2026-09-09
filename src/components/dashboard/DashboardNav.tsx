@@ -99,10 +99,14 @@ function buildSections(
 ): NavSection[] {
   const gmailLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = hasEmailConnection
     ? {}
-    : { muted: true, disabled: true, lockReason: 'Unlocks once you connect Gmail on your Profile page' }
+    : { muted: true, disabled: true, lockReason: GMAIL_LOCK_REASON }
   const linkedInLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = linkedInConnected
     ? {}
-    : { muted: true, disabled: true, lockReason: 'Unlocks once you connect LinkedIn on your Profile page' }
+    : {
+        muted: true,
+        disabled: true,
+        lockReason: 'Unlocks once you connect LinkedIn — we can then analyze your network for the right people to reach out to. Connect on your Profile page.',
+      }
   const skillsLock: Pick<NavLink, 'muted' | 'disabled' | 'lockReason'> | Record<string, never> = skillsAssessmentCompleted
     ? {}
     : { muted: true, disabled: true, lockReason: 'Unlocks once you complete the Skills Assessment' }
@@ -397,12 +401,19 @@ function NavContent({
 // consistent with the simplified sidebar's own top priorities. "More" opens
 // the same full drawer as the old hamburger, so nothing in the fuller nav
 // list becomes unreachable on mobile.
+// locksOn: 'gmail' mirrors the desktop sidebar's gmailLock for the same two
+// destinations (Prompt 83 point 11 predates that lock and never applied it
+// here — mobile could always tap through to a page the desktop sidebar
+// treated as locked, an inconsistency this closes).
 const MOBILE_TABS = [
   { href: '/dashboard', label: 'Home', icon: Home },
-  { href: '/dashboard/find-my-job', label: 'Jobs', icon: Briefcase },
-  { href: '/dashboard/network', label: 'Network', icon: Users },
+  { href: '/dashboard/find-my-job', label: 'Jobs', icon: Briefcase, locksOn: 'gmail' as const },
+  { href: '/dashboard/network', label: 'Network', icon: Users, locksOn: 'gmail' as const },
   { href: '/dashboard/profile', label: 'Profile', icon: User },
 ] as const
+
+const GMAIL_LOCK_REASON =
+  'Unlocks once you connect Gmail — we can then track your outreach and application cadence automatically. Connect on your Profile page.'
 
 export function DashboardNav({
   portfolioAssetCount = 0,
@@ -502,6 +513,25 @@ export function DashboardNav({
         {MOBILE_TABS.map((tab) => {
           const active = isMobileTabActive(tab.href)
           const Icon = tab.icon
+          const locked = 'locksOn' in tab && tab.locksOn === 'gmail' && !hasEmailConnection
+
+          if (locked) {
+            return (
+              <div
+                key={tab.href}
+                aria-disabled="true"
+                title={GMAIL_LOCK_REASON}
+                className="flex flex-1 cursor-not-allowed flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-muted-foreground/60"
+              >
+                <span className="relative">
+                  <Icon className="size-5" strokeWidth={2} aria-hidden />
+                  <Lock className="absolute -right-1.5 -bottom-1 size-2.5 rounded-full bg-white text-orange" strokeWidth={2.5} aria-hidden />
+                </span>
+                {tab.label}
+              </div>
+            )
+          }
+
           return (
             <Link
               key={tab.href}

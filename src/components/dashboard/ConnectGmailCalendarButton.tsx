@@ -50,15 +50,35 @@ export function ConnectGmailCalendarButton({
 
         <div className="flex items-center gap-2 pr-6">
           <ShieldCheck className="size-5 shrink-0 text-brand" />
-          <h2 className="text-lg font-semibold tracking-tight">Turn on your networking &amp; job application CRM</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Why we ask to connect Gmail &amp; Calendar</h2>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Connecting Gmail and Calendar is what makes NextChapter work like a CRM for your search —
-          it automatically logs outreach, application replies, interview invites, and calls, so you
-          never have to enter them by hand.
+          It automatically logs outreach, application replies, interview invites, and calls, so you
+          never have to enter them by hand — and it&apos;s what lets us actually help you, not just
+          track you:
         </p>
 
-        <ul className="mt-4 space-y-2.5 text-sm text-foreground">
+        <ul className="mt-3 space-y-2 text-sm text-foreground">
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+            <span>See your real outreach and application <strong>cadence</strong> — not a guess.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+            <span>Get feedback when a role or reply pattern doesn&apos;t look like a good <strong>fit</strong>.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+            <span>Stay aligned with your <strong>Search Strategy</strong> as your search progresses.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+            <span>Count real activity as achievements toward your <strong>Certified Executive Dossier</strong>.</span>
+          </li>
+        </ul>
+
+        <p className="mt-4 text-sm font-medium text-foreground">Here&apos;s exactly what that does and doesn&apos;t mean:</p>
+        <ul className="mt-2 space-y-2.5 text-sm text-foreground">
           <li className="flex items-start gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" />
             <span>

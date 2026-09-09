@@ -49,7 +49,8 @@ import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
 import { ReportReadyDailyMessage } from '@/components/dashboard/ReportReadyDailyMessage'
-import { getHardGateStatus } from '@/lib/dashboard/access-gate'
+import { getHardGateStatus, isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
+import { SearchStrategyDailyMessage } from '@/components/dashboard/SearchStrategyDailyMessage'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
@@ -233,10 +234,9 @@ export default async function DashboardPage() {
   const onTrack = weeklyProgress.weeklyPoints > (weeklyProgress.weeklyPointsTarget * daysElapsedThisWeek) / 7
 
   // #931/#932 Search Plan — only shown once the candidate has cleared the
-  // dashboard-wide hard gate (see access-gate.ts). Reuses emailConnection
-  // (already fetched above) instead of a second isGmailConnected() query —
-  // same "has a live, non-disconnected EmailConnection row" check either way.
-  const hardGateStatus = getHardGateStatus(profile, !!emailConnection)
+  // dashboard-wide hard gate (see access-gate.ts), which now checks only
+  // Search Strategy completion.
+  const hardGateStatus = getHardGateStatus(profile)
 
   const daysSinceRegistration = profile.registrationCompletedAt
     ? (new Date().getTime() - profile.registrationCompletedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -282,6 +282,8 @@ export default async function DashboardPage() {
         dailyMessageOverride={
           showReportReadyMessage ? (
             <ReportReadyDailyMessage firstName={profile.firstName ?? 'there'} />
+          ) : !isSearchStrategyGateComplete(profile) ? (
+            <SearchStrategyDailyMessage firstName={profile.firstName ?? 'there'} />
           ) : !bothConnectedUnlocked ? (
             <PreConnectDailyMessage
               firstName={profile.firstName ?? 'there'}

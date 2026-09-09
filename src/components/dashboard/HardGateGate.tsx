@@ -17,25 +17,18 @@ import type { HardGateStatus } from '@/lib/dashboard/access-gate'
 export function HardGateGate({
   subjectToHardGate,
   status,
-  candidateId,
-  email,
   children,
 }: {
   subjectToHardGate: boolean
   status: HardGateStatus
-  candidateId: string
-  email: string | null
   children: React.ReactNode
 }) {
   const pathname = usePathname()
 
-  const blocked =
-    subjectToHardGate &&
-    !isGateExemptPath(pathname) &&
-    (status === 'search_strategy_required' || status === 'activation_required')
+  const blocked = subjectToHardGate && !isGateExemptPath(pathname) && status === 'search_strategy_required'
 
   if (blocked) {
-    return <HardGateBlockingScreen stage={status} candidateId={candidateId} email={email} />
+    return <HardGateBlockingScreen stage="search_strategy_required" />
   }
 
   return <>{children}</>

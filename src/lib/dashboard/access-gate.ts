@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
-import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 
-export type HardGateStatus = 'exempt' | 'search_strategy_required' | 'activation_required' | 'unlocked'
+export type HardGateStatus = 'exempt' | 'search_strategy_required' | 'unlocked'
 
 // The candidate-facing Search Strategy page's own two required sections
 // (Target Role & Company, Blockers and Motivations) — same bar Victoria's
@@ -25,14 +24,17 @@ export async function isGmailConnected(candidateId: string): Promise<boolean> {
   return !!connection
 }
 
-// The dashboard-wide hard gate: Gmail + LinkedIn ("activation") required
-// first, then Search Strategy, to unlock the rest of the dashboard as a
-// Search Plan. Activation comes first so Search Strategy — which asks
-// what's gotten in the way, comp expectations, etc. — happens once we
-// already have a real, connected account, not as a cold first question.
-// Only ever applies to candidates created after this shipped — see
-// subjectToHardGate's own comment in schema.prisma. Existing candidates get
-// 'exempt' unconditionally and are never newly locked out.
+// The dashboard-wide hard gate: Search Strategy is the one required thing
+// to unlock the rest of the dashboard — the first priority action after
+// onboarding, not something a candidate has to earn by connecting accounts
+// first. Gmail and LinkedIn are deliberately NOT part of this gate anymore
+// (see git history for the earlier "activation" stage this replaced) —
+// connecting them is optional and unlocks specific pages instead (Network,
+// Find a Job, Marketing Plan — see DashboardNav.tsx's gmailLock/
+// linkedInLock), never blocks the whole dashboard. Only ever applies to
+// candidates created after this shipped — see subjectToHardGate's own
+// comment in schema.prisma. Existing candidates get 'exempt'
+// unconditionally and are never newly locked out.
 export function getHardGateStatus(profile: {
   subjectToHardGate: boolean
   targetRoleType: string | null
@@ -47,11 +49,8 @@ export function getHardGateStatus(profile: {
   coachingStylePreference: Parameters<typeof isBlockersAndMotivationsComplete>[0]['coachingStylePreference']
   changePacePreference: Parameters<typeof isBlockersAndMotivationsComplete>[0]['changePacePreference']
   changeReadiness: Parameters<typeof isBlockersAndMotivationsComplete>[0]['changeReadiness']
-  linkedinConnectionsImportedAt: Date | null
-  linkedInConnection?: { disconnectedAt: Date | null } | null
-}, gmailConnected: boolean): HardGateStatus {
+}): HardGateStatus {
   if (!profile.subjectToHardGate) return 'exempt'
-  if (!gmailConnected || !isLinkedInConnected(profile)) return 'activation_required'
   if (!isSearchStrategyGateComplete(profile)) return 'search_strategy_required'
   return 'unlocked'
 }
