@@ -54,6 +54,25 @@ export default function WhyStuckPage() {
       </section>
 
       <section className="bg-off-white px-6 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-xl font-semibold text-navy">You&apos;re not the only one who feels this way</h2>
+          <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
+            Business Insider talked to laid-off tech workers about what the experience actually
+            felt like — and what they learned moving into their next chapter.
+          </p>
+          <div className="mx-auto mt-6 aspect-video overflow-hidden rounded-xl border border-light-gray shadow-lg">
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/3I-xv56cBUY"
+              className="h-full w-full"
+              title="Life Lessons From Big Tech Workers Who Got Laid Off — Business Insider"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-6 py-16">
         <ul className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {painPoints.map((point) => (
             <li
@@ -69,11 +88,11 @@ export default function WhyStuckPage() {
         </ul>
       </section>
 
-      <section className="bg-white px-6 py-16">
+      <section className="bg-off-white px-6 py-16">
         <ByTheNumbers />
       </section>
 
-      <section className="bg-off-white px-6 py-16">
+      <section className="bg-white px-6 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-xl font-semibold text-navy">
             The worst part isn&apos;t the rejection. It&apos;s never finding out why.
@@ -93,7 +112,7 @@ export default function WhyStuckPage() {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-16">
+      <section className="bg-off-white px-6 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-xl font-semibold text-navy">Hear it from Chris</h2>
           <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
@@ -113,25 +132,6 @@ export default function WhyStuckPage() {
       </section>
 
       <section className="bg-white px-6 py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-xl font-semibold text-navy">You&apos;re not the only one who feels this way</h2>
-          <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
-            Business Insider talked to laid-off tech workers about what the experience actually
-            felt like — and what they learned moving into their next chapter.
-          </p>
-          <div className="mx-auto mt-6 aspect-video overflow-hidden rounded-xl border border-light-gray shadow-lg">
-            <iframe
-              src="https://www.youtube-nocookie.com/embed/3I-xv56cBUY"
-              className="h-full w-full"
-              title="Life Lessons From Big Tech Workers Who Got Laid Off — Business Insider"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-off-white px-6 py-16">
         <SituationalButtons />
       </section>
     </div>
