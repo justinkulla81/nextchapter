@@ -17,7 +17,7 @@ interface SeedRow {
     | 'DAILY_NUDGE'
     | 'MIDWEEK_CHECKIN'
     | 'GAP_NUDGE'
-    | 'COMMUNITY_DIGEST'
+    | 'SEARCH_CHECKIN'
     | 'FINISH_LINE'
   title: string
   description: string
@@ -62,16 +62,16 @@ const ROWS: SeedRow[] = [
   },
   {
     dayOfWeek: 6,
-    emailKey: 'COMMUNITY_DIGEST',
-    title: 'Your Week in Review',
-    description: 'Encouragement notes received + coaching activity recap.',
+    emailKey: 'SEARCH_CHECKIN',
+    title: 'Are You Still Searching?',
+    description: 'A 3-option check-in (still searching / taking a break / got an offer) — see the Search Check-ins admin report for responses.',
     sendHourUtc: 15,
   },
   {
     dayOfWeek: 0,
     emailKey: 'FINISH_LINE',
     title: 'Finish Line',
-    description: 'Week-close-out recap — on pace for an A, or what it takes to still get there.',
+    description: 'Week-close-out recap — on pace for an A, or what it takes to still get there — plus the merged weekly community/coaching recap (encouragement notes, coach sessions).',
     sendHourUtc: 13,
   },
 ]

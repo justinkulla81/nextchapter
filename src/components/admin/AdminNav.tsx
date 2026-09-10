@@ -124,6 +124,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/population', label: 'Population Report' },
         { href: '/support/admin/page-content', label: 'Page Content' },
         { href: '/support/admin/email-cadence', label: 'Email Cadence' },
+        { href: '/support/admin/search-checkins', label: 'Search Check-ins' },
         { href: '/support/admin/courses', label: 'Courses' },
         { href: '/support/admin/alumni-groups', label: 'Alumni & Employer Networks' },
         { href: '/support/admin/webinars', label: 'Videos and Webinars' },

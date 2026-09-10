@@ -63,6 +63,9 @@ export default function FinishLineEmail({
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
+      <p style={{ fontSize: '13px', letterSpacing: '0.03em', textTransform: 'uppercase', color: '#4a5568' }}>
+        Your week in review
+      </p>
       <p>Hi {firstName || 'there'} — {victoriaName} here.</p>
 
       {introCopy && <p>{introCopy}</p>}

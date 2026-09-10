@@ -1550,6 +1550,7 @@ model CandidateProfile {
   resumeSubmissionLeads ResumeSubmissionLead[]
   pageBoxDismissals     PageBoxDismissal[]
   emailSendLogs         CandidateEmailSendLog[]
+  searchCheckIns        CandidateSearchCheckIn[]
 
   // Support Network nav badge — "how many new things since I last opened
   // this" needs a baseline. Defaults to now() so existing candidates don't
@@ -5159,8 +5160,25 @@ enum CandidateEmailKey {
   DAILY_NUDGE // Wed — generic branch of send-daily-action-email.ts
   MIDWEEK_CHECKIN // Thu — send-midweek-checkin.ts
   GAP_NUDGE // Fri — send-weekly-gap-nudge.ts
-  COMMUNITY_DIGEST // Sat — send-community-coaching-digest.ts
-  FINISH_LINE // Sun — send-finish-line-email.ts
+  // Retired — its "week in review" content (encouragement notes, coach
+  // sessions) was merged into FINISH_LINE on Sunday. Kept in the enum
+  // (never dispatched again) so historical CandidateEmailSendLog rows
+  // referencing it stay valid.
+  COMMUNITY_DIGEST
+  SEARCH_CHECKIN // Sat — send-search-checkin-email.ts
+  FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
+}
+
+// STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the
+// Saturday "Are you still searching?" check-in email. Deliberately its own
+// axis, not a repurposing of CurrentJobStatus (a reason-for-searching
+// taxonomy, e.g. LAID_OFF/RESIGNED) or SearchIntensity (a one-time
+// onboarding self-report) — neither covers "currently paused" or "got an
+// offer" as a recurring, re-askable state.
+enum SearchCheckInAnswer {
+  STILL_SEARCHING
+  TAKING_A_BREAK
+  GOT_AN_OFFER
 }
 
 enum VideoProvider {
@@ -5251,6 +5269,29 @@ model CandidateEmailSchedule {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// One row per Saturday "Are you still searching?" send — the no-login
+// response mechanism for that email, same token-cuid pattern Reference uses
+// for /ref/[token] (an unguessable token is the entire access control, no
+// signed JWT). Created at send time with token/sentAt only; respondedAt/
+// answer fill in when the candidate clicks one of the email's 3 links
+// (/api/checkin/[token]?answer=...), openedAt fills in from the email's
+// tracking pixel. One row per send (not one durable row per candidate) so
+// the admin report can show a full history across weeks, not just the
+// latest state.
+model CandidateSearchCheckIn {
+  id          String               @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  token       String               @unique @default(cuid())
+  sentAt      DateTime             @default(now())
+  openedAt    DateTime?
+  respondedAt DateTime?
+  answer      SearchCheckInAnswer?
+
+  @@index([candidateId])
+  @@index([sentAt])
 }
 
 // Idempotency guard for the candidate-email-dispatch cron — the unique

@@ -18,7 +18,9 @@ async function buildFinishLineContent(
   candidateId: string,
   privacyTier: PrivacyTier,
   confidentialSearchMode: boolean,
-  firstName: string | null
+  firstName: string | null,
+  encouragementCount: number,
+  hadCoachSession: boolean
 ) {
   const weekNumber = await getCandidateWeekNumber(candidateId, getMondayOfWeek(new Date()))
   const { engines, weeklyPoints, weeklyPointsTarget } = await computeWeeklyEngines(
@@ -36,6 +38,20 @@ async function buildFinishLineContent(
 
   const namePart = firstName ? `, ${firstName}` : ''
 
+  // Merged in from the retired Saturday "week in review" digest — purely
+  // additive, appended after whichever progress framing below applies,
+  // never the lead since Finish Line's own weekly-progress recap is the
+  // more actionable, always-relevant content.
+  const communityBullets: string[] = []
+  if (encouragementCount > 0) {
+    communityBullets.push(
+      `You received ${encouragementCount} encouragement note${encouragementCount === 1 ? '' : 's'} from your Support Network this week.`
+    )
+  }
+  if (hadCoachSession) {
+    communityBullets.push('You had a coaching session this week — check your dashboard for what changed since last time.')
+  }
+
   if (weeklyPoints >= weeklyPointsTarget) {
     const overperformedLabels = engines.filter((e) => e.grade === 'A').map((e) => e.label)
     const bullets: string[] = [
@@ -48,7 +64,7 @@ async function buildFinishLineContent(
     if (stillOpen.length > 0) {
       bullets.push(`Still open if you want to keep the streak going: ${stillOpen.join('; ')}.`)
     }
-    return { subject: `Finish the week strong${namePart} — you're already on pace.`, bullets }
+    return { subject: `Finish the week strong${namePart} — you're already on pace.`, bullets: [...bullets, ...communityBullets] }
   }
 
   const pointsToGo = weeklyPointsTarget - weeklyPoints
@@ -68,10 +84,15 @@ async function buildFinishLineContent(
     bullets.push(`Fastest way there: ${fastestActions.join('; ')}.`)
   }
 
-  return { subject: `Finish the week strong${namePart} — here's what gets you an A.`, bullets }
+  return { subject: `Finish the week strong${namePart} — here's what gets you an A.`, bullets: [...bullets, ...communityBullets] }
 }
 
-export async function sendFinishLineEmail(candidateId: string, introCopy?: string | null) {
+export async function sendFinishLineEmail(
+  candidateId: string,
+  introCopy?: string | null,
+  encouragementCount = 0,
+  hadCoachSession = false
+) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping Finish Line email.')
     return { sent: false as const }
@@ -93,7 +114,9 @@ export async function sendFinishLineEmail(candidateId: string, introCopy?: strin
       candidateId,
       candidate.privacyTier,
       candidate.confidentialSearchMode,
-      candidate.firstName
+      candidate.firstName,
+      encouragementCount,
+      hadCoachSession
     )
 
     const resend = new Resend(process.env.RESEND_API_KEY)

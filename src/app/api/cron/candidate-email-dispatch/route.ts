@@ -5,7 +5,7 @@ import { runMarketUpdate } from '@/lib/email/dispatch/run-market-update'
 import { runDailyNudge } from '@/lib/email/dispatch/run-daily-nudge'
 import { runMidweekCheckin } from '@/lib/email/dispatch/run-midweek-checkin'
 import { runGapNudge } from '@/lib/email/dispatch/run-gap-nudge'
-import { runCommunityDigest } from '@/lib/email/dispatch/run-community-digest'
+import { runSearchCheckin } from '@/lib/email/dispatch/run-search-checkin'
 import { runFinishLine } from '@/lib/email/dispatch/run-finish-line'
 
 // Fires once daily at 13:00 UTC (see vercel.json) — Vercel Hobby plan caps
@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
       const result = await runGapNudge(introCopy, eligiblePrivacyTiers)
       return NextResponse.json({ dispatched: row.emailKey, ...result })
     }
-    case 'COMMUNITY_DIGEST': {
-      const result = await runCommunityDigest(introCopy, eligiblePrivacyTiers)
+    case 'SEARCH_CHECKIN': {
+      const result = await runSearchCheckin(introCopy, eligiblePrivacyTiers)
       return NextResponse.json({ dispatched: row.emailKey, ...result })
     }
     case 'FINISH_LINE': {
