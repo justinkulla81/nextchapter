@@ -6,9 +6,13 @@ import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { ORG_TYPES, ORG_TYPE_LABELS } from '@/lib/crm/labels'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
+import { CrmOrgBulkBar } from '@/components/admin/CrmOrgBulkBar'
+import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
+import { SortHeader, readSort } from '@/components/admin/SortHeader'
 
 export const maxDuration = 30
-const PAGE_SIZE = 50
+const PAGE_SIZES = [50, 100, 200, 1500] as const
+const DEFAULT_PAGE_SIZE = 100
 
 export default async function CrmOrganizationsPage({
   searchParams,
@@ -21,6 +25,14 @@ export default async function CrmOrganizationsPage({
   const type = sp.type ?? ''
   const goal = sp.goal ?? ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+  const requested = parseInt(sp.per ?? '', 10)
+  const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
+  const SORTS = ['name', 'score', 'people']
+  const sort = readSort(sp, SORTS, { sort: 'score', dir: 'desc' })
+  const orderBy =
+    sort.sort === 'name' ? [{ name: sort.dir }]
+    : sort.sort === 'people' ? [{ affiliations: { _count: sort.dir } }]
+    : [{ priorityScore: sort.dir }, { name: 'asc' as const }]
 
   const where: Prisma.CrmOrganizationWhereInput = {
     ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
@@ -32,9 +44,9 @@ export default async function CrmOrganizationsPage({
     prisma.crmOrganization.count({ where }),
     prisma.crmOrganization.findMany({
       where,
-      orderBy: [{ priorityScore: 'desc' }, { name: 'asc' }],
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      orderBy,
+      skip: (page - 1) * perPage,
+      take: perPage,
       select: {
         id: true, name: true, orgTypes: true, goals: true, hqRegion: true,
         investorProfile: { select: { checkSizeNote: true } },
@@ -42,10 +54,10 @@ export default async function CrmOrganizationsPage({
       },
     }),
   ])
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, goal, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, goal, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
@@ -74,7 +86,19 @@ export default async function CrmOrganizationsPage({
         ]}
       />
 
-      <p className="text-sm text-muted-foreground">{total.toLocaleString()} organizations</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">{total.toLocaleString()} organizations</p>
+        <div className="flex items-center gap-1 text-xs" role="group" aria-label="Organizations per page">
+          <span className="text-muted-foreground">Show</span>
+          {PAGE_SIZES.map((n) => (
+            <Link key={n} href={`/support/admin/crm/organizations?${qs({ per: n, page: 1 })}`}
+              aria-current={perPage === n ? 'page' : undefined}
+              className={`rounded-md border px-2 py-1 ${perPage === n ? 'border-brand bg-brand/10 font-semibold text-brand' : 'border-border hover:bg-muted'}`}>
+              {n}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">
@@ -82,14 +106,16 @@ export default async function CrmOrganizationsPage({
           <Link href="/support/admin/crm/organizations" className="mt-2 inline-block text-sm font-medium text-brand underline">Clear filters</Link>
         </div>
       ) : (
+        <CrmOrgBulkBar count={rows.length}>
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
-                <th className="px-3 py-2 font-medium">Organization</th>
+                <th className="w-8 px-3 py-2"><CrmSelectAll pageCount={rows.length} /></th>
+                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, goal, per: String(perPage) }} />
                 <th className="px-3 py-2 font-medium">What it is to us</th>
                 <th className="px-3 py-2 font-medium">Goal</th>
-                <th className="px-3 py-2 font-medium">People</th>
+                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, goal, per: String(perPage) }} defaultDir="desc" />
                 <th className="px-3 py-2 font-medium">Pipelines</th>
                 <th className="px-3 py-2 font-medium">Check size</th>
               </tr>
@@ -97,6 +123,9 @@ export default async function CrmOrganizationsPage({
             <tbody>
               {rows.map((o) => (
                 <tr key={o.id} className="border-b border-border last:border-0">
+                  <td className="px-3 py-2">
+                    <input type="checkbox" name="selected" value={o.id} aria-label={`Select ${o.name}`} />
+                  </td>
                   <td className="px-3 py-2">
                     <CrmPeekButton id={o.id} kind="org">{o.name}</CrmPeekButton>
                     {o.hqRegion && <span className="block text-xs text-muted-foreground">{o.hqRegion}</span>}
@@ -124,6 +153,7 @@ export default async function CrmOrganizationsPage({
             </tbody>
           </table>
         </div>
+        </CrmOrgBulkBar>
       )}
 
       {totalPages > 1 && (

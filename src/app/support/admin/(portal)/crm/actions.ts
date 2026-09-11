@@ -11,6 +11,7 @@ import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
   CrmFunderKind, CrmValueType, CrmActivityType,
+  CrmOrgType, CrmGoal, CrmEligibility, CrmOpportunityOutcome, Prisma,
 } from '@prisma/client'
 
 const CRM = '/support/admin/crm'
@@ -1185,4 +1186,124 @@ export async function logContact(personId: string, formData: FormData) {
   captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type, auto: false, surface: 'list' })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
+}
+
+// ── Bulk actions on organizations and leads ──────────────────────────────────
+
+/** Adds org types and goals to several organizations at once. */
+export async function bulkUpdateOrganizations(formData: FormData) {
+  const admin = await requireAdmin()
+  const ids = formData.getAll('selected').map(String).filter(Boolean)
+  if (ids.length === 0) return
+  const addTypes = formData.getAll('bulkOrgType').map(String).filter(Boolean) as CrmOrgType[]
+  const addGoals = formData.getAll('bulkGoal').map(String).filter(Boolean) as CrmGoal[]
+  const state = String(formData.get('bulkState') ?? '').trim()
+
+  if (addTypes.length > 0 || addGoals.length > 0) {
+    // Arrays are sets: push per row, skipping what each already has.
+    const rows = await prisma.crmOrganization.findMany({
+      where: { id: { in: ids } }, select: { id: true, orgTypes: true, goals: true },
+    })
+    await Promise.all(rows.map((r) => {
+      const types = addTypes.filter((t) => !r.orgTypes.includes(t))
+      const goals = addGoals.filter((g) => !r.goals.includes(g))
+      if (types.length === 0 && goals.length === 0) return null
+      return prisma.crmOrganization.update({
+        where: { id: r.id },
+        data: {
+          ...(types.length > 0 ? { orgTypes: { push: types } } : {}),
+          ...(goals.length > 0 ? { goals: { push: goals } } : {}),
+        },
+      })
+    }).filter(Boolean))
+  }
+  if (state) {
+    await prisma.crmOrganization.updateMany({ where: { id: { in: ids } }, data: { usState: state } })
+  }
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_bulk_orgs_edited', {
+    count: ids.length, addedTypes: addTypes, addedGoals: addGoals, state: state || null,
+  })
+  revalidatePath(`${CRM}/organizations`)
+}
+
+/**
+ * Deletes organizations.
+ *
+ * Refuses any that still hold people, opportunities or a production link.
+ * Deleting an organization cascades to its affiliations and opportunities,
+ * which would silently take real work with it — being told to clear it first
+ * is better than discovering that later.
+ */
+export async function bulkDeleteOrganizations(formData: FormData): Promise<{ deleted: number; skipped: number }> {
+  const admin = await requireAdmin()
+  const ids = formData.getAll('selected').map(String).filter(Boolean)
+  if (ids.length === 0) return { deleted: 0, skipped: 0 }
+
+  const rows = await prisma.crmOrganization.findMany({
+    where: { id: { in: ids } },
+    select: {
+      id: true, outplacementOrgId: true, recruiterFirmId: true,
+      _count: { select: { affiliations: true, opportunities: true } },
+    },
+  })
+  const safe = rows
+    .filter((r) => r._count.affiliations === 0 && r._count.opportunities === 0 && !r.outplacementOrgId && !r.recruiterFirmId)
+    .map((r) => r.id)
+
+  if (safe.length > 0) await prisma.crmOrganization.deleteMany({ where: { id: { in: safe } } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_bulk_orgs_deleted', { deleted: safe.length, skipped: rows.length - safe.length })
+  revalidatePath(`${CRM}/organizations`)
+  return { deleted: safe.length, skipped: rows.length - safe.length }
+}
+
+/** Moves, grades or closes several leads at once. */
+export async function bulkUpdateOpportunities(formData: FormData): Promise<{ updated: number; skipped: number }> {
+  const admin = await requireAdmin()
+  const ids = formData.getAll('selected').map(String).filter(Boolean)
+  if (ids.length === 0) return { updated: 0, skipped: 0 }
+
+  const quality = String(formData.get('bulkQuality') ?? '').trim()
+  const eligibility = String(formData.get('bulkEligibility') ?? '').trim()
+  const stageKey = String(formData.get('bulkStageKey') ?? '').trim()
+  const close = String(formData.get('bulkClose') ?? '').trim()
+
+  const data: Prisma.CrmOpportunityUpdateManyMutationInput = {}
+  if (quality) data.leadQuality = quality as CrmLeadQuality
+  if (eligibility) data.eligibility = eligibility as CrmEligibility
+  if (close === 'LOST' || close === 'DORMANT') {
+    data.outcome = close as CrmOpportunityOutcome
+    data.closedAt = new Date()
+  }
+  let updated = 0
+  if (Object.keys(data).length > 0) {
+    updated = (await prisma.crmOpportunity.updateMany({ where: { id: { in: ids } }, data })).count
+  }
+
+  let skipped = 0
+  if (stageKey) {
+    // Stage ids are per-pipeline, so a stage can only be applied to leads in
+    // the pipeline that owns it. Anything in another pipeline is skipped and
+    // reported rather than quietly left where it was.
+    const rows = await prisma.crmOpportunity.findMany({
+      where: { id: { in: ids } }, select: { id: true, pipelineId: true },
+    })
+    const stages = await prisma.crmStage.findMany({
+      where: { key: stageKey, pipelineId: { in: [...new Set(rows.map((r) => r.pipelineId))] } },
+      select: { id: true, pipelineId: true },
+    })
+    const byPipeline = new Map(stages.map((s) => [s.pipelineId, s.id]))
+    for (const r of rows) {
+      const stageId = byPipeline.get(r.pipelineId)
+      if (!stageId) { skipped++; continue }
+      await prisma.crmOpportunity.update({ where: { id: r.id }, data: { stageId } })
+      updated++
+    }
+  }
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_bulk_leads_edited', {
+    count: ids.length, quality: quality || null, stageKey: stageKey || null, close: close || null, skipped,
+  })
+  revalidatePath(`${CRM}/leads`)
+  return { updated, skipped }
 }

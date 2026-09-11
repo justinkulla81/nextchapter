@@ -9,6 +9,7 @@ import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmContactCell, CrmFlagToggle } from '@/components/admin/CrmContactCell'
+import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, qualityClass, sinceLabel,
@@ -218,7 +219,9 @@ export default async function CrmPeoplePage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/50 text-left">
-                  <th className="w-8 px-3 py-2"><span className="sr-only">Select</span></th>
+                  <th className="w-8 px-3 py-2">
+                    <CrmSelectAll pageCount={rows.length} />
+                  </th>
                   <th className="w-8 px-1 py-2"><span className="sr-only">Pinned</span></th>
                   <SortHeader label="Name" sortKey="name" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <th className="px-3 py-2 font-medium">Organization</th>

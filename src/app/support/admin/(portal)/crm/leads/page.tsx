@@ -7,13 +7,15 @@ import { AdminMultiFilter } from '@/components/admin/AdminMultiFilter'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmStageSelect } from '@/components/admin/CrmStageSelect'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
+import { CrmLeadBulkBar } from '@/components/admin/CrmLeadBulkBar'
+import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { updateOpportunity, setOpportunityDeadline, updateFunderFacts } from '../actions'
 import { QUALITIES, QUALITY_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 import { FUNDER_KINDS, FUNDER_KIND_LABELS, VALUE_TYPES, VALUE_TYPE_LABELS } from '@/lib/crm/funding'
 
 export const maxDuration = 30
-const PAGE_SIZES = [50, 100, 200] as const
+const PAGE_SIZES = [50, 100, 200, 1500] as const
 const DEFAULT_PAGE_SIZE = 100
 
 function money(min: number | null, max: number | null): string | null {
@@ -114,6 +116,15 @@ export default async function CrmLeadsPage({
   ])
 
   const stagesByPipeline = new Map(pipelines.map((p) => [p.key, p.stages]))
+  // Bulk stage moves address stages by KEY, because ids belong to one pipeline
+  // and a selection routinely spans several. Only keys shared by every
+  // pipeline are offered, so the option cannot silently apply to a subset.
+  const sharedStageKeys = await prisma.crmStage.groupBy({
+    by: ['key', 'label'], _count: { _all: true },
+    having: { key: { _count: { gte: 2 } } },
+    orderBy: { key: 'asc' },
+  })
+  const stageKeys = [...new Map(sharedStageKeys.map((s) => [s.key, { key: s.key, label: s.label }])).values()]
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams: Record<string, string> = {
     q, pipeline: pipe, quality, status,
@@ -203,10 +214,12 @@ export default async function CrmLeadsPage({
           <Link href="/support/admin/crm/leads" className="mt-2 inline-block text-sm font-medium text-brand underline">Clear filters</Link>
         </div>
       ) : (
+        <CrmLeadBulkBar count={rows.length} stageKeys={stageKeys}>
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
+                <th className="w-8 px-2 py-1.5"><CrmSelectAll pageCount={rows.length} /></th>
                 <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/leads" params={baseParams} />
                 <th className="px-2 py-1.5 font-medium">Pipeline</th>
                 <th className="px-2 py-1.5 font-medium">Funder</th>
@@ -229,6 +242,9 @@ export default async function CrmLeadsPage({
                 const overdue = o.committedFollowUpAt && o.committedFollowUpAt < now
                 return (
                   <tr key={o.id} className={`border-b border-border last:border-0 align-top ${overdue ? 'bg-orange/5' : ''}`}>
+                    <td className="px-2 py-1.5">
+                      <input type="checkbox" name="selected" value={o.id} aria-label={`Select ${o.org?.name ?? o.title}`} />
+                    </td>
                     <td className="px-3 py-1.5">
                       {o.org ? (
                         <CrmPeekButton id={o.org.id} kind="org">{o.org.name}</CrmPeekButton>
@@ -345,6 +361,7 @@ export default async function CrmLeadsPage({
             </tbody>
           </table>
         </div>
+        </CrmLeadBulkBar>
       )}
 
       {totalPages > 1 && (
