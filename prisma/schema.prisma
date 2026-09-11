@@ -695,8 +695,8 @@ model CandidateProfile {
   // Recruiter database — explicit candidate opt-in required before appearing
   // in any employer-facing Talent match list. privacyTier alone is opt-out,
   // not opt-in, and isn't sufficient consent for a matching/ranking surface.
-  recruiterDatabaseOptIn       Boolean   @default(false)
-  recruiterDatabaseRequestedAt DateTime?
+  recruiterDatabaseOptIn         Boolean   @default(false)
+  recruiterDatabaseRequestedAt   DateTime?
   // Set on every explicit toggle (either direction), from either surface
   // (find-my-job's card or the Privacy page's button) — distinct from
   // recruiterDatabaseRequestedAt above, which is opt-in-only and cleared on
@@ -709,10 +709,10 @@ model CandidateProfile {
   // page's "requested" bucket. Distinct from recruiterDatabaseRequestedAt
   // above, which is when the CANDIDATE opted in, not when recruiters were
   // told about them.
-  recruiterNotifiedAt          DateTime?
+  recruiterNotifiedAt            DateTime?
   // Throttle on the "you're A-grade — unlock the recruiter network" nudge
   // email, so the weekly auto-nudge cron doesn't re-send every week forever.
-  recruiterUnlockNudgedAt      DateTime?
+  recruiterUnlockNudgedAt        DateTime?
 
   // Resume Book — separate consent from recruiterDatabaseOptIn above (Resume
   // Book is scoped to resume + fit-matching only, not full profile access).
@@ -720,7 +720,7 @@ model CandidateProfile {
   // every candidate already in the system was backfilled to true when this
   // shipped. A candidate who wants out unchecks it there or flips it off on
   // the Privacy page at any time.
-  resumeBookOptIn Boolean @default(true)
+  resumeBookOptIn            Boolean   @default(true)
   // Set on every explicit toggle, from either surface (the upload form's
   // checkbox or the Privacy page's button) — the silent default above never
   // sets this on its own. Lets find-my-job's card collapse to a compact
@@ -1624,6 +1624,9 @@ model CandidateProfile {
   // ledger primitive exists elsewhere in the codebase to reuse (see this
   // phase's report), so this is new but deliberately minimal.
   benefitsNetworkPoints       Int                         @default(0)
+
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmPersonLinks CrmPerson[] @relation("CrmPersonCandidate")
 
   @@index([privacyTier])
   @@index([currentJobStatus])
@@ -2799,8 +2802,8 @@ model Resume {
   // rejection). false blocks the onboarding resume step from completing and
   // skips the rest of the analysis pipeline for this upload — see
   // uploadResume() and onboarding/resume/page.tsx.
-  looksLikeResume       Boolean?
-  notAResumeReason      String?
+  looksLikeResume  Boolean?
+  notAResumeReason String?
 
   // Candidate-editable — defaults to fileName at upload time but can be
   // renamed (e.g. "Tailored for VP Product roles") to tell versions apart
@@ -3170,9 +3173,9 @@ model MarketDifficultySnapshot {
   candidateId String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
-  targetRoleQuery String // normalized, same convention as MarketConditionsSnapshot.roleQuery
-  location        String
-  postingCount    Int
+  targetRoleQuery   String // normalized, same convention as MarketConditionsSnapshot.roleQuery
+  location          String
+  postingCount      Int
   // Industry-narrowed count (role + industry + geo) for the same
   // candidate+week, from getMarketConditions's adzunaIdealCount — null
   // until a candidate has both a location and a stated target industry.
@@ -3182,7 +3185,7 @@ model MarketDifficultySnapshot {
   // targetIndustries[0] at snapshot time, same convention postingCount
   // already uses for role/geo.
   idealPostingCount Int?
-  weekOf          DateTime // Monday of the week this snapshot represents
+  weekOf            DateTime // Monday of the week this snapshot represents
 
   createdAt DateTime @default(now())
 
@@ -4346,6 +4349,9 @@ model SupportNetworkContact {
   // than stored.
   helpfulForJobs JobPosting[]  @relation("JobPostingHelpfulContacts")
 
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmPersonLinks CrmPerson[]
+
   @@unique([candidateId, normalizedKey])
   @@index([candidateId])
 }
@@ -4700,6 +4706,9 @@ model Coach {
   rateCardOverrides               CoachRateCard[]
   reassignmentRequestsFrom        CoachReassignmentRequest[]       @relation("ReassignmentFromCoach")
   reassignmentRequestsTo          CoachReassignmentRequest[]       @relation("ReassignmentToCoach")
+
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmPersonLinks CrmPerson[]
 }
 
 // A coach inviting a SPECIFIC candidate by email, distinct from the generic
@@ -5052,6 +5061,9 @@ model Recruiter {
   candidateIntroductions  RecruiterCandidateIntroduction[]
   candidateSubmissions    RecruiterCandidateSubmission[]
   placements              RecruiterPlacement[]
+
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmPersonLinks CrmPerson[]
 }
 
 enum SourcedCandidateStatus {
@@ -5231,19 +5243,19 @@ model PageContent {
 // WHY_IT_MATTERS dismissals are permanent until the candidate explicitly
 // re-enables (deletes this row) from /dashboard/privacy.
 model PageBoxDismissal {
-  id          String           @id @default(cuid())
-  candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  pageKey     String
-  boxType     PageBoxType
-  dismissedAt DateTime         @default(now())
+  id                  String           @id @default(cuid())
+  candidateId         String
+  candidate           CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  pageKey             String
+  boxType             PageBoxType
+  dismissedAt         DateTime         @default(now())
   // DAILY_MESSAGE only — every PageContent.id ever dismissed for this
   // (candidate, pageKey), permanently excluded from future selection so a
   // pinned or rotation message says its piece once and then either steps
   // aside for the next one in line or, once the whole pool is exhausted,
   // stops showing at all. Always empty for ACTION_PLAN/WHY_IT_MATTERS,
   // which don't have a "next message" concept.
-  dismissedContentIds String[] @default([])
+  dismissedContentIds String[]         @default([])
 
   @@unique([candidateId, pageKey, boxType])
 }
@@ -6395,6 +6407,9 @@ model Company {
   // every view here (see AdminAccessLog.viewedCompanyId's own comment).
   adminAccessLogViews AdminAccessLog[]
 
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmOrganizations CrmOrganization[]
+
   @@index([industry])
 }
 
@@ -6746,6 +6761,9 @@ model OutplacementEmployerOrg {
 
   contracts OutplacementContract[]
   orgUsers  OutplacementOrgUser[]
+
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmOrganizations CrmOrganization[]
 }
 
 // A single purchase — seats, tier, term, PO/invoice reference. Admin-
@@ -7114,6 +7132,9 @@ model RecruiterFirm {
   updatedAt DateTime @updatedAt
 
   recruiters Recruiter[]
+
+  // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
+  crmOrganizations CrmOrganization[]
 }
 
 enum RecruiterFeeArrangementType {
@@ -8201,4 +8222,785 @@ model EqOverIqContributorProfile {
   reviewNotes String?                   @db.Text // internal only, never shown to the contributor
 
   @@index([status])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ADMIN CRM — Phase 1
+//
+// NextChapter's own business-development system: fundraising, partnerships,
+// outplacement sales, coach/recruiter/hiring-manager outreach, policy advisers
+// and inbound job seekers, replacing five separate spreadsheets.
+//
+// Deliberately a separate namespace from SupportNetworkContact, which looks
+// like a CRM and cannot be one: every row there requires a `candidateId` and
+// cascade-deletes with that candidate, so an investor contact stored there
+// would be destroyed by an unrelated account closure. These tables own
+// everything BEFORE conversion; the production models (Coach, Recruiter,
+// OutplacementEmployerOrg, CandidateProfile) own everything after, joined by
+// the nullable "graduation" foreign keys below. Nothing is duplicated.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// What a person IS to NextChapter. Multi-valued and additive: the Phase 2 dry
+// run found 318 people carrying more than one of these across the source
+// files (Aneesh Raman is simultaneously a policy adviser, a BD partner and an
+// investor contact), which is why this is an array and not a single category.
+enum CrmPersonRole {
+  INVESTOR_VC
+  INVESTOR_ANGEL
+  BD_PARTNER
+  COACH_PROSPECT
+  RECRUITER_PROSPECT
+  HIRING_MANAGER
+  CHRO_HR
+  OUTPLACEMENT_BUYER
+  POLICY_ANALYST
+  ACADEMIC
+  ALUMNI_OFFICE
+  JOB_SEEKER
+  EMPLOYEE_CANDIDATE // someone we might hire ourselves
+  ADVISOR
+  CONNECTOR // valuable mainly for who they can introduce
+  PRESS
+  OTHER
+}
+
+// What an organization DOES for NextChapter. Same reasoning as
+// CrmPersonRole — the dry run found 73 orgs carrying more than one type.
+// Microsoft is a FUNDER (cloud credits), a PARTNER, a NETWORK_EMPLOYER and an
+// OUTPLACEMENT_LEAD (4,800-person reduction) all at once.
+enum CrmOrgType {
+  VC_FUND
+  ANGEL_SYNDICATE
+  FUNDER_GRANT // non-equity: grants, prizes, credits, accelerators
+  EMPLOYER
+  OUTPLACEMENT_LEAD
+  OUTPLACEMENT_FIRM
+  SEARCH_FIRM
+  COACHING_FIRM
+  UNIVERSITY
+  THINK_TANK
+  GOVERNMENT
+  FOUNDATION
+  NONPROFIT
+  MEDIA
+  ACCELERATOR
+  VENDOR
+  OTHER
+}
+
+// How good a fit this is — your judgement, set by hand, rarely changes.
+// Deliberately separate from priorityScore, which is computed and volatile.
+// Conflating the two is why the `Priority` column in the source sheets went
+// stale: a number typed in July can't know a deadline moved in September.
+enum CrmLeadQuality {
+  A // top target — pursue actively
+  B // good fit
+  C // plausible, low urgency
+  D // poor fit, kept for the record
+  UNGRADED
+}
+
+// Whether NextChapter — a for-profit company — can actually receive this
+// money. Applied as a MULTIPLIER on priorityScore rather than a subtraction,
+// because a subtraction lets an ineligible funder with a near deadline still
+// climb the queue on urgency alone. At x0.1 nothing ineligible can outrank
+// something winnable, no matter what else is true about it.
+enum CrmEligibility {
+  FOR_PROFIT_ELIGIBLE // x1.0
+  PARTNER_OR_RESEARCH // x0.5 — reachable only via an academic/nonprofit partner
+  UNKNOWN //             x0.8 — verify it, don't discard it
+  NONPROFIT_ONLY //      x0.1 — kept and searchable, never surfaced
+  NOT_APPLICABLE //      x1.0 — non-funding pipelines
+}
+
+enum CrmWarmth {
+  HOT
+  WARM
+  COLD
+  UNKNOWN
+}
+
+// NOTE: LINKEDIN_MESSAGE and LINKEDIN_CONNECT can never be auto-logged —
+// LinkedIn exposes no API for either, and its profile pages return a login
+// wall to anything that isn't a signed-in browser. They are therefore the
+// only channels that depend entirely on a one-click manual control, which is
+// why the UI gives them one instead of burying them in a modal.
+enum CrmActivityType {
+  EMAIL
+  LINKEDIN_MESSAGE
+  LINKEDIN_CONNECT
+  CALL
+  MEETING
+  NOTE
+  INTRO_REQUESTED
+  INTRO_MADE
+  EVENT
+  BROADCAST_SENT // back-written when a CrmSegment update goes out
+  FIELD_CHANGED // inline/bulk edit audit — keeps a field change as traceable as an email
+  STAGE_CHANGED
+}
+
+enum CrmActivityDirection {
+  OUTBOUND
+  INBOUND
+  INTERNAL // a note or field change — no counterparty involved
+}
+
+enum CrmTaskStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum CrmTaskKind {
+  FOLLOW_UP
+  SEND_MATERIAL
+  ASK_FOR_INTRO
+  PREPARE
+  ADMIN
+}
+
+enum CrmDeadlineKind {
+  APPLICATION_CLOSE
+  COHORT_OPEN
+  ROLLING_WINDOW // recurs on known dates (NSF: 27 Jul / 4 Nov / 4 Mar)
+  ROLLING_NO_DATE // genuinely always open — no date exists to track
+  EVENT
+  CONTRACT_RENEWAL
+  COMMITTED_FOLLOW_UP // a date you gave a person; never silently expires
+}
+
+enum CrmIntroPathStrength {
+  STRONG
+  MEDIUM
+  WEAK
+  UNVERIFIED
+}
+
+enum CrmIntroPathStatus {
+  IDENTIFIED
+  ASKED
+  INTRO_MADE
+  DECLINED
+}
+
+// Where a researcher's findings sit relative to the NextChapter thesis.
+// Always set by a human: a policy analyst whose work argues displacement is
+// overstated is a RISK in a pitch meeting, not an asset, and inferring that
+// automatically is a way to walk in confidently wrong.
+enum CrmResearchStance {
+  SUPPORTS
+  CONTRADICTS
+  MIXED
+  NEUTRAL
+  UNSET
+}
+
+enum CrmSourceFile {
+  FUNDING_SHEET
+  BD_PARTNERSHIPS_SHEET
+  RESEARCH_POLICY_SHEET
+  OUTPLACEMENT_SHEET
+  NETWORKING_CRM_SHEET
+  LINKEDIN_EXPORT
+  QUICK_ADD
+  MANUAL
+}
+
+enum CrmSegmentKind {
+  DYNAMIC // stored filter, re-evaluated at send time
+  PINNED // fixed membership, curated once
+}
+
+enum CrmOpportunityOutcome {
+  OPEN
+  WON
+  LOST
+  DORMANT
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CORE — who, and where they work
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CrmOrganization {
+  id   String @id @default(cuid())
+  name String // display name, first-seen casing
+
+  // The real join key, via the SAME normalizeOrgName() used by Company —
+  // lowercased, legal suffixes stripped, whitespace collapsed. This is what
+  // merged "Achieve Partners " (trailing space) with "Achieve Partners", and
+  // "Owl Ventures, LP" with "Owl Ventures", during the Phase 2 dry run.
+  canonicalNameNormalized String @unique
+
+  orgTypes CrmOrgType[] @default([])
+  website  String?
+  hqCity   String?
+  hqRegion String?
+  industry String?
+  focus    String?      @db.Text // what they invest in / care about, in their words
+  notes    String?      @db.Text
+
+  // Denormalised so the "All leads" view can sort organizations and people in
+  // one list without a join through opportunities. Opportunities carry their
+  // own independent score.
+  leadQuality        CrmLeadQuality @default(UNGRADED)
+  priorityScore      Float          @default(0)
+  priorityOverride   Int? // 0-100; wins over the computed score when set
+  priorityComputedAt DateTime?
+
+  // ── graduation links — production owns these records after conversion ──
+  companyId String? // the shared Company table, for intel/signals/watchlist joins
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  outplacementOrgId String?
+  outplacementOrg   OutplacementEmployerOrg? @relation(fields: [outplacementOrgId], references: [id], onDelete: SetNull)
+
+  recruiterFirmId String?
+  recruiterFirm   RecruiterFirm? @relation(fields: [recruiterFirmId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliations        CrmAffiliation[]
+  opportunities       CrmOpportunity[]
+  activities          CrmActivity[]
+  tasks               CrmTask[]
+  deadlines           CrmDeadline[]
+  researchItems       CrmResearchItem[]
+  sourceRecords       CrmSourceRecord[]
+  investorProfile     CrmInvestorProfile?
+  outplacementProfile CrmOutplacementProfile?
+  partnerProfile      CrmPartnerProfile?
+  researchProfile     CrmResearchProfile?
+
+  @@index([priorityScore(sort: Desc)])
+  @@index([leadQuality])
+  @@index([companyId])
+}
+
+model CrmPerson {
+  id        String  @id @default(cuid())
+  firstName String?
+  lastName  String?
+  fullName  String // always populated; the other two are best-effort splits
+
+  // Strongest dedup key — the bare slug from a profile URL, lowercased. The
+  // dry run matched 77 of 92 auto-merges on this alone.
+  linkedinSlug String? @unique
+  linkedinUrl  String?
+
+  // Primary email is the first entry of `emails`, mirrored here so simple
+  // consumers need no array handling — same shape as SupportNetworkContact.
+  // Expect this to be null for most rows: the dry run found only 3% of the
+  // 25,535-row LinkedIn export exposes an address at all, so email arrives
+  // from Gmail sync rather than from the contact list.
+  email  String?
+  emails String[] @default([])
+  phone  String?
+
+  // Fallback dedup key, "normalized name|normalized org". Nullable because
+  // Postgres treats each NULL as distinct in a unique index, so rows without
+  // an org never collide with each other.
+  normalizedKey String?
+
+  roles    CrmPersonRole[] @default([])
+  warmth   CrmWarmth       @default(UNKNOWN)
+  notes    String?         @db.Text
+  location String?
+
+  // The real LinkedIn connection date from the export, distinct from
+  // createdAt (when the row reached this table, often years later).
+  connectedAt DateTime?
+
+  leadQuality        CrmLeadQuality @default(UNGRADED)
+  priorityScore      Float          @default(0)
+  priorityOverride   Int?
+  priorityComputedAt DateTime?
+
+  // Set by quick add when a record was created from a slug without the
+  // profile being completed. Drives the "Needs completion" queue — the dry
+  // run projects 82 such rows at import, small enough to actually clear.
+  needsCompletion Boolean @default(false)
+
+  // Derived from CrmActivity, never typed by hand. These four are exactly the
+  // fields sitting empty in the source Networking CRM, where 3,529 of 3,551
+  // contacts read "Not contacted" because logging was manual.
+  lastTouchedAt  DateTime?
+  firstTouchedAt DateTime?
+  firstRepliedAt DateTime?
+  touchCount     Int       @default(0)
+
+  // ── graduation links ──
+  candidateId String?
+  candidate   CandidateProfile? @relation("CrmPersonCandidate", fields: [candidateId], references: [id], onDelete: SetNull)
+
+  coachId String?
+  coach   Coach?  @relation(fields: [coachId], references: [id], onDelete: SetNull)
+
+  recruiterId String?
+  recruiter   Recruiter? @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+
+  // Cross-reference only: when this person also appears inside a candidate's
+  // own network, that's a warm path NextChapter already owns.
+  supportContactId String?
+  supportContact   SupportNetworkContact? @relation(fields: [supportContactId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliations          CrmAffiliation[]
+  opportunities         CrmOpportunity[]
+  activities            CrmActivity[]
+  tasks                 CrmTask[]
+  researchItems         CrmResearchItem[]
+  sourceRecords         CrmSourceRecord[]
+  segmentMembers        CrmSegmentMember[]
+  introPathsAsTarget    CrmIntroPath[]     @relation("CrmIntroPathTarget")
+  introPathsAsConnector CrmIntroPath[]     @relation("CrmIntroPathConnector")
+
+  @@index([normalizedKey])
+  @@index([priorityScore(sort: Desc)])
+  @@index([needsCompletion])
+  @@index([lastTouchedAt])
+  @@index([fullName])
+}
+
+// Many-to-many between people and organizations. The single change that makes
+// "who do I know at Owl Ventures" answerable — the source sheets store company
+// as free text on the contact, so the question can't be asked at all today.
+// Also preserves job history instead of overwriting it when someone moves.
+model CrmAffiliation {
+  id       String          @id @default(cuid())
+  personId String
+  person   CrmPerson       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  orgId    String
+  org      CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  title     String?
+  isPrimary Boolean   @default(true) // the affiliation shown next to their name
+  isCurrent Boolean   @default(true)
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([personId, orgId, title])
+  @@index([orgId])
+  @@index([personId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOTION — pipelines, stages, opportunities
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CrmPipeline {
+  id        String  @id @default(cuid())
+  key       String  @unique // "fundraising" | "outplacement" | ...
+  label     String
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  stages        CrmStage[]
+  opportunities CrmOpportunity[]
+}
+
+model CrmStage {
+  id         String      @id @default(cuid())
+  pipelineId String
+  pipeline   CrmPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  key                String
+  label              String
+  sortOrder          Int     @default(0)
+  isWon              Boolean @default(false)
+  isLost             Boolean @default(false)
+  defaultProbability Float? // 0-1, seeds an opportunity's probability on entry
+
+  opportunities CrmOpportunity[]
+
+  @@unique([pipelineId, key])
+  @@index([pipelineId])
+}
+
+// Status lives HERE, never on the person. The load-bearing decision of the
+// whole design: a CHRO can be an outplacement buyer at "Proposal" and an angel
+// prospect at "Intro requested" simultaneously, so a single status field on
+// the person would be a lie. One row per counterparty per pipeline.
+model CrmOpportunity {
+  id         String      @id @default(cuid())
+  pipelineId String
+  pipeline   CrmPipeline @relation(fields: [pipelineId], references: [id], onDelete: Restrict)
+  stageId    String
+  stage      CrmStage    @relation(fields: [stageId], references: [id], onDelete: Restrict)
+
+  title String
+
+  orgId String?
+  org   CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  primaryPersonId String?
+  primaryPerson   CrmPerson? @relation(fields: [primaryPersonId], references: [id], onDelete: SetNull)
+
+  ownerEmail String? // hidden in the UI while there's one user; painful to retrofit later
+
+  leadQuality        CrmLeadQuality @default(UNGRADED)
+  eligibility        CrmEligibility @default(NOT_APPLICABLE)
+  priorityScore      Float          @default(0)
+  priorityOverride   Int?
+  priorityComputedAt DateTime?
+  probability        Float? // 0-1
+
+  amountUsdMin Int?
+  amountUsdMax Int?
+
+  // Your own reminder to yourself.
+  nextStep      String?   @db.Text
+  nextStepDueAt DateTime?
+
+  // A date you gave ANOTHER PERSON ("I'll come back to you after the board
+  // meeting"). Deliberately separate from nextStepDueAt: breaking a promise
+  // costs a relationship, breaking a private reminder costs nothing, so this
+  // outranks everything else in the outreach queue.
+  committedFollowUpAt DateTime?
+  committedTo         String?   @db.Text // what you actually said, verbatim
+
+  outcome    CrmOpportunityOutcome @default(OPEN)
+  closedAt   DateTime?
+  lostReason String?               @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activities CrmActivity[]
+  tasks      CrmTask[]
+  deadlines  CrmDeadline[]
+
+  @@index([pipelineId, stageId])
+  @@index([priorityScore(sort: Desc)])
+  @@index([committedFollowUpAt])
+  @@index([nextStepDueAt])
+  @@index([outcome])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RECORD — what was said, what's owed, where it came from
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CrmActivity {
+  id         String               @id @default(cuid())
+  type       CrmActivityType
+  direction  CrmActivityDirection @default(OUTBOUND)
+  occurredAt DateTime             @default(now())
+
+  personId      String?
+  person        CrmPerson?       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  orgId         String?
+  org           CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  opportunityId String?
+  opportunity   CrmOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  subject String?
+  // Default is metadata-only. Body capture is opt-in per thread because a
+  // large share of this mailbox is candidate correspondence that has no
+  // business sitting in a business-development tool.
+  body    String? @db.Text
+  outcome String? @db.Text
+
+  // True when written by the Gmail/Calendar sync rather than by hand. Surfaced
+  // in the UI: because LinkedIn can't self-log, a person you only ever DM
+  // would otherwise look colder than they are.
+  isAutoLogged  Boolean @default(false)
+  sourceRef     String? // gmail thread id / calendar event id — dedupes re-syncs
+  loggedByEmail String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([type, sourceRef])
+  @@index([personId, occurredAt(sort: Desc)])
+  @@index([orgId, occurredAt(sort: Desc)])
+  @@index([opportunityId, occurredAt(sort: Desc)])
+}
+
+model CrmTask {
+  id         String        @id @default(cuid())
+  title      String
+  kind       CrmTaskKind   @default(FOLLOW_UP)
+  status     CrmTaskStatus @default(OPEN)
+  dueAt      DateTime?
+  ownerEmail String?
+  notes      String?       @db.Text
+
+  personId      String?
+  person        CrmPerson?       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  orgId         String?
+  org           CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  opportunityId String?
+  opportunity   CrmOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, dueAt])
+  @@index([personId])
+  @@index([opportunityId])
+}
+
+model CrmDeadline {
+  id    String          @id @default(cuid())
+  label String
+  kind  CrmDeadlineKind @default(APPLICATION_CLOSE)
+
+  // NULLABLE by design. The Phase 2 dry run found 241 of 252 deadline cells in
+  // the funding sheet contain prose rather than a date — overwhelmingly the
+  // word "Rolling" — with only 9 real dates across 126 rows. Storing a fake
+  // date for those would poison the urgency term in the priority score.
+  dueAt     DateTime?
+  // The original text when there is no parseable date ("Rolling via partner",
+  // "Verify next round"), kept verbatim rather than discarded.
+  rawText   String?
+  cadence   String? // "Jul / Nov / Mar windows" — for ROLLING_WINDOW
+  sourceUrl String?
+
+  orgId         String?
+  org           CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  opportunityId String?
+  opportunity   CrmOpportunity?  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  // Set by the "Check for a new date" control. lastCheckedAt gates re-fetching
+  // the same page repeatedly — results are reused for 24 hours.
+  lastCheckedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checks CrmDeadlineCheck[]
+
+  @@index([dueAt])
+  @@index([orgId])
+}
+
+// Audit trail for the date-refresh control. Exists so a wrong answer is
+// traceable and the same source page isn't fetched five times in a day —
+// this is the one metered path in the system (a fetch plus a model call), so
+// it stays on-demand and per-record rather than a background sweep.
+model CrmDeadlineCheck {
+  id         String      @id @default(cuid())
+  deadlineId String
+  deadline   CrmDeadline @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
+
+  checkedAt        DateTime  @default(now())
+  checkedByEmail   String?
+  fetchedUrl       String?
+  foundDate        DateTime? // what the page appeared to say
+  rawSnippet       String?   @db.Text // the text it was read from, for your judgement
+  // The control NEVER writes a date itself. Null until you accept or dismiss.
+  confirmedAt      DateTime?
+  confirmedByEmail String?
+  wasAccepted      Boolean?
+
+  @@index([deadlineId, checkedAt(sort: Desc)])
+}
+
+// Provenance for every imported field, so a bad merge is reversible and a
+// re-import updates rather than duplicates.
+model CrmSourceRecord {
+  id          String        @id @default(cuid())
+  sourceFile  CrmSourceFile
+  sourceSheet String?
+  sourceRow   Int?
+  rawJson     Json
+
+  personId String?
+  person   CrmPerson?       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  orgId    String?
+  org      CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  // "MERGE · 1 linkedin slug" | "CREATE" | "REVIEW · 4 name only" — the ladder
+  // rung this row matched on, kept so the merge report stays reproducible.
+  matchTier  String?
+  importedAt DateTime @default(now())
+
+  @@index([sourceFile])
+  @@index([personId])
+  @@index([orgId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATHS, EVIDENCE, AUDIENCES
+// ─────────────────────────────────────────────────────────────────────────────
+
+// "Who knows her." A target can have several routes stacked up, which the
+// source sheets can't express — they carry a single free-text Warm Path column
+// holding one guess that can't be searched, updated or marked as asked.
+model CrmIntroPath {
+  id             String    @id @default(cuid())
+  targetPersonId String
+  targetPerson   CrmPerson @relation("CrmIntroPathTarget", fields: [targetPersonId], references: [id], onDelete: Cascade)
+
+  // Either a real searchable person in the CRM...
+  connectorPersonId String?
+  connectorPerson   CrmPerson? @relation("CrmIntroPathConnector", fields: [connectorPersonId], references: [id], onDelete: SetNull)
+  // ...or free text, for a route you've heard about but can't yet name
+  // ("someone in the Brown trustee network"). A lead on a lead.
+  connectorName     String?
+
+  relationshipNote String?              @db.Text
+  strength         CrmIntroPathStrength @default(UNVERIFIED)
+  status           CrmIntroPathStatus   @default(IDENTIFIED)
+  askedAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([targetPersonId])
+  @@index([connectorPersonId])
+}
+
+// A researcher's output and, crucially, whether it helps or hurts the premise
+// NextChapter is built on. Seeded from the 24-row Key Studies sheet with
+// stance UNSET — see CrmResearchStance for why this is never auto-classified.
+model CrmResearchItem {
+  id            String    @id @default(cuid())
+  title         String
+  url           String?
+  publishedAt   DateTime?
+  publishedYear Int?
+
+  // The one sentence you'd quote, or have to answer.
+  keyClaim      String?           @db.Text
+  stance        CrmResearchStance @default(UNSET)
+  relevanceNote String?           @db.Text
+  useInPitch    Boolean           @default(false)
+
+  personId String?
+  person   CrmPerson?       @relation(fields: [personId], references: [id], onDelete: SetNull)
+  orgId    String?
+  org      CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stance])
+  @@index([personId])
+  @@index([orgId])
+}
+
+// A saved audience for updates. Feeds the EXISTING Resend dispatch
+// (digest-composer.ts + DigestSend) rather than introducing a second sender.
+model CrmSegment {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  kind        CrmSegmentKind @default(DYNAMIC)
+  description String?
+  // For DYNAMIC: the stored filter, re-evaluated at send time.
+  filterJson  Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  members CrmSegmentMember[]
+}
+
+// Explicit membership for PINNED segments, and the per-send exclusions that
+// let you remove individuals during the refine step without losing the change.
+model CrmSegmentMember {
+  id        String     @id @default(cuid())
+  segmentId String
+  segment   CrmSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  personId  String
+  person    CrmPerson  @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  isExcluded Boolean  @default(false)
+  addedAt    DateTime @default(now())
+
+  @@unique([segmentId, personId])
+  @@index([segmentId])
+}
+
+// The quick-add enrichment corpus: the admin's own LinkedIn data export.
+//
+// This exists because LinkedIn profile URLs CANNOT be fetched server-side —
+// they return a login wall to anything that isn't a signed-in browser, and
+// working around that breaches their terms. So "paste a URL and prefill the
+// profile" is served from data the admin already owns and exported. The dry
+// run measured the hit rate: 3,585 of 3,685 CRM people match this corpus by
+// slug. Not a CRM record itself — a lookup table.
+model CrmLinkedInConnection {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  firstName   String?
+  lastName    String?
+  company     String?
+  position    String?
+  email       String? // present for only ~3% of rows — LinkedIn hides it unless shared
+  connectedOn DateTime?
+  importedAt  DateTime  @default(now())
+
+  @@index([company])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFILES — pipeline-specific facts, 1:1 and optional
+//
+// Typed columns rather than a JSON blob, because the whole point is filtering:
+// "every investor writing $250K-$1M who leads rounds and I haven't touched in
+// 30 days" has to stay a single indexed query.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CrmInvestorProfile {
+  id    String          @id @default(cuid())
+  orgId String          @unique
+  org   CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  checkSizeMinUsd Int?
+  checkSizeMaxUsd Int?
+  checkSizeNote   String? // "~$250K-$750K (est. - not disclosed)" — honest about estimates
+  stageFocus      String[]       @default([]) // "PRE_SEED" | "SEED" | "SERIES_A" — strings while the vocabulary is still settling
+  thesis          String?        @db.Text
+  leadsRounds     Boolean?
+  responsiveness  String? // an estimate, and labelled as one wherever shown
+  eligibility     CrmEligibility @default(UNKNOWN)
+
+  updatedAt DateTime @updatedAt
+}
+
+model CrmOutplacementProfile {
+  id    String          @id @default(cuid())
+  orgId String          @unique
+  org   CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  headcountAffected Int?
+  pctWhiteCollar    String?
+  announcedAt       DateTime?
+  incumbentProvider String?
+  sourceUrl         String?
+  outreachAngle     String?   @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+model CrmPartnerProfile {
+  id    String          @id @default(cuid())
+  orgId String          @unique
+  org   CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  partnershipType String?
+  valueExchange   String? @db.Text
+  revShareNote    String? @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+model CrmResearchProfile {
+  id    String          @id @default(cuid())
+  orgId String          @unique
+  org   CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  engagementType String[] @default([]) // "CO_RESEARCH" | "CITE" | "POLICY_INFLUENCE" | "CONVENING"
+  flagshipOutput String?  @db.Text
+  notablePeople  String?
+  primaryFocus   String?  @db.Text
+
+  updatedAt DateTime @updatedAt
 }
