@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName } from '@/lib/crm/normalize'
+import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import type { CrmPersonRole, CrmLeadQuality, CrmWarmth } from '@prisma/client'
 
 const CRM = '/support/admin/crm'
@@ -469,4 +470,145 @@ export async function updateOpportunity(opportunityId: string, formData: FormDat
   })
   revalidatePath(`${CRM}/pipelines/${opp.pipeline.key}`)
   revalidatePath(`${CRM}/leads`)
+}
+
+// ── Date refresh (Phase 5) ───────────────────────────────────────────────────
+
+
+/** Results are reused for a day rather than re-fetching the same page. */
+const CHECK_CACHE_MS = 24 * 60 * 60 * 1000
+
+export interface DateCheckResult {
+  ok: boolean
+  message: string
+  checkId?: string
+  cached?: boolean
+  candidates?: { iso: string; label: string; snippet: string; confidence: number }[]
+}
+
+/**
+ * Fetches a deadline's source page and offers candidate dates.
+ *
+ * NEVER writes the date itself — you confirm or dismiss. Every run writes a
+ * CrmDeadlineCheck so a wrong answer is traceable and the same page isn't
+ * fetched repeatedly.
+ *
+ * Model-free by design: a page fetch costs nothing per use, so this feature is
+ * not metered. The heuristic finds candidates and shows the sentence each came
+ * from; the judgement stays human.
+ */
+export async function checkDeadlineForNewDate(deadlineId: string): Promise<DateCheckResult> {
+  const admin = await requireAdmin()
+  const deadline = await prisma.crmDeadline.findUniqueOrThrow({
+    where: { id: deadlineId },
+    select: { id: true, sourceUrl: true, lastCheckedAt: true, org: { select: { website: true } } },
+  })
+
+  const url = deadline.sourceUrl ?? deadline.org?.website ?? null
+  if (!url) {
+    return { ok: false, message: 'No source link on this record, so there is nothing to check. Add one on the organization page.' }
+  }
+
+  // Reuse a recent result rather than hitting the same page again.
+  if (deadline.lastCheckedAt && Date.now() - deadline.lastCheckedAt.getTime() < CHECK_CACHE_MS) {
+    const recent = await prisma.crmDeadlineCheck.findFirst({
+      where: { deadlineId, confirmedAt: null },
+      orderBy: { checkedAt: 'desc' },
+    })
+    if (recent) {
+      return {
+        ok: true, cached: true, checkId: recent.id,
+        message: `Checked ${recent.checkedAt.toLocaleString()} — showing that result. It will re-fetch after 24 hours.`,
+        candidates: recent.foundDate
+          ? [{ iso: recent.foundDate.toISOString().slice(0, 10), label: recent.foundDate.toLocaleDateString(), snippet: recent.rawSnippet ?? '', confidence: 1 }]
+          : [],
+      }
+    }
+  }
+
+  let parsed: URL
+  try { parsed = new URL(url) } catch { return { ok: false, message: `That source link isn't a valid URL: ${url}` } }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    return { ok: false, message: 'Only http and https links can be checked.' }
+  }
+  // These URLs are admin-entered rather than user-supplied, but a fetch from
+  // the server to an internal address is worth refusing regardless.
+  if (/^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|\[?::1)/i.test(parsed.hostname)) {
+    return { ok: false, message: 'That link points at an internal address, so it will not be fetched.' }
+  }
+
+  let text: string
+  try {
+    const res = await fetch(parsed.toString(), {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(12_000),
+      headers: { 'User-Agent': 'NextChapterAdmin/1.0 (deadline check)' },
+    })
+    if (!res.ok) {
+      await prisma.crmDeadline.update({ where: { id: deadlineId }, data: { lastCheckedAt: new Date() } })
+      return { ok: false, message: `That page returned ${res.status}. The programme may have moved or been taken down.` }
+    }
+    const body = await res.text()
+    text = htmlToText(body.slice(0, 1_500_000))
+  } catch (e) {
+    await prisma.crmDeadline.update({ where: { id: deadlineId }, data: { lastCheckedAt: new Date() } })
+    const reason = e instanceof Error && e.name === 'TimeoutError' ? 'took too long to respond' : 'could not be reached'
+    return { ok: false, message: `That page ${reason}. Try again later, or open it yourself.` }
+  }
+
+  const candidates = extractDateCandidates(text)
+  const best = candidates[0] ?? null
+
+  const check = await prisma.crmDeadlineCheck.create({
+    data: {
+      deadlineId, checkedByEmail: admin.email ?? null, fetchedUrl: parsed.toString(),
+      foundDate: best?.date ?? null, rawSnippet: best?.snippet ?? null,
+    },
+  })
+  await prisma.crmDeadline.update({ where: { id: deadlineId }, data: { lastCheckedAt: new Date() } })
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_deadline_checked', {
+    deadlineId, found: candidates.length, topConfidence: best?.confidence ?? null,
+  })
+  revalidatePath(`${CRM}/dates`)
+
+  return {
+    ok: true,
+    checkId: check.id,
+    message: candidates.length === 0
+      ? 'No dates found on that page. It may be genuinely rolling, or the date may be behind a form.'
+      : `Found ${candidates.length} possible ${candidates.length === 1 ? 'date' : 'dates'}. Nothing has been saved — pick one or dismiss.`,
+    candidates: candidates.slice(0, 6).map((c) => ({
+      iso: c.date.toISOString().slice(0, 10),
+      label: c.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+      snippet: c.snippet,
+      confidence: c.confidence,
+    })),
+  }
+}
+
+/** Applies a date you chose from a check, or records that you dismissed it. */
+export async function confirmDeadlineDate(formData: FormData) {
+  const admin = await requireAdmin()
+  const deadlineId = String(formData.get('deadlineId') ?? '')
+  const checkId = String(formData.get('checkId') ?? '')
+  // A picked candidate wins over the manual field; the manual field is the
+  // fallback for the common case where the page publishes no date at all.
+  const iso = (String(formData.get('chosen') ?? '').trim() || String(formData.get('chosenManual') ?? '').trim())
+
+  if (iso) {
+    await prisma.crmDeadline.update({
+      where: { id: deadlineId },
+      data: { dueAt: new Date(`${iso}T00:00:00Z`), rawText: null, kind: 'APPLICATION_CLOSE' },
+    })
+  }
+  if (checkId) {
+    await prisma.crmDeadlineCheck.update({
+      where: { id: checkId },
+      data: { confirmedAt: new Date(), confirmedByEmail: admin.email ?? null, wasAccepted: Boolean(iso) },
+    })
+  }
+  captureServerEvent(admin.email ?? 'admin', 'crm_deadline_check_resolved', { deadlineId, accepted: Boolean(iso) })
+  revalidatePath(`${CRM}/dates`)
+  revalidatePath(`${CRM}/queue`)
 }

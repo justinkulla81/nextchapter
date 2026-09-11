@@ -138,6 +138,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         // three per-audience sends are real, live weekly crons.
         { href: '/support/admin/digest', label: 'Market Pulse' },
         { href: '/support/admin/tracking-testers', label: 'Gmail/Calendar Testers' },
+        { href: '/support/admin/crm/queue', label: 'CRM Queue' },
         { href: '/support/admin/crm', label: 'CRM' },
         { href: '/support/admin/network-leads', label: 'Network Leads' },
         { href: '/support/admin/visitors', label: 'Visitors' },
