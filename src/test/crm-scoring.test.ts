@@ -123,3 +123,20 @@ describe('warmPathFromIntroPaths', () => {
     expect(bestWarmPath([], [{ strength: 'MEDIUM', status: 'IDENTIFIED' }])).toBe(0.7)
   })
 })
+
+describe('preconditions', () => {
+  it('discounts a lead that needs six months of groundwork first', () => {
+    const ready = computePriority({ ...base, quality: 'A' })
+    const blocked = computePriority({ ...base, quality: 'A', preconditionLeadTimeDays: 180 })
+    expect(blocked.score).toBeLessThan(ready.score)
+  })
+  it('discounts rather than disqualifies — a strong lead still outranks a weak one', () => {
+    const strongButSlow = computePriority({ ...base, quality: 'A', warmPath: 1, preconditionLeadTimeDays: 365 })
+    const weakButReady = computePriority({ ...base, quality: 'D', warmPath: 0.2 })
+    expect(strongButSlow.score).toBeGreaterThan(weakButReady.score)
+  })
+  it('costs nothing when nothing stands in the way', () => {
+    expect(computePriority({ ...base, preconditionLeadTimeDays: null }).score)
+      .toBe(computePriority(base).score)
+  })
+})

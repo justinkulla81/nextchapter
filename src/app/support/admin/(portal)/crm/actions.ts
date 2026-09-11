@@ -10,6 +10,7 @@ import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
+  CrmFunderKind, CrmValueType,
 } from '@prisma/client'
 
 const CRM = '/support/admin/crm'
@@ -1055,4 +1056,78 @@ export async function setStageOutcome(stageId: string, outcome: 'won' | 'lost' |
   })
   captureServerEvent(admin.email ?? 'admin', 'crm_stage_outcome_set', { stageId, outcome })
   revalidatePath(`${CRM}/pipelines/${stage.pipeline.key}`)
+}
+
+/**
+ * Records a programme's own deadline from the lead row.
+ *
+ * Accepts dates in the PAST on purpose — "the AI Futures Fund closed on 30
+ * August" is exactly the fact worth capturing, and refusing it would leave the
+ * record saying nothing when it should say "this one has been and gone".
+ * A past date lands in the passed-dates list where the refresh check lives.
+ */
+export async function setOpportunityDeadline(opportunityId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const iso = String(formData.get('deadlineDate') ?? '').trim()
+  const label = String(formData.get('deadlineLabel') ?? '').trim() || 'Deadline'
+
+  const opp = await prisma.crmOpportunity.findUniqueOrThrow({
+    where: { id: opportunityId },
+    select: { orgId: true, pipeline: { select: { key: true } }, org: { select: { website: true } } },
+  })
+  if (!opp.orgId) return
+
+  if (!iso) {
+    await prisma.crmDeadline.deleteMany({ where: { orgId: opp.orgId, label } })
+  } else {
+    const dueAt = new Date(`${iso}T00:00:00Z`)
+    const existing = await prisma.crmDeadline.findFirst({ where: { orgId: opp.orgId, label } })
+    if (existing) {
+      await prisma.crmDeadline.update({
+        where: { id: existing.id },
+        data: { dueAt, rawText: null, kind: 'APPLICATION_CLOSE' },
+      })
+    } else {
+      await prisma.crmDeadline.create({
+        data: {
+          orgId: opp.orgId, label, dueAt, kind: 'APPLICATION_CLOSE',
+          sourceUrl: opp.org?.website ?? null,
+        },
+      })
+    }
+  }
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_deadline_set_from_lead', {
+    opportunityId, cleared: !iso, inPast: iso ? new Date(`${iso}T00:00:00Z`) < new Date() : false,
+  })
+  revalidatePath(`${CRM}/leads`)
+  revalidatePath(`${CRM}/dates`)
+  revalidatePath(`${CRM}/pipelines/${opp.pipeline.key}`)
+}
+
+/** Investor-profile fields edited from the lead row. */
+export async function updateFunderFacts(orgId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const kind = String(formData.get('funderKind') ?? '').trim()
+  const valueTypes = formData.getAll('valueTypes').map(String) as CrmValueType[]
+  const preconditions = String(formData.get('preconditions') ?? '').trim() || null
+  const leadRaw = String(formData.get('preconditionLeadTimeDays') ?? '').trim()
+
+  await prisma.crmInvestorProfile.upsert({
+    where: { orgId },
+    create: {
+      orgId,
+      funderKind: kind ? (kind as CrmFunderKind) : null,
+      valueTypes, preconditions,
+      preconditionLeadTimeDays: leadRaw ? Math.max(0, parseInt(leadRaw, 10) || 0) : null,
+    },
+    update: {
+      funderKind: kind ? (kind as CrmFunderKind) : null,
+      valueTypes: { set: valueTypes },
+      preconditions,
+      preconditionLeadTimeDays: leadRaw ? Math.max(0, parseInt(leadRaw, 10) || 0) : null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_funder_facts_edited', { orgId, kind: kind || null, valueTypes })
+  revalidatePath(`${CRM}/leads`)
 }

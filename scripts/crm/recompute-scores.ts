@@ -36,6 +36,7 @@ async function main() {
       stage: { select: { sortOrder: true } },
       org: {
         select: {
+          investorProfile: { select: { preconditionLeadTimeDays: true } },
           deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1, select: { dueAt: true } },
           affiliations: { select: { person: { select: { connectedAt: true, lastTouchedAt: true } } } },
           introPathsAsTarget: { select: { strength: true, status: true } },
@@ -58,6 +59,7 @@ async function main() {
       nextDueAt: o.org?.deadlines[0]?.dueAt ?? o.nextStepDueAt ?? null,
       committedFollowUpAt: o.committedFollowUpAt,
       stageProgress: o.stage.sortOrder / (stageMax.get(o.pipelineId) ?? 1),
+      preconditionLeadTimeDays: o.org?.investorProfile?.preconditionLeadTimeDays ?? null,
       lastTouchedAt: lastTouched,
       createdAt: o.createdAt,
       now: NOW,

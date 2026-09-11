@@ -50,6 +50,12 @@ export interface ScoreInput {
   committedFollowUpAt: Date | null
   /** 0-1 position through the pipeline. */
   stageProgress: number
+  /**
+   * Days to satisfy a stated precondition before this is even applicable.
+   * A grant you could win in three weeks and one that first needs six months
+   * of establishing a state presence are not the same opportunity.
+   */
+  preconditionLeadTimeDays?: number | null
   /** Most recent touch of any kind, or null if never contacted. */
   lastTouchedAt: Date | null
   /** Used as the staleness floor when nothing has ever been logged. */
@@ -65,9 +71,21 @@ export interface ScoreBreakdown {
   momentum: number
   staleness: number
   multiplier: number
+  precondition: number
 }
 
 const DAY = 86_400_000
+
+/**
+ * How much a precondition should cost.
+ *
+ * Capped at 0.6 so a long runway discounts rather than disqualifies. Kept here
+ * rather than imported so the scoring module stays free of other dependencies.
+ */
+function preconditionPenalty(leadTimeDays: number | null | undefined): number {
+  if (!leadTimeDays || leadTimeDays <= 0) return 0
+  return Math.min(0.6, leadTimeDays / 365)
+}
 
 /** 1.0 inside 14 days, 0.5 inside 60, 0 beyond. Past-due counts as maximum. */
 export function deadlineUrgency(due: Date | null, now: Date): number {
@@ -110,9 +128,12 @@ export function computePriority(input: ScoreInput): ScoreBreakdown {
 
   const base = quality + warmPath + deadline + momentum - stale
   const multiplier = ELIGIBILITY_MULTIPLIER[input.eligibility] ?? 1
-  const score = Math.max(0, Math.round(base * multiplier * 10) / 10)
+  // A discount, not a disqualification: a valuable programme with a long
+  // runway should still surface, just below one you could act on this month.
+  const precondition = 1 - preconditionPenalty(input.preconditionLeadTimeDays)
+  const score = Math.max(0, Math.round(base * multiplier * precondition * 10) / 10)
 
-  return { score, quality, warmPath, deadline, momentum, staleness: stale, multiplier }
+  return { score, quality, warmPath, deadline, momentum, staleness: stale, multiplier, precondition }
 }
 
 function clamp01(n: number): number {

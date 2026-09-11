@@ -7,6 +7,7 @@ import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
 import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
+import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, qualityClass, sinceLabel,
@@ -36,6 +37,18 @@ export default async function CrmPeoplePage({
   const goal = sp.goal ?? ''
   const minScore = parseInt(sp.minScore ?? '', 10)
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+  // Organization is not sortable: it lives on a to-many affiliation, which
+  // Prisma cannot order by. Offering a column that silently did nothing would
+  // be worse than leaving it plain.
+  const SORTS = ['name', 'quality', 'warmth', 'touched', 'score']
+  const sort = readSort(sp, SORTS, { sort: 'score', dir: 'desc' })
+  const orderBy =
+    sort.sort === 'name' ? [{ fullName: sort.dir }]
+    : sort.sort === 'quality' ? [{ leadQuality: sort.dir }, { fullName: 'asc' as const }]
+    : sort.sort === 'warmth' ? [{ warmth: sort.dir }, { fullName: 'asc' as const }]
+    : sort.sort === 'touched' ? [{ lastTouchedAt: { sort: sort.dir, nulls: 'last' as const } }]
+    : [{ priorityScore: sort.dir }, { fullName: 'asc' as const }]
+
   const requested = parseInt(sp.per ?? '', 10)
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
 
@@ -64,7 +77,7 @@ export default async function CrmPeoplePage({
     prisma.crmPerson.count({ where }),
     prisma.crmPerson.findMany({
       where,
-      orderBy: [{ priorityScore: 'desc' }, { leadQuality: 'asc' }, { fullName: 'asc' }],
+      orderBy,
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
@@ -83,7 +96,7 @@ export default async function CrmPeoplePage({
   const baseParams = {
     q, role, quality, warmth, touched, goal,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
-    per: String(perPage),
+    per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
@@ -195,13 +208,14 @@ export default async function CrmPeoplePage({
               <thead>
                 <tr className="border-b border-border bg-muted/50 text-left">
                   <th className="w-8 px-3 py-2"><span className="sr-only">Select</span></th>
-                  <th className="px-3 py-2 font-medium">Name</th>
+                  <SortHeader label="Name" sortKey="name" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <th className="px-3 py-2 font-medium">Organization</th>
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
-                  <th className="px-3 py-2 font-medium">Quality</th>
-                  <th className="px-3 py-2 font-medium">Warmth</th>
-                  <th className="px-3 py-2 font-medium">Last contacted</th>
+                  <SortHeader label="Quality" sortKey="quality" current={sort} basePath="/support/admin/crm" params={baseParams} />
+                  <SortHeader label="Warmth" sortKey="warmth" current={sort} basePath="/support/admin/crm" params={baseParams} />
+                  <SortHeader label="Last contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
+                  <SortHeader label="Priority" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
               <tbody>
@@ -268,6 +282,7 @@ export default async function CrmPeoplePage({
                       <span className={p.lastTouchedAt ? '' : 'text-muted-foreground'}>{sinceLabel(p.lastTouchedAt)}</span>
                       {p.touchCount > 0 && <span className="ml-1 text-xs text-muted-foreground">({p.touchCount})</span>}
                     </td>
+                    <td className="px-3 py-2 text-right tabular-nums">{Math.round(p.priorityScore)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -8438,6 +8438,11 @@ model CrmOrganization {
   website  String?
   hqCity   String?
   hqRegion String?
+  /// Two-letter state, or NATIONAL / GLOBAL. Derived from hqRegion, which is
+  /// free text like "New York, NY" or "National / global" and therefore
+  /// useless as a filter. State matters here because a real share of the
+  /// funding list is state programmes you can only win with a presence there.
+  usState  String?
   industry String?
   focus    String?      @db.Text // what they invest in / care about, in their words
   notes    String?      @db.Text
@@ -8480,6 +8485,7 @@ model CrmOrganization {
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
   @@index([companyId])
+  @@index([usState])
 }
 
 model CrmPerson {
@@ -8980,11 +8986,26 @@ model CrmInvestorProfile {
   checkSizeMinUsd Int?
   checkSizeMaxUsd Int?
   checkSizeNote   String? // "~$250K-$750K (est. - not disclosed)" — honest about estimates
-  stageFocus      String[]       @default([]) // "PRE_SEED" | "SEED" | "SERIES_A" — strings while the vocabulary is still settling
-  thesis          String?        @db.Text
-  leadsRounds     Boolean?
-  responsiveness  String? // an estimate, and labelled as one wherever shown
-  eligibility     CrmEligibility @default(UNKNOWN)
+
+  funderKind CrmFunderKind?
+  /// What you get. Most programmes are several of these at once.
+  valueTypes CrmValueType[] @default([])
+
+  /// What has to be true BEFORE this is even applicable — "requires a NJ
+  /// nexus", "needs a prior federal SBIR award", "must go through an
+  /// accelerator partner".
+  preconditions            String?        @db.Text
+  /// Roughly how long satisfying that would take. This is the field that
+  /// matters for ranking: a grant you could win in three weeks and one that
+  /// first needs six months of establishing a state presence are not the same
+  /// opportunity, and a score that treats them alike sends you at the wrong
+  /// one. Null means nothing stands in the way.
+  preconditionLeadTimeDays Int?
+  stageFocus               String[]       @default([]) // "PRE_SEED" | "SEED" | "SERIES_A" — strings while the vocabulary is still settling
+  thesis                   String?        @db.Text
+  leadsRounds              Boolean?
+  responsiveness           String? // an estimate, and labelled as one wherever shown
+  eligibility              CrmEligibility @default(UNKNOWN)
 
   updatedAt DateTime @updatedAt
 }
@@ -9464,4 +9485,28 @@ model CrmSyncSetting {
   enabled        Boolean  @default(true)
   updatedAt      DateTime @updatedAt
   updatedByEmail String?
+}
+
+/// What kind of funder this is. "VC fund" was doing too much work: a federal
+/// grant, a rolling credits programme and an angel are not the same pursuit
+/// and should not sit in one bucket.
+enum CrmFunderKind {
+  GRANT
+  INVESTMENT_FIRM
+  INDIVIDUAL_INVESTOR
+  ACCELERATOR
+  CORPORATE_PROGRAM
+  OTHER
+}
+
+/// What you actually receive. Multi-valued because most programmes are more
+/// than one thing — an accelerator is cash AND advisory AND introductions, and
+/// filtering to "cash" should not hide it.
+enum CrmValueType {
+  CASH
+  CREDITS
+  ADVISORY
+  INTRODUCTIONS
+  SPACE
+  DISTRIBUTION
 }
