@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "crm:dedupe": "tsx --env-file=.env.local scripts/crm/dedupe-organizations.ts",
+    "crm:import": "tsx --env-file=.env.local scripts/import-crm-sources.ts",
     "seed:crm-pipelines": "tsx --env-file=.env.local scripts/seed-crm-pipelines.ts",
     "seed:assessment": "tsx --env-file=.env.local scripts/seed-assessment-content.ts",
     "seed:page-content": "tsx --env-file=.env.local scripts/seed-page-content.ts",
