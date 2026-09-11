@@ -9548,3 +9548,65 @@ enum CrmValueType {
   SPACE
   DISTRIBUTION
 }
+
+/// A WARN notice — a legally required filing before a mass layoff.
+///
+/// Staged rather than written straight into the pipeline. WARN covers every
+/// industry and every size above the threshold, so most notices are irrelevant
+/// to a service for mid-career knowledge workers: a 31-person food-plant
+/// closure is a real layoff and a bad lead. Landing them here first means the
+/// promotion rule can change without re-fetching, and a bad rule cannot
+/// silently fill the pipeline with noise.
+///
+/// Sourced from state labor departments — public filings, not a scrape of a
+/// private tracker. layoffs.fyi was the obvious candidate and cannot be used:
+/// it is a WordPress page embedding a private Airtable base whose data
+/// endpoint returns 401.
+model WarnNotice {
+  id                 String @id @default(cuid())
+  state              String
+  /// Employer exactly as filed.
+  employer           String
+  /// normalizeOrgName output, for matching to an existing organization.
+  normalizedEmployer String
+
+  noticeDate    DateTime?
+  effectiveDate DateTime?
+  employees     Int?
+  layoffType    String?
+  county        String?
+  address       String?
+  /// NAICS sector text as published — this is what makes it filterable to
+  /// the industries our candidates actually work in.
+  industry      String?
+
+  sourceUrl String?
+  fetchedAt DateTime @default(now())
+
+  /// Set once this has been turned into an outplacement lead.
+  promotedAt    DateTime?
+  promotedOrgId String?
+  /// Set when reviewed and deliberately not promoted.
+  dismissedAt   DateTime?
+  dismissReason String?
+
+  /// A notice is identified by employer, state and notice date. Re-running the
+  /// fetch must not create a second copy of the same filing.
+  @@unique([state, normalizedEmployer, noticeDate, employees])
+  @@index([promotedAt, dismissedAt])
+  @@index([effectiveDate])
+}
+
+/// One row per WARN fetch, so the sync is debuggable without reading logs.
+model WarnSyncRun {
+  id         String    @id @default(cuid())
+  state      String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  fetched    Int       @default(0)
+  created    Int       @default(0)
+  promoted   Int       @default(0)
+  error      String?   @db.Text
+
+  @@index([state, startedAt(sort: Desc)])
+}
