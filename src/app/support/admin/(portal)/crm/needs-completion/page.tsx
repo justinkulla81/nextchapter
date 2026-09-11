@@ -4,9 +4,12 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { acceptExportSuggestion, dismissCompletion } from '../actions'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { CrmCompletionBulkBar } from '@/components/admin/CrmCompletionBulkBar'
+import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
+import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
 
 export const maxDuration = 30
-const PAGE_SIZE = 50
+
 
 export default async function CrmNeedsCompletionPage({
   searchParams,
@@ -14,15 +17,17 @@ export default async function CrmNeedsCompletionPage({
   searchParams: Promise<Record<string, string | undefined>>
 }) {
   await requireAdmin()
-  const page = Math.max(1, parseInt((await searchParams).page ?? '1', 10) || 1)
+  const sp = await searchParams
+  const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+  const perPage = readPageSize(sp.per)
 
   const [total, rows] = await Promise.all([
     prisma.crmPerson.count({ where: { needsCompletion: true } }),
     prisma.crmPerson.findMany({
       where: { needsCompletion: true },
       orderBy: [{ leadQuality: 'asc' }, { fullName: 'asc' }],
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * perPage,
+      take: perPage,
       select: {
         id: true, fullName: true, roles: true, linkedinSlug: true,
         affiliations: { take: 1, select: { title: true, org: { select: { name: true } } } },
@@ -34,7 +39,7 @@ export default async function CrmNeedsCompletionPage({
   const slugs = rows.map((r) => r.linkedinSlug).filter((s): s is string => Boolean(s))
   const suggestions = await prisma.crmLinkedInConnection.findMany({ where: { slug: { in: slugs } } })
   const byslug = new Map(suggestions.map((s) => [s.slug, s]))
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(total / perPage))
 
   return (
     <div className="space-y-6">
@@ -58,7 +63,17 @@ export default async function CrmNeedsCompletionPage({
         </div>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">{total.toLocaleString()} to review</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground">{total.toLocaleString()} to review</p>
+              <label className="flex items-center gap-1.5 text-sm">
+                <CrmSelectAll pageCount={rows.length} />
+                <span className="text-muted-foreground">Select all on this page</span>
+              </label>
+            </div>
+            <PageSizePicker basePath="/support/admin/crm/needs-completion" params={{}} current={perPage} label="people" />
+          </div>
+          <CrmCompletionBulkBar count={rows.length}>
           <ul className="rounded-lg border border-border divide-y divide-border">
             {rows.map((p) => {
               const s = p.linkedinSlug ? byslug.get(p.linkedinSlug) : undefined
@@ -66,7 +81,8 @@ export default async function CrmNeedsCompletionPage({
               const dismissAction = dismissCompletion.bind(null, p.id)
               return (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
-                  <div className="min-w-0 text-sm">
+                  <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
+                  <div className="min-w-0 flex-1 text-sm">
                     <Link href={`/support/admin/crm/people/${p.id}`} className="font-medium hover:underline">{p.fullName}</Link>
                     <span className="ml-2 text-xs text-muted-foreground">
                       {p.affiliations[0]?.org.name ?? 'No organization'}
@@ -101,13 +117,14 @@ export default async function CrmNeedsCompletionPage({
               )
             })}
           </ul>
+          </CrmCompletionBulkBar>
 
           {totalPages > 1 && (
             <nav className="flex items-center justify-between text-sm" aria-label="Pagination">
               <span className="text-muted-foreground">Page {page} of {totalPages}</span>
               <span className="flex gap-2">
-                {page > 1 && <Link href={`/support/admin/crm/needs-completion?page=${page - 1}`} className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">Previous</Link>}
-                {page < totalPages && <Link href={`/support/admin/crm/needs-completion?page=${page + 1}`} className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">Next</Link>}
+                {page > 1 && <Link href={`/support/admin/crm/needs-completion?per=${perPage}&page=${page - 1}`} className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">Previous</Link>}
+                {page < totalPages && <Link href={`/support/admin/crm/needs-completion?per=${perPage}&page=${page + 1}`} className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">Next</Link>}
               </span>
             </nav>
           )}

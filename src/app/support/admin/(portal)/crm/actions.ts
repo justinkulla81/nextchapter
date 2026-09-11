@@ -1418,3 +1418,85 @@ function cleanAuthorName(raw: string): string | null {
   // A single word is an initial or a fragment, not a person we can find again.
   return n.split(' ').length >= 2 ? n : null
 }
+
+/**
+ * Completion queue, in bulk.
+ *
+ * 187 rows reviewed one button at a time is a queue nobody finishes. Accepting
+ * every export suggestion at once is safe precisely because the suggestion is
+ * your own LinkedIn data rather than a guess — and the ones with no suggestion
+ * are left alone rather than being marked done.
+ */
+export async function bulkCompletion(formData: FormData): Promise<{ message: string }> {
+  const admin = await requireAdmin()
+  const ids = formData.getAll('selected').map(String).filter(Boolean)
+  const mode = String(formData.get('mode') ?? '')
+  if (ids.length === 0) return { message: 'Nothing selected.' }
+
+  if (mode === 'dismiss') {
+    const r = await prisma.crmPerson.updateMany({ where: { id: { in: ids } }, data: { needsCompletion: false } })
+    captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode, count: r.count })
+    revalidatePath(`${CRM}/needs-completion`)
+    return { message: `Marked ${r.count} as fine.` }
+  }
+
+  if (mode === 'delete') {
+    const rows = await prisma.crmPerson.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, coachId: true, recruiterId: true, candidateId: true },
+    })
+    const safe = rows.filter((r) => !r.coachId && !r.recruiterId && !r.candidateId).map((r) => r.id)
+    if (safe.length > 0) await prisma.crmPerson.deleteMany({ where: { id: { in: safe } } })
+    captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode, count: safe.length })
+    revalidatePath(`${CRM}/needs-completion`)
+    return {
+      message: rows.length - safe.length > 0
+        ? `Removed ${safe.length}. Kept ${rows.length - safe.length} already converted to a coach, recruiter or candidate.`
+        : `Removed ${safe.length}.`,
+    }
+  }
+
+  // Accept the export suggestion for each.
+  const people = await prisma.crmPerson.findMany({
+    where: { id: { in: ids }, linkedinSlug: { not: null } },
+    select: { id: true, linkedinSlug: true, affiliations: { select: { id: true } } },
+  })
+  const suggestions = await prisma.crmLinkedInConnection.findMany({
+    where: { slug: { in: people.map((p) => p.linkedinSlug!) } },
+  })
+  const bySlug = new Map(suggestions.map((s) => [s.slug, s]))
+
+  let applied = 0
+  let noSuggestion = ids.length - people.length
+  for (const p of people) {
+    const sug = bySlug.get(p.linkedinSlug!)
+    if (!sug) { noSuggestion++; continue }
+    let orgId: string | null = null
+    if (isRealOrgName(sug.company)) {
+      const key = normalizeOrgName(sug.company)
+      if (key) {
+        const org = await prisma.crmOrganization.upsert({
+          where: { canonicalNameNormalized: key },
+          create: { name: sug.company, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
+          update: {},
+        })
+        orgId = org.id
+      }
+    }
+    if (orgId) {
+      const existing = p.affiliations[0]
+      if (existing) await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { orgId, title: sug.position ?? '' } })
+      else await prisma.crmAffiliation.create({ data: { personId: p.id, orgId, title: sug.position ?? '' } })
+    }
+    await prisma.crmPerson.update({ where: { id: p.id }, data: { needsCompletion: false } })
+    applied++
+  }
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode: 'accept', applied, noSuggestion })
+  revalidatePath(`${CRM}/needs-completion`)
+  return {
+    message: noSuggestion > 0
+      ? `Applied ${applied}. Left ${noSuggestion} alone — no export suggestion to apply.`
+      : `Applied ${applied}.`,
+  }
+}
