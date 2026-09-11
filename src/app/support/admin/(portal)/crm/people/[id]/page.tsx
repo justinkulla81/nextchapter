@@ -6,6 +6,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
+import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITY_LABELS, WARMTH_LABELS,
@@ -205,6 +206,16 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           />
           <div className="mt-3"><SubmitButton pendingLabel="Saving…">Save notes</SubmitButton></div>
         </form>
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-lg font-semibold">Convert</h2>
+        <p className="mb-2 text-sm text-muted-foreground">
+          Creates a real production record and links it here. Everything above — every email, intro path and
+          stage change — stays on this record; the CRM owns the relationship before conversion, production
+          owns it after.
+        </p>
+        <CrmGraduatePerson personId={person.id} coachId={person.coachId} recruiterId={person.recruiterId} />
       </section>
 
       <section>

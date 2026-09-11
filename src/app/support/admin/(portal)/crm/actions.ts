@@ -750,3 +750,122 @@ export async function ignoreSuggestedContact(suggestionId: string) {
   captureServerEvent(admin.email ?? 'admin', 'crm_suggested_contact_ignored', { suggestionId })
   revalidatePath(`${CRM}/sync`)
 }
+
+// ── Graduation (Phase 9) ─────────────────────────────────────────────────────
+
+export interface GraduationResult { ok: boolean; message: string; href?: string }
+
+/**
+ * Converts a won CRM record into the real production entity.
+ *
+ * The CRM owns everything BEFORE conversion; Coach, Recruiter,
+ * OutplacementEmployerOrg and CandidateProfile own everything after. This is
+ * the join — a nullable foreign key, not a copy. The CRM record keeps its full
+ * pre-conversion history (every email, every intro path, every stage change),
+ * which is precisely what would be lost if conversion meant re-typing someone
+ * into a second system.
+ *
+ * Idempotent: a person already linked returns their existing record rather
+ * than creating a duplicate.
+ */
+export async function graduatePerson(
+  personId: string,
+  target: 'COACH' | 'RECRUITER'
+): Promise<GraduationResult> {
+  const admin = await requireAdmin()
+  const person = await prisma.crmPerson.findUniqueOrThrow({
+    where: { id: personId },
+    include: { affiliations: { where: { isPrimary: true }, take: 1, include: { org: true } } },
+  })
+
+  if (target === 'COACH' && person.coachId) {
+    return { ok: true, message: 'Already a coach.', href: `/support/admin/coaches/${person.coachId}` }
+  }
+  if (target === 'RECRUITER' && person.recruiterId) {
+    return { ok: true, message: 'Already a recruiter.', href: `/support/admin/recruiters/${person.recruiterId}` }
+  }
+  if (!person.email) {
+    return { ok: false, message: 'A work email is required before converting. Add one on this record first.' }
+  }
+
+  const firmName = person.affiliations[0]?.org.name ?? null
+
+  if (target === 'COACH') {
+    // workEmail is unique — an existing row is the same human, so link rather
+    // than fail on a constraint the user cannot see.
+    const existing = await prisma.coach.findUnique({ where: { workEmail: person.email } })
+    const coach = existing ?? await prisma.coach.create({
+      // CAREER is the default focus; the coach record is editable afterwards.
+      data: { fullName: person.fullName, workEmail: person.email, firmName, focus: 'CAREER' },
+    })
+    await prisma.crmPerson.update({ where: { id: personId }, data: { coachId: coach.id } })
+    await prisma.crmActivity.create({
+      data: {
+        type: 'FIELD_CHANGED', direction: 'INTERNAL', personId,
+        subject: 'Converted to coach', body: existing ? 'Linked to an existing coach record' : 'Created a coach record',
+        loggedByEmail: admin.email ?? null,
+      },
+    })
+    captureServerEvent(admin.email ?? 'admin', 'crm_person_graduated', { personId, target, reused: Boolean(existing) })
+    revalidatePath(`${CRM}/people/${personId}`)
+    return {
+      ok: true,
+      message: existing ? `Linked to the existing coach record for ${person.fullName}.` : `${person.fullName} is now a coach.`,
+      href: `/support/admin/coaches/${coach.id}`,
+    }
+  }
+
+  const existing = await prisma.recruiter.findUnique({ where: { workEmail: person.email } })
+  const recruiter = existing ?? await prisma.recruiter.create({
+    data: { fullName: person.fullName, workEmail: person.email, firmName },
+  })
+  await prisma.crmPerson.update({ where: { id: personId }, data: { recruiterId: recruiter.id } })
+  await prisma.crmActivity.create({
+    data: {
+      type: 'FIELD_CHANGED', direction: 'INTERNAL', personId,
+      subject: 'Converted to recruiter', body: existing ? 'Linked to an existing recruiter record' : 'Created a recruiter record',
+      loggedByEmail: admin.email ?? null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_graduated', { personId, target, reused: Boolean(existing) })
+  revalidatePath(`${CRM}/people/${personId}`)
+  return {
+    ok: true,
+    message: existing ? `Linked to the existing recruiter record for ${person.fullName}.` : `${person.fullName} is now a recruiter.`,
+    href: `/support/admin/recruiters/${recruiter.id}`,
+  }
+}
+
+/** Converts a won outplacement organization into a real employer org. */
+export async function graduateOrganization(orgId: string): Promise<GraduationResult> {
+  const admin = await requireAdmin()
+  const org = await prisma.crmOrganization.findUniqueOrThrow({
+    where: { id: orgId },
+    include: {
+      affiliations: {
+        where: { person: { email: { not: null } } },
+        take: 1,
+        include: { person: { select: { fullName: true, email: true } } },
+      },
+    },
+  })
+  if (org.outplacementOrgId) {
+    return { ok: true, message: 'Already an outplacement employer.', href: '/support/admin/outplacement-contracts' }
+  }
+
+  const contact = org.affiliations[0]?.person
+  if (!contact?.email) {
+    return {
+      ok: false,
+      message: 'An outplacement employer needs a primary contact with an email. Add one to this organization first.',
+    }
+  }
+
+  const employer = await prisma.outplacementEmployerOrg.create({
+    data: { name: org.name, primaryContactName: contact.fullName, primaryContactEmail: contact.email },
+  })
+  await prisma.crmOrganization.update({ where: { id: orgId }, data: { outplacementOrgId: employer.id } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_organization_graduated', { orgId, employerId: employer.id })
+  revalidatePath(`${CRM}/organizations/${orgId}`)
+  return { ok: true, message: `${org.name} is now an outplacement employer.`, href: '/support/admin/outplacement-contracts' }
+}

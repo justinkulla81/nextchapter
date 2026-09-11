@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
+import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -132,6 +133,16 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {org.orgTypes.includes('OUTPLACEMENT_LEAD') && (
+        <section>
+          <h2 className="mb-1 text-lg font-semibold">Convert</h2>
+          <p className="mb-2 text-sm text-muted-foreground">
+            Creates an outplacement employer with contracts and seats. This record keeps its history.
+          </p>
+          <CrmGraduateOrganization orgId={org.id} outplacementOrgId={org.outplacementOrgId} />
         </section>
       )}
 
