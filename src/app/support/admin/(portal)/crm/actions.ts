@@ -168,7 +168,7 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
       }
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: bySlug.id, on: 'slug' })
       revalidatePath(CRM)
-      return { status: 'existing', personId: bySlug.id, message: `${bySlug.fullName} is already in the CRM — opened their record.` }
+      return { status: 'existing', personId: bySlug.id, message: `${bySlug.fullName} is already in the Ecosystem — opened their record.` }
     }
   }
   if (match?.email) {
@@ -176,7 +176,7 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
     if (byEmail) {
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: byEmail.id, on: 'email' })
       revalidatePath(CRM)
-      return { status: 'existing', personId: byEmail.id, message: `${byEmail.fullName} is already in the CRM — matched on email.` }
+      return { status: 'existing', personId: byEmail.id, message: `${byEmail.fullName} is already in the Ecosystem — matched on email.` }
     }
   }
 
@@ -625,7 +625,7 @@ export async function confirmDeadlineDate(formData: FormData) {
  * express — they held a single free-text "Warm Path" column with one guess
  * that couldn't be searched, updated, or marked as already asked.
  *
- * A connector is either a real person in the CRM (searchable across all 3,688)
+ * A connector is either a real person in the Ecosystem (searchable across all 3,688)
  * or free text, for a route you've heard about but can't yet name.
  */
 export async function addIntroPath(

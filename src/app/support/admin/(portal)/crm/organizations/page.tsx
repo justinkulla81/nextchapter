@@ -49,7 +49,7 @@ export default async function CrmOrganizationsPage({
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">CRM — organizations</h1>
+          <h1 className="text-2xl font-semibold">Organizations</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             One record per organization, however many things it is to us.
           </p>

@@ -44,7 +44,7 @@ export function CrmIntroPaths({
         {targetPersonId ? `Who knows ${targetName.split(' ')[0]}` : `Who can reach ${targetName}`}
       </h2>
       <p className="mb-3 text-sm text-muted-foreground">
-        Routes in, strongest first. A connector can be someone already in the CRM, or just a name you&apos;ve heard.
+        Routes in, strongest first. A connector can be someone already in the Ecosystem, or just a name you&apos;ve heard.
       </p>
 
       {paths.length === 0 ? (
@@ -170,7 +170,7 @@ function ConnectorPicker({ excludeId }: { excludeId: string }) {
         autoComplete="off"
         value={picked ? picked.name : query}
         onChange={(e) => onType(e.target.value)}
-        placeholder="Start typing a name, or write one that isn't in the CRM"
+        placeholder="Start typing a name, or write one that isn't in the Ecosystem"
         className="h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
       />
       {picked && (

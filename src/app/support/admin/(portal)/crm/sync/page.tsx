@@ -100,7 +100,7 @@ export default async function CrmSyncPage() {
         </p>
         {pending.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            Nothing waiting. Either every frequent correspondent is already in the CRM, or the sweep has not
+            Nothing waiting. Either every frequent correspondent is already in the Ecosystem, or the sweep has not
             run yet.
           </p>
         ) : (
@@ -120,7 +120,7 @@ export default async function CrmSyncPage() {
                 {/* Two discrete outcomes -> adjacent buttons, per design-principles.md. */}
                 <div className="flex shrink-0 gap-2">
                   <form action={acceptSuggestedContact.bind(null, s.id)}>
-                    <SubmitButton size="sm" pendingLabel="Adding…">Add to CRM</SubmitButton>
+                    <SubmitButton size="sm" pendingLabel="Adding…">Add to Ecosystem</SubmitButton>
                   </form>
                   <form action={ignoreSuggestedContact.bind(null, s.id)}>
                     <SubmitButton size="sm" variant="outline" pendingLabel="Dismissing…">Not a contact</SubmitButton>
