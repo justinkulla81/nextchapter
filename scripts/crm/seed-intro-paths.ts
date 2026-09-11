@@ -10,7 +10,7 @@
  * way to record that an ask was already made. This turns each named connector
  * into a CrmIntroPath, linked to their CRM record where one exists.
  *
- * Targets the ORGANISATION. Every routable note in the sheet is organisation
+ * Targets the ORGANISATION. Every routable note in the sheet is organization
  * level — "route via Rick Robinson to reach Primetime Partners" — because a
  * firm you have no contact at is exactly the firm that needs a route. An
  * earlier version attached paths to the funder's primary contact and produced
@@ -31,7 +31,7 @@ const DIR = (() => {
 })()
 
 /**
- * Words that mark a capitalised phrase as an organisation rather than a person.
+ * Words that mark a capitalised phrase as an organization rather than a person.
  * Without this the extractor happily proposes "AARP AgeTech Collaborative" and
  * "Third Act" as connectors, because a firm name in title case looks exactly
  * like a person's name to a regex.
@@ -50,7 +50,7 @@ function namesIn(note: string, knownOrgNames: Set<string>): string[] {
     if (n.split(' ').length < 2) continue
     if (ORG_WORDS.test(n)) continue
     const lower = n.toLowerCase()
-    // Also reject a PREFIX of a known organisation: notes shorten "Third Act
+    // Also reject a PREFIX of a known organization: notes shorten "Third Act
     // Ventures" to "Third Act", which exact matching misses.
     if (knownOrgNames.has(lower)) continue
     if ([...knownOrgNames].some((o) => o.startsWith(`${lower} `))) continue
@@ -67,7 +67,7 @@ async function main() {
   const rows = toRows(readFileSync(path, 'utf8'))
   const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } })
   const byStrict = new Map(orgs.map((o) => [strictOrgKey(o.name, normalizeOrgName), o.id]))
-  // Every organisation name we know, so a firm in a routing note is never
+  // Every organization name we know, so a firm in a routing note is never
   // mistaken for a connector.
   const knownOrgNames = new Set(orgs.map((o) => o.name.toLowerCase()))
 

@@ -27,7 +27,7 @@ npm run crm:import -- --dir /path/to/csvs            # prints the merge report, 
 npm run crm:import -- --dir /path/to/csvs --commit
 ```
 
-Idempotent. Organisations upsert on `canonicalNameNormalized`, people on
+Idempotent. Organizations upsert on `canonicalNameNormalized`, people on
 `linkedinSlug` (falling back to `normalizedKey`, then exact name), affiliations
 on `(person, org, title)`, and an opportunity is skipped when one already
 exists for the same pipeline and counterparty.
@@ -41,7 +41,7 @@ npm run crm:dedupe -- --commit
 
 `normalizeOrgName` does not strip `LP`/`LLP`/`GP` and does not collapse a
 trailing parenthetical, so `Owl Ventures` and `Owl Ventures, LP` import as two
-organisations. **That function is intentionally not changed** — production
+organizations. **That function is intentionally not changed** — production
 `Company` matching depends on it and loosening it would merge genuinely
 distinct companies app-wide. The dedupe pass applies a stricter key to CRM
 rows only, and merges under two conservative rules:
@@ -54,7 +54,7 @@ is left alone — those are different entities.
 
 ## Known data-quality notes
 
-- `Confidential` is a real organisation row with several affiliations. It is a
+- `Confidential` is a real organization row with several affiliations. It is a
   placeholder from the source export, not a company; worth cleaning by hand.
 - A few companies carry employment state in the name (`Google (departed Apr 2026)`).
   The dedupe pass folds those into the parent company.

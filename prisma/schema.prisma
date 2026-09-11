@@ -8575,6 +8575,7 @@ model CrmPerson {
   activities            CrmActivity[]
   tasks                 CrmTask[]
   researchItems         CrmResearchItem[]
+  authoredResearch      CrmResearchAuthor[]
   sourceRecords         CrmSourceRecord[]
   segmentMembers        CrmSegmentMember[]
   broadcastRecipients   CrmBroadcastRecipient[]
@@ -8901,9 +8902,18 @@ model CrmIntroPath {
 // NextChapter is built on. Seeded from the 24-row Key Studies sheet with
 // stance UNSET — see CrmResearchStance for why this is never auto-classified.
 model CrmResearchItem {
-  id            String    @id @default(cuid())
-  title         String
-  url           String?
+  id       String  @id @default(cuid())
+  title    String
+  url      String?
+  /// An uploaded PDF, for reports that have no stable public link — which is
+  /// most of the ones worth keeping. Either this or url, or both.
+  fileUrl  String?
+  fileName String?
+
+  /// Who wrote it. Stored as text AND linked to real people, because a
+  /// researcher is someone you may end up meeting: the name on a paper and
+  /// the person in the Ecosystem should be the same record.
+  authorNames   String?
   publishedAt   DateTime?
   publishedYear Int?
 
@@ -8918,12 +8928,30 @@ model CrmResearchItem {
   orgId    String?
   org      CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
+  authors CrmResearchAuthor[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([stance])
   @@index([personId])
   @@index([orgId])
+}
+
+/// A named author on a piece of research, linked to their Ecosystem record.
+///
+/// Separate from CrmResearchItem.personId, which marks whose record the item
+/// hangs off. A paper has several authors and only one of them is usually the
+/// person you are tracking.
+model CrmResearchAuthor {
+  id       String          @id @default(cuid())
+  itemId   String
+  item     CrmResearchItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  personId String
+  person   CrmPerson       @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, personId])
+  @@index([personId])
 }
 
 // A saved audience for updates. Feeds the EXISTING Resend dispatch

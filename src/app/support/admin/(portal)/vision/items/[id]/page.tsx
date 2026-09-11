@@ -60,7 +60,7 @@ export default async function VisionItemPage({ params }: { params: Promise<{ id:
             {item.feedbackLinks.length} {item.feedbackLinks.length === 1 ? 'person' : 'people'} raised this
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Their words, verbatim. This is the evidence the item exists — kept rather than summarised away.
+            Their words, verbatim. This is the evidence the item exists — kept rather than summarized away.
           </p>
           <ul className="mt-2 space-y-2">
             {item.feedbackLinks.map((l) => (

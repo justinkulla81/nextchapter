@@ -6,7 +6,7 @@ import { OVERLAPS, OVERLAP_LABELS, OVERLAP_CLASS } from '@/lib/vision/labels'
 import type { ProductCompetitorOverlap } from '@prisma/client'
 
 // One cell of the matrix. Red where they HAVE a feature and green where they
-// do not, because this grid is read to find gaps and moats — the colour tracks
+// do not, because this grid is read to find gaps and moats — the color tracks
 // "is this a problem for us", not "is this true".
 export function VisionMatrixCell({
   competitorId, itemId, overlap, competitorName, featureName,

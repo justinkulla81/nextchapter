@@ -8,7 +8,7 @@
  *
  * Why this exists: normalizeOrgName (src/lib/text/org-name-match) does not
  * strip "LP"/"LLP"/"GP" and does not collapse a trailing parenthetical, so
- * "Owl Ventures" and "Owl Ventures, LP" import as two organisations and split
+ * "Owl Ventures" and "Owl Ventures, LP" import as two organizations and split
  * five people across both. That function is NOT changed here — production
  * Company matching depends on it, and loosening it would silently merge
  * genuinely distinct companies across the whole app. This pass applies a
@@ -62,7 +62,7 @@ async function main() {
   const dupeGroups = [...groups.entries()].filter(([, g]) => g.length > 1)
 
   console.log(`duplicate groups found: ${dupeGroups.length}`)
-  if (dupeGroups.length === 0) console.log('  (no organisation duplicates — checking opportunities anyway)')
+  if (dupeGroups.length === 0) console.log('  (no organization duplicates — checking opportunities anyway)')
 
   let merged = 0, moved = 0, oppsMerged = 0
   for (const [key, group] of dupeGroups) {
@@ -142,9 +142,9 @@ async function main() {
 
   // ── collapse duplicate opportunities ──
   //
-  // Runs whether or not any organisation merged: two rows for the same
-  // (pipeline, organisation) are duplicates however they got there — a merge
-  // that repointed both, or two source sheets naming the same programme. The
+  // Runs whether or not any organization merged: two rows for the same
+  // (pipeline, organization) are duplicates however they got there — a merge
+  // that repointed both, or two source sheets naming the same program. The
   // row that has moved furthest through the pipeline wins, since that's the
   // one carrying real work.
   const oppGroups = await prisma.crmOpportunity.groupBy({

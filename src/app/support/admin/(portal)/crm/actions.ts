@@ -86,7 +86,7 @@ async function createPerson(raw: string, role: CrmPersonRole | null, adminEmail:
 
   let orgId: string | null = null
   let orgKey: string | null = null
-  // "Self-employed" and friends are placeholders, not organisations — creating
+  // "Self-employed" and friends are placeholders, not organizations — creating
   // one would give a junk org real affiliations pointing at it.
   if (isRealOrgName(match?.company)) {
     orgKey = normalizeOrgName(match.company)
@@ -284,7 +284,7 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
 
   if (field === 'title') {
     // Title lives on the affiliation, not the person — a title only means
-    // anything relative to an organisation.
+    // anything relative to an organization.
     const aff = await prisma.crmAffiliation.findFirst({ where: { personId, isPrimary: true } })
     if (aff) await prisma.crmAffiliation.update({ where: { id: aff.id }, data: { title: value || null } })
     await prisma.crmPerson.update({ where: { id: personId }, data: { needsCompletion: !value } })
@@ -589,7 +589,7 @@ export async function checkDeadlineForNewDate(deadlineId: string): Promise<DateC
     })
     if (!res.ok) {
       await prisma.crmDeadline.update({ where: { id: deadlineId }, data: { lastCheckedAt: new Date() } })
-      return { ok: false, message: `That page returned ${res.status}. The programme may have moved or been taken down.` }
+      return { ok: false, message: `That page returned ${res.status}. The program may have moved or been taken down.` }
     }
     const body = await res.text()
     text = htmlToText(body.slice(0, 1_500_000))
@@ -1060,7 +1060,7 @@ export async function setStageOutcome(stageId: string, outcome: 'won' | 'lost' |
 }
 
 /**
- * Records a programme's own deadline from the lead row.
+ * Records a program's own deadline from the lead row.
  *
  * Accepts dates in the PAST on purpose — "the AI Futures Fund closed on 30
  * August" is exactly the fact worth capturing, and refusing it would leave the
@@ -1306,4 +1306,115 @@ export async function bulkUpdateOpportunities(formData: FormData): Promise<{ upd
   })
   revalidatePath(`${CRM}/leads`)
   return { updated, skipped }
+}
+
+/**
+ * Adds a piece of research, with authors and optionally an uploaded PDF.
+ *
+ * Authors are stored as text AND matched to Ecosystem people, because a
+ * researcher is someone you may end up meeting — the name on a paper and the
+ * person in your CRM should be the same record. A name that matches nobody is
+ * created as a person with the ACADEMIC role rather than being dropped: the
+ * whole point of recording an author is that they become reachable.
+ */
+export async function addResearchItem(_prev: unknown, formData: FormData): Promise<{ ok: boolean; message: string }> {
+  const admin = await requireAdmin()
+  const title = String(formData.get('title') ?? '').trim()
+  if (!title) return { ok: false, message: 'A title is needed.' }
+
+  const url = String(formData.get('url') ?? '').trim() || null
+  const orgName = String(formData.get('orgName') ?? '').trim()
+  const keyClaim = String(formData.get('keyClaim') ?? '').trim() || null
+  const yearRaw = String(formData.get('publishedYear') ?? '').trim()
+  const stance = String(formData.get('stance') ?? 'UNSET') as CrmResearchStance
+  const authorsRaw = String(formData.get('authorNames') ?? '').trim()
+  const file = formData.get('file')
+
+  let fileUrl: string | null = null
+  let fileName: string | null = null
+  if (file instanceof File && file.size > 0) {
+    if (file.type !== 'application/pdf') {
+      return { ok: false, message: 'Only PDFs can be uploaded. Paste a link for anything else.' }
+    }
+    if (file.size > 25_000_000) {
+      return { ok: false, message: 'That PDF is over 25 MB. Link to it instead.' }
+    }
+    const { createClient } = await import('@supabase/supabase-js')
+    const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80)
+    const path = `${Date.now()}-${safe}`
+    const { error } = await storage.storage.from('research-files').upload(path, file, { contentType: 'application/pdf' })
+    if (error) return { ok: false, message: `Upload failed: ${error.message}` }
+    fileUrl = storage.storage.from('research-files').getPublicUrl(path).data.publicUrl
+    fileName = file.name
+  }
+
+  if (!url && !fileUrl) {
+    return { ok: false, message: 'Give it a link or upload the PDF — a claim with no source cannot be checked later.' }
+  }
+
+  let orgId: string | null = null
+  if (isRealOrgName(orgName)) {
+    const key = normalizeOrgName(orgName)
+    if (key) {
+      const org = await prisma.crmOrganization.upsert({
+        where: { canonicalNameNormalized: key },
+        create: { name: orgName, canonicalNameNormalized: key, orgTypes: ['THINK_TANK'] },
+        update: {},
+      })
+      orgId = org.id
+    }
+  }
+
+  const item = await prisma.crmResearchItem.create({
+    data: {
+      title, url, fileUrl, fileName, orgId, keyClaim, stance,
+      authorNames: authorsRaw || null,
+      publishedYear: yearRaw ? parseInt(yearRaw, 10) || null : null,
+      relevanceNote: String(formData.get('relevanceNote') ?? '').trim() || null,
+    },
+  })
+
+  // Authors become people — matched where they exist, created where they don't.
+  let linked = 0
+  let created = 0
+  for (const raw of authorsRaw.split(/[,;]| and /).map((n) => n.trim()).filter(Boolean).slice(0, 12)) {
+    const name = cleanAuthorName(raw)
+    if (!name) continue
+    let person = await prisma.crmPerson.findFirst({ where: { fullName: { equals: name, mode: 'insensitive' } } })
+    if (!person) {
+      person = await prisma.crmPerson.create({
+        data: {
+          fullName: name,
+          firstName: name.split(' ')[0] ?? null,
+          lastName: name.split(' ').slice(1).join(' ') || null,
+          roles: ['ACADEMIC'], goals: ['ADVISORY_RECRUITING'],
+          needsCompletion: true,
+        },
+      })
+      created++
+    } else linked++
+    await prisma.crmResearchAuthor.upsert({
+      where: { itemId_personId: { itemId: item.id, personId: person.id } },
+      create: { itemId: item.id, personId: person.id },
+      update: {},
+    })
+  }
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_research_added', {
+    itemId: item.id, hasFile: Boolean(fileUrl), authorsLinked: linked, authorsCreated: created,
+  })
+  revalidatePath(`${CRM}/research`)
+  const authorNote = linked + created > 0
+    ? ` ${linked + created} ${linked + created === 1 ? 'author' : 'authors'} recorded${created > 0 ? `, ${created} added as new people` : ''}.`
+    : ''
+  return { ok: true, message: `Saved “${title}”.${authorNote}` }
+}
+
+/** Strips titles and trailing affiliations from an author name. */
+function cleanAuthorName(raw: string): string | null {
+  let n = raw.replace(/\(.*?\)/g, ' ').replace(/\b(Dr|Prof|Professor|PhD|Ph\.D\.?|MD)\.?\b/gi, ' ')
+  n = n.replace(/\s+/g, ' ').trim()
+  // A single word is an initial or a fragment, not a person we can find again.
+  return n.split(' ').length >= 2 ? n : null
 }

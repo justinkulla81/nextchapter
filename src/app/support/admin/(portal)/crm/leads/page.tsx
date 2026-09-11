@@ -314,7 +314,7 @@ export default async function CrmLeadsPage({
 
                           <form action={setOpportunityDeadline.bind(null, o.id)} className="flex flex-wrap items-end gap-2 border-t border-border pt-2">
                             <label className="text-xs">
-                              <span className="mb-1 block font-medium">Programme deadline</span>
+                              <span className="mb-1 block font-medium">Program deadline</span>
                               <input type="date" name="deadlineDate" defaultValue={toInput(deadline?.dueAt)} className="h-8 rounded-md border border-input bg-transparent px-2 text-sm" />
                             </label>
                             <label className="text-xs">

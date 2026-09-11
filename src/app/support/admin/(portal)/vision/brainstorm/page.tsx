@@ -75,7 +75,7 @@ export default async function VisionBrainstormPage() {
           </ul>
         )}
         <p className="mt-2 text-xs text-muted-foreground">
-          Nothing leaves this list by accident. An unjudged idea sitting in a prioritised backlog is noise
+          Nothing leaves this list by accident. An unjudged idea sitting in a prioritized backlog is noise
           that makes the whole backlog less trusted.
         </p>
       </section>

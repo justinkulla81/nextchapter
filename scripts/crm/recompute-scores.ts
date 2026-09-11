@@ -85,7 +85,7 @@ async function main() {
   // have no opportunity with.
   //
   // So a person takes the higher of their own score and their best
-  // organisation's, discounted slightly: the organisation is the reason they
+  // organization's, discounted slightly: the organization is the reason they
   // rank, and they should still sit below the opportunity itself.
   const ORG_INHERITANCE = 0.9
 

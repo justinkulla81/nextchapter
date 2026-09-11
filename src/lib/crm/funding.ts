@@ -5,7 +5,7 @@ export const FUNDER_KIND_LABELS: Record<CrmFunderKind, string> = {
   INVESTMENT_FIRM: 'Investment firm',
   INDIVIDUAL_INVESTOR: 'Individual investor',
   ACCELERATOR: 'Accelerator',
-  CORPORATE_PROGRAM: 'Corporate programme',
+  CORPORATE_PROGRAM: 'Corporate program',
   OTHER: 'Other',
 }
 
@@ -88,10 +88,34 @@ export function usStateFrom(geography: string | null): string | null {
  * A grant you could win in three weeks and one that first needs six months of
  * establishing a state presence are not the same opportunity, and a ranking
  * that treats them alike sends you at the wrong one. Capped at 0.6 so a
- * genuinely valuable programme with a long runway still surfaces — this is a
+ * genuinely valuable program with a long runway still surfaces — this is a
  * discount, not a disqualification.
  */
 export function preconditionPenalty(leadTimeDays: number | null | undefined): number {
   if (!leadTimeDays || leadTimeDays <= 0) return 0
   return Math.min(0.6, leadTimeDays / 365)
+}
+
+/**
+ * Reads a headcount from the messy strings a layoff tracker actually contains.
+ *
+ * Stripping every non-digit — the obvious approach, and the one that shipped —
+ * turns "~1,000 (18%)" into 100018 and "Hundreds (~2%)" into 2. Both are
+ * silently wrong in the direction that matters: one inflates a lead a hundredfold,
+ * the other buries a real one.
+ *
+ * So: drop parentheticals first, because they hold percentages and caveats
+ * rather than counts, then take the first number. A word like "Hundreds" with
+ * no digits returns null, which is honest — "we do not know" beats a number
+ * invented from a percentage.
+ */
+export function parseHeadcount(raw: string | null | undefined): number | null {
+  if (!raw) return null
+  const withoutParens = String(raw).replace(/\([^)]*\)/g, ' ')
+  const m = withoutParens.match(/(\d[\d,]*)/)
+  if (!m) return null
+  const n = parseInt(m[1].replace(/,/g, ''), 10)
+  if (!Number.isFinite(n) || n <= 0) return null
+  // A single WARN filing above this is a data error, not a layoff.
+  return n > 500_000 ? null : n
 }

@@ -128,7 +128,7 @@ export function computePriority(input: ScoreInput): ScoreBreakdown {
 
   const base = quality + warmPath + deadline + momentum - stale
   const multiplier = ELIGIBILITY_MULTIPLIER[input.eligibility] ?? 1
-  // A discount, not a disqualification: a valuable programme with a long
+  // A discount, not a disqualification: a valuable program with a long
   // runway should still surface, just below one you could act on this month.
   const precondition = 1 - preconditionPenalty(input.preconditionLeadTimeDays)
   const score = Math.max(0, Math.round(base * multiplier * precondition * 10) / 10)

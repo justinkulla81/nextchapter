@@ -1,5 +1,5 @@
 /**
- * CSV parsing + value normalisation shared by the CRM source importers.
+ * CSV parsing + value normalization shared by the CRM source importers.
  *
  * A quote-aware parser is genuinely required here, not defensive coding: the
  * exported Networking CRM contains newlines inside quoted note fields, so a
@@ -73,7 +73,7 @@ export function cleanEmail(v: string | null | undefined): string | null {
   return e.includes('@') && !e.includes(' ') ? e : null
 }
 
-/** Placeholders that look like an organisation but aren't one. */
+/** Placeholders that look like an organization but aren't one. */
 const ORG_NOISE = new Set([
   'none', 'not named', 'not listed (public)', 'independent', 'self-employed',
   'self employed', 'various', 'stealth startup', 'multiple organizations', 'n/a', 'unknown',

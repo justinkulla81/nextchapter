@@ -89,7 +89,7 @@ describe('isRealOrgName', () => {
       expect(isRealOrgName(junk)).toBe(false)
     }
   })
-  it('accepts real organisations', () => {
+  it('accepts real organizations', () => {
     for (const real of ['Owl Ventures', 'SemperVirens VC', 'AARP']) {
       expect(isRealOrgName(real)).toBe(true)
     }

@@ -47,7 +47,7 @@ export const OVERLAP_LABELS: Record<ProductCompetitorOverlap, string> = {
 }
 
 // Red where a competitor HAS a feature, green where they do not: this grid is
-// read to find gaps and moats, so the colour tracks "is this a problem for us",
+// read to find gaps and moats, so the color tracks "is this a problem for us",
 // not "is this true".
 export const OVERLAP_CLASS: Record<ProductCompetitorOverlap, string> = {
   HAS: 'bg-destructive/10 text-destructive',

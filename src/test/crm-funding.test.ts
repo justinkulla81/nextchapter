@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { funderKindFrom, valueTypesFrom, usStateFrom, preconditionPenalty } from '@/lib/crm/funding'
+import { funderKindFrom, valueTypesFrom, usStateFrom, preconditionPenalty, parseHeadcount } from '@/lib/crm/funding'
 
 describe('funderKindFrom', () => {
   it.each([
@@ -60,5 +60,26 @@ describe('preconditionPenalty', () => {
   })
   it('caps, so a long runway discounts rather than disqualifies', () => {
     expect(preconditionPenalty(3650)).toBe(0.6)
+  })
+})
+
+describe('parseHeadcount', () => {
+  it.each([
+    ['4,800', 4800],
+    ['290', 290],
+    ['86+', 86],
+    ['~800 (est., unconfirmed)', 800],
+    // The two that shipped wrong: stripping every non-digit made these
+    // 100018 and 2 respectively.
+    ['~1,000 (18%)', 1000],
+    ['Hundreds (~2%)', null],
+    ['Unspecified', null],
+    ['', null],
+    [null, null],
+  ])('%s -> %s', (input, expected) => {
+    expect(parseHeadcount(input)).toBe(expected)
+  })
+  it('rejects an implausible figure rather than storing it', () => {
+    expect(parseHeadcount('9,999,999')).toBeNull()
   })
 })

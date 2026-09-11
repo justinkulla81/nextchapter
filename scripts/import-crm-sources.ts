@@ -20,6 +20,7 @@ import { join } from 'node:path'
 import { PrismaClient, type CrmPersonRole, type CrmOrgType, type CrmEligibility, type CrmLeadQuality } from '@prisma/client'
 import { normalizeOrgName } from '../src/lib/text/org-name-match'
 import { strictOrgKey } from '../src/lib/crm/normalize'
+import { parseHeadcount } from '../src/lib/crm/funding'
 import {
   parseCsv, toRows, linkedinSlug, cleanEmail, cleanPersonName, isRealOrgName,
   parseCheckSize, parseDateish, type SourceRow,
@@ -351,9 +352,8 @@ function loadOutplacement() {
       industry: r.get('Industry'), focus: r.get('Outreach Angle'),
     })
     if (o) {
-      const hc = r.get('Headcount Affected')?.replace(/[^\d]/g, '')
       o.outplacement ??= {
-        headcount: hc ? parseInt(hc, 10) : null, pctWhiteCollar: r.get('% White-Collar'),
+        headcount: parseHeadcount(r.get('Headcount Affected')), pctWhiteCollar: r.get('% White-Collar'),
         announcedAt: parseDateish(r.get('Date Announced')), incumbent: r.get('Existing Provider'),
         sourceUrl: r.get('Source Link(s)'), angle: r.get('Outreach Angle'),
       }

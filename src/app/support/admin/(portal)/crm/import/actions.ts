@@ -105,7 +105,7 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
       pick(rec, nameCols) ??
       ([pick(rec, firstCols), pick(rec, lastCols)].filter(Boolean).join(' ').trim() || null)
     if (!name) continue
-    const company = pick(rec, ['Company', 'Organization', 'Organisation'])
+    const company = pick(rec, ['Company', 'Organization', 'Organization'])
     const title = pick(rec, ['Position', 'Title', 'Job Title'])
     const email = pick(rec, ['Email', 'Email Address'])?.toLowerCase() ?? null
     const linkedinUrl = pick(rec, ['LinkedIn URL', 'LinkedIn', 'URL', 'Profile'])

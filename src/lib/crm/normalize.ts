@@ -1,9 +1,9 @@
 /**
- * Placeholder strings that arrive where an organisation name belongs.
+ * Placeholder strings that arrive where an organization name belongs.
  *
  * A LinkedIn export writes "Self-employed" or "Independent" into the company
  * field, and the legacy sheets used "Not named" / "Not listed (public)". Left
- * alone these become organisations with real affiliations pointing at them —
+ * alone these become organizations with real affiliations pointing at them —
  * so quick add, the completion queue and the CSV importer all filter through
  * here before creating a CrmOrganization.
  */
@@ -25,7 +25,7 @@ export function isRealOrgName(v: string | null | undefined): v is string {
 const TRAILING_LEGAL = /\s+(lp|llp|gp|plc|sa|ag|nv|bv|pte|pty|ab|oy|as|kk|srl|spa|sarl|kg|mbh)$/
 
 /**
- * Stricter organisation key, used for MATCHING only — the stored
+ * Stricter organization key, used for MATCHING only — the stored
  * canonicalNameNormalized stays whatever normalizeOrgName produced.
  *
  * normalizeOrgName strips Inc/LLC/Corp but not LP/LLP/GP, and does not

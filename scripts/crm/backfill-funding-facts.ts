@@ -5,7 +5,7 @@
  *   npm run crm:funding-facts -- --dir <csv dir> --commit
  *
  * "VC fund" was doing too much work on the org type: a federal grant, a rolling
- * credits programme and an angel are not the same pursuit. These fields split
+ * credits program and an angel are not the same pursuit. These fields split
  * them apart from data already in the sheet rather than asking for it again.
  */
 import { readFileSync, existsSync } from 'node:fs'

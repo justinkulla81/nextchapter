@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
+import { CrmAddResearch } from '@/components/admin/CrmAddResearch'
 import { updateResearchItem } from '../actions'
 
 export const maxDuration = 30
@@ -36,7 +37,11 @@ export default async function CrmResearchPage({
     prisma.crmResearchItem.findMany({
       where,
       orderBy: [{ stance: 'asc' }, { publishedYear: 'desc' }],
-      include: { org: { select: { id: true, name: true } }, person: { select: { id: true, fullName: true } } },
+      include: {
+        org: { select: { id: true, name: true } },
+        person: { select: { id: true, fullName: true } },
+        authors: { include: { person: { select: { id: true, fullName: true } } } },
+      },
     }),
     prisma.crmResearchItem.groupBy({ by: ['stance'], _count: { _all: true } }),
   ])
@@ -70,6 +75,8 @@ export default async function CrmResearchPage({
           </p>
         )}
       </div>
+
+      <CrmAddResearch />
 
       <AdminFilterBar
         basePath="/support/admin/crm/research"
@@ -105,7 +112,22 @@ export default async function CrmResearchPage({
                       {r.url ? (
                         <a href={r.url} target="_blank" rel="noreferrer" className="hover:underline">{r.title}</a>
                       ) : r.title}
+                      {r.fileUrl && (
+                        <a href={r.fileUrl} target="_blank" rel="noreferrer" className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs font-normal hover:bg-muted/70">
+                          PDF
+                        </a>
+                      )}
                     </p>
+                    {r.authors.length > 0 && (
+                      <p className="mt-0.5 text-xs">
+                        {r.authors.map((a, i) => (
+                          <span key={a.id}>
+                            {i > 0 && ', '}
+                            <Link href={`/support/admin/crm/people/${a.person.id}`} className="underline">{a.person.fullName}</Link>
+                          </span>
+                        ))}
+                      </p>
+                    )}
                     <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       {r.org && (
                         <Link href={`/support/admin/crm/organizations/${r.org.id}`} className="hover:underline">{r.org.name}</Link>

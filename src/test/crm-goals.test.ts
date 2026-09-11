@@ -23,7 +23,7 @@ describe('goalsForRoles', () => {
 })
 
 describe('goalsForOrgTypes', () => {
-  it('handles an organisation that is several things at once', () => {
+  it('handles an organization that is several things at once', () => {
     // Microsoft: cloud credits, a partner, and a layoff lead.
     const g = goalsForOrgTypes(['FUNDER_GRANT', 'VENDOR', 'OUTPLACEMENT_LEAD', 'EMPLOYER'])
     expect(g).toContain('FUNDRAISING')
