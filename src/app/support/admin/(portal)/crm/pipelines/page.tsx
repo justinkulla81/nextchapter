@@ -45,7 +45,9 @@ export default async function CrmPipelinesPage() {
                   {n > 0 ? `${n} open` : 'Nothing here yet'}
                   {p._count.opportunities > n && ` · ${p._count.opportunities - n} closed`}
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">{p.stages.length} stages</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {p.stages.filter((s) => !s.isLost).map((s) => s.label).join(' → ')}
+                </p>
               </Link>
             </li>
           )

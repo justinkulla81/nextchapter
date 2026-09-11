@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmStageSelect } from '@/components/admin/CrmStageSelect'
+import { CrmStageEditor } from '@/components/admin/CrmStageEditor'
 import { qualityClass, formatDate, ELIGIBILITY_LABELS } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -21,7 +22,12 @@ export default async function CrmPipelineBoardPage({ params }: { params: Promise
 
   const pipeline = await prisma.crmPipeline.findUnique({
     where: { key },
-    include: { stages: { orderBy: { sortOrder: 'asc' } } },
+    include: {
+      stages: {
+        orderBy: { sortOrder: 'asc' },
+        include: { _count: { select: { opportunities: true } } },
+      },
+    },
   })
   if (!pipeline) notFound()
 
@@ -46,11 +52,21 @@ export default async function CrmPipelineBoardPage({ params }: { params: Promise
         <Link href="/support/admin/crm/pipelines" className="text-muted-foreground hover:underline">← All pipelines</Link>
       </nav>
 
-      <header>
-        <h1 className="text-2xl font-semibold">{pipeline.label}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {totalOpen} open of {opps.length}. Cards are ordered by priority score; change a stage with its dropdown.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{pipeline.label}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {totalOpen} open of {opps.length}. Cards are ordered by priority score; change a stage with its dropdown.
+          </p>
+        </div>
+        <CrmStageEditor
+          pipelineId={pipeline.id}
+          pipelineLabel={pipeline.label}
+          stages={pipeline.stages.map((s) => ({
+            id: s.id, label: s.label, sortOrder: s.sortOrder,
+            isWon: s.isWon, isLost: s.isLost, dealCount: s._count.opportunities,
+          }))}
+        />
       </header>
 
       {opps.length === 0 ? (

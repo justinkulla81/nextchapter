@@ -930,3 +930,129 @@ export async function updateSyncSetting(formData: FormData) {
   captureServerEvent(admin.email ?? 'admin', 'crm_sync_setting_changed', { intervalHours: hours })
   revalidatePath(`${CRM}/sync`)
 }
+
+// ── Deal stages ──────────────────────────────────────────────────────────────
+
+/** Renames a stage. The key stays fixed so nothing that references it breaks. */
+export async function renameStage(stageId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const label = String(formData.get('label') ?? '').trim()
+  if (!label) return
+  const stage = await prisma.crmStage.update({
+    where: { id: stageId }, data: { label },
+    select: { pipeline: { select: { key: true } } },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_stage_renamed', { stageId, label })
+  revalidatePath(`${CRM}/pipelines/${stage.pipeline.key}`)
+  revalidatePath(`${CRM}/pipelines`)
+}
+
+/** Moves a stage one position. Swaps sortOrder with its neighbour. */
+export async function moveStage(stageId: string, direction: 'up' | 'down') {
+  const admin = await requireAdmin()
+  const stage = await prisma.crmStage.findUniqueOrThrow({
+    where: { id: stageId },
+    select: { id: true, sortOrder: true, pipelineId: true, pipeline: { select: { key: true } } },
+  })
+  const neighbour = await prisma.crmStage.findFirst({
+    where: {
+      pipelineId: stage.pipelineId,
+      sortOrder: direction === 'up' ? { lt: stage.sortOrder } : { gt: stage.sortOrder },
+    },
+    orderBy: { sortOrder: direction === 'up' ? 'desc' : 'asc' },
+    select: { id: true, sortOrder: true },
+  })
+  if (!neighbour) return
+
+  // Two updates, not one: sortOrder has no unique constraint, so a straight
+  // swap is safe and avoids a temporary value nobody would ever see.
+  await prisma.$transaction([
+    prisma.crmStage.update({ where: { id: stage.id }, data: { sortOrder: neighbour.sortOrder } }),
+    prisma.crmStage.update({ where: { id: neighbour.id }, data: { sortOrder: stage.sortOrder } }),
+  ])
+  captureServerEvent(admin.email ?? 'admin', 'crm_stage_moved', { stageId, direction })
+  revalidatePath(`${CRM}/pipelines/${stage.pipeline.key}`)
+}
+
+/** Adds a stage before the won/lost stages, where new work actually belongs. */
+export async function addStage(pipelineId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const label = String(formData.get('label') ?? '').trim()
+  if (!label) return
+
+  const pipeline = await prisma.crmPipeline.findUniqueOrThrow({
+    where: { id: pipelineId },
+    select: { key: true, stages: { orderBy: { sortOrder: 'asc' } } },
+  })
+  // A new stage almost never belongs after "Won" — insert it before the
+  // terminal stages and shift those along.
+  const firstTerminal = pipeline.stages.find((s) => s.isWon || s.isLost)
+  const at = firstTerminal ? firstTerminal.sortOrder : pipeline.stages.length
+
+  const key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40)
+  if (pipeline.stages.some((s) => s.key === key)) return
+
+  await prisma.$transaction([
+    ...pipeline.stages
+      .filter((s) => s.sortOrder >= at)
+      .map((s) => prisma.crmStage.update({ where: { id: s.id }, data: { sortOrder: s.sortOrder + 1 } })),
+    prisma.crmStage.create({ data: { pipelineId, key, label, sortOrder: at } }),
+  ])
+  captureServerEvent(admin.email ?? 'admin', 'crm_stage_added', { pipelineId, label })
+  revalidatePath(`${CRM}/pipelines/${pipeline.key}`)
+}
+
+export interface StageDeleteResult { ok: boolean; message: string }
+
+/**
+ * Removes a stage.
+ *
+ * Refuses while anything sits in it. Deleting a stage with opportunities would
+ * either orphan them or silently move them somewhere you did not choose, and
+ * both are worse than being told to move them first.
+ */
+export async function deleteStage(stageId: string): Promise<StageDeleteResult> {
+  const admin = await requireAdmin()
+  const stage = await prisma.crmStage.findUniqueOrThrow({
+    where: { id: stageId },
+    select: {
+      id: true, label: true, isWon: true, isLost: true, pipelineId: true,
+      pipeline: { select: { key: true } },
+      _count: { select: { opportunities: true } },
+    },
+  })
+
+  if (stage._count.opportunities > 0) {
+    return {
+      ok: false,
+      message: `${stage._count.opportunities} ${stage._count.opportunities === 1 ? 'deal is' : 'deals are'} in “${stage.label}”. Move them first, then remove it.`,
+    }
+  }
+  const remaining = await prisma.crmStage.count({ where: { pipelineId: stage.pipelineId } })
+  if (remaining <= 2) {
+    return { ok: false, message: 'A pipeline needs at least two stages.' }
+  }
+
+  await prisma.crmStage.delete({ where: { id: stageId } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_stage_deleted', { stageId })
+  revalidatePath(`${CRM}/pipelines/${stage.pipeline.key}`)
+  return { ok: true, message: `Removed “${stage.label}”.` }
+}
+
+/** Marks which stage counts as won, or as lost. Exactly one won per pipeline. */
+export async function setStageOutcome(stageId: string, outcome: 'won' | 'lost' | 'open') {
+  const admin = await requireAdmin()
+  const stage = await prisma.crmStage.findUniqueOrThrow({
+    where: { id: stageId }, select: { pipelineId: true, pipeline: { select: { key: true } } },
+  })
+  if (outcome === 'won') {
+    // Two "won" stages would make every win figure ambiguous.
+    await prisma.crmStage.updateMany({ where: { pipelineId: stage.pipelineId }, data: { isWon: false } })
+  }
+  await prisma.crmStage.update({
+    where: { id: stageId },
+    data: { isWon: outcome === 'won', isLost: outcome === 'lost' },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_stage_outcome_set', { stageId, outcome })
+  revalidatePath(`${CRM}/pipelines/${stage.pipeline.key}`)
+}
