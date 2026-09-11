@@ -8,6 +8,7 @@ import { classifyUserAgent } from '@/lib/http/user-agent'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { candidateDisplayName } from '@/lib/messaging/threads'
+import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 
 export const maxDuration = 30
 
@@ -85,6 +86,7 @@ interface Row {
   // match is worse than none, so it falls back to the generic Human/Bot
   // label instead of guessing.
   inferredCandidate: { id: string; firstName: string | null; lastName: string | null } | null
+  source: string
 }
 
 // Anonymous public-marketing traffic (every public page, not just the
@@ -168,6 +170,7 @@ export default async function AdminVisitorsPage({
     location: e.ip ? (locationByIp.get(e.ip) ?? null) : null,
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
+    source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
   }))
 
   const result = paginatedResult(rows, total, params)
@@ -208,6 +211,7 @@ export default async function AdminVisitorsPage({
       render: (r) =>
         r.eventType === 'LINK_CLICK' ? r.href ?? '—' : r.referrer ? `from ${r.referrer}` : 'direct / no referrer',
     },
+    { header: 'Source', render: (r) => r.source },
     {
       header: 'Page',
       render: (r) => (r.eventType === 'PAGE_VIEW' ? (r.path ?? '/ (recorded before path tracking)') : '—'),

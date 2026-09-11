@@ -13,6 +13,13 @@ export async function POST(request: NextRequest) {
     const eventType = body?.eventType === 'LINK_CLICK' ? 'LINK_CLICK' : 'PAGE_VIEW'
     const href = typeof body?.href === 'string' ? body.href.slice(0, 500) : null
     const path = typeof body?.path === 'string' ? body.path.slice(0, 500) : null
+    // Client-supplied document.referrer (see HomepageVisitTracker.tsx) —
+    // NOT the request's own Referer header, which for this same-origin
+    // beacon POST is always the tracking page's own URL, never the true
+    // external source (google.com, youtube.com, an email client, etc.).
+    // That was a real bug: every row's `referrer` column read as the
+    // site's own URL, useless for traffic-source classification.
+    const referrer = typeof body?.referrer === 'string' ? body.referrer.slice(0, 500) : null
 
     const ip = await getClientIp()
     if (isTrustedOwnerIp(ip) || isLoopbackIp(ip)) {
@@ -43,7 +50,7 @@ export async function POST(request: NextRequest) {
         eventType,
         path: eventType === 'PAGE_VIEW' ? path : null,
         href: eventType === 'LINK_CLICK' ? href : null,
-        referrer: eventType === 'PAGE_VIEW' ? request.headers.get('referer') : null,
+        referrer: eventType === 'PAGE_VIEW' ? referrer : null,
         userAgent: request.headers.get('user-agent'),
         candidateId,
       },

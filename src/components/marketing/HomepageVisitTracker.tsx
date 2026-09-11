@@ -4,7 +4,7 @@ import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
 
-function track(eventType: 'PAGE_VIEW' | 'LINK_CLICK', payload: { path?: string; href?: string }) {
+function track(eventType: 'PAGE_VIEW' | 'LINK_CLICK', payload: { path?: string; href?: string; referrer?: string }) {
   const body = JSON.stringify({ eventType, ...payload })
   const url = '/api/track/homepage-visit'
 
@@ -39,7 +39,15 @@ function PageViewTracker() {
   useEffect(() => {
     if (!isPublicMarketingPath(pathname)) return
     const path = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname
-    track('PAGE_VIEW', { path })
+    // document.referrer reflects the page the browser was on right before
+    // THIS TAB's initial load — it doesn't change on a client-side route
+    // change within the SPA, which is exactly what we want: every page
+    // view in this tab keeps attributing back to the session's real
+    // origin (google.com, youtube.com, etc.) instead of reporting NextChapter's
+    // own previous page as the "referrer" (which is what the old
+    // server-side Referer-header approach did — see the API route's own
+    // comment for why that was wrong).
+    track('PAGE_VIEW', { path, referrer: document.referrer || undefined })
   }, [pathname, searchParams])
 
   return null
