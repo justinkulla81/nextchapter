@@ -10,7 +10,7 @@ import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
-  CrmFunderKind, CrmValueType,
+  CrmFunderKind, CrmValueType, CrmActivityType,
 } from '@prisma/client'
 
 const CRM = '/support/admin/crm'
@@ -1130,4 +1130,59 @@ export async function updateFunderFacts(orgId: string, formData: FormData) {
   })
   captureServerEvent(admin.email ?? 'admin', 'crm_funder_facts_edited', { orgId, kind: kind || null, valueTypes })
   revalidatePath(`${CRM}/leads`)
+}
+
+/** Pins a person to the top of any list. A decision, not a computation. */
+export async function togglePersonFlag(personId: string, next: boolean) {
+  const admin = await requireAdmin()
+  await prisma.crmPerson.update({ where: { id: personId }, data: { isFlagged: next } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_flagged', { personId, flagged: next })
+  revalidatePath(CRM)
+}
+
+/**
+ * Logs that you contacted someone, asking how and when.
+ *
+ * The column used to be a passive "Last contacted" readout, which meant the
+ * only way to correct it was through a record page — so it stayed wrong.
+ * Recording the channel matters because LinkedIn can never log itself, and
+ * recording the date matters because you log things days after they happen.
+ */
+export async function logContact(personId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const channel = String(formData.get('channel') ?? 'EMAIL')
+  const dateRaw = String(formData.get('occurredAt') ?? '').trim()
+  const note = String(formData.get('note') ?? '').trim() || null
+
+  const TYPES: Record<string, string> = {
+    EMAIL: 'EMAIL', LINKEDIN: 'LINKEDIN_MESSAGE', CALL: 'CALL',
+    MEETING: 'MEETING', TEXT: 'NOTE', OTHER: 'NOTE',
+  }
+  const type = (TYPES[channel] ?? 'NOTE') as CrmActivityType
+  const occurredAt = dateRaw ? new Date(`${dateRaw}T12:00:00Z`) : new Date()
+
+  const person = await prisma.crmPerson.findUniqueOrThrow({
+    where: { id: personId }, select: { touchCount: true, firstTouchedAt: true, lastTouchedAt: true },
+  })
+
+  await prisma.crmActivity.create({
+    data: {
+      type, direction: 'OUTBOUND', personId, occurredAt,
+      subject: `Contacted by ${channel.toLowerCase()}`, body: note,
+      isAutoLogged: false, loggedByEmail: admin.email ?? null,
+    },
+  })
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: {
+      // Logging an OLDER contact must not move lastTouchedAt backwards.
+      lastTouchedAt: !person.lastTouchedAt || occurredAt > person.lastTouchedAt ? occurredAt : undefined,
+      firstTouchedAt: !person.firstTouchedAt || occurredAt < person.firstTouchedAt ? occurredAt : undefined,
+      touchCount: person.touchCount + 1,
+    },
+  })
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type, auto: false, surface: 'list' })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
 }

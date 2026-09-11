@@ -8535,6 +8535,15 @@ model CrmPerson {
   // run projects 82 such rows at import, small enough to actually clear.
   needsCompletion Boolean @default(false)
 
+  /// A manual pin, separate from the computed score.
+  ///
+  /// The score answers "who deserves attention on the evidence"; a flag
+  /// answers "I have decided this one matters", which no formula can know.
+  /// Flagged rows sort to the top of whatever ordering is applied rather than
+  /// being given points — a star that merely nudged a number would sometimes
+  /// still be below the fold, which is the one thing a star must never do.
+  isFlagged Boolean @default(false)
+
   // Derived from CrmActivity, never typed by hand. These four are exactly the
   // fields sitting empty in the source Networking CRM, where 3,529 of 3,551
   // contacts read "Not contacted" because logging was manual.
@@ -8576,6 +8585,7 @@ model CrmPerson {
   @@index([normalizedKey])
   @@index([priorityScore(sort: Desc)])
   @@index([needsCompletion])
+  @@index([isFlagged])
   @@index([lastTouchedAt])
   @@index([fullName])
 }
