@@ -401,3 +401,72 @@ export async function acceptExportSuggestion(personId: string) {
   captureServerEvent(admin.email ?? 'admin', 'crm_completion_accepted', { personId, source: 'linkedin_export' })
   revalidatePath(`${CRM}/needs-completion`)
 }
+
+// ── Pipelines (Phase 4) ──────────────────────────────────────────────────────
+
+/**
+ * Moves an opportunity between stages.
+ *
+ * A native <select> rather than drag-and-drop: every interactive element has
+ * to be keyboard-accessible per design-principles.md, and a select is that by
+ * construction where a drag target needs a parallel keyboard path built and
+ * maintained. Drag is a later enhancement on top of this, not a replacement.
+ */
+export async function moveOpportunityStage(opportunityId: string, stageId: string) {
+  const admin = await requireAdmin()
+  const opp = await prisma.crmOpportunity.findUniqueOrThrow({
+    where: { id: opportunityId },
+    select: { stage: { select: { label: true } }, pipeline: { select: { key: true } } },
+  })
+  const next = await prisma.crmStage.findUniqueOrThrow({ where: { id: stageId }, select: { label: true, isWon: true, isLost: true } })
+
+  await prisma.crmOpportunity.update({
+    where: { id: opportunityId },
+    data: {
+      stageId,
+      outcome: next.isWon ? 'WON' : next.isLost ? 'LOST' : 'OPEN',
+      closedAt: next.isWon || next.isLost ? new Date() : null,
+    },
+  })
+  await prisma.crmActivity.create({
+    data: {
+      type: 'STAGE_CHANGED', direction: 'INTERNAL', opportunityId,
+      subject: `${opp.stage.label} → ${next.label}`, loggedByEmail: admin.email ?? null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_stage_changed', {
+    opportunityId, pipeline: opp.pipeline.key, from: opp.stage.label, to: next.label,
+  })
+  revalidatePath(`${CRM}/pipelines/${opp.pipeline.key}`)
+  revalidatePath(`${CRM}/leads`)
+}
+
+/** Inline edit of an opportunity's next step, dates and grade. */
+export async function updateOpportunity(opportunityId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const nextStep = String(formData.get('nextStep') ?? '').trim() || null
+  const nextStepDueAt = String(formData.get('nextStepDueAt') ?? '').trim()
+  const committedFollowUpAt = String(formData.get('committedFollowUpAt') ?? '').trim()
+  const committedTo = String(formData.get('committedTo') ?? '').trim() || null
+  const leadQuality = String(formData.get('leadQuality') ?? '').trim()
+  const overrideRaw = String(formData.get('priorityOverride') ?? '').trim()
+
+  const opp = await prisma.crmOpportunity.update({
+    where: { id: opportunityId },
+    data: {
+      nextStep,
+      nextStepDueAt: nextStepDueAt ? new Date(nextStepDueAt) : null,
+      committedFollowUpAt: committedFollowUpAt ? new Date(committedFollowUpAt) : null,
+      committedTo,
+      ...(leadQuality ? { leadQuality: leadQuality as CrmLeadQuality } : {}),
+      priorityOverride: overrideRaw ? Math.max(0, Math.min(100, parseInt(overrideRaw, 10) || 0)) : null,
+    },
+    select: { pipeline: { select: { key: true } } },
+  })
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_opportunity_edited', {
+    opportunityId, hasCommitment: Boolean(committedFollowUpAt), hasOverride: Boolean(overrideRaw),
+  })
+  revalidatePath(`${CRM}/pipelines/${opp.pipeline.key}`)
+  revalidatePath(`${CRM}/leads`)
+}

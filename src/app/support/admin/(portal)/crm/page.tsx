@@ -86,6 +86,12 @@ export default async function CrmPeoplePage({
           </p>
         </div>
         <nav className="flex flex-wrap gap-2 text-sm">
+          <Link href="/support/admin/crm/leads" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
+            All leads
+          </Link>
+          <Link href="/support/admin/crm/pipelines" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
+            Pipelines
+          </Link>
           <Link href="/support/admin/crm/organizations" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Organizations
           </Link>

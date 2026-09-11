@@ -17,8 +17,9 @@
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { PrismaClient, type CrmPersonRole, type CrmOrgType, type CrmEligibility } from '@prisma/client'
+import { PrismaClient, type CrmPersonRole, type CrmOrgType, type CrmEligibility, type CrmLeadQuality } from '@prisma/client'
 import { normalizeOrgName } from '../src/lib/text/org-name-match'
+import { strictOrgKey } from '../src/lib/crm/normalize'
 import {
   parseCsv, toRows, linkedinSlug, cleanEmail, cleanPersonName, isRealOrgName,
   parseCheckSize, parseDateish, type SourceRow,
@@ -181,6 +182,32 @@ function eligibilityOf(v: string | null): CrmEligibility {
   if (s.startsWith('yes')) return 'FOR_PROFIT_ELIGIBLE'
   if (s.includes('partner') || s.includes('research')) return 'PARTNER_OR_RESEARCH'
   return 'NONPROFIT_ONLY'
+}
+
+/**
+ * The sheets' hand-scored Priority column becomes the lead-quality grade, so
+ * nothing already judged has to be re-judged. Without this every opportunity
+ * imports UNGRADED, and the priority score is then driven almost entirely by
+ * whichever rows happen to carry a deadline — which ranks cloud credits above
+ * the investors you actually have a warm path to.
+ */
+function qualityFrom(raw: string | null): CrmLeadQuality {
+  if (!raw) return 'UNGRADED'
+  const n = parseFloat(raw)
+  if (!Number.isNaN(n)) {
+    if (n >= 85) return 'A'
+    if (n >= 70) return 'B'
+    if (n >= 55) return 'C'
+    return 'D'
+  }
+  // Policy sheet uses High / Medium / Low rather than a number. High there
+  // means "cite-worthy research org", not "top fundraising target", so it
+  // deliberately tops out at B.
+  const s = raw.toLowerCase()
+  if (s.startsWith('high')) return 'B'
+  if (s.startsWith('med')) return 'C'
+  if (s.startsWith('low')) return 'D'
+  return 'UNGRADED'
 }
 
 /** Networking CRM "Segment(s)" strings → CRM roles. Unmapped values become OTHER. */
@@ -414,8 +441,18 @@ async function main() {
   // ── organizations ──
   const companies = await prisma.company.findMany({ select: { id: true, canonicalNameNormalized: true } })
   const companyByKey = new Map(companies.map((c) => [c.canonicalNameNormalized, c.id]))
-  const existingOrgs = await prisma.crmOrganization.findMany({ select: { id: true, canonicalNameNormalized: true } })
+  const existingOrgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } })
   const orgIdByKey = new Map(existingOrgs.map((o) => [o.canonicalNameNormalized, o.id]))
+
+  // Also index by the strict key, so a row the dedupe pass already folded in
+  // ("Owl Ventures, LP" -> "Owl Ventures") resolves to the survivor instead of
+  // being recreated on the next import.
+  const orgIdByStrict = new Map(existingOrgs.map((o) => [strictOrgKey(o.name, normalizeOrgName), o.id]))
+  for (const o of orgs.values()) {
+    if (orgIdByKey.has(o.key)) continue
+    const hit = orgIdByStrict.get(strictOrgKey(o.name, normalizeOrgName))
+    if (hit) orgIdByKey.set(o.key, hit)
+  }
 
   const newOrgs = [...orgs.values()].filter((o) => !orgIdByKey.has(o.key))
   let linkedToCompany = 0
@@ -516,11 +553,27 @@ async function main() {
     const orgId = orgIdByKey.get(o.key)!
     if (oppSeen.has(`${pipe.id}|${orgId}`)) return []
     const stage = pipe.stages.find((s) => s.key === 'identified')!
-    return [{ pipelineId: pipe.id, stageId: stage.id, orgId, title: o.opportunity.title, eligibility: o.opportunity.eligibility, amountUsdMin: o.opportunity.amountMin, amountUsdMax: o.opportunity.amountMax, nextStep: o.opportunity.nextStep }]
+    return [{ pipelineId: pipe.id, stageId: stage.id, orgId, title: o.opportunity.title, eligibility: o.opportunity.eligibility, leadQuality: qualityFrom(o.opportunity.quality), amountUsdMin: o.opportunity.amountMin, amountUsdMax: o.opportunity.amountMax, nextStep: o.opportunity.nextStep }]
   })
   let oppCount = 0
   for (const part of chunk(oppRows)) { const r = await prisma.crmOpportunity.createMany({ data: part, skipDuplicates: true }); oppCount += r.count }
-  console.log(`  opportunities   ${oppCount}`)
+
+  // Existing opportunities are not re-created, but their grade and eligibility
+  // ARE refreshed from the source — otherwise a re-import after fixing a sheet
+  // silently leaves the old judgement in place.
+  let oppGraded = 0
+  for (const o of orgList) {
+    if (!o.opportunity) continue
+    const pipe = pipeByKey.get(o.opportunity.pipeline); if (!pipe) continue
+    const orgId = orgIdByKey.get(o.key)!
+    const grade = qualityFrom(o.opportunity.quality)
+    const r = await prisma.crmOpportunity.updateMany({
+      where: { pipelineId: pipe.id, orgId, outcome: 'OPEN' },
+      data: { leadQuality: grade, eligibility: o.opportunity.eligibility },
+    })
+    oppGraded += r.count
+  }
+  console.log(`  opportunities   ${oppCount} created, ${oppGraded} regraded from source`)
 
   // ── research items ──
   const existingRi = new Set((await prisma.crmResearchItem.findMany({ select: { title: true } })).map((r) => r.title))

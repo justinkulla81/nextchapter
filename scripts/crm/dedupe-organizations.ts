@@ -28,21 +28,13 @@
  */
 import { PrismaClient } from '@prisma/client'
 import { normalizeOrgName } from '../../src/lib/text/org-name-match'
+import { strictOrgKey } from '../../src/lib/crm/normalize'
 
 const prisma = new PrismaClient()
 const COMMIT = process.argv.includes('--commit')
 
-/** Legal forms normalizeOrgName leaves behind. */
-const TRAILING_LEGAL = /\s+(lp|llp|gp|plc|sa|ag|nv|bv|pte|pty|ab|oy|as|kk|srl|spa|sarl|kg|mbh)$/
-
-/** Stricter key: normalizeOrgName, minus a trailing legal form, parenthetical-free. */
-function strictKey(name: string): string {
-  const withoutParen = name.replace(/\s*\([^)]*\)\s*$/, '').trim()
-  let k = normalizeOrgName(withoutParen || name)
-  let prev: string
-  do { prev = k; k = k.replace(TRAILING_LEGAL, '') } while (k !== prev)
-  return k.trim()
-}
+/** Shared with the importer so the two can't disagree — see strictOrgKey. */
+const strictKey = (name: string) => strictOrgKey(name, normalizeOrgName)
 
 async function main() {
   console.log('='.repeat(70))
@@ -70,9 +62,9 @@ async function main() {
   const dupeGroups = [...groups.entries()].filter(([, g]) => g.length > 1)
 
   console.log(`duplicate groups found: ${dupeGroups.length}`)
-  if (dupeGroups.length === 0) { console.log('\nNothing to merge.'); return }
+  if (dupeGroups.length === 0) console.log('  (no organisation duplicates — checking opportunities anyway)')
 
-  let merged = 0, moved = 0
+  let merged = 0, moved = 0, oppsMerged = 0
   for (const [key, group] of dupeGroups) {
     // Survivor: most affiliations, then oldest. Display name: the cleanest
     // (shortest) form in the group, which is the one without the suffix.
@@ -106,7 +98,6 @@ async function main() {
         }
       }
 
-      // Everything else repoints wholesale.
       await prisma.crmOpportunity.updateMany({ where: { orgId: loser.id }, data: { orgId: survivor.id } })
       await prisma.crmDeadline.updateMany({ where: { orgId: loser.id }, data: { orgId: survivor.id } })
       await prisma.crmActivity.updateMany({ where: { orgId: loser.id }, data: { orgId: survivor.id } })
@@ -149,8 +140,42 @@ async function main() {
     }
   }
 
+  // ── collapse duplicate opportunities ──
+  //
+  // Runs whether or not any organisation merged: two rows for the same
+  // (pipeline, organisation) are duplicates however they got there — a merge
+  // that repointed both, or two source sheets naming the same programme. The
+  // row that has moved furthest through the pipeline wins, since that's the
+  // one carrying real work.
+  const oppGroups = await prisma.crmOpportunity.groupBy({
+    by: ['pipelineId', 'orgId'],
+    _count: { _all: true },
+    having: { orgId: { _count: { gt: 1 } } },
+  })
+  console.log(`\nduplicate opportunity groups: ${oppGroups.length}`)
+  for (const g of oppGroups) {
+    if (!g.orgId) continue
+    const rows = await prisma.crmOpportunity.findMany({
+      where: { pipelineId: g.pipelineId, orgId: g.orgId },
+      select: { id: true, title: true, createdAt: true, stage: { select: { sortOrder: true } } },
+    })
+    const sorted = [...rows].sort((a, b) =>
+      b.stage.sortOrder - a.stage.sortOrder || a.createdAt.getTime() - b.createdAt.getTime())
+    const keep = sorted[0]
+    const drop = sorted.slice(1)
+    console.log(`  keep "${keep.title.slice(0, 58)}" · drop ${drop.length}`)
+    if (!COMMIT) { oppsMerged += drop.length; continue }
+    for (const d of drop) {
+      await prisma.crmActivity.updateMany({ where: { opportunityId: d.id }, data: { opportunityId: keep.id } })
+      await prisma.crmTask.updateMany({ where: { opportunityId: d.id }, data: { opportunityId: keep.id } })
+      await prisma.crmDeadline.updateMany({ where: { opportunityId: d.id }, data: { opportunityId: keep.id } })
+      await prisma.crmOpportunity.delete({ where: { id: d.id } })
+      oppsMerged++
+    }
+  }
+
   console.log(`\n${COMMIT ? 'Merged' : 'Would merge'} ${merged} duplicate organizations` +
-    (COMMIT ? `, moved ${moved} affiliations.` : '.'))
+    (COMMIT ? `, moved ${moved} affiliations, collapsed ${oppsMerged} duplicate opportunities.` : '.'))
   if (!COMMIT) console.log('Re-run with --commit to apply.')
 }
 
