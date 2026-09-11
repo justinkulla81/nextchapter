@@ -8434,6 +8434,7 @@ model CrmOrganization {
   canonicalNameNormalized String @unique
 
   orgTypes CrmOrgType[] @default([])
+  goals    CrmGoal[]    @default([])
   website  String?
   hqCity   String?
   hqRegion String?
@@ -8507,6 +8508,9 @@ model CrmPerson {
   normalizedKey String?
 
   roles    CrmPersonRole[] @default([])
+  /// Derived from roles by goalsForRoles(), then editable by hand — a
+  /// manual choice must survive the next re-derivation.
+  goals    CrmGoal[]       @default([])
   warmth   CrmWarmth       @default(UNKNOWN)
   notes    String?         @db.Text
   location String?
@@ -8599,11 +8603,13 @@ model CrmAffiliation {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model CrmPipeline {
-  id        String  @id @default(cuid())
-  key       String  @unique // "fundraising" | "outplacement" | ...
+  id        String   @id @default(cuid())
+  key       String   @unique // "fundraising" | "outplacement" | ...
   label     String
-  sortOrder Int     @default(0)
-  isActive  Boolean @default(true)
+  /// Which outcome this pipeline serves.
+  goal      CrmGoal?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
 
   stages        CrmStage[]
   opportunities CrmOpportunity[]
@@ -9429,4 +9435,33 @@ model CrmPortfolioHolding {
 
   @@unique([investorOrgId, normalizedName])
   @@index([normalizedName])
+}
+
+/// What we are trying to get out of a relationship.
+///
+/// A level above pipelines: a pipeline is a process, a goal is the outcome the
+/// process serves. Goals sit on PEOPLE and ORGANISATIONS directly, not only on
+/// opportunities, so "show me everyone in fundraising" is answerable without
+/// every one of them having an opportunity open.
+enum CrmGoal {
+  FUNDRAISING
+  BD
+  SALES
+  FULL_TIME_RECRUITING
+  ECOSYSTEM_RECRUITING
+  ADVISORY_RECRUITING
+  USER_ACQUISITION
+}
+
+/// How often the Gmail and Calendar sweeps run.
+///
+/// Singleton row. The Vercel cron fires hourly and this decides whether a
+/// sweep is actually due — putting the schedule in the database rather than in
+/// vercel.json means changing it is a setting, not a deploy.
+model CrmSyncSetting {
+  id             String   @id @default("singleton")
+  intervalHours  Int      @default(24)
+  enabled        Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+  updatedByEmail String?
 }

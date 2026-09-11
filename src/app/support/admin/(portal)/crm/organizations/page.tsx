@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import type { Prisma, CrmOrgType } from '@prisma/client'
+import type { Prisma, CrmOrgType, CrmGoal } from '@prisma/client'
+import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
@@ -18,11 +19,13 @@ export default async function CrmOrganizationsPage({
   const sp = await searchParams
   const q = (sp.q ?? '').trim()
   const type = sp.type ?? ''
+  const goal = sp.goal ?? ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
 
   const where: Prisma.CrmOrganizationWhereInput = {
     ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
     ...(type ? { orgTypes: { has: type as CrmOrgType } } : {}),
+    ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
   }
 
   const [total, rows] = await Promise.all([
@@ -33,7 +36,7 @@ export default async function CrmOrganizationsPage({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       select: {
-        id: true, name: true, orgTypes: true, hqRegion: true,
+        id: true, name: true, orgTypes: true, goals: true, hqRegion: true,
         investorProfile: { select: { checkSizeNote: true } },
         _count: { select: { affiliations: true, opportunities: true } },
       },
@@ -42,7 +45,7 @@ export default async function CrmOrganizationsPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, goal, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
@@ -65,10 +68,10 @@ export default async function CrmOrganizationsPage({
         basePath="/support/admin/crm/organizations"
         searchValue={q}
         searchPlaceholder="Search organizations…"
-        filters={[{
-          key: 'type', label: 'Type', value: type,
-          options: [{ value: '', label: 'Any type' }, ...ORG_TYPES.map((t) => ({ value: t, label: ORG_TYPE_LABELS[t] }))],
-        }]}
+        filters={[
+          { key: 'type', label: 'Type', value: type, options: [{ value: '', label: 'Any type' }, ...ORG_TYPES.map((t) => ({ value: t, label: ORG_TYPE_LABELS[t] }))] },
+          { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
+        ]}
       />
 
       <p className="text-sm text-muted-foreground">{total.toLocaleString()} organizations</p>
@@ -85,6 +88,7 @@ export default async function CrmOrganizationsPage({
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="px-3 py-2 font-medium">Organization</th>
                 <th className="px-3 py-2 font-medium">What it is to us</th>
+                <th className="px-3 py-2 font-medium">Goal</th>
                 <th className="px-3 py-2 font-medium">People</th>
                 <th className="px-3 py-2 font-medium">Pipelines</th>
                 <th className="px-3 py-2 font-medium">Check size</th>

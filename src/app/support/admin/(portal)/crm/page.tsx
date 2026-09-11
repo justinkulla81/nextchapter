@@ -11,7 +11,8 @@ import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, qualityClass, sinceLabel,
 } from '@/lib/crm/labels'
-import type { CrmPersonRole, CrmLeadQuality, CrmWarmth } from '@prisma/client'
+import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal } from '@prisma/client'
+import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 
 export const maxDuration = 30
 
@@ -32,6 +33,8 @@ export default async function CrmPeoplePage({
   const quality = sp.quality ?? ''
   const warmth = sp.warmth ?? ''
   const touched = sp.touched ?? ''
+  const goal = sp.goal ?? ''
+  const minScore = parseInt(sp.minScore ?? '', 10)
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const requested = parseInt(sp.per ?? '', 10)
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
@@ -53,6 +56,8 @@ export default async function CrmPeoplePage({
     ...(warmth ? { warmth: warmth as CrmWarmth } : {}),
     ...(touched === 'never' ? { lastTouchedAt: null } : {}),
     ...(touched === 'ever' ? { lastTouchedAt: { not: null } } : {}),
+    ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
+    ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
   }
 
   const [total, rows, needsCompletion] = await Promise.all([
@@ -63,7 +68,7 @@ export default async function CrmPeoplePage({
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
-        id: true, fullName: true, roles: true, leadQuality: true, warmth: true,
+        id: true, fullName: true, roles: true, goals: true, leadQuality: true, warmth: true,
         lastTouchedAt: true, touchCount: true, priorityScore: true, linkedinUrl: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
@@ -75,7 +80,11 @@ export default async function CrmPeoplePage({
   ])
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
-  const baseParams = { q, role, quality, warmth, touched, per: String(perPage) }
+  const baseParams = {
+    q, role, quality, warmth, touched, goal,
+    minScore: Number.isFinite(minScore) ? String(minScore) : '',
+    per: String(perPage),
+  }
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
     for (const [k, v] of Object.entries({ ...baseParams, ...over })) if (v) p.set(k, String(v))
@@ -141,6 +150,10 @@ export default async function CrmPeoplePage({
           { key: 'quality', label: 'Quality', value: quality, options: [{ value: '', label: 'Any quality' }, ...QUALITIES.map((x) => ({ value: x, label: QUALITY_LABELS[x] }))] },
           { key: 'warmth', label: 'Warmth', value: warmth, options: [{ value: '', label: 'Any warmth' }, ...WARMTHS.map((x) => ({ value: x, label: WARMTH_LABELS[x] }))] },
           { key: 'touched', label: 'Contact', value: touched, options: [{ value: '', label: 'Contacted or not' }, { value: 'never', label: 'Never contacted' }, { value: 'ever', label: 'Contacted at least once' }] },
+          { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
+          // Thresholds match the real distribution: people top out around 67
+          // and cluster near 30, so 70+ would match nobody and 30+ everybody.
+          { key: 'minScore', label: 'Priority', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any priority' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
         ]}
       />
 
@@ -185,6 +198,7 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Name</th>
                   <th className="px-3 py-2 font-medium">Organization</th>
                   <th className="px-3 py-2 font-medium">Contact type</th>
+                  <th className="px-3 py-2 font-medium">Goal</th>
                   <th className="px-3 py-2 font-medium">Quality</th>
                   <th className="px-3 py-2 font-medium">Warmth</th>
                   <th className="px-3 py-2 font-medium">Last contacted</th>
@@ -220,6 +234,17 @@ export default async function CrmPeoplePage({
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">Not set</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      {p.goals.length > 0 ? (
+                        <span className="flex flex-wrap gap-1">
+                          {p.goals.map((g) => (
+                            <span key={g} className="rounded-full bg-brand/10 px-2 py-0.5 text-xs text-brand">{GOAL_LABELS[g]}</span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
                     <td className="px-3 py-2">

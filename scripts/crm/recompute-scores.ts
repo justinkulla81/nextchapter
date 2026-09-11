@@ -65,15 +65,37 @@ async function main() {
     return { id: o.id, title: o.title, score, override: o.priorityOverride }
   })
 
+  // ── organizations: the best score among their open opportunities ──
+  // Computed before people, because a person inherits from it.
+  const byOrg = new Map<string, number>()
+  for (const o of await prisma.crmOpportunity.findMany({ where: { outcome: 'OPEN', orgId: { not: null } }, select: { id: true, orgId: true } })) {
+    const s = oppUpdates.find((u) => u.id === o.id)?.score ?? 0
+    byOrg.set(o.orgId!, Math.max(byOrg.get(o.orgId!) ?? 0, s))
+  }
+
   // ── people ──
+  //
+  // A person's own attributes barely discriminate: with no deadline, no stage
+  // and mostly ungraded quality, every person landed within a few points of
+  // every other (max 30.5, average 30.0, 3,477 of 3,688 at 30+). The signal
+  // that matters is WHERE they work — someone at a 55-point fundraising target
+  // is worth more of your morning than an identical contact at a company we
+  // have no opportunity with.
+  //
+  // So a person takes the higher of their own score and their best
+  // organisation's, discounted slightly: the organisation is the reason they
+  // rank, and they should still sit below the opportunity itself.
+  const ORG_INHERITANCE = 0.9
+
   const people = await prisma.crmPerson.findMany({
     select: {
       id: true, fullName: true, leadQuality: true, connectedAt: true,
       lastTouchedAt: true, createdAt: true, priorityOverride: true,
+      affiliations: { select: { orgId: true } },
     },
   })
   const personUpdates = people.map((p) => {
-    const { score } = computePriority({
+    const { score: own } = computePriority({
       quality: p.leadQuality,
       eligibility: 'NOT_APPLICABLE',
       warmPath: warmPathFromContacts([{ connectedAt: p.connectedAt }]),
@@ -84,15 +106,12 @@ async function main() {
       createdAt: p.createdAt,
       now: NOW,
     })
-    return { id: p.id, score }
+    const inherited = Math.max(
+      0,
+      ...p.affiliations.map((a) => (byOrg.get(a.orgId) ?? 0) * ORG_INHERITANCE)
+    )
+    return { id: p.id, score: Math.round(Math.max(own, inherited) * 10) / 10 }
   })
-
-  // ── organizations: the best score among their open opportunities ──
-  const byOrg = new Map<string, number>()
-  for (const o of await prisma.crmOpportunity.findMany({ where: { outcome: 'OPEN', orgId: { not: null } }, select: { id: true, orgId: true } })) {
-    const s = oppUpdates.find((u) => u.id === o.id)?.score ?? 0
-    byOrg.set(o.orgId!, Math.max(byOrg.get(o.orgId!) ?? 0, s))
-  }
 
   console.log(`\nscored ${oppUpdates.length} opportunities, ${personUpdates.length} people, ${byOrg.size} organizations`)
   console.log('\nTOP 20 OPPORTUNITIES')

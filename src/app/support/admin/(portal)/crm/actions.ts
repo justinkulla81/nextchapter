@@ -907,3 +907,26 @@ export async function graduateOrganization(orgId: string): Promise<GraduationRes
   revalidatePath(`${CRM}/organizations/${orgId}`)
   return { ok: true, message: `${org.name} is now an outplacement employer.`, href: '/support/admin/outplacement-contracts' }
 }
+
+/** Sets how often the sweeps run, and whether they run at all. */
+export async function updateSyncSetting(formData: FormData) {
+  const admin = await requireAdmin()
+  const hours = parseInt(String(formData.get('intervalHours') ?? '24'), 10)
+  const allowed = [1, 24, 168]
+  await prisma.crmSyncSetting.upsert({
+    where: { id: 'singleton' },
+    create: {
+      id: 'singleton',
+      intervalHours: allowed.includes(hours) ? hours : 24,
+      enabled: formData.get('enabled') === 'on',
+      updatedByEmail: admin.email ?? null,
+    },
+    update: {
+      intervalHours: allowed.includes(hours) ? hours : 24,
+      enabled: formData.get('enabled') === 'on',
+      updatedByEmail: admin.email ?? null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_sync_setting_changed', { intervalHours: hours })
+  revalidatePath(`${CRM}/sync`)
+}

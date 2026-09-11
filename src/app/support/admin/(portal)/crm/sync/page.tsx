@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { acceptSuggestedContact, ignoreSuggestedContact } from '../actions'
+import { acceptSuggestedContact, ignoreSuggestedContact, updateSyncSetting } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -10,7 +10,7 @@ export const maxDuration = 30
 export default async function CrmSyncPage() {
   await requireAdmin()
 
-  const [runs, pending, addedCount, ignoredCount, autoLogged, withTouch, totalPeople] = await Promise.all([
+  const [runs, pending, addedCount, ignoredCount, autoLogged, withTouch, totalPeople, setting] = await Promise.all([
     prisma.crmSyncRun.findMany({ orderBy: { startedAt: 'desc' }, take: 8 }),
     prisma.crmSuggestedContact.findMany({
       where: { status: 'PENDING' },
@@ -22,7 +22,10 @@ export default async function CrmSyncPage() {
     prisma.crmActivity.count({ where: { isAutoLogged: true } }),
     prisma.crmPerson.count({ where: { lastTouchedAt: { not: null } } }),
     prisma.crmPerson.count(),
+    prisma.crmSyncSetting.findUnique({ where: { id: 'singleton' } }),
   ])
+  const intervalHours = setting?.intervalHours ?? 24
+  const enabled = setting?.enabled ?? true
 
   const lastGmail = runs.find((r) => r.source === 'gmail')
   const lastCalendar = runs.find((r) => r.source === 'calendar')
@@ -55,6 +58,38 @@ export default async function CrmSyncPage() {
         <Stat label="People with a real last-contact" value={`${withTouch.toLocaleString()} / ${totalPeople.toLocaleString()}`} />
         <Stat label="Contacts added from mail" value={addedCount.toLocaleString()} />
         <Stat label="Dismissed" value={ignoredCount.toLocaleString()} />
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-lg font-semibold">How often it runs</h2>
+        <p className="mb-2 text-sm text-muted-foreground">
+          The job wakes hourly and sweeps only when one is due, so changing this takes effect immediately
+          rather than needing a deploy. The look-back window widens with the interval, so nothing falls
+          between two sweeps.
+        </p>
+        <form action={updateSyncSetting} className="flex flex-wrap items-end gap-3 rounded-lg border border-border p-4">
+          {/* Three discrete options -> adjacent radios, per design-principles.md. */}
+          <fieldset>
+            <legend className="mb-1 text-sm font-medium">Interval</legend>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { h: 1, label: 'Hourly' },
+                { h: 24, label: 'Daily' },
+                { h: 168, label: 'Weekly' },
+              ].map((o) => (
+                <label key={o.h} className="flex items-center gap-2 text-sm">
+                  <input type="radio" name="intervalHours" value={o.h} defaultChecked={intervalHours === o.h} />
+                  {o.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="enabled" defaultChecked={enabled} />
+            Sweeping is on
+          </label>
+          <SubmitButton size="sm" pendingLabel="Saving…">Save schedule</SubmitButton>
+        </form>
       </section>
 
       <section>
