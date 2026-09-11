@@ -106,3 +106,96 @@ export function extractAlertUrls(html: string): string[] {
 
   return Array.from(urls)
 }
+
+// ── CRM sweep helpers (Phase 7) ──────────────────────────────────────────────
+
+export interface GmailHeaderMessage {
+  id: string
+  threadId: string
+  internalDate: Date
+  from: string | null
+  to: string[]
+  cc: string[]
+  subject: string | null
+  snippet: string | null
+}
+
+/** Message ids in a rolling window, newest first. */
+export async function listMessagesSince(
+  accessToken: string,
+  since: Date,
+  max = 400
+): Promise<string[]> {
+  const ids: string[] = []
+  let pageToken: string | undefined
+  // Gmail's `after:` takes a unix second.
+  const q = `after:${Math.floor(since.getTime() / 1000)} -in:spam -in:trash`
+
+  while (ids.length < max) {
+    const url = new URL('https://gmail.googleapis.com/gmail/v1/users/me/messages')
+    url.searchParams.set('q', q)
+    url.searchParams.set('maxResults', String(Math.min(100, max - ids.length)))
+    if (pageToken) url.searchParams.set('pageToken', pageToken)
+
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (!res.ok) throw new Error(`Gmail list failed: ${res.status}`)
+    const data = (await res.json()) as { messages?: { id: string }[]; nextPageToken?: string }
+    for (const m of data.messages ?? []) ids.push(m.id)
+    if (!data.nextPageToken) break
+    pageToken = data.nextPageToken
+  }
+  return ids
+}
+
+/**
+ * Headers and Gmail's own snippet for one message.
+ *
+ * Requests format=metadata with an explicit header allow-list, so the message
+ * BODY is never fetched — the snippet Gmail returns alongside metadata is the
+ * only content that crosses the wire, and it is the ~200 characters the CRM
+ * stores. Asking for `full` and then discarding the body would put whole
+ * message bodies in memory and in transit for no benefit.
+ */
+export async function getMessageHeaders(
+  accessToken: string,
+  id: string
+): Promise<GmailHeaderMessage | null> {
+  const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}`)
+  url.searchParams.set('format', 'metadata')
+  for (const h of ['From', 'To', 'Cc', 'Subject', 'Date']) url.searchParams.append('metadataHeaders', h)
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  if (!res.ok) return null
+  const data = (await res.json()) as {
+    id: string
+    threadId: string
+    internalDate?: string
+    snippet?: string
+    payload?: { headers?: { name: string; value: string }[] }
+  }
+
+  const header = (name: string) =>
+    data.payload?.headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? null
+  const split = (v: string | null) => (v ? v.split(',').map((s) => s.trim()).filter(Boolean) : [])
+
+  return {
+    id: data.id,
+    threadId: data.threadId,
+    internalDate: new Date(Number(data.internalDate ?? Date.now())),
+    from: header('From'),
+    to: split(header('To')),
+    cc: split(header('Cc')),
+    subject: header('Subject'),
+    snippet: data.snippet ?? null,
+  }
+}
+
+/** The connected mailbox's own address, for deciding direction. */
+export async function getProfileEmail(accessToken: string): Promise<string | null> {
+  const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as { emailAddress?: string }
+  return data.emailAddress?.toLowerCase() ?? null
+}

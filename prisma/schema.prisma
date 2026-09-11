@@ -9018,3 +9018,59 @@ model CrmResearchProfile {
 
   updatedAt DateTime @updatedAt
 }
+
+/// Whether a frequent correspondent has been turned into a CRM record.
+enum CrmSuggestedContactStatus {
+  PENDING
+  ADDED
+  IGNORED
+}
+
+/// A person who emails you often but isn't in the CRM yet.
+///
+/// The sweep reads headers across a rolling window rather than querying only
+/// known addresses, so it sees correspondents you never recorded. Those are
+/// proposed here rather than created: an address that appears in your inbox is
+/// evidence of contact, not evidence of a business relationship, and silently
+/// creating records from mail traffic would fill the CRM with airlines and
+/// password resets.
+///
+/// Addresses belonging to NextChapter candidates, coaches and recruiters are
+/// never suggested — those are product relationships with their own systems of
+/// record, and a large share of this mailbox is candidate correspondence.
+model CrmSuggestedContact {
+  id              String                    @id @default(cuid())
+  email           String                    @unique
+  displayName     String?
+  messageCount    Int                       @default(1)
+  firstSeenAt     DateTime                  @default(now())
+  lastSeenAt      DateTime                  @default(now())
+  lastSubject     String?
+  status          CrmSuggestedContactStatus @default(PENDING)
+  /// Set when accepted, so the suggestion links to what it became.
+  createdPersonId String?
+  resolvedAt      DateTime?
+  resolvedByEmail String?
+
+  @@index([status, messageCount(sort: Desc)])
+}
+
+/// One record per sweep, so the sync is debuggable without reading logs.
+///
+/// Without this, "why didn't my email show up" has no answer — you cannot tell
+/// a sweep that ran and matched nothing from one that never ran at all.
+model CrmSyncRun {
+  id                String    @id @default(cuid())
+  source            String // 'gmail' | 'calendar'
+  startedAt         DateTime  @default(now())
+  finishedAt        DateTime?
+  windowFrom        DateTime
+  scanned           Int       @default(0)
+  matched           Int       @default(0)
+  activitiesCreated Int       @default(0)
+  suggested         Int       @default(0)
+  skippedInternal   Int       @default(0)
+  error             String?   @db.Text
+
+  @@index([source, startedAt(sort: Desc)])
+}

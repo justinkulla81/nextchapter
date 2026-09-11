@@ -101,6 +101,9 @@ export default async function CrmPeoplePage({
           <Link href="/support/admin/crm/research" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Research
           </Link>
+          <Link href="/support/admin/crm/sync" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
+            Activity sync
+          </Link>
           <Link href="/support/admin/crm/needs-completion" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Needs completion{needsCompletion > 0 && <span className="ml-1.5 rounded-full bg-orange/20 px-1.5 text-xs font-semibold text-orange">{needsCompletion}</span>}
           </Link>

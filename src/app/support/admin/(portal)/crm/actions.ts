@@ -708,3 +708,45 @@ export async function updateResearchItem(itemId: string, formData: FormData) {
   captureServerEvent(admin.email ?? 'admin', 'crm_research_item_edited', { itemId, useInPitch })
   revalidatePath(`${CRM}/research`)
 }
+
+// ── Sync review (Phase 7) ────────────────────────────────────────────────────
+
+/** Turns a frequent correspondent into a real CRM person. */
+export async function acceptSuggestedContact(suggestionId: string) {
+  const admin = await requireAdmin()
+  const s = await prisma.crmSuggestedContact.findUniqueOrThrow({ where: { id: suggestionId } })
+  if (s.status !== 'PENDING') return
+
+  const existing = await prisma.crmPerson.findFirst({ where: { email: s.email } })
+  const person = existing ?? await prisma.crmPerson.create({
+    data: {
+      fullName: s.displayName ?? s.email.split('@')[0],
+      firstName: s.displayName?.split(' ')[0] ?? null,
+      lastName: s.displayName?.split(' ').slice(1).join(' ') || null,
+      email: s.email,
+      emails: [s.email],
+      needsCompletion: true,
+      roles: [],
+    },
+  })
+
+  await prisma.crmSuggestedContact.update({
+    where: { id: suggestionId },
+    data: { status: 'ADDED', createdPersonId: person.id, resolvedAt: new Date(), resolvedByEmail: admin.email ?? null },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_suggested_contact_accepted', {
+    suggestionId, personId: person.id, messageCount: s.messageCount,
+  })
+  revalidatePath(`${CRM}/sync`)
+}
+
+/** Dismisses a correspondent — they stay dismissed on later sweeps. */
+export async function ignoreSuggestedContact(suggestionId: string) {
+  const admin = await requireAdmin()
+  await prisma.crmSuggestedContact.update({
+    where: { id: suggestionId },
+    data: { status: 'IGNORED', resolvedAt: new Date(), resolvedByEmail: admin.email ?? null },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_suggested_contact_ignored', { suggestionId })
+  revalidatePath(`${CRM}/sync`)
+}
