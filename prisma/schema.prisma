@@ -8557,8 +8557,9 @@ model CrmPerson {
   researchItems         CrmResearchItem[]
   sourceRecords         CrmSourceRecord[]
   segmentMembers        CrmSegmentMember[]
-  introPathsAsTarget    CrmIntroPath[]     @relation("CrmIntroPathTarget")
-  introPathsAsConnector CrmIntroPath[]     @relation("CrmIntroPathConnector")
+  broadcastRecipients   CrmBroadcastRecipient[]
+  introPathsAsTarget    CrmIntroPath[]          @relation("CrmIntroPathTarget")
+  introPathsAsConnector CrmIntroPath[]          @relation("CrmIntroPathConnector")
 
   @@index([normalizedKey])
   @@index([priorityScore(sort: Desc)])
@@ -8913,7 +8914,8 @@ model CrmSegment {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  members CrmSegmentMember[]
+  members    CrmSegmentMember[]
+  broadcasts CrmBroadcast[]
 }
 
 // Explicit membership for PINNED segments, and the per-send exclusions that
@@ -9073,4 +9075,49 @@ model CrmSyncRun {
   error             String?   @db.Text
 
   @@index([source, startedAt(sort: Desc)])
+}
+
+/// One broadcast to a CRM segment.
+///
+/// Separate from DigestSend, which is per-audience product mail with its own
+/// cadence and unsubscribe semantics. A CRM update is a one-off to a list you
+/// curated, and conflating the two would make "has this person heard from us"
+/// unanswerable for either.
+model CrmBroadcast {
+  id        String      @id @default(cuid())
+  segmentId String?
+  segment   CrmSegment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+
+  subject String
+  body    String @db.Text
+
+  /// Snapshot of who it actually went to, resolved at send time. A dynamic
+  /// segment re-evaluates, so the segment alone cannot answer "who got this".
+  recipientCount Int       @default(0)
+  sentAt         DateTime?
+  sentByEmail    String?
+  /// Set when a send fails part-way; the rest is recorded in the recipients.
+  error          String?   @db.Text
+
+  createdAt DateTime @default(now())
+
+  recipients CrmBroadcastRecipient[]
+
+  @@index([sentAt(sort: Desc)])
+}
+
+/// Per-recipient outcome, so a partial failure is visible rather than implied.
+model CrmBroadcastRecipient {
+  id          String       @id @default(cuid())
+  broadcastId String
+  broadcast   CrmBroadcast @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  personId    String
+  person      CrmPerson    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  email       String
+  status      String // 'sent' | 'failed' | 'skipped'
+  error       String?
+  sentAt      DateTime?
+
+  @@unique([broadcastId, personId])
+  @@index([broadcastId])
 }
