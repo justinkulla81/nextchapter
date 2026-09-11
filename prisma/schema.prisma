@@ -8469,6 +8469,7 @@ model CrmOrganization {
   deadlines           CrmDeadline[]
   researchItems       CrmResearchItem[]
   introPathsAsTarget  CrmIntroPath[]          @relation("CrmIntroPathTargetOrg")
+  portfolioHoldings   CrmPortfolioHolding[]
   sourceRecords       CrmSourceRecord[]
   investorProfile     CrmInvestorProfile?
   outplacementProfile CrmOutplacementProfile?
@@ -8558,6 +8559,7 @@ model CrmPerson {
   sourceRecords         CrmSourceRecord[]
   segmentMembers        CrmSegmentMember[]
   broadcastRecipients   CrmBroadcastRecipient[]
+  productFeedback       ProductFeedback[]
   introPathsAsTarget    CrmIntroPath[]          @relation("CrmIntroPathTarget")
   introPathsAsConnector CrmIntroPath[]          @relation("CrmIntroPathConnector")
 
@@ -9141,4 +9143,290 @@ model CrmCaptureToken {
   revokedAt      DateTime?
 
   @@index([revokedAt])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// NEXTCHAPTER VISION — product management
+//
+// A parallel module to the Ecosystem CRM, sharing its people and almost
+// nothing else. The distinction is load-bearing: the CRM's unit is a
+// RELATIONSHIP, which moves through stages and eventually closes. Vision's
+// unit is a CLAIM ABOUT THE PRODUCT — "onboarding is confusing" is not a stage
+// in a funnel and will never close. Forcing one into the other's shape breaks
+// both, which is why these tables are separate rather than more CrmItem kinds.
+// ═════════════════════════════════════════════════════════════════════════════
+
+/// What a ProductItem is. One table with a kind rather than eight tables,
+/// because these convert into one another constantly — a question becomes a
+/// gap, a gap becomes a feature, a feature serves a goal. Splitting them means
+/// migrating a row every time you learn something.
+enum ProductItemKind {
+  GOAL
+  FEATURE
+  IDEA
+  QUESTION
+  GAP
+  PRINCIPLE
+  TODO
+  BLOCKER
+}
+
+/// SPARK exists so brainstorming and triage can want opposite things.
+///
+/// A backlog wants every row judged; a brainstorm dies the moment each idea
+/// must be graded before you write the next one. A spark has no grade, no
+/// owner and no estimate, lives in its own view, and never leaves that state
+/// by accident — an unjudged idea sitting in a prioritised list is noise that
+/// makes the whole list less trusted.
+enum ProductItemStatus {
+  SPARK
+  NEW
+  TRIAGED
+  PLANNED
+  IN_PROGRESS
+  SHIPPED
+  WONT_DO
+}
+
+enum ProductRoadmapBucket {
+  NOW
+  NEXT
+  LATER
+  UNSCHEDULED
+}
+
+enum ProductEffort {
+  S
+  M
+  L
+  XL
+  UNKNOWN
+}
+
+enum ProductFeedbackSource {
+  TESTER
+  CANDIDATE
+  COACH
+  RECRUITER
+  EMPLOYER
+  INVESTOR
+  ADVISOR
+  SELF
+  OTHER
+}
+
+/// Whether the person who said it has been told what happened.
+///
+/// Deliberately separate from the ITEM's status: an item can ship while the
+/// three people who asked for it still have no idea. A tester who hears back
+/// gives you more feedback; one who never does stops.
+enum ProductFeedbackStatus {
+  NEW
+  TRIAGED
+  ADDRESSED
+  ARCHIVED
+}
+
+enum ProductCompetitorOverlap {
+  HAS
+  PARTIAL
+  NONE
+  UNKNOWN
+}
+
+/// How a fund's portfolio company relates to NextChapter.
+///
+/// Never a plain "conflict" flag, because the two outcomes pull opposite ways:
+/// a DIRECT holding usually means they cannot invest, while an ADJACENT one
+/// means they are already educated on the market — a shorter pitch, not a
+/// closed door.
+enum CrmPortfolioOverlap {
+  DIRECT
+  ADJACENT
+  UNRELATED
+  UNREVIEWED
+}
+
+/// The master product vision, one row per version.
+///
+/// Versioned because "what did we believe in September" is a question you will
+/// ask during a fundraise, and a file that was overwritten cannot answer it.
+/// Exactly one row is current — the failure mode with a vision document is
+/// never that it is missing, it is that three versions exist and nobody knows
+/// which is live.
+model ProductVisionDoc {
+  id             String   @id @default(cuid())
+  title          String
+  bodyMarkdown   String   @db.Text
+  version        Int
+  isCurrent      Boolean  @default(false)
+  changeNote     String?  @db.Text
+  createdAt      DateTime @default(now())
+  createdByEmail String?
+
+  @@unique([version])
+  @@index([isCurrent])
+}
+
+model ProductItem {
+  id       String               @id @default(cuid())
+  kind     ProductItemKind
+  title    String
+  body     String?              @db.Text
+  status   ProductItemStatus    @default(SPARK)
+  bucket   ProductRoadmapBucket @default(UNSCHEDULED)
+  effort   ProductEffort        @default(UNKNOWN)
+  /// 1 (highest) to 5. Nullable so a spark need not carry one.
+  priority Int?
+
+  /// What makes this expensive if usage grows — LLM calls, a paid API,
+  /// storage. A roadmap that doesn't record which items carry per-use cost
+  /// hides that until an invoice arrives.
+  costDriver String? @db.Text
+
+  /// Self-references. A goal has children; a blocker blocks several things,
+  /// which is a link rather than a label.
+  parentId String?
+  parent   ProductItem?  @relation("ProductItemParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children ProductItem[] @relation("ProductItemParent")
+
+  blockedById String?
+  blockedBy   ProductItem?  @relation("ProductItemBlocker", fields: [blockedById], references: [id], onDelete: SetNull)
+  blocking    ProductItem[] @relation("ProductItemBlocker")
+
+  /// The section of the current vision this serves. A vision disconnected from
+  /// what is being built goes stale without anyone noticing, because nothing
+  /// breaks when it does.
+  visionSection String?
+
+  shippedAt    DateTime?
+  wontDoReason String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  feedbackLinks   ProductFeedbackLink[]
+  competitorCells ProductCompetitorFeature[]
+
+  @@index([status, bucket])
+  @@index([kind])
+  @@index([priority])
+}
+
+/// One thing one person said, verbatim.
+///
+/// Append-only: never edited, never merged, because it is evidence.
+/// Summarising in place destroys what makes it useful, and keeping only your
+/// summary means re-reading eight notes to notice they are one complaint.
+model ProductFeedback {
+  id          String                @id @default(cuid())
+  source      ProductFeedbackSource @default(TESTER)
+  /// Who said it. Links to the Ecosystem where they have a record; the free
+  /// text label covers anyone who does not.
+  personId    String?
+  person      CrmPerson?            @relation(fields: [personId], references: [id], onDelete: SetNull)
+  personLabel String?
+
+  rawText String  @db.Text
+  channel String? // 'call' | 'email' | 'in person' | 'survey' | ...
+
+  /// When they SAID it, distinct from when you logged it. Those differ, and
+  /// the gap is worth seeing.
+  receivedAt DateTime
+  createdAt  DateTime @default(now())
+
+  status       ProductFeedbackStatus @default(NEW)
+  /// Set when the person has been told what happened to what they raised.
+  respondedAt  DateTime?
+  responseNote String?               @db.Text
+
+  links ProductFeedbackLink[]
+
+  @@index([status, receivedAt(sort: Desc)])
+  @@index([personId])
+}
+
+/// Many feedback to one item. Eight testers complaining about onboarding
+/// become ONE item carrying eight pieces of attributed evidence.
+model ProductFeedbackLink {
+  id         String          @id @default(cuid())
+  feedbackId String
+  feedback   ProductFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       ProductItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@unique([feedbackId, itemId])
+  @@index([itemId])
+}
+
+model ProductCompetitor {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  url         String?
+  positioning String? @db.Text
+  segment     String?
+
+  /// Firmographics carry a review date and a source on purpose: they go stale
+  /// silently, and an undated number in a deck is worse than no number.
+  revenueNote      String?
+  fundingRaisedUsd Int?
+  headcount        Int?
+  userCountNote    String?
+  sourceUrl        String?
+  lastReviewedAt   DateTime?
+
+  /// When the competitor is also an organisation we track.
+  crmOrgId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cells ProductCompetitorFeature[]
+
+  @@index([lastReviewedAt])
+}
+
+/// One cell of the matrix: does this competitor have this feature.
+///
+/// The columns are the SAME ProductItem rows you plan against, not a parallel
+/// feature list — which is what makes gaps and moats a query rather than a
+/// judgement you re-make every quarter.
+model ProductCompetitorFeature {
+  id             String                   @id @default(cuid())
+  competitorId   String
+  competitor     ProductCompetitor        @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  itemId         String
+  item           ProductItem              @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  overlap        ProductCompetitorOverlap @default(UNKNOWN)
+  note           String?
+  evidenceUrl    String?
+  lastReviewedAt DateTime?
+
+  @@unique([competitorId, itemId])
+  @@index([itemId])
+}
+
+/// A company an investor has backed.
+///
+/// Recorded by hand or pasted in bulk rather than fetched: there is no free,
+/// reliable portfolio API, a fund's own site is the least likely place to list
+/// an investment going badly, and a paid data subscription should be a
+/// deliberate purchase rather than something that appears in a build. The
+/// CHECK — matching holdings against the competitor list — is automatic,
+/// because that part is a join over data you already own.
+model CrmPortfolioHolding {
+  id             String              @id @default(cuid())
+  investorOrgId  String
+  investorOrg    CrmOrganization     @relation(fields: [investorOrgId], references: [id], onDelete: Cascade)
+  companyName    String
+  /// normalizeOrgName output, so matching against competitors is exact.
+  normalizedName String
+  overlap        CrmPortfolioOverlap @default(UNREVIEWED)
+  note           String?
+  sourceUrl      String?
+  notedAt        DateTime            @default(now())
+
+  @@unique([investorOrgId, normalizedName])
+  @@index([normalizedName])
 }
