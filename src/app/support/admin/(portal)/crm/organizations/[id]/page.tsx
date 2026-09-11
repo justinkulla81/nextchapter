@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -16,6 +17,10 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
       opportunities: { include: { pipeline: true, stage: true } },
       deadlines: { orderBy: [{ dueAt: 'asc' }] },
       researchItems: true,
+      introPathsAsTarget: {
+        include: { connectorPerson: { select: { id: true, fullName: true } } },
+        orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
+      },
       investorProfile: true,
       outplacementProfile: true,
       partnerProfile: true,
@@ -69,6 +74,27 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </dl>
         </section>
       )}
+
+      {org.affiliations.length === 0 && (
+        <p className="rounded-lg border border-orange/40 bg-orange/5 p-3 text-sm">
+          Nobody here is in your network. A route in is the whole job for this one — add one below.
+        </p>
+      )}
+
+      <CrmIntroPaths
+        targetOrgId={org.id}
+        targetName={org.name}
+        paths={org.introPathsAsTarget.map((p) => ({
+          id: p.id,
+          connectorPersonId: p.connectorPersonId,
+          connectorName: p.connectorName,
+          connectorRecordName: p.connectorPerson?.fullName ?? null,
+          relationshipNote: p.relationshipNote,
+          strength: p.strength,
+          status: p.status,
+          askedAt: p.askedAt ? p.askedAt.toISOString() : null,
+        }))}
+      />
 
       <section>
         <h2 className="mb-2 text-lg font-semibold">People ({org.affiliations.length})</h2>

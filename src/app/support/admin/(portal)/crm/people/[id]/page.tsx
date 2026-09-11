@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
+import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
+import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITY_LABELS, WARMTH_LABELS,
@@ -23,7 +25,10 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       activities: { orderBy: { occurredAt: 'desc' }, take: 50 },
       sourceRecords: { orderBy: { importedAt: 'asc' } },
       researchItems: true,
-      introPathsAsTarget: { include: { connectorPerson: { select: { id: true, fullName: true } } } },
+      introPathsAsTarget: {
+        include: { connectorPerson: { select: { id: true, fullName: true } } },
+        orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
+      },
       opportunities: { include: { pipeline: true, stage: true } },
     },
   })
@@ -35,6 +40,10 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   }
   const saveRoles = updatePersonRoles.bind(null, id)
   const sources = [...new Set(person.sourceRecords.map((s) => s.sourceFile))]
+  // Surfaced as a banner rather than buried in a list: walking into a meeting
+  // unaware that your counterpart's own research undercuts your premise is the
+  // specific failure this field exists to prevent.
+  const contradicting = person.researchItems.filter((r) => r.stance === 'CONTRADICTS')
 
   return (
     <div className="space-y-6">
@@ -121,6 +130,64 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               <li key={o.id} className="flex items-center justify-between gap-2 p-3 text-sm">
                 <span>{o.title}</span>
                 <span className="text-xs text-muted-foreground">{o.pipeline.label} · {o.stage.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {contradicting.length > 0 && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+          <p className="text-sm font-medium">Before you meet them</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {contradicting.length === 1 ? 'A piece' : `${contradicting.length} pieces`} of their research{' '}
+            {contradicting.length === 1 ? 'cuts' : 'cut'} against the premise NextChapter is built on. Worth
+            reading before the conversation, not during it.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {contradicting.map((r) => (
+              <li key={r.id} className="text-sm">
+                <span className="font-medium">{r.title}</span>
+                {r.keyClaim && <span className="block text-xs text-muted-foreground">{r.keyClaim}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <CrmIntroPaths
+        targetPersonId={person.id}
+        targetName={person.fullName}
+        paths={person.introPathsAsTarget.map((p) => ({
+          id: p.id,
+          connectorPersonId: p.connectorPersonId,
+          connectorName: p.connectorName,
+          connectorRecordName: p.connectorPerson?.fullName ?? null,
+          relationshipNote: p.relationshipNote,
+          strength: p.strength,
+          status: p.status,
+          askedAt: p.askedAt ? p.askedAt.toISOString() : null,
+        }))}
+      />
+
+      {person.researchItems.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold">Their research</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.researchItems.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 p-3 text-sm">
+                <span className="min-w-0">
+                  {r.url ? (
+                    <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.title}</a>
+                  ) : <span className="font-medium">{r.title}</span>}
+                  {r.keyClaim && <span className="mt-0.5 block text-xs text-muted-foreground">{r.keyClaim}</span>}
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STANCE_CLASS[r.stance]}`}>
+                    {STANCE_LABEL[r.stance]}
+                  </span>
+                  <CrmStanceSelect itemId={r.id} stance={r.stance} title={r.title} />
+                </span>
               </li>
             ))}
           </ul>

@@ -13,7 +13,7 @@
  * priorityOverride is never touched: when set, it wins at read time.
  */
 import { PrismaClient } from '@prisma/client'
-import { computePriority, warmPathFromContacts } from '../../src/lib/crm/scoring'
+import { computePriority, bestWarmPath, warmPathFromContacts } from '../../src/lib/crm/scoring'
 
 const prisma = new PrismaClient()
 const COMMIT = process.argv.includes('--commit')
@@ -38,6 +38,7 @@ async function main() {
         select: {
           deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1, select: { dueAt: true } },
           affiliations: { select: { person: { select: { connectedAt: true, lastTouchedAt: true } } } },
+          introPathsAsTarget: { select: { strength: true, status: true } },
         },
       },
       activities: { orderBy: { occurredAt: 'desc' }, take: 1, select: { occurredAt: true } },
@@ -53,7 +54,7 @@ async function main() {
     const { score } = computePriority({
       quality: o.leadQuality,
       eligibility: o.eligibility,
-      warmPath: warmPathFromContacts(contacts),
+      warmPath: bestWarmPath(contacts, o.org?.introPathsAsTarget ?? []),
       nextDueAt: o.org?.deadlines[0]?.dueAt ?? o.nextStepDueAt ?? null,
       committedFollowUpAt: o.committedFollowUpAt,
       stageProgress: o.stage.sortOrder / (stageMax.get(o.pipelineId) ?? 1),

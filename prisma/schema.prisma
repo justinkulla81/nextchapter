@@ -8468,6 +8468,7 @@ model CrmOrganization {
   tasks               CrmTask[]
   deadlines           CrmDeadline[]
   researchItems       CrmResearchItem[]
+  introPathsAsTarget  CrmIntroPath[]          @relation("CrmIntroPathTargetOrg")
   sourceRecords       CrmSourceRecord[]
   investorProfile     CrmInvestorProfile?
   outplacementProfile CrmOutplacementProfile?
@@ -8835,9 +8836,21 @@ model CrmSourceRecord {
 // source sheets can't express — they carry a single free-text Warm Path column
 // holding one guess that can't be searched, updated or marked as asked.
 model CrmIntroPath {
-  id             String    @id @default(cuid())
-  targetPersonId String
-  targetPerson   CrmPerson @relation("CrmIntroPathTarget", fields: [targetPersonId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+
+  // The target is a person OR an organisation — exactly one, enforced in
+  // application code since Prisma has no check constraint.
+  //
+  // Both are needed, and the seed data proved it: every routable warm-path
+  // note in the funding sheet is organisation-level ("route via Rick Robinson
+  // to reach Primetime Partners"), because a firm you have no contact at is
+  // exactly the firm that needs a route. A person-only target could not
+  // express a single one of them.
+  targetPersonId String?
+  targetPerson   CrmPerson? @relation("CrmIntroPathTarget", fields: [targetPersonId], references: [id], onDelete: Cascade)
+
+  targetOrgId String?
+  targetOrg   CrmOrganization? @relation("CrmIntroPathTargetOrg", fields: [targetOrgId], references: [id], onDelete: Cascade)
 
   // Either a real searchable person in the CRM...
   connectorPersonId String?
@@ -8855,6 +8868,7 @@ model CrmIntroPath {
   updatedAt DateTime @updatedAt
 
   @@index([targetPersonId])
+  @@index([targetOrgId])
   @@index([connectorPersonId])
 }
 

@@ -95,3 +95,31 @@ describe('warmPathFromContacts', () => {
     expect(warmPathFromContacts([])).toBe(0.2)
   })
 })
+
+describe('warmPathFromIntroPaths', () => {
+  it('takes the best live route rather than averaging them', async () => {
+    const { warmPathFromIntroPaths } = await import('@/lib/crm/scoring')
+    // One strong route should not be dragged down by three speculative ones.
+    expect(warmPathFromIntroPaths([
+      { strength: 'STRONG', status: 'IDENTIFIED' },
+      { strength: 'UNVERIFIED', status: 'IDENTIFIED' },
+      { strength: 'WEAK', status: 'IDENTIFIED' },
+    ])).toBe(1)
+  })
+
+  it('treats an introduction already made as the strongest possible signal', async () => {
+    const { warmPathFromIntroPaths } = await import('@/lib/crm/scoring')
+    expect(warmPathFromIntroPaths([{ strength: 'WEAK', status: 'INTRO_MADE' }])).toBe(1)
+  })
+
+  it('ignores a declined route so it stops inflating the score', async () => {
+    const { warmPathFromIntroPaths } = await import('@/lib/crm/scoring')
+    expect(warmPathFromIntroPaths([{ strength: 'STRONG', status: 'DECLINED' }])).toBe(0)
+  })
+
+  it('falls back to who you know when no route is recorded', async () => {
+    const { bestWarmPath } = await import('@/lib/crm/scoring')
+    expect(bestWarmPath([{ connectedAt: new Date() }], [])).toBe(1)
+    expect(bestWarmPath([], [{ strength: 'MEDIUM', status: 'IDENTIFIED' }])).toBe(0.7)
+  })
+})

@@ -7,7 +7,10 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName } from '@/lib/crm/normalize'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
-import type { CrmPersonRole, CrmLeadQuality, CrmWarmth } from '@prisma/client'
+import type {
+  CrmPersonRole, CrmLeadQuality, CrmWarmth,
+  CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
+} from '@prisma/client'
 
 const CRM = '/support/admin/crm'
 
@@ -611,4 +614,97 @@ export async function confirmDeadlineDate(formData: FormData) {
   captureServerEvent(admin.email ?? 'admin', 'crm_deadline_check_resolved', { deadlineId, accepted: Boolean(iso) })
   revalidatePath(`${CRM}/dates`)
   revalidatePath(`${CRM}/queue`)
+}
+
+// ── Intro paths and research stance (Phase 6) ────────────────────────────────
+
+/**
+ * Records a route to someone you have no direct line to.
+ *
+ * A target can carry several stacked paths, which the source sheets could not
+ * express — they held a single free-text "Warm Path" column with one guess
+ * that couldn't be searched, updated, or marked as already asked.
+ *
+ * A connector is either a real person in the CRM (searchable across all 3,688)
+ * or free text, for a route you've heard about but can't yet name.
+ */
+export async function addIntroPath(
+  target: { personId?: string; orgId?: string },
+  formData: FormData
+) {
+  const admin = await requireAdmin()
+  const connectorPersonId = String(formData.get('connectorPersonId') ?? '').trim() || null
+  const connectorName = String(formData.get('connectorName') ?? '').trim() || null
+  const relationshipNote = String(formData.get('relationshipNote') ?? '').trim() || null
+  const strength = String(formData.get('strength') ?? 'UNVERIFIED') as CrmIntroPathStrength
+
+  if (!connectorPersonId && !connectorName) return
+  if (!target.personId && !target.orgId) return
+
+  await prisma.crmIntroPath.create({
+    data: {
+      targetPersonId: target.personId ?? null,
+      targetOrgId: target.personId ? null : (target.orgId ?? null),
+      connectorPersonId, connectorName, relationshipNote, strength,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_intro_path_added', {
+    targetType: target.personId ? 'person' : 'organization',
+    viaRecord: Boolean(connectorPersonId), strength,
+  })
+  if (target.personId) revalidatePath(`${CRM}/people/${target.personId}`)
+  if (target.orgId) revalidatePath(`${CRM}/organizations/${target.orgId}`)
+}
+
+/** Moves a path along: identified → asked → intro made, or declined. */
+export async function updateIntroPathStatus(pathId: string, status: CrmIntroPathStatus) {
+  const admin = await requireAdmin()
+  const path = await prisma.crmIntroPath.update({
+    where: { id: pathId },
+    data: { status, askedAt: status === 'ASKED' ? new Date() : undefined },
+    select: { targetPersonId: true, targetOrgId: true },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_intro_path_status_changed', { pathId, status })
+  if (path.targetPersonId) revalidatePath(`${CRM}/people/${path.targetPersonId}`)
+  if (path.targetOrgId) revalidatePath(`${CRM}/organizations/${path.targetOrgId}`)
+}
+
+export async function deleteIntroPath(pathId: string) {
+  const admin = await requireAdmin()
+  const path = await prisma.crmIntroPath.delete({ where: { id: pathId }, select: { targetPersonId: true, targetOrgId: true } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_intro_path_deleted', { pathId })
+  if (path.targetPersonId) revalidatePath(`${CRM}/people/${path.targetPersonId}`)
+  if (path.targetOrgId) revalidatePath(`${CRM}/organizations/${path.targetOrgId}`)
+}
+
+/**
+ * Sets where a piece of research sits relative to the NextChapter thesis.
+ *
+ * Always a human judgement. A researcher whose findings argue displacement is
+ * overstated is a RISK in a pitch meeting, not an asset, and inferring that
+ * automatically is a way to walk in confidently wrong.
+ */
+export async function setResearchStance(itemId: string, stance: CrmResearchStance) {
+  const admin = await requireAdmin()
+  await prisma.crmResearchItem.update({ where: { id: itemId }, data: { stance } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_research_stance_set', { itemId, stance })
+  revalidatePath(`${CRM}/research`)
+}
+
+export async function updateResearchItem(itemId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const keyClaim = String(formData.get('keyClaim') ?? '').trim() || null
+  const relevanceNote = String(formData.get('relevanceNote') ?? '').trim() || null
+  const useInPitch = formData.get('useInPitch') === 'on'
+  const stanceRaw = String(formData.get('stance') ?? '').trim()
+
+  await prisma.crmResearchItem.update({
+    where: { id: itemId },
+    data: {
+      keyClaim, relevanceNote, useInPitch,
+      ...(stanceRaw ? { stance: stanceRaw as CrmResearchStance } : {}),
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_research_item_edited', { itemId, useInPitch })
+  revalidatePath(`${CRM}/research`)
 }

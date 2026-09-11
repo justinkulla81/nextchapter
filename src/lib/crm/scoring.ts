@@ -120,14 +120,42 @@ function clamp01(n: number): number {
 }
 
 /**
- * Warm-path strength from what we actually know today.
+ * Warm-path strength inferred from who you already know there.
  *
- * Phase 6 replaces this with the strongest live CrmIntroPath. Until those
- * exist, a person you are connected to on LinkedIn is the best available
- * signal of a real route in — `connectedAt` is only ever set from your own
- * export, so it means a genuine first-degree connection rather than a guess.
+ * `connectedAt` is only ever set from your own LinkedIn export, so it means a
+ * genuine first-degree connection rather than a guess.
  */
 export function warmPathFromContacts(contacts: { connectedAt: Date | null }[]): number {
   if (contacts.length === 0) return 0.2
   return contacts.some((c) => c.connectedAt) ? 1 : 0.6
+}
+
+const PATH_STRENGTH: Record<string, number> = {
+  STRONG: 1, MEDIUM: 0.7, WEAK: 0.45, UNVERIFIED: 0.35,
+}
+
+/**
+ * Warm-path strength from recorded routes in.
+ *
+ * A path that has actually produced an introduction is the strongest signal
+ * there is; one that was declined is worth nothing and must not keep
+ * inflating the score. Deliberately takes the BEST live route rather than
+ * averaging — one strong path is not weakened by three speculative ones.
+ */
+export function warmPathFromIntroPaths(
+  paths: { strength: string; status: string }[]
+): number {
+  const live = paths.filter((p) => p.status !== 'DECLINED')
+  if (live.length === 0) return 0
+  return Math.max(
+    ...live.map((p) => (p.status === 'INTRO_MADE' ? 1 : PATH_STRENGTH[p.strength] ?? 0.35))
+  )
+}
+
+/** The best evidence available: a recorded route, or who you know there. */
+export function bestWarmPath(
+  contacts: { connectedAt: Date | null }[],
+  paths: { strength: string; status: string }[]
+): number {
+  return Math.max(warmPathFromContacts(contacts), warmPathFromIntroPaths(paths))
 }
