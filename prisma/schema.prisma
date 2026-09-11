@@ -9121,3 +9121,24 @@ model CrmBroadcastRecipient {
   @@unique([broadcastId, personId])
   @@index([broadcastId])
 }
+
+/// A scoped token for the browser extension.
+///
+/// Deliberately not the admin session cookie. An extension runs on every page
+/// you visit, including hostile ones; a bearer token it holds can do exactly
+/// what the capture endpoint allows and nothing else, can be revoked on its
+/// own, and never grants access to the admin portal.
+model CrmCaptureToken {
+  id             String    @id @default(cuid())
+  /// SHA-256 of the token. The plaintext is shown once at creation and never
+  /// stored, so a database read cannot be replayed against the endpoint.
+  tokenHash      String    @unique
+  label          String
+  createdByEmail String?
+  createdAt      DateTime  @default(now())
+  lastUsedAt     DateTime?
+  useCount       Int       @default(0)
+  revokedAt      DateTime?
+
+  @@index([revokedAt])
+}

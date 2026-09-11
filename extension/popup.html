@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Save to NextChapter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main id="app">
+    <section id="setup" hidden>
+      <h1>Connect once</h1>
+      <p class="muted">Paste a capture token from the CRM. It is stored in this browser only.</p>
+      <label for="base">Site</label>
+      <input id="base" type="url" placeholder="https://your-site.com" autocomplete="off">
+      <label for="token">Capture token</label>
+      <input id="token" type="password" placeholder="ncx_…" autocomplete="off">
+      <button id="save-token" class="primary">Save token</button>
+      <p id="setup-msg" class="msg" role="status"></p>
+    </section>
+
+    <section id="capture" hidden>
+      <h1 id="page-title">…</h1>
+      <p class="muted" id="page-url"></p>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" data-kind="person" role="tab">Person</button>
+        <button class="tab" data-kind="layoff" role="tab">Layoff</button>
+        <button class="tab" data-kind="research" role="tab">Research</button>
+        <button class="tab" data-kind="article" role="tab">To send on</button>
+      </div>
+
+      <div id="fields"></div>
+
+      <label for="note">Note <span class="muted">(optional)</span></label>
+      <textarea id="note" rows="2" placeholder="Why this matters"></textarea>
+
+      <button id="save" class="primary">Save to CRM</button>
+      <p id="msg" class="msg" role="status"></p>
+      <button id="forget" class="link">Disconnect</button>
+    </section>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
