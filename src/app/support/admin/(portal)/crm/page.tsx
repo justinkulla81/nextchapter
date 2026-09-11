@@ -6,6 +6,7 @@ import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
 import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
+import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, qualityClass, sinceLabel,
@@ -14,7 +15,10 @@ import type { CrmPersonRole, CrmLeadQuality, CrmWarmth } from '@prisma/client'
 
 export const maxDuration = 30
 
-const PAGE_SIZE = 50
+// 100 by default: with 3,688 people, 50 meant paging constantly, and 200 makes
+// the first paint noticeably slower. Overridable per view.
+const PAGE_SIZES = [50, 100, 200] as const
+const DEFAULT_PAGE_SIZE = 100
 
 export default async function CrmPeoplePage({
   searchParams,
@@ -29,6 +33,8 @@ export default async function CrmPeoplePage({
   const warmth = sp.warmth ?? ''
   const touched = sp.touched ?? ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+  const requested = parseInt(sp.per ?? '', 10)
+  const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
 
   const where: Prisma.CrmPersonWhereInput = {
     ...(q
@@ -54,8 +60,8 @@ export default async function CrmPeoplePage({
     prisma.crmPerson.findMany({
       where,
       orderBy: [{ priorityScore: 'desc' }, { leadQuality: 'asc' }, { fullName: 'asc' }],
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * perPage,
+      take: perPage,
       select: {
         id: true, fullName: true, roles: true, leadQuality: true, warmth: true,
         lastTouchedAt: true, touchCount: true, priorityScore: true, linkedinUrl: true,
@@ -68,8 +74,8 @@ export default async function CrmPeoplePage({
     prisma.crmPerson.count({ where: { needsCompletion: true } }),
   ])
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const baseParams = { q, role, quality, warmth, touched }
+  const totalPages = Math.max(1, Math.ceil(total / perPage))
+  const baseParams = { q, role, quality, warmth, touched, per: String(perPage) }
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
     for (const [k, v] of Object.entries({ ...baseParams, ...over })) if (v) p.set(k, String(v))
@@ -78,6 +84,7 @@ export default async function CrmPeoplePage({
 
   return (
     <div className="space-y-6">
+      <CrmPeekPanel />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">NextChapter Ecosystem</h1>
@@ -137,10 +144,26 @@ export default async function CrmPeoplePage({
         ]}
       />
 
-      <p className="text-sm text-muted-foreground">
-        {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
-        {q || role || quality || warmth || touched ? ' matching these filters' : ''}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
+          {q || role || quality || warmth || touched ? ' matching these filters' : ''}
+        </p>
+        {/* Three discrete options -> adjacent buttons, per design-principles.md. */}
+        <div className="flex items-center gap-1 text-xs" role="group" aria-label="People per page">
+          <span className="text-muted-foreground">Show</span>
+          {PAGE_SIZES.map((n) => (
+            <Link
+              key={n}
+              href={`/support/admin/crm?${qs({ per: n, page: 1 })}`}
+              aria-current={perPage === n ? 'page' : undefined}
+              className={`rounded-md border px-2 py-1 ${perPage === n ? 'border-brand bg-brand/10 font-semibold text-brand' : 'border-border hover:bg-muted'}`}
+            >
+              {n}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">
@@ -174,18 +197,16 @@ export default async function CrmPeoplePage({
                       <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
                     </td>
                     <td className="px-3 py-2">
-                      <Link href={`/support/admin/crm/people/${p.id}`} className="font-medium hover:underline">
-                        {p.fullName}
-                      </Link>
+                      <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
                       {p.affiliations[0]?.title && (
                         <span className="block text-xs text-muted-foreground">{p.affiliations[0].title}</span>
                       )}
                     </td>
                     <td className="px-3 py-2">
                       {p.affiliations[0]?.org ? (
-                        <Link href={`/support/admin/crm/organizations/${p.affiliations[0].org.id}`} className="hover:underline">
+                        <CrmPeekButton id={p.affiliations[0].org.id} kind="org" className="text-left hover:underline focus-visible:ring-2 focus-visible:ring-brand">
                           {p.affiliations[0].org.name}
-                        </Link>
+                        </CrmPeekButton>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}

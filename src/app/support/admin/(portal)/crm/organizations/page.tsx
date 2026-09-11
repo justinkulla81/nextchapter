@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { ORG_TYPES, ORG_TYPE_LABELS } from '@/lib/crm/labels'
+import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 
 export const maxDuration = 30
 const PAGE_SIZE = 50
@@ -47,6 +48,7 @@ export default async function CrmOrganizationsPage({
 
   return (
     <div className="space-y-6">
+      <CrmPeekPanel />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Organizations</h1>
@@ -92,7 +94,7 @@ export default async function CrmOrganizationsPage({
               {rows.map((o) => (
                 <tr key={o.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-2">
-                    <Link href={`/support/admin/crm/organizations/${o.id}`} className="font-medium hover:underline">{o.name}</Link>
+                    <CrmPeekButton id={o.id} kind="org">{o.name}</CrmPeekButton>
                     {o.hqRegion && <span className="block text-xs text-muted-foreground">{o.hqRegion}</span>}
                   </td>
                   <td className="px-3 py-2">
@@ -102,7 +104,15 @@ export default async function CrmOrganizationsPage({
                       ))}
                     </span>
                   </td>
-                  <td className="px-3 py-2">{o._count.affiliations || <span className="text-muted-foreground">—</span>}</td>
+                  <td className="px-3 py-2">
+                    {o._count.affiliations > 0 ? (
+                      <Link href={`/support/admin/crm?q=${encodeURIComponent(o.name)}`} className="hover:underline">
+                        {o._count.affiliations}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2">{o._count.opportunities || <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2 text-xs">{o.investorProfile?.checkSizeNote ?? <span className="text-muted-foreground">—</span>}</td>
                 </tr>

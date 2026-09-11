@@ -331,7 +331,9 @@ export async function bulkUpdatePeople(formData: FormData) {
   const ids = formData.getAll('selected').map(String).filter(Boolean)
   const quality = String(formData.get('bulkQuality') ?? '')
   const warmth = String(formData.get('bulkWarmth') ?? '')
-  const addRole = String(formData.get('bulkRole') ?? '')
+  // Several types at once: a person is routinely more than one thing, and
+  // making you apply them one pass at a time is how the field stays empty.
+  const addRoles = formData.getAll('bulkRole').map(String).filter(Boolean) as CrmPersonRole[]
   if (ids.length === 0) return
 
   const data: { leadQuality?: CrmLeadQuality; warmth?: CrmWarmth } = {}
@@ -340,12 +342,16 @@ export async function bulkUpdatePeople(formData: FormData) {
   if (Object.keys(data).length > 0) {
     await prisma.crmPerson.updateMany({ where: { id: { in: ids } }, data })
   }
-  if (addRole) {
-    // push is per-row, so this can't be a single updateMany.
+  if (addRoles.length > 0) {
+    // Roles are a set: push per row, skipping what each already has.
     const rows = await prisma.crmPerson.findMany({ where: { id: { in: ids } }, select: { id: true, roles: true } })
     await Promise.all(
-      rows.filter((r) => !r.roles.includes(addRole as CrmPersonRole))
-        .map((r) => prisma.crmPerson.update({ where: { id: r.id }, data: { roles: { push: addRole as CrmPersonRole } } }))
+      rows.map((r) => {
+        const missing = addRoles.filter((x) => !r.roles.includes(x))
+        return missing.length > 0
+          ? prisma.crmPerson.update({ where: { id: r.id }, data: { roles: { push: missing } } })
+          : null
+      }).filter(Boolean)
     )
   }
 
@@ -353,15 +359,47 @@ export async function bulkUpdatePeople(formData: FormData) {
     data: ids.map((id) => ({
       type: 'FIELD_CHANGED' as const, direction: 'INTERNAL' as const, personId: id,
       subject: 'bulk edit',
-      body: [quality && `quality→${quality}`, warmth && `warmth→${warmth}`, addRole && `+role ${addRole}`].filter(Boolean).join(', '),
+      body: [
+        quality && `quality→${quality}`,
+        warmth && `warmth→${warmth}`,
+        addRoles.length > 0 && `+types ${addRoles.join(', ')}`,
+      ].filter(Boolean).join(', '),
       loggedByEmail: admin.email ?? null,
     })),
   })
 
   captureServerEvent(admin.email ?? 'admin', 'crm_bulk_edited', {
-    count: ids.length, quality: quality || null, warmth: warmth || null, addedRole: addRole || null,
+    count: ids.length, quality: quality || null, warmth: warmth || null, addedRoles: addRoles,
   })
   revalidatePath(CRM)
+}
+
+/**
+ * Deletes the selected people.
+ *
+ * Destructive and irreversible, so it is confirmed in the UI before it runs
+ * and never the default focus, per design-principles.md. Deliberately refuses
+ * anyone already converted into a production record — deleting the CRM row for
+ * a live coach would orphan their history for no gain.
+ */
+export async function bulkDeletePeople(formData: FormData): Promise<{ deleted: number; skipped: number }> {
+  const admin = await requireAdmin()
+  const ids = formData.getAll('selected').map(String).filter(Boolean)
+  if (ids.length === 0) return { deleted: 0, skipped: 0 }
+
+  const rows = await prisma.crmPerson.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, coachId: true, recruiterId: true, candidateId: true },
+  })
+  const safe = rows.filter((r) => !r.coachId && !r.recruiterId && !r.candidateId).map((r) => r.id)
+  const skipped = rows.length - safe.length
+
+  if (safe.length > 0) {
+    await prisma.crmPerson.deleteMany({ where: { id: { in: safe } } })
+  }
+  captureServerEvent(admin.email ?? 'admin', 'crm_bulk_deleted', { deleted: safe.length, skipped })
+  revalidatePath(CRM)
+  return { deleted: safe.length, skipped }
 }
 
 /** Marks a profile complete without changing anything — "I looked, it's fine." */

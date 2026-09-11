@@ -37,6 +37,93 @@ interface NavSection {
   links: NavLink[]
 }
 
+/**
+ * The admin is three separate tools that happen to share a login.
+ *
+ * Administrator runs the product; Ecosystem is the relationship system;
+ * Vision is the product-management system. Showing all three at once produced
+ * a sidebar of ~60 links where the thing you wanted was never where you
+ * looked, so only the current area's sections render and the switcher moves
+ * between them.
+ */
+export type AdminArea = 'administrator' | 'ecosystem' | 'vision'
+
+export const AREAS: { key: AdminArea; label: string; href: string; hint: string }[] = [
+  { key: 'administrator', label: 'Administrator', href: '/support/admin', hint: 'Running the product' },
+  { key: 'ecosystem', label: 'Ecosystem', href: '/support/admin/crm/queue', hint: 'People and organizations' },
+  { key: 'vision', label: 'Vision', href: '/support/admin/vision', hint: 'What we build and why' },
+]
+
+/** Which area a path belongs to. Order matters: the specific prefixes first. */
+export function areaForPath(pathname: string): AdminArea {
+  if (pathname.startsWith('/support/admin/crm')) return 'ecosystem'
+  if (pathname.startsWith('/support/admin/vision')) return 'vision'
+  return 'administrator'
+}
+
+function ecosystemSections(): NavSection[] {
+  return [
+    {
+      title: 'Work the list',
+      links: [
+        { href: '/support/admin/crm/queue', label: 'Queue' },
+        { href: '/support/admin/crm/leads', label: 'All leads' },
+        { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
+        { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
+      ],
+    },
+    {
+      title: 'Records',
+      links: [
+        { href: '/support/admin/crm', label: 'People' },
+        { href: '/support/admin/crm/organizations', label: 'Organizations' },
+        { href: '/support/admin/crm/research', label: 'Research' },
+        { href: '/support/admin/crm/needs-completion', label: 'Needs completion' },
+      ],
+    },
+    {
+      title: 'Data in and out',
+      links: [
+        { href: '/support/admin/crm/import', label: 'Upload CSV' },
+        { href: '/support/admin/crm/sync', label: 'Activity sync' },
+        { href: '/support/admin/crm/segments', label: 'Segments and updates' },
+        { href: '/support/admin/crm/capture-tokens', label: 'Capture tokens' },
+        { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
+      ],
+    },
+  ]
+}
+
+function visionSections(): NavSection[] {
+  return [
+    {
+      title: 'Direction',
+      links: [
+        { href: '/support/admin/vision', label: 'Overview' },
+        { href: '/support/admin/vision/doc', label: 'Master vision' },
+      ],
+    },
+    {
+      title: 'Work',
+      links: [
+        { href: '/support/admin/vision/items', label: 'Roadmap' },
+        { href: '/support/admin/vision/brainstorm', label: 'Brainstorm' },
+        { href: '/support/admin/vision/feedback', label: 'Feedback' },
+      ],
+    },
+    {
+      title: 'Market',
+      links: [{ href: '/support/admin/vision/competitors', label: 'Competitors' }],
+    },
+  ]
+}
+
+export function buildSectionsForArea(area: AdminArea, badges: Record<string, number>): NavSection[] {
+  if (area === 'ecosystem') return ecosystemSections()
+  if (area === 'vision') return visionSections()
+  return buildSections(badges)
+}
+
 function buildSections(badges: Record<string, number>): NavSection[] {
   const badgeFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
 
@@ -138,9 +225,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         // three per-audience sends are real, live weekly crons.
         { href: '/support/admin/digest', label: 'Market Pulse' },
         { href: '/support/admin/tracking-testers', label: 'Gmail/Calendar Testers' },
-        { href: '/support/admin/crm/queue', label: 'Ecosystem Queue' },
-        { href: '/support/admin/crm', label: 'Ecosystem' },
-        { href: '/support/admin/network-leads', label: 'Network Leads' },
         { href: '/support/admin/visitors', label: 'Visitors' },
       ],
     },
@@ -157,24 +241,45 @@ function NavContent({
   badges: Record<string, number>
 }) {
   // Exact-match roots that also have a nested nav link of their own
-  // (declined-commitment lives under /candidates) — without this, visiting
-  // the child route highlights both entries at once.
-  const EXACT_MATCH_ROOTS = new Set(['/support/admin', '/support/admin/candidates'])
+  // (declined-commitment lives under /candidates) — without this, visiting the
+  // child route highlights both entries at once. /crm and /vision are here for
+  // the same reason: both have many children.
+  const EXACT_MATCH_ROOTS = new Set([
+    '/support/admin', '/support/admin/candidates', '/support/admin/crm', '/support/admin/vision',
+  ])
   const isActive = (href: string) => (EXACT_MATCH_ROOTS.has(href) ? pathname === href : pathname.startsWith(href))
-  const sections = buildSections(badges)
+  const area = areaForPath(pathname)
+  const sections = buildSectionsForArea(area, badges)
 
   return (
     <nav className="flex h-full flex-col gap-3 overflow-y-auto px-4 py-6">
-      <Link
-        href="/support/admin"
-        onClick={onNavigate}
-        className={cn(
-          'rounded-md px-2 py-1 text-xs font-medium transition-colors',
-          pathname === '/support/admin' ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'
-        )}
-      >
-        Home
-      </Link>
+      {/*
+        Three discrete areas -> adjacent buttons rather than a dropdown, per
+        design-principles.md. Each one lands on the page you actually want to
+        start from, not a shell: the Ecosystem opens on its queue.
+      */}
+      <div className="mb-1" role="group" aria-label="Admin area">
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-white/5 p-1">
+          {AREAS.map((a) => (
+            <Link
+              key={a.key}
+              href={a.href}
+              onClick={onNavigate}
+              aria-current={area === a.key ? 'page' : undefined}
+              title={a.hint}
+              className={cn(
+                'rounded-md px-1.5 py-1.5 text-center text-[11px] font-semibold transition-colors',
+                area === a.key ? 'bg-white text-navy shadow-sm' : 'text-white/60 hover:bg-white/10 hover:text-white'
+              )}
+            >
+              {a.label}
+            </Link>
+          ))}
+        </div>
+        <p className="mt-1.5 px-2 text-[10px] text-white/40">
+          {AREAS.find((a) => a.key === area)?.hint}
+        </p>
+      </div>
       {sections.map((section) => (
         <div key={section.title} className="space-y-px">
           <p className="px-2 pb-1 text-[11px] font-semibold tracking-widest text-white/50 uppercase">
