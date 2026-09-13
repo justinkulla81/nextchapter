@@ -6,6 +6,7 @@ import { sendHomepageVisitorDigestEmail } from '@/lib/email/send-homepage-visito
 import { isLoopbackIp } from '@/lib/http/trusted-ips'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { classifyUserAgent, USER_AGENT_CLASS_SORT_ORDER } from '@/lib/http/user-agent'
+import { candidateDisplayName } from '@/lib/messaging/threads'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -36,7 +37,14 @@ export async function GET(request: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const byIp = new Map<
     string,
-    { visitCount: number; firstSeen: Date; links: Map<string, string>; referrer: string | null; userAgent: string | null }
+    {
+      visitCount: number
+      firstSeen: Date
+      links: Map<string, string>
+      referrer: string | null
+      userAgent: string | null
+      candidateId: string | null
+    }
   >()
 
   for (const event of events) {
@@ -47,7 +55,14 @@ export async function GET(request: NextRequest) {
     const ip = event.ip ?? 'unknown'
     let entry = byIp.get(ip)
     if (!entry) {
-      entry = { visitCount: 0, firstSeen: event.createdAt, links: new Map(), referrer: null, userAgent: event.userAgent }
+      entry = {
+        visitCount: 0,
+        firstSeen: event.createdAt,
+        links: new Map(),
+        referrer: null,
+        userAgent: event.userAgent,
+        candidateId: null,
+      }
       byIp.set(ip, entry)
     }
     if (event.eventType === 'PAGE_VIEW') {
@@ -57,6 +72,9 @@ export async function GET(request: NextRequest) {
       const absoluteHref = event.href.startsWith('/') ? `${appUrl}${event.href}` : event.href
       entry.links.set(absoluteHref, event.href)
     }
+    // A logged-in visit's own session-confirmed candidateId always wins —
+    // never overwritten once set, and never guessed at when already known.
+    if (!entry.candidateId && event.candidateId) entry.candidateId = event.candidateId
   }
 
   if (byIp.size === 0) {
@@ -72,16 +90,64 @@ export async function GET(request: NextRequest) {
     )
   )
 
+  // Same two-tier "who is this" resolution the Visitors admin page already
+  // uses: a session-confirmed candidateId (set above) wins outright; failing
+  // that, an unambiguous signupIp match (exactly one candidate ever signed
+  // up from this IP — a shared network make this genuinely ambiguous, so it
+  // stays unmatched rather than guessing).
+  const confirmedIds = Array.from(byIp.values())
+    .map((e) => e.candidateId)
+    .filter((id): id is string => !!id)
+  const unmatchedIps = Array.from(byIp.entries())
+    .filter(([, e]) => !e.candidateId)
+    .map(([ip]) => ip)
+
+  const [confirmedCandidates, signupMatches] = await Promise.all([
+    confirmedIds.length > 0
+      ? prisma.candidateProfile.findMany({
+          where: { id: { in: confirmedIds } },
+          select: { id: true, firstName: true, lastName: true },
+        })
+      : Promise.resolve([]),
+    unmatchedIps.length > 0
+      ? prisma.candidateProfile.findMany({
+          where: { signupIp: { in: unmatchedIps } },
+          select: { id: true, firstName: true, lastName: true, signupIp: true },
+        })
+      : Promise.resolve([]),
+  ])
+
+  const candidateById = new Map(confirmedCandidates.map((c) => [c.id, c]))
+  const candidatesBySignupIp = new Map<string, typeof signupMatches>()
+  for (const c of signupMatches) {
+    if (!c.signupIp) continue
+    candidatesBySignupIp.set(c.signupIp, [...(candidatesBySignupIp.get(c.signupIp) ?? []), c])
+  }
+  // Ambiguous (more than one candidate ever signed up from this IP) is
+  // worse than no match at all — same rule the admin page already applies.
+  const inferredCandidateByIp = new Map(
+    Array.from(candidatesBySignupIp.entries())
+      .filter(([, candidates]) => candidates.length === 1)
+      .map(([ip, candidates]) => [ip, candidates[0]])
+  )
+
   const visitors = Array.from(byIp.entries())
-    .map(([ip, entry]) => ({
-      ip,
-      location: locationsByIp.get(ip) ?? null,
-      visitCount: entry.visitCount,
-      firstSeen: entry.firstSeen.toLocaleTimeString(),
-      links: Array.from(entry.links.entries()).map(([href, label]) => ({ href, label })),
-      referrer: entry.referrer,
-      userAgentClass: classifyUserAgent(entry.userAgent),
-    }))
+    .map(([ip, entry]) => {
+      const confirmed = entry.candidateId ? candidateById.get(entry.candidateId) : null
+      const inferred = !confirmed ? inferredCandidateByIp.get(ip) : null
+      const person = confirmed ?? inferred ?? null
+      return {
+        ip,
+        location: locationsByIp.get(ip) ?? null,
+        visitCount: entry.visitCount,
+        firstSeen: entry.firstSeen.toLocaleTimeString(),
+        links: Array.from(entry.links.entries()).map(([href, label]) => ({ href, label })),
+        referrer: entry.referrer,
+        userAgentClass: classifyUserAgent(entry.userAgent),
+        personName: person ? candidateDisplayName(person) : null,
+        personConfirmed: !!confirmed,
+      }
+    })
     .sort((a, b) => USER_AGENT_CLASS_SORT_ORDER[a.userAgentClass] - USER_AGENT_CLASS_SORT_ORDER[b.userAgentClass])
 
   const dateLabel = yesterdayStart.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })

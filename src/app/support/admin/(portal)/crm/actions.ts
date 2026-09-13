@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName } from '@/lib/crm/normalize'
+import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
@@ -72,10 +73,21 @@ async function candidatesFor(name: string, excludeId?: string): Promise<QuickAdd
 async function resolveInput(raw: string) {
   const slug = slugOf(raw)
   const match = slug ? await prisma.crmLinkedInConnection.findUnique({ where: { slug } }) : null
+  const slugDerivedName = slug
+    ? slug.replace(/-+\d*$/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : null
+  // Real, confirmed bug: LinkedIn assigns purely-numeric-suffixed slugs to
+  // confidential/placeholder-name profiles too (e.g. "candidate-123456789"),
+  // so this title-casing can produce a generic word that LOOKS like a name
+  // but isn't one ("Candidate") — that word then got written straight into
+  // CrmPerson.fullName with no plausibility check, same class of bug
+  // extract-profile-fields.ts already guards against for resume names (see
+  // isPlaceholderName's own comment). A generic result here is treated the
+  // same as no name at all — never silently used to create a record.
   const fullName = match
     ? `${match.firstName ?? ''} ${match.lastName ?? ''}`.trim()
     : slug
-      ? slug.replace(/-+\d*$/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      ? (slugDerivedName && !isPlaceholderName(slugDerivedName) ? slugDerivedName : null)
       : raw
   return { slug, match, fullName }
 }
@@ -160,6 +172,7 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
   const role = roleRaw ? (roleRaw as CrmPersonRole) : null
 
   const { slug, match, fullName } = await resolveInput(raw)
+  if (!fullName) return { status: 'error', message: "Couldn't work out a name from that. Try typing the name instead." }
 
   // Definitive identifiers — same person, no question to ask.
   if (slug) {
@@ -757,12 +770,18 @@ export async function acceptSuggestedContact(suggestionId: string) {
   const s = await prisma.crmSuggestedContact.findUniqueOrThrow({ where: { id: suggestionId } })
   if (s.status !== 'PENDING') return
 
+  // A synced email's From: display name is trusted verbatim by sync.ts — a
+  // generic sender name (an ATS/scheduling tool using "Candidate" as its
+  // display name, say) would otherwise land straight in fullName. Falls
+  // back to the email local-part instead, same as when there's no display
+  // name at all.
+  const displayName = s.displayName && !isPlaceholderName(s.displayName) ? s.displayName : null
   const existing = await prisma.crmPerson.findFirst({ where: { email: s.email } })
   const person = existing ?? await prisma.crmPerson.create({
     data: {
-      fullName: s.displayName ?? s.email.split('@')[0],
-      firstName: s.displayName?.split(' ')[0] ?? null,
-      lastName: s.displayName?.split(' ').slice(1).join(' ') || null,
+      fullName: displayName ?? s.email.split('@')[0],
+      firstName: displayName?.split(' ')[0] ?? null,
+      lastName: displayName?.split(' ').slice(1).join(' ') || null,
       email: s.email,
       emails: [s.email],
       needsCompletion: true,

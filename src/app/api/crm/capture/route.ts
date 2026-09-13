@@ -4,6 +4,7 @@ import { verifyCaptureToken } from '@/lib/crm/capture-token'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName } from '@/lib/crm/normalize'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 
 export const maxDuration = 30
 
@@ -92,7 +93,19 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const full = name || slug!.replace(/-+\d*$/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      // See crm/actions.ts's resolveInput for why a slug-derived fallback
+      // needs a plausibility check — the same "candidate-123456789" style
+      // slug produces this same bug here.
+      const slugDerivedName = slug
+        ? slug.replace(/-+\d*$/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        : null
+      const full = name || (slugDerivedName && !isPlaceholderName(slugDerivedName) ? slugDerivedName : null)
+      if (!full) {
+        return NextResponse.json(
+          { error: "Couldn't work out a real name from that page — try adding the name manually." },
+          { status: 400, headers: CORS }
+        )
+      }
       const person = await prisma.crmPerson.create({
         data: {
           fullName: full,

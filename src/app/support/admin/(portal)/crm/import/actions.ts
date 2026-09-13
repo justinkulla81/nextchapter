@@ -49,6 +49,7 @@ export interface ImportRowPlan {
   company: string | null
   title: string | null
   email: string | null
+  phone: string | null
   linkedinUrl: string | null
   action: 'create' | 'update' | 'confirm'
   matchedOn: string | null
@@ -108,6 +109,7 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
     const company = pick(rec, ['Company', 'Organization', 'Organization'])
     const title = pick(rec, ['Position', 'Title', 'Job Title'])
     const email = pick(rec, ['Email', 'Email Address'])?.toLowerCase() ?? null
+    const phone = pick(rec, ['Phone', 'Phone Number', 'Mobile', 'Mobile Phone', 'Cell'])
     const linkedinUrl = pick(rec, ['LinkedIn URL', 'LinkedIn', 'URL', 'Profile'])
     const slug = slugOf(linkedinUrl)
 
@@ -138,7 +140,7 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
     }
 
     plan.push({
-      index: i, name, company, title, email, linkedinUrl,
+      index: i, name, company, title, email, phone, linkedinUrl,
       action, matchedOn, matchedId: matched?.id ?? null, matchedName: matched?.fullName ?? null,
     })
   }
@@ -207,6 +209,7 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
         where: { id: targetId },
         data: {
           email: existing.email ?? row.email,
+          phone: existing.phone ?? row.phone,
           linkedinSlug: existing.linkedinSlug ?? slug,
           linkedinUrl: existing.linkedinUrl ?? row.linkedinUrl,
         },
@@ -227,6 +230,7 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
           lastName: row.name.split(' ').slice(1).join(' ') || null,
           linkedinSlug: slug, linkedinUrl: row.linkedinUrl,
           email: row.email, emails: row.email ? [row.email] : [],
+          phone: row.phone,
           normalizedKey: orgKey
             ? `${row.name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim()}|${orgKey}`
             : null,

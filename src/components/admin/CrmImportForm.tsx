@@ -45,7 +45,7 @@ export function CrmImportForm() {
           className="mt-2 block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1.5 file:text-sm"
         />
         <p className="mt-2 text-sm text-muted-foreground">
-          Recognised columns: Full Name (or First/Last Name), Company, Position, Email, LinkedIn URL.
+          Recognised columns: Full Name (or First/Last Name), Company, Position, Email, Phone, LinkedIn URL.
           Anything else is ignored. A file exported from this CRM can be edited and uploaded straight back.
         </p>
         <div className="mt-4"><SubmitButton pendingLabel="Reading…">Preview import</SubmitButton></div>

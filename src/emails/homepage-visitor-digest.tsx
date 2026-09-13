@@ -9,6 +9,8 @@ interface VisitorSummary {
   links: { href: string; label: string }[]
   referrer: string | null
   userAgentClass: UserAgentClass
+  personName: string | null
+  personConfirmed: boolean
 }
 
 interface HomepageVisitorDigestEmailProps {
@@ -62,6 +64,14 @@ export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }:
       </p>
       {visitors.map((v, i) => (
         <div key={i} style={card}>
+          {v.personName && (
+            <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#2e7d5b' }}>
+              👤 {v.personName}
+              {!v.personConfirmed && (
+                <span style={{ fontWeight: 400, fontSize: '12px', color: '#6b7280' }}> (by IP match, not logged in)</span>
+              )}
+            </p>
+          )}
           <p style={{ margin: 0, fontWeight: 600 }}>
             {v.ip} — {v.visitCount} visit{v.visitCount === 1 ? '' : 's'}, first at {v.firstSeen}{' '}
             <span

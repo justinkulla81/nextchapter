@@ -11,6 +11,8 @@ interface VisitorSummary {
   links: { href: string; label: string }[]
   referrer: string | null
   userAgentClass: UserAgentClass
+  personName: string | null
+  personConfirmed: boolean
 }
 
 export async function sendHomepageVisitorDigestEmail(adminEmail: string, date: string, visitors: VisitorSummary[]) {
