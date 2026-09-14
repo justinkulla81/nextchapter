@@ -165,6 +165,33 @@ export async function uploadResume(_prevState: FormState, formData: FormData): P
   // spinner for it.
   await extractProfileFieldsFromResume(resume.id)
 
+  // Real gap this closes: a resume that passes the "is this a resume at
+  // all" check above can still be missing the one thing a new candidate
+  // record actually needs — a name and an email to reach them at. Without
+  // this, a resume with no header contact info (an unusual export, a page
+  // that got cut off, a scan) silently created an account with blank
+  // name/email fields — the "This candidate" / "Unnamed" placeholder-name
+  // confusion on the admin side traces back to exactly this. Scoped to
+  // brand-new candidates only (registrationCompletedAt still null) — an
+  // already-registered candidate re-uploading a later resume version
+  // already has a real name/email on file, and extractProfileFieldsFromResume's
+  // own "never regress" merge means this specific upload's omission can't
+  // blank those out anyway.
+  if (!profile.registrationCompletedAt) {
+    const updatedProfile = await prisma.candidateProfile.findUniqueOrThrow({
+      where: { id: profile.id },
+      select: { firstName: true, lastName: true, email: true },
+    })
+    if (!updatedProfile.firstName || !updatedProfile.lastName || !updatedProfile.email) {
+      revalidatePath('/dashboard/resume')
+      revalidatePath('/onboarding/resume')
+      return {
+        error:
+          "We couldn't find your name and email address on this resume — please upload a version with your contact information at the top.",
+      }
+    }
+  }
+
   after(async () => {
     // §11 decision (additive, not destructive): computeResumeAnalysis (the
     // new 5-component engine's Experience/Resume scorer, resume-analysis/
