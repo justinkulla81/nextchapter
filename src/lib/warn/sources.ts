@@ -113,21 +113,78 @@ export function parseCaliforniaWarn(buf: Buffer, sourceUrl: string): WarnRow[] {
 export interface WarnSource {
   state: string
   url: string
+  /** 'xlsx' is fetched as bytes; 'json' as text. */
+  format: 'xlsx' | 'json'
   parse: (buf: Buffer, url: string) => WarnRow[]
+  /**
+   * Whether this source publishes an industry sector.
+   *
+   * It decides whether notices can be promoted automatically. Without a
+   * sector there is no way to tell a software reduction from a cannery
+   * closure, and auto-promoting on size alone would fill the pipeline with
+   * leads nobody will call — so those sources stage for review instead.
+   */
+  hasIndustry: boolean
 }
 
 /**
- * Only California for now, and deliberately so.
+ * Texas Workforce Commission, via the state's Socrata open-data API.
  *
- * Every state publishes WARN differently — some as HTML tables, some as PDFs,
- * a few not machine-readable at all. Adding a state means writing and testing a
- * parser against its real file, and a parser written against a format nobody
- * has looked at is a parser that silently produces wrong rows.
+ * A real documented API rather than a file, so it is the easiest source to
+ * keep working. It carries a headcount but NO industry, which is why Texas
+ * notices stage for review instead of promoting themselves.
+ */
+export function parseTexasWarn(buf: Buffer, _sourceUrl: string): WarnRow[] {
+  const rows = JSON.parse(buf.toString('utf8')) as Record<string, string>[]
+  return rows
+    .filter((r) => r.job_site_name)
+    .map((r) => {
+      const count = r.total_layoff_number ? parseInt(String(r.total_layoff_number).replace(/[^\d]/g, ''), 10) : NaN
+      return {
+        state: 'TX',
+        employer: r.job_site_name.trim(),
+        normalizedEmployer: normalizeOrgName(r.job_site_name),
+        noticeDate: r.notice_date ? new Date(r.notice_date) : null,
+        effectiveDate: r.layoff_date ? new Date(r.layoff_date) : null,
+        employees: Number.isFinite(count) && count > 0 ? count : null,
+        layoffType: null,
+        county: r.county_name ?? null,
+        address: r.city_name ?? null,
+        // Texas publishes no sector. Recorded as null rather than guessed.
+        industry: null,
+      }
+    })
+}
+
+/**
+ * The states that can actually be synced, and why the obvious ones are missing.
+ *
+ * Every state publishes WARN differently, and a parser written against a
+ * format nobody has looked at silently produces wrong rows. What was checked:
+ *
+ *   CA — xlsx with headcount AND sector. The best source there is.
+ *   TX — Socrata JSON API with headcount, no sector. Stages for review.
+ *   NY — NOT INCLUDED. Its current notices live in a Tableau dashboard with no
+ *        data endpoint, and its legacy HTML table carries neither headcount nor
+ *        industry and stops in 2025. Both fields are what make a notice
+ *        actionable, so a NY sync would produce rows nobody could triage.
+ *        data.ny.gov publishes no WARN dataset at all — that was checked.
  */
 export const WARN_SOURCES: WarnSource[] = [
   {
     state: 'CA',
     url: 'https://edd.ca.gov/siteassets/files/jobs_and_training/warn/warn_report1.xlsx',
+    format: 'xlsx',
     parse: parseCaliforniaWarn,
+    hasIndustry: true,
+  },
+  {
+    state: 'TX',
+    // Most recent first, capped — the dataset goes back to 2019 and only
+    // recent filings are worth acting on.
+    url: 'https://data.texas.gov/resource/8w53-c4f6.json?$order=notice_date%20DESC&$limit=400',
+    format: 'json',
+    parse: parseTexasWarn,
+    hasIndustry: false,
   },
 ]

@@ -70,6 +70,7 @@ function ecosystemSections(): NavSection[] {
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
+        { href: '/support/admin/crm/warn', label: 'Layoff notices' },
       ],
     },
     {

@@ -11,6 +11,8 @@ export interface WarnSyncResult {
   promoted: number
   skippedSector: number
   skippedSmall: number
+  /** Staged but not auto-promoted, because the source has no sector field. */
+  needsReview: number
   error?: string
 }
 
@@ -29,10 +31,10 @@ const MIN_EMPLOYEES = 40
  */
 export async function syncWarnState(stateCode: string, promote = true): Promise<WarnSyncResult> {
   const source = WARN_SOURCES.find((s) => s.state === stateCode)
-  if (!source) return { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, error: 'no_source' }
+  if (!source) return { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, needsReview: 0, error: 'no_source' }
 
   const run = await prisma.warnSyncRun.create({ data: { state: stateCode } })
-  const result: WarnSyncResult = { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0 }
+  const result: WarnSyncResult = { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, needsReview: 0 }
 
   try {
     const res = await fetch(source.url, {
@@ -48,6 +50,12 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
       const created = await stageNotice(row, source.url)
       if (created) result.created++
       if (!promote) continue
+
+      // A source with no sector cannot be triaged automatically: there is no
+      // way to tell a software reduction from a cannery closure, and promoting
+      // on size alone fills the pipeline with leads nobody will call. Those
+      // notices stage and wait for a human.
+      if (!source.hasIndustry) { result.needsReview++; continue }
 
       if (!isKnowledgeSector(row.industry)) { result.skippedSector++; continue }
       if (!row.employees || row.employees < MIN_EMPLOYEES) { result.skippedSmall++; continue }
@@ -185,4 +193,19 @@ export async function syncAllWarnStates(promote = true): Promise<WarnSyncResult[
     out.push(await syncWarnState(source.state, promote))
   }
   return out
+}
+
+
+/** Promotes one staged notice by id, from the review page. */
+export async function promoteWarnNoticeById(noticeId: string): Promise<boolean> {
+  const n = await prisma.warnNotice.findUnique({ where: { id: noticeId } })
+  if (!n || n.promotedAt || n.dismissedAt) return false
+  return promoteNotice(
+    {
+      state: n.state, employer: n.employer, normalizedEmployer: n.normalizedEmployer,
+      noticeDate: n.noticeDate, effectiveDate: n.effectiveDate, employees: n.employees,
+      layoffType: n.layoffType, county: n.county, address: n.address, industry: n.industry,
+    },
+    n.sourceUrl ?? ''
+  )
 }
