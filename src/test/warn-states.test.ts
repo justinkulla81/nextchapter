@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readTables, columnOf, parseDate, parseCount, stripTags } from '@/lib/warn/html'
-import { TABLE_SPECS, makeTableParser, parseGeosolincList, parseGeosolincDetail } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseGeosolincList, parseGeosolincDetail, parseNewJerseyWarn } from '@/lib/warn/states'
 import { isKnowledgeSector } from '@/lib/warn/sources'
 
 const spec = (state: string) => TABLE_SPECS.find((s) => s.state === state)!
@@ -150,5 +150,67 @@ describe('geosolinc', () => {
 describe('stripTags', () => {
   it('decodes the entities these pages use', () => {
     expect(stripTags('<td>Smith&nbsp;&amp;&nbsp;Co.</td>')).toBe('Smith & Co.')
+  })
+})
+
+describe('rendered states', () => {
+  it('parses the Massachusetts table the browser job posts', () => {
+    // mass.gov returns 403 to every scripted request, so this HTML can only
+    // come from a rendered page.
+    const html = `<table>
+      <tr><th>RECEIVED</th><th>EMPLOYER</th><th>CITY/TOWN</th><th>REGION</th><th>DATE(S) OF LAYOFFS</th><th># EMPLOYEES IMPACTED</th></tr>
+      <tr><td>9/9/2026</td><td>Metri BWI, LLC</td><td>Leominster, MA</td><td>Central</td><td>10/31/2026</td><td>25</td></tr>
+    </table>`
+    const rows = makeTableParser(spec('MA'))(buf(html), '')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].state).toBe('MA')
+    expect(rows[0].employer).toBe('Metri BWI, LLC')
+    expect(rows[0].employees).toBe(25)
+    expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2026-09-09')
+    expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-10-31')
+  })
+
+  it('keeps the Wisconsin NAICS description without pretending it is a code', () => {
+    const html = `<table>
+      <tr><th>Company</th><th>City</th><th>Affected Workers</th><th>Notice Received</th><th>Original Notice Type</th><th>Layoff Begin Date</th><th>NAICS Description</th></tr>
+      <tr><td>Sparhawk Trucking Inc.</td><td>Wisconsin Rapids</td><td>Unknown</td><td>5/29/2026</td><td>Unknown</td><td>Unknown</td><td>General Freight Trucking</td></tr>
+    </table>`
+    const [row] = makeTableParser(spec('WI'))(buf(html), '')
+    expect(row.employer).toBe('Sparhawk Trucking Inc.')
+    // "Unknown" is not a headcount, and must not become one.
+    expect(row.employees).toBeNull()
+    expect(row.industry).toBe('General Freight Trucking')
+    // No sector code, so it cannot pass the knowledge-work filter on its own.
+    expect(isKnowledgeSector(row.industry)).toBe(false)
+  })
+})
+
+describe('New Jersey', () => {
+  it('rebuilds a notice date from the month column and the sheet year', () => {
+    const rows = parseNewJerseyWarn([
+      { name: '2026 WARN Notices', rows: [
+        ['Company', 'City', 'Month Posted', 'Effective Date', 'Workforce Affected'],
+        ['The Fresh Market', 'Montvale', 'January', '4/12/26', '55'],
+      ] },
+      { name: '2025 WARN Notices', rows: [
+        ['Company', 'City', 'Month Posted', 'Effective Date', 'Workforce Affected'],
+        ['Older Co', 'Newark', 'March', '5/1/25', '80'],
+      ] },
+    ])
+    // Only the newest sheet is read.
+    expect(rows).toHaveLength(1)
+    expect(rows[0].employer).toBe('The Fresh Market')
+    expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2026-01-01')
+    expect(rows[0].employees).toBe(55)
+  })
+
+  it('takes the first date when the effective date is a range', () => {
+    const [row] = parseNewJerseyWarn([
+      { name: '2026 WARN Notices', rows: [
+        ['Company', 'City', 'Month Posted', 'Effective Date', 'Workforce Affected'],
+        ['Lifetime Brands', 'Robbinsville', 'January', '4/10/26 - 11/26/26', '140'],
+      ] },
+    ])
+    expect(row.effectiveDate?.toISOString().slice(0, 10)).toBe('2026-04-10')
   })
 })

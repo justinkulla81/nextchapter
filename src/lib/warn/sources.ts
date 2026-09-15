@@ -230,7 +230,18 @@ const TABLE_URLS: Record<string, string | (() => string)> = {
 /** Only Florida and Maryland publish a sector; the rest stage for review. */
 const TABLE_HAS_INDUSTRY = new Set(['FL', 'MD'])
 
-const TABLE_SOURCES: WarnSource[] = TABLE_SPECS.map((spec) => ({
+/**
+ * States whose page is only readable after JavaScript runs, or that refuse
+ * scripted requests outright. They are not fetched here — the weekly browser
+ * job renders them and posts the HTML to /api/admin/warn/import-html, which
+ * runs the same column-mapped parser these sources use.
+ */
+export const RENDERED_STATES: Record<string, string> = {
+  MA: 'https://www.mass.gov/info-details/worker-adjustment-and-retraining-notification-act-warn-layoff-and-closure-updates',
+  WI: 'https://dwd.wisconsin.gov/dislocatedworker/warn/',
+}
+
+const TABLE_SOURCES: WarnSource[] = TABLE_SPECS.filter((spec) => !(spec.state in RENDERED_STATES)).map((spec) => ({
   state: spec.state,
   url: TABLE_URLS[spec.state],
   format: 'html' as const,

@@ -58,6 +58,20 @@ export const TABLE_SPECS: TableSpec[] = [
     employer: ['Company'], noticeDate: ['Date Received'], employees: ['Employees Affected'], location: ['Location'],
   },
   {
+    // Rendered by the browser job: mass.gov returns 403 to every scripted
+    // request, its CSV included, but serves a real browser normally.
+    state: 'MA',
+    employer: ['Employer'], noticeDate: ['Received'], effectiveDate: ['Date(s) of Layoffs', 'Date of Layoffs'],
+    employees: ['# Employees Impacted', 'Employees Impacted'], location: ['City/Town', 'City'],
+  },
+  {
+    // Rendered by the browser job: the list is built client-side.
+    state: 'WI',
+    employer: ['Company'], noticeDate: ['Notice Received'], effectiveDate: ['Layoff Begin Date'],
+    employees: ['Affected Workers'], industry: ['NAICS Description'], location: ['City'],
+    layoffType: ['Original Notice Type'],
+  },
+  {
     state: 'UT',
     employer: ['Company Name'], noticeDate: ['Date of Notice'], employees: ['Affected Workers'], location: ['Location'],
   },

@@ -2,8 +2,9 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
-import { WARN_SOURCES, WARN_USER_AGENT, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
+import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
 import { toWarnRows, type LayoffsFyiRow } from './layoffs'
+import { TABLE_SPECS, makeTableParser } from './states'
 
 /** Recorded as the "state" on sync runs so the tracker shows up in history. */
 export const LAYOFFS_FYI_SOURCE = 'layoffs.fyi'
@@ -294,4 +295,48 @@ export async function recordLayoffsRun(totals: {
       error: totals.error ?? null,
     },
   })
+}
+
+/**
+ * Imports a WARN page that the weekly browser job rendered.
+ *
+ * Identical to a server-fetched state once the HTML is in hand — same column
+ * mapping, same recency cutoff, same promotion rule. Only the fetching differs,
+ * because these states either build their list client-side or refuse scripted
+ * requests outright.
+ */
+export async function importRenderedState(state: string, html: string): Promise<WarnSyncResult> {
+  const spec = TABLE_SPECS.find((s) => s.state === state)
+  const result: WarnSyncResult = {
+    state, fetched: 0, created: 0, promoted: 0,
+    skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0,
+  }
+  if (!spec) return { ...result, error: 'no_spec' }
+
+  const run = await prisma.warnSyncRun.create({ data: { state } })
+  const url = RENDERED_STATES[state] ?? ''
+
+  try {
+    const rows = makeTableParser(spec)(Buffer.from(html, 'utf8'), url)
+    result.fetched = rows.length
+    if (!rows.length) throw new Error(`${state}: rendered page produced no rows — its table has changed`)
+
+    const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+    for (const row of rows) {
+      if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
+      if (await stageNotice(row, url)) result.created++
+      // Neither rendered state publishes a sector code, so both wait for review.
+      result.needsReview++
+    }
+
+    await prisma.warnSyncRun.update({
+      where: { id: run.id },
+      data: { finishedAt: new Date(), fetched: result.fetched, created: result.created, promoted: result.promoted },
+    })
+    return result
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e)
+    await prisma.warnSyncRun.update({ where: { id: run.id }, data: { finishedAt: new Date(), error: message } })
+    return { ...result, error: message }
+  }
 }

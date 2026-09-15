@@ -1,0 +1,46 @@
+# Weekly import of the WARN sources that need a real browser.
+#
+# This runs here rather than on the Vercel cron because a serverless function
+# has no browser. Two things need one: the layoffs.fyi tracker, which serves
+# its data only to its own rendered embed, and the states that either build
+# their list client-side or refuse scripted requests (mass.gov returns 403 to
+# everything that is not a browser). Every other state still syncs on Vercel.
+name: Browser WARN sync
+
+on:
+  schedule:
+    # Mondays at 08:00 UTC, an hour after the state WARN sync, so the two do
+    # not compete for the same rows.
+    - cron: '0 8 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Import layoffs.fyi
+        env:
+          NEXTCHAPTER_URL: ${{ secrets.NEXTCHAPTER_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: npx tsx scripts/layoffsfyi/fetch.ts
+
+      - name: Import browser-only states
+        # Runs even if the tracker failed; the two are independent sources.
+        if: always()
+        env:
+          NEXTCHAPTER_URL: ${{ secrets.NEXTCHAPTER_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: npx tsx scripts/warn/render-states.ts
