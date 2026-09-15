@@ -11,12 +11,16 @@ const ORG_NOISE = new Set([
   'none', 'not named', 'not listed (public)', 'not listed', 'independent',
   'self-employed', 'self employed', 'freelance', 'various', 'stealth',
   'stealth startup', 'stealth mode', 'multiple organizations', 'n/a', 'na',
-  'unknown', 'confidential', 'retired', 'unemployed', 'private', '—', '-',
+  'unknown', 'confidential', 'retired', 'unemployed', 'entrepreneur',
+  'founder', 'private', '—', '-',
 ])
 
 export function isRealOrgName(v: string | null | undefined): v is string {
   if (!v) return false
-  const s = v.trim().toLowerCase()
+  // The People page's organization datalist offers "- Unemployed" /
+  // "- Entrepreneur" as quick picks — the leading "- " is just a visual
+  // marker in the dropdown, not part of the value these should match.
+  const s = v.trim().replace(/^-+\s*/, '').toLowerCase()
   if (!s) return false
   return !ORG_NOISE.has(s)
 }

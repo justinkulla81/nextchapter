@@ -124,6 +124,8 @@ export default async function CrmPeoplePage({
     <div className="space-y-6">
       <CrmPeekPanel />
       <datalist id="crm-org-names">
+        <option value="- Unemployed" />
+        <option value="- Entrepreneur" />
         {orgNames.map((o) => <option key={o.name} value={o.name} />)}
       </datalist>
       <header className="flex flex-wrap items-start justify-between gap-3">
