@@ -46,13 +46,14 @@ export interface QuickAddResult {
   candidates?: QuickAddCandidate[]
   /** Echoed back so the confirm step can re-submit the original input. */
   input?: string
-  role?: string | null
+  roles?: string[]
 }
 
 async function candidatesFor(name: string, excludeId?: string): Promise<QuickAddCandidate[]> {
   const rows = await prisma.crmPerson.findMany({
     where: {
       fullName: { equals: name, mode: 'insensitive' },
+      deletedAt: null,
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
     take: 5,
@@ -92,7 +93,7 @@ async function resolveInput(raw: string) {
   return { slug, match, fullName }
 }
 
-async function createPerson(raw: string, role: CrmPersonRole | null, adminEmail: string): Promise<QuickAddResult> {
+async function createPerson(raw: string, roles: CrmPersonRole[], adminEmail: string): Promise<QuickAddResult> {
   const { slug, match, fullName } = await resolveInput(raw)
   if (!fullName) return { status: 'error', message: "Couldn't work out a name from that. Try typing the name instead." }
 
@@ -122,7 +123,7 @@ async function createPerson(raw: string, role: CrmPersonRole | null, adminEmail:
       email: match?.email ?? null,
       emails: match?.email ? [match.email] : [],
       normalizedKey: nameKeyOf(fullName, orgKey),
-      roles: role ? [role] : [],
+      roles,
       connectedAt: match?.connectedOn ?? null,
       needsCompletion: !match?.position || !orgId,
     },
@@ -134,7 +135,7 @@ async function createPerson(raw: string, role: CrmPersonRole | null, adminEmail:
     data: { sourceFile: 'QUICK_ADD', rawJson: { input: raw, prefilled: Boolean(match) }, personId: person.id, matchTier: 'CREATE' },
   })
   captureServerEvent(adminEmail, 'crm_person_quick_added', {
-    personId: person.id, prefilled: Boolean(match), hadSlug: Boolean(slug), role: role ?? null,
+    personId: person.id, prefilled: Boolean(match), hadSlug: Boolean(slug), roles,
   })
   revalidatePath(CRM)
   return {
@@ -168,18 +169,23 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
   const raw = String(formData.get('input') ?? '').trim()
   if (!raw) return { status: 'error', message: 'Enter a name or a LinkedIn URL.' }
 
-  const roleRaw = String(formData.get('role') ?? '').trim()
-  const role = roleRaw ? (roleRaw as CrmPersonRole) : null
+  const roles = formData.getAll('roles').map(String).filter(Boolean) as CrmPersonRole[]
 
   const { slug, match, fullName } = await resolveInput(raw)
   if (!fullName) return { status: 'error', message: "Couldn't work out a name from that. Try typing the name instead." }
 
-  // Definitive identifiers — same person, no question to ask.
+  // Definitive identifiers — same person, no question to ask. A deleted
+  // match falls through to create-a-new-person below rather than silently
+  // reviving the old row, same "skip, don't resurrect" rule as CSV import.
   if (slug) {
     const bySlug = await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug } })
+    if (bySlug && bySlug.deletedAt) {
+      return { status: 'error', message: `${bySlug.fullName} was previously removed from the Ecosystem. Restore them from a full backup if that was a mistake — this won't recreate them.` }
+    }
     if (bySlug) {
-      if (role && !bySlug.roles.includes(role)) {
-        await prisma.crmPerson.update({ where: { id: bySlug.id }, data: { roles: { push: role } } })
+      const missing = roles.filter((r) => !bySlug.roles.includes(r))
+      if (missing.length > 0) {
+        await prisma.crmPerson.update({ where: { id: bySlug.id }, data: { roles: { push: missing } } })
       }
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: bySlug.id, on: 'slug' })
       revalidatePath(CRM)
@@ -188,6 +194,9 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
   }
   if (match?.email) {
     const byEmail = await prisma.crmPerson.findFirst({ where: { email: match.email } })
+    if (byEmail?.deletedAt) {
+      return { status: 'error', message: `${byEmail.fullName} was previously removed from the Ecosystem. Restore them from a full backup if that was a mistake — this won't recreate them.` }
+    }
     if (byEmail) {
       captureServerEvent(adminEmail, 'crm_quick_add_matched', { personId: byEmail.id, on: 'email' })
       revalidatePath(CRM)
@@ -203,14 +212,14 @@ export async function quickAddPerson(_prev: unknown, formData: FormData): Promis
       status: 'ambiguous',
       candidates: near,
       input: raw,
-      role: roleRaw || null,
+      roles,
       message: near.length === 1
         ? `There's already a ${fullName} in the CRM. Merge into that record, or add a separate person?`
         : `There are ${near.length} people called ${fullName}. Merge into one, or add a separate person?`,
     }
   }
 
-  return createPerson(raw, role, adminEmail)
+  return createPerson(raw, roles, adminEmail)
 }
 
 /** Chosen from the ambiguity prompt: fold the new details into an existing record. */
@@ -219,11 +228,12 @@ export async function mergeIntoExisting(_prev: unknown, formData: FormData): Pro
   const adminEmail = admin.email ?? 'admin'
   const targetId = String(formData.get('targetId') ?? '')
   const raw = String(formData.get('input') ?? '').trim()
-  const roleRaw = String(formData.get('role') ?? '').trim()
+  const roles = formData.getAll('roles').map(String).filter(Boolean) as CrmPersonRole[]
   if (!targetId) return { status: 'error', message: 'Pick a record to merge into.' }
 
   const { slug, match } = await resolveInput(raw)
   const target = await prisma.crmPerson.findUniqueOrThrow({ where: { id: targetId } })
+  const missingRoles = roles.filter((r) => !target.roles.includes(r))
 
   await prisma.crmPerson.update({
     where: { id: targetId },
@@ -232,9 +242,7 @@ export async function mergeIntoExisting(_prev: unknown, formData: FormData): Pro
       linkedinUrl: target.linkedinUrl ?? (slug ? `https://www.linkedin.com/in/${slug}` : null),
       email: target.email ?? match?.email ?? null,
       connectedAt: target.connectedAt ?? match?.connectedOn ?? null,
-      ...(roleRaw && !target.roles.includes(roleRaw as CrmPersonRole)
-        ? { roles: { push: roleRaw as CrmPersonRole } }
-        : {}),
+      ...(missingRoles.length > 0 ? { roles: { push: missingRoles } } : {}),
     },
   })
   await prisma.crmActivity.create({
@@ -252,8 +260,8 @@ export async function mergeIntoExisting(_prev: unknown, formData: FormData): Pro
 export async function createAnyway(_prev: unknown, formData: FormData): Promise<QuickAddResult> {
   const admin = await requireAdmin()
   const raw = String(formData.get('input') ?? '').trim()
-  const roleRaw = String(formData.get('role') ?? '').trim()
-  return createPerson(raw, roleRaw ? (roleRaw as CrmPersonRole) : null, admin.email ?? 'admin')
+  const roles = formData.getAll('roles').map(String).filter(Boolean) as CrmPersonRole[]
+  return createPerson(raw, roles, admin.email ?? 'admin')
 }
 
 /**
@@ -325,6 +333,45 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
   revalidatePath(`${CRM}/people/${personId}`)
 }
 
+/** Inline edit of a person's primary organization from a list row. */
+export async function updatePersonPrimaryOrg(personId: string, orgNameRaw: string) {
+  const admin = await requireAdmin()
+  const orgName = orgNameRaw.trim()
+
+  let orgId: string | null = null
+  if (isRealOrgName(orgName)) {
+    const key = normalizeOrgName(orgName)
+    if (key) {
+      const org = await prisma.crmOrganization.upsert({
+        where: { canonicalNameNormalized: key },
+        create: { name: orgName, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
+        update: {},
+      })
+      orgId = org.id
+    }
+  }
+
+  const existing = await prisma.crmAffiliation.findFirst({ where: { personId, isPrimary: true } })
+  if (orgId) {
+    if (existing) await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { orgId } })
+    else await prisma.crmAffiliation.create({ data: { personId, orgId, isPrimary: true } })
+  } else if (existing) {
+    // Cleared the field — remove the primary affiliation rather than leaving
+    // a row that points nowhere.
+    await prisma.crmAffiliation.delete({ where: { id: existing.id } })
+  }
+
+  await prisma.crmActivity.create({
+    data: {
+      type: 'FIELD_CHANGED', direction: 'INTERNAL', personId,
+      subject: 'organization changed', body: orgName || '(cleared)', loggedByEmail: admin.email ?? null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_field_edited', { personId, field: 'organization', surface: 'inline' })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
 /** Set roles on one person (multi-select). */
 export async function updatePersonRoles(personId: string, formData: FormData) {
   const admin = await requireAdmin()
@@ -392,12 +439,14 @@ export async function bulkUpdatePeople(formData: FormData) {
 }
 
 /**
- * Deletes the selected people.
- *
- * Destructive and irreversible, so it is confirmed in the UI before it runs
- * and never the default focus, per design-principles.md. Deliberately refuses
- * anyone already converted into a production record — deleting the CRM row for
- * a live coach would orphan their history for no gain.
+ * Removes the selected people from every list — a soft delete, not a real
+ * one. The row and its history stay (a hard delete would orphan any activity
+ * or affiliation pointing at it for no gain), but it stops showing up
+ * anywhere, and re-uploading an old export must never resurrect it (see
+ * previewImport's 'deleted' action). Confirmed in the UI before it runs and
+ * never the default focus, per design-principles.md. Deliberately refuses
+ * anyone already converted into a production record — hiding the CRM row for
+ * a live coach would just be confusing, not useful.
  */
 export async function bulkDeletePeople(formData: FormData): Promise<{ deleted: number; skipped: number }> {
   const admin = await requireAdmin()
@@ -412,7 +461,7 @@ export async function bulkDeletePeople(formData: FormData): Promise<{ deleted: n
   const skipped = rows.length - safe.length
 
   if (safe.length > 0) {
-    await prisma.crmPerson.deleteMany({ where: { id: { in: safe } } })
+    await prisma.crmPerson.updateMany({ where: { id: { in: safe } }, data: { deletedAt: new Date() } })
   }
   captureServerEvent(admin.email ?? 'admin', 'crm_bulk_deleted', { deleted: safe.length, skipped })
   revalidatePath(CRM)

@@ -85,22 +85,23 @@ export function CrmBulkBar({ children, count }: { children: React.ReactNode; cou
             ) : (
               <>
                 <span className="text-xs font-medium text-destructive">
-                  Delete {selected} {selected === 1 ? 'person' : 'people'} permanently? Their history goes too.
+                  Remove {selected} {selected === 1 ? 'person' : 'people'}? They&apos;ll stop showing up anywhere,
+                  and re-uploading old data won&apos;t bring them back.
                 </span>
                 <SubmitButton
                   formAction={async (fd: FormData) => {
                     const r = await bulkDeletePeople(fd)
                     setResult(
                       r.skipped > 0
-                        ? `Deleted ${r.deleted}. Kept ${r.skipped} already converted to a coach, recruiter or candidate.`
-                        : `Deleted ${r.deleted}.`
+                        ? `Removed ${r.deleted}. Kept ${r.skipped} already converted to a coach, recruiter or candidate.`
+                        : `Removed ${r.deleted}.`
                     )
                     setConfirmingDelete(false)
                   }}
                   size="sm"
-                  pendingLabel="Deleting…"
+                  pendingLabel="Removing…"
                 >
-                  Yes, delete
+                  Yes, remove
                 </SubmitButton>
                 <button
                   type="button"

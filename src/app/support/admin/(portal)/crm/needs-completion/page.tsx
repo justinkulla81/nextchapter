@@ -22,9 +22,9 @@ export default async function CrmNeedsCompletionPage({
   const perPage = readPageSize(sp.per)
 
   const [total, rows] = await Promise.all([
-    prisma.crmPerson.count({ where: { needsCompletion: true } }),
+    prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
     prisma.crmPerson.findMany({
-      where: { needsCompletion: true },
+      where: { needsCompletion: true, deletedAt: null },
       orderBy: [{ leadQuality: 'asc' }, { fullName: 'asc' }],
       skip: (page - 1) * perPage,
       take: perPage,

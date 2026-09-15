@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
     ...(warmth ? { warmth: warmth as CrmWarmth } : {}),
     ...(touched === 'never' ? { lastTouchedAt: null } : {}),
     ...(touched === 'ever' ? { lastTouchedAt: { not: null } } : {}),
+    deletedAt: null,
   }
 
   const rows = await prisma.crmPerson.findMany({

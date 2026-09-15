@@ -43,15 +43,15 @@ export function CrmQuickAdd() {
         </div>
         <div>
           <label htmlFor="crm-quick-role" className="mb-1 block text-sm font-medium">
-            Contact type <span className="font-normal text-muted-foreground">(optional)</span>
+            Contact type(s) <span className="font-normal text-muted-foreground">(optional, pick several)</span>
           </label>
           <select
             id="crm-quick-role"
-            name="role"
-            defaultValue=""
-            className="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+            name="roles"
+            multiple
+            size={3}
+            className="min-w-40 rounded-md border border-input bg-transparent px-2 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
           >
-            <option value="">Decide later</option>
             {PERSON_ROLES.map((r) => (
               <option key={r} value={r}>{PERSON_ROLE_LABELS[r]}</option>
             ))}
@@ -140,12 +140,12 @@ function DuplicatePrompt({
         <form action={mergeAction}>
           <input type="hidden" name="targetId" value={target} />
           <input type="hidden" name="input" value={result.input ?? ''} />
-          <input type="hidden" name="role" value={result.role ?? ''} />
+          {result.roles?.map((r) => <input key={r} type="hidden" name="roles" value={r} />)}
           <SubmitButton pendingLabel="Merging…">Merge into selected</SubmitButton>
         </form>
         <form action={createAction}>
           <input type="hidden" name="input" value={result.input ?? ''} />
-          <input type="hidden" name="role" value={result.role ?? ''} />
+          {result.roles?.map((r) => <input key={r} type="hidden" name="roles" value={r} />)}
           <SubmitButton variant="outline" pendingLabel="Adding…">
             Add as a separate person
           </SubmitButton>

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
 
   const people = await prisma.crmPerson.findMany({
     where: {
+      deletedAt: null,
       ...(exclude ? { id: { not: exclude } } : {}),
       OR: [
         { fullName: { contains: q, mode: 'insensitive' } },

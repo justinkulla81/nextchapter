@@ -67,6 +67,9 @@ export function CrmImportForm() {
           <li><strong className="text-foreground">{counts?.create ?? 0}</strong> new people</li>
           <li><strong className="text-foreground">{counts?.update ?? 0}</strong> matched existing records</li>
           <li><strong className="text-foreground">{counts?.confirm ?? 0}</strong> need your decision</li>
+          {counts && counts.deleted > 0 && (
+            <li><strong className="text-foreground">{counts.deleted}</strong> previously deleted — will be skipped</li>
+          )}
         </ul>
       </div>
 
@@ -125,6 +128,11 @@ export function CrmImportForm() {
                     {p.action === 'create' && 'Add as new'}
                     {p.action === 'update' && `Update existing (matched on ${p.matchedOn})`}
                     {p.action === 'confirm' && <span className="text-orange">Needs your decision</span>}
+                    {p.action === 'deleted' && (
+                      <span className="text-muted-foreground" title={`Matched ${p.matchedName} on ${p.matchedOn}, but that record was deleted`}>
+                        Skipped — previously deleted
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -28,7 +28,7 @@ export default async function CrmPeopleQueuePage() {
 
   const [promisedRaw, overdueStepsRaw, chroRaw, neverTouchedRaw] = await Promise.all([
     prisma.crmOpportunity.findMany({
-      where: { outcome: 'OPEN', committedFollowUpAt: { lt: now }, primaryPersonId: { not: null } },
+      where: { outcome: 'OPEN', committedFollowUpAt: { lt: now }, primaryPersonId: { not: null }, primaryPerson: { deletedAt: null } },
       orderBy: { committedFollowUpAt: 'asc' },
       take: 15 + FETCH_BUFFER,
       select: {
@@ -39,7 +39,7 @@ export default async function CrmPeopleQueuePage() {
       },
     }),
     prisma.crmOpportunity.findMany({
-      where: { outcome: 'OPEN', nextStepDueAt: { lt: now }, committedFollowUpAt: null, primaryPersonId: { not: null } },
+      where: { outcome: 'OPEN', nextStepDueAt: { lt: now }, committedFollowUpAt: null, primaryPersonId: { not: null }, primaryPerson: { deletedAt: null } },
       orderBy: [{ priorityScore: 'desc' }],
       take: 15 + FETCH_BUFFER,
       select: {
@@ -53,7 +53,7 @@ export default async function CrmPeopleQueuePage() {
     // its own (see Company.chroName / updateCompanyChroContact), most
     // valuable the moment they're captured and untouched.
     prisma.crmPerson.findMany({
-      where: { roles: { has: 'CHRO_HR' }, activities: { none: {} } },
+      where: { roles: { has: 'CHRO_HR' }, activities: { none: {} }, deletedAt: null },
       orderBy: { createdAt: 'desc' },
       take: 12 + FETCH_BUFFER,
       select: {
@@ -65,7 +65,7 @@ export default async function CrmPeopleQueuePage() {
       // CHRO_HR people have their own band above — excluded again here
       // rather than relying only on the JS filter below, so the fetch
       // buffer isn't spent on rows that will just get dropped.
-      where: { activities: { none: {} }, leadQuality: { in: ['A', 'B'] }, NOT: { roles: { has: 'CHRO_HR' } } },
+      where: { activities: { none: {} }, leadQuality: { in: ['A', 'B'] }, NOT: { roles: { has: 'CHRO_HR' } }, deletedAt: null },
       orderBy: { priorityScore: 'desc' },
       take: 12 + FETCH_BUFFER,
       select: {

@@ -6,6 +6,8 @@ import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
 import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
+import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
+import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmContactCell } from '@/components/admin/CrmContactCell'
@@ -64,6 +66,7 @@ export default async function CrmPeoplePage({
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
 
   const where: Prisma.CrmPersonWhereInput = {
+    deletedAt: null,
     ...(q
       ? {
           OR: [
@@ -85,7 +88,7 @@ export default async function CrmPeoplePage({
     ...(priority ? { priority: priority as CrmPriorityTier } : {}),
   }
 
-  const [total, rows, needsCompletion] = await Promise.all([
+  const [total, rows, needsCompletion, orgNames] = await Promise.all([
     prisma.crmPerson.count({ where }),
     prisma.crmPerson.findMany({
       where,
@@ -101,7 +104,8 @@ export default async function CrmPeoplePage({
         },
       },
     }),
-    prisma.crmPerson.count({ where: { needsCompletion: true } }),
+    prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
+    prisma.crmOrganization.findMany({ select: { name: true }, orderBy: { name: 'asc' }, take: 5000 }),
   ])
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
@@ -119,6 +123,9 @@ export default async function CrmPeoplePage({
   return (
     <div className="space-y-6">
       <CrmPeekPanel />
+      <datalist id="crm-org-names">
+        {orgNames.map((o) => <option key={o.name} value={o.name} />)}
+      </datalist>
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">NextChapter Ecosystem</h1>
@@ -257,24 +264,17 @@ export default async function CrmPeoplePage({
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      {p.affiliations[0]?.org ? (
-                        <CrmPeekButton id={p.affiliations[0].org.id} kind="org" className="text-left hover:underline focus-visible:ring-2 focus-visible:ring-brand">
-                          {p.affiliations[0].org.name}
-                        </CrmPeekButton>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        <CrmInlineOrgEdit personId={p.id} orgName={p.affiliations[0]?.org.name ?? null} />
+                        {p.affiliations[0]?.org && (
+                          <CrmPeekButton id={p.affiliations[0].org.id} kind="org" className="shrink-0 text-xs text-muted-foreground hover:underline focus-visible:ring-2 focus-visible:ring-brand">
+                            view
+                          </CrmPeekButton>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-2">
-                      {p.roles.length > 0 ? (
-                        <span className="flex flex-wrap gap-1">
-                          {p.roles.map((r) => (
-                            <span key={r} className="rounded-full bg-muted px-2 py-0.5 text-xs">{PERSON_ROLE_LABELS[r]}</span>
-                          ))}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Not set</span>
-                      )}
+                      <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
                     </td>
                     <td className="px-3 py-2">
                       {p.goals.length > 0 ? (

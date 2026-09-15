@@ -51,7 +51,7 @@ export interface ImportRowPlan {
   email: string | null
   phone: string | null
   linkedinUrl: string | null
-  action: 'create' | 'update' | 'confirm'
+  action: 'create' | 'update' | 'confirm' | 'deleted'
   matchedOn: string | null
   matchedId: string | null
   matchedName: string | null
@@ -63,7 +63,7 @@ export interface ImportPreview {
   fileName?: string
   headers?: string[]
   plan?: ImportRowPlan[]
-  counts?: { create: number; update: number; confirm: number }
+  counts?: { create: number; update: number; confirm: number; deleted: number }
   payload?: string
 }
 
@@ -118,25 +118,28 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
     let matched: { id: string; fullName: string } | null = null
 
     if (slug) {
-      const hit = await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug }, select: { id: true, fullName: true } })
-      if (hit) { action = 'update'; matchedOn = 'LinkedIn URL'; matched = hit }
+      const hit = await prisma.crmPerson.findUnique({ where: { linkedinSlug: slug }, select: { id: true, fullName: true, deletedAt: true } })
+      if (hit) { action = hit.deletedAt ? 'deleted' : 'update'; matchedOn = 'LinkedIn URL'; matched = hit }
     }
     if (!matched && email) {
-      const hit = await prisma.crmPerson.findFirst({ where: { email }, select: { id: true, fullName: true } })
-      if (hit) { action = 'update'; matchedOn = 'email'; matched = hit }
+      const hit = await prisma.crmPerson.findFirst({ where: { email }, select: { id: true, fullName: true, deletedAt: true } })
+      if (hit) { action = hit.deletedAt ? 'deleted' : 'update'; matchedOn = 'email'; matched = hit }
     }
     if (!matched && isRealOrgName(company)) {
       const key = normalizeOrgName(company)
       const nk = `${name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim()}|${key}`
-      const hit = await prisma.crmPerson.findFirst({ where: { normalizedKey: nk }, select: { id: true, fullName: true } })
-      if (hit) { action = 'update'; matchedOn = 'name + company'; matched = hit }
+      const hit = await prisma.crmPerson.findFirst({ where: { normalizedKey: nk }, select: { id: true, fullName: true, deletedAt: true } })
+      if (hit) { action = hit.deletedAt ? 'deleted' : 'update'; matchedOn = 'name + company'; matched = hit }
     }
     if (!matched) {
       const hit = await prisma.crmPerson.findFirst({
         where: { fullName: { equals: name, mode: 'insensitive' } },
-        select: { id: true, fullName: true },
+        select: { id: true, fullName: true, deletedAt: true },
       })
-      if (hit) { action = 'confirm'; matchedOn = 'name only'; matched = hit }
+      // A deleted person matched only by name is still a real signal not to
+      // silently create a duplicate — same "skip, don't resurrect" rule as
+      // the stronger identifiers above, just via the weaker match tier.
+      if (hit) { action = hit.deletedAt ? 'deleted' : 'confirm'; matchedOn = 'name only'; matched = hit }
     }
 
     plan.push({
@@ -149,6 +152,7 @@ export async function previewImport(_prev: unknown, formData: FormData): Promise
     create: plan.filter((p) => p.action === 'create').length,
     update: plan.filter((p) => p.action === 'update').length,
     confirm: plan.filter((p) => p.action === 'confirm').length,
+    deleted: plan.filter((p) => p.action === 'deleted').length,
   }
 
   return {
@@ -183,6 +187,9 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
   let created = 0, updated = 0, skipped = 0
 
   for (const row of plan) {
+    // A previously-deleted person is never resurrected by a re-upload — no
+    // decision is offered for this on the preview screen, it always skips.
+    if (row.action === 'deleted') { skipped++; continue }
     const decision = row.action === 'confirm' ? decisions.get(row.index) ?? 'skip' : row.action
     if (decision === 'skip') { skipped++; continue }
 
