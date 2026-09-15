@@ -63,3 +63,19 @@ describe('labelledNumber', () => {
     expect(labelledNumber('Number of Affected Workers: many', 'Number of Affected Workers')).toBeNull()
   })
 })
+
+describe('control characters', () => {
+  it('strips the NUL bytes that font streams decode into', () => {
+    // A single NUL reaching Postgres fails the insert for the whole row with
+    // "invalid byte sequence for encoding UTF8", which is how the first
+    // Mississippi sync died partway through.
+    const text = pdfText(makePdf('BT (Acme\\000Corp) Tj ET'))
+    expect(/[\u0000-\u0008]/.test(text)).toBe(false)
+    expect(text).toContain('Acme')
+    expect(text).toContain('Corp')
+  })
+
+  it('keeps ordinary whitespace', () => {
+    expect(pdfText(makePdf('BT (a b) Tj ET'))).toContain('a b')
+  })
+})

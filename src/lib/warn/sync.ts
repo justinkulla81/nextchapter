@@ -103,6 +103,17 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
   }
 }
 
+/**
+ * Strips characters Postgres will not accept in a text column.
+ *
+ * PDF-derived text is the reason this exists — a single NUL byte fails the
+ * insert for the whole row — but it guards every source.
+ */
+function clean<T extends string | null>(value: T): T {
+  if (typeof value !== 'string') return value
+  return (value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim() || null) as T
+}
+
 /** Records the filing. Returns true when it is new. */
 async function stageNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
   const existing = await prisma.warnNotice.findFirst({
@@ -115,10 +126,10 @@ async function stageNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
   if (existing) return false
   await prisma.warnNotice.create({
     data: {
-      state: row.state, employer: row.employer, normalizedEmployer: row.normalizedEmployer,
+      state: row.state, employer: clean(row.employer), normalizedEmployer: row.normalizedEmployer,
       noticeDate: row.noticeDate, effectiveDate: row.effectiveDate, employees: row.employees,
-      layoffType: row.layoffType, county: row.county, address: row.address,
-      industry: row.industry, sourceUrl,
+      layoffType: clean(row.layoffType), county: clean(row.county), address: clean(row.address),
+      industry: clean(row.industry), sourceUrl,
     },
   })
   return true

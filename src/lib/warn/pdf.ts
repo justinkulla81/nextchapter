@@ -71,7 +71,12 @@ export function pdfText(buf: Buffer): string {
       i++
     }
   }
-  return out.join('')
+
+  // Font and image streams decode to bytes that are not text, and a NUL byte
+  // reaching Postgres fails the whole insert with "invalid byte sequence for
+  // encoding UTF8". Control characters are stripped here rather than at each
+  // call site so no caller can forget.
+  return out.join('').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
 }
 
 /** Inflates every stream object; skips the ones that are not deflate. */
