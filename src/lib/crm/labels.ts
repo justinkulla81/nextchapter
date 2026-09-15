@@ -67,7 +67,7 @@ export const ELIGIBILITY_LABELS: Record<CrmEligibility, string> = {
 export const PRIORITY_TIER_LABELS: Record<CrmPriorityTier, string> = {
   P0: 'P0 — Immediate',
   P1: 'P1 — High',
-  P2: 'P2 — Important, not urgent',
+  P2: 'P2 — Not urgent',
 }
 
 export const PERSON_ROLES = Object.keys(PERSON_ROLE_LABELS) as CrmPersonRole[]

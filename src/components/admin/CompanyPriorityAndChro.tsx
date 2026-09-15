@@ -5,6 +5,7 @@ import {
   setCompanyPriority,
   updateCompanyChroContact,
 } from '@/app/support/admin/(portal)/crm/warn/actions'
+import { PRIORITY_TIERS, PRIORITY_TIER_LABELS } from '@/lib/crm/labels'
 
 export function CompanyPriorityAndChro({
   companyId,
@@ -40,9 +41,7 @@ export function CompanyPriorityAndChro({
         className={`h-6 rounded border border-input bg-transparent px-1 text-xs ${pending ? 'cursor-progress opacity-60' : ''} ${tier === 'P0' ? 'text-destructive' : tier === 'P1' ? 'text-orange' : 'text-muted-foreground'}`}
       >
         <option value="">No priority</option>
-        <option value="P0">P0 — Immediate</option>
-        <option value="P1">P1 — High</option>
-        <option value="P2">P2 — Important, not urgent</option>
+        {PRIORITY_TIERS.map((t) => <option key={t} value={t}>{PRIORITY_TIER_LABELS[t]}</option>)}
       </select>
 
       {!editingChro && (

@@ -247,15 +247,17 @@ export default async function CrmPeoplePage({
                     <td className="px-3 py-2">
                       <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
                     </td>
-                    <td className="px-3 py-2">
-                      <span className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-xs font-semibold ${priorityTierClass(p.priority)}`}>
-                        {p.priority ?? '—'}
+                    <td className="whitespace-nowrap px-3 py-2">
+                      <span className="flex items-center gap-1.5">
+                        <span className={`inline-block rounded px-1.5 py-0.5 text-xs font-semibold ${priorityTierClass(p.priority)}`}>
+                          {p.priority ?? '—'}
+                        </span>
+                        <CrmInlineSelect
+                          personId={p.id} field="priority" value={p.priority ?? ''}
+                          label={`Priority for ${p.fullName}`}
+                          options={[{ value: '', label: 'No priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: PRIORITY_TIER_LABELS[t] }))]}
+                        />
                       </span>
-                      <CrmInlineSelect
-                        personId={p.id} field="priority" value={p.priority ?? ''}
-                        label={`Priority for ${p.fullName}`}
-                        options={[{ value: '', label: 'None' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: PRIORITY_TIER_LABELS[t] }))]}
-                      />
                     </td>
                     <td className="px-3 py-2">
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>

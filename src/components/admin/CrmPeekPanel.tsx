@@ -270,7 +270,7 @@ function EditableFields({
       <label className="text-xs text-muted-foreground">
         Priority
         <select defaultValue={editable.priority ?? ''} onChange={(e) => save('priority', e.target.value)} className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-1 text-sm">
-          <option value="">None</option>
+          <option value="">No priority</option>
           {PRIORITY_TIERS.map((t) => <option key={t} value={t}>{PRIORITY_TIER_LABELS[t]}</option>)}
         </select>
       </label>

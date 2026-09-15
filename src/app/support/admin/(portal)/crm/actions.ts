@@ -74,8 +74,16 @@ async function candidatesFor(name: string, excludeId?: string): Promise<QuickAdd
 async function resolveInput(raw: string) {
   const slug = slugOf(raw)
   const match = slug ? await prisma.crmLinkedInConnection.findUnique({ where: { slug } }) : null
-  const slugDerivedName = slug
-    ? slug.replace(/-+\d*$/, '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  const withoutTrailingId = slug ? slug.replace(/-+\d*$/, '') : null
+  // A hyphen is the ONLY word-boundary signal a raw slug carries — LinkedIn
+  // slugs are always lowercase, so there is no capitalization to split on
+  // either. A slug like "jordanclemons" (the person picked a custom slug
+  // with no hyphen) title-cases to the single garbled word "Jordanclemons"
+  // with no way to know where "Jordan" ends and "Clemons" begins. Rather
+  // than silently writing that wrong name, this is treated as unparseable —
+  // same as no name at all, prompting for a typed name instead.
+  const slugDerivedName = withoutTrailingId && withoutTrailingId.includes('-')
+    ? withoutTrailingId.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
     : null
   // Real, confirmed bug: LinkedIn assigns purely-numeric-suffixed slugs to
   // confidential/placeholder-name profiles too (e.g. "candidate-123456789"),
