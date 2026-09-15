@@ -8468,6 +8468,13 @@ model CrmOrganization {
   priorityOverride   Int? // 0-100; wins over the computed score when set
   priorityComputedAt DateTime?
 
+  // "X" in the Outreach queue — hides this org from queue bands until a
+  // newer driving date (a fresher promise, deadline, or reminder) appears
+  // after this timestamp, at which point it resurfaces on its own. Separate
+  // from CrmPerson's own queueSnoozedAt: dismissing a company from the org
+  // queue must never also hide people who work there from the people queue.
+  queueSnoozedAt DateTime?
+
   // ── graduation links — production owns these records after conversion ──
   companyId String? // the shared Company table, for intel/signals/watchlist joins
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
@@ -8556,6 +8563,11 @@ model CrmPerson {
   /// being given points — a star that merely nudged a number would sometimes
   /// still be below the fold, which is the one thing a star must never do.
   isFlagged Boolean @default(false)
+
+  // "X" in the People queue — see CrmOrganization.queueSnoozedAt's comment;
+  // same mechanism, kept independent so dismissing a person never dismisses
+  // the company they work for, or vice versa.
+  queueSnoozedAt DateTime?
 
   // Derived from CrmActivity, never typed by hand. These four are exactly the
   // fields sitting empty in the source Networking CRM, where 3,529 of 3,551

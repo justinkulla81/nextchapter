@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { promoteWarnNoticeById, syncAllWarnStates } from '@/lib/warn/sync'
 import { matchOrCreateCompanyForEmployer } from '@/lib/warn/company-match'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { syncChroContactToCrm } from '@/lib/crm/chro-sync'
 
 const BASE = '/support/admin/crm/warn'
 
@@ -140,9 +141,11 @@ export async function updateCompanyChroContact(formData: FormData): Promise<{ me
       chroLinkedinUrl: chroLinkedinUrl || null,
     },
   })
+  if (chroName) await syncChroContactToCrm(companyId)
   captureServerEvent(admin.email ?? 'admin', 'warn_company_chro_contact_saved', { companyId })
   revalidatePath(BASE)
-  return { message: 'Saved.' }
+  revalidatePath('/support/admin/crm/queue/people')
+  return { message: chroName ? 'Saved — also added to the People queue.' : 'Saved.' }
 }
 
 /** Runs the sync now rather than waiting for Monday. */

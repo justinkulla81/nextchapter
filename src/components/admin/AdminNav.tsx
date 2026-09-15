@@ -67,6 +67,7 @@ function ecosystemSections(): NavSection[] {
       title: 'Work the list',
       links: [
         { href: '/support/admin/crm/queue', label: 'Queue' },
+        { href: '/support/admin/crm/queue/people', label: 'People queue' },
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },

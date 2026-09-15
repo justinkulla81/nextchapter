@@ -2,11 +2,23 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmDateCheckButton } from '@/components/admin/CrmDateCheckButton'
+import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
+import { QueueRowActions } from '@/components/admin/QueueRowActions'
 import { formatDate, sinceLabel, qualityClass } from '@/lib/crm/labels'
 
 export const maxDuration = 30
 
 const DAY = 86_400_000
+// Fetch a buffer beyond the display count so filtering out snoozed-and-still-
+// stale rows in JS (see isSnoozedStale below) doesn't leave a band short.
+const FETCH_BUFFER = 15
+
+/** True once a row should stay hidden: snoozed, and nothing newer has come up since. */
+function isSnoozedStale(queueSnoozedAt: Date | null, drivingAt: Date | null): boolean {
+  if (!queueSnoozedAt) return false
+  if (!drivingAt) return true
+  return queueSnoozedAt >= drivingAt
+}
 
 // The morning page. Promises rank above reminders, and both rank above
 // opportunity, because a broken commitment costs a relationship while a missed
@@ -16,24 +28,37 @@ export default async function CrmQueuePage() {
   const now = new Date()
   const in60 = new Date(now.getTime() + 60 * DAY)
 
-  const [promised, overdueSteps, upcoming, pastDue, neverTouched] = await Promise.all([
+  const [promisedRaw, overdueStepsRaw, upcoming, pastDue, neverTouchedRaw] = await Promise.all([
     prisma.crmOpportunity.findMany({
       where: { outcome: 'OPEN', committedFollowUpAt: { lt: now } },
       orderBy: { committedFollowUpAt: 'asc' },
+      take: 15 + FETCH_BUFFER,
       select: {
         id: true, title: true, committedFollowUpAt: true, committedTo: true, priorityScore: true,
         priorityOverride: true, leadQuality: true,
-        pipeline: { select: { label: true } }, org: { select: { id: true, name: true } },
+        pipeline: { select: { label: true } }, stage: { select: { label: true } },
+        org: {
+          select: {
+            id: true, name: true, queueSnoozedAt: true,
+            outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
+          },
+        },
       },
     }),
     prisma.crmOpportunity.findMany({
       where: { outcome: 'OPEN', nextStepDueAt: { lt: now }, committedFollowUpAt: null },
       orderBy: [{ priorityScore: 'desc' }],
-      take: 15,
+      take: 15 + FETCH_BUFFER,
       select: {
         id: true, title: true, nextStep: true, nextStepDueAt: true, priorityScore: true,
         priorityOverride: true, leadQuality: true,
-        pipeline: { select: { label: true } }, org: { select: { id: true, name: true } },
+        pipeline: { select: { label: true } }, stage: { select: { label: true } },
+        org: {
+          select: {
+            id: true, name: true, queueSnoozedAt: true,
+            outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
+          },
+        },
       },
     }),
     prisma.crmDeadline.findMany({
@@ -51,14 +76,15 @@ export default async function CrmQueuePage() {
     prisma.crmOpportunity.findMany({
       where: { outcome: 'OPEN', activities: { none: {} }, leadQuality: { in: ['A', 'B'] } },
       orderBy: { priorityScore: 'desc' },
-      take: 12,
+      take: 12 + FETCH_BUFFER,
       select: {
         id: true, title: true, priorityScore: true, priorityOverride: true, leadQuality: true,
         nextStep: true, createdAt: true,
-        pipeline: { select: { label: true } },
+        pipeline: { select: { label: true } }, stage: { select: { label: true } },
         org: {
           select: {
-            id: true, name: true,
+            id: true, name: true, queueSnoozedAt: true,
+            outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
             affiliations: { take: 3, select: { person: { select: { id: true, fullName: true, connectedAt: true } } } },
           },
         },
@@ -66,10 +92,21 @@ export default async function CrmQueuePage() {
     }),
   ])
 
+  const promised = promisedRaw.filter((o) => !isSnoozedStale(o.org?.queueSnoozedAt ?? null, o.committedFollowUpAt)).slice(0, 15)
+  const overdueSteps = overdueStepsRaw.filter((o) => !isSnoozedStale(o.org?.queueSnoozedAt ?? null, o.nextStepDueAt)).slice(0, 15)
+  const neverTouched = neverTouchedRaw.filter((o) => !isSnoozedStale(o.org?.queueSnoozedAt ?? null, o.createdAt)).slice(0, 12)
+
   const totalItems = promised.length + overdueSteps.length + upcoming.length + neverTouched.length
+
+  function outplacementDetail(org: { outplacementProfile: { headcountAffected: number | null; announcedAt: Date | null } | null } | null): string | undefined {
+    const p = org?.outplacementProfile
+    if (!p || !p.headcountAffected) return undefined
+    return `${p.headcountAffected.toLocaleString()} roles affected${p.announcedAt ? `, announced ${formatDate(p.announcedAt)}` : ''}`
+  }
 
   return (
     <div className="space-y-6">
+      <CrmPeekPanel />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Outreach queue</h1>
@@ -78,6 +115,7 @@ export default async function CrmQueuePage() {
           </p>
         </div>
         <nav className="flex gap-2 text-sm">
+          <Link href="/support/admin/crm/queue/people" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">People queue</Link>
           <Link href="/support/admin/crm/dates" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All dates</Link>
           <Link href="/support/admin/crm/leads" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All leads</Link>
         </nav>
@@ -102,14 +140,15 @@ export default async function CrmQueuePage() {
         {promised.map((o) => (
           <Row
             key={o.id}
-            href={o.org ? `/support/admin/crm/organizations/${o.org.id}` : '/support/admin/crm/leads'}
+            orgId={o.org?.id}
+            opportunityId={o.id}
             title={o.org?.name ?? o.title}
             quality={o.leadQuality}
             score={o.priorityOverride ?? o.priorityScore}
-            meta={o.pipeline.label}
+            meta={`${o.pipeline.label} · ${o.stage.label}`}
             chip={`${Math.floor((now.getTime() - (o.committedFollowUpAt?.getTime() ?? 0)) / DAY)}d past promise`}
             chipTone="critical"
-            detail={o.committedTo ? `“${o.committedTo}”` : `Promised by ${formatDate(o.committedFollowUpAt)}`}
+            detail={outplacementDetail(o.org) ?? (o.committedTo ? `“${o.committedTo}”` : `Promised by ${formatDate(o.committedFollowUpAt)}`)}
           />
         ))}
       </Band>
@@ -124,14 +163,15 @@ export default async function CrmQueuePage() {
         {overdueSteps.map((o) => (
           <Row
             key={o.id}
-            href={o.org ? `/support/admin/crm/organizations/${o.org.id}` : '/support/admin/crm/leads'}
+            orgId={o.org?.id}
+            opportunityId={o.id}
             title={o.org?.name ?? o.title}
             quality={o.leadQuality}
             score={o.priorityOverride ?? o.priorityScore}
-            meta={o.pipeline.label}
+            meta={`${o.pipeline.label} · ${o.stage.label}`}
             chip={`due ${formatDate(o.nextStepDueAt)}`}
             chipTone="warning"
-            detail={o.nextStep ?? undefined}
+            detail={outplacementDetail(o.org) ?? o.nextStep ?? undefined}
           />
         ))}
       </Band>
@@ -146,7 +186,7 @@ export default async function CrmQueuePage() {
         {upcoming.map((d) => (
           <Row
             key={d.id}
-            href={d.org ? `/support/admin/crm/organizations/${d.org.id}` : '/support/admin/crm/dates'}
+            orgId={d.org?.id}
             title={d.org?.name ?? d.label}
             score={null}
             meta={d.label}
@@ -169,17 +209,17 @@ export default async function CrmQueuePage() {
           return (
             <Row
               key={o.id}
-              href={o.org ? `/support/admin/crm/organizations/${o.org.id}` : '/support/admin/crm/leads'}
+              orgId={o.org?.id}
+              opportunityId={o.id}
               title={o.org?.name ?? o.title}
               quality={o.leadQuality}
               score={o.priorityOverride ?? o.priorityScore}
-              meta={o.pipeline.label}
+              meta={`${o.pipeline.label} · ${o.stage.label}`}
               chip={warm.length > 0 ? `${warm.length} warm ${warm.length === 1 ? 'path' : 'paths'}` : `added ${sinceLabel(o.createdAt)}`}
               chipTone={warm.length > 0 ? 'good' : 'muted'}
               detail={
-                warm.length > 0
-                  ? `Via ${warm.map((a) => a.person.fullName).join(', ')}`
-                  : (o.nextStep ?? undefined)
+                outplacementDetail(o.org)
+                ?? (warm.length > 0 ? `Via ${warm.map((a) => a.person.fullName).join(', ')}` : (o.nextStep ?? undefined))
               }
             />
           )
@@ -259,9 +299,10 @@ const CHIP = {
 } as const
 
 function Row({
-  href, title, quality, score, meta, chip, chipTone, detail,
+  orgId, opportunityId, title, quality, score, meta, chip, chipTone, detail,
 }: {
-  href: string
+  orgId?: string
+  opportunityId?: string
   title: string
   quality?: string
   score: number | null
@@ -274,7 +315,11 @@ function Row({
     <li className="rounded-lg border border-border p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <Link href={href} className="text-sm font-medium hover:underline">{title}</Link>
+          {orgId ? (
+            <CrmPeekButton id={orgId} kind="org" className="text-sm font-medium hover:underline">{title}</CrmPeekButton>
+          ) : (
+            <span className="text-sm font-medium">{title}</span>
+          )}
           <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{meta}</span>
             {quality && quality !== 'UNGRADED' && (
@@ -288,6 +333,7 @@ function Row({
           {score !== null && (
             <span className="rounded bg-muted px-2 py-0.5 text-xs font-semibold tabular-nums">{Math.round(score)}</span>
           )}
+          <QueueRowActions orgId={orgId} opportunityId={opportunityId} />
         </div>
       </div>
     </li>
