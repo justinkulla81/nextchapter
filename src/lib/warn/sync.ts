@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
+import { matchOrCreateCompanyForEmployer } from './company-match'
 import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
 import { toWarnRows, type LayoffsFyiRow } from './layoffs'
 import { TABLE_SPECS, makeTableParser } from './states'
@@ -124,12 +125,16 @@ async function stageNotice(row: WarnRow, sourceUrl: string): Promise<boolean> {
     select: { id: true },
   })
   if (existing) return false
+  const match = await matchOrCreateCompanyForEmployer(row.employer)
   await prisma.warnNotice.create({
     data: {
       state: row.state, employer: clean(row.employer), normalizedEmployer: row.normalizedEmployer,
       noticeDate: row.noticeDate, effectiveDate: row.effectiveDate, employees: row.employees,
       layoffType: clean(row.layoffType), county: clean(row.county), address: clean(row.address),
       industry: clean(row.industry), sourceUrl,
+      companyId: match.companyId,
+      companyMatchStatus: match.status,
+      ...(match.candidates ? { companyMatchCandidates: match.candidates } : {}),
     },
   })
   return true

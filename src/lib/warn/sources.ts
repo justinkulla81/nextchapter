@@ -26,7 +26,8 @@ import {
 } from './states'
 
 export interface WarnRow {
-  state: string
+  /** Null only for a manually-entered notice with no single filing state. */
+  state: string | null
   employer: string
   normalizedEmployer: string
   noticeDate: Date | null

@@ -6395,6 +6395,17 @@ model Company {
   // guessed value.
   ownershipType           CompanyOwnershipType?
   isVerified              Boolean               @default(false)
+  // Admin-set flag for "we want to approach this employer" — surfaced on the
+  // Layoff notices page next to any WARN/manual notice for this company.
+  isPriority              Boolean               @default(false)
+  // Manually entered — no people-search API is integrated, and every other
+  // contact-capture path in this codebase (quick-add, CSV import, browser
+  // capture) is admin-entered too. "Find the CHRO or VP People" is already
+  // the standing next-step copy on a promoted WARN lead; these three fields
+  // are where that legwork gets recorded once someone does it.
+  chroName                String?
+  chroEmail               String?
+  chroLinkedinUrl         String?
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @updatedAt
 
@@ -6409,6 +6420,8 @@ model Company {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+  // WARN-notice back-relation (Prisma-virtual; adds no column to this table).
+  warnNotices      WarnNotice[]
 
   @@index([industry])
 }
@@ -9563,12 +9576,19 @@ enum CrmValueType {
 /// it is a WordPress page embedding a private Airtable base whose data
 /// endpoint returns 401.
 model WarnNotice {
-  id                 String @id @default(cuid())
-  state              String
-  /// Employer exactly as filed.
+  id                 String  @id @default(cuid())
+  /// Null for a MANUAL_ANNOUNCEMENT with no single filing state (e.g. a
+  /// national press release) — every WARN_FILING source always supplies one.
+  state              String?
+  /// Employer exactly as filed, or as typed for a manual announcement.
   employer           String
   /// normalizeOrgName output, for matching to an existing organization.
   normalizedEmployer String
+
+  /// WARN_FILING (default, synced from a state labor department) or
+  /// MANUAL_ANNOUNCEMENT (admin-entered from a news article that never hit a
+  /// WARN filing, or hasn't yet — a real lead source in its own right).
+  source WarnNoticeSource @default(WARN_FILING)
 
   noticeDate    DateTime?
   effectiveDate DateTime?
@@ -9580,6 +9600,8 @@ model WarnNotice {
   /// the industries our candidates actually work in.
   industry      String?
 
+  /// The public record it was sourced from — a state WARN filing URL, or the
+  /// news article link for a MANUAL_ANNOUNCEMENT.
   sourceUrl String?
   fetchedAt DateTime @default(now())
 
@@ -9590,11 +9612,37 @@ model WarnNotice {
   dismissedAt   DateTime?
   dismissReason String?
 
+  /// The employer's Company record — auto-matched on a strict normalized-name
+  /// key, auto-created when nothing exists, or left null with a status of
+  /// AMBIGUOUS when a loose match found candidates too uncertain to link
+  /// without a human (see matchOrCreateCompanyForEmployer in
+  /// src/lib/warn/company-match.ts). Never silently guesses between two
+  /// plausible companies.
+  companyId              String?
+  company                Company?               @relation(fields: [companyId], references: [id])
+  companyMatchStatus     WarnCompanyMatchStatus @default(UNMATCHED)
+  /// Snapshot of the candidate companies a loose match found, for the "To
+  /// review" tab — [{id, name}]. Null except when status is AMBIGUOUS.
+  companyMatchCandidates Json?
+
   /// A notice is identified by employer, state and notice date. Re-running the
   /// fetch must not create a second copy of the same filing.
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
   @@index([effectiveDate])
+  @@index([companyId])
+  @@index([companyMatchStatus])
+}
+
+enum WarnCompanyMatchStatus {
+  UNMATCHED
+  MATCHED
+  AMBIGUOUS
+}
+
+enum WarnNoticeSource {
+  WARN_FILING
+  MANUAL_ANNOUNCEMENT
 }
 
 /// One row per WARN fetch, so the sync is debuggable without reading logs.

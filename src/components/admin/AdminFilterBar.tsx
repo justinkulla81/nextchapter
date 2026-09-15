@@ -14,16 +14,27 @@ export interface AdminFilterOption {
 // A plain <form method="get"> handles the search box natively (Enter
 // submits); the one bit of real client JS is auto-submitting on a select
 // change, since 5+ option filters render as dropdowns per design-principles.md.
+export interface AdminDateRangeFilter {
+  afterKey: string
+  beforeKey: string
+  afterValue: string
+  beforeValue: string
+  /** Shown as a label before the two date inputs, e.g. "Effective". */
+  label: string
+}
+
 export function AdminFilterBar({
   basePath,
   searchValue,
   searchPlaceholder = 'Search…',
   filters = [],
+  dateRange,
 }: {
   basePath: string
   searchValue: string
   searchPlaceholder?: string
   filters?: AdminFilterOption[]
+  dateRange?: AdminDateRangeFilter
 }) {
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -57,13 +68,35 @@ export function AdminFilterBar({
           ))}
         </select>
       ))}
+      {dateRange && (
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          {dateRange.label}
+          <input
+            type="date"
+            name={dateRange.afterKey}
+            defaultValue={dateRange.afterValue}
+            aria-label={`${dateRange.label} after`}
+            onChange={() => formRef.current?.requestSubmit()}
+            className="h-9 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+          />
+          <span aria-hidden>–</span>
+          <input
+            type="date"
+            name={dateRange.beforeKey}
+            defaultValue={dateRange.beforeValue}
+            aria-label={`${dateRange.label} before`}
+            onChange={() => formRef.current?.requestSubmit()}
+            className="h-9 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+          />
+        </label>
+      )}
       <button
         type="submit"
         className="h-9 rounded-md border border-border px-3 text-sm hover:bg-muted"
       >
         Filter
       </button>
-      {(searchValue || filters.some((f) => f.value)) && (
+      {(searchValue || filters.some((f) => f.value) || (dateRange && (dateRange.afterValue || dateRange.beforeValue))) && (
         <a href={basePath} className="text-sm text-muted-foreground underline underline-offset-4">
           Clear
         </a>
