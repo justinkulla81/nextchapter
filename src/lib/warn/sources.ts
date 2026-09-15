@@ -1,5 +1,20 @@
 import { readXlsx, excelSerialToDate } from './xlsx'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import {
+  TABLE_SPECS,
+  makeTableParser,
+  GEOSOLINC_PORTALS,
+  geosolincUrl,
+  parseGeosolincList,
+  parseGeosolincDetail,
+  COLORADO_PAGE,
+  resolveColoradoSheet,
+  parseColoradoWarn,
+  RHODE_ISLAND_PAGE,
+  resolveRhodeIslandFile,
+  parseRhodeIslandWarn,
+  type GeosolincRow,
+} from './states'
 
 export interface WarnRow {
   state: string
@@ -27,7 +42,6 @@ const KNOWLEDGE_SECTORS = [
   '52', // Finance and Insurance
   '54', // Professional, Scientific, Technical Services
   '55', // Management of Companies and Enterprises
-  '61', // Educational Services
   '92', // Public Administration
 ]
 
@@ -40,9 +54,14 @@ const KNOWLEDGE_SECTORS = [
 //   56 Administrative and Support — the filings are Fortrex (sanitation),
 //     Silgan Containers (packaging) and a management company. Operational, not
 //     knowledge work.
+//   61 Educational Services — included on the theory it would surface edtech
+//     and university administration. Across eighteen states it promoted three
+//     notices and all three were schools: an elementary and secondary school,
+//     a community-college foundation, and a flight-training company. Teachers
+//     and instructors are not who this pipeline is for.
 //
-// Both would have added steady noise to a pipeline whose whole value is that
-// its leads are worth calling.
+// All three would have added steady noise to a pipeline whose whole value is
+// that its leads are worth calling.
 
 export function isKnowledgeSector(industry: string | null | undefined): boolean {
   if (!industry) return false
@@ -110,12 +129,36 @@ export function parseCaliforniaWarn(buf: Buffer, sourceUrl: string): WarnRow[] {
   return out.filter((r) => r.employer.toLowerCase() !== 'company')
 }
 
+/** Several state sites return 403 to a default fetch user agent. */
+export const WARN_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36'
+
 export interface WarnSource {
   state: string
-  url: string
-  /** 'xlsx' is fetched as bytes; 'json' as text. */
-  format: 'xlsx' | 'json'
+  /**
+   * A function when the address depends on the calendar — Florida files by
+   * year, and a string computed at import time would go stale on 1 January
+   * without anything failing visibly.
+   */
+  url: string | (() => string)
+  /** 'xlsx' is fetched as bytes; 'json' and 'html' as text. */
+  format: 'xlsx' | 'json' | 'html'
   parse: (buf: Buffer, url: string) => WarnRow[]
+  /**
+   * Second pass for sources that split a notice across two pages.
+   *
+   * The Geographic Solutions portals list notices without a headcount and put
+   * it on each notice's own page, so the rows are useless until it is fetched.
+   */
+  enrich?: (rows: WarnRow[]) => Promise<WarnRow[]>
+  /**
+   * Finds the real data URL when the page only links to it.
+   *
+   * Colorado publishes a Google Sheet per year and Rhode Island a spreadsheet
+   * whose path carries its upload month. Hard-coding either one keeps working
+   * after it goes stale, which is the worst way for a sync to fail.
+   */
+  resolve?: () => Promise<string>
   /**
    * Whether this source publishes an industry sector.
    *
@@ -125,6 +168,19 @@ export interface WarnSource {
    * leads nobody will call — so those sources stage for review instead.
    */
   hasIndustry: boolean
+}
+
+async function fetchText(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': WARN_USER_AGENT },
+    signal: AbortSignal.timeout(45_000),
+  })
+  if (!res.ok) throw new Error(`${url} returned ${res.status}`)
+  return res.text()
+}
+
+export function sourceUrl(source: WarnSource): string {
+  return typeof source.url === 'function' ? source.url() : source.url
 }
 
 /**
@@ -156,19 +212,103 @@ export function parseTexasWarn(buf: Buffer, _sourceUrl: string): WarnRow[] {
     })
 }
 
+/** Where each table-shaped state publishes its notices. */
+const TABLE_URLS: Record<string, string | (() => string)> = {
+  AK: 'https://jobs.alaska.gov/RR/WARN_notices.htm',
+  AL: 'https://www.madeinalabama.com/warn-list/',
+  // Florida files by calendar year and 404s without the parameter.
+  FL: () => `https://reactwarn.floridajobs.org/WarnList/Records?year=${new Date().getFullYear()}`,
+  MD: 'https://www.dllr.state.md.us/employment/warn.shtml',
+  NE: 'https://dol.nebraska.gov/ReemploymentServices/LayoffServices/LayoffsAndDownsizingWARN',
+  OR: 'https://ccwd.hecc.oregon.gov/Layoff/WARN',
+  SD: 'https://dlr.sd.gov/workforce_services/businesses/warn_notices.aspx',
+  UT: 'https://jobs.utah.gov/employer/business/warnnotices.html',
+}
+
+/** Only Florida and Maryland publish a sector; the rest stage for review. */
+const TABLE_HAS_INDUSTRY = new Set(['FL', 'MD'])
+
+const TABLE_SOURCES: WarnSource[] = TABLE_SPECS.map((spec) => ({
+  state: spec.state,
+  url: TABLE_URLS[spec.state],
+  format: 'html' as const,
+  parse: makeTableParser(spec),
+  hasIndustry: TABLE_HAS_INDUSTRY.has(spec.state),
+}))
+
 /**
- * The states that can actually be synced, and why the obvious ones are missing.
+ * Only notices from the last six months are worth a second request.
  *
- * Every state publishes WARN differently, and a parser written against a
- * format nobody has looked at silently produces wrong rows. What was checked:
+ * These portals list back to 1999, and enriching every row would mean a few
+ * thousand extra fetches a week to learn the headcount of a layoff that
+ * happened before the people affected had email.
+ */
+const ENRICH_WINDOW_DAYS = 180
+const ENRICH_MAX = 25
+
+const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([state, host]) => ({
+  state,
+  url: geosolincUrl(host),
+  format: 'html' as const,
+  parse: (buf: Buffer) => parseGeosolincList(buf, state),
+  hasIndustry: false,
+  enrich: async (rows: WarnRow[]) => {
+    const cutoff = new Date(Date.now() - ENRICH_WINDOW_DAYS * 86_400_000)
+    let budget = ENRICH_MAX
+    for (const row of rows as GeosolincRow[]) {
+      if (budget <= 0) break
+      if (!row.detailPath || row.employees != null) continue
+      if (row.noticeDate && row.noticeDate < cutoff) continue
+      budget--
+      try {
+        const res = await fetch(`https://${host}${row.detailPath}`, {
+          headers: { 'User-Agent': WARN_USER_AGENT },
+          signal: AbortSignal.timeout(20_000),
+        })
+        if (res.ok) row.employees = parseGeosolincDetail(await res.text())
+      } catch {
+        // A detail page that will not load leaves the headcount null; the
+        // notice still stages, it just cannot pass the size filter.
+      }
+    }
+    return rows
+  },
+}))
+
+/**
+ * The states that can actually be synced, and why the rest are missing.
  *
- *   CA — xlsx with headcount AND sector. The best source there is.
- *   TX — Socrata JSON API with headcount, no sector. Stages for review.
- *   NY — NOT INCLUDED. Its current notices live in a Tableau dashboard with no
- *        data endpoint, and its legacy HTML table carries neither headcount nor
- *        industry and stops in 2025. Both fields are what make a notice
- *        actionable, so a NY sync would produce rows nobody could triage.
- *        data.ny.gov publishes no WARN dataset at all — that was checked.
+ * Every state publishes WARN differently and a parser written against a format
+ * nobody has looked at silently produces wrong rows, so each entry here was
+ * fetched and read before it was added. Eighteen jurisdictions are covered.
+ *
+ * With a sector, so notices can promote themselves:
+ *   CA  xlsx with headcount and sector — still the best source in the country.
+ *   CO  a Google Sheet per year, with NAICS. The sheet is discovered from the
+ *       page because last year's keeps resolving fine and stops gaining rows.
+ *   FL  HTML table, sector written as a name rather than a code.
+ *   MD  HTML table with a full six-digit NAICS code.
+ *
+ * With a headcount but no sector, so notices stage for review:
+ *   TX  Socrata JSON API.
+ *   AK AL NE OR SD UT  plain HTML tables.
+ *   RI  a spreadsheet whose URL carries its upload month, so it is resolved
+ *       from the page; one sheet per year, newest read.
+ *   AZ DE ID KS ME VT  the Geographic Solutions portal, which lists notices
+ *       without a headcount and puts it on each notice's own page.
+ *
+ * Checked and NOT usable, so nobody repeats the work:
+ *   NY  current notices are a Tableau embed with no data endpoint; the legacy
+ *       HTML table carries neither headcount nor industry and stops in 2025;
+ *       data.ny.gov publishes no WARN dataset. Each notice links a PDF of the
+ *       employer's own letter, which is the only place the numbers exist.
+ *   NC  Tableau, same problem.
+ *   MA NH NV  return 403 to any scripted request, browser headers included.
+ *   GA GG IA IL IN KY LA MI MN MS NJ NM PA VA WA WI WV  publish notices as
+ *       PDFs or render the list with JavaScript; neither is readable without
+ *       either a PDF text layer or a headless browser.
+ *   AR DC MT ND OK SC WY  no WARN page found at any address that resolves.
+ *   TN  runs the Geographic Solutions portal but does not serve WARN there.
  */
 export const WARN_SOURCES: WarnSource[] = [
   {
@@ -185,6 +325,34 @@ export const WARN_SOURCES: WarnSource[] = [
     url: 'https://data.texas.gov/resource/8w53-c4f6.json?$order=notice_date%20DESC&$limit=400',
     format: 'json',
     parse: parseTexasWarn,
+    hasIndustry: false,
+  },
+  ...TABLE_SOURCES,
+  ...GEOSOLINC_SOURCES,
+  {
+    state: 'CO',
+    url: COLORADO_PAGE,
+    format: 'html',
+    resolve: async () => {
+      const html = await fetchText(COLORADO_PAGE)
+      const sheet = resolveColoradoSheet(html)
+      if (!sheet) throw new Error('CO: no WARN sheet linked for the current year')
+      return sheet
+    },
+    parse: parseColoradoWarn,
+    hasIndustry: true,
+  },
+  {
+    state: 'RI',
+    url: RHODE_ISLAND_PAGE,
+    format: 'xlsx',
+    resolve: async () => {
+      const html = await fetchText(RHODE_ISLAND_PAGE)
+      const file = resolveRhodeIslandFile(html)
+      if (!file) throw new Error('RI: no spreadsheet linked on the WARN page')
+      return file
+    },
+    parse: (buf: Buffer) => parseRhodeIslandWarn(readXlsx(buf)),
     hasIndustry: false,
   },
 ]

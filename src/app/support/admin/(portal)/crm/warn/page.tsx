@@ -57,18 +57,22 @@ export default async function WarnReviewPage({
           <h1 className="text-2xl font-semibold">Layoff notices</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
             WARN filings from state labor departments — the legally required notice before a mass layoff.
-            Synced every Monday. California carries an industry sector, so its knowledge-work filings become
-            leads on their own; Texas does not publish one, so its notices wait here for you.
+            Eighteen states, synced every Monday. Four of them (California, Colorado, Florida, Maryland)
+            publish an industry sector, so their knowledge-work filings become leads on their own. The rest
+            publish a headcount but no sector, and there is no way to tell a software reduction from a
+            cannery closure without one — so those wait here for you.
           </p>
         </div>
         <WarnSyncNowButton />
       </header>
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
-        Why these and not layoffs.fyi: that site embeds a private Airtable base whose data endpoint refuses
+        Why WARN and not layoffs.fyi: that site embeds a private Airtable base whose data endpoint refuses
         access. WARN filings are public records, and they carry the <strong className="text-foreground">effective
         date</strong> — which is the number that decides when outreach lands, since reaching people before they
-        leave is the whole point.
+        leave is the whole point. Not every state can be synced: New York and North Carolina publish theirs as
+        a Tableau dashboard with no data behind it, and roughly a dozen more post PDFs or render the list with
+        JavaScript.
       </div>
 
       <section className="grid gap-3 sm:grid-cols-4">

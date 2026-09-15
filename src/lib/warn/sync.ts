@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
-import { WARN_SOURCES, isKnowledgeSector, type WarnRow } from './sources'
+import { WARN_SOURCES, WARN_USER_AGENT, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
 
 export interface WarnSyncResult {
   state: string
@@ -11,6 +11,7 @@ export interface WarnSyncResult {
   promoted: number
   skippedSector: number
   skippedSmall: number
+  skippedOld: number
   /** Staged but not auto-promoted, because the source has no sector field. */
   needsReview: number
   error?: string
@@ -18,6 +19,17 @@ export interface WarnSyncResult {
 
 /** Below this a filing is a small closure, not an outplacement opportunity. */
 const MIN_EMPLOYEES = 40
+
+/**
+ * How far back a notice is worth storing at all.
+ *
+ * Several states publish their entire history on one page — Alabama lists a
+ * thousand notices back to 2019, the Geographic Solutions portals go to 1999.
+ * Someone laid off two years ago has already landed somewhere, so those rows
+ * are not leads; they are just a slower sync and a review queue nobody can
+ * face. Notices with no date at all are kept, since there is nothing to judge.
+ */
+const MAX_AGE_DAYS = 540
 
 /**
  * Fetches a state's WARN notices, stages them, and promotes the ones worth
@@ -31,23 +43,34 @@ const MIN_EMPLOYEES = 40
  */
 export async function syncWarnState(stateCode: string, promote = true): Promise<WarnSyncResult> {
   const source = WARN_SOURCES.find((s) => s.state === stateCode)
-  if (!source) return { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, needsReview: 0, error: 'no_source' }
+  if (!source) return { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0, error: 'no_source' }
 
   const run = await prisma.warnSyncRun.create({ data: { state: stateCode } })
-  const result: WarnSyncResult = { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, needsReview: 0 }
+  const result: WarnSyncResult = { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0 }
 
   try {
-    const res = await fetch(source.url, {
+    // A source that only links to its data resolves that link first.
+    const url = source.resolve ? await source.resolve() : sourceUrl(source)
+
+    const res = await fetch(url, {
       signal: AbortSignal.timeout(60_000),
-      headers: { 'User-Agent': 'NextChapterAdmin/1.0 (outplacement lead sync)' },
+      // Several state sites reject an unfamiliar user agent outright, so this
+      // identifies as a browser rather than failing on half the country.
+      headers: { 'User-Agent': WARN_USER_AGENT },
     })
     if (!res.ok) throw new Error(`${source.state} WARN returned ${res.status}`)
     const buf = Buffer.from(await res.arrayBuffer())
-    const rows = source.parse(buf, source.url)
+    let rows = source.parse(buf, url)
+    // Sources that publish the headcount on a separate page fill it in here.
+    if (source.enrich) rows = await source.enrich(rows)
     result.fetched = rows.length
 
+    const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+
     for (const row of rows) {
-      const created = await stageNotice(row, source.url)
+      if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
+
+      const created = await stageNotice(row, url)
       if (created) result.created++
       if (!promote) continue
 
@@ -59,7 +82,7 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
 
       if (!isKnowledgeSector(row.industry)) { result.skippedSector++; continue }
       if (!row.employees || row.employees < MIN_EMPLOYEES) { result.skippedSmall++; continue }
-      if (await promoteNotice(row, source.url)) result.promoted++
+      if (await promoteNotice(row, url)) result.promoted++
     }
 
     await prisma.warnSyncRun.update({
