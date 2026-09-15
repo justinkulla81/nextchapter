@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
+import { getDossierGateSummaries, type DossierGateSummary } from '@/lib/admin/candidate-progress'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
@@ -34,6 +35,7 @@ interface Row {
   signedUpAt: Date
   location: string | null
   resumeSignedUrl: string | null
+  dossier: DossierGateSummary | null
 }
 
 // One signed URL per candidate's latest resume, generated in parallel —
@@ -111,7 +113,13 @@ export default async function AdminCandidatesPage({
     listAllAuthUsers(),
   ])
 
-  const resumeLinksByCandidateId = await loadResumeLinks(candidates.map((c) => c.id))
+  const candidateIds = candidates.map((c) => c.id)
+  const [resumeLinksByCandidateId, dossierGates] = await Promise.all([
+    loadResumeLinks(candidateIds),
+    // Batched — the per-candidate version runs six queries and would be
+    // ruinous across a full page of rows.
+    getDossierGateSummaries(candidateIds),
+  ])
 
   const rows: Row[] = candidates.map((c) => {
     const grade = c.marketRealitySnapshots[0]?.grade ?? null
@@ -128,6 +136,7 @@ export default async function AdminCandidatesPage({
       signupIp: c.signupIp,
       location: [c.currentCity, c.currentState].filter(Boolean).join(', ') || null,
       resumeSignedUrl: resumeLinksByCandidateId.get(c.id) ?? null,
+      dossier: dossierGates.get(c.id) ?? null,
       signedUpAt: c.createdAt,
     }
   })
@@ -161,6 +170,22 @@ export default async function AdminCandidatesPage({
     { header: 'Function', render: (r) => r.primaryFunction ?? '—' },
     { header: 'Level', render: (r) => r.level ?? '—' },
     { header: 'Grade', render: (r) => r.grade ?? 'Not graded' },
+    {
+      header: 'Dossier',
+      render: (r) =>
+        !r.dossier ? (
+          '—'
+        ) : r.dossier.unlocked ? (
+          <span className="text-success">Unlocked</span>
+        ) : (
+          // Naming what is missing makes the number actionable: "1 of 3" alone
+          // does not tell you whether to chase references or effort.
+          <span title={`Still needed: ${r.dossier.missing.join(', ')}`}>
+            {r.dossier.met} of {r.dossier.total}
+            <span className="ml-1 text-xs text-muted-foreground">({r.dossier.missing.join(', ')})</span>
+          </span>
+        ),
+    },
     { header: 'Recruiter opt-in', render: (r) => (r.optedIn ? 'Yes' : 'No') },
     { header: 'Signup IP', render: (r) => r.signupIp ?? '—' },
     { header: 'Date signed up', render: (r) => r.signedUpAt.toLocaleDateString() },

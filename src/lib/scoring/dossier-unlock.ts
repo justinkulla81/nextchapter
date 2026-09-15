@@ -169,8 +169,8 @@ export async function computeDossierCompleteness(candidateId: string): Promise<D
 // Candidate+ postings, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
 export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
-const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
-const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
+export const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
+export const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
 
 // Market Reality Redesign Part 2 — the alternate path to a full unlock:
 // achieving a real Market Reality B-or-better, OR consistently hitting

@@ -18,6 +18,9 @@ import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { computePageActivitySummary, formatDuration } from '@/lib/admin/page-activity-summary'
+import { getCandidateProgress } from '@/lib/admin/candidate-progress'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { CandidateProgressPanel } from '@/components/admin/CandidateProgressPanel'
 import {
   listStakeholderNotes,
   getRecruiterRelationships,
@@ -173,10 +176,10 @@ async function loadJobRecommendations(candidateId: string) {
 }
 
 export default async function AdminCandidateDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdmin()
+  const viewingAdmin = await requireAdmin()
   const { id } = await params
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, marketRealityReports] =
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports] =
     await Promise.all([
       listAllAuthUsers(),
       loadJobRecommendations(id),
@@ -184,6 +187,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
       loadIpAndResume(id),
       loadLoginHistory(id),
       loadPageActivity(id),
+      getCandidateProgress(id),
       // Full report content, not just the gradeHistory snapshots below
       // (deliberately sourced from MarketRealitySnapshot, a lighter-weight
       // weekly record — see full-client-view.ts) — an admin needs to
@@ -196,6 +200,19 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
+
+  // Records what state support actually encounters when they open a candidate,
+  // which is the only way to learn whether this view answers the question.
+  captureServerEvent(viewingAdmin.email ?? 'admin', 'admin_candidate_progress_viewed', {
+    candidateId: id,
+    dossierTier: progress.dossier.tier,
+    dossierUnlocked: progress.dossier.unlock.unlocked,
+    dossierRequirementsMet: progress.dossier.completeness.metCount,
+    likelihoodGrade: progress.likelihood?.probabilityGrade ?? null,
+    gmailConnected: progress.connections.find((c) => c.label === 'Gmail')?.connected ?? false,
+    assessmentsCompleted: progress.assessments.filter((a) => a.completedAt).length,
+    badgeCount: progress.badges.length,
+  })
 
   const { view } = detail
 
@@ -287,8 +304,11 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
             <TabsTrigger value="profile" className="shrink-0 px-3 py-2">
               Profile
             </TabsTrigger>
+            <TabsTrigger value="progress" className="shrink-0 px-3 py-2">
+              Progress
+            </TabsTrigger>
             <TabsTrigger value="activity" className="shrink-0 px-3 py-2">
-              Activity
+              Page activity
             </TabsTrigger>
             <TabsTrigger value="relationships" className="shrink-0 px-3 py-2">
               Relationships
@@ -417,6 +437,10 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="progress" className="mt-6 space-y-6">
+          <CandidateProgressPanel progress={progress} />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6 space-y-6">
