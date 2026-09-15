@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { PERSON_ROLE_LABELS, ORG_TYPE_LABELS, QUALITY_LABELS, WARMTH_LABELS, sinceLabel, formatDate } from '@/lib/crm/labels'
+import { PERSON_ROLE_LABELS, ORG_TYPE_LABELS, sinceLabel, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 20
 
@@ -61,32 +61,44 @@ export async function GET(req: NextRequest) {
   const person = await prisma.crmPerson.findUnique({
     where: { id },
     include: {
-      affiliations: { include: { org: { select: { id: true, name: true } } }, orderBy: { isPrimary: 'desc' } },
-      activities: { orderBy: { occurredAt: 'desc' }, take: 5 },
+      affiliations: {
+        include: { org: { select: { id: true, name: true, _count: { select: { affiliations: true } } } } },
+        orderBy: { isPrimary: 'desc' },
+      },
+      activities: { orderBy: { occurredAt: 'desc' }, take: 8 },
       opportunities: { include: { pipeline: true, stage: true }, take: 5 },
       introPathsAsTarget: { include: { connectorPerson: { select: { fullName: true } } }, take: 5 },
     },
   })
   if (!person) return Response.json({ error: 'Not found' }, { status: 404 })
+  const primaryOrg = person.affiliations[0]?.org ?? null
 
   return Response.json({
     kind: 'person',
     id: person.id,
     title: person.fullName,
-    subtitle: [person.affiliations[0]?.title, person.affiliations[0]?.org.name].filter(Boolean).join(' at ') || null,
+    subtitle: person.affiliations[0]?.title ?? null,
     href: `/support/admin/crm/people/${person.id}`,
     roles: person.roles.map((r) => PERSON_ROLE_LABELS[r]),
+    // Raw enum values for the panel's own inline <select>s — QUALITY_LABELS
+    // etc. are used to render the option list client-side.
+    editable: { leadQuality: person.leadQuality, warmth: person.warmth, priority: person.priority },
+    company: primaryOrg
+      ? { id: primaryOrg.id, name: primaryOrg.name, otherPeopleCount: Math.max(0, primaryOrg._count.affiliations - 1) }
+      : null,
     facts: [
-      { label: 'Quality', value: QUALITY_LABELS[person.leadQuality] },
-      { label: 'Warmth', value: WARMTH_LABELS[person.warmth] },
       { label: 'Last contacted', value: sinceLabel(person.lastTouchedAt) },
       { label: 'Touches', value: String(person.touchCount) },
       person.email ? { label: 'Email', value: person.email } : null,
+      person.phone ? { label: 'Phone', value: person.phone } : null,
     ].filter(Boolean),
     body: person.notes ?? null,
     linkedinUrl: person.linkedinUrl,
+    followUp: person.nextFollowUpAt
+      ? { dueAt: formatDate(person.nextFollowUpAt), note: person.nextFollowUpNote }
+      : null,
     activities: person.activities.map((a) => ({
-      subject: a.subject ?? a.type, when: formatDate(a.occurredAt), auto: a.isAutoLogged,
+      subject: a.subject ?? a.type, when: formatDate(a.occurredAt), auto: a.isAutoLogged, body: a.body,
     })),
     pipelines: person.opportunities.map((o) => ({ label: o.pipeline.label, stage: o.stage.label })),
     paths: person.introPathsAsTarget.map((p) => ({

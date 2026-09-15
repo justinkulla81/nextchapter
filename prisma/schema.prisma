@@ -8566,6 +8566,12 @@ model CrmPerson {
   /// do. Null = no priority set.
   priority CrmPriorityTier?
 
+  // A reminder that isn't tied to any opportunity — set when logging a call
+  // from the peek panel. Independent of CrmOpportunity.nextStepDueAt, which
+  // only exists for people with an actual opportunity attached.
+  nextFollowUpAt   DateTime?
+  nextFollowUpNote String?   @db.Text
+
   // "X" in the People queue — see CrmOrganization.queueSnoozedAt's comment;
   // same mechanism, kept independent so dismissing a person never dismisses
   // the company they work for, or vice versa.

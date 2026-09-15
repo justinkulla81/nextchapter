@@ -333,6 +333,54 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
   revalidatePath(`${CRM}/people/${personId}`)
 }
 
+/**
+ * Logs a call and, optionally, sets a follow-up reminder in one step — the
+ * peek panel's "Log a call" form. Only touches nextFollowUpAt/Note when a
+ * new follow-up date is actually given, so logging call #2 never silently
+ * wipes a still-pending reminder set from call #1.
+ */
+export async function logCallWithFollowUp(personId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const occurredRaw = String(formData.get('occurredAt') ?? '').trim()
+  const note = String(formData.get('note') ?? '').trim() || null
+  const followUpRaw = String(formData.get('followUpAt') ?? '').trim()
+  const occurredAt = occurredRaw ? new Date(occurredRaw) : new Date()
+
+  const person = await prisma.crmPerson.findUniqueOrThrow({
+    where: { id: personId },
+    select: { touchCount: true, firstTouchedAt: true, lastTouchedAt: true },
+  })
+
+  await prisma.crmActivity.create({
+    data: {
+      type: 'CALL', direction: 'OUTBOUND', personId, occurredAt,
+      subject: 'Call logged', body: note, isAutoLogged: false, loggedByEmail: admin.email ?? null,
+    },
+  })
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: {
+      lastTouchedAt: !person.lastTouchedAt || occurredAt > person.lastTouchedAt ? occurredAt : undefined,
+      firstTouchedAt: person.firstTouchedAt ?? occurredAt,
+      touchCount: person.touchCount + 1,
+      ...(followUpRaw ? { nextFollowUpAt: new Date(followUpRaw), nextFollowUpNote: note } : {}),
+    },
+  })
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_activity_logged', { personId, type: 'CALL', auto: false, hasFollowUp: Boolean(followUpRaw) })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
+/** Marks a follow-up reminder done — clears it without requiring a new call. */
+export async function clearPersonFollowUp(personId: string) {
+  const admin = await requireAdmin()
+  await prisma.crmPerson.update({ where: { id: personId }, data: { nextFollowUpAt: null, nextFollowUpNote: null } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_followup_cleared', { personId })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
 /** Inline edit of a person's primary organization from a list row. */
 export async function updatePersonPrimaryOrg(personId: string, orgNameRaw: string) {
   const admin = await requireAdmin()
