@@ -367,3 +367,69 @@ export function parseRhodeIslandWarn(sheets: { name: string; rows: (string | num
   }
   return out
 }
+
+/**
+ * New Jersey keeps every year in one workbook, a sheet per year, and links it
+ * from the WARN page as a plain file — so it needs no browser even though the
+ * page itself renders its notice list with JavaScript.
+ *
+ * The sheet has no notice date, only a "Month Posted" column, so the notice
+ * date is reconstructed from that month and the sheet's year. That is accurate
+ * to the month, which is all the recency filter and the sort need.
+ */
+export const NEW_JERSEY_FILE = 'https://www.nj.gov/labor/assets/PDFs/WARN/WARN_Notice_Archive.xlsx'
+
+const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december']
+
+export function parseNewJerseyWarn(sheets: { name: string; rows: (string | number)[][] }[]): WarnRow[] {
+  // Sheets are named "2026 WARN Notices"; take the highest year.
+  const withYear = sheets
+    .map((s) => ({ sheet: s, year: parseInt(s.name.match(/(20\d{2})/)?.[1] ?? '', 10) }))
+    .filter((s) => Number.isFinite(s.year))
+    .sort((a, b) => b.year - a.year)
+  const newest = withYear[0]
+  if (!newest) return []
+
+  const rows = newest.sheet.rows
+  const headerIndex = rows.findIndex((r) => r.some((c) => String(c).toLowerCase().includes('company')))
+  if (headerIndex === -1) return []
+
+  const header = rows[headerIndex].map((c) => String(c))
+  const iCompany = columnOf(header, 'Company')
+  const iCity = columnOf(header, 'City')
+  const iMonth = columnOf(header, 'Month Posted', 'Month')
+  const iEffective = columnOf(header, 'Effective Date')
+  const iAffected = columnOf(header, 'Workforce Affected', 'Affected')
+  if (iCompany === -1) return []
+
+  const out: WarnRow[] = []
+  for (const row of rows.slice(headerIndex + 1)) {
+    const employer = String(row[iCompany] ?? '').trim()
+    if (!employer || HEADER_WORDS.has(employer.toLowerCase())) continue
+
+    const monthName = String(row[iMonth] ?? '').trim().toLowerCase()
+    const monthIndex = MONTHS.indexOf(monthName)
+    const noticeDate = monthIndex >= 0 ? new Date(Date.UTC(newest.year, monthIndex, 1)) : null
+
+    // The effective date is sometimes a serial, sometimes a written range
+    // ("4/10/26 - 11/26/26"); the first date in a range is the one that counts.
+    const rawEffective = row[iEffective]
+    const effectiveDate =
+      excelSerialToDate(rawEffective as string | number) ??
+      parseDate(String(rawEffective ?? '').split(/\s*[-–]\s*/)[0])
+
+    out.push({
+      state: 'NJ',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate,
+      effectiveDate,
+      employees: parseCount(String(row[iAffected] ?? '')),
+      layoffType: null,
+      county: null,
+      address: iCity >= 0 ? String(row[iCity] ?? '').trim() || null : null,
+      industry: null,
+    })
+  }
+  return out
+}

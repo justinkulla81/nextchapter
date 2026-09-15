@@ -10,6 +10,8 @@ import {
   COLORADO_PAGE,
   resolveColoradoSheet,
   parseColoradoWarn,
+  NEW_JERSEY_FILE,
+  parseNewJerseyWarn,
   RHODE_ISLAND_PAGE,
   resolveRhodeIslandFile,
   parseRhodeIslandWarn,
@@ -341,6 +343,13 @@ export const WARN_SOURCES: WarnSource[] = [
     },
     parse: parseColoradoWarn,
     hasIndustry: true,
+  },
+  {
+    state: 'NJ',
+    url: NEW_JERSEY_FILE,
+    format: 'xlsx',
+    parse: (buf: Buffer) => parseNewJerseyWarn(readXlsx(buf)),
+    hasIndustry: false,
   },
   {
     state: 'RI',

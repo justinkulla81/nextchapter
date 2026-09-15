@@ -1,0 +1,37 @@
+# Weekly layoffs.fyi import.
+#
+# This runs here rather than on the Vercel cron because the tracker only
+# serves its data to a rendered browser, and a serverless function is not one.
+# Everything else about the WARN pipeline still runs on Vercel; this job only
+# fetches and posts rows to it.
+name: layoffs.fyi sync
+
+on:
+  schedule:
+    # Mondays at 08:00 UTC, an hour after the state WARN sync, so the two do
+    # not compete for the same rows.
+    - cron: '0 8 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Fetch and import
+        env:
+          NEXTCHAPTER_URL: ${{ secrets.NEXTCHAPTER_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: npx tsx scripts/layoffsfyi/fetch.ts

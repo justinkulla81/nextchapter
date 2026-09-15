@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { WARN_SOURCES, WARN_USER_AGENT, sourceUrl, isKnowledgeSector, type WarnRow } from './sources'
+import { toWarnRows, type LayoffsFyiRow } from './layoffs'
+
+/** Recorded as the "state" on sync runs so the tracker shows up in history. */
+export const LAYOFFS_FYI_SOURCE = 'layoffs.fyi'
+export const LAYOFFS_FYI_URL = 'https://layoffs.fyi/'
 
 export interface WarnSyncResult {
   state: string
@@ -231,4 +236,62 @@ export async function promoteWarnNoticeById(noticeId: string): Promise<boolean> 
     },
     n.sourceUrl ?? ''
   )
+}
+
+/**
+ * Imports layoffs.fyi rows posted by the weekly browser job.
+ *
+ * These are promoted on size alone, without the sector test the state sources
+ * get. That is not a relaxation of the rule but the same rule applied a step
+ * earlier: layoffs.fyi tracks only technology companies, so the filtering a
+ * state source needs — telling a software reduction from a cannery closure —
+ * has already been done by the source. A "Retail" row here is a retail
+ * *technology* company.
+ *
+ * The tracker publishes no effective date, so these leads say when a layoff
+ * was reported, not when it lands. Outreach timing has to come from elsewhere.
+ */
+export async function importLayoffsFyi(rows: LayoffsFyiRow[]): Promise<WarnSyncResult> {
+  const result: WarnSyncResult = {
+    state: LAYOFFS_FYI_SOURCE, fetched: 0, created: 0, promoted: 0,
+    skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0,
+  }
+
+  const mapped = toWarnRows(rows)
+  result.fetched = mapped.length
+  const staleBefore = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+
+  for (const row of mapped) {
+    if (row.noticeDate && row.noticeDate < staleBefore) { result.skippedOld++; continue }
+
+    if (await stageNotice(row, LAYOFFS_FYI_URL)) result.created++
+    if (!row.employees || row.employees < MIN_EMPLOYEES) { result.skippedSmall++; continue }
+    if (await promoteNotice(row, LAYOFFS_FYI_URL)) result.promoted++
+  }
+  return result
+}
+
+/**
+ * Records one sync-history row for a whole import.
+ *
+ * The rows arrive in chunks because a single request covering the table runs
+ * past both the client's header timeout and the serverless function limit, but
+ * the history should still read as one weekly sync rather than four.
+ */
+export async function recordLayoffsRun(totals: {
+  fetched: number
+  created: number
+  promoted: number
+  error?: string
+}): Promise<void> {
+  await prisma.warnSyncRun.create({
+    data: {
+      state: LAYOFFS_FYI_SOURCE,
+      finishedAt: new Date(),
+      fetched: totals.fetched,
+      created: totals.created,
+      promoted: totals.promoted,
+      error: totals.error ?? null,
+    },
+  })
 }
