@@ -1,4 +1,5 @@
 import { readXlsx, excelSerialToDate } from './xlsx'
+import { pdfText } from './pdf'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import {
   TABLE_SPECS,
@@ -10,6 +11,12 @@ import {
   COLORADO_PAGE,
   resolveColoradoSheet,
   parseColoradoWarn,
+  IOWA_PAGE,
+  resolveIowaFile,
+  parseIowaWarn,
+  MISSISSIPPI_PAGE,
+  resolveMississippiPdf,
+  parseMississippiWarn,
   NEW_JERSEY_FILE,
   parseNewJerseyWarn,
   RHODE_ISLAND_PAGE,
@@ -221,6 +228,7 @@ const TABLE_URLS: Record<string, string | (() => string)> = {
   // Florida files by calendar year and 404s without the parameter.
   FL: () => `https://reactwarn.floridajobs.org/WarnList/Records?year=${new Date().getFullYear()}`,
   MD: 'https://www.dllr.state.md.us/employment/warn.shtml',
+  IN: 'https://www.in.gov/dwd/warn-notices/current-warn-notices',
   NE: 'https://dol.nebraska.gov/ReemploymentServices/LayoffServices/LayoffsAndDownsizingWARN',
   OR: 'https://ccwd.hecc.oregon.gov/Layoff/WARN',
   SD: 'https://dlr.sd.gov/workforce_services/businesses/warn_notices.aspx',
@@ -228,7 +236,7 @@ const TABLE_URLS: Record<string, string | (() => string)> = {
 }
 
 /** Only Florida and Maryland publish a sector; the rest stage for review. */
-const TABLE_HAS_INDUSTRY = new Set(['FL', 'MD'])
+const TABLE_HAS_INDUSTRY = new Set(['FL', 'MD', 'IN'])
 
 /**
  * States whose page is only readable after JavaScript runs, or that refuse
@@ -293,33 +301,49 @@ const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([
  *
  * Every state publishes WARN differently and a parser written against a format
  * nobody has looked at silently produces wrong rows, so each entry here was
- * fetched and read before it was added. Eighteen jurisdictions are covered.
+ * fetched and read before it was added.
  *
  * With a sector, so notices can promote themselves:
  *   CA  xlsx with headcount and sector — still the best source in the country.
- *   CO  a Google Sheet per year, with NAICS. The sheet is discovered from the
+ *   CO  a Google Sheet per year, with NAICS; the sheet is discovered from the
  *       page because last year's keeps resolving fine and stops gaining rows.
  *   FL  HTML table, sector written as a name rather than a code.
+ *   IN  HTML table with a NAICS code, over a thousand notices.
  *   MD  HTML table with a full six-digit NAICS code.
+ *   MS  a PDF per quarter, read with the PDF text reader. Unusually complete:
+ *       NAICS code and description alongside the headcount.
  *
  * With a headcount but no sector, so notices stage for review:
  *   TX  Socrata JSON API.
  *   AK AL NE OR SD UT  plain HTML tables.
+ *   IA  a "WARN Log" workbook, one sheet per year, resolved from the page.
+ *   NJ  a workbook holding every year, linked from a page that renders its own
+ *       list client-side; the workbook needs no browser.
  *   RI  a spreadsheet whose URL carries its upload month, so it is resolved
  *       from the page; one sheet per year, newest read.
  *   AZ DE ID KS ME VT  the Geographic Solutions portal, which lists notices
  *       without a headcount and puts it on each notice's own page.
  *
+ * Fetched by the weekly browser job instead of here — see RENDERED_STATES:
+ *   MA  returns 403 to every scripted request, its own CSV included.
+ *   WI  builds its notice list client-side.
+ *
  * Checked and NOT usable, so nobody repeats the work:
  *   NY  current notices are a Tableau embed with no data endpoint; the legacy
- *       HTML table carries neither headcount nor industry and stops in 2025;
- *       data.ny.gov publishes no WARN dataset. Each notice links a PDF of the
- *       employer's own letter, which is the only place the numbers exist.
- *   NC  Tableau, same problem.
- *   MA NH NV  return 403 to any scripted request, browser headers included.
- *   GA GG IA IL IN KY LA MI MN MS NJ NM PA VA WA WI WV  publish notices as
- *       PDFs or render the list with JavaScript; neither is readable without
- *       either a PDF text layer or a headless browser.
+ *       HTML table has neither headcount nor industry and stops in April 2025.
+ *       Covered by layoffs.fyi instead.
+ *   NC  Tableau, same problem. Also covered by layoffs.fyi.
+ *   MN  sits behind a Radware CAPTCHA.
+ *   NH NV  return Akamai "Access Denied" even to a rendered browser, so this
+ *       is not a matter of headers.
+ *   WA  an ASP.NET search form inside an iframe; submitting it did not return
+ *       a results table.
+ *   PA  its notices page renders navigation and nothing else, in a browser as
+ *       well as a fetch, and links no data file.
+ *   NM  publishes a PDF per year whose text extracts cleanly; not wired up yet.
+ *   GA IL LA MI VA WV  no machine-readable notice list found. Michigan posts a
+ *       PDF per notice with the employer and date in the filename, which is
+ *       the most promising of these.
  *   AR DC MT ND OK SC WY  no WARN page found at any address that resolves.
  *   TN  runs the Geographic Solutions portal but does not serve WARN there.
  */
@@ -353,6 +377,32 @@ export const WARN_SOURCES: WarnSource[] = [
       return sheet
     },
     parse: parseColoradoWarn,
+    hasIndustry: true,
+  },
+  {
+    state: 'IA',
+    url: IOWA_PAGE,
+    format: 'xlsx',
+    resolve: async () => {
+      const html = await fetchText(IOWA_PAGE)
+      const file = resolveIowaFile(html)
+      if (!file) throw new Error('IA: no WARN log workbook linked')
+      return file
+    },
+    parse: (buf: Buffer) => parseIowaWarn(readXlsx(buf)),
+    hasIndustry: false,
+  },
+  {
+    state: 'MS',
+    url: MISSISSIPPI_PAGE,
+    format: 'xlsx', // fetched as bytes; it is a PDF, parsed below
+    resolve: async () => {
+      const html = await fetchText(MISSISSIPPI_PAGE)
+      const pdf = resolveMississippiPdf(html)
+      if (!pdf) throw new Error('MS: no quarterly WARN PDF linked')
+      return pdf
+    },
+    parse: (buf: Buffer) => parseMississippiWarn(pdfText(buf)),
     hasIndustry: true,
   },
   {

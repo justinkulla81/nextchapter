@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readTables, columnOf, parseDate, parseCount, stripTags } from '@/lib/warn/html'
-import { TABLE_SPECS, makeTableParser, parseGeosolincList, parseGeosolincDetail, parseNewJerseyWarn } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseGeosolincList, parseGeosolincDetail, parseNewJerseyWarn, parseIowaWarn, parseMississippiWarn } from '@/lib/warn/states'
 import { isKnowledgeSector } from '@/lib/warn/sources'
 
 const spec = (state: string) => TABLE_SPECS.find((s) => s.state === state)!
@@ -212,5 +212,67 @@ describe('New Jersey', () => {
       ] },
     ])
     expect(row.effectiveDate?.toISOString().slice(0, 10)).toBe('2026-04-10')
+  })
+})
+
+describe('Indiana, Iowa and Mississippi', () => {
+  it('reads a NAICS sector range without mangling it', () => {
+    const [row] = makeTableParser(spec('IN'))(
+      buf(`<table><tr><th>Company</th><th>City</th><th>Affected Workers</th><th>Notice Date</th><th>LO/CL Date</th><th>NAICS</th><th>Notice Type</th></tr>
+           <tr><td>Packaging Corp</td><td>Gas City</td><td>72</td><td>8/31/2026</td><td>11/02/2026</td><td>31-33</td><td>CL</td></tr></table>`),
+      ''
+    )
+    expect(row.industry).toBe('31 (NAICS 31-33)')
+    expect(isKnowledgeSector(row.industry)).toBe(false)
+  })
+
+  it('promotes an Indiana finance filing on its NAICS code', () => {
+    const [row] = makeTableParser(spec('IN'))(
+      buf(`<table><tr><th>Company</th><th>City</th><th>Affected Workers</th><th>Notice Date</th><th>NAICS</th></tr>
+           <tr><td>MDWise</td><td>Indianapolis</td><td>238</td><td>7/1/2026</td><td>5241</td></tr></table>`),
+      ''
+    )
+    expect(row.employees).toBe(238)
+    expect(isKnowledgeSector(row.industry)).toBe(true)
+  })
+
+  it('finds the Iowa header even though the sheet opens with a title row', () => {
+    const rows = parseIowaWarn([
+      { name: '2026', rows: [
+        ['Iowa WARN Log', 'Updated: 09-02-2026'],
+        ['Company', 'Address Line 1', 'City', 'County', 'St', 'ZIP', 'Notice Type', 'Emp #', 'Notice Date'],
+        ['CNH Industrial America LLC', '1930 Des Moines Ave', 'Burlington', 'Des Moines', 'IA', '52601', 'Closing', '52', 46042],
+      ] },
+      { name: '2025', rows: [['Company', 'Emp #'], ['Old Co', '10']] },
+    ])
+    expect(rows).toHaveLength(1)
+    expect(rows[0].employer).toBe('CNH Industrial America LLC')
+    expect(rows[0].employees).toBe(52)
+    expect(rows[0].county).toBe('Des Moines')
+    // The date is an Excel serial, not a string.
+    expect(rows[0].noticeDate?.getUTCFullYear()).toBe(2026)
+  })
+
+  it('finds Mississippi records by shape rather than a fixed offset', () => {
+    // Cells in the extracted PDF text are separated by font artifacts.
+    const sep = (n: number) => `Í${String.fromCharCode(64 + n)}®`
+    const record = [
+      '4/14/2026', 'Greenwood Leflore Hospital', 'Greenwood', 'Leflore', 'Delta',
+      'RR-MS-2025-0017', '622110  - General Medical and Surgical Hospital', 'Closure',
+      '425', '6/15/2026', 'WARN- Due to Financial Challenges.',
+    ]
+    const text = ['Date of Notice', 'Company Name', ...record].map((c, i) => c + sep(i + 1)).join('')
+    const rows = parseMississippiWarn(text)
+    expect(rows).toHaveLength(1)
+    expect(rows[0].employer).toBe('Greenwood Leflore Hospital')
+    expect(rows[0].employees).toBe(425)
+    expect(rows[0].county).toBe('Leflore')
+    expect(rows[0].industry).toBe('62 (NAICS 622110)')
+    // A hospital is not a knowledge-work lead, so it must not promote.
+    expect(isKnowledgeSector(rows[0].industry)).toBe(false)
+  })
+
+  it('returns nothing from Mississippi text whose shape has changed', () => {
+    expect(parseMississippiWarn('4/14/2026 some company with no event number')).toHaveLength(0)
   })
 })

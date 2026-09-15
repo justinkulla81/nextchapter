@@ -45,6 +45,14 @@ export const TABLE_SPECS: TableSpec[] = [
     employees: ['Total Employees'], industry: ['NAICS Code', 'NAICS'], location: ['Location'], layoffType: ['Type'],
   },
   {
+    // Indiana publishes a NAICS code alongside the headcount, so its notices
+    // can promote themselves.
+    state: 'IN',
+    employer: ['Company'], noticeDate: ['Notice Date'], effectiveDate: ['LO/CL Date'],
+    employees: ['Affected Workers'], industry: ['NAICS'], location: ['City'],
+    layoffType: ['Notice Type'],
+  },
+  {
     state: 'NE',
     employer: ['Company'], noticeDate: ['Date'], employees: ['Jobs Affected'], location: ['Location'],
   },
@@ -121,9 +129,16 @@ function normalizeIndustry(raw: string | null, state: string): string | null {
   const digits = v.match(/^(\d{2})\d{2,4}$/)
   if (digits) return `${digits[1]} (NAICS ${v})`
 
+  // Some states give a sector range rather than a code: "31-33".
+  const range = v.match(/^(\d{2})\s*[-–]\s*\d{2}$/)
+  if (range) return `${range[1]} (NAICS ${v})`
+
   // Colorado writes "52: Finance and Insurance" and "54,1714 R&D in Biotech".
   const leading = v.match(/^(\d{2})\D/)
-  if (leading) return `${leading[1]} - ${v.replace(/^\d{2}[:,\s]*/, '')}`
+  if (leading) {
+    const rest = v.replace(/^\d{2}[:,\s-]*/, '').trim()
+    return rest ? `${leading[1]} - ${rest}` : `${leading[1]} (NAICS ${v})`
+  }
 
   const named = SECTOR_NAMES.find(([re]) => re.test(v))
   if (named) return `${named[1]} - ${v}`
@@ -441,6 +456,127 @@ export function parseNewJerseyWarn(sheets: { name: string; rows: (string | numbe
       employees: parseCount(String(row[iAffected] ?? '')),
       layoffType: null,
       county: null,
+      address: iCity >= 0 ? String(row[iCity] ?? '').trim() || null : null,
+      industry: null,
+    })
+  }
+  return out
+}
+
+/**
+ * Mississippi publishes a PDF per quarter rather than a page of notices.
+ *
+ * Worth the PDF handling because the table is unusually complete: it carries a
+ * full NAICS code and description alongside the headcount, which puts
+ * Mississippi in the small group of states whose notices can promote
+ * themselves.
+ *
+ * The extracted text separates cells with font artifacts rather than anything
+ * structural, so records are found by self-synchronizing on their shape — a
+ * date followed five cells later by an RR-MS event number — instead of
+ * trusting a fixed offset. A layout change then yields no records rather than
+ * eleven fields read one column out of step.
+ */
+export const MISSISSIPPI_PAGE = 'https://mdes.ms.gov/warn/'
+
+const MS_FIELDS = 11
+
+export function resolveMississippiPdf(pageHtml: string): string | null {
+  const links = [...pageHtml.matchAll(/href="([^"]*warn-py(\d{4})-qtr-(\d)[^"]*\.pdf)"/gi)]
+  if (!links.length) return null
+  // Newest program year, then newest quarter within it.
+  const best = links
+    .map((m) => ({ href: m[1], year: parseInt(m[2], 10), quarter: parseInt(m[3], 10) }))
+    .sort((a, b) => b.year - a.year || b.quarter - a.quarter)[0]
+  return best.href.startsWith('http') ? best.href : `https://mdes.ms.gov${best.href}`
+}
+
+export function parseMississippiWarn(text: string): WarnRow[] {
+  const cells = text
+    .split(/Í[^®]{0,4}®/)
+    .map((c) => c.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+
+  const isDate = (v: string | undefined) => !!v && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v)
+  const isEvent = (v: string | undefined) => !!v && /^RR-[A-Z]{2}-\d{4}-\d{4}$/.test(v)
+
+  const out: WarnRow[] = []
+  for (let i = 0; i < cells.length; i++) {
+    if (!isDate(cells[i]) || !isEvent(cells[i + 5])) continue
+
+    const [noticeDate, employer, city, county, , , naics, action, affected, actionDate, reason] =
+      cells.slice(i, i + MS_FIELDS)
+    if (!employer) continue
+
+    out.push({
+      state: 'MS',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: parseDate(noticeDate),
+      effectiveDate: parseDate(actionDate),
+      employees: parseCount(affected),
+      layoffType: [action, reason].filter(Boolean).join(' — ') || null,
+      county: county || null,
+      address: city || null,
+      // "622110 – General Medical and Surgical Hospital"; the sector filter
+      // reads the leading two digits.
+      industry: normalizeIndustry(naics?.match(/^\d{6}/)?.[0] ?? null, 'MS'),
+    })
+    i += MS_FIELDS - 1
+  }
+  return out
+}
+
+/**
+ * Iowa keeps a "WARN Log" workbook, one sheet per year, linked from its
+ * employer resources page. The link is a numbered media path rather than a
+ * filename, so it is resolved from the page instead of hard-coded.
+ *
+ * The header does not sit on the first row — the sheet opens with a title and
+ * an "Updated:" stamp — so it is located by content.
+ */
+export const IOWA_PAGE = 'https://workforce.iowa.gov/employers/resources/warn'
+
+export function resolveIowaFile(pageHtml: string): string | null {
+  const href = pageHtml.match(/href="([^"]*\/media\/\d+\/download[^"]*)"/i)?.[1]
+  if (!href) return null
+  return href.startsWith('http') ? href : `https://workforce.iowa.gov${href}`
+}
+
+export function parseIowaWarn(sheets: { name: string; rows: (string | number)[][] }[]): WarnRow[] {
+  const withYear = sheets
+    .map((sheet) => ({ sheet, year: parseInt(sheet.name.match(/(20\d{2})/)?.[1] ?? '', 10) }))
+    .filter((s) => Number.isFinite(s.year))
+    .sort((a, b) => b.year - a.year)
+  const newest = withYear[0]
+  if (!newest) return []
+
+  const rows = newest.sheet.rows
+  const headerIndex = rows.findIndex((r) => r.some((c) => String(c).trim().toLowerCase() === 'company'))
+  if (headerIndex === -1) return []
+
+  const header = rows[headerIndex].map((c) => String(c))
+  const iCompany = columnOf(header, 'Company')
+  const iCity = columnOf(header, 'City')
+  const iCounty = columnOf(header, 'County')
+  const iType = columnOf(header, 'Notice Type')
+  const iCount = columnOf(header, 'Emp #', 'Emp')
+  const iDate = columnOf(header, 'Notice Date')
+  if (iCompany === -1) return []
+
+  const out: WarnRow[] = []
+  for (const row of rows.slice(headerIndex + 1)) {
+    const employer = String(row[iCompany] ?? '').trim()
+    if (!employer || HEADER_WORDS.has(employer.toLowerCase())) continue
+    out.push({
+      state: 'IA',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: excelSerialToDate(row[iDate] as string | number) ?? parseDate(String(row[iDate] ?? '')),
+      effectiveDate: null,
+      employees: parseCount(String(row[iCount] ?? '')),
+      layoffType: iType >= 0 ? String(row[iType] ?? '').trim() || null : null,
+      county: iCounty >= 0 ? String(row[iCounty] ?? '').trim() || null : null,
       address: iCity >= 0 ? String(row[iCity] ?? '').trim() || null : null,
       industry: null,
     })
