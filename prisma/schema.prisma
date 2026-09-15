@@ -6395,9 +6395,10 @@ model Company {
   // guessed value.
   ownershipType           CompanyOwnershipType?
   isVerified              Boolean               @default(false)
-  // Admin-set flag for "we want to approach this employer" — surfaced on the
-  // Layoff notices page next to any WARN/manual notice for this company.
-  isPriority              Boolean               @default(false)
+  // "We want to approach this employer," tiered — surfaced on the Layoff
+  // notices page next to any WARN/manual notice for this company. Null =
+  // no priority set.
+  priority                CrmPriorityTier?
   // Manually entered — no people-search API is integrated, and every other
   // contact-capture path in this codebase (quick-add, CSV import, browser
   // capture) is admin-entered too. "Find the CHRO or VP People" is already
@@ -8555,19 +8556,27 @@ model CrmPerson {
   // run projects 82 such rows at import, small enough to actually clear.
   needsCompletion Boolean @default(false)
 
-  /// A manual pin, separate from the computed score.
+  /// A manual priority tier, separate from the computed score.
   ///
-  /// The score answers "who deserves attention on the evidence"; a flag
-  /// answers "I have decided this one matters", which no formula can know.
-  /// Flagged rows sort to the top of whatever ordering is applied rather than
-  /// being given points — a star that merely nudged a number would sometimes
-  /// still be below the fold, which is the one thing a star must never do.
-  isFlagged Boolean @default(false)
+  /// The score answers "who deserves attention on the evidence"; a tier
+  /// answers "I have decided this one matters, and how much", which no
+  /// formula can know. P0 rows sort to the top of whatever ordering is
+  /// applied, then P1, then P2 — a tier that merely nudged a number would
+  /// sometimes still be below the fold, which is the one thing it must never
+  /// do. Null = no priority set.
+  priority CrmPriorityTier?
 
   // "X" in the People queue — see CrmOrganization.queueSnoozedAt's comment;
   // same mechanism, kept independent so dismissing a person never dismisses
   // the company they work for, or vice versa.
   queueSnoozedAt DateTime?
+
+  // Soft delete — hidden from every list, but the row (and its history)
+  // stays. The one thing this changes vs. leaving the row alone: CSV import
+  // matching (previewImport) treats a match onto a deleted person as
+  // "skip", not "update" or "create" — re-uploading an old export must not
+  // resurrect someone who was deliberately removed.
+  deletedAt DateTime?
 
   // Derived from CrmActivity, never typed by hand. These four are exactly the
   // fields sitting empty in the source Networking CRM, where 3,529 of 3,551
@@ -8611,7 +8620,7 @@ model CrmPerson {
   @@index([normalizedKey])
   @@index([priorityScore(sort: Desc)])
   @@index([needsCompletion])
-  @@index([isFlagged])
+  @@index([priority])
   @@index([lastTouchedAt])
   @@index([fullName])
 }
@@ -9655,6 +9664,14 @@ enum WarnCompanyMatchStatus {
 enum WarnNoticeSource {
   WARN_FILING
   MANUAL_ANNOUNCEMENT
+}
+
+/// Shared across CrmPerson and Company — a manual "how much does this
+/// matter" tier, replacing what used to be a plain star/pin boolean.
+enum CrmPriorityTier {
+  P0 /// Immediate
+  P1 /// High
+  P2 /// Important, not urgent
 }
 
 /// One row per WARN fetch, so the sync is debuggable without reading logs.

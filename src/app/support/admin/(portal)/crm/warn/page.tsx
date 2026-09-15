@@ -76,7 +76,7 @@ export default async function WarnReviewPage({
         orderBy,
         skip: (page - 1) * perPage,
         take: perPage,
-        include: { company: { select: { id: true, name: true, isPriority: true, chroName: true, chroEmail: true, chroLinkedinUrl: true } } },
+        include: { company: { select: { id: true, name: true, priority: true, chroName: true, chroEmail: true, chroLinkedinUrl: true } } },
       }),
       prisma.warnNotice.groupBy({ by: ['state'], _count: { _all: true }, where: { state: { not: null } } }),
       prisma.warnNotice.groupBy({ by: ['industry'], _count: { _all: true }, where: { industry: { not: null } } }),
@@ -291,7 +291,7 @@ export default async function WarnReviewPage({
                             {n.company && (
                               <CompanyPriorityAndChro
                                 companyId={n.company.id}
-                                isPriority={n.company.isPriority}
+                                priority={n.company.priority}
                                 chroName={n.company.chroName}
                                 chroEmail={n.company.chroEmail}
                                 chroLinkedinUrl={n.company.chroLinkedinUrl}

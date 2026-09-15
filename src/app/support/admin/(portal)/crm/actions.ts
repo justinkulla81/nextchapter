@@ -12,7 +12,7 @@ import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
   CrmFunderKind, CrmValueType, CrmActivityType,
-  CrmOrgType, CrmGoal, CrmEligibility, CrmOpportunityOutcome, Prisma,
+  CrmOrgType, CrmGoal, CrmEligibility, CrmOpportunityOutcome, CrmPriorityTier, Prisma,
 } from '@prisma/client'
 
 const CRM = '/support/admin/crm'
@@ -288,11 +288,11 @@ export async function logLinkedInMessage(personId: string) {
 }
 
 /** Inline edit from a list row or the record page. Writes a FIELD_CHANGED activity. */
-export async function updatePersonField(personId: string, field: 'leadQuality' | 'warmth' | 'title' | 'notes', value: string) {
+export async function updatePersonField(personId: string, field: 'leadQuality' | 'warmth' | 'title' | 'notes' | 'priority', value: string) {
   const admin = await requireAdmin()
   const before = await prisma.crmPerson.findUnique({
     where: { id: personId },
-    select: { leadQuality: true, warmth: true, notes: true },
+    select: { leadQuality: true, warmth: true, notes: true, priority: true },
   })
 
   if (field === 'title') {
@@ -305,6 +305,8 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
     await prisma.crmPerson.update({ where: { id: personId }, data: { leadQuality: value as CrmLeadQuality } })
   } else if (field === 'warmth') {
     await prisma.crmPerson.update({ where: { id: personId }, data: { warmth: value as CrmWarmth } })
+  } else if (field === 'priority') {
+    await prisma.crmPerson.update({ where: { id: personId }, data: { priority: value ? (value as CrmPriorityTier) : null } })
   } else {
     await prisma.crmPerson.update({ where: { id: personId }, data: { notes: value || null } })
   }
@@ -1152,11 +1154,11 @@ export async function updateFunderFacts(orgId: string, formData: FormData) {
   revalidatePath(`${CRM}/leads`)
 }
 
-/** Pins a person to the top of any list. A decision, not a computation. */
-export async function togglePersonFlag(personId: string, next: boolean) {
+/** Sets (or clears) a person's priority tier. A decision, not a computation. */
+export async function setPersonPriority(personId: string, tier: CrmPriorityTier | null) {
   const admin = await requireAdmin()
-  await prisma.crmPerson.update({ where: { id: personId }, data: { isFlagged: next } })
-  captureServerEvent(admin.email ?? 'admin', 'crm_person_flagged', { personId, flagged: next })
+  await prisma.crmPerson.update({ where: { id: personId }, data: { priority: tier } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_priority_set', { personId, tier })
   revalidatePath(CRM)
 }
 

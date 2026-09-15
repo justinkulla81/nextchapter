@@ -2,47 +2,48 @@
 
 import { useState } from 'react'
 import {
-  toggleCompanyPriority,
+  setCompanyPriority,
   updateCompanyChroContact,
 } from '@/app/support/admin/(portal)/crm/warn/actions'
 
 export function CompanyPriorityAndChro({
   companyId,
-  isPriority,
+  priority,
   chroName,
   chroEmail,
   chroLinkedinUrl,
 }: {
   companyId: string
-  isPriority: boolean
+  priority: 'P0' | 'P1' | 'P2' | null
   chroName: string | null
   chroEmail: string | null
   chroLinkedinUrl: string | null
 }) {
-  const [priority, setPriority] = useState(isPriority)
+  const [tier, setTier] = useState(priority)
   const [pending, setPending] = useState(false)
   const [editingChro, setEditingChro] = useState(false)
   const hasChro = Boolean(chroName || chroEmail || chroLinkedinUrl)
 
   return (
     <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs">
-      <button
-        type="button"
+      <select
+        aria-label="Priority"
         disabled={pending}
-        title={priority ? 'Priority company — click to unflag' : 'Flag as a priority company'}
-        onClick={async () => {
+        value={tier ?? ''}
+        onChange={async (e) => {
+          const next = (e.target.value || null) as 'P0' | 'P1' | 'P2' | null
           setPending(true)
-          const next = !priority
-          setPriority(next)
-          await toggleCompanyPriority(companyId, next)
+          setTier(next)
+          await setCompanyPriority(companyId, next)
           setPending(false)
         }}
-        className={priority ? 'text-warning' : 'text-muted-foreground/40 hover:text-muted-foreground'}
-        aria-pressed={priority}
-        aria-label="Toggle priority"
+        className={`h-6 rounded border border-input bg-transparent px-1 text-xs ${pending ? 'cursor-progress opacity-60' : ''} ${tier === 'P0' ? 'text-destructive' : tier === 'P1' ? 'text-orange' : 'text-muted-foreground'}`}
       >
-        {priority ? '★ Priority' : '☆'}
-      </button>
+        <option value="">No priority</option>
+        <option value="P0">P0 — Immediate</option>
+        <option value="P1">P1 — High</option>
+        <option value="P2">P2 — Important, not urgent</option>
+      </select>
 
       {!editingChro && (
         <button type="button" onClick={() => setEditingChro(true)} className="text-muted-foreground hover:underline">

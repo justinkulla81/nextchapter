@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { logContact, togglePersonFlag } from '@/app/support/admin/(portal)/crm/actions'
+import { logContact } from '@/app/support/admin/(portal)/crm/actions'
 
 const CHANNELS = [
   { key: 'EMAIL', label: 'Email' },
@@ -80,23 +80,5 @@ export function CrmContactCell({
         </button>
       </div>
     </form>
-  )
-}
-
-/** The manual pin. A star, because that is what a star means everywhere else. */
-export function CrmFlagToggle({ personId, flagged, name }: { personId: string; flagged: boolean; name: string }) {
-  const [pending, start] = useTransition()
-  return (
-    <button
-      type="button"
-      disabled={pending}
-      aria-pressed={flagged}
-      aria-label={flagged ? `Unpin ${name}` : `Pin ${name} to the top`}
-      title={flagged ? 'Pinned to the top of every list' : 'Pin to the top'}
-      onClick={() => start(() => { void togglePersonFlag(personId, !flagged) })}
-      className={`text-base leading-none ${pending ? 'cursor-progress opacity-60' : ''} ${flagged ? 'text-orange' : 'text-muted-foreground/30 hover:text-muted-foreground'}`}
-    >
-      {flagged ? '★' : '☆'}
-    </button>
   )
 }

@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { Prisma } from '@prisma/client'
+import { Prisma, type CrmPriorityTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -116,11 +116,11 @@ export async function createNewCompanyForNotice(noticeId: string): Promise<void>
   revalidatePath(BASE)
 }
 
-/** Marks (or unmarks) a company as one we actively want to approach. */
-export async function toggleCompanyPriority(companyId: string, isPriority: boolean): Promise<void> {
+/** Sets (or clears) a company's priority tier — how much we want to approach them. */
+export async function setCompanyPriority(companyId: string, tier: CrmPriorityTier | null): Promise<void> {
   const admin = await requireAdmin()
-  await prisma.company.update({ where: { id: companyId }, data: { isPriority } })
-  captureServerEvent(admin.email ?? 'admin', 'warn_company_priority_toggled', { companyId, isPriority })
+  await prisma.company.update({ where: { id: companyId }, data: { priority: tier } })
+  captureServerEvent(admin.email ?? 'admin', 'warn_company_priority_set', { companyId, tier })
   revalidatePath(BASE)
 }
 

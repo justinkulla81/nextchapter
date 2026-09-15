@@ -8,13 +8,14 @@ import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
-import { CrmContactCell, CrmFlagToggle } from '@/components/admin/CrmContactCell'
+import { CrmContactCell } from '@/components/admin/CrmContactCell'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
-  WARMTHS, WARMTH_LABELS, qualityClass, sinceLabel,
+  WARMTHS, WARMTH_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS,
+  qualityClass, priorityTierClass, sinceLabel,
 } from '@/lib/crm/labels'
-import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal } from '@prisma/client'
+import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal, CrmPriorityTier } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 
 export const maxDuration = 30
@@ -40,7 +41,7 @@ export default async function CrmPeoplePage({
   const warmth = sp.warmth ?? ''
   const touched = sp.touched ?? ''
   const goal = sp.goal ?? ''
-  const flagged = sp.flagged === '1'
+  const priority = sp.priority ?? ''
   const minScore = parseInt(sp.minScore ?? '', 10)
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   // Organization is not sortable: it lives on a to-many affiliation, which
@@ -48,9 +49,10 @@ export default async function CrmPeoplePage({
   // be worse than leaving it plain.
   const SORTS = ['name', 'quality', 'warmth', 'touched', 'score']
   const sort = readSort(sp, SORTS, { sort: 'score', dir: 'desc' })
-  // Pinned rows lead every ordering. A star that merely added points would
-  // sometimes still sit below the fold, which is the one thing it must not do.
-  const PINNED = { isFlagged: 'desc' } as const
+  // P0/P1/P2 rows lead every ordering, in that order; unset sorts last. A
+  // tier that merely added points would sometimes still sit below the fold,
+  // which is the one thing it must not do.
+  const PINNED = { priority: { sort: 'asc', nulls: 'last' } } as const
   const orderBy =
     sort.sort === 'name' ? [PINNED, { fullName: sort.dir }]
     : sort.sort === 'quality' ? [PINNED, { leadQuality: sort.dir }, { fullName: 'asc' as const }]
@@ -80,7 +82,7 @@ export default async function CrmPeoplePage({
     ...(touched === 'ever' ? { lastTouchedAt: { not: null } } : {}),
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
     ...(Number.isFinite(minScore) ? { priorityScore: { gte: minScore } } : {}),
-    ...(flagged ? { isFlagged: true } : {}),
+    ...(priority ? { priority: priority as CrmPriorityTier } : {}),
   }
 
   const [total, rows, needsCompletion] = await Promise.all([
@@ -91,7 +93,7 @@ export default async function CrmPeoplePage({
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
-        id: true, fullName: true, roles: true, goals: true, leadQuality: true, warmth: true, isFlagged: true,
+        id: true, fullName: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
         lastTouchedAt: true, touchCount: true, priorityScore: true, linkedinUrl: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
@@ -104,10 +106,9 @@ export default async function CrmPeoplePage({
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
-    q, role, quality, warmth, touched, goal,
+    q, role, quality, warmth, touched, goal, priority,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
     per: String(perPage), sort: sort.sort, dir: sort.dir,
-    flagged: flagged ? '1' : '',
   }
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
@@ -177,7 +178,7 @@ export default async function CrmPeoplePage({
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
           // Thresholds match the real distribution: people top out around 67
           // and cluster near 30, so 70+ would match nobody and 30+ everybody.
-          { key: 'flagged', label: 'Pinned', value: flagged ? '1' : '', options: [{ value: '', label: 'Pinned or not' }, { value: '1', label: 'Pinned only' }] },
+          { key: 'priority', label: 'Priority', value: priority, options: [{ value: '', label: 'Any priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: PRIORITY_TIER_LABELS[t] }))] },
           { key: 'minScore', label: 'Priority', value: Number.isFinite(minScore) ? String(minScore) : '', options: [{ value: '', label: 'Any priority' }, { value: '45', label: 'Top — 45+' }, { value: '40', label: 'High — 40+' }, { value: '35', label: 'Above average — 35+' }] },
         ]}
       />
@@ -222,7 +223,7 @@ export default async function CrmPeoplePage({
                   <th className="w-8 px-3 py-2">
                     <CrmSelectAll pageCount={rows.length} />
                   </th>
-                  <th className="w-8 px-1 py-2"><span className="sr-only">Pinned</span></th>
+                  <th className="px-3 py-2 font-medium">Priority</th>
                   <SortHeader label="Name" sortKey="name" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <th className="px-3 py-2 font-medium">Organization</th>
                   <th className="px-3 py-2 font-medium">Contact type</th>
@@ -239,8 +240,15 @@ export default async function CrmPeoplePage({
                     <td className="px-3 py-2">
                       <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
                     </td>
-                    <td className="px-1 py-2">
-                      <CrmFlagToggle personId={p.id} flagged={p.isFlagged} name={p.fullName} />
+                    <td className="px-3 py-2">
+                      <span className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-xs font-semibold ${priorityTierClass(p.priority)}`}>
+                        {p.priority ?? '—'}
+                      </span>
+                      <CrmInlineSelect
+                        personId={p.id} field="priority" value={p.priority ?? ''}
+                        label={`Priority for ${p.fullName}`}
+                        options={[{ value: '', label: 'None' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: PRIORITY_TIER_LABELS[t] }))]}
+                      />
                     </td>
                     <td className="px-3 py-2">
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>

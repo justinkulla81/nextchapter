@@ -10,7 +10,7 @@ export function CrmInlineSelect({
   personId, field, value, options, label,
 }: {
   personId: string
-  field: 'leadQuality' | 'warmth'
+  field: 'leadQuality' | 'warmth' | 'priority'
   value: string
   options: { value: string; label: string }[]
   label: string

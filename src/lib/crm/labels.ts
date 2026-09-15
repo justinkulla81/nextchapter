@@ -1,4 +1,4 @@
-import type { CrmPersonRole, CrmOrgType, CrmLeadQuality, CrmWarmth, CrmEligibility } from '@prisma/client'
+import type { CrmPersonRole, CrmOrgType, CrmLeadQuality, CrmWarmth, CrmEligibility, CrmPriorityTier } from '@prisma/client'
 
 // Human labels for the CRM enums. Sentence case per design-principles.md.
 export const PERSON_ROLE_LABELS: Record<CrmPersonRole, string> = {
@@ -64,10 +64,27 @@ export const ELIGIBILITY_LABELS: Record<CrmEligibility, string> = {
   NOT_APPLICABLE: 'Not applicable',
 }
 
+export const PRIORITY_TIER_LABELS: Record<CrmPriorityTier, string> = {
+  P0: 'P0 — Immediate',
+  P1: 'P1 — High',
+  P2: 'P2 — Important, not urgent',
+}
+
 export const PERSON_ROLES = Object.keys(PERSON_ROLE_LABELS) as CrmPersonRole[]
 export const ORG_TYPES = Object.keys(ORG_TYPE_LABELS) as CrmOrgType[]
 export const QUALITIES = Object.keys(QUALITY_LABELS) as CrmLeadQuality[]
 export const WARMTHS = Object.keys(WARMTH_LABELS) as CrmWarmth[]
+export const PRIORITY_TIERS = Object.keys(PRIORITY_TIER_LABELS) as CrmPriorityTier[]
+
+/** Colour tokens per priority tier — P0 reads as urgent, P2 as calmer. */
+export function priorityTierClass(t: CrmPriorityTier | null): string {
+  switch (t) {
+    case 'P0': return 'bg-destructive/10 text-destructive'
+    case 'P1': return 'bg-orange/15 text-orange'
+    case 'P2': return 'bg-muted text-muted-foreground'
+    default: return 'bg-muted text-muted-foreground/60'
+  }
+}
 
 /** Colour tokens per quality grade — A is the only one that reads as "act on this". */
 export function qualityClass(q: CrmLeadQuality): string {
