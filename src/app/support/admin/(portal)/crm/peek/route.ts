@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { PERSON_ROLE_LABELS, ORG_TYPE_LABELS, sinceLabel, formatDate } from '@/lib/crm/labels'
+import { ORG_TYPE_LABELS, sinceLabel, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 20
 
@@ -79,7 +79,9 @@ export async function GET(req: NextRequest) {
     title: person.fullName,
     subtitle: person.affiliations[0]?.title ?? null,
     href: `/support/admin/crm/people/${person.id}`,
-    roles: person.roles.map((r) => PERSON_ROLE_LABELS[r]),
+    // Raw enum values — the panel edits these directly via a multi-select
+    // (CrmInlineRoles), not just displays them.
+    roles: person.roles,
     // Raw enum values for the panel's own inline <select>s — QUALITY_LABELS
     // etc. are used to render the option list client-side.
     editable: { leadQuality: person.leadQuality, warmth: person.warmth, priority: person.priority },
@@ -94,8 +96,10 @@ export async function GET(req: NextRequest) {
     ].filter(Boolean),
     body: person.notes ?? null,
     linkedinUrl: person.linkedinUrl,
-    followUp: person.nextFollowUpAt
-      ? { dueAt: formatDate(person.nextFollowUpAt), note: person.nextFollowUpNote }
+    // A follow-up can be flagged with no specific date — dueAt is null then,
+    // not the whole follow-up.
+    followUp: person.nextFollowUpAt || person.nextFollowUpNote
+      ? { dueAt: person.nextFollowUpAt ? formatDate(person.nextFollowUpAt) : null, note: person.nextFollowUpNote }
       : null,
     activities: person.activities.map((a) => ({
       subject: a.subject ?? a.type, when: formatDate(a.occurredAt), auto: a.isAutoLogged, body: a.body,

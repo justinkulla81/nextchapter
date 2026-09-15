@@ -6,6 +6,8 @@ import {
   updatePersonField, logCallWithFollowUp, clearPersonFollowUp,
 } from '@/app/support/admin/(portal)/crm/actions'
 import { QUALITY_LABELS, WARMTH_LABELS, PRIORITY_TIER_LABELS, QUALITIES, WARMTHS, PRIORITY_TIERS } from '@/lib/crm/labels'
+import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
+import type { CrmPersonRole } from '@prisma/client'
 
 interface Fact { label: string; value: string }
 interface Peek {
@@ -14,13 +16,13 @@ interface Peek {
   title: string
   subtitle: string | null
   href: string
-  roles?: string[]
+  roles?: CrmPersonRole[]
   editable?: { leadQuality: string; warmth: string; priority: string | null }
   company?: { id: string; name: string; otherPeopleCount: number } | null
   facts: Fact[]
   body: string | null
   linkedinUrl?: string | null
-  followUp?: { dueAt: string; note: string | null } | null
+  followUp?: { dueAt: string | null; note: string | null } | null
   activities?: { subject: string; when: string; auto: boolean; body?: string | null }[]
   people?: { id: string; name: string; detail: string | null; touched: string }[]
   pipelines?: { label: string; stage: string }[]
@@ -119,10 +121,8 @@ export function CrmPeekPanel() {
 
           {data && (
             <>
-              {data.roles && data.roles.length > 0 && (
-                <p className="flex flex-wrap gap-1">
-                  {data.roles.map((r) => <span key={r} className="rounded-full bg-muted px-2 py-0.5 text-xs">{r}</span>)}
-                </p>
+              {data.kind === 'person' && data.roles && (
+                <CrmInlineRoles personId={data.id} roles={data.roles} name={data.title} onSaved={() => refetch(data.id, 'person')} />
               )}
 
               {data.company !== undefined && (
@@ -282,14 +282,14 @@ function FollowUpBlock({
   personId, followUp, onChanged,
 }: {
   personId: string
-  followUp: { dueAt: string; note: string | null } | null
+  followUp: { dueAt: string | null; note: string | null } | null
   onChanged: () => void
 }) {
   const [pending, start] = useTransition()
   if (!followUp) return null
   return (
     <div className="rounded-lg border border-orange/40 bg-orange/5 p-3">
-      <p className="text-xs font-semibold text-orange">Follow up {followUp.dueAt}</p>
+      <p className="text-xs font-semibold text-orange">{followUp.dueAt ? `Follow up ${followUp.dueAt}` : 'Follow up — no date set'}</p>
       {followUp.note && <p className="mt-1 text-xs text-muted-foreground">{followUp.note}</p>}
       <button
         type="button"
@@ -323,16 +323,22 @@ function LogCallForm({ personId, onLogged }: { personId: string; onLogged: () =>
       <p className="text-sm font-medium">Log a call</p>
       <label className="block text-xs text-muted-foreground">
         When
-        <input type="datetime-local" name="occurredAt" className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-2 text-sm" />
+        <input type="date" name="occurredAt" className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-2 text-sm" />
       </label>
       <label className="block text-xs text-muted-foreground">
         Notes
         <textarea name="note" rows={2} className="mt-0.5 block w-full rounded border border-input bg-transparent px-2 py-1 text-sm" />
       </label>
-      <label className="block text-xs text-muted-foreground">
-        Follow up on <span className="text-muted-foreground/70">(optional)</span>
-        <input type="date" name="followUpAt" className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-2 text-sm" />
-      </label>
+      <div className="rounded border border-input p-2">
+        <label className="flex items-center gap-1.5 text-xs">
+          <input type="checkbox" name="needsFollowUp" />
+          Needs a follow-up
+        </label>
+        <label className="mt-1.5 block text-xs text-muted-foreground">
+          On <span className="text-muted-foreground/70">(optional — leave blank if you don&apos;t know yet)</span>
+          <input type="date" name="followUpAt" className="mt-0.5 block h-8 w-full rounded border border-input bg-transparent px-2 text-sm" />
+        </label>
+      </div>
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={`rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white ${pending ? 'cursor-progress opacity-60' : ''}`}>
           Save

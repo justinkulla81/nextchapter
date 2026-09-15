@@ -8,7 +8,15 @@ import type { CrmPersonRole } from '@prisma/client'
 // A person is routinely more than one thing (an advisor who is also a
 // hiring manager) — native multi-select straight from the list row, same
 // idea as CrmBulkBar's own "pick several" control.
-export function CrmInlineRoles({ personId, roles, name }: { personId: string; roles: CrmPersonRole[]; name: string }) {
+export function CrmInlineRoles({
+  personId, roles, name, onSaved,
+}: {
+  personId: string
+  roles: CrmPersonRole[]
+  name: string
+  /** Called after saving — the list page relies on route revalidation instead, so this is optional. */
+  onSaved?: () => void
+}) {
   const [pending, start] = useTransition()
 
   return (
@@ -21,7 +29,7 @@ export function CrmInlineRoles({ personId, roles, name }: { personId: string; ro
       onChange={(e) => {
         const fd = new FormData()
         Array.from(e.target.selectedOptions).forEach((o) => fd.append('roles', o.value))
-        start(() => { void updatePersonRoles(personId, fd) })
+        start(async () => { await updatePersonRoles(personId, fd); onSaved?.() })
       }}
       className={`min-w-36 rounded border border-input bg-transparent px-1 py-0.5 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand ${pending ? 'cursor-progress opacity-60' : ''}`}
     >

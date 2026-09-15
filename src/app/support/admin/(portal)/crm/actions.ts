@@ -343,16 +343,21 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
 
 /**
  * Logs a call and, optionally, sets a follow-up reminder in one step — the
- * peek panel's "Log a call" form. Only touches nextFollowUpAt/Note when a
- * new follow-up date is actually given, so logging call #2 never silently
- * wipes a still-pending reminder set from call #1.
+ * peek panel's "Log a call" form. A follow-up can be flagged with no
+ * specific date (checked, date left blank) — nextFollowUpAt stays null but
+ * nextFollowUpNote still records that one's wanted. Only touches those two
+ * fields when the checkbox is actually ticked, so logging call #2 never
+ * silently wipes a still-pending reminder set from call #1.
  */
 export async function logCallWithFollowUp(personId: string, formData: FormData) {
   const admin = await requireAdmin()
   const occurredRaw = String(formData.get('occurredAt') ?? '').trim()
   const note = String(formData.get('note') ?? '').trim() || null
+  const needsFollowUp = formData.get('needsFollowUp') === 'on'
   const followUpRaw = String(formData.get('followUpAt') ?? '').trim()
-  const occurredAt = occurredRaw ? new Date(occurredRaw) : new Date()
+  // Noon UTC, not midnight — a plain "2026-09-15" parsed as midnight UTC
+  // displays as the previous day in any negative-offset timezone.
+  const occurredAt = occurredRaw ? new Date(`${occurredRaw}T12:00:00Z`) : new Date()
 
   const person = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: personId },
@@ -371,7 +376,9 @@ export async function logCallWithFollowUp(personId: string, formData: FormData) 
       lastTouchedAt: !person.lastTouchedAt || occurredAt > person.lastTouchedAt ? occurredAt : undefined,
       firstTouchedAt: person.firstTouchedAt ?? occurredAt,
       touchCount: person.touchCount + 1,
-      ...(followUpRaw ? { nextFollowUpAt: new Date(followUpRaw), nextFollowUpNote: note } : {}),
+      ...(needsFollowUp
+        ? { nextFollowUpAt: followUpRaw ? new Date(`${followUpRaw}T12:00:00Z`) : null, nextFollowUpNote: note }
+        : {}),
     },
   })
 
