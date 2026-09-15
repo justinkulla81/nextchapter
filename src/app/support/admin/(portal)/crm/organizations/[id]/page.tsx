@@ -4,7 +4,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
-import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, formatDate } from '@/lib/crm/labels'
+import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
+import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, QUALITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
 
 export const maxDuration = 30
 
@@ -43,6 +44,12 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           {org.orgTypes.map((t) => (
             <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
           ))}
+        </p>
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${qualityClass(org.leadQuality)}`}>
+            {QUALITY_LABELS[org.leadQuality]}
+          </span>
+          <CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} />
         </p>
         <p className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
           {org.hqRegion && <span>{org.hqRegion}</span>}

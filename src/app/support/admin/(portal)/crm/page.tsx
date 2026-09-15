@@ -15,7 +15,7 @@ import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS,
-  qualityClass, priorityTierClass, sinceLabel,
+  priorityTierClass, sinceLabel,
 } from '@/lib/crm/labels'
 import type { CrmPersonRole, CrmLeadQuality, CrmWarmth, CrmGoal, CrmPriorityTier } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
@@ -237,10 +237,9 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Organization</th>
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
-                  <SortHeader label="Quality" sortKey="quality" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <SortHeader label="Warmth" sortKey="warmth" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <SortHeader label="Contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
-                  <SortHeader label="Priority" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
+                  <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
               <tbody>
@@ -290,16 +289,6 @@ export default async function CrmPeoplePage({
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-xs font-semibold ${qualityClass(p.leadQuality)}`}>
-                        {p.leadQuality === 'UNGRADED' ? '—' : p.leadQuality}
-                      </span>
-                      <CrmInlineSelect
-                        personId={p.id} field="leadQuality" value={p.leadQuality}
-                        label={`Quality for ${p.fullName}`}
-                        options={QUALITIES.map((x) => ({ value: x, label: QUALITY_LABELS[x] }))}
-                      />
                     </td>
                     <td className="px-3 py-2">
                       <CrmInlineSelect

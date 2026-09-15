@@ -7,9 +7,10 @@ import { CrmLogLinkedInButton } from '@/components/admin/CrmLogLinkedInButton'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
+import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
-  PERSON_ROLES, PERSON_ROLE_LABELS, QUALITY_LABELS, WARMTH_LABELS,
+  PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
   qualityClass, formatDate, sinceLabel,
 } from '@/lib/crm/labels'
 
@@ -65,11 +66,16 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                 </>
               : 'No organization on file'}
           </p>
-          <p className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${qualityClass(person.leadQuality)}`}>
               {QUALITY_LABELS[person.leadQuality]}
             </span>
-            <span className="text-muted-foreground">{WARMTH_LABELS[person.warmth]}</span>
+            <CrmInlineSelect
+              personId={person.id} field="leadQuality" value={person.leadQuality}
+              label={`Quality for ${person.fullName}`}
+              options={QUALITIES.map((q) => ({ value: q, label: QUALITY_LABELS[q] }))}
+            />
+            <span className="ml-2 text-muted-foreground">{WARMTH_LABELS[person.warmth]}</span>
             {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
             {person.linkedinUrl && (
               <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>

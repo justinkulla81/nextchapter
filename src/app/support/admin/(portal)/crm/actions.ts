@@ -389,6 +389,15 @@ export async function clearPersonFollowUp(personId: string) {
   revalidatePath(`${CRM}/people/${personId}`)
 }
 
+/** Inline edit of an organization's own quality grade, from its detail page. */
+export async function updateOrgQuality(orgId: string, value: string) {
+  const admin = await requireAdmin()
+  await prisma.crmOrganization.update({ where: { id: orgId }, data: { leadQuality: value as CrmLeadQuality } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_field_edited', { orgId, field: 'leadQuality', surface: 'record' })
+  revalidatePath(`${CRM}/organizations/${orgId}`)
+  revalidatePath(`${CRM}/organizations`)
+}
+
 /** Inline edit of a person's primary organization from a list row. */
 export async function updatePersonPrimaryOrg(personId: string, orgNameRaw: string) {
   const admin = await requireAdmin()
