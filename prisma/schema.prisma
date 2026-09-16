@@ -4331,6 +4331,17 @@ model SupportNetworkContact {
   // ones, so the admin list's "reviewed" count means something.
   adminOutreachStatus       ContactAdminOutreachStatus @default(NOT_REVIEWED)
   adminNotes                String?
+  // "X" on the Network Leads admin page — hides this row from all three lead
+  // tables without touching relationshipTags (so it's not "not actually a
+  // recruiter/coach" the way removeLeadTag is) and without touching
+  // removedAt (which also hides the contact from the CANDIDATE's own Network
+  // page — this must never do that).
+  leadDismissedAt           DateTime?
+  // Admin-only business-development priority tier for this lead — same
+  // enum/meaning as CrmPerson.priority and Company.priority, kept
+  // independent of isPriority above (that one is the candidate's own
+  // gamified "this person matters most" flag, a different concept).
+  adminPriority             CrmPriorityTier?
   // The candidate's own free-text notes about this person — distinct from
   // adminNotes above, which is NextChapter's internal business-development
   // tracking and never candidate-visible.

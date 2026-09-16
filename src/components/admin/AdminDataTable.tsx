@@ -22,8 +22,11 @@ export interface AdminSortInfo {
   currentKey: string
   currentDir: 'asc' | 'desc'
   basePath: string
-  /** Current query string params (minus `sort`/`dir`) to preserve across sort links. */
+  /** Current query string params (minus `sort`/`dir`, or minus sortParam/dirParam if set) to preserve across sort links. */
   baseParams: Record<string, string>
+  /** Query param names for sort key/direction — default 'sort'/'dir'. Set these to independent names when more than one AdminDataTable/AdminSortInfo lives on the same page, so sorting one table doesn't collide with another's state. */
+  sortParam?: string
+  dirParam?: string
 }
 
 // Generic, server-rendered admin table — replaces the ad hoc `<table>`
@@ -130,6 +133,8 @@ function buildPageHref(basePath: string, baseParams: Record<string, string>, pag
 
 function buildSortHref(sorting: AdminSortInfo, key: string): string {
   const nextDir = sorting.currentKey === key && sorting.currentDir === 'asc' ? 'desc' : 'asc'
-  const params = new URLSearchParams({ ...sorting.baseParams, sort: key, dir: nextDir })
+  const sortParam = sorting.sortParam ?? 'sort'
+  const dirParam = sorting.dirParam ?? 'dir'
+  const params = new URLSearchParams({ ...sorting.baseParams, [sortParam]: key, [dirParam]: nextDir })
   return `${sorting.basePath}?${params.toString()}`
 }
