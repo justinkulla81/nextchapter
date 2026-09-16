@@ -35,3 +35,23 @@ export async function revokeCaptureToken(tokenId: string) {
   captureServerEvent(admin.email ?? 'admin', 'crm_capture_token_revoked', { tokenId })
   revalidatePath(BASE)
 }
+
+/**
+ * Rotates a token's secret value in place — same row, same label, new
+ * plaintext shown once. The old value stops working immediately (only the
+ * hash of the CURRENT value is ever stored, so the previous one is simply
+ * overwritten, not kept valid alongside the new one). This is the "refresh"
+ * path: you never need to revoke-then-recreate just to rotate one browser's
+ * secret.
+ */
+export async function regenerateCaptureToken(tokenId: string): Promise<{ token?: string; message: string }> {
+  const admin = await requireAdmin()
+  const token = generateToken()
+  await prisma.crmCaptureToken.update({
+    where: { id: tokenId },
+    data: { tokenHash: hashToken(token), lastUsedAt: null, useCount: 0 },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_capture_token_regenerated', { tokenId })
+  revalidatePath(BASE)
+  return { token, message: 'Copy this now — the old value stopped working and this one is not stored.' }
+}

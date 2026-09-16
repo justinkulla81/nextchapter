@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmTokenCreator } from '@/components/admin/CrmTokenCreator'
+import { CrmTokenRegenerateButton } from '@/components/admin/CrmTokenRegenerateButton'
 import { revokeCaptureToken } from './actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 
@@ -53,9 +54,12 @@ export default async function CrmCaptureTokensPage() {
                   </span>
                 </span>
                 {!t.revokedAt && (
-                  <form action={revokeCaptureToken.bind(null, t.id)}>
-                    <SubmitButton size="sm" variant="outline" pendingLabel="Revoking…">Revoke</SubmitButton>
-                  </form>
+                  <span className="flex items-center gap-2">
+                    <CrmTokenRegenerateButton tokenId={t.id} />
+                    <form action={revokeCaptureToken.bind(null, t.id)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Revoking…">Revoke</SubmitButton>
+                    </form>
+                  </span>
                 )}
               </li>
             ))}

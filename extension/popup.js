@@ -114,7 +114,13 @@ document.addEventListener('click', async (e) => {
 })
 
 $('save-token').addEventListener('click', async () => {
-  const base = $('base').value.trim().replace(/\/+$/, '')
+  let base = $('base').value.trim().replace(/\/+$/, '')
+  // A bare "admin.launchyournextchapter.com" with no protocol isn't an
+  // absolute URL — fetch() would resolve it relative to the extension's own
+  // chrome-extension:// origin and the request would never leave the
+  // extension, surfacing as a generic "could not reach the site" later with
+  // no clue why. Assume https rather than fail silently on save.
+  if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`
   const token = $('token').value.trim()
   if (!base || !token) {
     $('setup-msg').textContent = 'Both fields are needed.'
@@ -166,8 +172,12 @@ $('save').addEventListener('click', async () => {
       ? 'That token was rejected. Reconnect with a fresh one.'
       : (data.error ?? 'Could not save that.')
     msg.className = 'msg err'
-  } catch {
-    msg.textContent = 'Could not reach the site. Check the address and your connection.'
+  } catch (err) {
+    // Includes the actual base URL and error text rather than a generic
+    // message — a bad saved address (typo, wrong protocol) looks identical
+    // to a real network failure otherwise, and there's no console the user
+    // will think to open.
+    msg.textContent = `Could not reach ${base}/api/crm/capture — ${err instanceof Error ? err.message : 'check the address'}.`
     msg.className = 'msg err'
   }
   btn.disabled = false

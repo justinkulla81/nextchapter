@@ -5,6 +5,5 @@
   "description": "Save a person, a layoff story, or research to the NextChapter CRM from the page you're on.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["https://*/*"],
-  "action": { "default_popup": "popup.html", "default_title": "Save to NextChapter" },
-  "icons": { "128": "icons/icon128.png" }
+  "action": { "default_popup": "popup.html", "default_title": "Save to NextChapter" }
 }
