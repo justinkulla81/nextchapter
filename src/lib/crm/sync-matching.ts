@@ -15,7 +15,7 @@ const AUTOMATED_LOCAL = new Set([
   'forum', 'forums', 'webinar', 'webinars', 'events', 'rsvp', 'list', 'lists', 'digest',
   'jobs', 'careers', 'press', 'media', 'sales', 'marketing', 'office', 'hq', 'board',
   'customercare', 'customerservice', 'comms', 'communications', 'onlinebanking',
-  'ealerts', 'welcome', 'membership', 'members', 'service', 'services',
+  'ealerts', 'welcome', 'membership', 'members', 'service', 'services', 'pharmacy',
 ])
 
 // order-update@, shipment-tracking@, marketplace-messages@ — transactional
@@ -23,14 +23,32 @@ const AUTOMATED_LOCAL = new Set([
 const TRANSACTIONAL_LOCAL = /^(order|orders|shipment|shipping|tracking|delivery|invoice|receipt|statement|marketplace|payment|payments|billing|subscription|renewal|store)([-_+].*)?$/i
 
 /** Domains that never contain a business contact worth tracking. */
-const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite|ccsend|icontact|aweber|getresponse|activecampaign|klaviyo|sailthru|braze|iterable|marketo|pardot|exacttarget|cheetahmail|bronto|listrak|dotdigital|campaignmonitor|mailjet|luma-mail)\.(com|net|io|org)$/i
+const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite|ccsend|icontact|aweber|getresponse|activecampaign|klaviyo|sailthru|braze|iterable|marketo|pardot|exacttarget|cheetahmail|bronto|listrak|dotdigital|campaignmonitor|mailjet|luma-mail|medallia|surveymonkey|qualtrics)\.(com|net|io|org)$/i
 
-// email.aspeninstitute.org, welcome.americanexpress.com, updates.rejigg.com —
-// a bulk/notification word as a SUBDOMAIN label (not the registrable domain
-// itself) means whatever real company owns the root domain, this particular
-// mailbox is still a broadcast/campaign channel. Deliberately scoped to
-// subdomain labels only — gmail.com, hotmail.com and similar never have one.
-const BULK_SUBDOMAIN_WORD = /^(mail|email|e|news|update|updates|welcome|notify|notifications?|marketing|campaigns?|newsletters?|lists?|comms?|communications?|info|send|sending|alerts?|ealerts)$/i
+// Individually chasing exact local-parts and domains (mailer@,
+// feedback-marriott.com, manhattansoccerclub.mailer@leagueapps.com) is an
+// endless tail — every real company invents its own compound. This instead
+// splits on the punctuation senders actually use to glue words together
+// (. _ -) and checks each resulting word on its own, so "feedback-marriott"
+// is really just "feedback" + "marriott", and "manhattansoccerclub.mailer"
+// is really "manhattansoccerclub" + "mailer".
+//
+// Two lists, not one — a domain choosing a bulk/notification word as one of
+// its own labels is a strong, essentially risk-free signal (a real
+// company's or person's domain is their name, not generic infrastructure
+// vocabulary). A LOCAL part is nearly as safe to split the same way EXCEPT
+// for the couple of words short or generic enough that a real person picks
+// them for themselves: a middle initial ("alex.e.bryson") or a self-chosen
+// prefix ("info.mrinalpandey") on their own personal address. Those two
+// ("e", "info") are excluded from the local list; everything else here
+// (mail@, email@, leadership-news@, etc.) is a generic mailbox essentially
+// no one would choose as their own compound.
+const BULK_DOMAIN_WORD = /^(mail|mailer|email|e|news|update|updates|welcome|notify|notifications?|marketing|campaigns?|newsletters?|lists?|comms?|communications?|info|send|sending|alerts?|ealerts|feedback|survey|surveys|reviews?)$/i
+const BULK_LOCAL_WORD = /^(mail|mailer|email|news|update|updates|welcome|notify|notifications?|marketing|campaigns?|newsletters?|lists?|comms?|communications?|send|sending|alerts?|ealerts|feedback|survey|surveys|reviews?)$/i
+
+function hasWord(value: string, pattern: RegExp): boolean {
+  return value.split(/[._-]/).some((word) => pattern.test(word))
+}
 
 export function normalizeEmail(raw: string | null | undefined): string | null {
   if (!raw) return null
@@ -90,8 +108,11 @@ export function isAutomatedAddress(email: string): boolean {
   if (/no.?reply|notifications?/.test(local)) return true
   if (/^[0-9a-f]{16,}$/.test(local)) return true
   if (AUTOMATED_DOMAIN.test(domain)) return true
-  const parts = domain.split('.')
-  if (parts.slice(0, -2).some((label) => BULK_SUBDOMAIN_WORD.test(label))) return true
+  // manhattansoccerclub.mailer@leagueapps.com, marriott-bonvoy@feedback-
+  // marriott.com, reviews@okendo.io — checked as words, not the whole
+  // string, since a real sender glues its own name onto these.
+  if (hasWord(local, BULK_LOCAL_WORD)) return true
+  if (hasWord(domain.split('.').slice(0, -1).join('.'), BULK_DOMAIN_WORD)) return true
   // 826nyc@826nyc.org, americanexpress@welcome.americanexpress.com — the
   // mailbox IS the organization, not a person who happens to work there.
   const domainRoot = domainRootLabel(domain)

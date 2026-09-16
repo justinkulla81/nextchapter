@@ -10,6 +10,7 @@ import {
 } from './sync-matching'
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
+import { looksLikeNotAPerson } from './person-plausibility'
 
 const DAY = 86_400_000
 
@@ -130,9 +131,22 @@ async function getOrCreatePerson(
   }
 
   const name = rawName && !isPlaceholderName(rawName) ? rawName : null
+  const fullName = name ?? email.split('@')[0]
+
+  // Same detector Needs Completion uses to flag an existing row — applied
+  // here too so "CVS Pharmacy" or "Manhattan Soccer Club" never becomes a
+  // row to flag in the first place. isAutomatedAddress already caught most
+  // of these upstream in classifyParticipant; this is the name-based half
+  // of that same check, for the rarer case of a plausible-looking email
+  // paired with an obviously-not-a-person display name.
+  if (looksLikeNotAPerson(fullName, email)) {
+    cache.set(email, null)
+    return null
+  }
+
   const created = await prisma.crmPerson.create({
     data: {
-      fullName: name ?? email.split('@')[0],
+      fullName,
       firstName: name?.split(' ')[0] ?? null,
       lastName: name?.split(' ').slice(1).join(' ') || null,
       email, emails: [email], needsCompletion: true, roles: [],

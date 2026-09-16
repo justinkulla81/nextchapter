@@ -43,6 +43,19 @@ describe('isAutomatedAddress', () => {
     for (const a of ['caribou@sempervirens.vc', 'rick.robinson@aarp.org', 'yigal@jff.org'])
       expect(isAutomatedAddress(a)).toBe(false)
   })
+  it('catches a bulk word glued into a compound local-part or domain, not just a bare match', () => {
+    for (const a of [
+      'manhattansoccerclub.mailer@leagueapps.com', // local-part compound
+      'marriott-bonvoy@feedback-marriott.com', // domain compound, no subdomain at all
+      'reviews@okendo.io', // bare local-part match
+      'digital-no-reply@amazon.com', // "no-reply" not at the start
+    ]) expect(isAutomatedAddress(a)).toBe(true)
+  })
+  it('does not over-match a real name or domain that merely contains a bulk word as a substring', () => {
+    // "e" and "info" are real bulk words, but only as a WHOLE segment —
+    // "erik" and "informatica" must not match on substring alone.
+    expect(isAutomatedAddress('erik@informatica.com')).toBe(false)
+  })
 })
 
 describe('classifyParticipant', () => {

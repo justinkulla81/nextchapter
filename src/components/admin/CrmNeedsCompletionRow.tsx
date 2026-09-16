@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { deletePerson } from '@/app/support/admin/(portal)/crm/actions'
 import { CrmMergePicker } from './CrmMergePicker'
 
@@ -25,6 +26,7 @@ export function CrmNeedsCompletionRow({
   secondaryAction: React.ReactNode
   children: React.ReactNode
 }) {
+  const router = useRouter()
   const [removed, setRemoved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -38,6 +40,11 @@ export function CrmNeedsCompletionRow({
     start(async () => {
       const res = await deletePerson(personId)
       if (!res.deleted) { setRemoved(false); setError(res.message) }
+      // A merge target elsewhere in the list may have just lost its only
+      // duplicate — router.refresh() re-fetches everyone's server-computed
+      // recommendation instead of leaving stale ones showing until the next
+      // real navigation.
+      router.refresh()
     })
   }
 

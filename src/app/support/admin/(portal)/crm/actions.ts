@@ -1676,12 +1676,17 @@ export async function deletePerson(personId: string): Promise<{ deleted: boolean
   })
   if (!p) return { deleted: false, message: 'Already gone.' }
   if (p.coachId || p.recruiterId || p.candidateId) {
-    return { deleted: false, message: 'This record is tied to a product account and can’t be deleted here.' }
+    const kind = p.candidateId ? 'candidate' : p.coachId ? 'coach' : 'recruiter'
+    return { deleted: false, message: `${p.fullName} is a current ${kind} — can’t be removed from the CRM here.` }
   }
   await prisma.crmPerson.update({ where: { id: personId }, data: { deletedAt: new Date() } })
   captureServerEvent(admin.email ?? 'admin', 'crm_person_deleted', { personId })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/needs-completion`)
+  // Soft-delete never touches CandidateProfile/Coach/Recruiter — those are
+  // separate tables CrmPerson only points at, never the other way around —
+  // so removing a CRM row can never block someone from being (or becoming)
+  // a candidate, coach, or recruiter later.
   return { deleted: true, message: `Deleted ${p.fullName}.` }
 }
 

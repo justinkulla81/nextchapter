@@ -175,16 +175,10 @@ export default async function CrmNeedsCompletionPage({
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-muted-foreground">
-                {total.toLocaleString()} to review
-                {actionFilter && ` · ${visibleRowInfos.length.toLocaleString()} shown`}
-              </p>
-              <label className="flex items-center gap-1.5 text-sm">
-                <CrmSelectAll pageCount={visibleRowInfos.length} />
-                <span className="text-muted-foreground">Select all shown</span>
-              </label>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              {total.toLocaleString()} to review
+              {actionFilter && ` · ${visibleRowInfos.length.toLocaleString()} shown`}
+            </p>
             <PageSizePicker basePath="/support/admin/crm/needs-completion" params={{}} current={perPage} label="people" />
           </div>
           <fieldset className="flex flex-wrap items-center gap-1.5">
@@ -204,6 +198,13 @@ export default async function CrmNeedsCompletionPage({
             ))}
           </fieldset>
           <CrmCompletionBulkBar count={visibleRowInfos.length}>
+          {/* Inside the bulk bar's own <form> on purpose — CrmSelectAll walks up
+              to closest('form') to find the row checkboxes, so it must be a
+              descendant of the same form that owns them, not a sibling above it. */}
+          <label className="mb-2 flex items-center gap-1.5 text-sm">
+            <CrmSelectAll pageCount={visibleRowInfos.length} />
+            <span className="text-muted-foreground">Select all shown</span>
+          </label>
           <ul className="rounded-lg border border-border divide-y divide-border">
             {visibleRowInfos.map(({ p, s, mergeTarget, notAPerson, recommendation, roleTag }) => {
               const acceptAction = acceptExportSuggestion.bind(null, p.id)

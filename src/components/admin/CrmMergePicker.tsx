@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { searchCrmPeopleByName, mergePersonIntoPerson, type CrmPersonSearchResult } from '@/app/support/admin/(portal)/crm/actions'
 
 /**
@@ -22,6 +23,7 @@ export function CrmMergePicker({
   /** Fires as soon as the merge call resolves — lets a list row remove itself immediately instead of waiting on a full-page revalidation. */
   onMerged?: () => void
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<CrmPersonSearchResult[]>([])
@@ -35,6 +37,10 @@ export function CrmMergePicker({
       setStatus(res.message)
       setOpen(false)
       onMerged?.()
+      // The merge target itself may now be complete, or someone else's
+      // duplicate suggestion may have just become stale — refresh rather
+      // than leaving the rest of the list showing pre-merge data.
+      router.refresh()
     })
   }
 
