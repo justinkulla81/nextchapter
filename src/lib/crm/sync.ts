@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
-import { listMessagesSince, getMessageHeaders, getMessageBody, getProfileEmail } from '@/lib/google/gmail'
+import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getProfileEmail } from '@/lib/google/gmail'
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
@@ -385,4 +385,70 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
     })
     throw e
   }
+}
+
+export interface PersonBackfillResult {
+  found: number
+  oldestAt: Date | null
+  reason?: 'no_connection' | 'no_token' | 'invalid_email'
+}
+
+/**
+ * On-demand, single-person history check — triggered from the Review List's
+ * "do you have their email?" prompt, not the nightly sweep.
+ *
+ * Deliberately narrower than sweepGmail in every way that matters for a
+ * one-off, human-initiated action: no date window (a real relationship can
+ * predate the sweep's rolling lookback by years — the whole reason to ask),
+ * no new-person creation for other participants on a thread (you already
+ * know who this is), and every found message logs straight to `personId`
+ * rather than being reclassified. Upserts on the same `${id}:${personId}`
+ * key sweepGmail uses, so a later nightly sweep re-finding the same message
+ * updates nothing instead of double-logging it.
+ */
+export async function backfillPersonFromEmail(personId: string, rawEmail: string): Promise<PersonBackfillResult> {
+  const email = normalizeEmail(rawEmail)
+  if (!email) return { found: 0, oldestAt: null, reason: 'invalid_email' }
+
+  const connection = await getActiveGoogleConnection()
+  if (!connection) return { found: 0, oldestAt: null, reason: 'no_connection' }
+  const token = await getValidAccessToken()
+  if (!token) return { found: 0, oldestAt: null, reason: 'no_token' }
+
+  const selfEmail = normalizeEmail((await getProfileEmail(token)) ?? connection.email)
+  const ctx: SweepContext = {
+    selfEmails: new Set(selfEmail ? [selfEmail] : []),
+    internalEmails: new Set(),
+    crmByEmail: new Map(),
+  }
+
+  const ids = await listMessagesForAddress(token, email)
+  let found = 0
+  let oldestAt: Date | null = null
+
+  for (const id of ids) {
+    const msg = await getMessageHeaders(token, id)
+    if (!msg) continue
+    const fromEmail = normalizeEmail(msg.from)
+    const fullBody = await getMessageBody(token, id)
+    await prisma.crmActivity.upsert({
+      where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
+      create: {
+        type: 'EMAIL',
+        direction: directionOf(fromEmail, ctx),
+        occurredAt: msg.internalDate,
+        personId,
+        subject: msg.subject,
+        body: fullBody ?? snippetOf(msg.snippet),
+        isAutoLogged: true,
+        sourceRef: `${id}:${personId}`,
+      },
+      update: {},
+    })
+    found++
+    if (!oldestAt || msg.internalDate < oldestAt) oldestAt = msg.internalDate
+  }
+
+  await refreshTouchFields([personId])
+  return { found, oldestAt }
 }

@@ -11,6 +11,7 @@ import { CrmInlineText } from '@/components/admin/CrmInlineText'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
 import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmNeedsCompletionRow } from '@/components/admin/CrmNeedsCompletionRow'
+import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPrompt'
 import { CrmNeedsCompletionList } from '@/components/admin/CrmNeedsCompletionList'
 import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
 
@@ -258,7 +259,7 @@ export default async function CrmNeedsCompletionPage({
                       />
                     </span>
                     <span className="text-muted-foreground">·</span>
-                    <span className="text-muted-foreground">{p.email ?? 'no email'}</span>
+                    <CrmEmailBackfillPrompt personId={p.id} email={p.email} />
                     {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>}
                     <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
                     {s && (

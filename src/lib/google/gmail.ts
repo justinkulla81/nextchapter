@@ -127,10 +127,29 @@ export async function listMessagesSince(
   since: Date,
   max = 400
 ): Promise<string[]> {
+  return listMessagesByQuery(accessToken, `after:${Math.floor(since.getTime() / 1000)} -in:spam -in:trash`, max)
+}
+
+/**
+ * Every message ever exchanged with one address, oldest correspondence and
+ * all — deliberately no `after:` filter, unlike listMessagesSince. This is
+ * for the one-person, on-demand backfill triggered from the Review List's
+ * "do you have their email?" prompt: bounded to a single relationship
+ * rather than a mailbox-wide sweep, a real history can be years deep and
+ * that's exactly the point of asking.
+ */
+export async function listMessagesForAddress(
+  accessToken: string,
+  email: string,
+  max = 250
+): Promise<string[]> {
+  const addr = JSON.stringify(email) // quoted so Gmail treats it as one token, not two search terms
+  return listMessagesByQuery(accessToken, `{from:${addr} to:${addr}} -in:spam -in:trash`, max)
+}
+
+async function listMessagesByQuery(accessToken: string, q: string, max: number): Promise<string[]> {
   const ids: string[] = []
   let pageToken: string | undefined
-  // Gmail's `after:` takes a unix second.
-  const q = `after:${Math.floor(since.getTime() / 1000)} -in:spam -in:trash`
 
   while (ids.length < max) {
     const url = new URL('https://gmail.googleapis.com/gmail/v1/users/me/messages')

@@ -8,7 +8,8 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName, isOrgQuickPick, placeholderOrgKindFor, ORG_PLACEHOLDER_NAME, type OrgPlaceholderKind } from '@/lib/crm/normalize'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
-import { refreshTouchFields } from '@/lib/crm/sync'
+import { refreshTouchFields, backfillPersonFromEmail } from '@/lib/crm/sync'
+import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
@@ -691,6 +692,55 @@ export async function acceptExportSuggestion(personId: string): Promise<{ accept
   captureServerEvent(admin.email ?? 'admin', 'crm_completion_accepted', { personId, source: 'linkedin_export' })
   revalidatePath(`${CRM}/needs-completion`)
   return { accepted: true }
+}
+
+export interface EmailBackfillResult {
+  ok: boolean
+  message: string
+}
+
+/**
+ * "Do you have their email?" — the Review List's other on-ramp for a person
+ * who's easy to identify but hard to auto-complete, an ADDRESS instead of a
+ * TITLE/ORG. Saving it also runs a one-time correspondence check: a real
+ * relationship often has years of mail sitting in Gmail that the nightly
+ * sweep's rolling window was never going to reach, since it only matches
+ * people who already had an email on file — this is exactly how it gets
+ * on file in the first place.
+ */
+export async function setPersonEmailAndCheckCorrespondence(personId: string, formData: FormData): Promise<EmailBackfillResult> {
+  const admin = await requireAdmin()
+  const raw = String(formData.get('email') ?? '').trim()
+  const email = normalizeEmail(raw)
+  if (!email) return { ok: false, message: 'That doesn’t look like a real email address.' }
+
+  const person = await prisma.crmPerson.findUniqueOrThrow({
+    where: { id: personId }, select: { emails: true, priority: true },
+  })
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: {
+      email,
+      emails: person.emails.includes(email) ? undefined : { push: email },
+      // Same creation-time rule as everywhere else a real email lands on a
+      // person — a reachable contact defaults to P2 unless already set.
+      priority: person.priority ?? 'P2',
+    },
+  })
+
+  const result = await backfillPersonFromEmail(personId, email)
+  captureServerEvent(admin.email ?? 'admin', 'crm_email_backfill', { personId, found: result.found, reason: result.reason ?? null })
+  revalidatePath(`${CRM}/needs-completion`)
+  revalidatePath(`${CRM}/people/${personId}`)
+
+  if (result.reason === 'no_connection' || result.reason === 'no_token') {
+    return { ok: true, message: `Saved ${email}. Connect Gmail (Activity sync) to check for past correspondence.` }
+  }
+  if (result.found === 0) {
+    return { ok: true, message: `Saved ${email}. No past emails found.` }
+  }
+  const since = result.oldestAt ? ` back to ${result.oldestAt.getFullYear()}` : ''
+  return { ok: true, message: `Saved ${email}. Found ${result.found} email${result.found === 1 ? '' : 's'}${since} — logged to their history.` }
 }
 
 // ── Pipelines (Phase 4) ──────────────────────────────────────────────────────
