@@ -8432,6 +8432,7 @@ enum CrmSourceFile {
   LINKEDIN_EXPORT
   QUICK_ADD
   MANUAL
+  CHROME_EXTENSION
 }
 
 enum CrmSegmentKind {

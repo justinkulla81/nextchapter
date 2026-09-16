@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { CrmPersonRole, CrmPriorityTier } from '@prisma/client'
+import type { CrmPersonRole, CrmPriorityTier, CrmWarmth } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { verifyCaptureToken } from '@/lib/crm/capture-token'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -36,9 +36,24 @@ interface CapturePayload {
   roles?: string[]
   priority?: string
   categories?: string[]
+  location?: string
+  connectionDegree?: string
 }
 
 const VALID_PRIORITIES = new Set(['P0', 'P1', 'P2'])
+
+// LinkedIn network distance, read off the profile page, doubles as a
+// starting warmth: someone already 1st-degree is a genuinely warmer lead
+// than someone you've never interacted with. Only ever narrows to this on a
+// real signal — no signal (not LinkedIn, scrape failed) leaves `warmth`
+// unset so the schema's own UNKNOWN default applies instead of a false COLD.
+function warmthFromConnectionDegree(degree: string | undefined): CrmWarmth | null {
+  if (!degree) return null
+  const d = degree.toLowerCase()
+  if (d.includes('1st')) return 'HOT'
+  if (d.includes('2nd')) return 'WARM'
+  return 'COLD' // 3rd-degree, or any other value LinkedIn ever sends here
+}
 
 function slugOf(url: string | undefined): string | null {
   if (!url) return null
@@ -117,6 +132,7 @@ export async function POST(req: NextRequest) {
         ? body.roles.filter((r): r is CrmPersonRole => (PERSON_ROLES as string[]).includes(r))
         : []
       const priority = (body.priority && VALID_PRIORITIES.has(body.priority) ? body.priority : 'P2') as CrmPriorityTier
+      const warmth = warmthFromConnectionDegree(body.connectionDegree)
 
       const person = await prisma.crmPerson.create({
         data: {
@@ -128,6 +144,7 @@ export async function POST(req: NextRequest) {
           // slug lookup above fails, so a person from a non-/in/ page still
           // gets whatever link you had open.
           linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : (body.url ?? null),
+          location: body.location?.trim() || null,
           notes: body.note?.trim() || null,
           // Captured in a hurry from a page — it belongs in the completion
           // queue, not presented as a finished record.
@@ -136,13 +153,14 @@ export async function POST(req: NextRequest) {
           // Someone worth capturing mid-browse is worth a baseline follow-up
           // by default — P2 unless you picked a different priority yourself.
           priority,
+          ...(warmth ? { warmth } : {}),
         },
       })
       if (orgId) {
         await prisma.crmAffiliation.create({ data: { personId: person.id, orgId, title: body.jobTitle?.trim() || '' } })
       }
       await prisma.crmSourceRecord.create({
-        data: { sourceFile: 'QUICK_ADD', rawJson: { ...body, via: 'extension' }, personId: person.id, matchTier: 'CREATE' },
+        data: { sourceFile: 'CHROME_EXTENSION', rawJson: { ...body, via: 'extension' }, personId: person.id, matchTier: 'CREATE' },
       })
       captureServerEvent('extension', 'crm_captured', { kind: 'person', personId: person.id })
       return NextResponse.json({ ok: true, personId: person.id, message: `Saved ${full}.` }, { headers: CORS })

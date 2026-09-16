@@ -28,7 +28,7 @@ that gap.
 
 | Tab          | Writes to                                          |
 | ------------ | -------------------------------------------------- |
-| Person       | `CrmPerson` + `CrmAffiliation`, flagged for completion, with your chosen contact type(s) and priority (defaults to P2) |
+| Person       | `CrmPerson` + `CrmAffiliation`, flagged for completion, with your chosen contact type(s), priority (defaults to P2), location, and warmth inferred from LinkedIn connection degree (1st → Hot, 2nd → Warm, 3rd/none → Cold) |
 | Layoff       | `CrmOrganization` + `CrmOutplacementProfile` + an opportunity at stage one |
 | Research     | `CrmResearchItem` with stance left unset           |
 | Product      | `ProductFeedback`, for review on the Vision → Feedback page |
