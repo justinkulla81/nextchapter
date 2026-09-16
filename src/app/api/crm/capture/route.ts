@@ -118,6 +118,9 @@ export async function POST(req: NextRequest) {
           // queue, not presented as a finished record.
           needsCompletion: true,
           roles: [],
+          // Someone worth capturing mid-browse is worth a baseline follow-up,
+          // not silent until it happens to surface some other way.
+          priority: 'P2',
         },
       })
       if (orgId) {
