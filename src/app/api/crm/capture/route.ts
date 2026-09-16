@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { CrmPersonRole, CrmPriorityTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { verifyCaptureToken } from '@/lib/crm/capture-token'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName } from '@/lib/crm/normalize'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
+import { PERSON_ROLES } from '@/lib/crm/labels'
 
 export const maxDuration = 30
 
@@ -21,7 +23,7 @@ export async function OPTIONS() {
 }
 
 interface CapturePayload {
-  kind: 'person' | 'layoff' | 'research' | 'article'
+  kind: 'person' | 'layoff' | 'research' | 'product'
   url?: string
   title?: string
   name?: string
@@ -31,7 +33,12 @@ interface CapturePayload {
   announcedAt?: string
   note?: string
   selection?: string
+  roles?: string[]
+  priority?: string
+  categories?: string[]
 }
+
+const VALID_PRIORITIES = new Set(['P0', 'P1', 'P2'])
 
 function slugOf(url: string | undefined): string | null {
   if (!url) return null
@@ -106,21 +113,29 @@ export async function POST(req: NextRequest) {
           { status: 400, headers: CORS }
         )
       }
+      const roles = Array.isArray(body.roles)
+        ? body.roles.filter((r): r is CrmPersonRole => (PERSON_ROLES as string[]).includes(r))
+        : []
+      const priority = (body.priority && VALID_PRIORITIES.has(body.priority) ? body.priority : 'P2') as CrmPriorityTier
+
       const person = await prisma.crmPerson.create({
         data: {
           fullName: full,
           firstName: full.split(' ')[0] ?? null,
           lastName: full.split(' ').slice(1).join(' ') || null,
           linkedinSlug: slug,
+          // The LinkedIn URL you were actually on — captured even when the
+          // slug lookup above fails, so a person from a non-/in/ page still
+          // gets whatever link you had open.
           linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : (body.url ?? null),
           notes: body.note?.trim() || null,
           // Captured in a hurry from a page — it belongs in the completion
           // queue, not presented as a finished record.
           needsCompletion: true,
-          roles: [],
-          // Someone worth capturing mid-browse is worth a baseline follow-up,
-          // not silent until it happens to surface some other way.
-          priority: 'P2',
+          roles,
+          // Someone worth capturing mid-browse is worth a baseline follow-up
+          // by default — P2 unless you picked a different priority yourself.
+          priority,
         },
       })
       if (orgId) {
@@ -177,41 +192,56 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (body.kind === 'research' || body.kind === 'article') {
+    if (body.kind === 'research') {
       const title = (body.title ?? body.url ?? '').trim()
       if (!title) return NextResponse.json({ error: 'Need a title or URL.' }, { status: 400, headers: CORS })
 
-      if (body.kind === 'research') {
-        const existing = body.url ? await prisma.crmResearchItem.findFirst({ where: { url: body.url } }) : null
-        if (existing) {
-          return NextResponse.json({ ok: true, existing: true, message: 'Already saved as research.' }, { headers: CORS })
-        }
-        let orgId: string | null = null
-        if (isRealOrgName(body.company)) {
-          const key = normalizeOrgName(body.company)
-          orgId = (await prisma.crmOrganization.findUnique({ where: { canonicalNameNormalized: key } }))?.id ?? null
-        }
-        const item = await prisma.crmResearchItem.create({
-          data: {
-            title, url: body.url ?? null, orgId,
-            keyClaim: body.selection?.slice(0, 1000) ?? null,
-            relevanceNote: body.note?.trim() || null,
-            // Stance is a judgement about your own thesis and is never
-            // inferred — it waits for you on the research page.
-            stance: 'UNSET',
-          },
-        })
-        captureServerEvent('extension', 'crm_captured', { kind: 'research', itemId: item.id })
-        return NextResponse.json({ ok: true, itemId: item.id, message: 'Saved as research — set its stance when you get a moment.' }, { headers: CORS })
+      const existing = body.url ? await prisma.crmResearchItem.findFirst({ where: { url: body.url } }) : null
+      if (existing) {
+        return NextResponse.json({ ok: true, existing: true, message: 'Already saved as research.' }, { headers: CORS })
       }
-
-      const existing = body.url ? await prisma.researchLibraryItem.findFirst({ where: { url: body.url } }) : null
-      if (existing) return NextResponse.json({ ok: true, existing: true, message: 'Already in the library.' }, { headers: CORS })
-      const item = await prisma.researchLibraryItem.create({
-        data: { url: body.url ?? '', title, ingestionSource: 'extension', summary: body.selection?.slice(0, 1000) ?? null },
+      let orgId: string | null = null
+      if (isRealOrgName(body.company)) {
+        const key = normalizeOrgName(body.company)
+        orgId = (await prisma.crmOrganization.findUnique({ where: { canonicalNameNormalized: key } }))?.id ?? null
+      }
+      const item = await prisma.crmResearchItem.create({
+        data: {
+          title, url: body.url ?? null, orgId,
+          keyClaim: body.selection?.slice(0, 1000) ?? null,
+          relevanceNote: body.note?.trim() || null,
+          // Stance is a judgement about your own thesis and is never
+          // inferred — it waits for you on the research page.
+          stance: 'UNSET',
+        },
       })
-      captureServerEvent('extension', 'crm_captured', { kind: 'article', itemId: item.id })
-      return NextResponse.json({ ok: true, itemId: item.id, message: 'Saved to the library.' }, { headers: CORS })
+      captureServerEvent('extension', 'crm_captured', { kind: 'research', itemId: item.id })
+      return NextResponse.json({ ok: true, itemId: item.id, message: 'Saved as research — set its stance when you get a moment.' }, { headers: CORS })
+    }
+
+    if (body.kind === 'product') {
+      const categories = Array.isArray(body.categories) ? body.categories.filter(Boolean) : []
+      const note = body.note?.trim() || ''
+      if (!note && categories.length === 0) {
+        return NextResponse.json({ error: 'Need a note or at least one category.' }, { status: 400, headers: CORS })
+      }
+      // No dedicated category field on ProductFeedback — folded into rawText
+      // as a bracketed tag rather than adding a schema column for what's
+      // really just a quick-capture label, reviewed and reclassified from
+      // the Vision feedback page anyway.
+      const rawText = [categories.length > 0 ? `[${categories.join(', ')}]` : null, note, body.url ? `\n\n${body.url}` : null]
+        .filter(Boolean).join(' ').trim() || (body.url ?? '')
+      const item = await prisma.productFeedback.create({
+        data: {
+          source: 'SELF',
+          rawText,
+          channel: 'extension',
+          receivedAt: new Date(),
+          status: 'NEW',
+        },
+      })
+      captureServerEvent('extension', 'crm_captured', { kind: 'product', itemId: item.id })
+      return NextResponse.json({ ok: true, itemId: item.id, message: 'Saved to Vision feedback for review.' }, { headers: CORS })
     }
 
     return NextResponse.json({ error: `Unknown capture kind: ${body.kind}` }, { status: 400, headers: CORS })

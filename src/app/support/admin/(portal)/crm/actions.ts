@@ -1641,26 +1641,18 @@ function cleanAuthorName(raw: string): string | null {
 /**
  * Completion queue, in bulk.
  *
- * 187 rows reviewed one button at a time is a queue nobody finishes. Accepting
- * every export suggestion at once is safe precisely because the suggestion is
- * your own LinkedIn data rather than a guess — and the ones with no suggestion
- * are left alone rather than being marked done.
+ * 187 rows reviewed one button at a time is a queue nobody finishes. One
+ * "Approve" action for the whole selection: apply the export suggestion
+ * where one exists (safe precisely because it's your own LinkedIn data
+ * rather than a guess), and for anyone with nothing to pull in, just clear
+ * the flag — an explicit "I looked, this is fine as-is" rather than leaving
+ * it in the queue for lack of a suggestion to accept.
  */
 export async function bulkCompletion(formData: FormData): Promise<{ message: string }> {
   const admin = await requireAdmin()
   const ids = formData.getAll('selected').map(String).filter(Boolean)
   const mode = String(formData.get('mode') ?? '')
   if (ids.length === 0) return { message: 'Nothing selected.' }
-
-  if (mode === 'approve') {
-    // No suggestion to accept and nothing to merge — an explicit "I looked,
-    // this is fine as-is" for rows with no title/org and no export prefill
-    // to pull one from. Doesn't touch title or org, just stops asking.
-    const { count } = await prisma.crmPerson.updateMany({ where: { id: { in: ids } }, data: { needsCompletion: false } })
-    captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode, count })
-    revalidatePath(`${CRM}/needs-completion`)
-    return { message: `Approved ${count}.` }
-  }
 
   if (mode === 'delete') {
     const rows = await prisma.crmPerson.findMany({
@@ -1681,48 +1673,48 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
     }
   }
 
-  // Accept the export suggestion for each.
+  // Apply the export suggestion where one exists; approve as-is otherwise.
   const people = await prisma.crmPerson.findMany({
-    where: { id: { in: ids }, linkedinSlug: { not: null } },
+    where: { id: { in: ids } },
     select: { id: true, linkedinSlug: true, roles: true, affiliations: { select: { id: true } } },
   })
-  const suggestions = await prisma.crmLinkedInConnection.findMany({
-    where: { slug: { in: people.map((p) => p.linkedinSlug!) } },
-  })
+  const slugs = people.map((p) => p.linkedinSlug).filter((s): s is string => Boolean(s))
+  const suggestions = await prisma.crmLinkedInConnection.findMany({ where: { slug: { in: slugs } } })
   const bySlug = new Map(suggestions.map((s) => [s.slug, s]))
 
   let applied = 0
-  let noSuggestion = ids.length - people.length
+  let approvedAsIs = 0
   for (const p of people) {
-    const sug = bySlug.get(p.linkedinSlug!)
-    if (!sug) { noSuggestion++; continue }
-    const { orgId, placeholderKind } = await resolveSuggestionOrg(sug.company)
-    const existing = p.affiliations[0]
+    const sug = p.linkedinSlug ? bySlug.get(p.linkedinSlug) : undefined
     let saved = false
-    if (orgId) {
-      if (existing) await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { orgId, title: sug.position ?? '' } })
-      else await prisma.crmAffiliation.create({ data: { personId: p.id, orgId, title: sug.position ?? '' } })
-      saved = true
-    } else if (existing && sug.position) {
-      await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { title: sug.position } })
-      saved = true
+    let addJobSeeker = false
+    if (sug) {
+      const resolved = await resolveSuggestionOrg(sug.company)
+      const existing = p.affiliations[0]
+      if (resolved.orgId) {
+        if (existing) await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { orgId: resolved.orgId, title: sug.position ?? '' } })
+        else await prisma.crmAffiliation.create({ data: { personId: p.id, orgId: resolved.orgId, title: sug.position ?? '' } })
+        saved = true
+      } else if (existing && sug.position) {
+        await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { title: sug.position } })
+        saved = true
+      }
+      addJobSeeker = saved && resolved.placeholderKind === 'unemployed' && !p.roles.includes('JOB_SEEKER')
     }
-    if (!saved) { noSuggestion++; continue }
-
-    const addJobSeeker = placeholderKind === 'unemployed' && !p.roles.includes('JOB_SEEKER')
     await prisma.crmPerson.update({
       where: { id: p.id },
       data: { needsCompletion: false, ...(addJobSeeker ? { roles: [...p.roles, 'JOB_SEEKER' as const] } : {}) },
     })
-    applied++
+    if (saved) applied++
+    else approvedAsIs++
   }
 
-  captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode: 'accept', applied, noSuggestion })
+  captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode: 'approve', applied, approvedAsIs })
   revalidatePath(`${CRM}/needs-completion`)
   return {
-    message: noSuggestion > 0
-      ? `Applied ${applied}. Left ${noSuggestion} alone — no export suggestion to apply.`
-      : `Applied ${applied}.`,
+    message: applied > 0
+      ? `Applied ${applied} suggestion${applied === 1 ? '' : 's'}. Approved ${approvedAsIs} as-is.`
+      : `Approved ${approvedAsIs}.`,
   }
 }
 

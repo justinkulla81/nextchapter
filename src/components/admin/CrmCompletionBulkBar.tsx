@@ -42,11 +42,8 @@ export function CrmCompletionBulkBar({ children, count }: { children: React.Reac
         <div className="sticky bottom-0 mt-3 space-y-2 rounded-lg border border-border bg-background/95 p-3 backdrop-blur">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm text-muted-foreground">{selected} of {count} selected</p>
-            <SubmitButton formAction={run('accept')} size="sm" pendingLabel="Applying…">
-              Use suggestions
-            </SubmitButton>
-            <SubmitButton formAction={run('approve')} variant="outline" size="sm" pendingLabel="Approving…">
-              Approve as-is
+            <SubmitButton formAction={run('approve')} size="sm" pendingLabel="Approving…">
+              Approve
             </SubmitButton>
 
             {!confirming && (

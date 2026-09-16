@@ -9,11 +9,29 @@
  * quick add cannot help with.
  */
 
+// Mirrors src/lib/crm/labels.ts's PERSON_ROLE_LABELS — this extension has no
+// build step and can't import from the Next.js app, so the list is
+// duplicated here. Keep the two in sync by hand when roles change.
+const PERSON_ROLE_OPTIONS = [
+  ['BD_PARTNER', 'BD: Partner'], ['COACH_PROSPECT', 'BD: Coach'], ['RECRUITER_PROSPECT', 'BD: Recruiter'],
+  ['HIRING_MANAGER', 'BD: Hiring Manager'], ['OUTPLACEMENT_BUYER', 'BD: Outplacement'], ['ALUMNI_OFFICE', 'BD: Alumni'],
+  ['INVESTOR_VC', 'F: Investor (VC)'], ['INVESTOR_ANGEL', 'F: Investor (Angel)'], ['INCUBATOR', 'F: Incubator'],
+  ['GRANTS', 'F: Grants'], ['STRATEGIC', 'F: Strategic'],
+  ['PRESS', 'GTM: Press/Media'], ['GTM_PARTNER', 'GTM: Partner'],
+  ['ADVISOR', 'NC: Advisor'], ['EMPLOYEE_CANDIDATE', 'NC: Employee'], ['CONNECTOR', 'NC: Connector'],
+  ['POLICY_ANALYST', 'NC: Policy/Academic'], ['JOB_SEEKER', 'NC: Candidate'], ['OTHER', 'NC: Other'],
+].sort((a, b) => a[1].localeCompare(b[1]))
+
+const PRIORITY_OPTIONS = [['', 'Default (P2)'], ['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']]
+
 const KINDS = {
   person: [
     { id: 'name', label: 'Name', type: 'text' },
     { id: 'company', label: 'Company', type: 'text' },
     { id: 'jobTitle', label: 'Title', type: 'text' },
+    { id: 'linkedin', label: 'LinkedIn', type: 'readonly' },
+    { id: 'roles', label: 'Contact type(s)', type: 'checkboxes', options: PERSON_ROLE_OPTIONS },
+    { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
   ],
   layoff: [
     { id: 'company', label: 'Company', type: 'text' },
@@ -24,7 +42,9 @@ const KINDS = {
     { id: 'title', label: 'Title', type: 'text' },
     { id: 'company', label: 'Publisher', type: 'text' },
   ],
-  article: [{ id: 'title', label: 'Title', type: 'text' }],
+  product: [
+    { id: 'categories', label: 'Category', type: 'checkboxes', options: [['Product', 'Product'], ['Features', 'Features'], ['Design', 'Design']] },
+  ],
 }
 
 let kind = 'person'
@@ -57,10 +77,12 @@ async function readPage() {
   const out = { selection: String(window.getSelection() ?? '').trim().slice(0, 1000) }
 
   if (isLinkedIn) {
+    // Scoped to <main> so a class LinkedIn reuses all over the page (nav,
+    // sidebar, "People you may know") doesn't win over the actual profile
+    // headline just because it happens to appear earlier in the DOM.
+    const scope = document.querySelector('main') || document.body
     out.name = await wait(() => pick('h1'))
-    // The headline sits under the name; the company block varies by layout, so
-    // take the first plausible one and let the human correct it.
-    out.jobTitle = pick('.text-body-medium') || ''
+    out.jobTitle = scope.querySelector('.text-body-medium')?.textContent?.trim() || ''
     out.company =
       pick('[aria-label^="Current company"]') ||
       pick('button[aria-label*="Current company"] span') ||
@@ -69,7 +91,21 @@ async function readPage() {
       // one is company far more often than school.
       pick('.pv-text-details__right-panel a[href*="/company/"]') ||
       pick('a[data-field="experience_company_logo"]') ||
+      // Broadest fallback: any company-page link inside the profile's main
+      // content. Hrefs are far more durable across LinkedIn redesigns than
+      // the CSS class names wrapping them.
+      scope.querySelector('a[href*="/company/"]')?.textContent?.trim() ||
       ''
+    // <title> rarely changes format even when the page markup does —
+    // "Name - Headline | LinkedIn" — so it's a last-resort, selector-free
+    // source when the DOM-based scrape above comes back empty.
+    if (!out.name || !out.jobTitle) {
+      const m = document.title.match(/^\(?\d*\)?\s*([^|]+?)\s*-\s*([^|]+?)\s*\|\s*LinkedIn/i)
+      if (m) {
+        if (!out.name) out.name = m[1].trim()
+        if (!out.jobTitle) out.jobTitle = m[2].trim()
+      }
+    }
   } else {
     out.title = meta('og:title') || document.title || ''
     out.company = meta('og:site_name') || ''
@@ -89,13 +125,50 @@ function renderFields() {
     const label = document.createElement('label')
     label.htmlFor = `f-${f.id}`
     label.textContent = f.label
+    host.append(label)
+
+    if (f.type === 'checkboxes') {
+      const wrap = document.createElement('div')
+      wrap.id = `f-${f.id}`
+      wrap.className = 'checkboxes'
+      for (const [value, optLabel] of f.options) {
+        const item = document.createElement('label')
+        item.className = 'checkbox-item'
+        const cb = document.createElement('input')
+        cb.type = 'checkbox'
+        cb.value = value
+        item.append(cb, document.createTextNode(optLabel))
+        wrap.append(item)
+      }
+      host.append(wrap)
+      continue
+    }
+
+    if (f.type === 'select') {
+      const select = document.createElement('select')
+      select.id = `f-${f.id}`
+      for (const [value, optLabel] of f.options) {
+        const opt = document.createElement('option')
+        opt.value = value
+        opt.textContent = optLabel
+        select.append(opt)
+      }
+      host.append(select)
+      continue
+    }
+
     const input = document.createElement('input')
     input.id = `f-${f.id}`
-    input.type = f.type
+    input.type = f.type === 'readonly' ? 'text' : f.type
+    if (f.type === 'readonly') input.readOnly = true
     const guess = page.scraped[f.id]
     if (guess !== undefined && guess !== '') input.value = guess
     else if (f.id === 'title') input.value = page.title
-    host.append(label, input)
+    // The LinkedIn field is just a confirmation of the URL already being
+    // sent as part of every payload — it isn't collected separately in
+    // the save handler below.
+    else if (f.id === 'linkedin' && page.url.includes('linkedin.com/in/')) input.value = page.url
+    host.append(input)
   }
 }
 
@@ -170,6 +243,12 @@ $('save').addEventListener('click', async () => {
   const { base, token } = await chrome.storage.local.get(['base', 'token'])
   const payload = { kind, url: page.url, note: $('note').value.trim(), selection: page.selection }
   for (const f of KINDS[kind]) {
+    if (f.type === 'readonly') continue // display only — the URL is already sent above
+    if (f.type === 'checkboxes') {
+      const checked = Array.from(document.querySelectorAll(`#f-${f.id} input:checked`)).map((cb) => cb.value)
+      if (checked.length > 0) payload[f.id] = checked
+      continue
+    }
     const v = $(`f-${f.id}`)?.value?.trim()
     if (v) payload[f.id] = f.type === 'number' ? Number(v) : v
   }

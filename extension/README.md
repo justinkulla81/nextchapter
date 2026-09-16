@@ -1,6 +1,6 @@
 # NextChapter Capture (Chrome extension)
 
-Saves a person, a layoff story, or an article to the CRM from the page you're on.
+Saves a person, a layoff story, research, or a product idea to the CRM from the page you're on.
 
 ## Why it exists
 
@@ -28,10 +28,10 @@ that gap.
 
 | Tab          | Writes to                                          |
 | ------------ | -------------------------------------------------- |
-| Person       | `CrmPerson` + `CrmAffiliation`, flagged for completion |
+| Person       | `CrmPerson` + `CrmAffiliation`, flagged for completion, with your chosen contact type(s) and priority (defaults to P2) |
 | Layoff       | `CrmOrganization` + `CrmOutplacementProfile` + an opportunity at stage one |
 | Research     | `CrmResearchItem` with stance left unset           |
-| To send on   | `ResearchLibraryItem`                              |
+| Product      | `ProductFeedback`, for review on the Vision → Feedback page |
 
 Prefill is best-effort and always editable before saving — LinkedIn's markup
 changes often, and a wrong guess you can see beats a right one you can't.
