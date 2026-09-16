@@ -395,6 +395,22 @@ export async function logCallWithFollowUp(personId: string, formData: FormData) 
   revalidatePath(`${CRM}/people/${personId}`)
 }
 
+/** Sets (or updates) a follow-up reminder directly, with no call attached. */
+export async function setPersonFollowUp(personId: string, note: string, dateStr: string) {
+  const admin = await requireAdmin()
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: {
+      nextFollowUpNote: note.trim() || null,
+      // Noon UTC, not midnight — see logCallWithFollowUp's own comment.
+      nextFollowUpAt: dateStr ? new Date(`${dateStr}T12:00:00Z`) : null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_followup_set', { personId, hasDate: Boolean(dateStr) })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+}
+
 /** Marks a follow-up reminder done — clears it without requiring a new call. */
 export async function clearPersonFollowUp(personId: string) {
   const admin = await requireAdmin()

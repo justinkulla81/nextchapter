@@ -12,7 +12,7 @@ const ORG_NOISE = new Set([
   'self-employed', 'self employed', 'freelance', 'various', 'stealth',
   'stealth startup', 'stealth mode', 'multiple organizations', 'n/a', 'na',
   'unknown', 'confidential', 'retired', 'unemployed', 'entrepreneur',
-  'founder', 'private', '—', '-',
+  'founder', 'advisor', 'private', '—', '-',
 ])
 
 export function isRealOrgName(v: string | null | undefined): v is string {

@@ -3,7 +3,8 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { PERSON_ROLES, PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { CrmRolePicker } from './CrmRolePicker'
 import {
   quickAddPerson, mergeIntoExisting, createAnyway,
   type QuickAddResult,
@@ -42,20 +43,10 @@ export function CrmQuickAdd() {
           </p>
         </div>
         <div>
-          <label htmlFor="crm-quick-role" className="mb-1 block text-sm font-medium">
+          <p className="mb-1 block text-sm font-medium">
             Contact type(s) <span className="font-normal text-muted-foreground">(optional, pick several)</span>
-          </label>
-          <select
-            id="crm-quick-role"
-            name="roles"
-            multiple
-            size={3}
-            className="min-w-40 rounded-md border border-input bg-transparent px-2 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
-          >
-            {PERSON_ROLES.map((r) => (
-              <option key={r} value={r}>{PERSON_ROLE_LABELS[r]}</option>
-            ))}
-          </select>
+          </p>
+          <CrmRolePicker name="roles" label="Contact type(s)" placeholder="Pick contact type(s)…" />
         </div>
         <SubmitButton pendingLabel="Adding…">Add person</SubmitButton>
       </form>

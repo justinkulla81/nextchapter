@@ -9,6 +9,7 @@ import {
   type SweepContext,
 } from './sync-matching'
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
+import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 
 const DAY = 86_400_000
 
@@ -97,23 +98,70 @@ export async function refreshTouchFields(personIds: string[]) {
   }
 }
 
+/**
+ * Finds or creates the CrmPerson for an email the sweep doesn't already
+ * recognize — everyone the sweep finds becomes a real record now, flagged
+ * `needsCompletion` so the Needs Completion queue is the one place to
+ * review, merge, or discard them, rather than a separate approval queue
+ * nothing else in the CRM understands.
+ *
+ * A PREVIOUSLY DELETED person stays excluded rather than quietly getting a
+ * new activity logged against their hidden row — deleting someone from
+ * Needs Completion is a decision ("not a real lead", "not who I meant"),
+ * and a future sweep re-adding them, even invisibly, would silently
+ * overturn it. Returns null in that case; the caller should skip the
+ * participant entirely, same as an internal or automated address.
+ *
+ * `cache` is per-sweep-run: the same address can appear on many messages/
+ * events in one run, and only the first occurrence should hit the database.
+ */
+async function getOrCreatePerson(
+  email: string, rawName: string | null, cache: Map<string, string | null>
+): Promise<{ id: string; created: boolean } | null> {
+  if (cache.has(email)) {
+    const id = cache.get(email)!
+    return id ? { id, created: false } : null
+  }
+
+  const existing = await prisma.crmPerson.findFirst({ where: { email }, select: { id: true, deletedAt: true } })
+  if (existing) {
+    cache.set(email, existing.deletedAt ? null : existing.id)
+    return existing.deletedAt ? null : { id: existing.id, created: false }
+  }
+
+  const name = rawName && !isPlaceholderName(rawName) ? rawName : null
+  const created = await prisma.crmPerson.create({
+    data: {
+      fullName: name ?? email.split('@')[0],
+      firstName: name?.split(' ')[0] ?? null,
+      lastName: name?.split(' ').slice(1).join(' ') || null,
+      email, emails: [email], needsCompletion: true, roles: [],
+    },
+  })
+  cache.set(email, created.id)
+  return { id: created.id, created: true }
+}
+
 export interface SweepResult {
   source: 'gmail' | 'calendar'
   scanned: number
   matched: number
   activitiesCreated: number
+  /** New CrmPerson rows created for an address the sweep didn't recognize. */
   suggested: number
   skippedInternal: number
   reason?: string
 }
 
 /**
- * Sweeps recent mail, logging threads that involve a CRM person and proposing
- * frequent correspondents who aren't one yet.
+ * Sweeps recent mail, logging threads that involve a CRM person — an
+ * unrecognized correspondent is now created as a real person (flagged
+ * `needsCompletion`) rather than parked in a separate suggestion queue, so
+ * there's one review surface for everyone the sweep finds, not two systems.
  *
- * Stores participants, subject, direction, timestamp and a ~200 character
- * snippet. Bodies are never fetched — the Gmail request asks for metadata with
- * an explicit header allow-list, so the body does not cross the wire at all.
+ * Bodies are only fetched for a message once a real person is on it — see
+ * getMessageBody's own comment; every other message pays only for the
+ * existing metadata-only fetch.
  *
  * `maxMessages` caps how many messages within the window get fetched, newest
  * first — fine at the default for the nightly cron's short rolling window,
@@ -136,6 +184,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
     const ctx = await buildSweepContext(selfEmail)
     const ids = await listMessagesSince(token, windowFrom, maxMessages)
     const touched = new Set<string>()
+    const personCache = new Map<string, string | null>()
     const result = { ...base }
 
     for (const id of ids) {
@@ -147,9 +196,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
       const fromEmail = normalizeEmail(msg.from)
       let loggedForThisMessage = false
       let hasInternal = false
-      // Fetched at most once per message, and only when a real CRM person is
-      // actually on it — every other participant (unknown, internal,
-      // automated) never pays for the extra format=full round trip.
+      // Fetched at most once per message, and only once a real (or
+      // newly-created) person is actually on it — every purely internal or
+      // automated message never pays for the extra format=full round trip.
       let fullBody: string | null | undefined
 
       for (const raw of participants) {
@@ -160,53 +209,42 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
         if (verdict.kind === 'internal') { hasInternal = true; continue }
         if (verdict.kind === 'self' || verdict.kind === 'automated') continue
 
+        let personId: string
+        let isNewPerson = false
         if (verdict.kind === 'crm') {
-          // A message can involve several CRM people; each gets the activity.
-          if (fullBody === undefined) fullBody = await getMessageBody(token, id)
-          const created = await prisma.crmActivity.upsert({
-            where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${verdict.personId}` } },
-            create: {
-              type: 'EMAIL',
-              direction: directionOf(fromEmail, ctx),
-              occurredAt: msg.internalDate,
-              personId: verdict.personId,
-              subject: msg.subject,
-              // A known CRM contact's mail is worth the real message, not
-              // Gmail's ~200-char snippet — falls back to the snippet only if
-              // the full-body fetch itself failed (never on an empty body).
-              body: fullBody ?? snippetOf(msg.snippet),
-              isAutoLogged: true,
-              sourceRef: `${id}:${verdict.personId}`,
-            },
-            update: {},
-            select: { createdAt: true },
-          })
-          // upsert gives no "was created" flag; a fresh row is one written now.
-          if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
-          touched.add(verdict.personId)
-          loggedForThisMessage = true
-          continue
+          personId = verdict.personId
+        } else {
+          const resolved = await getOrCreatePerson(email, displayNameFrom(raw), personCache)
+          if (!resolved) continue // deleted before — stays excluded, not silently re-added
+          personId = resolved.id
+          isNewPerson = resolved.created
         }
 
-        // Unknown human — propose, never create.
-        if (verdict.kind === 'unknown') {
-          const name = displayNameFrom(raw)
-          const prior = await prisma.crmSuggestedContact.findUnique({ where: { email }, select: { status: true } })
-          // A dismissed address stays dismissed — re-proposing it every night
-          // is how a review queue becomes something you stop opening.
-          if (prior?.status === 'IGNORED') continue
-          await prisma.crmSuggestedContact.upsert({
-            where: { email },
-            create: { email, displayName: name, lastSubject: msg.subject, lastSeenAt: msg.internalDate },
-            update: {
-              messageCount: { increment: 1 },
-              lastSeenAt: msg.internalDate,
-              lastSubject: msg.subject,
-              displayName: name ?? undefined,
-            },
-          })
-          if (!prior) result.suggested++
-        }
+        // A message can involve several such people; each gets the activity.
+        if (fullBody === undefined) fullBody = await getMessageBody(token, id)
+        const created = await prisma.crmActivity.upsert({
+          where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
+          create: {
+            type: 'EMAIL',
+            direction: directionOf(fromEmail, ctx),
+            occurredAt: msg.internalDate,
+            personId,
+            subject: msg.subject,
+            // A known CRM contact's mail is worth the real message, not
+            // Gmail's ~200-char snippet — falls back to the snippet only if
+            // the full-body fetch itself failed (never on an empty body).
+            body: fullBody ?? snippetOf(msg.snippet),
+            isAutoLogged: true,
+            sourceRef: `${id}:${personId}`,
+          },
+          update: {},
+          select: { createdAt: true },
+        })
+        // upsert gives no "was created" flag; a fresh row is one written now.
+        if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
+        if (isNewPerson) result.suggested++
+        touched.add(personId)
+        loggedForThisMessage = true
       }
 
       if (hasInternal && !loggedForThisMessage) result.skippedInternal++
@@ -233,12 +271,15 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
 }
 
 /**
- * Logs meetings whose attendees include a CRM person, and proposes attendees
- * who aren't one yet — mirroring sweepGmail's propose-don't-create rule.
+ * Logs meetings whose attendees include a CRM person — an unrecognized
+ * attendee is created as a real person immediately (flagged
+ * `needsCompletion`), same as sweepGmail, so "meeting Omer tomorrow" adds
+ * Omer today rather than waiting on a separate approval step.
  *
- * A future event is still scanned for attendees (so "meeting Omer tomorrow"
- * surfaces him today), just not logged as a completed MEETING — only the
- * activity write is gated on `ev.start` being in the past, not the scan.
+ * A future event is still scanned for attendees (so that meeting adds him
+ * today), just not logged as a completed MEETING — only the activity write
+ * is gated on `ev.start` being in the past, not the scan or the person
+ * creation.
  */
 export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<SweepResult> {
   const base: SweepResult = { source: 'calendar', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
@@ -258,6 +299,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
     const ctx = await buildSweepContext(null)
     const events = await listCalendarEvents(token, windowFrom, new Date(Date.now() + daysForward * DAY))
     const touched = new Set<string>()
+    const personCache = new Map<string, string | null>()
     const result = { ...base }
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
@@ -274,43 +316,35 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
         if (verdict.kind === 'internal') { hasInternal = true; continue }
         if (verdict.kind === 'self' || verdict.kind === 'automated') continue
 
+        let personId: string
+        let isNewPerson = false
         if (verdict.kind === 'crm') {
-          // Nothing to log yet for a meeting that hasn't happened.
-          if (!isPast) continue
-          const created = await prisma.crmActivity.upsert({
-            where: { type_sourceRef: { type: 'MEETING', sourceRef: `${ev.id}:${verdict.personId}` } },
-            create: {
-              type: 'MEETING', direction: 'OUTBOUND', occurredAt: ev.start,
-              personId: verdict.personId, subject: ev.summary ?? 'Meeting',
-              isAutoLogged: true, sourceRef: `${ev.id}:${verdict.personId}`,
-            },
-            update: {},
-            select: { createdAt: true },
-          })
-          if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
-          touched.add(verdict.personId)
-          logged = true
-          continue
+          personId = verdict.personId
+        } else {
+          const resolved = await getOrCreatePerson(a.email, attendeeName(a), personCache)
+          if (!resolved) continue // deleted before — stays excluded, not silently re-added
+          personId = resolved.id
+          isNewPerson = resolved.created
         }
+        if (isNewPerson) result.suggested++
 
-        // Unknown attendee — propose regardless of whether the meeting is
-        // past or upcoming, so a suggestion arrives before the meeting does.
-        if (verdict.kind === 'unknown') {
-          const name = attendeeName(a)
-          const prior = await prisma.crmSuggestedContact.findUnique({ where: { email: a.email }, select: { status: true } })
-          if (prior?.status === 'IGNORED') continue
-          await prisma.crmSuggestedContact.upsert({
-            where: { email: a.email },
-            create: { email: a.email, displayName: name, lastSubject: ev.summary, lastSeenAt: ev.start },
-            update: {
-              messageCount: { increment: 1 },
-              lastSeenAt: ev.start,
-              lastSubject: ev.summary ?? undefined,
-              displayName: name ?? undefined,
-            },
-          })
-          if (!prior) result.suggested++
-        }
+        // Nothing to log yet for a meeting that hasn't happened — the person
+        // itself is still created above so they're findable before then.
+        if (!isPast) continue
+
+        const created = await prisma.crmActivity.upsert({
+          where: { type_sourceRef: { type: 'MEETING', sourceRef: `${ev.id}:${personId}` } },
+          create: {
+            type: 'MEETING', direction: 'OUTBOUND', occurredAt: ev.start,
+            personId, subject: ev.summary ?? 'Meeting',
+            isAutoLogged: true, sourceRef: `${ev.id}:${personId}`,
+          },
+          update: {},
+          select: { createdAt: true },
+        })
+        if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
+        touched.add(personId)
+        logged = true
       }
 
       if (hasInternal && !logged) result.skippedInternal++

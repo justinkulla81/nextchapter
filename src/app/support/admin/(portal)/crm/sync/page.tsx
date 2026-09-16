@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveGoogleConnection } from '@/lib/google/connection'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { acceptSuggestedContact, ignoreSuggestedContact, updateSyncSetting, disconnectAdminGmailInbox } from '../actions'
+import { updateSyncSetting, disconnectAdminGmailInbox } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 
 export const maxDuration = 30
@@ -16,22 +16,18 @@ export default async function CrmSyncPage({
   await requireAdmin()
   const params = await searchParams
 
-  const [runs, pending, addedCount, ignoredCount, autoLogged, withTouch, totalPeople, setting, gmailConnection, calendarConnection] = await Promise.all([
+  const [runs, addedAgg, autoLogged, withTouch, totalPeople, needsReview, setting, gmailConnection, calendarConnection] = await Promise.all([
     prisma.crmSyncRun.findMany({ orderBy: { startedAt: 'desc' }, take: 8 }),
-    prisma.crmSuggestedContact.findMany({
-      where: { status: 'PENDING' },
-      orderBy: [{ messageCount: 'desc' }, { lastSeenAt: 'desc' }],
-      take: 60,
-    }),
-    prisma.crmSuggestedContact.count({ where: { status: 'ADDED' } }),
-    prisma.crmSuggestedContact.count({ where: { status: 'IGNORED' } }),
+    prisma.crmSyncRun.aggregate({ _sum: { suggested: true } }),
     prisma.crmActivity.count({ where: { isAutoLogged: true } }),
     prisma.crmPerson.count({ where: { lastTouchedAt: { not: null } } }),
     prisma.crmPerson.count(),
+    prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
     prisma.crmSyncSetting.findUnique({ where: { id: 'singleton' } }),
     getActiveGoogleConnection(),
     prisma.adminGoogleCalendarConnection.findFirst(),
   ])
+  const addedCount = addedAgg._sum.suggested ?? 0
   const intervalHours = setting?.intervalHours ?? 24
   const enabled = setting?.enabled ?? true
 
@@ -44,13 +40,19 @@ export default async function CrmSyncPage({
         <div>
           <h1 className="text-2xl font-semibold">Activity sync</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Email and calendar are swept nightly. Threads involving someone in the CRM are logged; people
-            who write often but aren&apos;t in it yet are proposed below rather than added.
+            Email and calendar are swept nightly. Threads involving someone in the CRM are logged;
+            someone new is added straight away, flagged for review in Needs Completion rather than
+            held in a separate approval queue.
           </p>
         </div>
-        <Link href="/support/admin/crm/queue" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-          Queue
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/support/admin/crm/needs-completion" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+            Needs completion{needsReview > 0 && ` (${needsReview})`}
+          </Link>
+          <Link href="/support/admin/crm/queue" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+            Queue
+          </Link>
+        </div>
       </header>
 
       {params.googleConnected && (
@@ -112,8 +114,7 @@ export default async function CrmSyncPage({
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
         <strong className="text-foreground">What is stored:</strong> who was on the thread, the subject, the
-        direction, the time, and roughly the first 200 characters. Message bodies are never fetched — the
-        request asks Gmail for metadata only. Mail with candidates, coaches and recruiters is skipped entirely:
+        direction, the time, and the full message. Mail with candidates, coaches and recruiters is skipped entirely:
         those are product relationships with their own records, and they have no business in a
         business-development tool.
       </div>
@@ -121,8 +122,8 @@ export default async function CrmSyncPage({
       <section className="grid gap-3 sm:grid-cols-4">
         <Stat label="Auto-logged activities" value={autoLogged.toLocaleString()} />
         <Stat label="People with a real last-contact" value={`${withTouch.toLocaleString()} / ${totalPeople.toLocaleString()}`} />
-        <Stat label="Contacts added from mail" value={addedCount.toLocaleString()} />
-        <Stat label="Dismissed" value={ignoredCount.toLocaleString()} />
+        <Stat label="Added by sync" value={addedCount.toLocaleString()} />
+        <Stat label="Awaiting review" value={needsReview.toLocaleString()} />
       </section>
 
       <section>
@@ -192,44 +193,11 @@ export default async function CrmSyncPage({
         )}
       </section>
 
-      <section>
-        <h2 className="mb-1 text-lg font-semibold">People who write to you but aren&apos;t in the CRM</h2>
-        <p className="mb-3 text-sm text-muted-foreground">
-          Sorted by how often they appear. An address in your inbox is evidence of contact, not of a business
-          relationship — so nothing here is added until you say so, and anything dismissed stays dismissed.
-        </p>
-        {pending.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            Nothing waiting. Either every frequent correspondent is already in the Ecosystem, or the sweep has not
-            run yet.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {pending.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">
-                    {s.displayName ?? s.email}
-                    <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-normal">
-                      {s.messageCount} {s.messageCount === 1 ? 'message' : 'messages'}
-                    </span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">{s.email}</p>
-                  {s.lastSubject && <p className="mt-0.5 truncate text-xs text-muted-foreground">{s.lastSubject}</p>}
-                </div>
-                {/* Two discrete outcomes -> adjacent buttons, per design-principles.md. */}
-                <div className="flex shrink-0 gap-2">
-                  <form action={acceptSuggestedContact.bind(null, s.id)}>
-                    <SubmitButton size="sm" pendingLabel="Adding…">Add to Ecosystem</SubmitButton>
-                  </form>
-                  <form action={ignoreSuggestedContact.bind(null, s.id)}>
-                    <SubmitButton size="sm" variant="outline" pendingLabel="Dismissing…">Not a contact</SubmitButton>
-                  </form>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+      <section className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
+        Someone the sweep doesn&apos;t recognize is added directly rather than held for approval here — review
+        them in{' '}
+        <Link href="/support/admin/crm/needs-completion" className="text-foreground underline">Needs completion</Link>,
+        where a real duplicate or an unlikely-looking name is flagged for you automatically.
       </section>
     </div>
   )

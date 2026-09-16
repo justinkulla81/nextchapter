@@ -127,6 +127,7 @@ export default async function CrmPeoplePage({
       <datalist id="crm-org-names">
         <option value="- Unemployed" />
         <option value="- Entrepreneur" />
+        <option value="- Advisor" />
         {orgNames.map((o) => <option key={o.name} value={o.name} />)}
       </datalist>
       <header className="flex flex-wrap items-start justify-between gap-3">

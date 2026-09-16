@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { bulkUpdatePeople, bulkDeletePeople } from '@/app/support/admin/(portal)/crm/actions'
-import { PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTHS, WARMTH_LABELS } from '@/lib/crm/labels'
+import { QUALITIES, QUALITY_LABELS, WARMTHS, WARMTH_LABELS } from '@/lib/crm/labels'
+import { CrmRolePicker } from './CrmRolePicker'
 
 // Wraps the results table so the row checkboxes and this bar share one form.
 // Bulk edit is what makes a list of thousands workable: twenty rows, one
@@ -44,19 +45,14 @@ export function CrmBulkBar({ children, count }: { children: React.ReactNode; cou
             </select>
           </label>
 
-          {/* Multi-select: a person is routinely more than one thing, and
-              applying types one pass at a time is how the field stays empty. */}
-          <label className="text-xs">
+          {/* A person is routinely more than one thing, and applying types
+              one pass at a time is how the field stays empty. */}
+          <div className="text-xs">
             <span className="mb-1 block font-medium">
               Add contact types <span className="font-normal text-muted-foreground">pick several</span>
             </span>
-            <select
-              name="bulkRole" multiple size={3}
-              className="min-w-44 rounded border border-input bg-transparent px-2 py-1 text-xs"
-            >
-              {PERSON_ROLES.map((r) => <option key={r} value={r}>{PERSON_ROLE_LABELS[r]}</option>)}
-            </select>
-          </label>
+            <CrmRolePicker name="bulkRole" label="Add contact types" placeholder="None" />
+          </div>
 
           <SubmitButton
             formAction={bulkUpdatePeople}
