@@ -8,6 +8,7 @@ import {
   normalizeEmail, displayNameFrom, classifyParticipant, snippetOf, directionOf,
   type SweepContext,
 } from './sync-matching'
+import type { CalendarAttendee } from '@/lib/google/admin-calendar'
 
 const DAY = 86_400_000
 
@@ -212,7 +213,14 @@ export async function sweepGmail(days = 14): Promise<SweepResult> {
   }
 }
 
-/** Logs meetings whose attendees include a CRM person. */
+/**
+ * Logs meetings whose attendees include a CRM person, and proposes attendees
+ * who aren't one yet — mirroring sweepGmail's propose-don't-create rule.
+ *
+ * A future event is still scanned for attendees (so "meeting Omer tomorrow"
+ * surfaces him today), just not logged as a completed MEETING — only the
+ * activity write is gated on `ev.start` being in the past, not the scan.
+ */
 export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<SweepResult> {
   const base: SweepResult = { source: 'calendar', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
   // getValidAdminAccessToken throws when no calendar is connected; an
@@ -233,32 +241,60 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
     const touched = new Set<string>()
     const result = { ...base }
 
+    const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
+
     for (const ev of events) {
       result.scanned++
-      // A meeting in the future has not happened yet.
-      if (ev.start.getTime() > Date.now()) continue
+      const isPast = ev.start.getTime() <= Date.now()
       let logged = false
+      let hasInternal = false
 
       for (const a of ev.attendees) {
         if (!a.email) continue
         const verdict = classifyParticipant(a.email, ctx)
-        if (verdict.kind === 'internal') { result.skippedInternal++; continue }
-        if (verdict.kind !== 'crm') continue
+        if (verdict.kind === 'internal') { hasInternal = true; continue }
+        if (verdict.kind === 'self' || verdict.kind === 'automated') continue
 
-        const created = await prisma.crmActivity.upsert({
-          where: { type_sourceRef: { type: 'MEETING', sourceRef: `${ev.id}:${verdict.personId}` } },
-          create: {
-            type: 'MEETING', direction: 'OUTBOUND', occurredAt: ev.start,
-            personId: verdict.personId, subject: ev.summary ?? 'Meeting',
-            isAutoLogged: true, sourceRef: `${ev.id}:${verdict.personId}`,
-          },
-          update: {},
-          select: { createdAt: true },
-        })
-        if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
-        touched.add(verdict.personId)
-        logged = true
+        if (verdict.kind === 'crm') {
+          // Nothing to log yet for a meeting that hasn't happened.
+          if (!isPast) continue
+          const created = await prisma.crmActivity.upsert({
+            where: { type_sourceRef: { type: 'MEETING', sourceRef: `${ev.id}:${verdict.personId}` } },
+            create: {
+              type: 'MEETING', direction: 'OUTBOUND', occurredAt: ev.start,
+              personId: verdict.personId, subject: ev.summary ?? 'Meeting',
+              isAutoLogged: true, sourceRef: `${ev.id}:${verdict.personId}`,
+            },
+            update: {},
+            select: { createdAt: true },
+          })
+          if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
+          touched.add(verdict.personId)
+          logged = true
+          continue
+        }
+
+        // Unknown attendee — propose regardless of whether the meeting is
+        // past or upcoming, so a suggestion arrives before the meeting does.
+        if (verdict.kind === 'unknown') {
+          const name = attendeeName(a)
+          const prior = await prisma.crmSuggestedContact.findUnique({ where: { email: a.email }, select: { status: true } })
+          if (prior?.status === 'IGNORED') continue
+          await prisma.crmSuggestedContact.upsert({
+            where: { email: a.email },
+            create: { email: a.email, displayName: name, lastSubject: ev.summary, lastSeenAt: ev.start },
+            update: {
+              messageCount: { increment: 1 },
+              lastSeenAt: ev.start,
+              lastSubject: ev.summary ?? undefined,
+              displayName: name ?? undefined,
+            },
+          })
+          if (!prior) result.suggested++
+        }
       }
+
+      if (hasInternal && !logged) result.skippedInternal++
       if (logged) result.matched++
     }
 
@@ -267,7 +303,8 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1): Promise<Swe
       where: { id: run.id },
       data: {
         finishedAt: new Date(), scanned: result.scanned, matched: result.matched,
-        activitiesCreated: result.activitiesCreated, skippedInternal: result.skippedInternal,
+        activitiesCreated: result.activitiesCreated, suggested: result.suggested,
+        skippedInternal: result.skippedInternal,
       },
     })
     return result

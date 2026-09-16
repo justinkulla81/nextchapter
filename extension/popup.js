@@ -32,23 +32,43 @@ let page = { title: '', url: '', selection: '', scraped: {} }
 
 const $ = (id) => document.getElementById(id)
 
-/** Runs in the page. Pulls what is visibly there; guesses nothing. */
-function readPage() {
+/**
+ * Runs in the page. Pulls what is visibly there; guesses nothing.
+ *
+ * LinkedIn is a client-rendered SPA: the popup can open before the profile's
+ * name/headline have painted, especially right after a tab switch or a fresh
+ * navigation. `wait` polls briefly instead of taking a single snapshot, so a
+ * still-loading page doesn't come back looking like an empty one.
+ */
+async function readPage() {
   const pick = (sel) => document.querySelector(sel)?.textContent?.trim() || ''
   const meta = (name) =>
     document.querySelector(`meta[property="${name}"], meta[name="${name}"]`)?.content?.trim() || ''
+  const wait = async (test, tries = 10, everyMs = 150) => {
+    for (let i = 0; i < tries; i++) {
+      const v = test()
+      if (v) return v
+      await new Promise((r) => setTimeout(r, everyMs))
+    }
+    return ''
+  }
 
   const isLinkedIn = location.hostname.endsWith('linkedin.com') && location.pathname.startsWith('/in/')
   const out = { selection: String(window.getSelection() ?? '').trim().slice(0, 1000) }
 
   if (isLinkedIn) {
-    out.name = pick('h1') || ''
+    out.name = await wait(() => pick('h1'))
     // The headline sits under the name; the company block varies by layout, so
     // take the first plausible one and let the human correct it.
     out.jobTitle = pick('.text-body-medium') || ''
     out.company =
       pick('[aria-label^="Current company"]') ||
       pick('button[aria-label*="Current company"] span') ||
+      // Newer top-card layout: the company/school badges under the name are
+      // plain links with no "Current company" aria-label at all — the first
+      // one is company far more often than school.
+      pick('.pv-text-details__right-panel a[href*="/company/"]') ||
+      pick('a[data-field="experience_company_logo"]') ||
       ''
   } else {
     out.title = meta('og:title') || document.title || ''
