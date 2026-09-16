@@ -12,6 +12,7 @@ import { CrmInlineText } from '@/components/admin/CrmInlineText'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
 import { CrmMergePicker } from '@/components/admin/CrmMergePicker'
 import { ConfirmForm } from '@/components/admin/ConfirmForm'
+import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
 
 export const maxDuration = 30
 
@@ -78,6 +79,29 @@ export default async function CrmNeedsCompletionPage({
     matchesByName.set(key, [...(matchesByName.get(key) ?? []), m])
   }
 
+  // Same last name elsewhere, with a first name that's a known nickname of
+  // the other ("Art" / "Arthur") — a looser signal than the exact-name match
+  // above, so it's kept in its own bucket and paired up with
+  // firstNamesAreEquivalent per row rather than blindly unioned in.
+  const lastNames = [...new Set(rows.map((r) => lastNameOf(r.fullName)).filter((n): n is string => Boolean(n)))]
+  const lastNameMatches = lastNames.length > 0
+    ? await prisma.crmPerson.findMany({
+        where: {
+          deletedAt: null,
+          OR: lastNames.map((n) => ({ fullName: { endsWith: ` ${n}`, mode: 'insensitive' as const } })),
+        },
+        select: {
+          id: true, fullName: true, email: true,
+          affiliations: { take: 1, select: { org: { select: { name: true } } } },
+        },
+      })
+    : []
+  const matchesByLastName = new Map<string, typeof lastNameMatches>()
+  for (const m of lastNameMatches) {
+    const key = lastNameOf(m.fullName)?.toLowerCase()
+    if (key) matchesByLastName.set(key, [...(matchesByLastName.get(key) ?? []), m])
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / perPage))
 
   return (
@@ -119,7 +143,17 @@ export default async function CrmNeedsCompletionPage({
               const acceptAction = acceptExportSuggestion.bind(null, p.id)
               const deleteAction = deletePerson.bind(null, p.id)
 
-              const dupes = (matchesByName.get(p.fullName.trim().toLowerCase()) ?? []).filter((m) => m.id !== p.id)
+              const exactDupes = matchesByName.get(p.fullName.trim().toLowerCase()) ?? []
+              const pFirst = firstNameOf(p.fullName)
+              const pLast = lastNameOf(p.fullName)
+              const nicknameDupes = pLast && pFirst
+                ? (matchesByLastName.get(pLast.toLowerCase()) ?? []).filter((m) => {
+                    const mFirst = firstNameOf(m.fullName)
+                    return mFirst && firstNamesAreEquivalent(pFirst, mFirst)
+                  })
+                : []
+              const dupes = [...new Map([...exactDupes, ...nicknameDupes].map((m) => [m.id, m])).values()]
+                .filter((m) => m.id !== p.id)
               const mergeTarget = dupes.length > 0
                 ? [...dupes].sort((a, b) => completenessScore(b) - completenessScore(a))[0]
                 : null
@@ -142,37 +176,40 @@ export default async function CrmNeedsCompletionPage({
               const roleTag = p.candidateId ? 'Candidate' : p.coachId ? 'Coach' : p.recruiterId ? 'Recruiter' : null
 
               return (
-                <li key={p.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
-                  <input type="checkbox" name="selected" value={p.id} className="mt-1.5" aria-label={`Select ${p.fullName}`} />
-                  <div className="min-w-0 flex-1 text-sm">
-                    <div className="flex flex-wrap items-center gap-2">
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5">
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
+                    <span className="w-36 shrink-0">
                       <CrmInlineText personId={p.id} field="fullName" value={p.fullName} label={`Name for ${p.fullName}`} />
-                      <Link href={`/support/admin/crm/people/${p.id}`} className="text-xs text-muted-foreground hover:underline">open</Link>
-                      {roleTag && (
-                        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">{roleTag}</span>
-                      )}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                    </span>
+                    <Link href={`/support/admin/crm/people/${p.id}`} className="text-muted-foreground hover:underline">open</Link>
+                    {roleTag && (
+                      <span className="rounded-full bg-brand/10 px-2 py-0.5 font-medium text-brand">{roleTag}</span>
+                    )}
+                    <span className="text-muted-foreground">·</span>
+                    <span className="w-32 shrink-0">
                       <CrmInlineOrgEdit personId={p.id} orgName={p.affiliations[0]?.org.name ?? null} />
-                      <span className="text-muted-foreground">·</span>
+                    </span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="w-32 shrink-0">
                       <CrmInlineText
                         personId={p.id} field="title" value={p.affiliations[0]?.title ?? ''}
                         label={`Title for ${p.fullName}`} placeholder="Title"
                       />
-                    </div>
-                    <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                      <span>{p.email ?? 'No email on file'}</span>
-                      {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>}
-                      <span>{p.roles.length > 0 ? p.roles.map((r) => PERSON_ROLE_LABELS[r]).join(' · ') : 'No contact type'}</span>
-                    </p>
+                    </span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">{p.email ?? 'no email'}</span>
+                    {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>}
+                    <span className="text-muted-foreground">
+                      {p.roles.length > 0 ? p.roles.map((r) => PERSON_ROLE_LABELS[r]).join(' · ') : 'no contact type'}
+                    </span>
                     {s && (
-                      <p className="mt-1 text-xs">
-                        <span className="text-muted-foreground">Your export says: </span>
-                        <span className="font-medium">{s.position ?? 'no title'}</span>
-                        {s.company && <span> at {s.company}</span>}
-                      </p>
+                      <span className="text-muted-foreground">
+                        Export: <span className="font-medium text-foreground">{s.position ?? 'no title'}</span>
+                        {s.company && ` at ${s.company}`}
+                      </span>
                     )}
-                    <p className={`mt-1.5 text-xs font-medium ${recommendation.tone}`}>{recommendation.label}</p>
+                    <span className={`font-medium ${recommendation.tone}`}>{recommendation.label}</span>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
                     {mergeTarget && (
