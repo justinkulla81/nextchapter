@@ -14,6 +14,8 @@ const AUTOMATED_LOCAL = new Set([
   'receipts', 'invoice', 'invoices', 'security', 'account', 'accounts', 'team',
   'forum', 'forums', 'webinar', 'webinars', 'events', 'rsvp', 'list', 'lists', 'digest',
   'jobs', 'careers', 'press', 'media', 'sales', 'marketing', 'office', 'hq', 'board',
+  'customercare', 'customerservice', 'comms', 'communications', 'onlinebanking',
+  'ealerts', 'welcome', 'membership', 'members', 'service', 'services',
 ])
 
 // order-update@, shipment-tracking@, marketplace-messages@ — transactional
@@ -21,7 +23,14 @@ const AUTOMATED_LOCAL = new Set([
 const TRANSACTIONAL_LOCAL = /^(order|orders|shipment|shipping|tracking|delivery|invoice|receipt|statement|marketplace|payment|payments|billing|subscription|renewal|store)([-_+].*)?$/i
 
 /** Domains that never contain a business contact worth tracking. */
-const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite)\.(com|net|io|org)$/i
+const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite|ccsend|icontact|aweber|getresponse|activecampaign|klaviyo|sailthru|braze|iterable|marketo|pardot|exacttarget|cheetahmail|bronto|listrak|dotdigital|campaignmonitor|mailjet|luma-mail)\.(com|net|io|org)$/i
+
+// email.aspeninstitute.org, welcome.americanexpress.com, updates.rejigg.com —
+// a bulk/notification word as a SUBDOMAIN label (not the registrable domain
+// itself) means whatever real company owns the root domain, this particular
+// mailbox is still a broadcast/campaign channel. Deliberately scoped to
+// subdomain labels only — gmail.com, hotmail.com and similar never have one.
+const BULK_SUBDOMAIN_WORD = /^(mail|email|e|news|update|updates|welcome|notify|notifications?|marketing|campaigns?|newsletters?|lists?|comms?|communications?|info|send|sending|alerts?|ealerts)$/i
 
 export function normalizeEmail(raw: string | null | undefined): string | null {
   if (!raw) return null
@@ -56,20 +65,37 @@ export function canonicalGmail(email: string): string {
   return `${local.split('+')[0].replace(/\./g, '')}@gmail.com`
 }
 
+/**
+ * The registrable-domain label — the one that actually names the company,
+ * ignoring any subdomain in front of it and the TLD after it.
+ * "welcome.americanexpress.com" -> "americanexpress", "826nyc.org" -> "826nyc".
+ * A 2-label domain has nothing to ignore, so this is just its first label.
+ */
+export function domainRootLabel(domain: string): string {
+  const parts = domain.split('.')
+  return parts.length >= 2 ? parts[parts.length - 2] : parts[0]
+}
+
 /** True for addresses that are machinery rather than a person. */
 export function isAutomatedAddress(email: string): boolean {
   const [local, domain] = email.split('@')
   if (!local || !domain) return true
   if (AUTOMATED_LOCAL.has(local)) return true
   if (TRANSACTIONAL_LOCAL.test(local)) return true
-  // reply+<hash>@, bounce-123@, notifications-xyz@
-  if (/^(reply|bounce|notifications?|mailer)[+._-]/.test(local)) return true
+  // reply+<hash>@, bounce-123@, notifications-xyz@, digital-no-reply@,
+  // auto-notification@ — "notification" and "no-reply" as a substring
+  // anywhere, not just a leading prefix, since real systems compose these
+  // local-parts with their own prefix words too.
+  if (/^(reply|bounce|mailer)[+._-]/.test(local)) return true
+  if (/no.?reply|notifications?/.test(local)) return true
   if (/^[0-9a-f]{16,}$/.test(local)) return true
   if (AUTOMATED_DOMAIN.test(domain)) return true
-  // 826nyc@826nyc.org, info@acquiringminds.co — the mailbox IS the
-  // organization, not a person who happens to work there.
-  const domainRoot = domain.split('.')[0]
-  if (domainRoot && domainRoot.length > 2 && local === domainRoot) return true
+  const parts = domain.split('.')
+  if (parts.slice(0, -2).some((label) => BULK_SUBDOMAIN_WORD.test(label))) return true
+  // 826nyc@826nyc.org, americanexpress@welcome.americanexpress.com — the
+  // mailbox IS the organization, not a person who happens to work there.
+  const domainRoot = domainRootLabel(domain)
+  if (domainRoot.length > 2 && local === domainRoot) return true
   return false
 }
 

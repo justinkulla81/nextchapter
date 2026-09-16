@@ -42,4 +42,22 @@ describe('looksLikeNotAPerson', () => {
   it('leaves a real person at a real company alone', () => {
     expect(looksLikeNotAPerson('Jonathan Betz', 'jtb@plaidmatrix.fund')).toBe(false)
   })
+  it('flags a brand-name subdomain, not just the registrable domain', () => {
+    // The naive "first label" domain-root check missed this: the brand is
+    // "americanexpress", but that's the SECOND label here, not the first.
+    expect(looksLikeNotAPerson('American Express', 'americanexpress@welcome.americanexpress.com')).toBe(true)
+  })
+  it('flags a no-reply variant that is not an exact local-part match', () => {
+    expect(looksLikeNotAPerson('Amazon', 'digital-no-reply@amazon.com')).toBe(true)
+  })
+  it('flags customer-service style local-parts', () => {
+    expect(looksLikeNotAPerson('ASICS', 'customercare-us@asics.com')).toBe(true)
+  })
+  it('flags a bulk-notification subdomain regardless of the local part', () => {
+    expect(looksLikeNotAPerson('Aspen Society', 'aspensociety@email.aspeninstitute.org')).toBe(true)
+  })
+  it('flags "notification"/"service" as a substring, not just a full local-part match', () => {
+    expect(looksLikeNotAPerson('Marshall Chess Club', 'auto-notification@marshallchessclub.org')).toBe(true)
+    expect(looksLikeNotAPerson('Beckett Simonon', 'service@beckettsimonon.com')).toBe(true)
+  })
 })

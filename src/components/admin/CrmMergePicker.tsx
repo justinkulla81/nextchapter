@@ -14,11 +14,13 @@ import { searchCrmPeopleByName, mergePersonIntoPerson, type CrmPersonSearchResul
  * renders pre-populated and highlighted so acting on it is one click.
  */
 export function CrmMergePicker({
-  personId, personName, suggested,
+  personId, personName, suggested, onMerged,
 }: {
   personId: string
   personName: string
   suggested?: { id: string; fullName: string } | null
+  /** Fires as soon as the merge call resolves — lets a list row remove itself immediately instead of waiting on a full-page revalidation. */
+  onMerged?: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -32,6 +34,7 @@ export function CrmMergePicker({
       const res = await mergePersonIntoPerson(personId, targetId)
       setStatus(res.message)
       setOpen(false)
+      onMerged?.()
     })
   }
 

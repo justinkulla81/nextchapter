@@ -2,8 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { acceptExportSuggestion, deletePerson } from '../actions'
-import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { acceptExportSuggestion } from '../actions'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { looksLikeNotAPerson } from '@/lib/crm/person-plausibility'
 import { CrmCompletionBulkBar } from '@/components/admin/CrmCompletionBulkBar'
@@ -11,8 +10,8 @@ import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
 import { CrmInlineText } from '@/components/admin/CrmInlineText'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
-import { CrmMergePicker } from '@/components/admin/CrmMergePicker'
-import { ConfirmForm } from '@/components/admin/ConfirmForm'
+import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
+import { CrmNeedsCompletionRow } from '@/components/admin/CrmNeedsCompletionRow'
 import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
 
 export const maxDuration = 30
@@ -97,6 +96,60 @@ export default async function CrmNeedsCompletionPage({
     if (key) matchesByLastName.set(key, [...(matchesByLastName.get(key) ?? []), m])
   }
 
+  // One pass to work out each row's recommendation — reused both for
+  // display and for the action filter below, so the two can never disagree
+  // about what a row's verdict actually is.
+  const rowInfos = rows.map((p) => {
+    const s = p.linkedinSlug ? byslug.get(p.linkedinSlug) : undefined
+
+    const exactDupes = matchesByName.get(p.fullName.trim().toLowerCase()) ?? []
+    const pFirst = firstNameOf(p.fullName)
+    const pLast = lastNameOf(p.fullName)
+    const nicknameDupes = pLast && pFirst
+      ? (matchesByLastName.get(pLast.toLowerCase()) ?? []).filter((m) => {
+          const mFirst = firstNameOf(m.fullName)
+          return mFirst && firstNamesAreEquivalent(pFirst, mFirst)
+        })
+      : []
+    const dupes = [...new Map([...exactDupes, ...nicknameDupes].map((m) => [m.id, m])).values()]
+      .filter((m) => m.id !== p.id)
+    const mergeTarget = dupes.length > 0
+      ? [...dupes].sort((a, b) => completenessScore(b) - completenessScore(a))[0]
+      : null
+    const notAPerson = isPlaceholderName(p.fullName) || looksLikeNotAPerson(p.fullName, p.email)
+
+    const kind: 'not_person' | 'merge' | 'export' | 'none' = notAPerson
+      ? 'not_person' : mergeTarget ? 'merge' : s ? 'export' : 'none'
+
+    // One clear recommendation per row, in priority order — a real
+    // duplicate or a fake-looking name both matter more than whether an
+    // export happens to have a prefill for it.
+    const recommendation = notAPerson
+      ? { label: 'Doesn’t look like a real person', tone: 'text-destructive' }
+      : mergeTarget
+        ? {
+            label: `Possible duplicate — merge into ${mergeTarget.fullName}${mergeTarget.affiliations[0] ? ` (${mergeTarget.affiliations[0].org.name})` : ''}`,
+            tone: 'text-amber-700',
+          }
+        : s
+          ? { label: 'Export has a prefill — Use this', tone: 'text-success' }
+          : { label: 'No info available — fill in by hand or delete', tone: 'text-muted-foreground' }
+
+    const roleTag = p.candidateId ? 'Candidate' : p.coachId ? 'Coach' : p.recruiterId ? 'Recruiter' : null
+
+    return { p, s, mergeTarget, notAPerson, kind, recommendation, roleTag }
+  })
+
+  const actionFilter = sp.action ?? ''
+  const visibleRowInfos = actionFilter ? rowInfos.filter((r) => r.kind === actionFilter) : rowInfos
+  const ACTION_FILTERS: { value: string; label: string }[] = [
+    { value: '', label: 'All' },
+    { value: 'not_person', label: 'Not a person' },
+    { value: 'merge', label: 'Duplicates' },
+    { value: 'export', label: 'Has prefill' },
+    { value: 'none', label: 'No info' },
+  ]
+
   const totalPages = Math.max(1, Math.ceil(total / perPage))
 
   return (
@@ -123,55 +176,57 @@ export default async function CrmNeedsCompletionPage({
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <p className="text-sm text-muted-foreground">{total.toLocaleString()} to review</p>
+              <p className="text-sm text-muted-foreground">
+                {total.toLocaleString()} to review
+                {actionFilter && ` · ${visibleRowInfos.length.toLocaleString()} shown`}
+              </p>
               <label className="flex items-center gap-1.5 text-sm">
-                <CrmSelectAll pageCount={rows.length} />
-                <span className="text-muted-foreground">Select all on this page</span>
+                <CrmSelectAll pageCount={visibleRowInfos.length} />
+                <span className="text-muted-foreground">Select all shown</span>
               </label>
             </div>
             <PageSizePicker basePath="/support/admin/crm/needs-completion" params={{}} current={perPage} label="people" />
           </div>
-          <CrmCompletionBulkBar count={rows.length}>
+          <fieldset className="flex flex-wrap items-center gap-1.5">
+            <legend className="sr-only">Filter by recommended action</legend>
+            <span className="text-xs font-medium text-muted-foreground">Show:</span>
+            {ACTION_FILTERS.map((f) => (
+              <Link
+                key={f.value}
+                href={`/support/admin/crm/needs-completion?per=${perPage}${f.value ? `&action=${f.value}` : ''}`}
+                aria-current={actionFilter === f.value}
+                className={`rounded-full border px-2 py-0.5 text-xs transition-colors ${
+                  actionFilter === f.value ? 'border-brand bg-brand/10 font-medium text-brand' : 'border-border hover:bg-muted'
+                }`}
+              >
+                {f.label}
+              </Link>
+            ))}
+          </fieldset>
+          <CrmCompletionBulkBar count={visibleRowInfos.length}>
           <ul className="rounded-lg border border-border divide-y divide-border">
-            {rows.map((p) => {
-              const s = p.linkedinSlug ? byslug.get(p.linkedinSlug) : undefined
+            {visibleRowInfos.map(({ p, s, mergeTarget, notAPerson, recommendation, roleTag }) => {
               const acceptAction = acceptExportSuggestion.bind(null, p.id)
-              const deleteAction = deletePerson.bind(null, p.id)
 
-              const exactDupes = matchesByName.get(p.fullName.trim().toLowerCase()) ?? []
-              const pFirst = firstNameOf(p.fullName)
-              const pLast = lastNameOf(p.fullName)
-              const nicknameDupes = pLast && pFirst
-                ? (matchesByLastName.get(pLast.toLowerCase()) ?? []).filter((m) => {
-                    const mFirst = firstNameOf(m.fullName)
-                    return mFirst && firstNamesAreEquivalent(pFirst, mFirst)
-                  })
-                : []
-              const dupes = [...new Map([...exactDupes, ...nicknameDupes].map((m) => [m.id, m])).values()]
-                .filter((m) => m.id !== p.id)
-              const mergeTarget = dupes.length > 0
-                ? [...dupes].sort((a, b) => completenessScore(b) - completenessScore(a))[0]
-                : null
-              const notAPerson = isPlaceholderName(p.fullName) || looksLikeNotAPerson(p.fullName, p.email)
-
-              // One clear recommendation per row, in priority order — a real
-              // duplicate or a fake-looking name both matter more than
-              // whether an export happens to have a prefill for it.
-              const recommendation = notAPerson
-                ? { label: 'Doesn’t look like a real person', tone: 'text-destructive' }
-                : mergeTarget
-                  ? {
-                      label: `Possible duplicate — merge into ${mergeTarget.fullName}${mergeTarget.affiliations[0] ? ` (${mergeTarget.affiliations[0].org.name})` : ''}`,
-                      tone: 'text-amber-700',
-                    }
-                  : s
-                    ? { label: 'Export has a prefill — Use this', tone: 'text-success' }
-                    : { label: 'No info available — fill in by hand or delete', tone: 'text-muted-foreground' }
-
-              const roleTag = p.candidateId ? 'Candidate' : p.coachId ? 'Coach' : p.recruiterId ? 'Recruiter' : null
+              const secondaryAction = s ? (
+                <form action={acceptAction}>
+                  <SubmitButton size="sm" variant="outline" pendingLabel="Applying…" savedLabel="Applied">Use this</SubmitButton>
+                </form>
+              ) : !mergeTarget ? (
+                <Link href={`/support/admin/crm/people/${p.id}`} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+                  Fill in by hand
+                </Link>
+              ) : null
 
               return (
-                <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5">
+                <CrmNeedsCompletionRow
+                  key={p.id}
+                  personId={p.id}
+                  personName={p.fullName}
+                  notAPerson={notAPerson}
+                  mergeTarget={mergeTarget}
+                  secondaryAction={secondaryAction}
+                >
                   <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                     <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
                     <span className="w-36 shrink-0">
@@ -195,9 +250,7 @@ export default async function CrmNeedsCompletionPage({
                     <span className="text-muted-foreground">·</span>
                     <span className="text-muted-foreground">{p.email ?? 'no email'}</span>
                     {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>}
-                    <span className="text-muted-foreground">
-                      {p.roles.length > 0 ? p.roles.map((r) => PERSON_ROLE_LABELS[r]).join(' · ') : 'no contact type'}
-                    </span>
+                    <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
                     {s && (
                       <span className="text-muted-foreground">
                         Export: <span className="font-medium text-foreground">{s.position ?? 'no title'}</span>
@@ -206,23 +259,7 @@ export default async function CrmNeedsCompletionPage({
                     )}
                     <span className={`font-medium ${recommendation.tone}`}>{recommendation.label}</span>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    {s && (
-                      <form action={acceptAction}>
-                        <SubmitButton size="sm" variant="outline" pendingLabel="Applying…" savedLabel="Applied">Use this</SubmitButton>
-                      </form>
-                    )}
-                    {!mergeTarget && !s && (
-                      <Link href={`/support/admin/crm/people/${p.id}`} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-                        Fill in by hand
-                      </Link>
-                    )}
-                    <CrmMergePicker personId={p.id} personName={p.fullName} suggested={mergeTarget} />
-                    <ConfirmForm action={deleteAction} confirmMessage={`Delete ${p.fullName}? This can't be undone.`}>
-                      <SubmitButton size="sm" variant="outline" pendingLabel="Deleting…">Delete</SubmitButton>
-                    </ConfirmForm>
-                  </div>
-                </li>
+                </CrmNeedsCompletionRow>
               )
             })}
           </ul>

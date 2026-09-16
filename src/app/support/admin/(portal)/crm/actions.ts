@@ -12,6 +12,7 @@ import { refreshTouchFields } from '@/lib/crm/sync'
 import { getValidAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
+import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
@@ -469,16 +470,64 @@ export async function updatePersonPrimaryOrg(personId: string, orgNameRaw: strin
 }
 
 /** Set roles on one person (multi-select). */
+/**
+ * Setting a contact type on a record with no title yet also fills the
+ * title in, on the theory that a blank title next to a freshly-set contact
+ * type is more often an oversight than a deliberate choice to leave it
+ * blank: the LinkedIn export's own position text wins when there is one
+ * (e.g. "Independent Investor & Advisor"), otherwise the role label itself
+ * ("Coach", "Recruiter") is a reasonable placeholder. A title can only live
+ * on an affiliation, which requires an org — so this can create one from
+ * the export's company, but if there's neither an existing org nor an
+ * export to source one from, the title stays blank; nothing here invents
+ * an organization out of nothing.
+ */
 export async function updatePersonRoles(personId: string, formData: FormData) {
   const admin = await requireAdmin()
   const roles = formData.getAll('roles').map(String) as CrmPersonRole[]
   await prisma.crmPerson.update({ where: { id: personId }, data: { roles: { set: roles } } })
+
+  if (roles.length > 0) {
+    const person = await prisma.crmPerson.findUniqueOrThrow({
+      where: { id: personId },
+      select: { linkedinSlug: true, affiliations: { take: 1, select: { id: true, orgId: true, title: true } } },
+    })
+    const existing = person.affiliations[0]
+    const sug = person.linkedinSlug
+      ? await prisma.crmLinkedInConnection.findUnique({ where: { slug: person.linkedinSlug } })
+      : null
+    const roleTitle = roles.map((r) => PERSON_ROLE_LABELS[r]).join(' / ')
+
+    let gotTitle = false
+    if (existing && !existing.title) {
+      await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { title: sug?.position || roleTitle } })
+      gotTitle = true
+    } else if (!existing && sug && isRealOrgName(sug.company)) {
+      const key = normalizeOrgName(sug.company)
+      if (key) {
+        const org = await prisma.crmOrganization.upsert({
+          where: { canonicalNameNormalized: key },
+          create: { name: sug.company, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
+          update: {},
+        })
+        await prisma.crmAffiliation.create({ data: { personId, orgId: org.id, title: sug.position || roleTitle } })
+        gotTitle = true
+      }
+    }
+    // Same "title + org now both present" bar updatePersonField's title
+    // branch already uses to leave the completion queue.
+    if (gotTitle || (existing?.orgId && existing.title)) {
+      await prisma.crmPerson.update({ where: { id: personId }, data: { needsCompletion: false } })
+    }
+  }
+
   await prisma.crmActivity.create({
     data: { type: 'FIELD_CHANGED', direction: 'INTERNAL', personId, subject: 'roles changed', body: roles.join(', ') || '(none)', loggedByEmail: admin.email ?? null },
   })
   captureServerEvent(admin.email ?? 'admin', 'crm_field_edited', { personId, field: 'roles', count: roles.length, surface: 'record' })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
+  revalidatePath(`${CRM}/needs-completion`)
 }
 
 /**

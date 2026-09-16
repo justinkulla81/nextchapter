@@ -1,4 +1,4 @@
-import { isAutomatedAddress } from './sync-matching'
+import { isAutomatedAddress, domainRootLabel } from './sync-matching'
 
 /**
  * Words that show up as a display name when the sender is an organization,
@@ -7,7 +7,7 @@ import { isAutomatedAddress } from './sync-matching'
  * that happens to contain one of these as a substring isn't caught.
  */
 const ORG_NAME_WORDS =
-  /\b(forum|webinar|webinars|workshop|conference|summit|alliance|coalition|institute|center|centre|committee|council|group|society|foundation|fund|ventures|capital|partners|consortium|network|association|llc|inc|corp|corporation|team|board|hq|office|street|ave|avenue|blvd|boulevard)\b/i
+  /\b(forum|webinar|webinars|workshop|conference|summit|alliance|coalition|institute|center|centre|committee|council|group|society|foundation|fund|ventures|capital|partners|consortium|network|association|llc|inc|corp|corporation|team|board|hq|office|street|ave|avenue|blvd|boulevard|communications|community)\b/i
 
 /** "a. e." or "j.d." — initials with no actual name, usually a garbled parse rather than a real short name. */
 const INITIALS_ONLY = /^[a-z]\.?\s*[a-z]\.?$/i
@@ -48,7 +48,7 @@ function alphanumeric(s: string): string {
 function nameMatchesDomain(fullName: string, email: string): boolean {
   const domain = email.split('@')[1]
   if (!domain) return false
-  const domainRoot = alphanumeric(domain.split('.')[0])
+  const domainRoot = alphanumeric(domainRootLabel(domain))
   const name = alphanumeric(fullName)
   return domainRoot.length >= 4 && name.length >= 4 && (name.includes(domainRoot) || domainRoot.includes(name))
 }
