@@ -885,53 +885,6 @@ export async function updateResearchItem(itemId: string, formData: FormData) {
   revalidatePath(`${CRM}/research`)
 }
 
-// ── Sync review (Phase 7) ────────────────────────────────────────────────────
-
-/** Turns a frequent correspondent into a real CRM person. */
-export async function acceptSuggestedContact(suggestionId: string) {
-  const admin = await requireAdmin()
-  const s = await prisma.crmSuggestedContact.findUniqueOrThrow({ where: { id: suggestionId } })
-  if (s.status !== 'PENDING') return
-
-  // A synced email's From: display name is trusted verbatim by sync.ts — a
-  // generic sender name (an ATS/scheduling tool using "Candidate" as its
-  // display name, say) would otherwise land straight in fullName. Falls
-  // back to the email local-part instead, same as when there's no display
-  // name at all.
-  const displayName = s.displayName && !isPlaceholderName(s.displayName) ? s.displayName : null
-  const existing = await prisma.crmPerson.findFirst({ where: { email: s.email } })
-  const person = existing ?? await prisma.crmPerson.create({
-    data: {
-      fullName: displayName ?? s.email.split('@')[0],
-      firstName: displayName?.split(' ')[0] ?? null,
-      lastName: displayName?.split(' ').slice(1).join(' ') || null,
-      email: s.email,
-      emails: [s.email],
-      needsCompletion: true,
-      roles: [],
-    },
-  })
-
-  await prisma.crmSuggestedContact.update({
-    where: { id: suggestionId },
-    data: { status: 'ADDED', createdPersonId: person.id, resolvedAt: new Date(), resolvedByEmail: admin.email ?? null },
-  })
-  captureServerEvent(admin.email ?? 'admin', 'crm_suggested_contact_accepted', {
-    suggestionId, personId: person.id, messageCount: s.messageCount,
-  })
-  revalidatePath(`${CRM}/sync`)
-}
-
-/** Dismisses a correspondent — they stay dismissed on later sweeps. */
-export async function ignoreSuggestedContact(suggestionId: string) {
-  const admin = await requireAdmin()
-  await prisma.crmSuggestedContact.update({
-    where: { id: suggestionId },
-    data: { status: 'IGNORED', resolvedAt: new Date(), resolvedByEmail: admin.email ?? null },
-  })
-  captureServerEvent(admin.email ?? 'admin', 'crm_suggested_contact_ignored', { suggestionId })
-  revalidatePath(`${CRM}/sync`)
-}
 
 // ── Graduation (Phase 9) ─────────────────────────────────────────────────────
 
@@ -1750,6 +1703,12 @@ export async function mergePersonIntoPerson(sourceId: string, targetId: string):
     // person this merge just folded away.
     await tx.crmSuggestedContact.updateMany({ where: { createdPersonId: sourceId }, data: { createdPersonId: targetId } })
 
+    // Clear the source's slug (and soft-delete it) BEFORE the target claims
+    // it — @unique on linkedinSlug means both rows briefly holding the same
+    // value, even for one statement, throws P2002. This order must not
+    // change without re-checking that.
+    await tx.crmPerson.update({ where: { id: sourceId }, data: { deletedAt: new Date(), linkedinSlug: null } })
+
     // Fill only what the target is missing — an explicit merge target's own
     // data always wins over the record being absorbed into it.
     await tx.crmPerson.update({
@@ -1764,10 +1723,6 @@ export async function mergePersonIntoPerson(sourceId: string, targetId: string):
         connectedAt: target.connectedAt ?? source.connectedAt,
       },
     })
-
-    // Free the slug for reuse and soft-delete — @unique on linkedinSlug would
-    // otherwise block it from ever matching anything again.
-    await tx.crmPerson.update({ where: { id: sourceId }, data: { deletedAt: new Date(), linkedinSlug: null } })
   })
 
   await refreshTouchFields([targetId])
