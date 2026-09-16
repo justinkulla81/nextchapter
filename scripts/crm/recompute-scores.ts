@@ -91,7 +91,7 @@ async function main() {
 
   const people = await prisma.crmPerson.findMany({
     select: {
-      id: true, fullName: true, leadQuality: true, connectedAt: true,
+      id: true, fullName: true, leadQuality: true, connectedAt: true, warmth: true, roles: true,
       lastTouchedAt: true, createdAt: true, priorityOverride: true,
       affiliations: { select: { orgId: true } },
     },
@@ -101,6 +101,8 @@ async function main() {
       quality: p.leadQuality,
       eligibility: 'NOT_APPLICABLE',
       warmPath: warmPathFromContacts([{ connectedAt: p.connectedAt }]),
+      warmth: p.warmth,
+      isCategorized: p.roles.length > 0,
       nextDueAt: null,
       committedFollowUpAt: null,
       stageProgress: 0,

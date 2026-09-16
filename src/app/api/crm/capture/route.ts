@@ -7,6 +7,7 @@ import { isRealOrgName } from '@/lib/crm/normalize'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { PERSON_ROLES } from '@/lib/crm/labels'
+import { computePriority, warmPathFromContacts } from '@/lib/crm/scoring'
 
 export const maxDuration = 30
 
@@ -133,6 +134,24 @@ export async function POST(req: NextRequest) {
         : []
       const priority = (body.priority && VALID_PRIORITIES.has(body.priority) ? body.priority : 'P2') as CrmPriorityTier
       const warmth = warmthFromConnectionDegree(body.connectionDegree)
+      const now = new Date()
+      // Computed inline rather than left at the schema's 0 default — someone
+      // you hand-picked, on a confirmed connection, with a contact type
+      // already set, should never sit at the bottom of the list until the
+      // nightly recompute happens to run.
+      const { score: priorityScore } = computePriority({
+        quality: 'UNGRADED',
+        eligibility: 'NOT_APPLICABLE',
+        warmPath: warmPathFromContacts([]),
+        warmth: warmth ?? undefined,
+        isCategorized: roles.length > 0,
+        nextDueAt: null,
+        committedFollowUpAt: null,
+        stageProgress: 0,
+        lastTouchedAt: null,
+        createdAt: now,
+        now,
+      })
 
       const person = await prisma.crmPerson.create({
         data: {
@@ -153,6 +172,8 @@ export async function POST(req: NextRequest) {
           // Someone worth capturing mid-browse is worth a baseline follow-up
           // by default — P2 unless you picked a different priority yourself.
           priority,
+          priorityScore,
+          priorityComputedAt: now,
           ...(warmth ? { warmth } : {}),
         },
       })

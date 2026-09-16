@@ -68,8 +68,12 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
     {
       title: 'Work the list',
       links: [
-        { href: '/support/admin/crm/queue', label: 'Queue' },
-        { href: '/support/admin/crm/queue/people', label: 'People queue' },
+        // "Org queue"/"People queue" — same idea (what's overdue right now:
+        // a broken promise, a missed next step), split by whether the
+        // opportunity's overdue item belongs to a company or to a person.
+        { href: '/support/admin/crm/queue', label: 'Org queue', badge: badgeFor('crmQueue') },
+        { href: '/support/admin/crm/queue/people', label: 'People queue', badge: badgeFor('crmPeopleQueue') },
+        { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
@@ -82,7 +86,6 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm', label: 'People' },
         { href: '/support/admin/crm/organizations', label: 'Organizations' },
         { href: '/support/admin/crm/research', label: 'Research' },
-        { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
       ],
     },
     {

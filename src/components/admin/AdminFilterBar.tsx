@@ -1,6 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
+
+const SEARCH_DEBOUNCE_MS = 350
 
 export interface AdminFilterOption {
   key: string
@@ -37,6 +39,18 @@ export function AdminFilterBar({
   dateRange?: AdminDateRangeFilter
 }) {
   const formRef = useRef<HTMLFormElement>(null)
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Was Enter-or-click-Filter only — every keystroke now re-submits after a
+  // short pause, same debounce pattern as CrmIntroPaths' connector search.
+  // Still a real GET navigation (bookmarkable, back-button-safe), just
+  // triggered without an extra step.
+  function onSearchType() {
+    if (debounce.current) clearTimeout(debounce.current)
+    debounce.current = setTimeout(() => formRef.current?.requestSubmit(), SEARCH_DEBOUNCE_MS)
+  }
+
+  useEffect(() => () => { if (debounce.current) clearTimeout(debounce.current) }, [])
 
   return (
     <form
@@ -50,6 +64,7 @@ export function AdminFilterBar({
         name="q"
         defaultValue={searchValue}
         placeholder={searchPlaceholder}
+        onChange={onSearchType}
         className="h-9 min-w-48 flex-1 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
       />
       {filters.map((filter) => (

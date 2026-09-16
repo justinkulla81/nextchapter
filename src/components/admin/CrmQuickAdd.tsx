@@ -24,7 +24,11 @@ export function CrmQuickAdd() {
   const showAmbiguity = result.status === 'ambiguous' && !merged.message && !created.message
 
   return (
-    <div className="rounded-lg border border-border p-4">
+    // Tinted with the brand accent (not the plain `border-border` every other
+    // card on this page uses) so it reads as its own distinct zone — sitting
+    // directly above the search/filter bar, an identically-neutral card here
+    // was easy to mistake for it.
+    <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
       <form action={action} className="flex flex-wrap items-end gap-3">
         <div className="min-w-64 flex-1">
           <label htmlFor="crm-quick-add" className="mb-1 block text-sm font-medium">

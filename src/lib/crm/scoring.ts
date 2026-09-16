@@ -1,4 +1,4 @@
-import type { CrmLeadQuality, CrmEligibility } from '@prisma/client'
+import type { CrmLeadQuality, CrmEligibility, CrmWarmth } from '@prisma/client'
 
 /**
  * Priority scoring.
@@ -61,6 +61,22 @@ export interface ScoreInput {
   /** Used as the staleness floor when nothing has ever been logged. */
   createdAt: Date
   now?: Date
+  /**
+   * How well-known this contact is to you personally — set by hand (a
+   * LinkedIn connection degree, or your own judgement), separate from
+   * `warmPath`'s org-level "who do we know there" signal. Person-only;
+   * opportunities never pass this. Folded into warmPath as an additional
+   * source of the same underlying thing (a real route in), not averaged —
+   * a confirmed 1st-degree connection shouldn't be diluted by an absent
+   * `connectedAt` from the LinkedIn export.
+   */
+  warmth?: CrmWarmth
+  /**
+   * True once you've actually categorized this person (a contact type is
+   * set) — the difference between a bare row a sweep created and one you've
+   * looked at and made a call on. Person-only.
+   */
+  isCategorized?: boolean
 }
 
 export interface ScoreBreakdown {
@@ -72,6 +88,7 @@ export interface ScoreBreakdown {
   staleness: number
   multiplier: number
   precondition: number
+  curation: number
 }
 
 const DAY = 86_400_000
@@ -121,19 +138,41 @@ export function computePriority(input: ScoreInput): ScoreBreakdown {
   )
 
   const quality = 35 * (QUALITY_WEIGHT[input.quality] ?? 0.3)
-  const warmPath = 20 * clamp01(input.warmPath)
+  const warmPath = 20 * clamp01(Math.max(input.warmPath, warmthToPathStrength(input.warmth)))
   const deadline = 20 * urgency
   const momentum = 15 * clamp01(input.stageProgress)
   const stale = 10 * staleness(input.lastTouchedAt, input.createdAt, now)
+  // A flat bump, not a percentage of anything else — the point is that a row
+  // you've actually categorized should never rank BELOW an identical, still-
+  // ungraded one, which a multiplier on an already-small base can't
+  // guarantee.
+  const curation = input.isCategorized ? 5 : 0
 
-  const base = quality + warmPath + deadline + momentum - stale
+  const base = quality + warmPath + deadline + momentum + curation - stale
   const multiplier = ELIGIBILITY_MULTIPLIER[input.eligibility] ?? 1
   // A discount, not a disqualification: a valuable program with a long
   // runway should still surface, just below one you could act on this month.
   const precondition = 1 - preconditionPenalty(input.preconditionLeadTimeDays)
   const score = Math.max(0, Math.round(base * multiplier * precondition * 10) / 10)
 
-  return { score, quality, warmPath, deadline, momentum, staleness: stale, multiplier, precondition }
+  return { score, quality, warmPath, deadline, momentum, staleness: stale, multiplier, precondition, curation }
+}
+
+/**
+ * `connectedAt` (from the LinkedIn export) is the only warm-path signal
+ * `warmPathFromContacts` knows about; `warmth` is the newer, more general
+ * field (also set from the browser extension's connection-degree scrape) and
+ * deserves the same weight for the same underlying fact — a real 1st-degree
+ * connection is a real 1st-degree connection regardless of which import path
+ * recorded it.
+ */
+function warmthToPathStrength(warmth: CrmWarmth | undefined): number {
+  switch (warmth) {
+    case 'HOT': return 1
+    case 'WARM': return 0.6
+    case 'COLD': return 0.2
+    default: return 0
+  }
 }
 
 function clamp01(n: number): number {

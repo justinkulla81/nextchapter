@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAdmin()
-  const [{ approvalsNeeded }, reportedMessages, communityModeration, needsCompletion] = await Promise.all([
+  const now = new Date()
+  const [{ approvalsNeeded }, reportedMessages, communityModeration, needsCompletion, crmQueue, crmPeopleQueue] = await Promise.all([
     getAdminHomepageSummary(),
     prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
     // Mirrors getModerationQueue's "needsReview" definition (moderation.ts)
@@ -23,6 +24,19 @@ export default async function AdminPortalLayout({ children }: { children: React.
       },
     }),
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
+    // A rough count of what's overdue right now — a broken promise or a
+    // missed next step — not the page's full snoozed/buffered query. Close
+    // enough for "is there something waiting", which is all a badge needs to
+    // answer.
+    prisma.crmOpportunity.count({
+      where: { outcome: 'OPEN', OR: [{ committedFollowUpAt: { lt: now } }, { nextStepDueAt: { lt: now } }] },
+    }),
+    prisma.crmOpportunity.count({
+      where: {
+        outcome: 'OPEN', primaryPersonId: { not: null }, primaryPerson: { deletedAt: null },
+        OR: [{ committedFollowUpAt: { lt: now } }, { nextStepDueAt: { lt: now } }],
+      },
+    }),
   ])
 
   const badges = {
@@ -34,6 +48,8 @@ export default async function AdminPortalLayout({ children }: { children: React.
     eqoveriqApplications: approvalsNeeded.pendingEqOverIqApplications,
     reportedMessages,
     communityModeration,
+    crmQueue,
+    crmPeopleQueue,
     // Job Board listings are their own review queue (shown on the Job Board
     // nav item above) and never appear as rows on the Requests page itself —
     // counting them here would double them into a badge for a list they

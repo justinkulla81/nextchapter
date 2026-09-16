@@ -29,12 +29,19 @@ const STATUS_ORDER = ['IDENTIFIED', 'ASKED', 'INTRO_MADE', 'DECLINED'] as const
 // "Who knows her." A target can carry several stacked routes — the source
 // sheets held one free-text guess that couldn't be searched or marked asked.
 export function CrmIntroPaths({
-  targetPersonId, targetOrgId, targetName, paths,
+  targetPersonId, targetOrgId, targetName, paths, youKnowThemDirectly,
 }: {
   targetPersonId?: string
   targetOrgId?: string
   targetName: string
   paths: IntroPathRow[]
+  /**
+   * True when the target's own warmth is already HOT (a confirmed 1st-degree
+   * LinkedIn connection) — that fact IS a route, so an empty path list here
+   * shouldn't read as "nothing known" or prompt filling in a form for
+   * something already on record elsewhere on the page.
+   */
+  youKnowThemDirectly?: boolean
 }) {
   const add = addIntroPath.bind(null, { personId: targetPersonId, orgId: targetOrgId })
 
@@ -47,7 +54,12 @@ export function CrmIntroPaths({
         Routes in, strongest first. A connector can be someone already in the Ecosystem, or just a name you&apos;ve heard.
       </p>
 
-      {paths.length === 0 ? (
+      {paths.length === 0 && youKnowThemDirectly ? (
+        <p className="rounded-lg border border-brand/40 bg-brand/5 p-4 text-sm">
+          You already know {targetName.split(' ')[0]} directly — a 1st-degree LinkedIn connection. Add a route below only
+          if someone else could <em>also</em> make an introduction.
+        </p>
+      ) : paths.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
           No route recorded yet.
         </p>

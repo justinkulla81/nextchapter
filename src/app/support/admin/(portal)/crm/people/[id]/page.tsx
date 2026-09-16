@@ -67,6 +67,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                 </>
               : 'No organization on file'}
           </p>
+          {person.location && <p className="mt-0.5 text-sm text-muted-foreground">{person.location}</p>}
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${qualityClass(person.leadQuality)}`}>
               {QUALITY_LABELS[person.leadQuality]}
@@ -76,7 +77,9 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
               label={`Quality for ${person.fullName}`}
               options={QUALITIES.map((q) => ({ value: q, label: QUALITY_LABELS[q] }))}
             />
-            <span className="ml-2 text-muted-foreground">{WARMTH_LABELS[person.warmth]}</span>
+            {/* Labeled rather than bare — "Hot" on its own reads as a stray
+                word; "Warmth: Hot" says what it is without a hover or click. */}
+            <span className="ml-2 text-muted-foreground">Warmth: {WARMTH_LABELS[person.warmth]}</span>
             {person.email && <a href={`mailto:${person.email}`} className="underline">{person.email}</a>}
             {person.linkedinUrl && (
               <a href={person.linkedinUrl} target="_blank" rel="noreferrer" className="underline">LinkedIn</a>
@@ -166,6 +169,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       <CrmIntroPaths
         targetPersonId={person.id}
         targetName={person.fullName}
+        youKnowThemDirectly={person.warmth === 'HOT'}
         paths={person.introPathsAsTarget.map((p) => ({
           id: p.id,
           connectorPersonId: p.connectorPersonId,
