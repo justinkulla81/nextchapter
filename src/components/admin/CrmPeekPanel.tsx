@@ -7,7 +7,10 @@ import {
 } from '@/app/support/admin/(portal)/crm/actions'
 import { QUALITY_LABELS, WARMTH_LABELS, PRIORITY_TIER_LABELS, QUALITIES, WARMTHS, PRIORITY_TIERS } from '@/lib/crm/labels'
 import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
-import type { CrmPersonRole } from '@prisma/client'
+import { CrmInlineGoals } from '@/components/admin/CrmInlineGoals'
+import { CrmInlineText } from '@/components/admin/CrmInlineText'
+import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPrompt'
+import type { CrmPersonRole, CrmGoal } from '@prisma/client'
 
 interface Fact { label: string; value: string }
 interface Peek {
@@ -17,6 +20,9 @@ interface Peek {
   subtitle: string | null
   href: string
   roles?: CrmPersonRole[]
+  goals?: CrmGoal[]
+  email?: string | null
+  location?: string | null
   editable?: { leadQuality: string; warmth: string; priority: string | null }
   company?: { id: string; name: string; otherPeopleCount: number } | null
   facts: Fact[]
@@ -146,6 +152,33 @@ export function CrmPeekPanel() {
 
               {data.editable && (
                 <EditableFields personId={data.id} editable={data.editable} onSaved={() => refetch(data.id, 'person')} />
+              )}
+
+              {data.kind === 'person' && data.goals !== undefined && (
+                <label className="block text-xs text-muted-foreground">
+                  Goal
+                  <div className="mt-0.5">
+                    <CrmInlineGoals personId={data.id} goals={data.goals} name={data.title} onSaved={() => refetch(data.id, 'person')} />
+                  </div>
+                </label>
+              )}
+
+              {data.kind === 'person' && data.location !== undefined && (
+                <label className="block text-xs text-muted-foreground">
+                  Location
+                  <div className="mt-0.5">
+                    <CrmInlineText personId={data.id} field="location" value={data.location ?? ''} label={`Location for ${data.title}`} placeholder="No location on file" />
+                  </div>
+                </label>
+              )}
+
+              {data.kind === 'person' && data.email !== undefined && (
+                <label className="block text-xs text-muted-foreground">
+                  Email
+                  <div className="mt-0.5">
+                    <CrmEmailBackfillPrompt personId={data.id} email={data.email} />
+                  </div>
+                </label>
               )}
 
               <dl className="grid grid-cols-2 gap-3">

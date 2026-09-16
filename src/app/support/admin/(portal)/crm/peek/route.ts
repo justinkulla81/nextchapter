@@ -85,13 +85,18 @@ export async function GET(req: NextRequest) {
     // Raw enum values for the panel's own inline <select>s — QUALITY_LABELS
     // etc. are used to render the option list client-side.
     editable: { leadQuality: person.leadQuality, warmth: person.warmth, priority: person.priority },
+    // Editable in the panel now (CrmEmailBackfillPrompt / CrmInlineText /
+    // CrmInlineGoals) rather than static facts — email used to sit in the
+    // `facts` list below with no way to add or fix it from here at all.
+    email: person.email,
+    location: person.location,
+    goals: person.goals,
     company: primaryOrg
       ? { id: primaryOrg.id, name: primaryOrg.name, otherPeopleCount: Math.max(0, primaryOrg._count.affiliations - 1) }
       : null,
     facts: [
       { label: 'Last contacted', value: sinceLabel(person.lastTouchedAt) },
       { label: 'Touches', value: String(person.touchCount) },
-      person.email ? { label: 'Email', value: person.email } : null,
       person.phone ? { label: 'Phone', value: person.phone } : null,
     ].filter(Boolean),
     body: person.notes ?? null,

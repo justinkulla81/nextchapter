@@ -32,9 +32,9 @@ const KINDS = {
     { id: 'location', label: 'Location', type: 'text' },
     { id: 'roles', label: 'Contact type(s)', type: 'checkboxes', options: PERSON_ROLE_OPTIONS },
     { id: 'priority', label: 'Priority', type: 'select', options: PRIORITY_OPTIONS },
-    // Last, not first — it's just a confirmation of what's about to be sent,
-    // not something to check before the fields that actually need a look.
-    { id: 'linkedin', label: 'LinkedIn', type: 'readonly' },
+    // No LinkedIn field here — it costs a whole row for something that's
+    // already sent every time as `payload.url` (see the save handler below)
+    // and rarely needs a second look once you're already on the profile.
   ],
   layoff: [
     { id: 'company', label: 'Company', type: 'text' },
@@ -220,15 +220,10 @@ function renderFields() {
 
     const input = document.createElement('input')
     input.id = `f-${f.id}`
-    input.type = f.type === 'readonly' ? 'text' : f.type
-    if (f.type === 'readonly') input.readOnly = true
+    input.type = f.type
     const guess = page.scraped[f.id]
     if (guess !== undefined && guess !== '') input.value = guess
     else if (f.id === 'title') input.value = page.title
-    // The LinkedIn field is just a confirmation of the URL already being
-    // sent as part of every payload — it isn't collected separately in
-    // the save handler below.
-    else if (f.id === 'linkedin' && page.url.includes('linkedin.com/in/')) input.value = page.url
     host.append(input)
   }
 }
@@ -307,7 +302,6 @@ $('save').addEventListener('click', async () => {
   // server-side to set warmth (1st → Hot, 2nd → Warm, 3rd/unknown → Cold).
   if (kind === 'person' && page.scraped.connectionDegree) payload.connectionDegree = page.scraped.connectionDegree
   for (const f of KINDS[kind]) {
-    if (f.type === 'readonly') continue // display only — the URL is already sent above
     if (f.type === 'checkboxes') {
       const checked = Array.from(document.querySelectorAll(`#f-${f.id} input:checked`)).map((cb) => cb.value)
       if (checked.length > 0) payload[f.id] = checked

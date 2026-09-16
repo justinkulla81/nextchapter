@@ -14,6 +14,8 @@ import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmContactCell } from '@/components/admin/CrmContactCell'
 import { CrmInlineFollowUp } from '@/components/admin/CrmInlineFollowUp'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
+import { CrmEmailBackfillPrompt } from '@/components/admin/CrmEmailBackfillPrompt'
+import { CrmInlineGoals } from '@/components/admin/CrmInlineGoals'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
   WARMTHS, WARMTH_LABELS, PRIORITY_TIERS, PRIORITY_TIER_LABELS,
@@ -257,27 +259,25 @@ export default async function CrmPeoplePage({
                       <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
                     </td>
                     <td className="whitespace-nowrap px-3 py-2">
-                      <span className="flex items-center gap-1.5">
-                        <span className={`inline-block rounded px-1.5 py-0.5 text-xs font-semibold ${priorityTierClass(p.priority)}`}>
-                          {p.priority ?? '—'}
-                        </span>
-                        <CrmInlineSelect
-                          personId={p.id} field="priority" value={p.priority ?? ''}
-                          label={`Priority for ${p.fullName}`}
-                          options={[{ value: '', label: 'No priority' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: PRIORITY_TIER_LABELS[t] }))]}
-                        />
-                      </span>
+                      {/* The dropdown IS the colored badge — was a plain-text
+                          pill next to a second, spelled-out select repeating
+                          the same value; one control reads the same and
+                          gives the row's width back to Organization. */}
+                      <CrmInlineSelect
+                        personId={p.id} field="priority" value={p.priority ?? ''}
+                        label={`Priority for ${p.fullName}`}
+                        className={priorityTierClass(p.priority)}
+                        options={[{ value: '', label: '—' }, ...PRIORITY_TIERS.map((t) => ({ value: t, label: t }))]}
+                      />
                     </td>
                     <td className="px-3 py-2">
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
                       {p.affiliations[0]?.title && (
                         <span className="block text-xs text-muted-foreground">{p.affiliations[0].title}</span>
                       )}
-                      {p.email ? (
-                        <span className="block text-xs text-muted-foreground">{p.email}</span>
-                      ) : (
-                        <span className="block text-xs text-amber-700">No email on file</span>
-                      )}
+                      <span className="block">
+                        <CrmEmailBackfillPrompt personId={p.id} email={p.email} />
+                      </span>
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-1.5">
@@ -293,15 +293,7 @@ export default async function CrmPeoplePage({
                       <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
                     </td>
                     <td className="px-3 py-2">
-                      {p.goals.length > 0 ? (
-                        <span className="flex flex-wrap gap-1">
-                          {p.goals.map((g) => (
-                            <span key={g} className="rounded-full bg-brand/10 px-2 py-0.5 text-xs text-brand">{GOAL_LABELS[g]}</span>
-                          ))}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
+                      <CrmInlineGoals personId={p.id} goals={p.goals} name={p.fullName} />
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       <CrmContactCell

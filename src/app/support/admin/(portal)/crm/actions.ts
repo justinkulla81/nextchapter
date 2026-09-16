@@ -313,11 +313,11 @@ export async function logLinkedInMessage(personId: string) {
 }
 
 /** Inline edit from a list row or the record page. Writes a FIELD_CHANGED activity. */
-export async function updatePersonField(personId: string, field: 'leadQuality' | 'warmth' | 'title' | 'notes' | 'priority' | 'fullName', value: string) {
+export async function updatePersonField(personId: string, field: 'leadQuality' | 'warmth' | 'title' | 'notes' | 'priority' | 'fullName' | 'location', value: string) {
   const admin = await requireAdmin()
   const before = await prisma.crmPerson.findUnique({
     where: { id: personId },
-    select: { leadQuality: true, warmth: true, notes: true, priority: true, fullName: true },
+    select: { leadQuality: true, warmth: true, notes: true, priority: true, fullName: true, location: true },
   })
 
   if (field === 'title') {
@@ -336,6 +336,8 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
     const name = value.trim()
     if (!name) return
     await prisma.crmPerson.update({ where: { id: personId }, data: { fullName: name } })
+  } else if (field === 'location') {
+    await prisma.crmPerson.update({ where: { id: personId }, data: { location: value.trim() || null } })
   } else {
     await prisma.crmPerson.update({ where: { id: personId }, data: { notes: value || null } })
   }
@@ -532,6 +534,22 @@ export async function updatePersonRoles(personId: string, formData: FormData) {
   revalidatePath(CRM)
   revalidatePath(`${CRM}/people/${personId}`)
   revalidatePath(`${CRM}/needs-completion`)
+}
+
+/**
+ * Goal starts out derived from roles (goalsForRoles, see schema comment on
+ * CrmPerson.goals) but is a real judgement call, not a fact — someone's BD:
+ * Partner role suggests a goal, it doesn't dictate one. Plain overwrite, no
+ * side effects like updatePersonRoles' title-filling — the derivation only
+ * ever runs once, at role-assignment time.
+ */
+export async function updatePersonGoals(personId: string, formData: FormData) {
+  const admin = await requireAdmin()
+  const goals = formData.getAll('goals').map(String) as CrmGoal[]
+  await prisma.crmPerson.update({ where: { id: personId }, data: { goals: { set: goals } } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_field_edited', { personId, field: 'goals', count: goals.length, surface: 'record' })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
 }
 
 /**
