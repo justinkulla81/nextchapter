@@ -11,10 +11,13 @@ import 'server-only'
 // the one piece this fix can't verify from code alone.
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
-// Read-only, minimum scope needed — this connects a company-owned inbox
-// (research@...), not a candidate's personal account, so it doesn't carry
-// the CASA/sensitive-scope compliance weight of Calendar Connect.
-const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
+// Gmail read-only, plus Calendar write — one consent grant covers both
+// GoogleInboxConnection (Market Pulse's inbox sweep, CRM's email-activity
+// sweep) and AdminGoogleCalendarConnection (CRM's meeting sweep, Webinar
+// scheduling), since a single admin connecting "Google" once is simpler
+// than asking them to click two separate buttons for two scopes on the
+// same account. See callback/route.ts for where both connections get written.
+const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events'
 
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

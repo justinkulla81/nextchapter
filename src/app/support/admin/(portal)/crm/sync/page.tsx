@@ -54,7 +54,7 @@ export default async function CrmSyncPage({
       </header>
 
       {params.googleConnected && (
-        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">Gmail inbox connected.</p>
+        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">Google connected — Gmail and Calendar.</p>
       )}
       {params.googleError && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -64,58 +64,45 @@ export default async function CrmSyncPage({
         </p>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-2 rounded-lg border border-border p-3">
-          <p className="text-sm font-medium">Gmail inbox</p>
-          {gmailConnection ? (
-            <>
-              <p className="text-sm text-muted-foreground">
-                Connected as <span className="font-medium text-foreground">{gmailConnection.email}</span>
-                {gmailConnection.lastSweepAt && <> — last swept {sinceLabel(gmailConnection.lastSweepAt)}</>}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Also used by Market Pulse&apos;s research-inbox sweep — disconnecting here affects both.
-              </p>
-              <form action={disconnectAdminGmailInbox}>
-                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
-                  Disconnect
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground">Not connected — email activity can&apos;t be swept.</p>
-              <a
-                href="/api/google/oauth/start?from=/support/admin/crm/sync"
-                className="inline-block rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
-              >
-                Connect Gmail
-              </a>
-            </>
-          )}
-        </div>
-
-        <div className="space-y-2 rounded-lg border border-border p-3">
-          <p className="text-sm font-medium">Calendar</p>
-          {calendarConnection ? (
+      <div className="space-y-2 rounded-lg border border-border p-3">
+        <p className="text-sm font-medium">Google</p>
+        {gmailConnection && calendarConnection ? (
+          <>
             <p className="text-sm text-muted-foreground">
-              Connected as <span className="font-medium text-foreground">{calendarConnection.connectedByEmail ?? 'unknown'}</span>
+              Gmail connected as <span className="font-medium text-foreground">{gmailConnection.email}</span>
+              {gmailConnection.lastSweepAt && <> — last swept {sinceLabel(gmailConnection.lastSweepAt)}</>}
             </p>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground">Not connected — meetings can&apos;t be swept.</p>
-              <a
-                href="/api/admin/google-calendar/connect"
-                className="inline-block rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
-              >
-                Connect Calendar
+            <p className="text-sm text-muted-foreground">
+              Calendar connected as <span className="font-medium text-foreground">{calendarConnection.connectedByEmail ?? 'unknown'}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              This is the same connection Market Pulse&apos;s research-inbox sweep and Webinar scheduling use —
+              disconnecting either one below affects that too.
+            </p>
+            <div className="flex gap-3">
+              <form action={disconnectAdminGmailInbox}>
+                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">Disconnect Gmail</button>
+              </form>
+              <a href="/support/admin/webinars" className="text-sm text-muted-foreground underline underline-offset-4">
+                Manage Calendar connection
               </a>
-              <p className="text-xs text-muted-foreground">
-                Shared with Webinars — you&apos;ll land there to finish, then come back here.
-              </p>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              {gmailConnection ? 'Gmail connected, Calendar isn’t' : calendarConnection ? 'Calendar connected, Gmail isn’t' : 'Not connected'}
+              {' — email and meeting activity can’t be swept until both are.'}
+            </p>
+            <a
+              href="/api/google/oauth/start?from=/support/admin/crm/sync"
+              className="inline-block rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+            >
+              Connect Google
+            </a>
+            <p className="text-xs text-muted-foreground">One click grants both Gmail (read-only) and Calendar access.</p>
+          </>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">

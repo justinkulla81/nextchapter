@@ -36,14 +36,27 @@ export async function GET(request: NextRequest) {
     const email = await fetchGoogleUserEmail(tokens.access_token)
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
-    await prisma.googleInboxConnection.create({
-      data: {
-        email,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        expiresAt,
-        connectedByEmail: admin?.email ?? 'admin',
-      },
+    // One consent grant, two connections — the requested scope (see
+    // src/lib/google/oauth.ts) covers both Gmail read and Calendar write, so
+    // a single "Connect Google" click sets up everything that reads from
+    // either GoogleInboxConnection (Market Pulse, CRM email sweep) or
+    // AdminGoogleCalendarConnection (CRM meeting sweep, Webinar scheduling).
+    // Both are singletons — replaced on reconnect rather than accumulating
+    // rows, same pattern the calendar-only flow already used.
+    const [existingInbox, existingCalendar] = await Promise.all([
+      prisma.googleInboxConnection.findFirst(),
+      prisma.adminGoogleCalendarConnection.findFirst(),
+    ])
+
+    await prisma.googleInboxConnection.upsert({
+      where: { id: existingInbox?.id ?? '' },
+      update: { email, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? 'admin' },
+      create: { email, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? 'admin' },
+    })
+    await prisma.adminGoogleCalendarConnection.upsert({
+      where: { id: existingCalendar?.id ?? '' },
+      update: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? existingCalendar?.connectedByEmail ?? null },
+      create: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? null },
     })
 
     return NextResponse.redirect(new URL(`${returnPath}?googleConnected=1`, request.url))
