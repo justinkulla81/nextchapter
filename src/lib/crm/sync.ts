@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
-import { listMessagesSince, getMessageHeaders, getProfileEmail } from '@/lib/google/gmail'
+import { listMessagesSince, getMessageHeaders, getMessageBody, getProfileEmail } from '@/lib/google/gmail'
 import { listCalendarEvents } from '@/lib/google/admin-calendar'
 import { getValidAdminAccessToken } from '@/lib/webinars/admin-calendar-oauth'
 import {
@@ -147,6 +147,10 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
       const fromEmail = normalizeEmail(msg.from)
       let loggedForThisMessage = false
       let hasInternal = false
+      // Fetched at most once per message, and only when a real CRM person is
+      // actually on it — every other participant (unknown, internal,
+      // automated) never pays for the extra format=full round trip.
+      let fullBody: string | null | undefined
 
       for (const raw of participants) {
         const email = normalizeEmail(raw)
@@ -158,6 +162,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
 
         if (verdict.kind === 'crm') {
           // A message can involve several CRM people; each gets the activity.
+          if (fullBody === undefined) fullBody = await getMessageBody(token, id)
           const created = await prisma.crmActivity.upsert({
             where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${verdict.personId}` } },
             create: {
@@ -166,7 +171,10 @@ export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepRe
               occurredAt: msg.internalDate,
               personId: verdict.personId,
               subject: msg.subject,
-              body: snippetOf(msg.snippet),
+              // A known CRM contact's mail is worth the real message, not
+              // Gmail's ~200-char snippet — falls back to the snippet only if
+              // the full-body fetch itself failed (never on an empty body).
+              body: fullBody ?? snippetOf(msg.snippet),
               isAutoLogged: true,
               sourceRef: `${id}:${verdict.personId}`,
             },

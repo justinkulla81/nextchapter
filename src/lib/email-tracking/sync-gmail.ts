@@ -15,6 +15,7 @@ import { applyLearningClosesBarrierRewrite } from '@/lib/scoring/rewrite-actions
 import { getAllCourseTitles } from '@/lib/learning/courses'
 import { markInterimMarketplaceSignupCore } from '@/lib/interim-work/mark-signup'
 import { getInterimListingDomainMap } from '@/lib/interim-work/listings'
+import { extractEmailBody, getAttachmentFilenames, getHeader, type GmailMessage } from '@/lib/google/gmail-body'
 import type { EmailConnection, EmailDirection, RelationshipTag } from '@prisma/client'
 
 const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1/users/me'
@@ -110,81 +111,12 @@ async function markCourseEnrolledFromEmail(candidateId: string, title: string, p
   captureServerEvent(candidateId, 'learning_course_enrolled', { title, provider, source: 'email' })
 }
 
-interface GmailHeader {
-  name: string
-  value: string
-}
-interface GmailPart {
-  mimeType?: string
-  filename?: string
-  body?: { data?: string }
-  parts?: GmailPart[]
-}
-interface GmailMessage {
-  id: string
-  threadId?: string
-  payload?: { headers?: GmailHeader[] } & GmailPart
-}
-
-function findPartByMimeType(part: GmailPart | undefined, mimeType: string, depth = 0): string | null {
-  if (!part || depth > 8) return null
-  if (part.mimeType === mimeType && part.body?.data) {
-    try {
-      return Buffer.from(part.body.data, 'base64url').toString('utf-8')
-    } catch {
-      return null
-    }
-  }
-  for (const sub of part.parts ?? []) {
-    const found = findPartByMimeType(sub, mimeType, depth + 1)
-    if (found) return found
-  }
-  return null
-}
-
-// Crude but sufficient for regex keyword matching (never stored/rendered) —
-// strip tags, decode the handful of entities real ATS templates actually
-// use, collapse whitespace.
-function stripHtml(html: string): string {
-  return html
-    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&(lt|gt|#39|quot);/gi, (m) => ({ '&lt;': '<', '&gt;': '>', '&#39;': "'", '&quot;': '"' })[m.toLowerCase()] ?? m)
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-// Gmail nests the actual text/plain part arbitrarily deep inside
-// multipart/alternative and multipart/mixed containers — walk until one is
-// found, and always append the text/html part (stripped) too rather than
-// treating it as a last resort. Some ATS confirmation templates (e.g.
-// Indeed Apply's "Indeed Application: <Job Title>") put only a bare
-// "application submitted, good luck!" line in text/plain and leave every
-// real detail — including the company name — solely in the HTML part;
-// text/plain alone silently starved every downstream regex of the one
-// signal they actually needed. Depth-capped defensively; real messages
-// never nest this deep.
-function extractBodyPreview(part: GmailPart | undefined): string {
-  const plain = findPartByMimeType(part, 'text/plain') ?? ''
-  const html = findPartByMimeType(part, 'text/html')
-  const combined = html ? `${plain} ${stripHtml(html)}` : plain
-  return combined.slice(0, BODY_PREVIEW_MAX_CHARS)
-}
-
-// A part with a non-empty filename is an attachment (Gmail's convention —
-// the inline body parts never carry one). Collects filenames (not content)
-// so callers can pattern-match on how the file itself is named, e.g.
-// "Jane_Doe_Resume.pdf", not just whether something was attached.
-function getAttachmentFilenames(part: GmailPart | undefined, depth = 0): string[] {
-  if (!part || depth > 8) return []
-  const own = part.filename ? [part.filename] : []
-  return own.concat((part.parts ?? []).flatMap((sub) => getAttachmentFilenames(sub, depth + 1)))
-}
-
-function getHeader(headers: GmailHeader[] | undefined, name: string): string {
-  return headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? ''
+// MIME-walking helpers (findPartByMimeType, stripHtml, extractEmailBody,
+// getAttachmentFilenames, getHeader, and the Gmail*  types) live in
+// @/lib/google/gmail-body — shared with the admin-side sweep, which reads
+// the same API shape under a different OAuth connection.
+function extractBodyPreview(part: Parameters<typeof extractEmailBody>[0]): string {
+  return extractEmailBody(part, BODY_PREVIEW_MAX_CHARS)
 }
 
 // Testing-mode refresh tokens expire ~7 days after issue — a refresh

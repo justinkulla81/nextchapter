@@ -1,5 +1,6 @@
 import 'server-only'
 import * as cheerio from 'cheerio'
+import { extractEmailBody, type GmailMessage as GmailFullMessage } from './gmail-body'
 
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me'
 
@@ -206,6 +207,20 @@ export async function getMessageHeaders(
     subject: header('Subject'),
     snippet: data.snippet ?? null,
   }
+}
+
+// Only ever called for a message already classified as a real CRM contact
+// (see sweepGmail) — format=full is a heavier fetch than the metadata call
+// every other message gets, so this stays opt-in per message rather than
+// the default.
+export async function getMessageBody(accessToken: string, id: string, maxChars = 20_000): Promise<string | null> {
+  const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}`)
+  url.searchParams.set('format', 'full')
+  const res = await fetchWithRetry(url, accessToken)
+  if (!res.ok) return null
+  const data = (await res.json()) as GmailFullMessage
+  const body = extractEmailBody(data.payload, maxChars)
+  return body || null
 }
 
 /** The connected mailbox's own address, for deciding direction. */
