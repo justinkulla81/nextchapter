@@ -82,7 +82,7 @@ export default async function CrmNeedsCompletionPage({
               const s = p.linkedinSlug ? byslug.get(p.linkedinSlug) : undefined
               const acceptAction = acceptExportSuggestion.bind(null, p.id)
               const dismissAction = dismissCompletion.bind(null, p.id)
-              const deleteAction = async () => { await deletePerson(p.id) }
+              const deleteAction = deletePerson.bind(null, p.id)
               return (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                   <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
