@@ -8,7 +8,7 @@ export function CrmInlineText({
   personId, field, value, label, placeholder,
 }: {
   personId: string
-  field: 'fullName' | 'notes'
+  field: 'fullName' | 'notes' | 'title'
   value: string
   label: string
   placeholder?: string

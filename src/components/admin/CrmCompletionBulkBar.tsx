@@ -32,9 +32,6 @@ export function CrmCompletionBulkBar({ children, count }: { children: React.Reac
           <SubmitButton formAction={run('accept')} disabled={selected === 0} size="sm" pendingLabel="Applying…">
             Use suggestions
           </SubmitButton>
-          <SubmitButton formAction={run('dismiss')} disabled={selected === 0} size="sm" variant="outline" pendingLabel="Marking…">
-            Mark fine
-          </SubmitButton>
 
           {selected > 0 && !confirming && (
             <button type="button" onClick={() => setConfirming(true)}

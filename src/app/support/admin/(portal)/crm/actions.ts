@@ -548,14 +548,6 @@ export async function bulkDeletePeople(formData: FormData): Promise<{ deleted: n
   return { deleted: safe.length, skipped }
 }
 
-/** Marks a profile complete without changing anything — "I looked, it's fine." */
-export async function dismissCompletion(personId: string) {
-  const admin = await requireAdmin()
-  await prisma.crmPerson.update({ where: { id: personId }, data: { needsCompletion: false } })
-  captureServerEvent(admin.email ?? 'admin', 'crm_completion_dismissed', { personId })
-  revalidatePath(`${CRM}/needs-completion`)
-}
-
 /** Accepts the LinkedIn-export suggestion for a person missing a title or org. */
 export async function acceptExportSuggestion(personId: string) {
   const admin = await requireAdmin()
@@ -1595,13 +1587,6 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
   const ids = formData.getAll('selected').map(String).filter(Boolean)
   const mode = String(formData.get('mode') ?? '')
   if (ids.length === 0) return { message: 'Nothing selected.' }
-
-  if (mode === 'dismiss') {
-    const r = await prisma.crmPerson.updateMany({ where: { id: { in: ids } }, data: { needsCompletion: false } })
-    captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode, count: r.count })
-    revalidatePath(`${CRM}/needs-completion`)
-    return { message: `Marked ${r.count} as fine.` }
-  }
 
   if (mode === 'delete') {
     const rows = await prisma.crmPerson.findMany({
