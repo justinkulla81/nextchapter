@@ -237,7 +237,6 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Organization</th>
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
-                  <SortHeader label="Warmth" sortKey="warmth" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <SortHeader label="Contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
                   <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
@@ -289,13 +288,6 @@ export default async function CrmPeoplePage({
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <CrmInlineSelect
-                        personId={p.id} field="warmth" value={p.warmth}
-                        label={`Warmth for ${p.fullName}`}
-                        options={WARMTHS.map((x) => ({ value: x, label: WARMTH_LABELS[x] }))}
-                      />
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       <CrmContactCell
