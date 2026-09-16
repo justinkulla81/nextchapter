@@ -103,6 +103,10 @@ export async function GET(req: NextRequest) {
       : null,
     activities: person.activities.map((a) => ({
       subject: a.subject ?? a.type, when: formatDate(a.occurredAt), auto: a.isAutoLogged, body: a.body,
+      // FIELD_CHANGED/STAGE_CHANGED are record edits, not contact with the
+      // person — kept as their own "Profile activity" block in the panel,
+      // separate from real interactions (calls, emails, meetings, ...).
+      isProfileChange: a.type === 'FIELD_CHANGED' || a.type === 'STAGE_CHANGED',
     })),
     pipelines: person.opportunities.map((o) => ({ label: o.pipeline.label, stage: o.stage.label })),
     paths: person.introPathsAsTarget.map((p) => ({

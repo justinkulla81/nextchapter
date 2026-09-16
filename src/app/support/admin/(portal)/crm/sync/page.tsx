@@ -11,7 +11,7 @@ export const maxDuration = 30
 export default async function CrmSyncPage({
   searchParams,
 }: {
-  searchParams: Promise<{ googleConnected?: string; googleError?: string }>
+  searchParams: Promise<{ googleConnected?: string; googleError?: string; googleErrorDetail?: string }>
 }) {
   await requireAdmin()
   const params = await searchParams
@@ -57,11 +57,16 @@ export default async function CrmSyncPage({
         <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">Google connected — Gmail and Calendar.</p>
       )}
       {params.googleError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          Connection failed ({params.googleError}). If this is your first time connecting, make sure this
-          Google account is added as a test user on the OAuth consent screen in Google Cloud Console —
-          this app is still in Testing publishing status.
-        </p>
+        <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p>
+            Connection failed ({params.googleError}). If this is your first time connecting, make sure this
+            Google account is added as a test user on the OAuth consent screen in Google Cloud Console —
+            this app is still in Testing publishing status.
+          </p>
+          {params.googleErrorDetail && (
+            <p className="mt-1 font-mono text-xs opacity-80">{params.googleErrorDetail}</p>
+          )}
+        </div>
       )}
 
       <div className="space-y-2 rounded-lg border border-border p-3">

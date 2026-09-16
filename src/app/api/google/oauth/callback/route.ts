@@ -62,6 +62,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`${returnPath}?googleConnected=1`, request.url))
   } catch (err) {
     console.error('Google OAuth callback failed:', err)
-    return NextResponse.redirect(new URL(`${returnPath}?googleError=exchange_failed`, request.url))
+    // The failure reason is genuinely useful here and there's no server-log
+    // access from the admin UI — surfacing a truncated message beats a bare
+    // "exchange_failed" code that gives no clue which of several possible
+    // causes (bad credentials, insufficient scope, network) actually fired.
+    const message = err instanceof Error ? err.message : String(err)
+    const url = new URL(`${returnPath}?googleError=exchange_failed`, request.url)
+    url.searchParams.set('googleErrorDetail', message.slice(0, 300))
+    return NextResponse.redirect(url)
   }
 }

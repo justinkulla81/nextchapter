@@ -23,7 +23,7 @@ interface Peek {
   body: string | null
   linkedinUrl?: string | null
   followUp?: { dueAt: string | null; note: string | null } | null
-  activities?: { subject: string; when: string; auto: boolean; body?: string | null }[]
+  activities?: { subject: string; when: string; auto: boolean; body?: string | null; isProfileChange?: boolean }[]
   people?: { id: string; name: string; detail: string | null; touched: string }[]
   pipelines?: { label: string; stage: string }[]
   paths?: { via: string; strength: string; status: string }[]
@@ -199,11 +199,24 @@ export function CrmPeekPanel() {
                 </Block>
               )}
 
-              {data.activities && data.activities.length > 0 && (
-                <Block title="Recent activity — email correspondence and more">
-                  {data.activities.map((a, i) => <ActivityRow key={i} activity={a} />)}
-                </Block>
-              )}
+              {data.activities && data.activities.length > 0 && (() => {
+                const interactions = data.activities!.filter((a) => !a.isProfileChange)
+                const profileChanges = data.activities!.filter((a) => a.isProfileChange)
+                return (
+                  <>
+                    {interactions.length > 0 && (
+                      <Block title="Interaction activity — calls, email, meetings">
+                        {interactions.map((a, i) => <ActivityRow key={i} activity={a} />)}
+                      </Block>
+                    )}
+                    {profileChanges.length > 0 && (
+                      <Block title="Profile activity — record edits">
+                        {profileChanges.map((a, i) => <ActivityRow key={i} activity={a} />)}
+                      </Block>
+                    )}
+                  </>
+                )
+              })()}
               {data.activities && data.activities.length === 0 && (
                 <p className="text-xs text-muted-foreground">Nothing logged against this record yet.</p>
               )}
