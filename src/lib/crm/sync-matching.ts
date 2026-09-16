@@ -8,14 +8,20 @@
 
 /** Local-parts that are machinery, not people. */
 const AUTOMATED_LOCAL = new Set([
-  'no-reply', 'noreply', 'do-not-reply', 'donotreply', 'notifications', 'notification',
+  'no-reply', 'noreply', 'do-not-reply', 'donotreply', 'notifications', 'notification', 'notify',
   'support', 'help', 'info', 'hello', 'contact', 'admin', 'postmaster', 'mailer-daemon',
   'bounce', 'bounces', 'news', 'newsletter', 'updates', 'alerts', 'alert', 'billing',
   'receipts', 'invoice', 'invoices', 'security', 'account', 'accounts', 'team',
+  'forum', 'forums', 'webinar', 'webinars', 'events', 'rsvp', 'list', 'lists', 'digest',
+  'jobs', 'careers', 'press', 'media', 'sales', 'marketing', 'office', 'hq', 'board',
 ])
 
+// order-update@, shipment-tracking@, marketplace-messages@ — transactional
+// commerce mail from a real company's own domain, not a person there.
+const TRANSACTIONAL_LOCAL = /^(order|orders|shipment|shipping|tracking|delivery|invoice|receipt|statement|marketplace|payment|payments|billing|subscription|renewal|store)([-_+].*)?$/i
+
 /** Domains that never contain a business contact worth tracking. */
-const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom)\.(com|net|io|org)$/i
+const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite)\.(com|net|io|org)$/i
 
 export function normalizeEmail(raw: string | null | undefined): string | null {
   if (!raw) return null
@@ -55,10 +61,15 @@ export function isAutomatedAddress(email: string): boolean {
   const [local, domain] = email.split('@')
   if (!local || !domain) return true
   if (AUTOMATED_LOCAL.has(local)) return true
+  if (TRANSACTIONAL_LOCAL.test(local)) return true
   // reply+<hash>@, bounce-123@, notifications-xyz@
   if (/^(reply|bounce|notifications?|mailer)[+._-]/.test(local)) return true
   if (/^[0-9a-f]{16,}$/.test(local)) return true
   if (AUTOMATED_DOMAIN.test(domain)) return true
+  // 826nyc@826nyc.org, info@acquiringminds.co — the mailbox IS the
+  // organization, not a person who happens to work there.
+  const domainRoot = domain.split('.')[0]
+  if (domainRoot && domainRoot.length > 2 && local === domainRoot) return true
   return false
 }
 

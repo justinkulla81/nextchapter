@@ -7,16 +7,45 @@ import { searchCrmPeopleByName, mergePersonIntoPerson, type CrmPersonSearchResul
  * Merge-target search for a single row — a name/email search rather than a
  * full picker UI, since the common case is "I know roughly who this
  * duplicates" rather than browsing.
+ *
+ * When a `suggested` target is already known (an exact or nickname-variant
+ * duplicate found elsewhere in the table), this IS that recommendation —
+ * not a second button next to a plain "Merge…" for the same action. It
+ * renders pre-populated and highlighted so acting on it is one click.
  */
-export function CrmMergePicker({ personId, personName }: { personId: string; personName: string }) {
+export function CrmMergePicker({
+  personId, personName, suggested,
+}: {
+  personId: string
+  personName: string
+  suggested?: { id: string; fullName: string } | null
+}) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<CrmPersonSearchResult[]>([])
   const [status, setStatus] = useState<string | null>(null)
   const [pending, start] = useTransition()
 
+  const runMerge = (targetId: string, targetName: string) => {
+    if (!window.confirm(`Merge ${personName} into ${targetName}? This can't be undone.`)) return
+    start(async () => {
+      const res = await mergePersonIntoPerson(personId, targetId)
+      setStatus(res.message)
+      setOpen(false)
+    })
+  }
+
   if (!open) {
-    return (
+    return suggested ? (
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => runMerge(suggested.id, suggested.fullName)}
+        className={`rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white ${pending ? 'cursor-progress opacity-60' : ''}`}
+      >
+        {pending ? 'Merging…' : `Merge into ${suggested.fullName}`}
+      </button>
+    ) : (
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -49,15 +78,7 @@ export function CrmMergePicker({ personId, personName }: { personId: string; per
             <li key={r.id}>
               <button
                 type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  if (!window.confirm(`Merge ${personName} into ${r.fullName}? This can't be undone.`)) return
-                  start(async () => {
-                    const res = await mergePersonIntoPerson(personId, r.id)
-                    setStatus(res.message)
-                    setOpen(false)
-                  })
-                }}
+                onMouseDown={(e) => { e.preventDefault(); runMerge(r.id, r.fullName) }}
                 className="block w-full px-2 py-1.5 text-left hover:bg-muted"
               >
                 <span className="font-medium">{r.fullName}</span>

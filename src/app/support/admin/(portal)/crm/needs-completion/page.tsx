@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { acceptExportSuggestion, deletePerson, mergePersonIntoPerson } from '../actions'
+import { acceptExportSuggestion, deletePerson } from '../actions'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
+import { looksLikeNotAPerson } from '@/lib/crm/person-plausibility'
 import { CrmCompletionBulkBar } from '@/components/admin/CrmCompletionBulkBar'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
@@ -18,12 +19,6 @@ export const maxDuration = 30
 
 function completenessScore(p: { email: string | null; affiliations: { org: { name: string } }[] }): number {
   return (p.affiliations.length > 0 ? 2 : 0) + (p.email ? 1 : 0)
-}
-
-/** Discards mergePersonIntoPerson's return value so a plain <form action> (native DOM typing wants void|Promise<void>) can use it directly. */
-async function mergeFormAction(sourceId: string, targetId: string) {
-  'use server'
-  await mergePersonIntoPerson(sourceId, targetId)
 }
 
 export default async function CrmNeedsCompletionPage({
@@ -157,7 +152,7 @@ export default async function CrmNeedsCompletionPage({
               const mergeTarget = dupes.length > 0
                 ? [...dupes].sort((a, b) => completenessScore(b) - completenessScore(a))[0]
                 : null
-              const notAPerson = isPlaceholderName(p.fullName)
+              const notAPerson = isPlaceholderName(p.fullName) || looksLikeNotAPerson(p.fullName, p.email)
 
               // One clear recommendation per row, in priority order — a real
               // duplicate or a fake-looking name both matter more than
@@ -212,11 +207,6 @@ export default async function CrmNeedsCompletionPage({
                     <span className={`font-medium ${recommendation.tone}`}>{recommendation.label}</span>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    {mergeTarget && (
-                      <form action={mergeFormAction.bind(null, p.id, mergeTarget.id)}>
-                        <SubmitButton size="sm" pendingLabel="Merging…">Merge into {mergeTarget.fullName}</SubmitButton>
-                      </form>
-                    )}
                     {s && (
                       <form action={acceptAction}>
                         <SubmitButton size="sm" variant="outline" pendingLabel="Applying…" savedLabel="Applied">Use this</SubmitButton>
@@ -227,7 +217,7 @@ export default async function CrmNeedsCompletionPage({
                         Fill in by hand
                       </Link>
                     )}
-                    <CrmMergePicker personId={p.id} personName={p.fullName} />
+                    <CrmMergePicker personId={p.id} personName={p.fullName} suggested={mergeTarget} />
                     <ConfirmForm action={deleteAction} confirmMessage={`Delete ${p.fullName}? This can't be undone.`}>
                       <SubmitButton size="sm" variant="outline" pendingLabel="Deleting…">Delete</SubmitButton>
                     </ConfirmForm>
