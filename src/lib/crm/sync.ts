@@ -46,9 +46,14 @@ export async function buildSweepContext(selfEmail: string | null): Promise<Sweep
     ...recruiters.map((r) => r.workEmail),
   ]) {
     const e = normalizeEmail(raw)
-    // A person can be both a candidate and a CRM contact; the product
-    // relationship wins, so their mail stays out of the BD tool.
-    if (e) { internalEmails.add(e); crmByEmail.delete(e) }
+    // A person can be both a candidate and a CRM contact — the product
+    // relationship wins BY DEFAULT, so a large mailbox of routine candidate
+    // mail doesn't flood the suggestion queue. But that default only holds
+    // absent a human decision: crmByEmail is left untouched here, so anyone
+    // explicitly added to the CRM (classifyParticipant checks 'crm' before
+    // 'internal') overrides the exclusion instead of being silently and
+    // permanently invisible to it even after being added on purpose.
+    if (e) internalEmails.add(e)
   }
 
   const selfEmails = new Set<string>()
@@ -109,8 +114,14 @@ export interface SweepResult {
  * Stores participants, subject, direction, timestamp and a ~200 character
  * snippet. Bodies are never fetched — the Gmail request asks for metadata with
  * an explicit header allow-list, so the body does not cross the wire at all.
+ *
+ * `maxMessages` caps how many messages within the window get fetched, newest
+ * first — fine at the default for the nightly cron's short rolling window,
+ * but a wide `days` value (a one-time historical backfill) needs it raised
+ * explicitly, or the scan silently stops partway through the window and
+ * never reaches its older, less-recent mail at all.
  */
-export async function sweepGmail(days = 14): Promise<SweepResult> {
+export async function sweepGmail(days = 14, maxMessages = 1000): Promise<SweepResult> {
   const base: SweepResult = { source: 'gmail', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
   const connection = await getActiveGoogleConnection()
   if (!connection) return { ...base, reason: 'no_connection' }
@@ -123,7 +134,7 @@ export async function sweepGmail(days = 14): Promise<SweepResult> {
   try {
     const selfEmail = (await getProfileEmail(token)) ?? connection.email
     const ctx = await buildSweepContext(selfEmail)
-    const ids = await listMessagesSince(token, windowFrom)
+    const ids = await listMessagesSince(token, windowFrom, maxMessages)
     const touched = new Set<string>()
     const result = { ...base }
 

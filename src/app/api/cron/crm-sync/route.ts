@@ -47,7 +47,13 @@ export async function GET(request: NextRequest) {
   // Look back far enough to cover the whole interval plus a margin, so nothing
   // falls between two sweeps.
   const days = Number(request.nextUrl.searchParams.get('days') ?? String(Math.max(2, Math.ceil(intervalHours / 24) + 1)))
-  const results: Record<string, unknown> = { intervalHours, windowDays: days }
+  // Calendar's forward window is deliberately much wider than the backward
+  // one: a meeting invite sent today for a date a month out should propose
+  // its attendee well before the meeting, not the day before it — sweeping
+  // "days back, one day forward" (the old default) meant nightly runs almost
+  // never saw a future meeting until it was nearly due.
+  const forwardDays = Number(request.nextUrl.searchParams.get('forwardDays') ?? '30')
+  const results: Record<string, unknown> = { intervalHours, windowDays: days, forwardDays }
 
   try {
     results.gmail = await sweepGmail(days)
@@ -56,7 +62,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    results.calendar = await sweepCalendar(days)
+    results.calendar = await sweepCalendar(days, forwardDays)
   } catch (e) {
     results.calendar = { error: e instanceof Error ? e.message : String(e) }
   }

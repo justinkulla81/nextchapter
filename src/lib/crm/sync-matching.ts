@@ -85,10 +85,14 @@ export type ParticipantOutcome =
 
 export function classifyParticipant(email: string, ctx: SweepContext): ParticipantOutcome {
   if (isSelf(email, ctx)) return { kind: 'self' }
-  if (ctx.internalEmails.has(email)) return { kind: 'internal' }
-  if (isAutomatedAddress(email)) return { kind: 'automated' }
+  // An explicit CRM record is a human decision and outranks the blanket
+  // candidate/coach/recruiter exclusion below — otherwise adding someone to
+  // the CRM on purpose would have no effect for anyone who also happens to
+  // hold a product account under the same address.
   const personId = ctx.crmByEmail.get(email)
   if (personId) return { kind: 'crm', personId }
+  if (ctx.internalEmails.has(email)) return { kind: 'internal' }
+  if (isAutomatedAddress(email)) return { kind: 'automated' }
   return { kind: 'unknown' }
 }
 
