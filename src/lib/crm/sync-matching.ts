@@ -16,14 +16,22 @@ const AUTOMATED_LOCAL = new Set([
   'jobs', 'careers', 'press', 'media', 'sales', 'marketing', 'office', 'hq', 'board',
   'customercare', 'customerservice', 'comms', 'communications', 'onlinebanking',
   'ealerts', 'welcome', 'membership', 'members', 'service', 'services', 'pharmacy',
+  'acquisitions', 'quest',
 ])
+
+// Long, distinctive words that a real person's local-part essentially never
+// contains even glued to something else with no separator at all —
+// "nasmmembership@", "nypfeedback@" — so these check for the substring
+// anywhere, the same way "notification"/"no-reply" already do below, rather
+// than requiring a punctuation-delimited word like hasWord does.
+const BULK_SUBSTRING = /membership|feedback|college/i
 
 // order-update@, shipment-tracking@, marketplace-messages@ — transactional
 // commerce mail from a real company's own domain, not a person there.
 const TRANSACTIONAL_LOCAL = /^(order|orders|shipment|shipping|tracking|delivery|invoice|receipt|statement|marketplace|payment|payments|billing|subscription|renewal|store)([-_+].*)?$/i
 
 /** Domains that never contain a business contact worth tracking. */
-const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite|ccsend|icontact|aweber|getresponse|activecampaign|klaviyo|sailthru|braze|iterable|marketo|pardot|exacttarget|cheetahmail|bronto|listrak|dotdigital|campaignmonitor|mailjet|luma-mail|medallia|surveymonkey|qualtrics)\.(com|net|io|org)$/i
+const AUTOMATED_DOMAIN = /(^|\.)(mailchimp|sendgrid|mailgun|substack|intercom|zendesk|calendly|docusign|stripe|slack|atlassian|notion|linear|github|google|apple|amazonses|postmarkapp|hubspot|salesforce|zoom|workday|myworkday|icims|beehiiv|shopifyemail|klaviyomail|mailerlite|constantcontact|campaign-archive|sparkpostmail|mandrillapp|eventbrite|ccsend|icontact|aweber|getresponse|activecampaign|klaviyo|sailthru|braze|iterable|marketo|pardot|exacttarget|cheetahmail|bronto|listrak|dotdigital|campaignmonitor|mailjet|luma-mail|medallia|surveymonkey|qualtrics)\.(com|net|io|org)$/i
 
 // Individually chasing exact local-parts and domains (mailer@,
 // feedback-marriott.com, manhattansoccerclub.mailer@leagueapps.com) is an
@@ -106,6 +114,7 @@ export function isAutomatedAddress(email: string): boolean {
   // local-parts with their own prefix words too.
   if (/^(reply|bounce|mailer)[+._-]/.test(local)) return true
   if (/no.?reply|notifications?/.test(local)) return true
+  if (BULK_SUBSTRING.test(local)) return true
   if (/^[0-9a-f]{16,}$/.test(local)) return true
   if (AUTOMATED_DOMAIN.test(domain)) return true
   // manhattansoccerclub.mailer@leagueapps.com, marriott-bonvoy@feedback-

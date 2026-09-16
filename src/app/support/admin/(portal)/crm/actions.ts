@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { isRealOrgName } from '@/lib/crm/normalize'
+import { isRealOrgName, isOrgQuickPick, placeholderOrgKindFor, ORG_PLACEHOLDER_NAME, type OrgPlaceholderKind } from '@/lib/crm/normalize'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import { refreshTouchFields } from '@/lib/crm/sync'
@@ -436,7 +436,7 @@ export async function updatePersonPrimaryOrg(personId: string, orgNameRaw: strin
   const orgName = orgNameRaw.trim()
 
   let orgId: string | null = null
-  if (isRealOrgName(orgName)) {
+  if (isOrgQuickPick(orgName) || isRealOrgName(orgName)) {
     const key = normalizeOrgName(orgName)
     if (key) {
       const org = await prisma.crmOrganization.upsert({
@@ -613,38 +613,81 @@ export async function bulkDeletePeople(formData: FormData): Promise<{ deleted: n
   return { deleted: safe.length, skipped }
 }
 
-/** Accepts the LinkedIn-export suggestion for a person missing a title or org. */
-export async function acceptExportSuggestion(personId: string) {
+/**
+ * Resolves a LinkedIn export's raw company text to an organization to
+ * affiliate with — a real org when the text names one, otherwise one of two
+ * placeholder orgs ("- Unemployed", "- Freelancer") for the export company
+ * values common enough to say something real ("Self-employed", "Advisor",
+ * "Unemployed"...) rather than dropping that signal on the floor. Genuinely
+ * ambiguous text ("Stealth", "Confidential", "Various") resolves to neither
+ * — guessing a bucket for those would be worse than leaving it blank.
+ */
+async function resolveSuggestionOrg(company: string | null): Promise<{ orgId: string | null; placeholderKind: OrgPlaceholderKind | null }> {
+  if (isRealOrgName(company)) {
+    const key = normalizeOrgName(company)
+    if (!key) return { orgId: null, placeholderKind: null }
+    const org = await prisma.crmOrganization.upsert({
+      where: { canonicalNameNormalized: key },
+      create: { name: company, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
+      update: {},
+    })
+    return { orgId: org.id, placeholderKind: null }
+  }
+  const kind = placeholderOrgKindFor(company)
+  if (!kind) return { orgId: null, placeholderKind: null }
+  const name = ORG_PLACEHOLDER_NAME[kind]
+  const key = normalizeOrgName(name)
+  const org = await prisma.crmOrganization.upsert({
+    where: { canonicalNameNormalized: key },
+    create: { name, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
+    update: {},
+  })
+  return { orgId: org.id, placeholderKind: kind }
+}
+
+/**
+ * Accepts the LinkedIn-export suggestion for a person missing a title or org.
+ * Returns whether anything was actually saved — a row whose suggestion has
+ * no usable org and no existing affiliation to hang a title on stays in the
+ * queue rather than the caller optimistically hiding a row that didn't
+ * actually complete.
+ */
+export async function acceptExportSuggestion(personId: string): Promise<{ accepted: boolean }> {
   const admin = await requireAdmin()
   const person = await prisma.crmPerson.findUniqueOrThrow({
     where: { id: personId },
-    select: { id: true, fullName: true, linkedinSlug: true, affiliations: { select: { id: true } } },
+    select: { id: true, fullName: true, linkedinSlug: true, roles: true, affiliations: { select: { id: true } } },
   })
-  if (!person.linkedinSlug) return
+  if (!person.linkedinSlug) return { accepted: false }
   const sug = await prisma.crmLinkedInConnection.findUnique({ where: { slug: person.linkedinSlug } })
-  if (!sug) return
+  if (!sug) return { accepted: false }
 
-  let orgId: string | null = null
-  if (isRealOrgName(sug.company)) {
-    const key = normalizeOrgName(sug.company)
-    if (key) {
-      const org = await prisma.crmOrganization.upsert({
-        where: { canonicalNameNormalized: key },
-        create: { name: sug.company, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
-        update: {},
-      })
-      orgId = org.id
-    }
-  }
+  const { orgId, placeholderKind } = await resolveSuggestionOrg(sug.company)
+  const existing = person.affiliations[0]
+  let saved = false
   if (orgId) {
-    const existing = person.affiliations[0]
     if (existing) await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { orgId, title: sug.position ?? '' } })
     else await prisma.crmAffiliation.create({ data: { personId, orgId, title: sug.position ?? '' } })
+    saved = true
+  } else if (existing && sug.position) {
+    // No org to attach it to, but there's already a row to hang the title on.
+    await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { title: sug.position } })
+    saved = true
   }
-  await prisma.crmPerson.update({ where: { id: personId }, data: { needsCompletion: false } })
+  // Otherwise (no org resolved, no existing affiliation) the title has
+  // nowhere to live — affiliations require an org — so this one stays in
+  // the queue rather than completing with nothing actually recorded.
+  if (!saved) return { accepted: false }
+
+  const addJobSeeker = placeholderKind === 'unemployed' && !person.roles.includes('JOB_SEEKER')
+  await prisma.crmPerson.update({
+    where: { id: personId },
+    data: { needsCompletion: false, ...(addJobSeeker ? { roles: [...person.roles, 'JOB_SEEKER' as const] } : {}) },
+  })
 
   captureServerEvent(admin.email ?? 'admin', 'crm_completion_accepted', { personId, source: 'linkedin_export' })
   revalidatePath(`${CRM}/needs-completion`)
+  return { accepted: true }
 }
 
 // ── Pipelines (Phase 4) ──────────────────────────────────────────────────────
@@ -1606,13 +1649,26 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
   const mode = String(formData.get('mode') ?? '')
   if (ids.length === 0) return { message: 'Nothing selected.' }
 
+  if (mode === 'approve') {
+    // No suggestion to accept and nothing to merge — an explicit "I looked,
+    // this is fine as-is" for rows with no title/org and no export prefill
+    // to pull one from. Doesn't touch title or org, just stops asking.
+    const { count } = await prisma.crmPerson.updateMany({ where: { id: { in: ids } }, data: { needsCompletion: false } })
+    captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode, count })
+    revalidatePath(`${CRM}/needs-completion`)
+    return { message: `Approved ${count}.` }
+  }
+
   if (mode === 'delete') {
     const rows = await prisma.crmPerson.findMany({
       where: { id: { in: ids } },
       select: { id: true, coachId: true, recruiterId: true, candidateId: true },
     })
     const safe = rows.filter((r) => !r.coachId && !r.recruiterId && !r.candidateId).map((r) => r.id)
-    if (safe.length > 0) await prisma.crmPerson.deleteMany({ where: { id: { in: safe } } })
+    // Soft delete, matching deletePerson/bulkDeletePeople — a hard delete here
+    // would be the one "Remove" that actually meant permanent, while every
+    // other "Remove" in the CRM is reversible from a backup.
+    if (safe.length > 0) await prisma.crmPerson.updateMany({ where: { id: { in: safe } }, data: { deletedAt: new Date() } })
     captureServerEvent(admin.email ?? 'admin', 'crm_completion_bulk', { mode, count: safe.length })
     revalidatePath(`${CRM}/needs-completion`)
     return {
@@ -1625,7 +1681,7 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
   // Accept the export suggestion for each.
   const people = await prisma.crmPerson.findMany({
     where: { id: { in: ids }, linkedinSlug: { not: null } },
-    select: { id: true, linkedinSlug: true, affiliations: { select: { id: true } } },
+    select: { id: true, linkedinSlug: true, roles: true, affiliations: { select: { id: true } } },
   })
   const suggestions = await prisma.crmLinkedInConnection.findMany({
     where: { slug: { in: people.map((p) => p.linkedinSlug!) } },
@@ -1637,24 +1693,24 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
   for (const p of people) {
     const sug = bySlug.get(p.linkedinSlug!)
     if (!sug) { noSuggestion++; continue }
-    let orgId: string | null = null
-    if (isRealOrgName(sug.company)) {
-      const key = normalizeOrgName(sug.company)
-      if (key) {
-        const org = await prisma.crmOrganization.upsert({
-          where: { canonicalNameNormalized: key },
-          create: { name: sug.company, canonicalNameNormalized: key, orgTypes: ['EMPLOYER'] },
-          update: {},
-        })
-        orgId = org.id
-      }
-    }
+    const { orgId, placeholderKind } = await resolveSuggestionOrg(sug.company)
+    const existing = p.affiliations[0]
+    let saved = false
     if (orgId) {
-      const existing = p.affiliations[0]
       if (existing) await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { orgId, title: sug.position ?? '' } })
       else await prisma.crmAffiliation.create({ data: { personId: p.id, orgId, title: sug.position ?? '' } })
+      saved = true
+    } else if (existing && sug.position) {
+      await prisma.crmAffiliation.update({ where: { id: existing.id }, data: { title: sug.position } })
+      saved = true
     }
-    await prisma.crmPerson.update({ where: { id: p.id }, data: { needsCompletion: false } })
+    if (!saved) { noSuggestion++; continue }
+
+    const addJobSeeker = placeholderKind === 'unemployed' && !p.roles.includes('JOB_SEEKER')
+    await prisma.crmPerson.update({
+      where: { id: p.id },
+      data: { needsCompletion: false, ...(addJobSeeker ? { roles: [...p.roles, 'JOB_SEEKER' as const] } : {}) },
+    })
     applied++
   }
 
@@ -1687,7 +1743,7 @@ export async function deletePerson(personId: string): Promise<{ deleted: boolean
   // separate tables CrmPerson only points at, never the other way around —
   // so removing a CRM row can never block someone from being (or becoming)
   // a candidate, coach, or recruiter later.
-  return { deleted: true, message: `Deleted ${p.fullName}.` }
+  return { deleted: true, message: `Removed ${p.fullName}.` }
 }
 
 export interface CrmPersonSearchResult {

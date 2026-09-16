@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { setPersonFollowUp, clearPersonFollowUp } from '@/app/support/admin/(portal)/crm/actions'
 import { formatDate } from '@/lib/crm/labels'
 
@@ -17,6 +18,7 @@ export function CrmInlineFollowUp({
   note: string | null
   dueAt: Date | null
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [noteValue, setNoteValue] = useState(note ?? '')
   const [dateValue, setDateValue] = useState(dueAt ? dueAt.toISOString().slice(0, 10) : '')
@@ -58,7 +60,7 @@ export function CrmInlineFollowUp({
         <button
           type="button"
           disabled={pending}
-          onClick={() => start(async () => { await setPersonFollowUp(personId, noteValue, dateValue); setOpen(false) })}
+          onClick={() => start(async () => { await setPersonFollowUp(personId, noteValue, dateValue); setOpen(false); router.refresh() })}
           className={`rounded-md bg-brand px-2 py-1 text-xs font-medium text-white ${pending ? 'cursor-progress opacity-60' : ''}`}
         >
           Save
@@ -67,7 +69,7 @@ export function CrmInlineFollowUp({
           <button
             type="button"
             disabled={pending}
-            onClick={() => start(async () => { await clearPersonFollowUp(personId); setNoteValue(''); setDateValue(''); setOpen(false) })}
+            onClick={() => start(async () => { await clearPersonFollowUp(personId); setNoteValue(''); setDateValue(''); setOpen(false); router.refresh() })}
             className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted"
           >
             Clear

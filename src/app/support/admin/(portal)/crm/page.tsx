@@ -12,6 +12,7 @@ import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmContactCell } from '@/components/admin/CrmContactCell'
+import { CrmInlineFollowUp } from '@/components/admin/CrmInlineFollowUp'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS,
@@ -97,8 +98,9 @@ export default async function CrmPeoplePage({
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
-        id: true, fullName: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
+        id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
         lastTouchedAt: true, touchCount: true, priorityScore: true, linkedinUrl: true,
+        nextFollowUpNote: true, nextFollowUpAt: true,
         affiliations: {
           where: { isPrimary: true }, take: 1,
           select: { title: true, org: { select: { id: true, name: true } } },
@@ -128,6 +130,7 @@ export default async function CrmPeoplePage({
         <option value="- Unemployed" />
         <option value="- Entrepreneur" />
         <option value="- Advisor" />
+        <option value="- Freelancer" />
         {orgNames.map((o) => <option key={o.name} value={o.name} />)}
       </datalist>
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -243,6 +246,7 @@ export default async function CrmPeoplePage({
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
                   <SortHeader label="Contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
+                  <th className="px-3 py-2 font-medium">Follow-up</th>
                   <SortHeader label="Score" sortKey="score" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" className="px-3 py-2 text-right font-medium" />
                 </tr>
               </thead>
@@ -268,6 +272,11 @@ export default async function CrmPeoplePage({
                       <CrmPeekButton id={p.id} kind="person">{p.fullName}</CrmPeekButton>
                       {p.affiliations[0]?.title && (
                         <span className="block text-xs text-muted-foreground">{p.affiliations[0].title}</span>
+                      )}
+                      {p.email ? (
+                        <span className="block text-xs text-muted-foreground">{p.email}</span>
+                      ) : (
+                        <span className="block text-xs text-amber-700">No email on file</span>
                       )}
                     </td>
                     <td className="px-3 py-2">
@@ -299,6 +308,9 @@ export default async function CrmPeoplePage({
                         personId={p.id} name={p.fullName}
                         lastLabel={sinceLabel(p.lastTouchedAt)} touchCount={p.touchCount}
                       />
+                    </td>
+                    <td className="px-3 py-2">
+                      <CrmInlineFollowUp personId={p.id} note={p.nextFollowUpNote} dueAt={p.nextFollowUpAt} />
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{Math.round(p.priorityScore)}</td>
                   </tr>

@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { acceptExportSuggestion } from '../actions'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { looksLikeNotAPerson } from '@/lib/crm/person-plausibility'
@@ -197,7 +196,10 @@ export default async function CrmNeedsCompletionPage({
               </Link>
             ))}
           </fieldset>
-          <CrmCompletionBulkBar count={visibleRowInfos.length}>
+          {/* Keyed on the filter and page so switching either remounts this
+              fresh — otherwise its "N selected" client state survives from
+              whatever was checked in a previous, differently-sized view. */}
+          <CrmCompletionBulkBar key={`${actionFilter}-${page}`} count={visibleRowInfos.length}>
           {/* Inside the bulk bar's own <form> on purpose — CrmSelectAll walks up
               to closest('form') to find the row checkboxes, so it must be a
               descendant of the same form that owns them, not a sibling above it. */}
@@ -207,13 +209,7 @@ export default async function CrmNeedsCompletionPage({
           </label>
           <ul className="rounded-lg border border-border divide-y divide-border">
             {visibleRowInfos.map(({ p, s, mergeTarget, notAPerson, recommendation, roleTag }) => {
-              const acceptAction = acceptExportSuggestion.bind(null, p.id)
-
-              const secondaryAction = s ? (
-                <form action={acceptAction}>
-                  <SubmitButton size="sm" variant="outline" pendingLabel="Applying…" savedLabel="Applied">Use this</SubmitButton>
-                </form>
-              ) : !mergeTarget ? (
+              const secondaryAction = !s && !mergeTarget ? (
                 <Link href={`/support/admin/crm/people/${p.id}`} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
                   Fill in by hand
                 </Link>
@@ -226,6 +222,7 @@ export default async function CrmNeedsCompletionPage({
                   personName={p.fullName}
                   notAPerson={notAPerson}
                   mergeTarget={mergeTarget}
+                  acceptSuggestion={s ? acceptExportSuggestion.bind(null, p.id) : undefined}
                   secondaryAction={secondaryAction}
                 >
                   <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 text-xs">

@@ -25,6 +25,49 @@ export function isRealOrgName(v: string | null | undefined): v is string {
   return !ORG_NOISE.has(s)
 }
 
+/**
+ * Which of the two noise words carries enough signal to stand in for a real
+ * organization, so completing a profile from an export doesn't silently
+ * discard "Workforce Strategy Advisor at Self-employed" down to nothing.
+ * Kept narrower than ORG_NOISE on purpose — "confidential"/"stealth"/
+ * "various" say nothing about which bucket someone belongs in, so those
+ * stay unplaced rather than guessed at.
+ */
+export type OrgPlaceholderKind = 'unemployed' | 'freelancer'
+
+const UNEMPLOYED_SIGNAL = new Set(['unemployed', 'retired'])
+const FREELANCER_SIGNAL = new Set([
+  'self-employed', 'self employed', 'independent', 'freelance', 'freelancer',
+  'advisor', 'founder', 'entrepreneur', 'consultant', 'consulting',
+])
+
+export const ORG_PLACEHOLDER_NAME: Record<OrgPlaceholderKind, string> = {
+  unemployed: '- Unemployed',
+  freelancer: '- Freelancer',
+}
+
+/**
+ * The People page's organization field offers these as datalist quick
+ * picks. Typed out exactly, they're a deliberate choice, not vague export
+ * text — isRealOrgName's noise filter (built for the latter) would
+ * otherwise strip the leading "-", match the noise word underneath, and
+ * silently clear the field instead of saving what was picked.
+ */
+export const ORG_QUICK_PICKS = ['- Unemployed', '- Entrepreneur', '- Advisor', '- Freelancer'] as const
+
+export function isOrgQuickPick(v: string): boolean {
+  return (ORG_QUICK_PICKS as readonly string[]).includes(v.trim())
+}
+
+export function placeholderOrgKindFor(companyRaw: string | null | undefined): OrgPlaceholderKind | null {
+  if (!companyRaw) return null
+  const s = companyRaw.trim().replace(/^-+\s*/, '').toLowerCase()
+  if (!s) return null
+  if (UNEMPLOYED_SIGNAL.has(s)) return 'unemployed'
+  if (FREELANCER_SIGNAL.has(s)) return 'freelancer'
+  return null
+}
+
 /** Legal forms that normalizeOrgName leaves behind. */
 const TRAILING_LEGAL = /\s+(lp|llp|gp|plc|sa|ag|nv|bv|pte|pty|ab|oy|as|kk|srl|spa|sarl|kg|mbh)$/
 

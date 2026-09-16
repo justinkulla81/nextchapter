@@ -14,16 +14,25 @@ import { CrmMergePicker } from './CrmMergePicker'
  * per design-principles.md's "one primary action" rule, offering
  * Merge/Fill-in-by-hand/Use-this alongside a confident junk verdict is
  * noise, not choice.
+ *
+ * "Remove" everywhere, never "Delete" — this is always a soft delete (the
+ * record and its history survive, just hidden), matching the wording
+ * already used by the People page's own bulk remove. Calling the same
+ * operation "Delete" here and "Remove" there was the actual bug a past
+ * review caught: same soft-delete underneath, two words implying different
+ * severity.
  */
 export function CrmNeedsCompletionRow({
-  personId, personName, notAPerson, mergeTarget, secondaryAction, children,
+  personId, personName, notAPerson, mergeTarget, acceptSuggestion, secondaryAction, children,
 }: {
   personId: string
   personName: string
   notAPerson: boolean
   mergeTarget: { id: string; fullName: string } | null
-  /** "Use this" / "Fill in by hand" — whichever applies, already built by the caller. */
-  secondaryAction: React.ReactNode
+  /** Bound acceptExportSuggestion(personId) — set only when the row has an export prefill to accept. */
+  acceptSuggestion?: () => Promise<{ accepted: boolean }>
+  /** "Fill in by hand" — rendered only when there's no suggestion to accept instead. */
+  secondaryAction?: React.ReactNode
   children: React.ReactNode
 }) {
   const router = useRouter()
@@ -34,7 +43,7 @@ export function CrmNeedsCompletionRow({
   if (removed) return null
 
   const remove = () => {
-    if (!window.confirm(`Delete ${personName}? This can't be undone.`)) return
+    if (!window.confirm(`Remove ${personName} from the CRM? They'll stop showing up anywhere.`)) return
     setError(null)
     setRemoved(true) // optimistic — the common case succeeds; roll back below if it didn't.
     start(async () => {
@@ -44,6 +53,16 @@ export function CrmNeedsCompletionRow({
       // duplicate — router.refresh() re-fetches everyone's server-computed
       // recommendation instead of leaving stale ones showing until the next
       // real navigation.
+      router.refresh()
+    })
+  }
+
+  const accept = () => {
+    setError(null)
+    setRemoved(true) // optimistic — rolled back below if the suggestion had nothing usable to save.
+    start(async () => {
+      const res = await acceptSuggestion!()
+      if (!res.accepted) { setRemoved(false); setError('No usable info in this suggestion — fill in by hand.') }
       router.refresh()
     })
   }
@@ -64,7 +83,16 @@ export function CrmNeedsCompletionRow({
           </button>
         ) : (
           <>
-            {secondaryAction}
+            {acceptSuggestion ? (
+              <button
+                type="button"
+                disabled={pending}
+                onClick={accept}
+                className={`rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted ${pending ? 'cursor-progress opacity-60' : ''}`}
+              >
+                {pending ? 'Applying…' : 'Use this'}
+              </button>
+            ) : secondaryAction}
             <CrmMergePicker personId={personId} personName={personName} suggested={mergeTarget} onMerged={() => setRemoved(true)} />
             <button
               type="button"
@@ -72,7 +100,7 @@ export function CrmNeedsCompletionRow({
               onClick={remove}
               className={`rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted ${pending ? 'cursor-progress opacity-60' : ''}`}
             >
-              Delete
+              Remove
             </button>
           </>
         )}

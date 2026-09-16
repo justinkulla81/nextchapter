@@ -56,6 +56,16 @@ describe('isAutomatedAddress', () => {
     // "erik" and "informatica" must not match on substring alone.
     expect(isAutomatedAddress('erik@informatica.com')).toBe(false)
   })
+  it('catches ATS platforms and generic department/membership mailboxes', () => {
+    for (const a of [
+      'hyland+email+gokb-b2942e30b8@talent.icims.com', // ATS platform domain
+      'acquisitions@benchmarkdealflow.com', // department mailbox, exact local-part
+      'quest@mit.edu', // university portal alias, exact local-part
+      'nasmmembership@airandspace.smithsonian.org', // "membership" glued on with no separator
+      'nypfeedback@nyphil.org', // "feedback" glued on with no separator
+      'heinzcollege@cmu.edu', // "college" glued on with no separator
+    ]) expect(isAutomatedAddress(a)).toBe(true)
+  })
 })
 
 describe('classifyParticipant', () => {
