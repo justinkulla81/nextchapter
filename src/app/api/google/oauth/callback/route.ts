@@ -1,26 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/admin/auth'
 import { exchangeCodeForTokens, fetchGoogleUserEmail } from '@/lib/google/oauth'
 import { prisma } from '@/lib/prisma'
+import { ADMIN_HOST } from '@/proxy'
 
-// If /start was called with ?from=<admin path>, that path is carried here
-// inside `state` (see start/route.ts) so this can redirect back to whichever
-// admin page initiated the connection, defaulting to Market Pulse otherwise.
-function returnPathFrom(state: string | null): string {
-  const encoded = state?.split(':')[1]
-  if (!encoded) return '/support/admin/digest'
-  const path = decodeURIComponent(encoded)
-  return path.startsWith('/support/admin/') ? path : '/support/admin/digest'
+// state is "<random>:<encoded return path>:<encoded admin email>", minted by
+// /start (see its own comment for why this callback trusts state's contents
+// instead of calling requireAdmin() — the short version: it can't. Google
+// redirects here on whatever host NEXT_PUBLIC_APP_URL resolves to, which is
+// the apex domain, but the admin session cookie is host-only scoped to
+// admin.launchyournextchapter.com and is never present on this request).
+function parseState(state: string | null): { returnPath: string; adminEmail: string | null } {
+  const parts = state?.split(':') ?? []
+  const decodedPath = parts[1] ? decodeURIComponent(parts[1]) : ''
+  const returnPath = decodedPath.startsWith('/support/admin/') ? decodedPath : '/support/admin/digest'
+  const adminEmail = parts[2] ? decodeURIComponent(parts[2]) || null : null
+  return { returnPath, adminEmail }
+}
+
+// Every redirect back to the app must target the admin subdomain explicitly
+// — building it from request.url would inherit the apex domain (where
+// Google just redirected to), and admin pages redirect straight back off
+// that domain per src/proxy.ts's own bounce rule, adding a pointless extra
+// hop at best and landing on the wrong page's default state at worst.
+function adminUrl(path: string): URL {
+  return new URL(path, `https://${ADMIN_HOST}`)
 }
 
 export async function GET(request: NextRequest) {
-  const admin = await requireAdmin()
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
-  const returnPath = returnPathFrom(request.nextUrl.searchParams.get('state'))
+  const { returnPath, adminEmail } = parseState(request.nextUrl.searchParams.get('state'))
 
   if (error || !code) {
-    return NextResponse.redirect(new URL(`${returnPath}?googleError=denied`, request.url))
+    return NextResponse.redirect(adminUrl(`${returnPath}?googleError=denied`))
   }
 
   try {
@@ -30,7 +42,7 @@ export async function GET(request: NextRequest) {
       // app+account combination unless prompt=consent forces re-issue —
       // buildGoogleAuthUrl always sets that, so this should be rare. If it
       // happens anyway, the connection can't self-refresh later.
-      return NextResponse.redirect(new URL(`${returnPath}?googleError=no_refresh_token`, request.url))
+      return NextResponse.redirect(adminUrl(`${returnPath}?googleError=no_refresh_token`))
     }
 
     const email = await fetchGoogleUserEmail(tokens.access_token)
@@ -50,16 +62,16 @@ export async function GET(request: NextRequest) {
 
     await prisma.googleInboxConnection.upsert({
       where: { id: existingInbox?.id ?? '' },
-      update: { email, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? 'admin' },
-      create: { email, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? 'admin' },
+      update: { email, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? 'admin' },
+      create: { email, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? 'admin' },
     })
     await prisma.adminGoogleCalendarConnection.upsert({
       where: { id: existingCalendar?.id ?? '' },
-      update: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? existingCalendar?.connectedByEmail ?? null },
-      create: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: admin?.email ?? null },
+      update: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? existingCalendar?.connectedByEmail ?? null },
+      create: { accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? null },
     })
 
-    return NextResponse.redirect(new URL(`${returnPath}?googleConnected=1`, request.url))
+    return NextResponse.redirect(adminUrl(`${returnPath}?googleConnected=1`))
   } catch (err) {
     console.error('Google OAuth callback failed:', err)
     // The failure reason is genuinely useful here and there's no server-log
@@ -67,7 +79,7 @@ export async function GET(request: NextRequest) {
     // "exchange_failed" code that gives no clue which of several possible
     // causes (bad credentials, insufficient scope, network) actually fired.
     const message = err instanceof Error ? err.message : String(err)
-    const url = new URL(`${returnPath}?googleError=exchange_failed`, request.url)
+    const url = adminUrl(`${returnPath}?googleError=exchange_failed`)
     url.searchParams.set('googleErrorDetail', message.slice(0, 300))
     return NextResponse.redirect(url)
   }

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-const ADMIN_HOST = 'admin.launchyournextchapter.com'
+export const ADMIN_HOST = 'admin.launchyournextchapter.com'
 const MAIN_HOSTS = new Set(['launchyournextchapter.com', 'www.launchyournextchapter.com'])
 
 // Isolates the admin portal on its own subdomain so its session cookie never
