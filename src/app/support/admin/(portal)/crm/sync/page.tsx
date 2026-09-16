@@ -1,16 +1,22 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { getActiveGoogleConnection } from '@/lib/google/connection'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { acceptSuggestedContact, ignoreSuggestedContact, updateSyncSetting } from '../actions'
+import { acceptSuggestedContact, ignoreSuggestedContact, updateSyncSetting, disconnectAdminGmailInbox } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 
 export const maxDuration = 30
 
-export default async function CrmSyncPage() {
+export default async function CrmSyncPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ googleConnected?: string; googleError?: string }>
+}) {
   await requireAdmin()
+  const params = await searchParams
 
-  const [runs, pending, addedCount, ignoredCount, autoLogged, withTouch, totalPeople, setting] = await Promise.all([
+  const [runs, pending, addedCount, ignoredCount, autoLogged, withTouch, totalPeople, setting, gmailConnection, calendarConnection] = await Promise.all([
     prisma.crmSyncRun.findMany({ orderBy: { startedAt: 'desc' }, take: 8 }),
     prisma.crmSuggestedContact.findMany({
       where: { status: 'PENDING' },
@@ -23,6 +29,8 @@ export default async function CrmSyncPage() {
     prisma.crmPerson.count({ where: { lastTouchedAt: { not: null } } }),
     prisma.crmPerson.count(),
     prisma.crmSyncSetting.findUnique({ where: { id: 'singleton' } }),
+    getActiveGoogleConnection(),
+    prisma.adminGoogleCalendarConnection.findFirst(),
   ])
   const intervalHours = setting?.intervalHours ?? 24
   const enabled = setting?.enabled ?? true
@@ -44,6 +52,71 @@ export default async function CrmSyncPage() {
           Queue
         </Link>
       </header>
+
+      {params.googleConnected && (
+        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success">Gmail inbox connected.</p>
+      )}
+      {params.googleError && (
+        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          Connection failed ({params.googleError}). If this is your first time connecting, make sure this
+          Google account is added as a test user on the OAuth consent screen in Google Cloud Console —
+          this app is still in Testing publishing status.
+        </p>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2 rounded-lg border border-border p-3">
+          <p className="text-sm font-medium">Gmail inbox</p>
+          {gmailConnection ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Connected as <span className="font-medium text-foreground">{gmailConnection.email}</span>
+                {gmailConnection.lastSweepAt && <> — last swept {sinceLabel(gmailConnection.lastSweepAt)}</>}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Also used by Market Pulse&apos;s research-inbox sweep — disconnecting here affects both.
+              </p>
+              <form action={disconnectAdminGmailInbox}>
+                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">
+                  Disconnect
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">Not connected — email activity can&apos;t be swept.</p>
+              <a
+                href="/api/google/oauth/start?from=/support/admin/crm/sync"
+                className="inline-block rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+              >
+                Connect Gmail
+              </a>
+            </>
+          )}
+        </div>
+
+        <div className="space-y-2 rounded-lg border border-border p-3">
+          <p className="text-sm font-medium">Calendar</p>
+          {calendarConnection ? (
+            <p className="text-sm text-muted-foreground">
+              Connected as <span className="font-medium text-foreground">{calendarConnection.connectedByEmail ?? 'unknown'}</span>
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">Not connected — meetings can&apos;t be swept.</p>
+              <a
+                href="/api/admin/google-calendar/connect"
+                className="inline-block rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+              >
+                Connect Calendar
+              </a>
+              <p className="text-xs text-muted-foreground">
+                Shared with Webinars — you&apos;ll land there to finish, then come back here.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
         <strong className="text-foreground">What is stored:</strong> who was on the thread, the subject, the

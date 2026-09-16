@@ -3,13 +3,24 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { exchangeCodeForTokens, fetchGoogleUserEmail } from '@/lib/google/oauth'
 import { prisma } from '@/lib/prisma'
 
+// If /start was called with ?from=<admin path>, that path is carried here
+// inside `state` (see start/route.ts) so this can redirect back to whichever
+// admin page initiated the connection, defaulting to Market Pulse otherwise.
+function returnPathFrom(state: string | null): string {
+  const encoded = state?.split(':')[1]
+  if (!encoded) return '/support/admin/digest'
+  const path = decodeURIComponent(encoded)
+  return path.startsWith('/support/admin/') ? path : '/support/admin/digest'
+}
+
 export async function GET(request: NextRequest) {
   const admin = await requireAdmin()
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')
+  const returnPath = returnPathFrom(request.nextUrl.searchParams.get('state'))
 
   if (error || !code) {
-    return NextResponse.redirect(new URL('/support/admin/digest?googleError=denied', request.url))
+    return NextResponse.redirect(new URL(`${returnPath}?googleError=denied`, request.url))
   }
 
   try {
@@ -19,7 +30,7 @@ export async function GET(request: NextRequest) {
       // app+account combination unless prompt=consent forces re-issue —
       // buildGoogleAuthUrl always sets that, so this should be rare. If it
       // happens anyway, the connection can't self-refresh later.
-      return NextResponse.redirect(new URL('/support/admin/digest?googleError=no_refresh_token', request.url))
+      return NextResponse.redirect(new URL(`${returnPath}?googleError=no_refresh_token`, request.url))
     }
 
     const email = await fetchGoogleUserEmail(tokens.access_token)
@@ -35,9 +46,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.redirect(new URL('/support/admin/digest?googleConnected=1', request.url))
+    return NextResponse.redirect(new URL(`${returnPath}?googleConnected=1`, request.url))
   } catch (err) {
     console.error('Google OAuth callback failed:', err)
-    return NextResponse.redirect(new URL('/support/admin/digest?googleError=exchange_failed', request.url))
+    return NextResponse.redirect(new URL(`${returnPath}?googleError=exchange_failed`, request.url))
   }
 }

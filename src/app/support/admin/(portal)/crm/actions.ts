@@ -1075,6 +1075,19 @@ export async function updateSyncSetting(formData: FormData) {
   revalidatePath(`${CRM}/sync`)
 }
 
+/**
+ * Disconnects the admin Gmail inbox — same GoogleInboxConnection row Market
+ * Pulse's research-inbox sweep also reads, so this affects both features.
+ * Revalidates both admin pages for that reason.
+ */
+export async function disconnectAdminGmailInbox() {
+  const admin = await requireAdmin()
+  await prisma.googleInboxConnection.deleteMany({})
+  captureServerEvent(admin.email ?? 'admin', 'google_inbox_disconnected', { surface: 'crm_sync' })
+  revalidatePath(`${CRM}/sync`)
+  revalidatePath('/support/admin/digest')
+}
+
 // ── Deal stages ──────────────────────────────────────────────────────────────
 
 /** Renames a stage. The key stays fixed so nothing that references it breaks. */
