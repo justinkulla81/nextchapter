@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deletePerson } from '@/app/support/admin/(portal)/crm/actions'
 import { CrmMergePicker } from './CrmMergePicker'
+import { useCrmNeedsCompletionHide } from './CrmNeedsCompletionList'
 
 /**
  * Owns removing itself the instant an action resolves, rather than waiting
@@ -23,12 +24,20 @@ import { CrmMergePicker } from './CrmMergePicker'
  * severity.
  */
 export function CrmNeedsCompletionRow({
-  personId, personName, notAPerson, mergeTarget, acceptSuggestion, secondaryAction, children,
+  personId, personName, notAPerson, mergeTarget, reciprocalPartnerId, acceptSuggestion, secondaryAction, children,
 }: {
   personId: string
   personName: string
   notAPerson: boolean
   mergeTarget: { id: string; fullName: string } | null
+  /**
+   * Another row on this same page whose OWN suggested merge target is this
+   * row — i.e. the two mutually flag each other as duplicates. Merging this
+   * row resolves both sides of that pair in one transaction, so both hide
+   * together instead of the survivor sitting there still flagged as a
+   * duplicate until the next full refresh catches up.
+   */
+  reciprocalPartnerId?: string | null
   /** Bound acceptExportSuggestion(personId) — set only when the row has an export prefill to accept. */
   acceptSuggestion?: () => Promise<{ accepted: boolean }>
   /** "Fill in by hand" — rendered only when there's no suggestion to accept instead. */
@@ -36,19 +45,19 @@ export function CrmNeedsCompletionRow({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [removed, setRemoved] = useState(false)
+  const { hidden, hide, unhide } = useCrmNeedsCompletionHide()
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
 
-  if (removed) return null
+  if (hidden.has(personId)) return null
 
   const remove = () => {
     if (!window.confirm(`Remove ${personName} from the CRM? They'll stop showing up anywhere.`)) return
     setError(null)
-    setRemoved(true) // optimistic — the common case succeeds; roll back below if it didn't.
+    hide([personId]) // optimistic — the common case succeeds; roll back below if it didn't.
     start(async () => {
       const res = await deletePerson(personId)
-      if (!res.deleted) { setRemoved(false); setError(res.message) }
+      if (!res.deleted) { unhide([personId]); setError(res.message) }
       // A merge target elsewhere in the list may have just lost its only
       // duplicate — router.refresh() re-fetches everyone's server-computed
       // recommendation instead of leaving stale ones showing until the next
@@ -59,10 +68,10 @@ export function CrmNeedsCompletionRow({
 
   const accept = () => {
     setError(null)
-    setRemoved(true) // optimistic — rolled back below if the suggestion had nothing usable to save.
+    hide([personId]) // optimistic — rolled back below if the suggestion had nothing usable to save.
     start(async () => {
       const res = await acceptSuggestion!()
-      if (!res.accepted) { setRemoved(false); setError('No usable info in this suggestion — fill in by hand.') }
+      if (!res.accepted) { unhide([personId]); setError('No usable info in this suggestion — fill in by hand.') }
       router.refresh()
     })
   }
@@ -93,7 +102,10 @@ export function CrmNeedsCompletionRow({
                 {pending ? 'Applying…' : 'Use this'}
               </button>
             ) : secondaryAction}
-            <CrmMergePicker personId={personId} personName={personName} suggested={mergeTarget} onMerged={() => setRemoved(true)} />
+            <CrmMergePicker
+              personId={personId} personName={personName} suggested={mergeTarget}
+              onMerged={() => hide(reciprocalPartnerId ? [personId, reciprocalPartnerId] : [personId])}
+            />
             <button
               type="button"
               disabled={pending}

@@ -11,6 +11,7 @@ import { CrmInlineText } from '@/components/admin/CrmInlineText'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
 import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmNeedsCompletionRow } from '@/components/admin/CrmNeedsCompletionRow'
+import { CrmNeedsCompletionList } from '@/components/admin/CrmNeedsCompletionList'
 import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nicknames'
 
 export const maxDuration = 30
@@ -139,8 +140,17 @@ export default async function CrmNeedsCompletionPage({
     return { p, s, mergeTarget, notAPerson, kind, recommendation, roleTag }
   })
 
+  // A pair that mutually suggests merging into each other — completing one
+  // side resolves both, so the row component needs to know its partner's id
+  // to hide them together instead of waiting on the next refresh.
+  const mergeTargetById = new Map(rowInfos.map((r) => [r.p.id, r.mergeTarget?.id ?? null]))
+  const rowInfosWithReciprocal = rowInfos.map((r) => ({
+    ...r,
+    reciprocalPartnerId: r.mergeTarget && mergeTargetById.get(r.mergeTarget.id) === r.p.id ? r.mergeTarget.id : null,
+  }))
+
   const actionFilter = sp.action ?? ''
-  const visibleRowInfos = actionFilter ? rowInfos.filter((r) => r.kind === actionFilter) : rowInfos
+  const visibleRowInfos = actionFilter ? rowInfosWithReciprocal.filter((r) => r.kind === actionFilter) : rowInfosWithReciprocal
   const ACTION_FILTERS: { value: string; label: string }[] = [
     { value: '', label: 'All' },
     { value: 'not_person', label: 'Not a person' },
@@ -158,7 +168,7 @@ export default async function CrmNeedsCompletionPage({
       </nav>
 
       <header>
-        <h1 className="text-2xl font-semibold">Needs completion</h1>
+        <h1 className="text-2xl font-semibold">Review List</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Records missing a title or an organization. Where the person is in your LinkedIn export,
           the suggestion below is one click away — completing a profile is usually accepting a
@@ -207,8 +217,9 @@ export default async function CrmNeedsCompletionPage({
             <CrmSelectAll pageCount={visibleRowInfos.length} />
             <span className="text-muted-foreground">Select all shown</span>
           </label>
+          <CrmNeedsCompletionList>
           <ul className="rounded-lg border border-border divide-y divide-border">
-            {visibleRowInfos.map(({ p, s, mergeTarget, notAPerson, recommendation, roleTag }) => {
+            {visibleRowInfos.map(({ p, s, mergeTarget, reciprocalPartnerId, notAPerson, recommendation, roleTag }) => {
               const secondaryAction = !s && !mergeTarget ? (
                 <Link href={`/support/admin/crm/people/${p.id}`} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
                   Fill in by hand
@@ -222,6 +233,7 @@ export default async function CrmNeedsCompletionPage({
                   personName={p.fullName}
                   notAPerson={notAPerson}
                   mergeTarget={mergeTarget}
+                  reciprocalPartnerId={reciprocalPartnerId}
                   acceptSuggestion={s ? acceptExportSuggestion.bind(null, p.id) : undefined}
                   secondaryAction={secondaryAction}
                 >
@@ -261,6 +273,7 @@ export default async function CrmNeedsCompletionPage({
               )
             })}
           </ul>
+          </CrmNeedsCompletionList>
           </CrmCompletionBulkBar>
 
           {totalPages > 1 && (

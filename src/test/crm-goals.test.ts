@@ -34,7 +34,7 @@ describe('goalsForOrgTypes', () => {
 
 describe('rolesForGoal', () => {
   it('reports which types feed a goal, so the mapping is inspectable', () => {
-    expect(rolesForGoal('FUNDRAISING').sort()).toEqual(['INVESTOR_ANGEL', 'INVESTOR_VC'])
+    expect(rolesForGoal('FUNDRAISING').sort()).toEqual(['GRANTS', 'INCUBATOR', 'INVESTOR_ANGEL', 'INVESTOR_VC', 'STRATEGIC'])
   })
 })
 

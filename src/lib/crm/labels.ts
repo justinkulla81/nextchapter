@@ -1,24 +1,32 @@
 import type { CrmPersonRole, CrmOrgType, CrmLeadQuality, CrmWarmth, CrmEligibility, CrmPriorityTier } from '@prisma/client'
 
 // Human labels for the CRM enums. Sentence case per design-principles.md.
+//
+// Category-prefixed on purpose (F: funding-side, BD: business development,
+// NC: network/contact, GTM: go-to-market) — with 19 contact types, a flat
+// list stopped being scannable, and the prefix groups related ones visually
+// even though PERSON_ROLES (below) sorts the actual list alphabetically by
+// this label text, not by category.
 export const PERSON_ROLE_LABELS: Record<CrmPersonRole, string> = {
-  INVESTOR_VC: 'Investor (VC)',
-  INVESTOR_ANGEL: 'Angel',
-  BD_PARTNER: 'BD partner',
-  COACH_PROSPECT: 'Coach',
-  RECRUITER_PROSPECT: 'Recruiter',
-  HIRING_MANAGER: 'Hiring manager',
-  CHRO_HR: 'HR / CHRO',
-  OUTPLACEMENT_BUYER: 'Outplacement buyer',
-  POLICY_ANALYST: 'Policy analyst',
-  ACADEMIC: 'Academic',
-  ALUMNI_OFFICE: 'Alumni office',
-  JOB_SEEKER: 'Job seeker',
-  EMPLOYEE_CANDIDATE: 'Potential hire',
-  ADVISOR: 'Advisor',
-  CONNECTOR: 'Connector',
-  PRESS: 'Press',
-  OTHER: 'Other',
+  INVESTOR_VC: 'F: Investor (VC)',
+  INVESTOR_ANGEL: 'F: Investor (Angel)',
+  INCUBATOR: 'F: Incubator',
+  GRANTS: 'F: Grants',
+  STRATEGIC: 'F: Strategic',
+  BD_PARTNER: 'BD: Partner',
+  RECRUITER_PROSPECT: 'BD: Recruiter',
+  COACH_PROSPECT: 'BD: Coach',
+  HIRING_MANAGER: 'BD: Hiring Manager',
+  OUTPLACEMENT_BUYER: 'BD: Outplacement',
+  ALUMNI_OFFICE: 'BD: Alumni',
+  ADVISOR: 'NC: Advisor',
+  EMPLOYEE_CANDIDATE: 'NC: Employee',
+  CONNECTOR: 'NC: Connector',
+  POLICY_ANALYST: 'NC: Policy/Academic',
+  JOB_SEEKER: 'NC: Candidate',
+  OTHER: 'NC: Other',
+  PRESS: 'GTM: Press/Media',
+  GTM_PARTNER: 'GTM: Partner',
 }
 
 export const ORG_TYPE_LABELS: Record<CrmOrgType, string> = {
@@ -70,7 +78,11 @@ export const PRIORITY_TIER_LABELS: Record<CrmPriorityTier, string> = {
   P2: 'Not urgent',
 }
 
-export const PERSON_ROLES = Object.keys(PERSON_ROLE_LABELS) as CrmPersonRole[]
+// Alphabetical by the display label, not enum declaration order — every
+// contact-type list in the CRM (checkboxes, filters, bulk-add) reads off
+// this one array, so ordering it here orders it everywhere at once.
+export const PERSON_ROLES = (Object.keys(PERSON_ROLE_LABELS) as CrmPersonRole[])
+  .sort((a, b) => PERSON_ROLE_LABELS[a].localeCompare(PERSON_ROLE_LABELS[b]))
 export const ORG_TYPES = Object.keys(ORG_TYPE_LABELS) as CrmOrgType[]
 export const QUALITIES = Object.keys(QUALITY_LABELS) as CrmLeadQuality[]
 export const WARMTHS = Object.keys(WARMTH_LABELS) as CrmWarmth[]

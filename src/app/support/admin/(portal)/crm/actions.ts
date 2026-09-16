@@ -139,6 +139,9 @@ async function createPerson(raw: string, roles: CrmPersonRole[], adminEmail: str
       roles,
       connectedAt: match?.connectedOn ?? null,
       needsCompletion: !match?.position || !orgId,
+      // A real email is a real, reachable contact — worth a baseline
+      // follow-up by default rather than sitting unprioritized.
+      priority: match?.email ? 'P2' : undefined,
     },
   })
   if (orgId) {
@@ -1604,7 +1607,7 @@ export async function addResearchItem(_prev: unknown, formData: FormData): Promi
           fullName: name,
           firstName: name.split(' ')[0] ?? null,
           lastName: name.split(' ').slice(1).join(' ') || null,
-          roles: ['ACADEMIC'], goals: ['ADVISORY_RECRUITING'],
+          roles: ['POLICY_ANALYST'], goals: ['ADVISORY_RECRUITING'],
           needsCompletion: true,
         },
       })

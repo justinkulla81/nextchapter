@@ -47,7 +47,7 @@ export default async function CrmSyncPage({
         </div>
         <div className="flex gap-2">
           <Link href="/support/admin/crm/needs-completion" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-            Needs completion{needsReview > 0 && ` (${needsReview})`}
+            Review List{needsReview > 0 && ` (${needsReview})`}
           </Link>
           <Link href="/support/admin/crm/queue" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
             Queue
@@ -196,7 +196,7 @@ export default async function CrmSyncPage({
       <section className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
         Someone the sweep doesn&apos;t recognize is added directly rather than held for approval here — review
         them in{' '}
-        <Link href="/support/admin/crm/needs-completion" className="text-foreground underline">Needs completion</Link>,
+        <Link href="/support/admin/crm/needs-completion" className="text-foreground underline">Review List</Link>,
         where a real duplicate or an unlikely-looking name is flagged for you automatically.
       </section>
     </div>

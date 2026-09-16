@@ -213,7 +213,7 @@ function qualityFrom(raw: string | null): CrmLeadQuality {
 
 /** Networking CRM "Segment(s)" strings → CRM roles. Unmapped values become OTHER. */
 const SEGMENT_ROLES: Record<string, CrmPersonRole> = {
-  'vc/gp': 'INVESTOR_VC', 'sr recruiter': 'RECRUITER_PROSPECT', 'senior hr': 'CHRO_HR',
+  'vc/gp': 'INVESTOR_VC', 'sr recruiter': 'RECRUITER_PROSPECT', 'senior hr': 'HIRING_MANAGER',
   coach: 'COACH_PROSPECT', 'sr advisor': 'ADVISOR', 'indie consultant': 'ADVISOR',
   fractional: 'ADVISOR', workforce: 'BD_PARTNER', 'platforms/l&d': 'BD_PARTNER',
   'education/edtech': 'BD_PARTNER', 'bd/partnerships': 'BD_PARTNER', 'biz school': 'ALUMNI_OFFICE',
@@ -326,7 +326,7 @@ function loadPolicy() {
       upsertPerson(second.split(/\s+[—-]\s+/)[0], 'policy', { orgName: r.get('Organization'), roles: ['POLICY_ANALYST'], prov })
     }
     for (const nb of (r.get('Notable People') ?? '').split(',')) {
-      if (nb.trim()) upsertPerson(nb, 'policy-notable', { orgName: r.get('Organization'), roles: ['ACADEMIC'], prov })
+      if (nb.trim()) upsertPerson(nb, 'policy-notable', { orgName: r.get('Organization'), roles: ['POLICY_ANALYST'], prov })
     }
   }
   // Key studies → research items, stance left UNSET on purpose.
@@ -365,7 +365,7 @@ function loadOutplacement() {
     }
     const c = r.get('HR/People Contact')
     if (c && !/not listed/i.test(c)) {
-      upsertPerson(c, 'outplacement', { orgName: r.get('Company'), roles: ['CHRO_HR'], prov })
+      upsertPerson(c, 'outplacement', { orgName: r.get('Company'), roles: ['HIRING_MANAGER'], prov })
     }
   }
   return rows.length

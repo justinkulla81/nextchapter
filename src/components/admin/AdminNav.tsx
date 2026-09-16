@@ -61,7 +61,9 @@ export function areaForPath(pathname: string): AdminArea {
   return 'administrator'
 }
 
-function ecosystemSections(): NavSection[] {
+function ecosystemSections(badges: Record<string, number>): NavSection[] {
+  const badgeFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
+
   return [
     {
       title: 'Work the list',
@@ -80,7 +82,7 @@ function ecosystemSections(): NavSection[] {
         { href: '/support/admin/crm', label: 'People' },
         { href: '/support/admin/crm/organizations', label: 'Organizations' },
         { href: '/support/admin/crm/research', label: 'Research' },
-        { href: '/support/admin/crm/needs-completion', label: 'Needs completion' },
+        { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
       ],
     },
     {
@@ -121,7 +123,7 @@ function visionSections(): NavSection[] {
 }
 
 export function buildSectionsForArea(area: AdminArea, badges: Record<string, number>): NavSection[] {
-  if (area === 'ecosystem') return ecosystemSections()
+  if (area === 'ecosystem') return ecosystemSections(badges)
   if (area === 'vision') return visionSections()
   return buildSections(badges)
 }

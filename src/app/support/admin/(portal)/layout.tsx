@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAdmin()
-  const [{ approvalsNeeded }, reportedMessages, communityModeration] = await Promise.all([
+  const [{ approvalsNeeded }, reportedMessages, communityModeration, needsCompletion] = await Promise.all([
     getAdminHomepageSummary(),
     prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
     // Mirrors getModerationQueue's "needsReview" definition (moderation.ts)
@@ -22,6 +22,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
         OR: [{ moderationStatus: 'HELD' }, { moderationCategory: 'CRISIS_SELF_HARM', moderationReviewedAt: null }],
       },
     }),
+    prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
   ])
 
   const badges = {
@@ -41,6 +42,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
       approvalsNeeded.pendingBountyClaims +
       approvalsNeeded.unresolvedReferenceDisputes +
       approvalsNeeded.pendingIntroRequests,
+    needsCompletion,
   }
 
   return (

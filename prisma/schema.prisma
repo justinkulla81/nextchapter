@@ -8272,20 +8272,22 @@ model EqOverIqContributorProfile {
 enum CrmPersonRole {
   INVESTOR_VC
   INVESTOR_ANGEL
+  INCUBATOR
+  GRANTS
+  STRATEGIC
   BD_PARTNER
   COACH_PROSPECT
   RECRUITER_PROSPECT
-  HIRING_MANAGER
-  CHRO_HR
+  HIRING_MANAGER // also covers the old CHRO_HR, folded in during the contact-type relabel
   OUTPLACEMENT_BUYER
-  POLICY_ANALYST
-  ACADEMIC
+  POLICY_ANALYST // also covers the old ACADEMIC, folded in during the contact-type relabel
   ALUMNI_OFFICE
   JOB_SEEKER
   EMPLOYEE_CANDIDATE // someone we might hire ourselves
   ADVISOR
   CONNECTOR // valuable mainly for who they can introduce
   PRESS
+  GTM_PARTNER
   OTHER
 }
 

@@ -6,8 +6,8 @@ import { strictOrgKey } from '@/lib/crm/normalize'
  * Whenever a CHRO contact is saved on a Company (see
  * updateCompanyChroContact in crm/warn/actions.ts), mirrors it into the
  * People CRM — a name typed into a text field on the Layoff notices page is
- * not itself a working lead; a CrmPerson with a CHRO_HR role, showing up in
- * the People queue, is. Also backfills CrmOrganization.companyId when a
+ * not itself a working lead; a CrmPerson with the Hiring Manager role,
+ * showing up in the People queue, is. Also backfills CrmOrganization.companyId when a
  * matching org already exists but was never linked back to this Company —
  * the same seam promoteNotice() left open when it creates CrmOrganization
  * rows independently of the Company table.
@@ -44,14 +44,17 @@ export async function syncChroContactToCrm(companyId: string): Promise<void> {
             email: company.chroEmail || null,
             emails: company.chroEmail ? [company.chroEmail] : [],
             linkedinUrl: company.chroLinkedinUrl || null,
-            roles: ['CHRO_HR'],
+            roles: ['HIRING_MANAGER'],
             normalizedKey: `${company.chroName.trim().toLowerCase()}|${normalizeOrgName(company.name)}`,
+            // A real email is a real, reachable contact — worth a baseline
+            // follow-up by default rather than sitting unprioritized.
+            priority: company.chroEmail ? 'P2' : undefined,
           },
         })
       ).id
 
-  if (person && !person.roles.includes('CHRO_HR')) {
-    await prisma.crmPerson.update({ where: { id: personId }, data: { roles: { push: 'CHRO_HR' } } })
+  if (person && !person.roles.includes('HIRING_MANAGER')) {
+    await prisma.crmPerson.update({ where: { id: personId }, data: { roles: { push: 'HIRING_MANAGER' } } })
   }
   if (person && company.chroLinkedinUrl && !person.linkedinUrl) {
     await prisma.crmPerson.update({ where: { id: personId }, data: { linkedinUrl: company.chroLinkedinUrl } })

@@ -34,21 +34,22 @@ export const GOALS = Object.keys(GOAL_LABELS) as CrmGoal[]
 const ROLE_TO_GOAL: Partial<Record<CrmPersonRole, CrmGoal>> = {
   INVESTOR_VC: 'FUNDRAISING',
   INVESTOR_ANGEL: 'FUNDRAISING',
+  INCUBATOR: 'FUNDRAISING',
+  GRANTS: 'FUNDRAISING',
+  STRATEGIC: 'FUNDRAISING',
   BD_PARTNER: 'BD',
-  HIRING_MANAGER: 'BD',
+  HIRING_MANAGER: 'BD', // also covers the old CHRO_HR, folded into this role
   OUTPLACEMENT_BUYER: 'SALES',
-  CHRO_HR: 'SALES',
   EMPLOYEE_CANDIDATE: 'FULL_TIME_RECRUITING',
   COACH_PROSPECT: 'ECOSYSTEM_RECRUITING',
   RECRUITER_PROSPECT: 'ECOSYSTEM_RECRUITING',
   ADVISOR: 'ADVISORY_RECRUITING',
-  POLICY_ANALYST: 'ADVISORY_RECRUITING',
-  ACADEMIC: 'ADVISORY_RECRUITING',
+  POLICY_ANALYST: 'ADVISORY_RECRUITING', // also covers the old ACADEMIC, folded into this role
   JOB_SEEKER: 'USER_ACQUISITION',
   ALUMNI_OFFICE: 'USER_ACQUISITION',
-  // CONNECTOR, PRESS and OTHER map to nothing on purpose: they are useful
-  // people who are not themselves an outcome we are pursuing, and inventing a
-  // goal for them would make every goal filter noisier.
+  // CONNECTOR, PRESS, GTM_PARTNER and OTHER map to nothing on purpose: they
+  // are useful people who are not themselves an outcome we are pursuing,
+  // and inventing a goal for them would make every goal filter noisier.
 }
 
 const ORG_TYPE_TO_GOAL: Partial<Record<CrmOrgType, CrmGoal>> = {

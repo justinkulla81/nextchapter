@@ -243,6 +243,9 @@ export async function applyImport(_prev: unknown, formData: FormData): Promise<{
             : null,
           roles: [] as CrmPersonRole[],
           needsCompletion: !row.title || !orgId,
+          // A real email is a real, reachable contact — worth a baseline
+          // follow-up by default rather than sitting unprioritized.
+          priority: row.email ? 'P2' : undefined,
         },
       })
       if (orgId) await prisma.crmAffiliation.create({ data: { personId: person.id, orgId, title: row.title ?? '' } })

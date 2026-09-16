@@ -53,7 +53,7 @@ export default async function CrmPeopleQueuePage() {
     // its own (see Company.chroName / updateCompanyChroContact), most
     // valuable the moment they're captured and untouched.
     prisma.crmPerson.findMany({
-      where: { roles: { has: 'CHRO_HR' }, activities: { none: {} }, deletedAt: null },
+      where: { roles: { has: 'HIRING_MANAGER' }, activities: { none: {} }, deletedAt: null },
       orderBy: { createdAt: 'desc' },
       take: 12 + FETCH_BUFFER,
       select: {
@@ -65,7 +65,7 @@ export default async function CrmPeopleQueuePage() {
       // CHRO_HR people have their own band above — excluded again here
       // rather than relying only on the JS filter below, so the fetch
       // buffer isn't spent on rows that will just get dropped.
-      where: { activities: { none: {} }, leadQuality: { in: ['A', 'B'] }, NOT: { roles: { has: 'CHRO_HR' } }, deletedAt: null },
+      where: { activities: { none: {} }, leadQuality: { in: ['A', 'B'] }, NOT: { roles: { has: 'HIRING_MANAGER' } }, deletedAt: null },
       orderBy: { priorityScore: 'desc' },
       take: 12 + FETCH_BUFFER,
       select: {

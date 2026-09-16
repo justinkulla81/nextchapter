@@ -149,7 +149,10 @@ async function getOrCreatePerson(
       fullName,
       firstName: name?.split(' ')[0] ?? null,
       lastName: name?.split(' ').slice(1).join(' ') || null,
-      email, emails: [email], needsCompletion: true, roles: [],
+      // Every row created here already has a real email (the sweep's only
+      // input) — a real, reachable contact worth a baseline follow-up by
+      // default rather than sitting unprioritized.
+      email, emails: [email], needsCompletion: true, roles: [], priority: 'P2',
     },
   })
   cache.set(email, created.id)
