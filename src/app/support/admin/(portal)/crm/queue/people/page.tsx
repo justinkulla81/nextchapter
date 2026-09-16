@@ -3,7 +3,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { QueueRowActions } from '@/components/admin/QueueRowActions'
-import { formatDate, sinceLabel, qualityClass } from '@/lib/crm/labels'
+import { sinceLabel, qualityClass, PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import type { CrmPersonRole, CrmPriorityTier } from '@prisma/client'
 
 export const maxDuration = 30
 
@@ -17,71 +18,109 @@ function isSnoozedStale(queueSnoozedAt: Date | null, drivingAt: Date | null): bo
 }
 
 /**
+ * The prefix before the ":" in PERSON_ROLE_LABELS ("BD: Hiring Manager" ->
+ * "BD") — the same F:/BD:/NC:/GTM: taxonomy every other contact-type list in
+ * the CRM already groups by, reused here instead of inventing a second
+ * category system. This is also what folds CHROs into the outplacement
+ * category "for free": HIRING_MANAGER and OUTPLACEMENT_BUYER both already
+ * carry the "BD:" prefix, so a former standalone "CHROs" band and a real
+ * outplacement contact land in the same bucket without any special-casing.
+ */
+function categoryOf(roles: CrmPersonRole[]): string {
+  if (roles.length === 0) return 'Uncategorized'
+  return PERSON_ROLE_LABELS[roles[0]].split(':')[0].trim()
+}
+
+const CATEGORY_ORDER = ['F', 'BD', 'NC', 'GTM', 'Uncategorized']
+const CATEGORY_NAME: Record<string, string> = {
+  F: 'Funding', BD: 'Business development', NC: 'Network & contacts', GTM: 'Go-to-market', Uncategorized: 'No contact type set',
+}
+
+/**
  * Same shape as the org queue, but every row is a person — independently
  * dismissible from it (see CrmPerson.queueSnoozedAt's schema comment).
  * A company you've stopped chasing today can still have a person worth
  * following up with, so this never reuses the org queue's snooze state.
+ *
+ * Redesigned around "what actually deserves my morning": every P0/P1 (P2
+ * optional, since at 3,600+ people most rows are P2 and showing them all by
+ * default would bury the two priority tiers that matter), grouped by
+ * category rather than by how the lead was sourced — the CHRO band this
+ * replaced was one lead SOURCE (layoff notices) getting its own permanent
+ * section regardless of actual priority, which is exactly the inversion
+ * this page exists to avoid on the org side already.
  */
-export default async function CrmPeopleQueuePage() {
+export default async function CrmPeopleQueuePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ p2?: string }>
+}) {
   await requireAdmin()
   const now = new Date()
+  const sp = await searchParams
+  const includeP2 = sp.p2 === '1'
+  const priorityTiers: CrmPriorityTier[] = includeP2 ? ['P0', 'P1', 'P2'] : ['P0', 'P1']
 
-  const [promisedRaw, overdueStepsRaw, chroRaw, neverTouchedRaw] = await Promise.all([
+  const [followUpPeopleRaw, promisedOppsRaw, priorityPeopleRaw] = await Promise.all([
+    // A follow-up can be flagged with no specific date (see CrmInlineFollowUp) —
+    // only the dated ones sort meaningfully into "upcoming", so undated ones
+    // get their own short list instead of sorting arbitrarily among these.
+    prisma.crmPerson.findMany({
+      where: { nextFollowUpAt: { not: null }, deletedAt: null },
+      orderBy: { nextFollowUpAt: 'asc' },
+      take: 15 + FETCH_BUFFER,
+      select: { id: true, fullName: true, nextFollowUpAt: true, nextFollowUpNote: true, queueSnoozedAt: true },
+    }),
+    // A promise made TO someone outranks an internal reminder — see
+    // scoring.ts's own comment on committedFollowUpAt vs nextStepDueAt.
+    // Folded into the same "upcoming follow-ups" list rather than kept as
+    // its own band, since both answer the same question: who did I say
+    // I'd get back to, and when.
     prisma.crmOpportunity.findMany({
-      where: { outcome: 'OPEN', committedFollowUpAt: { lt: now }, primaryPersonId: { not: null }, primaryPerson: { deletedAt: null } },
+      where: { outcome: 'OPEN', committedFollowUpAt: { not: null }, primaryPersonId: { not: null }, primaryPerson: { deletedAt: null } },
       orderBy: { committedFollowUpAt: 'asc' },
       take: 15 + FETCH_BUFFER,
       select: {
-        id: true, title: true, committedFollowUpAt: true, committedTo: true, priorityScore: true,
-        priorityOverride: true, leadQuality: true,
-        pipeline: { select: { label: true } }, stage: { select: { label: true } },
+        id: true, committedFollowUpAt: true, committedTo: true,
         primaryPerson: { select: { id: true, fullName: true, queueSnoozedAt: true } },
       },
     }),
-    prisma.crmOpportunity.findMany({
-      where: { outcome: 'OPEN', nextStepDueAt: { lt: now }, committedFollowUpAt: null, primaryPersonId: { not: null }, primaryPerson: { deletedAt: null } },
-      orderBy: [{ priorityScore: 'desc' }],
-      take: 15 + FETCH_BUFFER,
-      select: {
-        id: true, title: true, nextStep: true, nextStepDueAt: true, priorityScore: true,
-        priorityOverride: true, leadQuality: true,
-        pipeline: { select: { label: true } }, stage: { select: { label: true } },
-        primaryPerson: { select: { id: true, fullName: true, queueSnoozedAt: true } },
-      },
-    }),
-    // CHROs tracked down from a layoff notice's company — a lead source of
-    // its own (see Company.chroName / updateCompanyChroContact), most
-    // valuable the moment they're captured and untouched.
     prisma.crmPerson.findMany({
-      where: { roles: { has: 'HIRING_MANAGER' }, activities: { none: {} }, deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-      take: 12 + FETCH_BUFFER,
+      where: { priority: { in: priorityTiers }, deletedAt: null },
+      orderBy: [{ priority: 'asc' }, { priorityScore: 'desc' }],
+      take: 400,
       select: {
-        id: true, fullName: true, email: true, createdAt: true, queueSnoozedAt: true,
-        affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { name: true } } } },
-      },
-    }),
-    prisma.crmPerson.findMany({
-      // CHRO_HR people have their own band above — excluded again here
-      // rather than relying only on the JS filter below, so the fetch
-      // buffer isn't spent on rows that will just get dropped.
-      where: { activities: { none: {} }, leadQuality: { in: ['A', 'B'] }, NOT: { roles: { has: 'HIRING_MANAGER' } }, deletedAt: null },
-      orderBy: { priorityScore: 'desc' },
-      take: 12 + FETCH_BUFFER,
-      select: {
-        id: true, fullName: true, priorityScore: true, priorityOverride: true, leadQuality: true,
-        createdAt: true, queueSnoozedAt: true,
+        id: true, fullName: true, priority: true, priorityScore: true, priorityOverride: true,
+        leadQuality: true, roles: true, lastTouchedAt: true, queueSnoozedAt: true, createdAt: true,
         affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { name: true } } } },
       },
     }),
   ])
 
-  const promised = promisedRaw.filter((o) => !isSnoozedStale(o.primaryPerson?.queueSnoozedAt ?? null, o.committedFollowUpAt)).slice(0, 15)
-  const overdueSteps = overdueStepsRaw.filter((o) => !isSnoozedStale(o.primaryPerson?.queueSnoozedAt ?? null, o.nextStepDueAt)).slice(0, 15)
-  const chroContacts = chroRaw.filter((p) => !isSnoozedStale(p.queueSnoozedAt, p.createdAt)).slice(0, 12)
-  const neverTouched = neverTouchedRaw.filter((p) => !isSnoozedStale(p.queueSnoozedAt, p.createdAt)).slice(0, 12)
+  const followUpPeople = followUpPeopleRaw.filter((p) => !isSnoozedStale(p.queueSnoozedAt, p.nextFollowUpAt))
+  const promisedOpps = promisedOppsRaw.filter((o) => !isSnoozedStale(o.primaryPerson?.queueSnoozedAt ?? null, o.committedFollowUpAt))
 
-  const totalItems = promised.length + overdueSteps.length + chroContacts.length + neverTouched.length
+  type FollowUpRow = { key: string; personId?: string; title: string; date: Date; detail?: string; kind: 'promise' | 'follow-up' }
+  const followUps: FollowUpRow[] = [
+    ...promisedOpps.map((o): FollowUpRow => ({
+      key: `opp-${o.id}`, personId: o.primaryPerson?.id, title: o.primaryPerson?.fullName ?? 'Unknown',
+      date: o.committedFollowUpAt!, detail: o.committedTo ? `“${o.committedTo}”` : undefined, kind: 'promise',
+    })),
+    ...followUpPeople.map((p): FollowUpRow => ({
+      key: `person-${p.id}`, personId: p.id, title: p.fullName,
+      date: p.nextFollowUpAt!, detail: p.nextFollowUpNote ?? undefined, kind: 'follow-up',
+    })),
+  ].sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 20)
+
+  const priorityPeople = priorityPeopleRaw.filter((p) => !isSnoozedStale(p.queueSnoozedAt, p.lastTouchedAt ?? p.createdAt))
+  const byCategory = new Map<string, typeof priorityPeople>()
+  for (const p of priorityPeople) {
+    const cat = categoryOf(p.roles)
+    byCategory.set(cat, [...(byCategory.get(cat) ?? []), p])
+  }
+  const categories = CATEGORY_ORDER.filter((c) => (byCategory.get(c)?.length ?? 0) > 0)
+
+  const totalItems = followUps.length + priorityPeople.length
 
   return (
     <div className="space-y-6">
@@ -91,10 +130,16 @@ export default async function CrmPeopleQueuePage() {
           <h1 className="text-2xl font-semibold">People queue</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })} · {totalItems} items ·
-            same idea as the org queue, but every row is a person, and dismissing one never touches the company queue.
+            every P0/P1{includeP2 ? '/P2' : ''} contact, grouped by category, plus who you owe a follow-up.
           </p>
         </div>
-        <nav className="flex gap-2 text-sm">
+        <nav className="flex flex-wrap gap-2 text-sm">
+          <Link
+            href={`/support/admin/crm/queue/people${includeP2 ? '' : '?p2=1'}`}
+            className="rounded-md border border-border px-3 py-1.5 hover:bg-muted"
+          >
+            {includeP2 ? 'Hide P2' : 'Include P2'}
+          </Link>
           <Link href="/support/admin/crm/queue" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">Org queue</Link>
           <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All people</Link>
         </nav>
@@ -108,85 +153,53 @@ export default async function CrmPeopleQueuePage() {
 
       <Band
         tone="critical"
-        title="Promised — you gave someone a date"
-        count={promised.length}
-        empty="No outstanding promises."
+        title="Upcoming follow-ups — promises and dated check-ins"
+        count={followUps.length}
+        empty="Nothing you've promised a date on."
       >
-        {promised.map((o) => (
-          <Row
-            key={o.id}
-            personId={o.primaryPerson?.id}
-            title={o.primaryPerson?.fullName ?? o.title}
-            quality={o.leadQuality}
-            score={o.priorityOverride ?? o.priorityScore}
-            meta={`${o.pipeline.label} · ${o.stage.label}`}
-            chip={`${Math.floor((now.getTime() - (o.committedFollowUpAt?.getTime() ?? 0)) / DAY)}d past promise`}
-            chipTone="critical"
-            detail={o.committedTo ? `“${o.committedTo}”` : `Promised by ${formatDate(o.committedFollowUpAt)}`}
-          />
-        ))}
+        {followUps.map((f) => {
+          const days = Math.floor((f.date.getTime() - now.getTime()) / DAY)
+          const overdue = days < 0
+          return (
+            <Row
+              key={f.key}
+              personId={f.personId}
+              title={f.title}
+              score={null}
+              meta={f.kind === 'promise' ? 'Promised' : 'Follow-up'}
+              chip={overdue ? `${Math.abs(days)}d overdue` : days === 0 ? 'today' : `in ${days}d`}
+              chipTone={overdue ? 'critical' : 'warning'}
+              detail={f.detail}
+            />
+          )
+        })}
       </Band>
 
-      <Band
-        tone="warning"
-        title="Overdue — your own next step"
-        count={overdueSteps.length}
-        empty="No overdue next steps."
-      >
-        {overdueSteps.map((o) => (
-          <Row
-            key={o.id}
-            personId={o.primaryPerson?.id}
-            title={o.primaryPerson?.fullName ?? o.title}
-            quality={o.leadQuality}
-            score={o.priorityOverride ?? o.priorityScore}
-            meta={`${o.pipeline.label} · ${o.stage.label}`}
-            chip={`due ${formatDate(o.nextStepDueAt)}`}
-            chipTone="warning"
-            detail={o.nextStep ?? undefined}
-          />
-        ))}
-      </Band>
-
-      <Band
-        tone="good"
-        title="CHROs from layoff notices — not yet contacted"
-        count={chroContacts.length}
-        empty="No untouched CHRO contacts on file."
-      >
-        {chroContacts.map((p) => (
-          <Row
-            key={p.id}
-            personId={p.id}
-            title={p.fullName}
-            score={null}
-            meta={p.affiliations[0]?.org.name ?? 'Company not linked'}
-            chip={`added ${sinceLabel(p.createdAt)}`}
-            chipTone="good"
-            detail={p.email ?? undefined}
-          />
-        ))}
-      </Band>
-
-      <Band
-        tone="good"
-        title="Next best actions — high fit, never contacted"
-        count={neverTouched.length}
-        empty="Every A and B person has been contacted at least once."
-      >
-        {neverTouched.map((p) => (
-          <Row
-            key={p.id}
-            personId={p.id}
-            title={p.fullName}
-            quality={p.leadQuality}
-            score={p.priorityOverride ?? p.priorityScore}
-            meta={p.affiliations[0]?.org.name ?? '—'}
-            chip={`added ${sinceLabel(p.createdAt)}`}
-            chipTone="muted"
-          />
-        ))}
-      </Band>
+      {categories.map((cat) => {
+        const people = byCategory.get(cat) ?? []
+        return (
+          <Band
+            key={cat}
+            tone="good"
+            title={`${CATEGORY_NAME[cat] ?? cat} — ${includeP2 ? 'P0/P1/P2' : 'P0/P1'}`}
+            count={people.length}
+            empty="Nothing here."
+          >
+            {people.map((p) => (
+              <Row
+                key={p.id}
+                personId={p.id}
+                title={p.fullName}
+                quality={p.leadQuality}
+                score={p.priorityOverride ?? p.priorityScore}
+                meta={`${p.priority} · ${p.affiliations[0]?.org.name ?? 'No org on file'}`}
+                chip={p.lastTouchedAt ? `last touch ${sinceLabel(p.lastTouchedAt)}` : 'never contacted'}
+                chipTone={p.lastTouchedAt ? 'muted' : 'good'}
+              />
+            ))}
+          </Band>
+        )
+      })}
     </div>
   )
 }

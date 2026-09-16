@@ -31,11 +31,19 @@ export default async function AdminPortalLayout({ children }: { children: React.
     prisma.crmOpportunity.count({
       where: { outcome: 'OPEN', OR: [{ committedFollowUpAt: { lt: now } }, { nextStepDueAt: { lt: now } }] },
     }),
-    prisma.crmOpportunity.count({
-      where: {
-        outcome: 'OPEN', primaryPersonId: { not: null }, primaryPerson: { deletedAt: null },
-        OR: [{ committedFollowUpAt: { lt: now } }, { nextStepDueAt: { lt: now } }],
-      },
+    // Same "is there something waiting" question, but the People queue no
+    // longer has an "own next step" band — it's just overdue promises now,
+    // whether that's a person-level follow-up (CrmPerson.nextFollowUpAt) or
+    // an opportunity-level one (CrmOpportunity.committedFollowUpAt). The
+    // page itself also shows every P0/P1 person, but that's a standing
+    // list, not a "new since yesterday" count, so it's deliberately left
+    // out of the badge the same way Org queue's badge excludes its own
+    // "never touched" band.
+    prisma.crmPerson.count({ where: { nextFollowUpAt: { lt: now }, deletedAt: null } }).then(async (personCount) => {
+      const oppCount = await prisma.crmOpportunity.count({
+        where: { outcome: 'OPEN', committedFollowUpAt: { lt: now }, primaryPersonId: { not: null }, primaryPerson: { deletedAt: null } },
+      })
+      return personCount + oppCount
     }),
   ])
 
