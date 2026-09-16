@@ -223,6 +223,45 @@ export async function getMessageBody(accessToken: string, id: string, maxChars =
   return body || null
 }
 
+function toBase64Url(input: string): string {
+  return Buffer.from(input, 'utf-8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+/** RFC 2822-escapes a header value that could otherwise break the raw MIME message. */
+function encodeHeaderValue(value: string): string {
+  return /[^\x20-\x7e]/.test(value) ? `=?UTF-8?B?${Buffer.from(value, 'utf-8').toString('base64')}?=` : value
+}
+
+/**
+ * Sends an HTML email via the connected Gmail account's own Send As identity
+ * — requires the `gmail.send` scope, which existing connections authorized
+ * before this feature don't have; sendGmailMessage will 403 for those until
+ * reconnected (see the "Send" scope note on the Google connect page).
+ */
+export async function sendGmailMessage(
+  accessToken: string,
+  { to, subject, html }: { to: string; subject: string; html: string }
+): Promise<{ id: string; threadId: string }> {
+  const raw = toBase64Url(
+    [
+      `To: ${to}`,
+      `Subject: ${encodeHeaderValue(subject)}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset="UTF-8"',
+      '',
+      html,
+    ].join('\r\n')
+  )
+
+  const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ raw }),
+  })
+  if (!res.ok) throw new Error(`Gmail send failed: ${res.status} ${await res.text()}`)
+  return res.json()
+}
+
 /** The connected mailbox's own address, for deciding direction. */
 export async function getProfileEmail(accessToken: string): Promise<string | null> {
   const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {

@@ -9,6 +9,9 @@ import { isRealOrgName } from '@/lib/crm/normalize'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
 import { refreshTouchFields } from '@/lib/crm/sync'
+import { getValidAccessToken } from '@/lib/google/connection'
+import { sendGmailMessage } from '@/lib/google/gmail'
+import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
@@ -1857,4 +1860,67 @@ export async function autoMergeExactDuplicates(): Promise<DuplicateMergeReport> 
   captureServerEvent(admin.email ?? 'admin', 'crm_auto_merge_duplicates', { groups, merged })
   revalidatePath(CRM)
   return { groups, merged }
+}
+
+/**
+ * Composes and sends a tracked outreach email through the connected Gmail
+ * account, and logs it as a real CrmActivity immediately — unlike the
+ * passive sweep, this is a real send the admin explicitly triggered, so
+ * there's no ambiguity about whether it happened.
+ *
+ * Order matters: the tracking row and its links must exist in the database
+ * BEFORE the HTML is built, since the click/open URLs embedded in the sent
+ * message have to resolve to real rows the moment the recipient opens it.
+ * If the actual Gmail send then fails, the just-created activity (and its
+ * tracking/links, via cascade) are deleted — a failed send must not leave
+ * behind an activity record implying it went out.
+ */
+export async function sendOutreachEmail(personId: string, subject: string, body: string): Promise<{ sent: boolean; message: string }> {
+  const admin = await requireAdmin()
+  const subjectTrimmed = subject.trim()
+  const bodyTrimmed = body.trim()
+  if (!subjectTrimmed || !bodyTrimmed) return { sent: false, message: 'Subject and message are both required.' }
+
+  const person = await prisma.crmPerson.findUniqueOrThrow({ where: { id: personId }, select: { email: true, fullName: true } })
+  if (!person.email) return { sent: false, message: `${person.fullName} has no email on file.` }
+
+  const token = await getValidAccessToken()
+  if (!token) return { sent: false, message: 'Google isn’t connected — connect it from Activity sync first.' }
+
+  const activity = await prisma.crmActivity.create({
+    data: {
+      type: 'EMAIL', direction: 'OUTBOUND', personId, subject: subjectTrimmed, body: bodyTrimmed,
+      isAutoLogged: false, loggedByEmail: admin.email ?? null,
+    },
+  })
+  const tracking = await prisma.crmOutreachTracking.create({ data: { activityId: activity.id } })
+
+  const urls = extractUrls(bodyTrimmed)
+  const urlToLinkId = new Map<string, string>()
+  for (const url of urls) {
+    const link = await prisma.crmOutreachLink.create({ data: { trackingId: tracking.id, originalUrl: url } })
+    urlToLinkId.set(url, link.id)
+  }
+
+  try {
+    const html = buildTrackedHtml(bodyTrimmed, urlToLinkId, tracking.id)
+    const sent = await sendGmailMessage(token, { to: person.email, subject: subjectTrimmed, html })
+    await prisma.crmActivity.update({ where: { id: activity.id }, data: { sourceRef: sent.id } })
+  } catch (e) {
+    await prisma.crmActivity.delete({ where: { id: activity.id } })
+    const detail = e instanceof Error ? e.message : String(e)
+    const needsReconnect = detail.includes('403') || detail.toLowerCase().includes('insufficient')
+    return {
+      sent: false,
+      message: needsReconnect
+        ? 'Gmail rejected the send — reconnect Google from Activity sync to grant send permission (this is a new scope, existing connections need to re-consent).'
+        : `Send failed: ${detail}`,
+    }
+  }
+
+  await refreshTouchFields([personId])
+  captureServerEvent(admin.email ?? 'admin', 'crm_outreach_sent', { personId, activityId: activity.id, linkCount: urls.length })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/people/${personId}`)
+  return { sent: true, message: `Sent to ${person.fullName}.` }
 }

@@ -21,7 +21,12 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // (GoogleInboxConnection was empty before this fix). The candidate-facing
 // Gmail flow (email-tracking/gmail-oauth.ts) already includes it for the
 // same reason.
-const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events openid email'
+// gmail.send added for the CRM's compose-and-send outreach flow — a
+// connection authorized before this feature shipped won't have it and
+// sendGmailMessage will 403 until the admin reconnects (prompt=consent below
+// forces a fresh grant covering the new scope rather than silently reusing
+// the old one).
+const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events openid email'
 
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

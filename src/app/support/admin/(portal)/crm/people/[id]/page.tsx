@@ -8,6 +8,7 @@ import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmStanceSelect, STANCE_LABEL, STANCE_CLASS } from '@/components/admin/CrmStanceSelect'
 import { CrmGraduatePerson } from '@/components/admin/CrmGraduateButtons'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
+import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { updatePersonRoles, updatePersonField } from '../../actions'
 import {
   PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, WARMTH_LABELS,
@@ -24,7 +25,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       affiliations: { include: { org: true }, orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }] },
-      activities: { orderBy: { occurredAt: 'desc' }, take: 50 },
+      activities: { orderBy: { occurredAt: 'desc' }, take: 50, include: { outreachTracking: { include: { links: true } } } },
       sourceRecords: { orderBy: { importedAt: 'asc' } },
       researchItems: true,
       introPathsAsTarget: {
@@ -225,6 +226,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </section>
 
       <section>
+        <h2 className="mb-2 text-lg font-semibold">Send outreach</h2>
+        <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
+      </section>
+
+      <section>
         <h2 className="mb-2 text-lg font-semibold">History</h2>
         {person.activities.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -237,6 +243,18 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                 <span>
                   <span className="font-medium">{a.subject ?? a.type}</span>
                   {a.body && <span className="block text-xs text-muted-foreground">{a.body}</span>}
+                  {a.outreachTracking && (
+                    <span className="mt-1 block text-xs">
+                      <span className={a.outreachTracking.openCount > 0 ? 'text-success' : 'text-muted-foreground'}>
+                        {a.outreachTracking.openCount > 0 ? `Opened ${a.outreachTracking.openCount}×` : 'Not opened yet'}
+                      </span>
+                      {a.outreachTracking.links.length > 0 && (
+                        <span className="text-muted-foreground">
+                          {' · '}{a.outreachTracking.links.reduce((n, l) => n + l.clickCount, 0)} link click(s)
+                        </span>
+                      )}
+                    </span>
+                  )}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {formatDate(a.occurredAt)}

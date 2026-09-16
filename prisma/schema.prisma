@@ -8792,12 +8792,51 @@ model CrmActivity {
   sourceRef     String? // gmail thread id / calendar event id — dedupes re-syncs
   loggedByEmail String?
 
-  createdAt DateTime @default(now())
+  createdAt        DateTime             @default(now())
+  outreachTracking CrmOutreachTracking?
 
   @@unique([type, sourceRef])
   @@index([personId, occurredAt(sort: Desc)])
   @@index([orgId, occurredAt(sort: Desc)])
   @@index([opportunityId, occurredAt(sort: Desc)])
+}
+
+/// Open/click tracking for one outreach email sent through the compose flow
+/// (not the passive Gmail sweep — that logs a CrmActivity directly with no
+/// tracking, since it has no way to have rewritten links before send). One
+/// row per sent CrmActivity, kept separate from CrmActivity itself rather
+/// than adding tracking columns there, since every other activity type
+/// (calls, meetings, notes) has no use for them.
+model CrmOutreachTracking {
+  id         String      @id @default(cuid())
+  activityId String      @unique
+  activity   CrmActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  openedAt     DateTime?
+  openCount    Int       @default(0)
+  lastOpenedAt DateTime?
+
+  links CrmOutreachLink[]
+
+  createdAt DateTime @default(now())
+}
+
+/// One rewritten link from a tracked outreach email. The public click route
+/// only ever needs this row's own id — no personId or activityId appears in
+/// a redirect URL that leaves the app.
+model CrmOutreachLink {
+  id          String              @id @default(cuid())
+  trackingId  String
+  tracking    CrmOutreachTracking @relation(fields: [trackingId], references: [id], onDelete: Cascade)
+  originalUrl String              @db.Text
+
+  clickCount     Int       @default(0)
+  firstClickedAt DateTime?
+  lastClickedAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([trackingId])
 }
 
 model CrmTask {
