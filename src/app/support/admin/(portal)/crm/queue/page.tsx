@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { CrmDateCheckButton } from '@/components/admin/CrmDateCheckButton'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { QueueRowActions } from '@/components/admin/QueueRowActions'
-import { formatDate, sinceLabel, qualityClass } from '@/lib/crm/labels'
+import { formatDate, sinceLabel, qualityClass, PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import type { CrmPersonRole, CrmPriorityTier } from '@prisma/client'
 
 export const maxDuration = 30
 
@@ -20,15 +21,36 @@ function isSnoozedStale(queueSnoozedAt: Date | null, drivingAt: Date | null): bo
   return queueSnoozedAt >= drivingAt
 }
 
+// Same taxonomy and the same "fold into one bucket for free" trick as the
+// People queue's categoryOf — see that file's comment. An org is bucketed
+// by its single most urgent qualifying person, not listed once per category
+// its various contacts happen to span.
+function categoryOf(roles: CrmPersonRole[]): string {
+  if (roles.length === 0) return 'Uncategorized'
+  return PERSON_ROLE_LABELS[roles[0]].split(':')[0].trim()
+}
+const CATEGORY_ORDER = ['F', 'BD', 'NC', 'GTM', 'Uncategorized']
+const CATEGORY_NAME: Record<string, string> = {
+  F: 'Funding', BD: 'Business development', NC: 'Network & contacts', GTM: 'Go-to-market', Uncategorized: 'No contact type set',
+}
+const TIER_RANK: Record<CrmPriorityTier, number> = { P0: 0, P1: 1, P2: 2 }
+
 // The morning page. Promises rank above reminders, and both rank above
 // opportunity, because a broken commitment costs a relationship while a missed
 // opportunity costs an opportunity.
-export default async function CrmQueuePage() {
+export default async function CrmQueuePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ p2?: string }>
+}) {
   await requireAdmin()
   const now = new Date()
   const in60 = new Date(now.getTime() + 60 * DAY)
+  const sp = await searchParams
+  const includeP2 = sp.p2 === '1'
+  const priorityTiers: CrmPriorityTier[] = includeP2 ? ['P0', 'P1', 'P2'] : ['P0', 'P1']
 
-  const [promisedRaw, overdueStepsRaw, upcoming, pastDue, neverTouchedRaw] = await Promise.all([
+  const [promisedRaw, overdueStepsRaw, upcoming, pastDue, priorityOrgsRaw] = await Promise.all([
     prisma.crmOpportunity.findMany({
       where: { outcome: 'OPEN', committedFollowUpAt: { lt: now } },
       orderBy: { committedFollowUpAt: 'asc' },
@@ -73,19 +95,25 @@ export default async function CrmQueuePage() {
       take: 15,
       select: { id: true, label: true, dueAt: true, sourceUrl: true, org: { select: { id: true, name: true, website: true } } },
     }),
-    prisma.crmOpportunity.findMany({
-      where: { outcome: 'OPEN', activities: { none: {} }, leadQuality: { in: ['A', 'B'] } },
-      orderBy: { priorityScore: 'desc' },
-      take: 12 + FETCH_BUFFER,
+    // Mirrors the People queue's own priority-by-category grouping — see
+    // that file's comment. An org qualifies here purely by having a P0/P1
+    // (P2 optional) person on it; bucketed by that person's category, same
+    // "fold CHROs into outplacement for free" effect the People queue gets.
+    prisma.crmOrganization.findMany({
+      where: { affiliations: { some: { person: { priority: { in: priorityTiers }, deletedAt: null } } } },
+      take: 400,
       select: {
-        id: true, title: true, priorityScore: true, priorityOverride: true, leadQuality: true,
-        nextStep: true, createdAt: true,
-        pipeline: { select: { label: true } }, stage: { select: { label: true } },
-        org: {
+        id: true, name: true, queueSnoozedAt: true,
+        outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
+        affiliations: {
+          where: { person: { priority: { in: priorityTiers }, deletedAt: null } },
           select: {
-            id: true, name: true, queueSnoozedAt: true,
-            outplacementProfile: { select: { headcountAffected: true, announcedAt: true } },
-            affiliations: { take: 3, select: { person: { select: { id: true, fullName: true, connectedAt: true } } } },
+            person: {
+              select: {
+                id: true, fullName: true, priority: true, priorityScore: true, priorityOverride: true,
+                leadQuality: true, roles: true, lastTouchedAt: true,
+              },
+            },
           },
         },
       },
@@ -94,9 +122,27 @@ export default async function CrmQueuePage() {
 
   const promised = promisedRaw.filter((o) => !isSnoozedStale(o.org?.queueSnoozedAt ?? null, o.committedFollowUpAt)).slice(0, 15)
   const overdueSteps = overdueStepsRaw.filter((o) => !isSnoozedStale(o.org?.queueSnoozedAt ?? null, o.nextStepDueAt)).slice(0, 15)
-  const neverTouched = neverTouchedRaw.filter((o) => !isSnoozedStale(o.org?.queueSnoozedAt ?? null, o.createdAt)).slice(0, 12)
 
-  const totalItems = promised.length + overdueSteps.length + upcoming.length + neverTouched.length
+  // For each qualifying org, its single most urgent person decides both the
+  // org's category bucket and what the row displays — same "one home, not
+  // one per matching category" simplification as the People queue.
+  const priorityOrgs = priorityOrgsRaw
+    .map((org) => {
+      const bestPerson = [...org.affiliations.map((a) => a.person)]
+        .sort((a, b) => TIER_RANK[a.priority as CrmPriorityTier] - TIER_RANK[b.priority as CrmPriorityTier]
+          || (b.priorityOverride ?? b.priorityScore) - (a.priorityOverride ?? a.priorityScore))[0]
+      return { org, bestPerson }
+    })
+    .filter((r) => r.bestPerson && !isSnoozedStale(r.org.queueSnoozedAt, r.bestPerson.lastTouchedAt))
+
+  const priorityByCategory = new Map<string, typeof priorityOrgs>()
+  for (const r of priorityOrgs) {
+    const cat = categoryOf(r.bestPerson.roles)
+    priorityByCategory.set(cat, [...(priorityByCategory.get(cat) ?? []), r])
+  }
+  const priorityCategories = CATEGORY_ORDER.filter((c) => (priorityByCategory.get(c)?.length ?? 0) > 0)
+
+  const totalItems = promised.length + overdueSteps.length + upcoming.length + priorityOrgs.length
 
   function outplacementDetail(org: { outplacementProfile: { headcountAffected: number | null; announcedAt: Date | null } | null } | null): string | undefined {
     const p = org?.outplacementProfile
@@ -114,7 +160,13 @@ export default async function CrmQueuePage() {
             {now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })} · {totalItems} items
           </p>
         </div>
-        <nav className="flex gap-2 text-sm">
+        <nav className="flex flex-wrap gap-2 text-sm">
+          <Link
+            href={`/support/admin/crm/queue${includeP2 ? '' : '?p2=1'}`}
+            className="rounded-md border border-border px-3 py-1.5 hover:bg-muted"
+          >
+            {includeP2 ? 'Hide P2' : 'Include P2'}
+          </Link>
           <Link href="/support/admin/crm/queue/people" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">People queue</Link>
           <Link href="/support/admin/crm/dates" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All dates</Link>
           <Link href="/support/admin/crm/leads" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All leads</Link>
@@ -125,7 +177,7 @@ export default async function CrmQueuePage() {
         <div className="rounded-lg border border-dashed border-border p-8 text-center">
           <p className="font-medium">Nothing needs you this morning.</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            No promises outstanding, no deadlines inside 60 days, and every A and B lead has been contacted.
+            No promises outstanding, no deadlines inside 60 days, and no org with a P0/P1{includeP2 ? '/P2' : ''} person.
           </p>
         </div>
       )}
@@ -197,34 +249,33 @@ export default async function CrmQueuePage() {
         ))}
       </Band>
 
-      <Band
-        tone="good"
-        title="Next best actions — high fit, never contacted"
-        blurb="A and B grades with nothing logged against them. This is the band your spreadsheets could not produce."
-        count={neverTouched.length}
-        empty="Every A and B lead has been contacted at least once."
-      >
-        {neverTouched.map((o) => {
-          const warm = o.org?.affiliations.filter((a) => a.person.connectedAt) ?? []
-          return (
-            <Row
-              key={o.id}
-              orgId={o.org?.id}
-              opportunityId={o.id}
-              title={o.org?.name ?? o.title}
-              quality={o.leadQuality}
-              score={o.priorityOverride ?? o.priorityScore}
-              meta={`${o.pipeline.label} · ${o.stage.label}`}
-              chip={warm.length > 0 ? `${warm.length} warm ${warm.length === 1 ? 'path' : 'paths'}` : `added ${sinceLabel(o.createdAt)}`}
-              chipTone={warm.length > 0 ? 'good' : 'muted'}
-              detail={
-                outplacementDetail(o.org)
-                ?? (warm.length > 0 ? `Via ${warm.map((a) => a.person.fullName).join(', ')}` : (o.nextStep ?? undefined))
-              }
-            />
-          )
-        })}
-      </Band>
+      {priorityCategories.map((cat) => {
+        const orgs = priorityByCategory.get(cat) ?? []
+        return (
+          <Band
+            key={cat}
+            tone="good"
+            title={`${CATEGORY_NAME[cat] ?? cat} — ${includeP2 ? 'P0/P1/P2' : 'P0/P1'} contact on file`}
+            blurb="Mirrors the People queue's own grouping — an org shows up here because someone there does."
+            count={orgs.length}
+            empty="Nothing here."
+          >
+            {orgs.map(({ org, bestPerson }) => (
+              <Row
+                key={org.id}
+                orgId={org.id}
+                title={org.name}
+                quality={bestPerson.leadQuality}
+                score={bestPerson.priorityOverride ?? bestPerson.priorityScore}
+                meta={`${bestPerson.priority} · ${bestPerson.fullName}`}
+                chip={bestPerson.lastTouchedAt ? `last touch ${sinceLabel(bestPerson.lastTouchedAt)}` : 'never contacted'}
+                chipTone={bestPerson.lastTouchedAt ? 'muted' : 'good'}
+                detail={outplacementDetail(org)}
+              />
+            ))}
+          </Band>
+        )
+      })}
 
       {pastDue.length > 0 && (
         <section>
