@@ -165,9 +165,11 @@ export async function POST(req: NextRequest) {
           linkedinUrl: slug ? `https://www.linkedin.com/in/${slug}` : (body.url ?? null),
           location: body.location?.trim() || null,
           notes: body.note?.trim() || null,
-          // Captured in a hurry from a page — it belongs in the completion
-          // queue, not presented as a finished record.
-          needsCompletion: true,
+          // The Review List's own definition is "missing a title or an
+          // organization" — now that the scraper reliably fills both, a
+          // capture that already has them is a finished record, not a
+          // half-done one. Only flag it when something's actually missing.
+          needsCompletion: !(body.jobTitle?.trim() && orgId),
           roles,
           // Someone worth capturing mid-browse is worth a baseline follow-up
           // by default — P2 unless you picked a different priority yourself.
