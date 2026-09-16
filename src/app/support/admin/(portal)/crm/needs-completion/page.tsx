@@ -2,11 +2,14 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { acceptExportSuggestion, dismissCompletion } from '../actions'
+import { acceptExportSuggestion, dismissCompletion, deletePerson } from '../actions'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
 import { CrmCompletionBulkBar } from '@/components/admin/CrmCompletionBulkBar'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { PageSizePicker, readPageSize } from '@/components/admin/PageSizePicker'
+import { CrmInlineText } from '@/components/admin/CrmInlineText'
+import { CrmMergePicker } from '@/components/admin/CrmMergePicker'
+import { ConfirmForm } from '@/components/admin/ConfirmForm'
 
 export const maxDuration = 30
 
@@ -79,12 +82,16 @@ export default async function CrmNeedsCompletionPage({
               const s = p.linkedinSlug ? byslug.get(p.linkedinSlug) : undefined
               const acceptAction = acceptExportSuggestion.bind(null, p.id)
               const dismissAction = dismissCompletion.bind(null, p.id)
+              const deleteAction = async () => { await deletePerson(p.id) }
               return (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                   <input type="checkbox" name="selected" value={p.id} aria-label={`Select ${p.fullName}`} />
                   <div className="min-w-0 flex-1 text-sm">
-                    <Link href={`/support/admin/crm/people/${p.id}`} className="font-medium hover:underline">{p.fullName}</Link>
-                    <span className="ml-2 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CrmInlineText personId={p.id} field="fullName" value={p.fullName} label={`Name for ${p.fullName}`} />
+                      <Link href={`/support/admin/crm/people/${p.id}`} className="text-xs text-muted-foreground hover:underline">open</Link>
+                    </div>
+                    <span className="ml-0.5 text-xs text-muted-foreground">
                       {p.affiliations[0]?.org.name ?? 'No organization'}
                       {p.affiliations[0]?.title ? ` · ${p.affiliations[0].title}` : ' · no title'}
                     </span>
@@ -99,7 +106,7 @@ export default async function CrmNeedsCompletionPage({
                       </p>
                     )}
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
                     {s ? (
                       <form action={acceptAction}>
                         <SubmitButton size="sm" pendingLabel="Applying…" savedLabel="Applied">Use this</SubmitButton>
@@ -112,6 +119,10 @@ export default async function CrmNeedsCompletionPage({
                     <form action={dismissAction}>
                       <SubmitButton size="sm" variant="outline" pendingLabel="Marking…">Looks fine</SubmitButton>
                     </form>
+                    <CrmMergePicker personId={p.id} personName={p.fullName} />
+                    <ConfirmForm action={deleteAction} confirmMessage={`Delete ${p.fullName}? This can't be undone.`}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Deleting…">Delete</SubmitButton>
+                    </ConfirmForm>
                   </div>
                 </li>
               )

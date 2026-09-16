@@ -8,6 +8,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { isRealOrgName } from '@/lib/crm/normalize'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
 import { extractDateCandidates, htmlToText } from '@/lib/crm/date-check'
+import { refreshTouchFields } from '@/lib/crm/sync'
 import type {
   CrmPersonRole, CrmLeadQuality, CrmWarmth,
   CrmIntroPathStrength, CrmIntroPathStatus, CrmResearchStance,
@@ -304,11 +305,11 @@ export async function logLinkedInMessage(personId: string) {
 }
 
 /** Inline edit from a list row or the record page. Writes a FIELD_CHANGED activity. */
-export async function updatePersonField(personId: string, field: 'leadQuality' | 'warmth' | 'title' | 'notes' | 'priority', value: string) {
+export async function updatePersonField(personId: string, field: 'leadQuality' | 'warmth' | 'title' | 'notes' | 'priority' | 'fullName', value: string) {
   const admin = await requireAdmin()
   const before = await prisma.crmPerson.findUnique({
     where: { id: personId },
-    select: { leadQuality: true, warmth: true, notes: true, priority: true },
+    select: { leadQuality: true, warmth: true, notes: true, priority: true, fullName: true },
   })
 
   if (field === 'title') {
@@ -323,6 +324,10 @@ export async function updatePersonField(personId: string, field: 'leadQuality' |
     await prisma.crmPerson.update({ where: { id: personId }, data: { warmth: value as CrmWarmth } })
   } else if (field === 'priority') {
     await prisma.crmPerson.update({ where: { id: personId }, data: { priority: value ? (value as CrmPriorityTier) : null } })
+  } else if (field === 'fullName') {
+    const name = value.trim()
+    if (!name) return
+    await prisma.crmPerson.update({ where: { id: personId }, data: { fullName: name } })
   } else {
     await prisma.crmPerson.update({ where: { id: personId }, data: { notes: value || null } })
   }
@@ -1654,4 +1659,202 @@ export async function bulkCompletion(formData: FormData): Promise<{ message: str
       ? `Applied ${applied}. Left ${noSuggestion} alone — no export suggestion to apply.`
       : `Applied ${applied}.`,
   }
+}
+
+/** Soft-deletes a single person — same product-account guard as the bulk action. */
+export async function deletePerson(personId: string): Promise<{ deleted: boolean; message: string }> {
+  const admin = await requireAdmin()
+  const p = await prisma.crmPerson.findUnique({
+    where: { id: personId },
+    select: { fullName: true, coachId: true, recruiterId: true, candidateId: true },
+  })
+  if (!p) return { deleted: false, message: 'Already gone.' }
+  if (p.coachId || p.recruiterId || p.candidateId) {
+    return { deleted: false, message: 'This record is tied to a product account and can’t be deleted here.' }
+  }
+  await prisma.crmPerson.update({ where: { id: personId }, data: { deletedAt: new Date() } })
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_deleted', { personId })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/needs-completion`)
+  return { deleted: true, message: `Deleted ${p.fullName}.` }
+}
+
+export interface CrmPersonSearchResult {
+  id: string
+  fullName: string
+  org: string | null
+  title: string | null
+}
+
+/** Name/email search for the merge-target picker — up to 8 candidates, self excluded. */
+export async function searchCrmPeopleByName(query: string, excludeId: string): Promise<CrmPersonSearchResult[]> {
+  await requireAdmin()
+  const q = query.trim()
+  if (q.length < 2) return []
+  const rows = await prisma.crmPerson.findMany({
+    where: {
+      id: { not: excludeId },
+      deletedAt: null,
+      OR: [
+        { fullName: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+      ],
+    },
+    take: 8,
+    orderBy: { fullName: 'asc' },
+    select: { id: true, fullName: true, affiliations: { take: 1, select: { title: true, org: { select: { name: true } } } } },
+  })
+  return rows.map((r) => ({ id: r.id, fullName: r.fullName, org: r.affiliations[0]?.org.name ?? null, title: r.affiliations[0]?.title ?? null }))
+}
+
+/**
+ * Merges one person record into another and soft-deletes the source.
+ *
+ * Several relations carry a unique constraint that includes personId
+ * (affiliation × org × title, research authorship × item, segment and
+ * broadcast membership) — repointing the source's rows straight at the
+ * target would violate those wherever the target already has a matching
+ * row, so each of those tables drops the source's duplicate first. Everything
+ * else reassigns directly since no personId-scoped uniqueness applies to it.
+ */
+export async function mergePersonIntoPerson(sourceId: string, targetId: string): Promise<{ message: string }> {
+  const admin = await requireAdmin()
+  if (sourceId === targetId) return { message: 'Nothing to merge — same record.' }
+
+  const [source, target] = await Promise.all([
+    prisma.crmPerson.findUniqueOrThrow({ where: { id: sourceId } }),
+    prisma.crmPerson.findUniqueOrThrow({ where: { id: targetId } }),
+  ])
+
+  await prisma.$transaction(async (tx) => {
+    const targetAffiliations = await tx.crmAffiliation.findMany({ where: { personId: targetId }, select: { orgId: true, title: true } })
+    for (const a of targetAffiliations) {
+      await tx.crmAffiliation.deleteMany({ where: { personId: sourceId, orgId: a.orgId, title: a.title } })
+    }
+    await tx.crmAffiliation.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+
+    await tx.crmActivity.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.crmTask.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.crmSourceRecord.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.crmResearchItem.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.productFeedback.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+
+    const targetAuthorItems = await tx.crmResearchAuthor.findMany({ where: { personId: targetId }, select: { itemId: true } })
+    for (const r of targetAuthorItems) {
+      await tx.crmResearchAuthor.deleteMany({ where: { personId: sourceId, itemId: r.itemId } })
+    }
+    await tx.crmResearchAuthor.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+
+    const targetSegments = await tx.crmSegmentMember.findMany({ where: { personId: targetId }, select: { segmentId: true } })
+    for (const s of targetSegments) {
+      await tx.crmSegmentMember.deleteMany({ where: { personId: sourceId, segmentId: s.segmentId } })
+    }
+    await tx.crmSegmentMember.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+
+    const targetBroadcasts = await tx.crmBroadcastRecipient.findMany({ where: { personId: targetId }, select: { broadcastId: true } })
+    for (const b of targetBroadcasts) {
+      await tx.crmBroadcastRecipient.deleteMany({ where: { personId: sourceId, broadcastId: b.broadcastId } })
+    }
+    await tx.crmBroadcastRecipient.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+
+    // A suggestion that was previously promoted into the source should point
+    // at the surviving record, or accepting it again would recreate the
+    // person this merge just folded away.
+    await tx.crmSuggestedContact.updateMany({ where: { createdPersonId: sourceId }, data: { createdPersonId: targetId } })
+
+    // Fill only what the target is missing — an explicit merge target's own
+    // data always wins over the record being absorbed into it.
+    await tx.crmPerson.update({
+      where: { id: targetId },
+      data: {
+        email: target.email ?? source.email,
+        emails: Array.from(new Set([...target.emails, ...source.emails])),
+        phone: target.phone ?? source.phone,
+        linkedinSlug: target.linkedinSlug ?? source.linkedinSlug,
+        linkedinUrl: target.linkedinUrl ?? source.linkedinUrl,
+        notes: target.notes ?? source.notes,
+        connectedAt: target.connectedAt ?? source.connectedAt,
+      },
+    })
+
+    // Free the slug for reuse and soft-delete — @unique on linkedinSlug would
+    // otherwise block it from ever matching anything again.
+    await tx.crmPerson.update({ where: { id: sourceId }, data: { deletedAt: new Date(), linkedinSlug: null } })
+  })
+
+  await refreshTouchFields([targetId])
+  captureServerEvent(admin.email ?? 'admin', 'crm_person_merged', { sourceId, targetId })
+  revalidatePath(CRM)
+  revalidatePath(`${CRM}/needs-completion`)
+  return { message: `Merged ${source.fullName} into ${target.fullName}.` }
+}
+
+export interface DuplicateMergeReport {
+  groups: number
+  merged: number
+}
+
+/**
+ * Merges exact-duplicate people with no per-pair confirmation.
+ *
+ * Two signals count as "exact" here, both already the same bar this app uses
+ * elsewhere: a shared normalized email, or a shared normalizedKey (name +
+ * primary org, computed once at creation — see nameKeyOf above and
+ * resolveInput's own ambiguity check, which treats this identical
+ * combination as "probably the same person"). Requiring a click per pair for
+ * a decision the app already makes once at creation time is just busywork,
+ * so this runs the whole batch behind one confirmation instead of many —
+ * still explicit, per design-principles.md, just not per-row.
+ *
+ * Runs email-based groups first, then re-reads before the name+org pass, so
+ * a person duplicated under both signals is never merged into two different
+ * "winners" in the same run.
+ */
+export async function autoMergeExactDuplicates(): Promise<DuplicateMergeReport> {
+  const admin = await requireAdmin()
+  let groups = 0
+  let merged = 0
+
+  for (const keyOf of [
+    (p: { email: string | null }) => (p.email ? `email:${p.email.toLowerCase()}` : null),
+    (p: { normalizedKey: string | null }) => (p.normalizedKey ? `name:${p.normalizedKey}` : null),
+  ]) {
+    const people = await prisma.crmPerson.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true, email: true, normalizedKey: true, createdAt: true,
+        _count: { select: { activities: true, affiliations: true } },
+      },
+    })
+    const byKey = new Map<string, typeof people>()
+    for (const p of people) {
+      const key = keyOf(p)
+      if (!key) continue
+      const arr = byKey.get(key) ?? []
+      arr.push(p)
+      byKey.set(key, arr)
+    }
+
+    for (const cluster of byKey.values()) {
+      if (cluster.length < 2) continue
+      groups++
+      // Richest record wins: most recorded activity, then oldest (the
+      // longest-standing record is more likely to be the one other things
+      // already point at).
+      const [target, ...rest] = [...cluster].sort((a, b) => {
+        const scoreA = a._count.activities + a._count.affiliations
+        const scoreB = b._count.activities + b._count.affiliations
+        if (scoreA !== scoreB) return scoreB - scoreA
+        return a.createdAt.getTime() - b.createdAt.getTime()
+      })
+      for (const loser of rest) {
+        await mergePersonIntoPerson(loser.id, target.id)
+        merged++
+      }
+    }
+  }
+
+  captureServerEvent(admin.email ?? 'admin', 'crm_auto_merge_duplicates', { groups, merged })
+  revalidatePath(CRM)
+  return { groups, merged }
 }

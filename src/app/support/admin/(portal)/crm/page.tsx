@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { CrmQuickAdd } from '@/components/admin/CrmQuickAdd'
+import { CrmAutoMergeButton } from '@/components/admin/CrmAutoMergeButton'
 import { CrmBulkBar } from '@/components/admin/CrmBulkBar'
 import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
@@ -173,7 +174,10 @@ export default async function CrmPeoplePage({
         </nav>
       </header>
 
-      <CrmQuickAdd />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <CrmQuickAdd />
+        <CrmAutoMergeButton />
+      </div>
 
       <AdminFilterBar
         basePath="/support/admin/crm"

@@ -68,7 +68,7 @@ export async function buildSweepContext(selfEmail: string | null): Promise<Sweep
 }
 
 /** Recomputes the derived touch fields from the activity log. */
-async function refreshTouchFields(personIds: string[]) {
+export async function refreshTouchFields(personIds: string[]) {
   for (const personId of personIds) {
     const [agg, first, firstInbound] = await Promise.all([
       prisma.crmActivity.aggregate({
