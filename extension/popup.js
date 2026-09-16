@@ -101,8 +101,17 @@ async function readPage() {
         while (sib && lines.length < maxLines) {
           const t = (sib.matches('p') ? sib.textContent : sib.querySelector('p')?.textContent || '').trim()
           // "· 1st" / "· 2nd" connection-degree badges sit in the same spot;
-          // skip them rather than mistaking one for the headline.
-          if (t && !t.startsWith('·') && !lines.includes(t)) lines.push(t)
+          // skip them rather than mistaking one for the headline. Some
+          // profiles also show a pronoun badge ("He/Him", "She/Her",
+          // "They/Them", ...) right next to the name — same problem: left
+          // unfiltered, it eats the headline's slot and shifts every field
+          // after it by one (title becomes "He/Him", company becomes the
+          // real headline, location becomes the company line). Matched
+          // generically as bare "word/word" rather than a hardcoded list,
+          // since real headline/company/location text always has spaces or
+          // punctuation this exact shape doesn't.
+          const isPronounBadge = /^[a-z]{1,12}\/[a-z]{1,12}(\/[a-z]{1,12})?$/i.test(t)
+          if (t && !t.startsWith('·') && !isPronounBadge && !lines.includes(t)) lines.push(t)
           sib = sib.nextElementSibling
         }
         node = node.parentElement
