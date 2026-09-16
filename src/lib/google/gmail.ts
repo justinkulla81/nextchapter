@@ -137,7 +137,7 @@ export async function listMessagesSince(
     url.searchParams.set('maxResults', String(Math.min(100, max - ids.length)))
     if (pageToken) url.searchParams.set('pageToken', pageToken)
 
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    const res = await fetchWithRetry(url, accessToken)
     if (!res.ok) throw new Error(`Gmail list failed: ${res.status}`)
     const data = (await res.json()) as { messages?: { id: string }[]; nextPageToken?: string }
     for (const m of data.messages ?? []) ids.push(m.id)
@@ -156,6 +156,24 @@ export async function listMessagesSince(
  * stores. Asking for `full` and then discarding the body would put whole
  * message bodies in memory and in transit for no benefit.
  */
+/**
+ * A thousands-of-messages backfill runs long enough to hit real transient
+ * 429/5xx responses from Gmail — a single failed fetch silently vanishing an
+ * otherwise-real message from the sweep (confirmed: refetching one by hand
+ * afterward succeeded on the first try). Retries those with backoff; a 4xx
+ * that isn't a rate limit (404, permission) means the message itself is
+ * gone or unreachable, so that still fails fast with no retry.
+ */
+async function fetchWithRetry(url: URL, accessToken: string, attempts = 4): Promise<Response> {
+  let res: Response | null = null
+  for (let i = 0; i < attempts; i++) {
+    res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (res.ok || (res.status !== 429 && res.status < 500)) return res
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 500 * 2 ** i))
+  }
+  return res!
+}
+
 export async function getMessageHeaders(
   accessToken: string,
   id: string
@@ -164,7 +182,7 @@ export async function getMessageHeaders(
   url.searchParams.set('format', 'metadata')
   for (const h of ['From', 'To', 'Cc', 'Subject', 'Date']) url.searchParams.append('metadataHeaders', h)
 
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  const res = await fetchWithRetry(url, accessToken)
   if (!res.ok) return null
   const data = (await res.json()) as {
     id: string
